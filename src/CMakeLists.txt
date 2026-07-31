@@ -23,6 +23,9 @@ target_link_libraries(denkzettelcapture PUBLIC
 )
 
 add_library(denkzettelui STATIC
+    ui/elidedlines.cpp
+    ui/notelistdelegate.cpp
+    ui/notelistmodel.cpp
     ui/timestampformat.cpp
 )
 
