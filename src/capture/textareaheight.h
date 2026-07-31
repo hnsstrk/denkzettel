@@ -3,8 +3,8 @@
 namespace capture
 {
 
-/** The text area rests at three lines and stops growing at eight (SPEC 3). */
-inline constexpr int MinTextLines = 3;
+/** The text area rests at five lines and stops growing at eight (SPEC 3). */
+inline constexpr int MinTextLines = 5;
 inline constexpr int MaxTextLines = 8;
 
 /**
