@@ -23,8 +23,11 @@ public:
 
     /**
      * Registers Meta+N and returns the components that already hold the
-     * sequence. Registration happens either way: SPEC 2.4 asks for visibility,
+     * sequence. Registration happens even then: SPEC 2.4 asks for visibility,
      * not for giving up, and the tray entry keeps working regardless.
+     *
+     * A registration that fails outright is reported here and yields an empty
+     * list — there is no shortcut left to be in conflict with.
      */
     QList<ShortcutOwner> registerCaptureShortcut();
 

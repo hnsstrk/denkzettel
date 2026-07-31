@@ -62,7 +62,16 @@ QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
 
     // Autoloading restores a sequence the user changed in the Plasma settings
     // and only stores ours on the very first registration (SPEC 2.4).
-    KGlobalAccel::setGlobalShortcut(m_captureAction, sequence);
+    if (!KGlobalAccel::setGlobalShortcut(m_captureAction, sequence)) {
+        // Unlike a conflict this leaves no shortcut at all, so it is reported
+        // at every start rather than on the first one only.
+        qWarning("Registering Meta+N failed; the capture window has no global shortcut.");
+        KNotification::event(KNotification::Error,
+                             i18n("Kürzel nicht eingerichtet"),
+                             i18n("Meta+N ließ sich nicht registrieren. Das Capture-Fenster "
+                                  "bleibt über das Symbol im Systemabschnitt erreichbar."));
+        return {};
+    }
 
     return foreignShortcutOwners(owners, componentName());
 }
