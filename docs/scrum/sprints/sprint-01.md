@@ -280,10 +280,15 @@ KWin-Regel, ist das ein Fall „needs a human" (Meldung an PO und Kunden, nicht
 weiterprobieren).
 
 **I3 — Arbeitsmuster „Agent meldet sich untätig statt Bericht zu liefern"
-(für die Retro vorgemerkt).** Während der Schätzklausur dreimal aufgetreten.
-Wirkung auf den Prozess: Der PO musste nachfassen, die Klausur verzögerte sich.
-Evidenz für die erste Retro nach Sprint 3 gesammelt; eine Prozess- oder
-Agenten-Änderung wird dort vorgeschlagen, nicht vorab.
+(für die Retro vorgemerkt).** Stand Sprint-Ende: **sechs Fälle** — drei
+während der Schätzklausur, dazu alle vier Umsetzungsläufe des Sprints
+(Dev- und SM-Läufe), die trotz ausdrücklicher Berichtsauflage im Auftrag
+untätig endeten. Wirkung auf den Prozess: Der PO musste jedes Mal nachfassen;
+die Ergebnisse waren vorhanden, nur nicht gemeldet. Das Muster ist damit
+nicht mehr Einzelfall, sondern die Regel — und es trifft ausgerechnet die
+Meldewege, auf denen die Loop-Konventionen bestehen („Melden, nicht
+heilen"). Evidenz für die erste Retro nach Sprint 3 gesammelt; eine
+Prozess- oder Agenten-Änderung wird dort vorgeschlagen, nicht vorab.
 
 **I4 — Automatisierte Prüfbarkeit der UI-lastigen Stories (bekannt, ohne
 Gegenmaßnahme).** S3, S13b, S20a und S20b entziehen sich weitgehend
@@ -327,15 +332,164 @@ vermutet.
 Sprint startet erst nach dessen Freigabe (Freigabemodell PROZESS.md,
 Kundenentscheidung 31.07.2026).
 
-## 8. done / next
+## 8. Sprint-Review (Vorbereitung)
 
-**done:** Zwei unabhängige Schätzungen über 28 Stories konsolidiert (41 Stories
-und 136 SP nach Neuschnitt); sieben Entscheidungsfälle begründet; acht 8er/13er
-in 15 kleinere Stories geteilt; S19 aufgelöst, S8 bewusst erhalten; sieben
-Vorbedingungs-Stories ergänzt; vier Impediments erfasst; Sprint-1-Vorschlag mit
-13 SP formuliert.
-**next:** PO legt die GitHub-Issues an (inkl. der neuen IDs und der
-AK-Korrekturen aus Abschnitt 5), holt die Kundenfreigabe für Sprint 1 und
-zieht die vier Stories in den Milestone `Sprint 1`. Danach: Umsetzung
-beginnend mit T1; bei negativem Spike-Befund Neuschätzung von S3 vor
-Weiterarbeit.
+**Geprüft am:** 2026-07-31, 20:49–20:55 (Ganymed) durch den Scrum Master.
+**Prüfgrundlage:** eigener Build und Testlauf, Commit-Inhalte, Quellcode,
+Issue-Stände und ein Laufzeittest gegen den Session-Bus — nicht die Meldungen
+des Product Owners. Alle Belege sind unten benannt und wiederholbar.
+
+### 8.1 Prüfbelege
+
+- **Frischer Build** (`cmake -S . -B <tmp>`, `cmake --build -j8`, Debug):
+  Exit 0, **null Warnungen**. Die Warnstufe ist real: KDECompilerSettings
+  setzt unter anderem `-Wall -Wextra -pedantic -Wsuggest-override
+  -Wzero-as-null-pointer-constant -Werror=return-type`.
+- **Tests** (`ctest`): 3 von 3 grün, im frischen wie im vorhandenen Build.
+  Zwei davon sind projekteigen — `storetest` (8 Testfunktionen, 65
+  Zusicherungen, gegen echte SQLite-Tempfiles) und `capturetest` (7
+  Testfunktionen, 33 Zusicherungen, `QT_QPA_PLATFORM=offscreen`). Der dritte,
+  `appstreamtest`, stammt aus ECM (`KDECMakeSettings.cmake`), prüft eine
+  AppStream-Datei gegen ein nicht vorhandenes Installationsmanifest und läuft
+  in 0,00 s durch — er ist kein Nachweis für Projektcode.
+- **Laufzeittest S1**: `denkzetteld` gestartet, `busctl --user list` zeigt
+  **`org.denkzettel.Daemon`**; die Introspektion von `/Daemon` weist die
+  Methode `ShowCapture` aus; ein zweiter Start beendet sich mit Exit 0, ohne
+  einen zweiten Prozess zu hinterlassen (Einzelinstanz belegt). Beide Läufe
+  ohne Warnung oder Fehlerausgabe.
+- **Codeprüfung**: Lösch-Transaktion (`src/store/store.cpp`, Zeilen 318–368)
+  mit Rollback in jedem Fehlerzweig, Audio-Datei nach dem Commit und die
+  Bruchstelle DB/Dateisystem im Code begründet; Migrationen transaktional mit
+  Schemaversion in `meta`; Capture-Fenster mit Platzhalter, Fußzeile,
+  `ScrollBarAsNeeded` und ohne jede Fokusverlust-Behandlung (Fenster bleibt
+  also stehen — AK erfüllt durch Abwesenheit).
+
+### 8.2 DoD-Matrix
+
+Die sechs Punkte aus PROZESS.md, je Story.
+
+| DoD | T1 (#1) | S1 (#2) | S2 (#3) | S3 (#4) |
+|---|---|---|---|---|
+| 1 Build warnungsarm, Tests grün | entfällt | erfüllt¹ | erfüllt | erfüllt |
+| 2 AK erfüllt, PO-Abnahme | erfüllt | erfüllt² | erfüllt | **offen**³ |
+| 3 karpathy-reviewer ohne `fail` | läuft⁴ | läuft | läuft | läuft |
+| 4 SPEC/KONZEPT nachgezogen | erfüllt | **offen**⁵ | entfällt⁶ | **offen**⁵ |
+| 5 Commit + Issue geschlossen | erfüllt | **offen**⁷ | **offen**⁷ | **offen**⁷ |
+| 6 Journal-Eintrag der Session | **offen**⁸ | **offen**⁸ | **offen**⁸ | **offen**⁸ |
+
+¹ S1 bringt keine eigenen automatisierten Tests mit. Tray und Einzelinstanz
+sind ohne Compositor- und Bus-Fixture nicht sinnvoll unit-testbar; der
+Nachweis wurde stattdessen am laufenden Prozess geführt (8.1). Begründete
+Abweichung vom Wortlaut, kein Mangel.
+
+² Alle drei AK belegt; die Sichtprüfung des Tray-Menüs gehört auf die
+manuelle Checkliste (8.3).
+
+³ Codeseitig sind alle vier AK belegt, die Sichtprüfung am echten Compositor
+steht aus — Fokus beim Zeigen, Platzierung, Scrollbalken jenseits acht Zeilen,
+Fenster bleibt bei Fokusverlust. Genau die Punkte, die I4 vorhergesagt hat.
+
+⁴ Der Spike-Prototyp ist ungetrackt und nicht Teil des Sprint-Diffs; im Review
+liegen nur die aus T1 abgeleiteten SPEC-Änderungen.
+
+⁵ Mangel M2 (8.4).
+
+⁶ Die Schema-Reduktion ist Planning-Entscheidung E2 und ändert den Bauzeitpunkt,
+nicht das Zielschema aus SPEC 5.1 — kein Nachzug fällig.
+
+⁷ Mangel M1 (8.4).
+
+⁸ Mangel M3 (8.4).
+
+### 8.3 Offene Punkte fürs Kunden-Review
+
+1. **Manuelle Sichtprüfung des Capture-Wegs** (SPEC 16, Checkliste M1): Fenster
+   über den Tray-Eintrag „Capture öffnen" zeigen — erscheint es zentriert, hat
+   es sofort den Tastaturfokus, wächst es bis acht Zeilen und bekommt dann
+   einen Scrollbalken, bleibt es bei einem Klick daneben stehen, speichert
+   Strg+Enter und verwirft Esc? Ohne diese Prüfung bleibt DoD 2 für S3 offen;
+   sie lässt sich nicht automatisieren (I4).
+2. **Schicksal des Spike-Codes**: `spike/t1-wayland-fokus/` liegt ungetrackt im
+   Arbeitsbaum (nur `CMakeLists.txt` und `main.cpp`; Build-Artefakte greift die
+   `.gitignore`). Der Befund ist in Issue #1 und in SPEC 3 gesichert, der Code
+   selbst ist Wegwerf-Material. Empfehlung des Scrum Masters: **verwerfen** —
+   sein Wissen ist bereits an zwei dauerhaften Orten, ein mitgeschleppter
+   Prototyp ohne Test und ohne Pflegeauftrag wird zur Altlast. Entscheidung
+   liegt beim Kunden.
+3. **Neuschätzung S4 auf 3 SP fürs Sprint-2-Planning**: Der T1-Nachtrag in
+   Issue #5 belegt beide Richtungen — der Token- und Zeitstempel-Aufwand
+   entfällt ersatzlos (KGlobalAccel liefert kein Token), dafür kommt die
+   Konflikterkennung als neues AK hinzu (SPEC 2.4). Der Wayland-Aufschlag aus
+   Entscheidung E7 ist damit aufgelöst; der Scrum Master schlägt **3 SP** vor
+   und legt sie dem Sprint-2-Planning zur Bestätigung vor.
+
+### 8.4 Mängel
+
+**M1 — Drei Issues sind trotz fertiger Umsetzung offen (DoD 5).** #2, #3 und #4
+stehen auf `OPEN`. Die Commits verweisen sauber (`Refs #2/#3/#4`), aber die
+Gegenrichtung fehlt: kein Abschlusskommentar mit Commit-Hash, kein
+geschlossener Vorgang. Damit ist von GitHub aus nicht erkennbar, dass die
+Stories fertig sind. Behebung durch den PO nach der Sichtprüfung aus 8.3 —
+der Scrum Master schließt keine Issues (Melden, nicht heilen).
+
+**M2 — SPEC 15 nennt zwei benutzte Abhängigkeiten nicht (DoD 4).** Der Build
+verlangt inzwischen **Qt6 DBus** (seit `1dbfc39`, S3) und **KF6 DBusAddons**
+(seit `e97e35f`, S1, für `KDBusService`); die Abhängigkeitsliste in SPEC 15
+führt beide nicht. Ohne sie ist die D-Bus-Schnittstelle aus SPEC 2.3 nicht
+baubar, und dieselbe Liste ist später die Grundlage des PKGBUILD (S28) — eine
+Lücke, die dort teuer wird. Zwei Wörter Nachtrag, PO-Aufgabe.
+
+**M3 — Kein Journal-Eintrag zur Umsetzungssitzung (DoD 6).** Das Daily
+`2026-07-31.md` enthält einen Eintrag zur Planungssitzung (19:59), aber
+keinen zu Spike und Umsetzung; die Datei wurde zuletzt um 20:23 geschrieben,
+die Sprint-Commits entstanden zwischen 20:21 und 20:49. Die globale
+Protokollpflicht ist damit für diese Sitzung nicht erfüllt. PO-Aufgabe vor
+Sprint-Abschluss.
+
+### 8.5 Sprint-Ziel
+
+**Erreicht, vorbehaltlich der Sichtprüfung.** Das Ziel lautete: „Ein getippter
+Gedanke landet über das rahmenlose Capture-Fenster in der Datenbank — und der
+Wayland-Fokusweg ist belegt statt vermutet." Der Fokusweg ist gemessen statt
+vermutet, und zwar mit einem widerlegten Kandidaten (XDG-Activation-Token) und
+einem tragenden (Neu-Mappen) — mehr, als der Spike liefern musste. Der
+Speicherweg ist automatisiert belegt, der Sichtweg noch nicht. Alle 13
+Story Points des Sprints sind inhaltlich abgearbeitet.
+
+### 8.6 Ergebnis des karpathy-reviewers (Nachtrag PO, 21:05)
+
+Code-Review über `ffbf3d1..3d54f43`, Methodik: vollständige Lektüre, frischer
+Build, Testlauf und **zwei Mutationstests** (beide Tests beißen nachweislich).
+Gesamt-Verdict zum geprüften Stand: fail, mit zwei Befunden — beide behoben:
+
+1. **Schema-Vorgriff** (drei notes-Spalten in Migration 1 statt M2, gegen
+   Planning E2/E3): Ursache war die Auftragsformulierung des PO, nicht der
+   Entwickler. Per Reviewer-Option b geheilt — Begründung als Kommentar in
+   Issue #3, E3-Satz „kommt mit dem M2-Schemaschritt" gilt als überholt.
+2. **Fehlende Einzelinstanz-Weiterleitung** (SPEC 2.3: Zweitstart →
+   ShowCapture): `activateRequested`-Verbindung in `src/main.cpp` ergänzt,
+   Build 0 Warnungen, 3/3 Tests grün.
+
+Der dritte Reviewer-Fund (SPEC 15 ohne Qt6 DBus/KDBusAddons) war
+deckungsgleich mit Mangel M2 und bereits behoben. Der optionale
+Politur-Hinweis (Remap-Flackern bei bereits fokussiertem Fenster) wurde
+bewusst nicht umgesetzt (kein funktionaler Fehler, Randfall).
+Positivbefunde des Reviewers: Lösch-Transaktion und Fokus-Mechanik präzise
+nach SPEC, Tests scharf (Mutationstest), Modulgrenzen sauber, i18n
+vollständig. **DoD-Punkt 3 ist damit für alle vier Stories erfüllt** —
+keine offenen fail-Befunde.
+
+## 9. done / next
+
+**done:** Planning konsolidiert (41 Stories, 136 SP, sieben Entscheidungsfälle,
+sieben ergänzte Vorbedingungs-Stories); Sprint 1 mit 13 SP freigegeben und
+umgesetzt (T1, S1, S2, S3); DoD-Prüfung gegen Build, Tests, Code, Issue-Stände
+und einen Laufzeittest durchgeführt — 0 Warnungen, 3/3 Tests grün,
+`org.denkzettel.Daemon` und Einzelinstanz am laufenden Prozess belegt; drei
+Mängel (M1–M3) und drei offene Review-Punkte benannt; Impediment I3 auf sechs
+Fälle fortgeschrieben.
+**next:** Kunde führt die manuelle Sichtprüfung des Capture-Wegs durch und
+entscheidet über den Spike-Code; PO behebt M1–M3 (Issues #2–#4 schließen,
+SPEC 15 um Qt6 DBus und KF6 DBusAddons ergänzen, Journal-Eintrag schreiben)
+und trägt das Ergebnis des karpathy-reviewers hier nach. Danach
+Sprint-2-Planning mit S4 (Neuschätzung 3 SP) und T2.
