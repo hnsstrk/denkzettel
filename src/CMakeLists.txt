@@ -24,6 +24,7 @@ target_link_libraries(denkzettelcapture PUBLIC
 
 add_executable(denkzetteld
     main.cpp
+    resources.qrc
     shell/daemonservice.cpp
     shell/trayicon.cpp
 )

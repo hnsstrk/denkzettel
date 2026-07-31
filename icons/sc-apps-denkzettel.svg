@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Denkzettel app icon, variant "Gedankenzettel" (issue #43): a thought
+       bubble lands on the sheet and turns into text below. Breeze 48px grid. -->
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef0f1"/>
+    </linearGradient>
+    <linearGradient id="thought" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3daee9"/>
+      <stop offset="1" stop-color="#2980b9"/>
+    </linearGradient>
+  </defs>
+  <path d="M12 4 H29 L38 13 V42 A2 2 0 0 1 36 44 H12 A2 2 0 0 1 10 42 V6 A2 2 0 0 1 12 4 Z"
+        fill="url(#paper)" stroke="#b9bfc4" stroke-width="0.5"/>
+  <path d="M29 4 L38 13 H31 A2 2 0 0 1 29 11 Z" fill="#d6dade"/>
+  <g fill="url(#thought)">
+    <circle cx="22" cy="18" r="6"/>
+    <circle cx="28" cy="20" r="4.5"/>
+    <circle cx="16.5" cy="20.5" r="4"/>
+    <circle cx="14.5" cy="27.5" r="2.2"/>
+    <circle cx="13" cy="31.8" r="1.3"/>
+  </g>
+  <rect x="14" y="33.5" width="20" height="2.6" rx="1.3" fill="#b8bec3"/>
+  <rect x="14" y="38.2" width="14" height="2.6" rx="1.3" fill="#b8bec3"/>
+</svg>
