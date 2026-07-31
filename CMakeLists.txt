@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Widgets)
+find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Widgets Sql)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     DBusAddons
     I18n
@@ -25,5 +25,10 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
 )
 
 add_subdirectory(src)
+
+if(BUILD_TESTING)
+    find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Test)
+    add_subdirectory(tests)
+endif()
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
