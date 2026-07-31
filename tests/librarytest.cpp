@@ -1,14 +1,20 @@
 #include "store/store.h"
 #include "ui/elidedlines.h"
+#include "ui/librarywindow.h"
 #include "ui/notelistmodel.h"
 #include "ui/pendingdeletion.h"
 #include "ui/timestampformat.h"
 
+#include <QAction>
 #include <QFontMetrics>
+#include <QLabel>
+#include <QListView>
 #include <QLocale>
 #include <QSignalSpy>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTextBrowser>
 
 #include <memory>
 
@@ -22,6 +28,7 @@ class LibraryTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void init();
     void cleanup();
 
@@ -45,6 +52,16 @@ private Q_SLOTS:
     void carriesOutTheFirstDeletionWhenASecondArrives();
     void carriesOutThePendingDeletionOnFlush();
 
+    void showsOnlyTheListPlaceholderWhenNothingIsStored();
+    void asksForASelectionWhileNothingIsSelected();
+    void readsTheSelectedNote();
+    void movesTheSelectionToTheFollowingNote();
+    void movesTheSelectionBackwardsAfterTheLastNote();
+    void fallsBackToTheEmptyStateAfterTheLastNoteIsDeleted();
+    void carriesOutTheDeletionWhenTheWindowCloses();
+    void walksTheListWithTheArrowKeys();
+    void undoesTheDeletionByKeyboard();
+
 private:
     static QDateTime at(const QString &isoDateTime);
     static QLocale german();
@@ -53,12 +70,26 @@ private:
     /** Width of ten wide characters — enough for a few words, not for many. */
     static int narrowWidth();
 
-    /** A store on a temporary file, plus the id of one note in it. */
+    /** Adds a note to the store; the first one added is the newest. */
     qint64 storedNote(const QString &content);
+
+    /** Texts of the labels the window shows right now. */
+    static QStringList visibleLabels(const QWidget &window);
+
+    static QListView *listOf(const QWidget &window);
+    static QAction *actionNamed(const QWidget &window, const QString &text);
 
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
+    int m_storedNotes = 0;
 };
+
+void LibraryTest::initTestCase()
+{
+    // The window stores its size through KSharedConfig. Without the test mode
+    // that write would land in the user's denkzettelrc.
+    QStandardPaths::setTestModeEnabled(true);
+}
 
 void LibraryTest::init()
 {
@@ -67,6 +98,8 @@ void LibraryTest::init()
 
     m_store = std::make_unique<Store>(m_dir->filePath(QStringLiteral("denkzettel.db")));
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+
+    m_storedNotes = 0;
 }
 
 void LibraryTest::cleanup()
@@ -220,9 +253,44 @@ void LibraryTest::takesAndReinsertsARow()
 
 qint64 LibraryTest::storedNote(const QString &content)
 {
-    const std::optional<qint64> id = m_store->addNote(noteWith(content));
+    Note note = noteWith(content);
+    // Each note a second older than the one before it, so the list order is
+    // the order the notes were added in.
+    note.createdAt = note.createdAt.addSecs(-m_storedNotes++);
+
+    const std::optional<qint64> id = m_store->addNote(note);
     Q_ASSERT(id.has_value());
     return *id;
+}
+
+QStringList LibraryTest::visibleLabels(const QWidget &window)
+{
+    QStringList texts;
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (const QLabel *label : labels) {
+        if (label->isVisible() && !label->text().isEmpty()) {
+            texts.append(label->text());
+        }
+    }
+    return texts;
+}
+
+QListView *LibraryTest::listOf(const QWidget &window)
+{
+    QListView *list = window.findChild<QListView *>();
+    Q_ASSERT(list);
+    return list;
+}
+
+QAction *LibraryTest::actionNamed(const QWidget &window, const QString &text)
+{
+    const QList<QAction *> actions = window.actions();
+    for (QAction *action : actions) {
+        if (action->text() == text) {
+            return action;
+        }
+    }
+    return nullptr;
 }
 
 void LibraryTest::keepsTheGracePeriodOfFiveSeconds()
@@ -335,6 +403,183 @@ void LibraryTest::carriesOutThePendingDeletionOnFlush()
     // Flushing with nothing pending is a no-op, not a second deletion.
     deletion.flush();
     QCOMPARE(committed.size(), 1);
+}
+
+void LibraryTest::showsOnlyTheListPlaceholderWhenNothingIsStored()
+{
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QStringList visible = visibleLabels(window);
+
+    QVERIFY2(visible.contains(QStringLiteral("Noch keine Notizen")), qPrintable(visible.join(QLatin1Char('|'))));
+    QVERIFY(visible.contains(QStringLiteral("Mit Meta+N einen Gedanken festhalten.")));
+
+    // Wireframe 2c: an empty window must not say the same thing twice.
+    QVERIFY2(!visible.contains(QStringLiteral("Keine Notiz ausgewählt")),
+             qPrintable(visible.join(QLatin1Char('|'))));
+    QVERIFY(!listOf(window)->isVisible());
+}
+
+void LibraryTest::asksForASelectionWhileNothingIsSelected()
+{
+    storedNote(QStringLiteral("etwas Gedachtes"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QStringList visible = visibleLabels(window);
+
+    QVERIFY2(visible.contains(QStringLiteral("Keine Notiz ausgewählt")), qPrintable(visible.join(QLatin1Char('|'))));
+    QVERIFY(visible.contains(QStringLiteral("Zum Lesen links eine Notiz auswählen.")));
+    QVERIFY(!visible.contains(QStringLiteral("Noch keine Notizen")));
+    QVERIFY(listOf(window)->isVisible());
+}
+
+void LibraryTest::readsTheSelectedNote()
+{
+    storedNote(QStringLiteral("die neuere Notiz"));
+    storedNote(QStringLiteral("die ältere Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(1, 0));
+
+    auto *reader = window.findChild<QTextBrowser *>();
+    QVERIFY(reader);
+    QVERIFY(reader->isVisible());
+    QCOMPARE(reader->toPlainText(), QStringLiteral("die ältere Notiz"));
+    QVERIFY(!visibleLabels(window).contains(QStringLiteral("Keine Notiz ausgewählt")));
+}
+
+void LibraryTest::movesTheSelectionToTheFollowingNote()
+{
+    storedNote(QStringLiteral("eins"));
+    storedNote(QStringLiteral("zwei"));
+    storedNote(QStringLiteral("drei"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(1, 0));
+    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+
+    QCOMPARE(list->model()->rowCount(), 2);
+    QCOMPARE(list->currentIndex().row(), 1);
+    QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("drei"));
+}
+
+void LibraryTest::movesTheSelectionBackwardsAfterTheLastNote()
+{
+    storedNote(QStringLiteral("eins"));
+    storedNote(QStringLiteral("zwei"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(1, 0));
+    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+
+    // No following entry, so the preceding one takes the selection.
+    QCOMPARE(list->currentIndex().row(), 0);
+    QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("eins"));
+}
+
+void LibraryTest::fallsBackToTheEmptyStateAfterTheLastNoteIsDeleted()
+{
+    storedNote(QStringLiteral("die einzige Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+
+    const QStringList visible = visibleLabels(window);
+    QVERIFY2(visible.contains(QStringLiteral("Noch keine Notizen")), qPrintable(visible.join(QLatin1Char('|'))));
+    QVERIFY(!visible.contains(QStringLiteral("Keine Notiz ausgewählt")));
+}
+
+void LibraryTest::carriesOutTheDeletionWhenTheWindowCloses()
+{
+    const qint64 id = storedNote(QStringLiteral("beim Schließen weg"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+
+    // The grace period is still running, the note is still in the store.
+    QVERIFY(m_store->note(id).has_value());
+
+    window.close();
+
+    QVERIFY(!m_store->note(id).has_value());
+}
+
+void LibraryTest::walksTheListWithTheArrowKeys()
+{
+    storedNote(QStringLiteral("die neuere Notiz"));
+    storedNote(QStringLiteral("die ältere Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    QVERIFY(!list->currentIndex().isValid());
+
+    // The first key press has to land on the first entry, not skip past it.
+    QTest::keyClick(list, Qt::Key_Down);
+    QCOMPARE(list->currentIndex().row(), 0);
+
+    auto *reader = window.findChild<QTextBrowser *>();
+    QVERIFY(reader);
+    QCOMPARE(reader->toPlainText(), QStringLiteral("die neuere Notiz"));
+
+    QTest::keyClick(list, Qt::Key_Down);
+    QCOMPARE(list->currentIndex().row(), 1);
+    QCOMPARE(reader->toPlainText(), QStringLiteral("die ältere Notiz"));
+
+    QTest::keyClick(list, Qt::Key_Up);
+    QCOMPARE(list->currentIndex().row(), 0);
+}
+
+void LibraryTest::undoesTheDeletionByKeyboard()
+{
+    const qint64 id = storedNote(QStringLiteral("kommt zurück"));
+    storedNote(QStringLiteral("bleibt sowieso"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+    QCOMPARE(list->model()->rowCount(), 1);
+
+    QTest::keyClick(&window, Qt::Key_Z, Qt::ControlModifier);
+
+    // The note is back in its old place and selected again.
+    QCOMPARE(list->model()->rowCount(), 2);
+    QCOMPARE(list->currentIndex().row(), 0);
+    QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("kommt zurück"));
+    QVERIFY(m_store->note(id).has_value());
 }
 
 QTEST_MAIN(LibraryTest)
