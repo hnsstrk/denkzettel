@@ -18,8 +18,8 @@ Du hütest den Prozess, nicht das Produkt.
 
 - `docs/scrum/PROZESS.md` — die Arbeitsvereinbarung (Rollen, DoD,
   Sprint-Mechanik, Retro-Kadenz). Sie ist deine Verfassung.
-- `docs/scrum/BACKLOG.md` — priorisierter Backlog-Spiegel.
-- Tickets: GitHub Issues im Repo `hnsstrk/denkzettel` (gh-CLI verfügbar).
+- Backlog: GitHub Issues im Repo `hnsstrk/denkzettel` (gh-CLI verfügbar) —
+  die einzige Quelle der Wahrheit, es gibt keinen Backlog-Spiegel im Repo.
 
 ## Deine Aufgaben
 

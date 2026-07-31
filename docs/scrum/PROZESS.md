@@ -11,17 +11,22 @@ Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven.
 | **Product Owner** | Claude (Haupt-Session) | Backlog-Inhalt und -Priorisierung, Story-Schnitt, Akzeptanzkriterien, Abnahme der Stories, Kundenkontakt |
 | **Scrum Master** | Agent `scrum-master` | Prozesshüter: moderiert Schätzung, schlägt Sprint-Schnitt vor, wacht über Definition of Done, moderiert Retrospektiven, pflegt Prozess-Doku, meldet Impediments |
 | **Entwickler** | Agenten `denkzettel-dev` (je Sprint gespawnt) | Umsetzung der Stories nach Spec, Tests, technische Entscheidungen im Story-Rahmen |
+| **UI/UX** | Agent `denkzettel-ux` | Planning-Beratung zu UI-Stories, Gestaltung von Wireframes und Mockups (`wireframes/`), UI-Review gegen Wireframes, SPEC und KDE HIG (Teil der DoD für UI-Stories) |
 | **QA / Review** | Agent `karpathy-reviewer` | Prüfung gegen die vier Karpathy-Prinzipien am Sprint-Ende und bei Prozess-Artefakt-Änderungen (Teil der DoD) |
 
 Der Scrum Master arbeitet mit dem karpathy-reviewer zusammen: Er definiert,
 wann ein Review fällig ist (DoD, Retro-Ergebnisse), formuliert den
 Review-Auftrag und nimmt die Befunde in die Sprint-/Retro-Protokolle auf.
+Für UI-Reviews durch `denkzettel-ux` gilt dasselbe Muster: Der Scrum Master
+formuliert den Auftrag und protokolliert die Befunde; den Aufruf führt der
+PO aus.
 
 ### Modellzuordnung (Kundenentscheidung 31.07.2026)
 
-- `scrum-master` und `denkzettel-dev` laufen auf **Opus 5** (`model: opus`
-  im Agent-Frontmatter) — für klar gescopte Stories und Prozessarbeit
-  ausreichend, bei halben Kosten gegenüber Fable.
+- `scrum-master`, `denkzettel-dev` und `denkzettel-ux` laufen auf **Opus 5**
+  (`model: opus` im Agent-Frontmatter) — für klar gescopte Stories,
+  Prozessarbeit und Facharbeit gegen dokumentierte Referenzen ausreichend,
+  bei halben Kosten gegenüber Fable.
 - **Ausnahme**: Spikes und Risiko-Stories stuft der PO je Spawn per
   `model`-Parameter auf Fable hoch.
 - `karpathy-reviewer` bleibt auf **Fable** (Session-Modell) — das
@@ -41,7 +46,10 @@ Review-Auftrag und nimmt die Befunde in die Sprint-/Retro-Protokolle auf.
 - **Protokolle**: `docs/scrum/sprints/sprint-NN.md` (Planning, Review,
   ggf. Retro) — je Sprint eine Datei, angelegt beim Planning.
 - **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
-  Entscheidungen), `wireframes/` (UI-Referenz).
+  Entscheidungen), `wireframes/` (UI-Referenz; Spiegel im
+  Claude-Design-Projekt „Denkzettel" auf claude.ai/design, Sync durch den
+  PO über das DesignSync-Werkzeug seiner Claude-Code-Session —
+  Kundenentscheidung 31.07.2026).
 
 ## Sprint-Mechanik
 
@@ -50,10 +58,11 @@ Review-Auftrag und nimmt die Befunde in die Sprint-/Retro-Protokolle auf.
 - **Freigabemodell (Kundenentscheidung 31.07.2026)**: Jeder Sprint startet
   erst nach Freigabe durch den Kunden (Sprint-Ziel + gezogene Stories werden
   vorgelegt).
-- **Ablauf**: Planning (SM schlägt Schnitt vor, PO bestätigt, Kunde gibt
-  frei) → Umsetzung (Dev-Agenten; bei paralleler Arbeit Worktree-Isolation)
-  → Review (PO nimmt gegen Akzeptanzkriterien ab; karpathy-reviewer gemäß
-  DoD) → Protokoll → ggf. Retro.
+- **Ablauf**: Planning (SM schlägt Schnitt vor; bei UI-Stories berät
+  `denkzettel-ux`; PO bestätigt, Kunde gibt frei) → Umsetzung (Dev-Agenten;
+  bei paralleler Arbeit Worktree-Isolation) → Review (PO nimmt gegen
+  Akzeptanzkriterien ab; karpathy-reviewer und bei UI-Stories
+  `denkzettel-ux` gemäß DoD) → Protokoll → ggf. Retro.
 - **Schätzung**: Story Points, Fibonacci (1, 2, 3, 5, 8, 13). Zwei
   unabhängige Schätzer je Story; weichen sie um mehr als eine Stufe ab,
   konsolidiert der Scrum Master mit Begründung. 13er-Stories werden vor dem
@@ -66,7 +75,9 @@ Review-Auftrag und nimmt die Befunde in die Sprint-/Retro-Protokolle auf.
 2. Akzeptanzkriterien des Issues erfüllt und vom PO abgenommen.
 3. karpathy-reviewer-Durchgang ohne offene `fail`-Befunde
    (Sprint-Ende-Review über den Sprint-Diff genügt, Einzel-Review bei
-   riskanten Stories).
+   riskanten Stories). UI-Stories zusätzlich: UI-Review durch
+   `denkzettel-ux` ohne offene `fail`-Befunde — welche Stories UI-Stories
+   sind, legt der PO beim Planning fest (Kundenentscheidung 31.07.2026).
 4. SPEC.md/KONZEPT.md nachgezogen, falls die Umsetzung eine Festlegung
    ändert (mit Begründung im Issue).
 5. Commit(s) auf `main` bzw. Feature-Branch gemäß Kundenvorgabe; Issue
