@@ -44,6 +44,11 @@ qlonglong DaemonService::AddNote(const QString &text)
     return *id;
 }
 
+void DaemonService::ShowLibrary()
+{
+    Q_EMIT libraryRequested();
+}
+
 void DaemonService::Quit()
 {
     Q_EMIT quitRequested();

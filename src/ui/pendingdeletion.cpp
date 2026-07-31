@@ -15,15 +15,16 @@ PendingDeletion::PendingDeletion(Store *store, int gracePeriodSeconds, QObject *
 
 void PendingDeletion::request(qint64 noteId)
 {
-    // Two deletions never wait side by side: the older one is carried out
-    // right away, so the window shows one message instead of a stack of them.
-    if (isPending()) {
-        commit();
-    }
-
-    m_noteId = noteId;
+    // The new request takes over before the earlier one is carried out, so
+    // isPending() is true throughout: the window keeps one standing message
+    // instead of hiding and re-showing it (wireframe 2c, undo edges).
+    const qint64 earlier = std::exchange(m_noteId, noteId);
     m_remainingSeconds = m_gracePeriodSeconds;
     m_timer.start();
+
+    if (earlier >= 0) {
+        carryOut(earlier);
+    }
 
     Q_EMIT remainingChanged(m_remainingSeconds);
 }
@@ -66,8 +67,11 @@ void PendingDeletion::tick()
 void PendingDeletion::commit()
 {
     m_timer.stop();
-    const qint64 noteId = std::exchange(m_noteId, qint64(-1));
+    carryOut(std::exchange(m_noteId, qint64(-1)));
+}
 
+void PendingDeletion::carryOut(qint64 noteId)
+{
     if (!m_store->removeNote(noteId)) {
         // The note stays; the list no longer shows it. Saying so is all this
         // layer can do — the next time the library opens, it reads the store
