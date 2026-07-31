@@ -286,6 +286,12 @@ void LibraryWindow::closeEvent(QCloseEvent *event)
 void LibraryWindow::reload()
 {
     m_model->setNotes(m_store->notes());
+
+    // A freshly opened library has nothing selected (wireframe 2c). Saying so
+    // explicitly also stops QAbstractItemView from picking the first entry on
+    // its own the moment the list takes the focus.
+    m_list->setCurrentIndex(QModelIndex());
+
     updatePages();
 }
 
