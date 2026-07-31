@@ -24,6 +24,7 @@ private Q_SLOTS:
     void createsSchemaOnFirstOpen();
     void defaultPathLivesInApplicationDataDirectory();
     void storesAndReadsNote();
+    void listsNotesNewestFirst();
     void updatesNote();
     void replacesTags();
     void removesNoteWithItsTags();
@@ -125,6 +126,35 @@ void StoreTest::storesAndReadsNote()
     QCOMPARE(plain->analysisAttempts, 0);
 
     QVERIFY(!m_store->note(4711).has_value());
+}
+
+void StoreTest::listsNotesNewestFirst()
+{
+    QVERIFY(m_store->notes().isEmpty());
+
+    Note older = sampleNote();
+    older.content = QStringLiteral("ältere Notiz");
+    older.createdAt = QDateTime::fromString(QStringLiteral("2026-07-29T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(older).has_value());
+
+    Note newer = sampleNote();
+    newer.content = QStringLiteral("neuere Notiz");
+    newer.createdAt = QDateTime::fromString(QStringLiteral("2026-07-31T18:30:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(newer).has_value());
+
+    // Same millisecond as `newer`: the id decides, and it decides the same way
+    // on every read.
+    Note twin = newer;
+    twin.content = QStringLiteral("gleichzeitige Notiz");
+    const std::optional<qint64> twinId = m_store->addNote(twin);
+    QVERIFY(twinId.has_value());
+
+    const QList<Note> notes = m_store->notes();
+    QCOMPARE(notes.size(), 3);
+    QCOMPARE(notes.at(0).id, *twinId);
+    QCOMPARE(notes.at(1).content, newer.content);
+    QCOMPARE(notes.at(2).content, older.content);
+    QCOMPARE(notes.at(2).createdAt, older.createdAt);
 }
 
 void StoreTest::updatesNote()

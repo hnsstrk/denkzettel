@@ -101,6 +101,34 @@ QDateTime timestampFromText(const QString &text)
 {
     return QDateTime::fromString(text, Qt::ISODateWithMs);
 }
+
+/** Column list shared by the single-note and the list query. */
+QString noteColumns()
+{
+    return QStringLiteral("id, created_at, type, content, audio_path, audio_duration_s,"
+                          " category, state, needs_reembed, analysis_attempts, analysis_last_error");
+}
+
+/** Reads the current row of a query built from noteColumns(). */
+Note noteFromQuery(const QSqlQuery &query)
+{
+    Note note;
+    note.id = query.value(QStringLiteral("id")).toLongLong();
+    note.createdAt = timestampFromText(query.value(QStringLiteral("created_at")).toString());
+    note.type = typeFromText(query.value(QStringLiteral("type")).toString());
+    note.content = query.value(QStringLiteral("content")).toString();
+    note.audioPath = query.value(QStringLiteral("audio_path")).toString();
+    const QVariant duration = query.value(QStringLiteral("audio_duration_s"));
+    if (!duration.isNull()) {
+        note.audioDurationS = duration.toInt();
+    }
+    note.category = query.value(QStringLiteral("category")).toString();
+    note.state = stateFromText(query.value(QStringLiteral("state")).toString());
+    note.needsReembed = query.value(QStringLiteral("needs_reembed")).toInt() != 0;
+    note.analysisAttempts = query.value(QStringLiteral("analysis_attempts")).toInt();
+    note.analysisLastError = query.value(QStringLiteral("analysis_last_error")).toString();
+    return note;
+}
 }
 
 Store::Store(const QString &databasePath)
@@ -280,10 +308,7 @@ bool Store::updateNote(const Note &note)
 std::optional<Note> Store::note(qint64 id) const
 {
     QSqlQuery query(m_db);
-    query.prepare(
-        QStringLiteral("SELECT id, created_at, type, content, audio_path, audio_duration_s,"
-                       " category, state, needs_reembed, analysis_attempts, analysis_last_error"
-                       " FROM notes WHERE id = :id"));
+    query.prepare(QStringLiteral("SELECT %1 FROM notes WHERE id = :id").arg(noteColumns()));
     query.bindValue(QStringLiteral(":id"), id);
 
     if (!query.exec()) {
@@ -296,23 +321,26 @@ std::optional<Note> Store::note(qint64 id) const
         return std::nullopt;
     }
 
-    Note note;
-    note.id = query.value(QStringLiteral("id")).toLongLong();
-    note.createdAt = timestampFromText(query.value(QStringLiteral("created_at")).toString());
-    note.type = typeFromText(query.value(QStringLiteral("type")).toString());
-    note.content = query.value(QStringLiteral("content")).toString();
-    note.audioPath = query.value(QStringLiteral("audio_path")).toString();
-    const QVariant duration = query.value(QStringLiteral("audio_duration_s"));
-    if (!duration.isNull()) {
-        note.audioDurationS = duration.toInt();
-    }
-    note.category = query.value(QStringLiteral("category")).toString();
-    note.state = stateFromText(query.value(QStringLiteral("state")).toString());
-    note.needsReembed = query.value(QStringLiteral("needs_reembed")).toInt() != 0;
-    note.analysisAttempts = query.value(QStringLiteral("analysis_attempts")).toInt();
-    note.analysisLastError = query.value(QStringLiteral("analysis_last_error")).toString();
+    return noteFromQuery(query);
+}
 
-    return note;
+QList<Note> Store::notes() const
+{
+    QSqlQuery query(m_db);
+    // The id breaks ties: two notes of the same millisecond would otherwise
+    // change places between two reads, and the list would jump.
+    query.prepare(QStringLiteral("SELECT %1 FROM notes ORDER BY created_at DESC, id DESC").arg(noteColumns()));
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<Note> notes;
+    while (query.next()) {
+        notes.append(noteFromQuery(query));
+    }
+    return notes;
 }
 
 bool Store::removeNote(qint64 id)
