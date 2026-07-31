@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/icons">
+    <file alias="denkzettel.svg">../icons/sc-apps-denkzettel.svg</file>
+    <file alias="denkzettel-tray.svg">../icons/sc-status-denkzettel-tray.svg</file>
+  </qresource>
+</RCC>

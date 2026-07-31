@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Monochrome tray icon, same silhouette as the app icon (issue #43).
+       The current-color-scheme stylesheet lets Plasma recolor it to match
+       light and dark panels (Breeze mechanism). -->
+  <defs>
+    <style type="text/css" id="current-color-scheme">
+      .ColorScheme-Text { color:#232629; }
+    </style>
+  </defs>
+  <path class="ColorScheme-Text" fill="currentColor" fill-rule="evenodd" d="
+    M6 2 H12.5 L18 7.5 V19 A1.5 1.5 0 0 1 16.5 20.5 H6 A1.5 1.5 0 0 1 4.5 19 V3.5 A1.5 1.5 0 0 1 6 2 Z
+    M7.1 7.6 A2.5 2.5 0 1 0 12.1 7.6 A2.5 2.5 0 1 0 7.1 7.6 Z
+    M6.9 11.6 A1 1 0 1 0 8.9 11.6 A1 1 0 1 0 6.9 11.6 Z
+    M7.8 13.8 H14.7 A0.8 0.8 0 0 1 14.7 15.4 H7.8 A0.8 0.8 0 0 1 7.8 13.8 Z
+    M7.8 16.8 H12.2 A0.8 0.8 0 0 1 12.2 18.4 H7.8 A0.8 0.8 0 0 1 7.8 16.8 Z"/>
+</svg>

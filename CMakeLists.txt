@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
+include(ECMInstallIcons)
 include(FeatureSummary)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -25,6 +26,13 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
 )
 
 add_subdirectory(src)
+
+ecm_install_icons(ICONS
+    icons/sc-apps-denkzettel.svg
+    icons/sc-status-denkzettel-tray.svg
+    DESTINATION ${KDE_INSTALL_ICONDIR}
+    THEME hicolor
+)
 
 if(BUILD_TESTING)
     find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Test)

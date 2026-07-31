@@ -7,6 +7,7 @@
 #include <KLocalizedString>
 
 #include <QApplication>
+#include <QIcon>
 
 int main(int argc, char *argv[])
 {
@@ -15,6 +16,10 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain(QStringLiteral("denkzettel.org"));
     app.setApplicationName(QStringLiteral("denkzettel"));
     app.setQuitOnLastWindowClosed(false);
+    // The bundled copy covers runs from the build directory, before the icon
+    // is installed into any theme (issue #43).
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("denkzettel"),
+                                       QIcon(QStringLiteral(":/icons/denkzettel.svg"))));
 
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
 
