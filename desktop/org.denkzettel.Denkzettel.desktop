@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Denkzettel
+GenericName=Gedanken festhalten
+Comment=Gedanken schnell festhalten und später ordnen
+Exec=denkzetteld
+Icon=denkzettel
+Terminal=false
+Categories=Utility;Qt;KDE;
+Keywords=Notiz;Notizen;Gedanke;Capture;
