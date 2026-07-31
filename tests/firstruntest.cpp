@@ -66,8 +66,10 @@ void FirstRunTest::createsDataDirectoryDatabaseAndConfiguration()
     // Version 1 is the current schema (SPEC 5.1); storetest holds the detail.
     QCOMPARE(store.schemaVersion(), 1);
 
-    // Guards the trap S4 documented in main.cpp: written under the application
-    // name the D-Bus registration needs, the entry would land in Daemonrc.
+    // The file name follows from the application name, so the daemon has to be
+    // back to "denkzettel" before this call — otherwise the configuration lands
+    // in Daemonrc, the trap S4 documented. That order is kept by main.cpp and
+    // cannot be seen from here.
     KConfigGroup general(KSharedConfig::openConfig(), QStringLiteral("General"));
     QVERIFY(runFirstStart(general));
 
