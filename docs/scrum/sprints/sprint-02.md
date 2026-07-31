@@ -417,6 +417,19 @@ diese Prüfung nicht selbst vorgenommen — sie greift in die Werkzeugebene ein
 und gehört damit vor den Kunden, nicht in ein Sprint-Protokoll (Melden, nicht
 heilen). Zählstand bleibt bis zur Klärung bei **acht**.
 
+**Fortschreibung am Sprint-Ende (01.08.2026): keine neuen Fälle, Zählstand
+weiter acht.** Der PO hat nach dem Planning in jeden Auftragstext einen
+ausdrücklichen Zustellhinweis aufgenommen („Nachrichten erreichen den
+Empfänger erst in dessen nächstem Zug — sende ab und beende dich normal").
+Seither lieferten **alle fünf** Folge-Agenten des Sprints ihre Berichte
+ordnungsgemäß ab: `dev-s4`, `dev-t2`, `dev-s5`, `ux-review-s5` und
+`dev-heal-s5`. Das ist die erste ununterbrochene Serie seit Beobachtungsbeginn
+und stützt die oben formulierte Zustellweg-These deutlich: Geändert wurde
+nicht das Verhalten der Agenten, sondern die **Erwartung des Empfängers** an
+den Zeitpunkt der Zustellung. Für die Retro nach Sprint 3 heißt das, die
+Prüfung des Zustellwegs bleibt der erste Schritt — die Evidenz spricht jetzt
+gegen schärfere Berichtsauflagen als Gegenmaßnahme.
+
 **I4 — Automatisierte Prüfbarkeit UI-lastiger Stories (offen, jetzt mit
 Teil-Gegenmaßnahme).** In Sprint 2 wird das Impediment akut: S5 ist genau die
 Story-Klasse, die es benennt. Neu gegenüber Sprint 1 ist der UI-Review durch
@@ -425,7 +438,384 @@ Kontrollinstanz, die es beim Verfassen von I4 noch nicht gab. Sie ersetzt
 den automatisierten Test nicht, prüft aber gegen eine schriftliche Referenz
 statt gegen Augenmaß. Die manuelle Checkliste nach SPEC 16 bleibt Pflicht.
 
-## 7. done / next
+**I5 — Git-Hygiene bei parallel arbeitenden Agenten (neu, Gegenmaßnahme
+wirkt).** Zwei Vorfälle am 31.07./01.08., beide vom PO gemeldet:
+
+- Ein `git add -A` nahm den unversionierten Wireframe-Stand eines anderen
+  Agenten in einen Story-Commit auf.
+- Ein `git commit --amend` erwischte einen fremden, bereits gepushten Commit;
+  die entstandene Historien-Divergenz musste per Rebase geheilt werden.
+
+Wirkung: Beide Male war nicht der Inhalt falsch, sondern die Zuordnung — ein
+Sprint-Diff, dessen Commits fremde Arbeit enthalten, ist für den karpathy-
+Review nicht mehr sauber abgrenzbar. **Vom Scrum Master am Endstand
+nachgeprüft:** Die Historie ist geheilt; `1ada199` und `0dd6251` tragen
+ausschließlich die Wireframe-Datei, die vier S4-Commits ausschließlich
+Quellcode und Tests (Prüfung: `git show --stat` je Commit). Der Schaden ist
+also behoben und im Sprint-Diff nicht mehr sichtbar — er wird hier
+festgehalten, weil er sonst aus der Evidenz verschwände.
+
+Gegenmaßnahme seit dem zweiten Fall: verbindliche Arbeitsregeln im
+Auftragstext (gezielt stagen statt `add -A`, kein `amend`). Seither kein
+weiterer Fall — `dev-s5` und `dev-heal-s5` arbeiteten regelkonform.
+**Für die Retro:** Diese Regeln stehen derzeit in jedem einzelnen
+Auftragstext. Das ist dieselbe Bauart von Gegenmaßnahme, die bei I3 ins Leere
+lief, und sie hängt daran, dass der PO sie jedes Mal erneut hinschreibt.
+Vorschlag zur Prüfung in der Retro: dauerhaft in die Agent-Definition
+`.claude/agents/denkzettel-dev.md`, nicht in den Auftrag.
+
+## 7. Sprint-Review
+
+**Geprüft am:** 2026-08-01, 00:55–01:28 (Ganymed) durch den Scrum Master.
+**Prüfgrundlage:** eigener frischer Build, eigener Testlauf, drei eigene
+Mutationstests, Quellcode, Commit-Inhalte, Issue-Stände, Vault-Journal und
+eine Bus-Introspektion — nicht die Meldungen des Product Owners. Alle Belege
+sind unten benannt und wiederholbar.
+
+**Sprint-Diff:** `3a5e0c9..54ae35d` (19 Commits). `HEAD` steht auf `54ae35d`,
+`git log origin/main..main` ist leer, der Arbeitsbaum sauber: der geprüfte
+Stand ist der veröffentlichte.
+
+**Abdeckung des karpathy-Reviews — an einem Ende geschlossen, am anderen
+benannt.** Nach unten ist keine Lücke: Zwischen dem Sprint-1-Endstand
+`48ffb70` und `3a5e0c9` liegen vier Commits, die **ausschließlich**
+Prozess-Artefakte berühren (`docs/scrum/`, `.claude/agents/`) — kein
+Quellcode. Nach oben besteht eine, und sie ist bauartbedingt: `54ae35d` ist
+die **Antwort** auf den Review (seine eigene Nachricht sagt „Review-Befunde
+aus dem S5-UI-Review und dem karpathy-Review"), also lief der Review, bevor
+dieser Commit existierte. 175 Zeilen in `librarywindow.cpp`,
+`notelistmodel.cpp` und `librarytest.cpp` hat kein karpathy-Durchgang gesehen.
+
+Der Scrum Master hat diese Lücke deshalb **selbst geschlossen**, statt sie
+stehenzulassen: Die drei Mutationstests aus 7.1 richten sich genau auf diesen
+Commit und prüfen jede seiner drei Änderungen einzeln gegen einen mutierten
+Produktivstand. Das ersetzt keinen vollständigen Review-Durchgang, belegt aber
+das, worauf es bei einem Heilungs-Commit ankommt: dass die neuen Tests die
+geheilten Fehler tatsächlich fangen. Sprint 1 hatte dieselbe Form
+(Review → Heilung → „DoD 3 erfüllt") und hat sie nicht benannt; hier ist sie
+benannt und belegt. Ob der Kunde einen zweiten Review-Durchgang über
+`1e70e81..54ae35d` verlangt, ist seine Entscheidung — der Scrum Master hält
+ihn bei diesem Umfang nicht für nötig.
+
+### 7.1 Prüfbelege
+
+- **Frischer Build** (`cmake -S . -B <tmp> -DCMAKE_BUILD_TYPE=Debug`,
+  `cmake --build -j8`): Exit 0, **null Warnungen** in Konfiguration und Bau.
+  Die Warnstufe ist real (KDECompilerSettings, siehe Sprint-01, 8.1).
+- **Tests** (`ctest`): **7 von 7 grün**, 3,70 s. Davon sind **sechs
+  projekteigen**, `appstreamtest` ist wie in Sprint 1 eine ECM-Zugabe ohne
+  Aussage über Projektcode. Die sechs im Einzelnen — `storetest` (9
+  Testfunktionen), `capturetest` (7), `librarytest` (36), `shelltest` (8),
+  `firstruntest` (2) und `installtest`, das kein QTest-Binary ist, sondern ein
+  CMake-Skript: Es installiert per `DESTDIR` in ein Staging-Verzeichnis und
+  prüft, dass Anwendungs- und Autostart-Eintrag dort ankommen.
+- **Testzahl von `librarytest` präzisiert.** QTest meldet „38 passed"; das
+  sind 36 Testfunktionen plus `initTestCase`/`cleanupTestCase`. Die
+  PO-Angabe „34 → 38" ist rechnerisch belegt: Der Heilungs-Commit fügt genau
+  vier Testfunktionen hinzu (`git show 54ae35d -- tests/librarytest.cpp`).
+- **Drei eigene Mutationstests am Heilungs-Commit**, in einem separaten
+  Worktree auf `54ae35d`, jeweils gegen den grünen Ausgangsstand:
+  1. `showLibrary()` auf die alte Bedingung `!isVisible()` zurückgedreht →
+     `readsTheStoreAgainWhenTheOpenWindowIsShownAgain` fällt (1 von 38).
+  2. `m_deletion->flush()` aus `closeEvent` entfernt → `carriesOutTheDeletion
+     WhenTheWindowCloses` **und** `carriesOutTheDeletionWhenTheApplication
+     Quits` fallen (2 von 38).
+  3. `setMinimumWidth(MinimumListWidth)` entfernt →
+     `keepsTheListWideEnoughForThePreview` fällt (1 von 38).
+  Alle drei beißen. Mutation 2 ist dabei mehr als ein Testnachweis: Sie belegt
+  den **Mechanismus**, auf dem die Widerlegung des karpathy-Befundes B beruht.
+  Der Quit-Test wird nur dann rot, wenn `closeEvent` während `quit()`
+  tatsächlich läuft — die Löschung nimmt also nachweislich den Weg über das
+  Fensterschließen, nicht über einen Sonderpfad.
+- **Bus-Introspektion, mit einem Befund zur Prüfmethode.**
+  `busctl --user introspect org.denkzettel.Daemon /Daemon` weist auf dem
+  laufenden Prozess **nur `ShowCapture`** aus, nicht `AddNote`, `ShowLibrary`
+  und `Quit`. Das ist **kein Codebefund**: Der Prozess (PID 255272) läuft seit
+  31.07., 21:48 — also seit vor dem S4-Commit `3fe30b9` (23:53); das Binary auf
+  der Platte ist von 01.08., 01:16 und wurde nie neu gestartet. Der Quellcode
+  exportiert alle vier Methoden als `Q_SCRIPTABLE` über
+  `ExportScriptableSlots` (`src/shell/daemonservice.cpp:15–19`,
+  `daemonservice.h:33–43`); `shelltest` deckt `AddNote` und `ShowLibrary`
+  fachlich ab (4 der 8 Funktionen). **Konsequenz für die Abnahme:** Vor den
+  qdbus-Prüfungen muss der Daemon neu gestartet werden, sonst prüft der Kunde
+  den Sprint-1-Stand. Dieser Punkt steht in 7.4 als Vorbedingung.
+  `AddNote` und `Quit` hat der Scrum Master **nicht** aufgerufen — das eine
+  schriebe in die Produktivdatenbank, das andere beendete einen Prozess des
+  Nutzers (Melden, nicht heilen).
+- **Codeprüfung.** Konflikterkennung über
+  `KGlobalAccel::globalShortcutsByKey(sequence, KGlobalAccel::Equal)`
+  (`src/shell/globalshortcuts.cpp:56`) mit eigenem Modul `shortcutconflict`
+  für die Auswertung; Komponentenname aus `desktopFileName() + ".desktop"`
+  abgeleitet statt doppelt geschrieben (Zeile 21–24); die fehlgeschlagene
+  Registrierung meldet über `KNotification` statt still zu scheitern
+  (Zeile 65–74). Erststart als eigenes Modul `firstrun` mit Marker, der
+  ausdrücklich nur die einmaligen Schritte schützt. In S5: `KStandardShortcut::
+  undo()`/`close()` verdrahtet, Suchfeld deaktiviert mit Tooltip, alle
+  sichtbaren Texte über `i18n()`, Fließtexte in Infinitivform nach SPEC 15
+  („Zum Lesen links eine Notiz auswählen.").
+
+### 7.2 DoD-Matrix
+
+Die sechs Punkte aus PROZESS.md, je Story.
+
+| DoD | S4 (#5) | T2 (#6) | S5 (#7) |
+|---|---|---|---|
+| 1 Build warnungsarm, Tests grün | erfüllt¹ | erfüllt | erfüllt |
+| 2 AK erfüllt, PO-Abnahme | **offen**² | **offen**³ | **offen**⁴ |
+| 3 karpathy-reviewer ohne `fail` | erfüllt⁵ | erfüllt⁵ | erfüllt⁶ |
+| 4 SPEC/KONZEPT nachgezogen | entfällt⁷ | **offen**⁸ | erfüllt⁹ |
+| 5 Commit + Issue geschlossen | **offen**¹⁰ | **offen**¹⁰ | **offen**¹⁰ |
+| 6 Journal-Eintrag der Session | erfüllt¹¹ | erfüllt¹¹ | erfüllt¹¹ |
+
+¹ Mit einer benannten Abweichung vom Wortlaut, wie sie S1 in Sprint 1 hatte
+(Sprint-01, Fußnote ¹): Die eigentliche Registrierung
+`GlobalShortcuts::registerCaptureShortcut()` hat **keinen** automatisierten
+Test — sie spricht mit einem laufenden `kglobalacceld` und ist ohne Bus- und
+Compositor-Fixture nicht sinnvoll unit-testbar. Automatisiert abgedeckt ist
+die reine Auswertungslogik im eigens dafür herausgezogenen Modul
+`shortcutconflict` (4 der 8 `shelltest`-Funktionen). Den Nachweis für den
+Registrierungsweg tragen die manuellen Punkte 1–4 aus 7.4. Begründete
+Abweichung, kein Mangel — aber sie ist der Grund, warum DoD 2 für S4 ohne die
+Sichtprüfung nicht schließbar ist.
+
+² Codeseitig sind alle vier AK belegt (7.1). Offen sind die manuellen Punkte
+aus 7.4 — Meta+N am echten Compositor, das Kürzel im Systemeinstellungs-KCM,
+der Konfliktzweig und die drei qdbus-Aufrufe. Genau der Fall, den I4 benennt.
+
+³ Beide manuell abnehmbaren AK waren beim Planning vorab benannt (3.3) und
+sind es geblieben: Installationslauf und Sitzungswechsel. `installtest` belegt,
+dass die Install-Regeln existieren und beide Einträge ankommen — **nicht**,
+dass eine Sitzung das Zielverzeichnis liest. Der Test sagt das über sich
+selbst (`tests/installtest.cmake`, Kopfkommentar); diese Ehrlichkeit ist ein
+Positivbefund, kein Mangel.
+
+⁴ Alle acht AK sind automatisiert oder im UI-Review belegt; offen sind die
+fünf Sichtprüfpunkte aus 7.4.
+
+⁵ Sprint-Ende-Review über den Sprint-Diff, Gesamtverdikt **warn**, kein
+`fail`. Damit ist DoD 3 in der Grundfassung erfüllt. Zur Abdeckungsgrenze des
+Reviews und ihrer Schließung siehe den Kopf von Abschnitt 7.
+
+⁶ S5 ist UI-Story (4.1), für sie gilt DoD 3 in der erweiterten Fassung. Der
+UI-Review hatte **einen `fail`**; er ist mit `54ae35d` geheilt und vom Scrum
+Master per Mutationstest nachgeprüft (7.1). Keine offenen `fail`-Befunde.
+
+⁷ S4 setzt SPEC 2.3 und 2.4 um, ohne eine Festlegung zu ändern.
+
+⁸ Mangel M2 (7.5). T2 hat eine harte Installationsbedingung entdeckt, die in
+SPEC 15 fehlt. Der Scrum Master führt diesen Punkt bewusst als **offen** und
+nicht als `entfällt`, weil Sprint 1 denselben Sachverhalt so bewertet hat: Dort
+machte die fehlende Nennung zweier Build-Abhängigkeiten DoD 4 für S1 und S3
+offen (Sprint-01, 8.2 und Mangel M2). Eine unvollständig gebliebene Festlegung
+zweimal verschieden zu bewerten, würde die Vergleichbarkeit der Protokolle
+zerstören.
+
+⁹ SPEC 15 ist mit `9ddd64a` um **KWidgetsAddons** (KMessageWidget) und
+**KWindowSystem** (KWindowConfig) ergänzt, mit `1bdcfdf` um die app-weite
+Infinitivform. Abgleich des Scrum Masters: Die im Build tatsächlich
+angeforderten Komponenten (`CMakeLists.txt:21–31`: Qt6 DBus/Widgets/Sql; KF6
+Config, DBusAddons, GlobalAccel, I18n, Notifications, StatusNotifierItem,
+WidgetsAddons, WindowSystem) sind **vollständig** in SPEC 15 genannt.
+**Sprint-1-Mangel M2 wiederholt sich in dieser Form nicht** — die
+Abhängigkeitsliste ist vollständig; offen ist allein die Paketierungsbedingung
+aus Fußnote ⁸.
+
+¹⁰ Mangel M1 (7.5).
+
+¹¹ Vault-Daily `2026-08-01.md` enthält vier Einträge im Abschnitt
+`## Claude Code Protokoll` (00:04 S4, 00:20 T2, 00:37 S5, 01:12 Reviews und
+Heilung), die den gesamten Umsetzungszeitraum abdecken.
+**Sprint-1-Mangel M3 wiederholt sich nicht.**
+
+### 7.3 Review-Ergebnisse
+
+Die Berichte selbst lagen dem Scrum Master nicht vor; die Zusammenfassung
+stammt vom PO. Was der Scrum Master eigenständig nachgeprüft hat, ist
+jeweils benannt.
+
+**karpathy-Review über den Sprint-Diff — Gesamt `warn`, kein `fail`.**
+Methodik: frischer Build, Testlauf, drei Mutationstests (Konflikterkennung,
+Sieben-Tage-Grenze der Zeitstempel, Sofortausführung beim zweiten Löschen —
+letztere riss Unit- und Fenstertest zugleich). Prinzipien 1–3 ohne Befund,
+mit Positivbefunden: explizit gemachte Annahmen, eine Selbstkorrektur
+(`7b6756c` — ein Kommentar, der zu viel behauptete), chirurgische Diffs.
+Prinzip 4 `warn` mit zwei Randfällen:
+
+- **(A) `showLibrary()` lud bei offenem Fenster nicht nach.** Trifft zu,
+  geheilt, nachgeprüft (Mutation 1).
+- **(B) Verdacht, das D-Bus-`Quit()` lasse die Löschfrist verfallen.**
+  **Widerlegt** — siehe unten.
+- Dritter Punkt, kein Befund: Die drei qdbus-Aufrufe gehören wörtlich auf die
+  manuelle Checkliste. Übernommen in 7.4.
+
+**UI-Review durch `denkzettel-ux` — ein `fail`, sonst `pass`.** Der `fail` war
+deckungsgleich mit Randfall A und nannte zusätzlich den Fokusklau beim
+erneuten Zeigen. Alle acht S5-Akzeptanzkriterien sonst erfüllt; SPEC 9
+eingehalten — echtes `DELETE`, kein Soft-Delete-Zustand in der DB. Damit liegt
+das im Review-Auftrag (4.5, Punkt 2) ausdrücklich als `fail` benannte
+Kriterium **nicht** vor. Bewertungsfragen: QLocale-Punktform des Wochentags
+korrekt; der Wireframe war an dieser Stelle eine Näherung (AK in #7 vom PO
+korrigiert); QSplitter HIG-konform unter der Auflage einer Mindestbreite von
+rund 220 px; Nur-Größe-Persistenz ist wörtlich von SPEC 15 gedeckt
+(KWindowConfig, Position setzt ein Wayland-Client nicht selbst); die
+Auslassungen sind sauber begründet (Bearbeiten → S8, Tag-Chips → M3, Player →
+M4). Nicht blockierende Politur-Hinweise: Layout-Abstände nicht vom Stil
+bezogen, fehlendes Mnemonic am Löschen-Knopf (vom Scrum Master am Code
+bestätigt: `src/ui/librarywindow.cpp:238` schreibt `i18n("Löschen")` ohne
+`&`), App-Icon statt eines semantischen Leerzustands-Icons. **Vormerkung für
+M5:** Das Fenster hat keine Menüleiste; SPEC 8.3 verlangt später eine.
+Nebenauftrag Titelzeile der Wireframe-Datei erledigt (`0dd6251`).
+
+**Heilungslauf `54ae35d` — Befund A behoben, Befund B mit Messung widerlegt.**
+Nachladen jetzt an `!isPending()` statt an `!isVisible()`; die Auswahl folgt
+der Notiz-**ID** statt der Zeilennummer, mit Guard gegen −1 in
+`NoteListModel::rowOf`; Fokus wandert nur beim echten Öffnen in die Liste;
+der Lesebereich scrollt bei gleichem Text nicht zurück. Vier neue Tests, zwei
+davon vorher rot gesehen.
+
+Zu **Befund B**: Qt 6 hat `quit()` von „Ereignisschleife beenden" auf
+„Fenster schließen, dann beenden" umgestellt, `closeEvent` läuft also auch auf
+diesem Weg; der karpathy-Verdacht beruhte auf Qt-5-Semantik. Statt
+Produktivcode entstand der Regressionstest
+`carriesOutTheDeletionWhenTheApplicationQuits`. **Der Scrum Master hat diese
+Widerlegung nicht geglaubt, sondern nachgemessen** (Mutation 2, 7.1): Der Test
+hängt nachweislich am `flush()` im `closeEvent`. Die Widerlegung trägt. Die
+benannte Restgrenze — bei SIGKILL oder Absturz überlebt die Notiz — ist von
+SPEC 9 nicht gefordert und damit kein Mangel.
+
+Zusätzlich im Heilungslauf: die Mindestbreite 220 px als benannte Konstante
+`MinimumListWidth` mit eigenem Test, wie vom UI-Review als Auflage verlangt.
+
+### 7.4 Offene Punkte fürs Kunden-Review
+
+Die Meilensteine M1 **und** M2 werden mit diesem Sprint erstmals sichtprüfbar;
+die Checklisten nach SPEC 16 fallen deshalb zusammen an. Reihenfolge ist
+bewusst: Die Vorbedingung steht oben, weil ohne sie zwei Prüfungen den
+falschen Stand messen.
+
+**Vorbedingung (Befund des Scrum Masters, 7.1).** Der Daemon auf dem Bus läuft
+seit dem 31.07., 21:48 und ist damit der **Sprint-1-Stand**. Vor allen
+Prüfungen: laufende Instanz beenden und das aktuelle Binary starten. Ohne
+diesen Schritt zeigt die Introspektion nur `ShowCapture`, und Meta+N erreicht
+einen Prozess ohne Kürzel-Registrierung.
+
+**M1 / S4 (#5) — fünf Punkte:**
+
+1. Meta+N am echten Plasma/Wayland: Öffnet es das Capture-Fenster mit sofortigem
+   Tastaturfokus?
+2. Kürzel im Systemeinstellungs-KCM „Kurzbefehle" sichtbar — **erst nach
+   systemweiter Installation**, weil kglobalacceld die Komponente über die
+   Desktop-Datei auflöst.
+3. Komponentenname zur Laufzeit gegenprüfen (registrierter Name gegen
+   `org.denkzettel.Denkzettel.desktop`).
+4. Konfliktzweig: nur reproduzierbar **nach Löschen des `FirstRunDone`-Markers**,
+   weil die Warnung bewusst einmalig ist.
+5. Die drei qdbus-Aufrufe über den echten Session-Bus, wörtlich:
+   `AddNote` (legt eine Notiz an und liefert deren ID), `ShowLibrary` (öffnet
+   das Bibliotheksfenster) und `Quit` (beendet den Dienst). Empfehlung des
+   Scrum Masters: `AddNote` mit einem erkennbaren Testtext, damit die Notiz
+   hinterher wieder aus dem Bestand zu nehmen ist.
+
+**M1 / T2 (#6) — drei Punkte:**
+
+6. Installation **zwingend mit `-DCMAKE_INSTALL_PREFIX=/usr`**. Nur dieser
+   Präfix legt den Autostart-Eintrag nach `/etc/xdg/autostart`, das einzige
+   Autostart-Verzeichnis eines unveränderten `XDG_CONFIG_DIRS`
+   (Begründung als Kommentar in `CMakeLists.txt:37–45`, Issue #6). **Anmerkung
+   des Scrum Masters:** Auf Ganymed löst schon der Vorgabewert auf `/usr` auf,
+   weil KDEInstallDirs den Präfix von Qt übernimmt („Installing in the same
+   prefix as Qt") — die Angabe ist also Absicherung, nicht Reparatur. Auf einer
+   anderen Maschine wäre sie es sehr wohl.
+7. Ab- und Anmelden: Läuft `denkzetteld` danach mit der Sitzung?
+8. Plasma-Autostart-Modul sichtprüfen, den Eintrag abschalten, erneut anmelden —
+   bleibt er aus?
+
+**M2 / S5 (#7) — fünf Punkte:**
+
+9. Tooltip am deaktivierten Suchfeld anhovern (Qt zeigt an deaktivierten
+   Widgets keinen Tooltip; die Umsetzung legt ihn deshalb auf ein umgebendes
+   Widget — genau das ist hier zu prüfen).
+10. Undo-Meldung mit Orca gegenhören: Wird sie vorgelesen?
+11. Fenstergröße und Splitterstellung über einen echten Ab- und
+    Anmeldevorgang — der Test deckt nur den Prozessneustart ab.
+12. Splitter auf das Minimum ziehen und beurteilen, ob die zweizeilige
+    Vorschau bei 220 px ihren Zweck noch erfüllt.
+13. Löschen mit Rückgängig durchspielen, **einschließlich eines zweiten
+    Löschens innerhalb der Frist**: Es darf nur eine Meldung geben, die Frist
+    startet neu, das erste Löschen wird sofort ausgeführt.
+
+**Offene Frage an den PO:** Die Übergabe nennt „sechs manuelle
+Checklisten-Punkte" aus dem UI-Review, führt aber fünf auf. Der Scrum Master
+protokolliert die fünf belegten Punkte und meldet die Differenz, statt einen
+sechsten zu erfinden. Falls der UI-Review-Bericht einen weiteren Punkt nennt,
+gehört er vor der Abnahme hier hinein.
+
+### 7.5 Mängel
+
+**M1 — Die drei Sprint-Issues sind offen (DoD 5).** #5, #6 und #7 stehen auf
+`OPEN`, der Milestone „Sprint 2" weist 0 geschlossene Vorgänge aus. Das ist
+zum Prüfzeitpunkt **erwartbar**, weil die Abnahme aussteht — es bleibt
+trotzdem der offene DoD-Punkt und ist nach der Sichtprüfung vom PO zu
+schließen, mit Commit-Verweis in beiden Richtungen. In Sprint 1 war dies
+derselbe Mangel M1; die Wiederholung ist bislang Zeitpunkt-, nicht
+Sorgfaltsfrage. **Nebenbefund ohne Handlungsbedarf:** Die Milestone-API meldet
+`open=2`, obwohl drei offene Issues zugeordnet sind — ein Zählerartefakt bei
+GitHub, die Zuordnung selbst ist korrekt (`gh issue list --milestone
+"Sprint 2"` zeigt alle drei).
+
+**M2 — SPEC 15 kennt die Präfix-Bedingung der Installation nicht (DoD 4,
+gering).** Der Sprint hat eine harte Bedingung entdeckt: Der Autostart-Eintrag
+wirkt nur bei Präfix `/usr`. Sie steht als Kommentar in `CMakeLists.txt` und im
+Issue #6 — SPEC 15 sagt weiterhin bloß „zunächst lokales `cmake --install`",
+ohne Einschränkung. Dieselbe Liste ist später die Grundlage des PKGBUILD
+(S28, M7), und dort ist eine unausgesprochene Präfix-Bedingung teuer; es ist
+exakt die Bauart von Lücke, die in Sprint 1 als M2 auffiel. Ein Halbsatz
+genügt. **Solange er fehlt, bleibt DoD 4 für T2 offen** (7.2, Fußnote ⁸).
+PO-Aufgabe, der Scrum Master ändert SPEC.md nicht selbst.
+
+**M3 — Ein Testkommentar behauptet das Gegenteil dessen, was sein Test belegt
+(gering, aber irreführend).** `tests/librarytest.cpp` schreibt über
+`carriesOutTheDeletionWhenTheApplicationQuits` wörtlich: „D-Bus Quit() (SPEC
+2.3) ends the event loop **without closing the window, so no close event
+carries the deletion out**." Der Mutationstest 2 des Scrum Masters zeigt das
+Gegenteil: Entfernt man `flush()` aus `closeEvent`, fällt genau dieser Test —
+die Löschung nimmt also sehr wohl den Weg über das Schließen. Der Kommentar
+gibt damit die **widerlegte** Annahme wieder, während die Commit-Nachricht von
+`54ae35d` die richtige Erklärung trägt. Wer den Test später liest, lernt
+daraus das Falsche und könnte ihn beim nächsten Qt-Umstieg als gegenstandslos
+streichen — obwohl er dann gerade seinen Zweck hätte. Bemerkenswert: Derselbe
+Entwicklerlauf hat mit `7b6756c` von sich aus einen Kommentar korrigiert, der
+zu viel behauptete; hier ist dasselbe Muster stehengeblieben. Meldung an den
+PO, Behebung durch den Dev — der Scrum Master ändert keinen Quellcode.
+
+**Nachtrag PO (01:36):** M2 und M3 sind behoben — SPEC 15 trägt die
+Präfix-Bedingung jetzt als Halbsatz mit Begründung, der Testkommentar
+beschreibt die Qt-6-Mechanik und den Regressions-Zweck des Tests statt der
+widerlegten Annahme (Kommentar-Fix, kein Verhalten; Behebung durch den PO
+statt eines eigenen Dev-Laufs — ein Kommentar rechtfertigt keinen Spawn).
+DoD 4 für T2 ist damit erfüllt. Die offene Frage aus der DoD-Prüfung zum
+„sechsten" Checklisten-Punkt ist geklärt: Der UI-Review führte Fenstergröße
+und Splitter-Aufteilung als zwei getrennte Punkte über denselben
+Sitzungswechsel; 7.4 fasst sie in einem Punkt zusammen — die Substanz ist
+vollständig, keine Protokolländerung nötig.
+
+### 7.6 Sprint-Ziel
+
+**Inhaltlich erreicht, formal vorbehaltlich der Sichtprüfung.** Das Ziel
+lautete: „Meta+N öffnet das Capture-Fenster aus jeder Sitzung heraus — und was
+aufgeschrieben wurde, lässt sich in einem Bibliotheksfenster durchblättern und
+lesen." Beide Hälften sind gebaut und automatisiert belegt, soweit sie sich
+automatisiert belegen lassen; alle 10 Story Points sind inhaltlich
+abgearbeitet. Die verbleibende Unsicherheit ist genau die, die I4 vorhergesagt
+hat — die dreizehn Punkte aus 7.4 sind Sichtprüfung, nicht Bauarbeit.
+
+Ein Vorbehalt zur Formulierung „aus jeder Sitzung heraus": Diese Hälfte des
+Ziels hängt an T2 und ist damit **erst nach dem Ab- und Anmeldevorgang aus 7.4
+belegt**. Bis dahin ist belegt, dass das Kürzel in einer laufenden Sitzung
+registriert wird — nicht, dass es nach einem Neustart von allein wieder da
+ist.
+
+## 8. done / next
 
 **done:** Neuschätzung S4 entschieden und belegt (5 → 3 SP, Wert von
 Schätzer A; Belege: T1-Befund, `src/shell/daemonservice.cpp:17`,
@@ -442,14 +832,38 @@ offen, mit Prüfauftrag an die Retro), I4 fortgeschrieben. Der Kunde hat den
 Schnitt am 31.07.2026 freigegeben; Milestone und AK-Stände in #5 und #7 hat
 der PO nachgezogen.
 
-**next:** Umsetzung in der Reihenfolge S4 → T2 → S5 (Begründung 3.1). Am
-Sprint-Ende fällig: die manuelle M1-Checkliste nach SPEC 16 einschließlich
-der drei T2-Punkte aus 3.3 (Installation in ein Präfix, Ab- und Anmelden,
-Sichtprüfung im Autostart-Modul), der karpathy-Review über den Sprint-Diff
-und der UI-Review zu S5 nach dem Auftrag in 4.5. Für S8 sind die beiden
-Bedingungen aus 4.4 zu erfüllen — Gestaltungsauftrag an `denkzettel-ux` und
-AK-Neufassung mit Herauslösung von AK 2 nach M5 —, damit die Story in
-Sprint 3 ziehbar wird. Hinweis 5.3 ist erledigt (#43 hängt jetzt am
-Milestone „Sprint 1", per API nachgezogen), und der Journal-Eintrag zur
-Planungssitzung ist geschrieben (Daily 2026-07-31, 23:34 Uhr) — der
-Sprint-1-Mangel M3 wiederholt sich nicht.
+**done (Fortschreibung am Sprint-Ende, 01.08.2026):** Alle drei Stories in der
+geplanten Reihenfolge umgesetzt (S4 → T2 → S5, 10 SP); karpathy-Review über
+den Sprint-Diff (`warn`, kein `fail`) und UI-Review zu S5 (ein `fail`)
+durchlaufen, der `fail` mit `54ae35d` geheilt; DoD-Prüfung gegen frischen
+Build, Testlauf, drei eigene Mutationstests, Quellcode, Commit-Inhalte,
+Issue-Stände, Vault-Journal und eine Bus-Introspektion geführt — 0 Warnungen,
+7/7 Tests grün (sechs davon projekteigen), Sprint-Diff-Abdeckung des Reviews
+belegt; die Widerlegung des karpathy-Befundes B eigenständig nachgemessen;
+drei Mängel (M1–M3) und dreizehn Sichtprüfpunkte plus eine Vorbedingung
+benannt; Impediment I3 ohne neuen Fall fortgeschrieben (fünf von fünf Agenten
+lieferten ab — Stützung der Zustellweg-These), I5 „Git-Hygiene bei parallelen
+Agenten" neu aufgenommen. Sprint-1-Mangel M3 (Journal) hat sich **nicht**
+wiederholt; M2 nur in anderer Gestalt — die Abhängigkeitsliste ist diesmal
+vollständig, es fehlt die Paketierungsbedingung.
+
+**next:** Der Kunde führt die dreizehn Sichtprüfpunkte aus 7.4 durch — zuerst
+die Vorbedingung, den veralteten Daemon zu ersetzen, sonst messen zwei
+Prüfungen den Sprint-1-Stand. Danach schließt der PO #5, #6 und #7 mit
+Commit-Verweis (Mangel M1), ergänzt SPEC 15 um die Präfix-Bedingung (M2) und
+lässt den irreführenden Testkommentar in `tests/librarytest.cpp` durch den Dev
+korrigieren (M3); die Differenz beim sechsten UI-Checklistenpunkt (7.4) ist
+aufzuklären. **Beide Bedingungen aus 4.4 für S8 sind erfüllt** — vom Scrum
+Master nachgeprüft: Wireframe 2a und die 1b-Variante im M2-Stand liegen mit
+`1ada199` vor, und #11 führt die neugefassten Interaktions-AK samt der
+ausdrücklich vermerkten Herauslösung des Vorschlags-Kriteriums nach S18a
+(#29, M5). S8 ist damit in Sprint 3 ziehbar; die 2 SP sind laut Issue beim
+Planning gegen die neuen AK zu bestätigen. Sprint-3-Planning danach:
+technische Schranke ist S6 + T3 + S7 (7 SP), ergänzbar um S8 (2 SP) —
+Priorisierung und Kundenfreigabe wie gehabt. Hinweis 5.3 ist erledigt
+(#43 hängt am Milestone „Sprint 1"), und der Journal-Eintrag zur
+Planungssitzung ist geschrieben (Daily 2026-07-31, 23:34 Uhr). **Ein
+Journal-Punkt bleibt:** Der Eintrag von 01:12 im Daily 2026-08-01 steht auf
+„DoD-Prüfung läuft" — er braucht einen Abschluss oder einen Folgeeintrag mit
+dem Ergebnis dieses Reviews, sonst ist DoD 6 rückwirkend unvollständig und
+wiederholt sich als Mangel in Sprint 3.

@@ -832,9 +832,11 @@ void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
     // The grace period is still running, the note is still in the store.
     QVERIFY(m_store->note(id).has_value());
 
-    // D-Bus Quit() (SPEC 2.3) ends the event loop without closing the window,
-    // so no close event carries the deletion out. SPEC 9 has it deleted for
-    // good once the period is over, and quitting does not take it back.
+    // Qt 6 closes all windows before quitting (QCoreApplication::quit docs),
+    // so the close event is what carries the pending deletion out on D-Bus
+    // Quit() (SPEC 2.3). This test pins that Qt behaviour: should a later Qt
+    // stop closing windows on quit, SPEC 9 ("deleted for good once the
+    // period is over") would silently break — and this test catches it.
     QTimer::singleShot(0, qApp, &QCoreApplication::quit);
     qApp->exec();
 
