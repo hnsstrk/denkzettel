@@ -5,7 +5,8 @@
 **Teilnehmer:** Schätzer A (Agent `schaetzer-aufwand`, reiner Implementierungs-
 aufwand) · Schätzer B (Agent `schaetzer-risiko`, Risiko und Integration) ·
 Scrum Master · Product Owner (Claude Haupt-Session)
-**Status des Sprint-Vorschlags:** wartet auf Kundenfreigabe
+**Status des Sprint-Vorschlags:** freigegeben durch den Kunden am 31.07.2026,
+20:02 · Issues #1 (T1), #2 (S1), #3 (S2), #4 (S3) im Milestone „Sprint 1"
 
 Grundlagen: `SPEC.md` (Stand 31.07.2026, um die PO-Entscheidungen der Klausur
 ergänzt), `docs/scrum/BACKLOG.md` (Entwurf, 28 Stories), `docs/scrum/PROZESS.md`.

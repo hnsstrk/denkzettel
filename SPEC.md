@@ -70,7 +70,13 @@ stattdessen `ShowCapture()` (Einzelinstanz).
 - `Meta+N` → `ShowCapture()` · `Meta+Umschalt+N` → `ShowRecorder()`
 - Registrierung über **KGlobalAccel** (KF6); die Kürzel erscheinen in den
   Plasma-Systemeinstellungen und sind dort wie in den App-Einstellungen änderbar.
-- Belegung auf Ganymed geprüft (31.07.2026): beide frei.
+- Belegung auf Ganymed geprüft (31.07.2026, inkl. Mehrfachbelegungen): beide frei.
+- **Konflikterkennung (T1-Befund):** Eine KGlobalAccel-Registrierung kann
+  unsichtbar fehlschlagen — der Eintrag entsteht und `invokeShortcut`
+  funktioniert, aber der echte Tastendruck geht weiter an den bestehenden
+  Besitzer. Beim Erststart und bei Kürzel-Änderung prüft Denkzettel die
+  Sequenz gegen die bestehende Belegung (inkl. Mehrfachbelegungen) und
+  meldet Konflikte sichtbar statt still zu scheitern.
 
 ### 2.5 Autostart und Erststart (Ergänzung aus der Schätzklausur)
 
@@ -89,8 +95,18 @@ stattdessen `ShowCapture()` (Einzelinstanz).
 
 ## 3. Capture-Fenster (Text)
 
-- Rahmenloses, zentriertes Fenster (`Qt::FramelessWindowHint` +
-  KWin-Regel-freundlich), sofortiger Fokus, immer im Vordergrund.
+- Rahmenloses Fenster, sofortiger Fokus, immer im Vordergrund.
+- **Fokus-Mechanik (T1-Befund, Issue #1):** Vor jedem Zeigen wird das Fenster
+  neu gemappt — `hide()` zerstört die Wayland-Surface, `show()` erzeugt ein
+  frisches Toplevel, das vom Compositor regulär den Fokus erhält. Der
+  XDG-Activation-Token-Weg trägt nachweislich nicht (KGlobalAccel liefert
+  kein Token, Zeitstempel immer 0) und wird nicht gebaut.
+- **Zentrierung (PO-Entscheidung nach T1):** KWin-Standardplatzierung —
+  Plasma 6.7 zentriert standardmäßig, auf Ganymed verifiziert. Ein
+  Wayland-Client kann sich nicht selbst positionieren; weicht die
+  Platzierungsrichtlinie des Nutzers ab, ist Layer-Shell (Overlay,
+  `AnchorNone`, `KeyboardInteractivityOnDemand`) der gemessene Rückfallweg —
+  dokumentiert, in v1 nicht gebaut.
 - Inhalt: App-Name klein, mehrzeiliges Textfeld (Platzhalter „Gedanke
   festhalten …"), Fußzeile „Esc verwirft · Strg+Enter speichert".
 - **Mitwachsend**: Starthöhe ~3 Zeilen, wächst mit dem Text bis ~8 Zeilen,
