@@ -41,11 +41,19 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    /** What a reload does with the note the list has selected. */
+    enum class Selection {
+        /** A freshly opened library has nothing selected (wireframe 2c). */
+        Clear,
+        /** The open window keeps the note the user is reading. */
+        Keep,
+    };
+
     QWidget *buildHeader();
     QWidget *buildDetail();
 
     /** Reads the notes from the store into the list. */
-    void reload();
+    void reload(Selection selection);
 
     /** Picks list and detail page for the current number of notes. */
     void updatePages();

@@ -25,6 +25,23 @@ Note NoteListModel::noteAt(int row) const
     return m_notes.at(row);
 }
 
+int NoteListModel::rowOf(qint64 noteId) const
+{
+    // A note that was never stored carries the default id, and so does the
+    // empty note of a row outside the list — looking for it finds nothing.
+    if (noteId < 0) {
+        return -1;
+    }
+
+    for (int row = 0; row < m_notes.size(); ++row) {
+        if (m_notes.at(row).id == noteId) {
+            return row;
+        }
+    }
+
+    return -1;
+}
+
 void NoteListModel::takeRow(int row)
 {
     if (row < 0 || row >= m_notes.size()) {
