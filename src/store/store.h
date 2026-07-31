@@ -2,6 +2,7 @@
 
 #include "store/note.h"
 
+#include <QList>
 #include <QSqlDatabase>
 #include <QString>
 #include <QStringList>
@@ -47,6 +48,9 @@ public:
     bool updateNote(const Note &note);
 
     std::optional<Note> note(qint64 id) const;
+
+    /** All notes, newest first — the order the library lists them in (SPEC 9). */
+    QList<Note> notes() const;
 
     /** Deletes note and tags in one transaction, then its audio file. */
     bool removeNote(qint64 id);
