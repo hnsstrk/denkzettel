@@ -24,7 +24,7 @@ private Q_SLOTS:
     void init();
     void cleanup();
 
-    void restsAtThreeLines();
+    void restsAtFiveLines();
     void growsWithTheText();
     void stopsAtEightLines();
     void windowFollowsTheTextHeight();
@@ -70,23 +70,23 @@ QPlainTextEdit *CaptureTest::textArea() const
     return m_window->findChild<QPlainTextEdit *>();
 }
 
-void CaptureTest::restsAtThreeLines()
+void CaptureTest::restsAtFiveLines()
 {
     // An empty document still reports one line, so the resting height has to
     // come from the lower bound.
-    QCOMPARE(capture::textAreaHeight(0, 20, 4), 64);
-    QCOMPARE(capture::textAreaHeight(1, 20, 4), 64);
-    QCOMPARE(capture::textAreaHeight(3, 20, 4), 64);
+    QCOMPARE(capture::textAreaHeight(0, 20, 4), 104);
+    QCOMPARE(capture::textAreaHeight(1, 20, 4), 104);
+    QCOMPARE(capture::textAreaHeight(5, 20, 4), 104);
 }
 
 void CaptureTest::growsWithTheText()
 {
-    QCOMPARE(capture::textAreaHeight(4, 20, 4), 84);
+    QCOMPARE(capture::textAreaHeight(6, 20, 4), 124);
     QCOMPARE(capture::textAreaHeight(7, 20, 4), 144);
     QCOMPARE(capture::textAreaHeight(8, 20, 4), 164);
 
     // The chrome is added on top of the text, whatever the line count.
-    QCOMPARE(capture::textAreaHeight(4, 20, 0), 80);
+    QCOMPARE(capture::textAreaHeight(6, 20, 0), 120);
 }
 
 void CaptureTest::stopsAtEightLines()

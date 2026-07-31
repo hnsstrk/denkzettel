@@ -109,8 +109,8 @@ stattdessen `ShowCapture()` (Einzelinstanz).
   dokumentiert, in v1 nicht gebaut.
 - Inhalt: App-Name klein, mehrzeiliges Textfeld (Platzhalter „Gedanke
   festhalten …"), Fußzeile „Esc verwirft · Strg+Enter speichert".
-- **Mitwachsend**: Starthöhe ~3 Zeilen, wächst mit dem Text bis ~8 Zeilen,
-  danach Scrollbalken.
+- **Mitwachsend**: Starthöhe ~5 Zeilen (Sprint-1-Abnahme: 3 waren dem Kunden
+  zu wenig), wächst mit dem Text bis ~8 Zeilen, danach Scrollbalken.
 - Strg+Enter: Notiz speichern (`store`), Fenster verstecken, Feld leeren.
   Esc: verwerfen, Fenster verstecken. Fokusverlust: Fenster bleibt (kein
   Datenverlust durch versehentlichen Klick daneben).
