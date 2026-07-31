@@ -34,7 +34,9 @@ QMenu *TrayIcon::buildMenu()
 {
     auto *menu = new QMenu();
 
-    addStub(menu, i18n("Capture öffnen"));
+    QAction *captureAction = menu->addAction(i18n("Capture öffnen"));
+    connect(captureAction, &QAction::triggered, this, &TrayIcon::captureRequested);
+
     addStub(menu, i18n("Sprachnotiz aufnehmen"));
     addStub(menu, i18n("Bibliothek"));
     addStub(menu, i18n("Analyse jetzt"));

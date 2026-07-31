@@ -15,6 +15,9 @@ class TrayIcon : public QObject
 public:
     explicit TrayIcon(QObject *parent = nullptr);
 
+Q_SIGNALS:
+    void captureRequested();
+
 private:
     QMenu *buildMenu();
 
