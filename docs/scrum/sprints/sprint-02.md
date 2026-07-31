@@ -799,6 +799,34 @@ und Splitter-Aufteilung als zwei getrennte Punkte über denselben
 Sitzungswechsel; 7.4 fasst sie in einem Punkt zusammen — die Substanz ist
 vollständig, keine Protokolländerung nötig.
 
+### 7.5.2 Abnahme-Ergebnis der ersten Sichtprüfung (Nachtrag PO, 01:48)
+
+**Die Sichtprüfung ist in ihrem ersten Durchlauf gescheitert — Sprint 2 ist
+nicht abgenommen.** Drei Kundenbefunde, alle dokumentiert:
+
+1. **Meta+N ohne Wirkung** (Issue #5, AK 1). Diagnose-Momentaufnahme des PO:
+   Die Komponente existiert bei kglobalacceld überhaupt nicht
+   (`allMainComponents` ohne denkzettel, Komponentenpfad `UnknownObject`) —
+   die Registrierung schlägt still fehl, eine Meldung erschien nicht
+   (Konfliktprüfung nur beim Erststart; `FirstRunDone` war gesetzt).
+   Verdachtsmoment: Prüfung lief ohne systemweite Installation der
+   Desktop-Datei. Details im Issue-Kommentar.
+2. **Bibliotheks-Layout kaputt** (Issue #7): Suchfeld schwebt in der
+   Fenstermitte, große Leerflächen, Liste beginnt erst in der unteren
+   Fensterhälfte — Wireframe 2b verlangt Kopfzeile oben mit voller Resthöhe
+   für Liste und Detail. Exakt das I4-Restrisiko: 38 Tests prüfen Logik,
+   nicht Geometrie.
+3. **Tray-Linksklick ohne Wirkung** (neues Issue #44, typ:bug): Konvention
+   ist Linksklick = Hauptaktion, Rechtsklick = Menü; Denkzettel reagiert nur
+   auf Rechtsklick. Bestand aus S1, vom Kunden in der Abnahme gefunden.
+
+**Bestanden:** die drei qdbus-Aufrufe am echten Session-Bus (AK 3 von #5).
+
+Nächste Schritte: Diagnose- und Heilungslauf zu den Befunden 1 und 2,
+danach erneute Sichtprüfung (die übrigen elf Punkte aus 7.4 stehen noch
+aus — der Kunde brach nach den ersten Befunden ab). Befund 3 ist
+Backlog-Material und wird beim Sprint-3-Planning priorisiert.
+
 ### 7.6 Sprint-Ziel
 
 **Inhaltlich erreicht, formal vorbehaltlich der Sichtprüfung.** Das Ziel
