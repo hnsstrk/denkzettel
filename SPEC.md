@@ -416,7 +416,10 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   KConfig, KNotifications, KStatusNotifierItem, KWallet (Framework: KWallet),
   **KDBusAddons** (KDBusService/Einzelinstanz), KI18n (App-Sprache Deutsch;
   `i18n()`-Aufrufe sind KDE-Standardpraxis für alle sichtbaren Strings —
-  keine Übersetzungs-Roadmap, nur Konvention).
+  keine Übersetzungs-Roadmap, nur Konvention). UI-Fließtexte (Platzhalter,
+  Hinweise, Dialoge) sprechen den Nutzer in unpersönlicher Infinitivform an
+  („Zum Lesen links eine Notiz auswählen.") — einmal app-weit festgelegt
+  statt je Fenster (PO-Entscheidung 31.07.2026, Gestaltungsauftrag S8).
 - Laufzeit-Abhängigkeiten: `ffmpeg` (Audio-Konvertierung), optional
   `whisper.cpp` (Vulkan) und `task` (Taskwarrior) — beides wird zur Laufzeit
   erkannt; fehlt eines, sind nur die betroffenen Funktionen deaktiviert
