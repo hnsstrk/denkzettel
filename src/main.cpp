@@ -35,6 +35,13 @@ int main(int argc, char *argv[])
 
     CaptureWindow capture(&store);
 
+    // SPEC 2.3: a second process start must surface the capture window in the
+    // running instance instead of just exiting.
+    QObject::connect(&service, &KDBusService::activateRequested, &capture,
+                     [&capture](const QStringList &, const QString &) {
+                         capture.showCapture();
+                     });
+
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
 

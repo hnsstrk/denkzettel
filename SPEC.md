@@ -412,10 +412,11 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
 ## 15. Build, Abhängigkeiten, Paketierung
 
 - **CMake** + ECM (Extra CMake Modules), C++20.
-- Qt 6: Widgets, Sql, Network, Multimedia. KF6: KGlobalAccel, KConfig,
-  KNotifications, KStatusNotifierItem, KWallet (Framework: KWallet), KI18n
-  (App-Sprache Deutsch; `i18n()`-Aufrufe sind KDE-Standardpraxis für alle
-  sichtbaren Strings — keine Übersetzungs-Roadmap, nur Konvention).
+- Qt 6: Widgets, Sql, Network, Multimedia, **DBus**. KF6: KGlobalAccel,
+  KConfig, KNotifications, KStatusNotifierItem, KWallet (Framework: KWallet),
+  **KDBusAddons** (KDBusService/Einzelinstanz), KI18n (App-Sprache Deutsch;
+  `i18n()`-Aufrufe sind KDE-Standardpraxis für alle sichtbaren Strings —
+  keine Übersetzungs-Roadmap, nur Konvention).
 - Laufzeit-Abhängigkeiten: `ffmpeg` (Audio-Konvertierung), optional
   `whisper.cpp` (Vulkan) und `task` (Taskwarrior) — beides wird zur Laufzeit
   erkannt; fehlt eines, sind nur die betroffenen Funktionen deaktiviert
