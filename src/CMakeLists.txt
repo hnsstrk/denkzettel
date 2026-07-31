@@ -26,6 +26,7 @@ target_link_libraries(denkzettelcapture PUBLIC
 # and the conflict rule that way (SPEC 16).
 add_library(denkzettelshell STATIC
     shell/daemonservice.cpp
+    shell/firstrun.cpp
     shell/globalshortcuts.cpp
     shell/shortcutconflict.cpp
     shell/trayicon.cpp
@@ -37,6 +38,7 @@ target_link_libraries(denkzettelshell PUBLIC
     denkzettelstore
     Qt6::DBus
     Qt6::Widgets
+    KF6::ConfigCore
     KF6::GlobalAccel
     KF6::I18n
     KF6::Notifications

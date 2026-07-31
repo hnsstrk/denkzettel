@@ -1,5 +1,6 @@
 #include "capture/capturewindow.h"
 #include "shell/daemonservice.h"
+#include "shell/firstrun.h"
 #include "shell/globalshortcuts.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
@@ -11,29 +12,6 @@
 
 #include <QApplication>
 #include <QIcon>
-
-namespace
-{
-/**
- * Provisional first-run marker; T2 (issue #6) replaces it with the real
- * first-run step. SPEC 2.4 ties the conflict check to the first start —
- * without a marker the warning would return at every session start, and a
- * warning that always fires is no warning.
- *
- * Only call this once the application name is back to "denkzettel", otherwise
- * the entry lands in Daemonrc.
- */
-bool takeFirstRunMarker()
-{
-    KConfigGroup general(KSharedConfig::openConfig(), QStringLiteral("General"));
-    if (general.readEntry("FirstRunDone", false)) {
-        return false;
-    }
-    general.writeEntry("FirstRunDone", true);
-    general.sync();
-    return true;
-}
-}
 
 int main(int argc, char *argv[])
 {
@@ -87,7 +65,11 @@ int main(int argc, char *argv[])
         qWarning("Exporting org.denkzettel.Daemon failed; the D-Bus entry points are unavailable.");
     }
 
-    const bool firstRun = takeFirstRunMarker();
+    // The application name is back to "denkzettel" here, so the configuration
+    // is denkzettelrc and not Daemonrc. Store::open() above has created data
+    // directory and database; this completes the first start of SPEC 2.5.
+    KConfigGroup general(KSharedConfig::openConfig(), QStringLiteral("General"));
+    const bool firstRun = runFirstStart(general);
 
     GlobalShortcuts shortcuts;
     QObject::connect(&shortcuts, &GlobalShortcuts::captureRequested, &capture, &CaptureWindow::showCapture);
