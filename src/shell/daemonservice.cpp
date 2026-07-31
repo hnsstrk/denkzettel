@@ -1,9 +1,13 @@
 #include "shell/daemonservice.h"
 
-#include <QDBusConnection>
+#include "store/store.h"
 
-DaemonService::DaemonService(QObject *parent)
+#include <QDBusConnection>
+#include <QDateTime>
+
+DaemonService::DaemonService(Store *store, QObject *parent)
     : QObject(parent)
+    , m_store(store)
 {
 }
 
@@ -17,4 +21,30 @@ bool DaemonService::registerOnSessionBus()
 void DaemonService::ShowCapture()
 {
     Q_EMIT captureRequested();
+}
+
+qlonglong DaemonService::AddNote(const QString &text)
+{
+    const QString content = text.trimmed();
+    if (content.isEmpty()) {
+        return 0;
+    }
+
+    Note note;
+    note.createdAt = QDateTime::currentDateTime();
+    note.type = Note::Type::Text;
+    note.content = content;
+
+    const std::optional<qint64> id = m_store->addNote(note);
+    if (!id) {
+        qWarning("AddNote failed: %s", qPrintable(m_store->lastError()));
+        return 0;
+    }
+
+    return *id;
+}
+
+void DaemonService::Quit()
+{
+    Q_EMIT quitRequested();
 }

@@ -50,8 +50,9 @@ int main(int argc, char *argv[])
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
 
-    DaemonService daemon;
+    DaemonService daemon(&store);
     QObject::connect(&daemon, &DaemonService::captureRequested, &capture, &CaptureWindow::showCapture);
+    QObject::connect(&daemon, &DaemonService::quitRequested, &app, &QApplication::quit);
     if (!daemon.registerOnSessionBus()) {
         qWarning("Exporting org.denkzettel.Daemon failed; the D-Bus entry points are unavailable.");
     }
