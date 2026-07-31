@@ -95,7 +95,7 @@
       </div>
       <div style="color:#333;font-size:13px;line-height:1.55">Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der Vault zugemüllt. Schwelle einstellbar machen.</div>
       <div style="display:flex;gap:5px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">software-idee</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">denkzettel</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">export</span></div>
-      <div style="margin-top:auto;font-size:11px;color:#aaa">Nur-Lesen · Bearbeiten bewusst weggelassen</div>
+      <div style="margin-top:auto;font-size:11px;color:#aaa;line-height:1.5">Nur-Lesen · Bearbeiten bewusst weggelassen<br><span style="color:#b3701f">Überholt (31.07.2026): Bearbeiten ist beschlossen — SPEC 9, KONZEPT.md Z. 124. Maßgeblich sind <a href="#2a" style="color:#b3701f">2a</a> (Bearbeiten) und <a href="#2b" style="color:#b3701f">2b</a> (Bibliothek im M2-Stand).</span></div>
     </div>
   </div>
 </div>
@@ -225,6 +225,213 @@
 
 </div>
 <p class="dv-next">Als Nächstes z. B.: „Bibliothek <a class="dv-oid" href="#1b">1b</a> mit zweispaltigem Layout ohne Detail-Panel" · „Vorschläge <a class="dv-oid" href="#1c">1c</a> als Dialog über der Bibliothek zeigen" · „Capture <a class="dv-oid" href="#1a">1a</a>: Variante mit Kategorie-Hinweis nach dem Speichern"</p>
+</section>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Gestaltungsauftrag Sprint 2, Abschnitt 4.4 — Bearbeiten-Ansicht (S8/#11) und Bibliothek im M2-Stand (S5/#7)</span></div>
+<div class="dv-opts">
+
+<!-- 2a Bearbeiten-Ansicht -->
+<div class="dv-opt" id="2a" data-screen-label="Bibliothek — Bearbeiten-Ansicht">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Screen 7 · Bibliothek — Bearbeiten-Ansicht: lesen, bearbeiten, ungespeicherte Änderungen</div>
+<div class="dv-card" style="width:820px;font-family:'Patrick Hand',cursive">
+  <div style="padding:18px;display:flex;flex-direction:column;gap:20px">
+
+    <!-- Zustand A — Leseansicht -->
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:480px;border:1.5px solid #333;border-radius:6px;background:#fff;overflow:hidden">
+        <div style="padding:6px 12px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Detailbereich der Bibliothek — Zustand A: Leseansicht</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#999;font-size:11px">Heute 11:05 · Sprachnotiz</span><span style="display:flex;gap:7px"><span style="border:1.5px solid #333;background:#dce8f7;border-radius:5px;padding:2px 11px;color:#222">Bearbeiten</span><span style="border:1.5px solid #999;border-radius:5px;padding:2px 11px;color:#777">Löschen</span></span></div>
+          <div style="border:1.5px solid #888;border-radius:6px;padding:7px 10px;display:flex;align-items:center;gap:9px;background:#fafaf8">
+            <div style="width:22px;height:22px;border:1.5px solid #333;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">▶</div>
+            <div style="flex:1;height:4px;background:#ddd;border-radius:2px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:35%;background:#2a78d6;border-radius:2px"></div></div>
+            <span style="color:#999;font-size:11px">0:14 / 0:41</span>
+          </div>
+          <div style="color:#333;font-size:13px;line-height:1.55">Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der <span style="background:#fbeedd">Fold</span> zugemüllt. Schwelle einstellbar machen.</div>
+          <div style="display:flex;gap:5px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">software-idee</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">denkzettel</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">export</span></div>
+        </div>
+      </div>
+      <div style="flex:1;font-size:12.5px;color:#777;line-height:1.6;padding-top:22px">Zustand A — Leseansicht, Regelfall.<br>Der Einstieg ist eine <b style="color:#555">sichtbare Schaltfläche</b>, F2 ist der Beschleuniger dazu (KDE HIG: Tastenwege ergänzen sichtbare Bedienelemente, sie ersetzen sie nicht).<br><br><b style="color:#555">Kein Doppelklick</b> auf den Text: Dort wählt ein Doppelklick ein Wort aus — der geläufigste Weg, etwas aus einer Notiz zu kopieren. Den zu überschreiben kostet mehr, als ein dritter Einstieg einbringt.<br><br>Whisper hat „Vault" als „<span style="background:#fbeedd">Fold</span>" verhört — genau dieser Fall ist der Grund für die Bearbeiten-Ansicht (SPEC 9, Entscheidung drittes Interview). Die Hervorhebung ist Erklärung dieser Zeichnung, kein UI-Element.</div>
+    </div>
+
+    <!-- Zustand B — Bearbeiten -->
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:480px;border:1.5px solid #333;border-radius:6px;background:#fff;overflow:hidden">
+        <div style="padding:6px 12px;background:#eef4fc;border-bottom:1px solid #ddd;font-size:11px;color:#2a78d6">Detailbereich der Bibliothek — Zustand B: Bearbeiten</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#999;font-size:11px">Heute 11:05 · Sprachnotiz</span><span style="border:1px solid #2a78d6;border-radius:9px;padding:0 9px;color:#2a78d6;font-size:11px">wird bearbeitet</span></div>
+          <div style="border:1.5px solid #888;border-radius:6px;padding:7px 10px;display:flex;align-items:center;gap:9px;background:#f2f1ee;opacity:.75">
+            <div style="width:22px;height:22px;border:1.5px solid #666;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#666">▶</div>
+            <div style="flex:1;height:4px;background:#ddd;border-radius:2px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:35%;background:#9bb8dc;border-radius:2px"></div></div>
+            <span style="color:#aaa;font-size:11px">0:14 / 0:41</span>
+          </div>
+          <div style="border:1.5px solid #2a78d6;border-radius:6px;padding:8px 10px;background:#fff;color:#222;font-size:13px;line-height:1.55;min-height:76px">Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der Vault<span style="display:inline-block;width:1.5px;height:14px;background:#333;vertical-align:-2px;margin:0 1px"></span> zugemüllt. Schwelle einstellbar machen.</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#999"><span>Kategorie</span><span style="color:#666">Software-Ideen</span><span style="color:#ddd">|</span><span>Tags</span><span style="color:#666">software-idee · denkzettel · export</span></div>
+          <div style="display:flex;align-items:center;gap:8px;border-top:1px dashed #ccc;padding-top:8px">
+            <span style="font-size:11px;color:#999">Esc bricht ab · Strg+Enter speichert</span>
+            <span style="margin-left:auto;display:flex;gap:7px"><span style="border:1.5px solid #999;border-radius:5px;padding:2px 11px;color:#777;font-size:12px">Abbrechen</span><span style="border:1.5px solid #333;background:#dce8f7;border-radius:5px;padding:2px 11px;color:#222;font-size:12px">Speichern</span></span>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;font-size:12.5px;color:#777;line-height:1.6;padding-top:22px">Zustand B — Bearbeiten.<br>Nur der Notiztext ist editierbar. <b style="color:#555">Kategorie und Tags stehen als reine Anzeige</b> da — bewusst nicht als ausgegraute Eingabefelder, die Editierbarkeit versprechen würden. SPEC 9: Kategorie, Tags und <span style="font-family:ui-monospace,monospace;font-size:11px">state</span> bleiben; gepflegt werden sie vom Analyse-Lauf.<br><br>Der Player ist während des Bearbeitens gedämpft: <b style="color:#555">die Audiodatei wird nie verändert</b>, nur ihr Transkript.<br><br>Kürzel wie im Capture-Fenster (SPEC 3) — <b style="color:#555">zusätzlich</b> sichtbare Schaltflächen, weil die Bibliothek ein reguläres Fenster ist und nicht das tastaturreine Capture.<br><br>Unsichtbares Verhalten beim Speichern: Text und FTS-Index werden aktualisiert, <span style="font-family:ui-monospace,monospace;font-size:11px">needs_reembed = 1</span> gesetzt (SPEC 9 / 7.2).</div>
+    </div>
+
+    <!-- Zustand C — ungespeicherte Änderungen -->
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="position:relative;width:480px;border:1.5px solid #333;border-radius:6px;background:#fff;overflow:hidden">
+        <div style="padding:6px 12px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Zustand C — andere Notiz gewählt oder Fenster geschlossen, Änderungen offen</div>
+        <div style="display:flex;height:196px;opacity:.45">
+          <div style="width:160px;border-right:1.5px solid #333;font-size:11px">
+            <div style="padding:7px 10px;border-bottom:1px solid #ddd;background:#eef4fc;border-left:3px solid #2a78d6"><div style="color:#999;font-size:10px">Heute 11:05</div><div style="color:#222">Sprachnotiz: Idee für Denk…</div></div>
+            <div style="padding:7px 10px;border-bottom:1px solid #ddd"><div style="color:#999;font-size:10px">Heute 14:32</div><div style="color:#222">restic-Backup: prune-Poli…</div></div>
+            <div style="padding:7px 10px;border-bottom:1px solid #ddd"><div style="color:#999;font-size:10px">Gestern 21:48</div><div style="color:#222;font-family:ui-monospace,monospace;font-size:10px">journalctl -u whisperd …</div></div>
+          </div>
+          <div style="flex:1;padding:10px 12px;font-size:11px;color:#888;line-height:1.5">Bearbeiten läuft, Text geändert …</div>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(40,40,40,.28)"></div>
+        <div style="position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:330px;background:#fff;border:1.5px solid #333;border-radius:8px;box-shadow:4px 5px 0 rgba(0,0,0,.2);padding:12px 14px;display:flex;flex-direction:column;gap:9px">
+          <div style="font-size:14px;color:#222">Änderungen speichern?</div>
+          <div style="font-size:12px;color:#555;line-height:1.5">Die Notiz von heute, 11:05 Uhr wurde geändert. Ohne Speichern gehen die Änderungen verloren.</div>
+          <div style="display:flex;gap:7px;justify-content:flex-end;border-top:1px dashed #ccc;padding-top:9px;font-size:12px"><span style="border:1.5px solid #999;border-radius:5px;padding:2px 11px;color:#777">Verwerfen</span><span style="border:1.5px solid #999;border-radius:5px;padding:2px 11px;color:#777">Abbrechen</span><span style="border:1.5px solid #333;background:#dce8f7;border-radius:5px;padding:2px 11px;color:#222">Speichern</span></div>
+        </div>
+      </div>
+      <div style="flex:1;font-size:12.5px;color:#777;line-height:1.6;padding-top:22px">Zustand C — kein Datenverlust durch einen versehentlichen Klick daneben (Leitlinie aus SPEC 3, dort für den Fokusverlust des Capture-Fensters).<br><br>Derselbe Dialog erscheint bei <b style="color:#555">Auswahlwechsel</b>, beim <b style="color:#555">Schließen des Fensters</b> und bei <b style="color:#555">Esc</b>. Kein automatisches Speichern: das widerspräche dem Esc-Vertrag der App.<br><br>Wirkung: <i>Speichern</i> schreibt und führt die auslösende Handlung aus · <i>Verwerfen</i> führt sie ohne Schreiben aus · <i>Abbrechen</i> bleibt im Bearbeiten-Zustand.<br><br>Anordnung der Schaltflächen ist <b style="color:#555">nicht</b> durch diese Zeichnung festgelegt: Speichern = <span style="font-family:ui-monospace,monospace;font-size:11px">AcceptRole</span>, Verwerfen = <span style="font-family:ui-monospace,monospace;font-size:11px">DestructiveRole</span>, Abbrechen = <span style="font-family:ui-monospace,monospace;font-size:11px">RejectRole</span> in einer <span style="font-family:ui-monospace,monospace;font-size:11px">QDialogButtonBox</span> — die Reihenfolge erbt die Plattformkonvention.</div>
+    </div>
+
+    <!-- Annotationen -->
+    <div style="border-top:1.5px solid #333;padding-top:12px;font-size:12px;color:#666;line-height:1.65">
+      <div style="font-size:13px;color:#333;margin-bottom:6px">Festlegungen, die sich nicht zeichnen lassen</div>
+      <div style="display:flex;gap:24px">
+        <div style="flex:1">
+          <b style="color:#555">Rückmeldung nach dem Speichern</b> ist der Rückwechsel in die Leseansicht — sonst nichts. Keine Erfolgsmeldung, kein Toast (KDE HIG, <i>Notifications / status changes</i>: eine sichtbare Zustandsänderung im Fenster ist die Rückmeldung; eine zusätzliche Meldung wäre Lärm).<br><br>
+          <b style="color:#555">Fokus</b>: Bearbeiten setzt den Textcursor ans Ende des Textes, ohne alles zu markieren — versehentliches Überschreiben soll nicht möglich sein.<br><br>
+          <b style="color:#555">Leerer Text</b> ist kein gültiger Speicherstand: Speichern bleibt deaktiviert, solange das Feld leer ist. Löschen führt über die Lösch-Aktion, nicht über das Leeren des Feldes.
+        </div>
+        <div style="flex:1">
+          <b style="color:#555">Nicht Teil dieses Screens (ab M5)</b>: Steckt die Notiz in einem offenen Vorschlag, verwirft das Bearbeiten diesen Vorschlag (SPEC 9). In M2 gibt es noch keine <span style="font-family:ui-monospace,monospace;font-size:11px">proposals</span>-Tabelle — das gehört an S18a, nicht an S8.<br><br>
+          <b style="color:#555">Textnotizen</b> verhalten sich gleich, nur ohne Player-Zeile.<br><br>
+          <b style="color:#555">Offen, PO-Entscheidung nötig</b>: Esc mit offenen Änderungen — hier als derselbe Dialog gezeichnet, weil eine bestehende Notiz mehr wert ist als ein nie gespeicherter Entwurf. Abweichung vom stillen Verwerfen im Capture-Fenster.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- 2b Bibliothek M2-Stand -->
+<div class="dv-opt" id="2b" data-screen-label="Bibliothek — M2-Stand">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Screen 2 (Variante) · Bibliothek im M2-Stand — ohne Sidebar, ohne Vorschläge, Suche noch ohne Funktion</div>
+<div class="dv-card" style="width:660px;font-family:'Patrick Hand',cursive">
+  <div style="background:#fff;border-bottom:1.5px solid #333;display:flex;align-items:center;gap:8px;padding:8px 12px">
+    <div style="width:12px;height:12px;border:1.5px solid #666;border-radius:50%"></div>
+    <div style="font-size:14px;color:#333">Denkzettel — Bibliothek</div>
+    <div style="margin-left:auto;display:flex;gap:6px"><div style="width:11px;height:11px;border:1.5px solid #999;border-radius:3px"></div><div style="width:11px;height:11px;border:1.5px solid #999;border-radius:3px"></div><div style="width:11px;height:11px;border:1.5px solid #999;border-radius:3px"></div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1.5px solid #333;background:#fafaf8">
+    <div style="flex:1;display:flex;align-items:center;gap:8px;border:1.5px dashed #ccc;border-radius:16px;padding:5px 12px;font-size:13px;color:#c4c4c4;background:#f4f3f0"><span style="width:11px;height:11px;border:1.5px solid #ccc;border-radius:50%;position:relative"><span style="position:absolute;width:6px;height:1.5px;background:#ccc;transform:rotate(45deg);left:9px;top:10px"></span></span>Volltextsuche …</div>
+  </div>
+  <div style="padding:8px 12px;border-bottom:1.5px solid #333;background:#fdf6e6">
+    <div style="border:1.5px solid #d9a441;border-left:4px solid #d9a441;border-radius:5px;background:#fffaf0;padding:6px 10px;display:flex;align-items:center;gap:9px;font-size:12px;color:#7a5a13"><span style="width:14px;height:14px;border:1.5px solid #d9a441;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">!</span><span>Notiz gelöscht.</span><span style="margin-left:auto;display:flex;align-items:center;gap:9px"><span style="color:#a08a55;font-size:11px">noch 3 s</span><span style="border:1.5px solid #7a5a13;border-radius:5px;padding:1px 10px;background:#fff;color:#7a5a13">Rückgängig</span></span></div>
+  </div>
+  <div style="display:flex;min-height:300px">
+    <div style="width:280px;border-right:1.5px solid #333;display:flex;flex-direction:column;font-size:12px">
+      <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+        <div style="color:#999;font-size:11px">Heute 14:32</div>
+        <div style="color:#222;font-size:13px;line-height:1.35">restic-Backup: prune-Policy prüfen, monatliche<br>Snapshots behalten — als Cronjob auf dem …</div>
+        <div style="display:flex;gap:5px;margin-top:4px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">backup</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">nas</span></div>
+      </div>
+      <div style="padding:9px 12px;border-bottom:1px solid #ddd;background:#eef4fc;border-left:3px solid #2a78d6">
+        <div style="display:flex;justify-content:space-between;color:#999;font-size:11px"><span>Heute 11:05</span><span>▶ 0:41</span></div>
+        <div style="color:#222;font-size:13px;line-height:1.35">Sprachnotiz: Idee für Denkzettel — Bündel-<br>Export erst vorschlagen, wenn mindestens …</div>
+        <div style="display:flex;gap:5px;margin-top:4px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">software-idee</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">denkzettel</span></div>
+      </div>
+      <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+        <div style="color:#999;font-size:11px">Gestern 21:48</div>
+        <div style="color:#222;line-height:1.35;font-family:ui-monospace,monospace;font-size:11.5px">journalctl -u whisperd --since<br>today</div>
+        <div style="display:flex;gap:5px;margin-top:4px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">cli</span></div>
+      </div>
+      <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+        <div style="color:#999;font-size:11px">Di, 28. Juli</div>
+        <div style="color:#222;font-size:13px;line-height:1.35">Mara wegen Wochenende anrufen, Kuchen<br>nicht vergessen</div>
+        <div style="display:flex;gap:5px;margin-top:4px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">persönlich</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">todo</span></div>
+      </div>
+      <div style="padding:8px 12px;color:#bbb;text-align:center">⋯ chronologisch weiter ⋯</div>
+    </div>
+    <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#999;font-size:11px">Heute 11:05 · Sprachnotiz</span><span style="display:flex;gap:7px"><span style="border:1.5px solid #333;background:#dce8f7;border-radius:5px;padding:2px 11px;color:#222">Bearbeiten</span><span style="border:1.5px solid #999;border-radius:5px;padding:2px 11px;color:#777">Löschen</span></span></div>
+      <div style="border:1.5px solid #888;border-radius:6px;padding:7px 10px;display:flex;align-items:center;gap:9px;background:#fafaf8">
+        <div style="width:22px;height:22px;border:1.5px solid #333;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">▶</div>
+        <div style="flex:1;height:4px;background:#ddd;border-radius:2px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:35%;background:#2a78d6;border-radius:2px"></div></div>
+        <span style="color:#999;font-size:11px">0:14 / 0:41</span>
+      </div>
+      <div style="color:#333;font-size:13px;line-height:1.55">Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der Vault zugemüllt. Schwelle einstellbar machen.</div>
+      <div style="display:flex;gap:5px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">software-idee</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">denkzettel</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">export</span></div>
+      <div style="margin-top:auto;font-size:11px;color:#aaa;line-height:1.5">Leseansicht · Bearbeiten siehe <a href="#2a" style="color:#2a78d6">2a</a><br>Suchfeld sichtbar, aber ohne Funktion bis S6 · Kategorien-Sidebar ab M3 (S12) · Vorschläge-Knopf ab M5</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 2c Leerzustände -->
+<div class="dv-opt" id="2c" data-screen-label="Bibliothek — Leerzustände">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Screen 2 (Variante) · Bibliothek — Leerzustände: nichts vorhanden, nichts ausgewählt</div>
+<div class="dv-card" style="width:660px;font-family:'Patrick Hand',cursive">
+  <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+
+    <div style="border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+      <div style="padding:6px 12px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Leerzustand 1 — noch keine Notiz vorhanden (Erststart)</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #ddd;background:#fafaf8">
+        <div style="flex:1;display:flex;align-items:center;gap:8px;border:1.5px dashed #ccc;border-radius:16px;padding:4px 12px;font-size:12px;color:#c4c4c4;background:#f4f3f0">Volltextsuche …</div>
+      </div>
+      <div style="display:flex;height:150px">
+        <div style="width:280px;border-right:1.5px solid #333;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center">
+          <div style="color:#999;line-height:1.6"><div style="font-size:14px;color:#666">Noch keine Notizen</div><div style="font-size:12px">Mit <span style="color:#555">Meta+N</span> einen Gedanken<br>festhalten.</div></div>
+        </div>
+        <div style="flex:1"></div>
+      </div>
+    </div>
+
+    <div style="border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+      <div style="padding:6px 12px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Leerzustand 2 — Notizen vorhanden, keine ausgewählt</div>
+      <div style="display:flex;height:150px">
+        <div style="width:280px;border-right:1.5px solid #333;font-size:12px">
+          <div style="padding:8px 12px;border-bottom:1px solid #ddd"><div style="color:#999;font-size:11px">Heute 14:32</div><div style="color:#222;font-size:13px">restic-Backup: prune-Policy prüfen, …</div></div>
+          <div style="padding:8px 12px;border-bottom:1px solid #ddd"><div style="color:#999;font-size:11px">Heute 11:05</div><div style="color:#222;font-size:13px">Sprachnotiz: Idee für Denkzettel — …</div></div>
+          <div style="padding:8px 12px;border-bottom:1px solid #ddd"><div style="color:#999;font-size:11px">Gestern 21:48</div><div style="color:#222;font-family:ui-monospace,monospace;font-size:11px">journalctl -u whisperd …</div></div>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center">
+          <div style="color:#999;line-height:1.6"><div style="font-size:14px;color:#666">Keine Notiz ausgewählt</div><div style="font-size:12px">Zum Lesen links eine Notiz<br>auswählen.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:1.5px solid #333;padding-top:12px;font-size:12px;color:#666;line-height:1.65">
+      <div style="font-size:13px;color:#333;margin-bottom:6px">Festlegungen zu <a href="#2b" style="color:#2a78d6">2b</a> und <a href="#2c" style="color:#2a78d6">2c</a>, die sich nicht zeichnen lassen</div>
+      <div style="display:flex;gap:24px">
+        <div style="flex:1">
+          <b style="color:#555">Lösch-Undo</b>: Die Meldung sitzt als <span style="font-family:ui-monospace,monospace;font-size:11px">KMessageWidget</span> im Fenster unter der Kopfzeile — nicht als Overlay über dem Inhalt und nicht als Bildschirmecken-Toast, weil das Löschen endgültig ist und die Meldung nicht wegscrollen darf (KDE HIG: Vorgänge im aktiven Fenster melden sich im Fenster).<br><br>
+          <b style="color:#b3701f">Offen, PO-Entscheidung nötig — betrifft S5, nicht S8</b>: „Bleibend" (Protokoll 4.3) und „5-Sekunden-Frist" (SPEC 9) vertragen sich nicht. Nach Fristablauf ist die Löschung ausgeführt; eine dann noch stehende Meldung hätte einen toten Knopf. <b style="color:#555">Variante A — hier gezeichnet</b>: Frist 5 s, Meldung zeigt die Restzeit und vergeht mit ihr; SPEC 9 bleibt unangetastet. <b style="color:#555">Variante B</b>: Meldung bleibt bis zum Schließen, dann muss die Frist mitwachsen — SPEC 9 ist angetastet und DoD 4 greift, wie 4.3 es vorgesehen hat.<br><br>
+          Typ <span style="font-family:ui-monospace,monospace;font-size:11px">Warning</span>, <b style="color:#555">ohne Schließen-Knopf</b> (<span style="font-family:ui-monospace,monospace;font-size:11px">setCloseButtonVisible(false)</span>): Ein Schließen-Knopf ließe offen, ob er die Löschung ausführt oder nur die Meldung wegnimmt.<br><br>
+          <b style="color:#555">Leerzustände</b>: Bei leerer Bibliothek trägt nur die Liste den Platzhalter; der Detailbereich bleibt ohne zweite Meldung, damit ein leeres Fenster nicht zweimal dasselbe sagt.<br><br>
+          <b style="color:#555">Undo-Kanten</b>: Zweites Löschen innerhalb der Frist führt das erste sofort aus und startet die Frist neu (nur eine Meldung, nie ein Stapel) · Fensterschließen innerhalb der Frist führt die Löschung aus · nach dem Löschen rückt die Auswahl auf den nachfolgenden Eintrag, bei dessen Fehlen auf den vorangehenden; ist die Liste leer, greift Leerzustand 1.
+        </div>
+        <div style="flex:1">
+          <b style="color:#555">Deaktiviertes Suchfeld</b>: PO-Entscheidung (Planning-Protokoll 4.3) für Layoutstabilität — S5 legt die Kopfzeile an, S6/S7 rüsten die Funktion nach. Die KDE HIG rät sonst von dauerhaft funktionslosen Bedienelementen ab; die Ausnahme ist hier bewusst und befristet. Empfehlung: Tooltip „Die Volltextsuche steht noch nicht zur Verfügung."<br><br>
+          <b style="color:#555">Zeitstempel</b>: heute → „Heute HH:MM", gestern → „Gestern HH:MM", innerhalb der letzten sieben Tage → „Di, 28. Juli", älter → „28.07.2025". Umschaltpunkt ist der Kalendertag, nicht 24 Stunden.<br><br>
+          <b style="color:#555">Listeneintrag</b>: Zeitstempel, <b style="color:#555">zwei Zeilen</b> Text mit Auslassung am Ende, Tag-Chips; Sprachnotizen zusätzlich ▶ und Dauer.<br><br>
+          <b style="color:#555">Tastatur</b>: Pfeiltasten wechseln die Auswahl, Entf löscht, <span style="font-family:ui-monospace,monospace;font-size:11px">KStandardShortcut::undo</span> macht innerhalb der Frist rückgängig, F2 öffnet das Bearbeiten (<a href="#2a" style="color:#2a78d6">2a</a>).<br><br>
+          <b style="color:#555">Offen, PO-Entscheidung nötig</b>: Ansprache des Nutzers. Hier durchgehend unpersönlich im Infinitiv gezeichnet („Zum Lesen links eine Notiz auswählen.") — das ist die KDE-übliche Form und vermeidet die Wahl zwischen Du und Sie. Die Festlegung sollte einmal für die ganze App gelten, nicht je Fenster.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Vorlage für: Neufassung der Akzeptanzkriterien von Issue #11 (S8) und UI-Review von Issue #7 (S5). Screen <a class="dv-oid" href="#1b">1b</a> zeigt den Zielstand ab M3 (mit Sidebar und Vorschlägen), <a class="dv-oid" href="#2b">2b</a> den Stand nach M2.</p>
 </section>
 </x-dc>
 </body>
