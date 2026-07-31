@@ -32,6 +32,16 @@ add_subdirectory(src)
 
 install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
+# Autostart with the session (SPEC 2.5), deliberately under the same file name:
+# kglobalacceld names the shortcut component after it (SPEC 2.4), and the Plasma
+# autostart module switches a system-wide entry off by shadowing exactly that
+# name in ~/.config/autostart.
+#
+# Only prefix /usr resolves this to /etc/xdg/autostart, the single autostart
+# directory a stock XDG_CONFIG_DIRS lists. Installed to /usr/local the entry
+# lands in /usr/local/etc/xdg/autostart, where no session reads it.
+install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
+
 ecm_install_icons(ICONS
     icons/sc-apps-denkzettel.svg
     icons/sc-status-denkzettel-tray.svg
