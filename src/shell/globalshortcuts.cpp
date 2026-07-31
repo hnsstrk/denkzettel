@@ -87,7 +87,7 @@ void notifyShortcutConflict(const QList<ShortcutOwner> &conflicts)
     KNotification::event(KNotification::Warning,
                          i18n("Kürzel bereits belegt"),
                          i18n("Meta+N gehört bereits zu: %1. Der Tastendruck erreicht Denkzettel "
-                              "womöglich nicht. Das Kürzel lässt sich in den Systemeinstellungen "
-                              "unter „Kurzbefehle“ ändern.",
+                              "womöglich nicht. Zum Ändern die Systemeinstellungen unter "
+                              "„Kurzbefehle“ öffnen.",
                               descriptions.join(QStringLiteral(", "))));
 }
