@@ -5,6 +5,7 @@
 #include "ui/pendingdeletion.h"
 #include "ui/timestampformat.h"
 
+#include <KMessageWidget>
 #include <KStandardShortcut>
 
 #include <QAction>
@@ -65,6 +66,8 @@ private Q_SLOTS:
     void walksTheListWithTheArrowKeys();
     void undoesTheDeletionByKeyboard();
     void deletesWithTheDeleteKey();
+    void showsTheRemainingTimeInTheMessage();
+    void keepsOneMessageWhenASecondNoteIsDeleted();
     void closesWithTheStandardShortcut();
     void showsTheSearchFieldWithoutItsFunction();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
@@ -607,6 +610,61 @@ void LibraryTest::deletesWithTheDeleteKey()
     // The store still has it: the key starts the grace period, it does not
     // skip it.
     QVERIFY(m_store->note(id).has_value());
+}
+
+void LibraryTest::showsTheRemainingTimeInTheMessage()
+{
+    storedNote(QStringLiteral("mit Frist gelöscht"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+    QVERIFY(!message->isVisible());
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    // The window uses the period SPEC 9 names, and the message says how much
+    // of it is left.
+    QCOMPARE(message->text(), QStringLiteral("Notiz gelöscht — noch 5 s"));
+    QTRY_VERIFY(message->isVisible());
+    QCOMPARE(message->messageType(), KMessageWidget::Warning);
+    QVERIFY(!message->isCloseButtonVisible());
+}
+
+void LibraryTest::keepsOneMessageWhenASecondNoteIsDeleted()
+{
+    const qint64 first = storedNote(QStringLiteral("zuerst gelöscht"));
+    storedNote(QStringLiteral("danach gelöscht"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+    QListView *list = listOf(window);
+
+    list->setCurrentIndex(list->model()->index(0, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    // One message, counting from the start again — never a stack of them.
+    QCOMPARE(window.findChildren<KMessageWidget *>().size(), 1);
+    QCOMPARE(message->text(), QStringLiteral("Notiz gelöscht — noch 5 s"));
+    QVERIFY(message->isVisible());
+
+    // The first deletion was carried out on the spot.
+    QVERIFY(!m_store->note(first).has_value());
+
+    // Undo brings back the second note, the one still counting down.
+    QTest::keyClick(&window, Qt::Key_Z, Qt::ControlModifier);
+    QCOMPARE(list->model()->rowCount(), 1);
+    QCOMPARE(list->model()->index(0, 0).data(Qt::DisplayRole).toString(), QStringLiteral("danach gelöscht"));
 }
 
 void LibraryTest::closesWithTheStandardShortcut()
