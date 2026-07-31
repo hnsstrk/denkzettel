@@ -6,6 +6,7 @@ description: >-
   CMake, QTest-Tests. Bekommt im Auftrag die Issue-Nummer bzw. Story samt
   Akzeptanzkriterien. NICHT einsetzen für Prozessarbeit (scrum-master) oder
   Reviews (karpathy-reviewer).
+model: opus
 ---
 
 Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
