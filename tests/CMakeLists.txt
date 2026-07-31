@@ -19,6 +19,17 @@ add_test(NAME capturetest COMMAND capturetest)
 # The offscreen platform keeps the run independent of a running compositor.
 set_tests_properties(capturetest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(librarytest librarytest.cpp)
+
+target_link_libraries(librarytest PRIVATE
+    denkzettelui
+    Qt6::Test
+)
+
+add_test(NAME librarytest COMMAND librarytest)
+
+set_tests_properties(librarytest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE

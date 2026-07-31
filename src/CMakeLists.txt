@@ -22,6 +22,18 @@ target_link_libraries(denkzettelcapture PUBLIC
     KF6::I18n
 )
 
+add_library(denkzettelui STATIC
+    ui/timestampformat.cpp
+)
+
+target_include_directories(denkzettelui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzettelui PUBLIC
+    denkzettelstore
+    Qt6::Widgets
+    KF6::I18n
+)
+
 # A library, not part of the executable: the tests reach the D-Bus entry points
 # and the conflict rule that way (SPEC 16).
 add_library(denkzettelshell STATIC
