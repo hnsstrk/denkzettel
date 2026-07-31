@@ -27,3 +27,12 @@ target_link_libraries(shelltest PRIVATE
 )
 
 add_test(NAME shelltest COMMAND shelltest)
+
+add_executable(firstruntest firstruntest.cpp)
+
+target_link_libraries(firstruntest PRIVATE
+    denkzettelshell
+    Qt6::Test
+)
+
+add_test(NAME firstruntest COMMAND firstruntest)
