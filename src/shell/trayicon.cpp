@@ -51,7 +51,10 @@ QMenu *TrayIcon::buildMenu()
     connect(captureAction, &QAction::triggered, this, &TrayIcon::captureRequested);
 
     addStub(menu, i18n("Sprachnotiz aufnehmen"));
-    addStub(menu, i18n("Bibliothek"));
+
+    QAction *libraryAction = menu->addAction(i18n("Bibliothek"));
+    connect(libraryAction, &QAction::triggered, this, &TrayIcon::libraryRequested);
+
     addStub(menu, i18n("Analyse jetzt"));
     addStub(menu, i18n("Vorschläge"));
     addStub(menu, i18n("Einstellungen"));

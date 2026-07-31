@@ -35,10 +35,13 @@ public Q_SLOTS:
      */
     Q_SCRIPTABLE qlonglong AddNote(const QString &text);
 
+    Q_SCRIPTABLE void ShowLibrary();
+
     Q_SCRIPTABLE void Quit();
 
 Q_SIGNALS:
     void captureRequested();
+    void libraryRequested();
     void quitRequested();
 
 private:

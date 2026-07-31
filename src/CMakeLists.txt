@@ -24,6 +24,7 @@ target_link_libraries(denkzettelcapture PUBLIC
 
 add_library(denkzettelui STATIC
     ui/elidedlines.cpp
+    ui/librarywindow.cpp
     ui/notelistdelegate.cpp
     ui/notelistmodel.cpp
     ui/pendingdeletion.cpp
@@ -35,7 +36,13 @@ target_include_directories(denkzettelui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzettelui PUBLIC
     denkzettelstore
     Qt6::Widgets
+    KF6::ConfigCore
+    # KStandardShortcut (ConfigGui), KMessageWidget (WidgetsAddons) and
+    # KWindowConfig (WindowSystem) — SPEC 15.
+    KF6::ConfigGui
     KF6::I18n
+    KF6::WidgetsAddons
+    KF6::WindowSystem
 )
 
 # A library, not part of the executable: the tests reach the D-Bus entry points
@@ -71,6 +78,7 @@ target_include_directories(denkzetteld PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzetteld PRIVATE
     denkzettelcapture
     denkzettelshell
+    denkzettelui
     Qt6::Widgets
     KF6::ConfigCore
     KF6::DBusAddons

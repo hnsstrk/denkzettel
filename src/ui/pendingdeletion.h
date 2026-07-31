@@ -50,6 +50,9 @@ private:
     void tick();
     void commit();
 
+    /** Deletes the note and reports it, without touching the pending state. */
+    void carryOut(qint64 noteId);
+
     Store *m_store;
     int m_gracePeriodSeconds;
     qint64 m_noteId = -1;

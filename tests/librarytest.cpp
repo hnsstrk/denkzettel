@@ -298,6 +298,13 @@ void LibraryTest::carriesOutTheFirstDeletionWhenASecondArrives()
     QSignalSpy committed(&deletion, &PendingDeletion::committed);
     QSignalSpy remaining(&deletion, &PendingDeletion::remainingChanged);
 
+    // The window keeps its message standing as long as something is pending,
+    // so the second request has to have taken over by the time the first
+    // deletion is reported.
+    connect(&deletion, &PendingDeletion::committed, this, [&deletion] {
+        QVERIFY(deletion.isPending());
+    });
+
     deletion.request(first);
     deletion.request(second);
 

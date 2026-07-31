@@ -2,6 +2,7 @@
 #include "shell/shortcutconflict.h"
 #include "store/store.h"
 
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -25,6 +26,7 @@ private Q_SLOTS:
     void addsNoteAndReturnsItsId();
     void keepsBlankTextOutOfTheStore();
     void reportsFailedStorageAsZero();
+    void asksForTheLibraryWindow();
 
     void findsNoConflictWithoutOwners();
     void ignoresOurOwnRegistration();
@@ -81,6 +83,17 @@ void ShellTest::reportsFailedStorageAsZero()
     DaemonService service(&closed);
 
     QCOMPARE(service.AddNote(QStringLiteral("Gedanke")), 0);
+}
+
+void ShellTest::asksForTheLibraryWindow()
+{
+    // SPEC 2.3: ShowLibrary() only passes the request on — whether the window
+    // opens or comes to the front is the window's own decision.
+    QSignalSpy requested(m_service.get(), &DaemonService::libraryRequested);
+
+    m_service->ShowLibrary();
+
+    QCOMPARE(requested.size(), 1);
 }
 
 void ShellTest::findsNoConflictWithoutOwners()

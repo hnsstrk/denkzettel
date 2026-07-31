@@ -17,6 +17,7 @@ public:
 
 Q_SIGNALS:
     void captureRequested();
+    void libraryRequested();
 
 private:
     QMenu *buildMenu();
