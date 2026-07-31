@@ -479,6 +479,25 @@ nach SPEC, Tests scharf (Mutationstest), Modulgrenzen sauber, i18n
 vollständig. **DoD-Punkt 3 ist damit für alle vier Stories erfüllt** —
 keine offenen fail-Befunde.
 
+### 8.7 Abnahme durch den Kunden (Nachtrag PO, 21:19)
+
+Die Sichtprüfung war **erfolgreich** — alle Punkte der Checkliste bestanden:
+Capture über Tray-Menü, Notiz per Strg+Enter nachweislich in der DB
+(„Das ist ein Test", 21:02), Mitwachsen mit Scrollbalken, Fenster bleibt bei
+Fokusverlust stehen, Esc verwirft, Zweitstart holt das Fenster nach vorn.
+**Sprint 1 ist abgenommen.**
+
+Aus der Abnahme kamen drei Kundenentscheidungen:
+
+1. **Änderungswunsch Starthöhe**: 3 Zeilen sind zu wenig, neu **5 Zeilen**
+   (Obergrenze 8 unverändert) → Issue #42, direkt umgesetzt
+   (`MinTextLines = 5`, Tests und SPEC 3 angepasst, 3/3 Tests grün).
+2. **Spike-Code löschen**: `spike/t1-wayland-fokus/` entfernt; der Befund
+   bleibt in Issue #1 und SPEC 2.4/3 gesichert.
+3. **Modellzuordnung**: `scrum-master` und `denkzettel-dev` auf Opus 5
+   (`model: opus`), karpathy-reviewer bleibt Fable — in PROZESS.md als
+   Prozessänderung dokumentiert.
+
 ## 9. done / next
 
 **done:** Planning konsolidiert (41 Stories, 136 SP, sieben Entscheidungsfälle,
@@ -488,8 +507,8 @@ und einen Laufzeittest durchgeführt — 0 Warnungen, 3/3 Tests grün,
 `org.denkzettel.Daemon` und Einzelinstanz am laufenden Prozess belegt; drei
 Mängel (M1–M3) und drei offene Review-Punkte benannt; Impediment I3 auf sechs
 Fälle fortgeschrieben.
-**next:** Kunde führt die manuelle Sichtprüfung des Capture-Wegs durch und
-entscheidet über den Spike-Code; PO behebt M1–M3 (Issues #2–#4 schließen,
-SPEC 15 um Qt6 DBus und KF6 DBusAddons ergänzen, Journal-Eintrag schreiben)
-und trägt das Ergebnis des karpathy-reviewers hier nach. Danach
-Sprint-2-Planning mit S4 (Neuschätzung 3 SP) und T2.
+**next:** ~~Kunde führt die manuelle Sichtprüfung durch~~ → erledigt, Sprint 1
+abgenommen (8.7). PO schließt die Issues #2–#4 und #42 mit Commit-Verweis,
+pusht den Stand nach GitHub und schreibt den Journal-Eintrag. Danach
+Sprint-2-Planning mit S4 (Neuschätzung 3 SP, inkl. AK Konflikterkennung)
+und T2 (Autostart) — Sprint-Schnitt braucht wieder Kundenfreigabe.

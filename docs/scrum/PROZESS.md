@@ -17,6 +17,17 @@ Der Scrum Master arbeitet mit dem karpathy-reviewer zusammen: Er definiert,
 wann ein Review fällig ist (DoD, Retro-Ergebnisse), formuliert den
 Review-Auftrag und nimmt die Befunde in die Sprint-/Retro-Protokolle auf.
 
+### Modellzuordnung (Kundenentscheidung 31.07.2026)
+
+- `scrum-master` und `denkzettel-dev` laufen auf **Opus 5** (`model: opus`
+  im Agent-Frontmatter) — für klar gescopte Stories und Prozessarbeit
+  ausreichend, bei halben Kosten gegenüber Fable.
+- **Ausnahme**: Spikes und Risiko-Stories stuft der PO je Spawn per
+  `model`-Parameter auf Fable hoch.
+- `karpathy-reviewer` bleibt auf **Fable** (Session-Modell) — das
+  Sicherheitsnetz wird nicht abgestuft.
+- Revision dieser Zuordnung ist Retro-Thema.
+
 ## Artefakte und Werkzeuge
 
 - **Product Backlog**: GitHub Issues im Repo `hnsstrk/denkzettel` — die
