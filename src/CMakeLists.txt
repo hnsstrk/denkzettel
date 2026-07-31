@@ -22,22 +22,37 @@ target_link_libraries(denkzettelcapture PUBLIC
     KF6::I18n
 )
 
+# A library, not part of the executable: the tests reach the D-Bus entry points
+# and the conflict rule that way (SPEC 16).
+add_library(denkzettelshell STATIC
+    shell/daemonservice.cpp
+    shell/shortcutconflict.cpp
+    shell/trayicon.cpp
+)
+
+target_include_directories(denkzettelshell PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzettelshell PUBLIC
+    denkzettelstore
+    Qt6::DBus
+    Qt6::Widgets
+    KF6::I18n
+    KF6::StatusNotifierItem
+)
+
 add_executable(denkzetteld
     main.cpp
     resources.qrc
-    shell/daemonservice.cpp
-    shell/trayicon.cpp
 )
 
 target_include_directories(denkzetteld PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzetteld PRIVATE
     denkzettelcapture
-    Qt6::DBus
+    denkzettelshell
     Qt6::Widgets
     KF6::DBusAddons
     KF6::I18n
-    KF6::StatusNotifierItem
 )
 
 install(TARGETS denkzetteld ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})

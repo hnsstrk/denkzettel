@@ -2,12 +2,13 @@
 
 #include <QObject>
 
+class Store;
+
 /**
  * The `org.denkzettel.Daemon` interface on the session bus (SPEC 2.3).
  *
- * Only ShowCapture() exists so far — the remaining methods arrive with the
- * stories that implement them. The method name follows the D-Bus interface,
- * not the C++ naming style.
+ * The remaining methods arrive with the stories that implement them. Method
+ * names follow the D-Bus interface, not the C++ naming style.
  */
 class DaemonService : public QObject
 {
@@ -15,7 +16,8 @@ class DaemonService : public QObject
     Q_CLASSINFO("D-Bus Interface", "org.denkzettel.Daemon")
 
 public:
-    explicit DaemonService(QObject *parent = nullptr);
+    /** `store` outlives the service and is not owned by it. */
+    explicit DaemonService(Store *store, QObject *parent = nullptr);
 
     /**
      * Exports the interface at `/Daemon`. KDBusService owns the service name
@@ -26,6 +28,19 @@ public:
 public Q_SLOTS:
     Q_SCRIPTABLE void ShowCapture();
 
+    /**
+     * Stores `text` as a new note and returns its id, 0 on failure — D-Bus has
+     * no optional, and a caller can tell an id from a failure that way. Blank
+     * text is no note, as in the capture window.
+     */
+    Q_SCRIPTABLE qlonglong AddNote(const QString &text);
+
+    Q_SCRIPTABLE void Quit();
+
 Q_SIGNALS:
     void captureRequested();
+    void quitRequested();
+
+private:
+    Store *m_store;
 };
