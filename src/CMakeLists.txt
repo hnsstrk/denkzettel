@@ -26,6 +26,7 @@ add_library(denkzettelui STATIC
     ui/elidedlines.cpp
     ui/notelistdelegate.cpp
     ui/notelistmodel.cpp
+    ui/pendingdeletion.cpp
     ui/timestampformat.cpp
 )
 
