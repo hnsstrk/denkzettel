@@ -5,9 +5,12 @@
 #include "ui/pendingdeletion.h"
 #include "ui/timestampformat.h"
 
+#include <KStandardShortcut>
+
 #include <QAction>
 #include <QFontMetrics>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListView>
 #include <QLocale>
 #include <QSignalSpy>
@@ -61,6 +64,11 @@ private Q_SLOTS:
     void carriesOutTheDeletionWhenTheWindowCloses();
     void walksTheListWithTheArrowKeys();
     void undoesTheDeletionByKeyboard();
+    void deletesWithTheDeleteKey();
+    void closesWithTheStandardShortcut();
+    void showsTheSearchFieldWithoutItsFunction();
+    void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
+    void keepsTheWindowSizeForTheNextSession();
 
 private:
     static QDateTime at(const QString &isoDateTime);
@@ -580,6 +588,94 @@ void LibraryTest::undoesTheDeletionByKeyboard()
     QCOMPARE(list->currentIndex().row(), 0);
     QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("kommt zurück"));
     QVERIFY(m_store->note(id).has_value());
+}
+
+void LibraryTest::deletesWithTheDeleteKey()
+{
+    const qint64 id = storedNote(QStringLiteral("per Taste gelöscht"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    QCOMPARE(list->model()->rowCount(), 0);
+
+    // The store still has it: the key starts the grace period, it does not
+    // skip it.
+    QVERIFY(m_store->note(id).has_value());
+}
+
+void LibraryTest::closesWithTheStandardShortcut()
+{
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QTest::keySequence(&window, KStandardShortcut::close().first());
+
+    QVERIFY(!window.isVisible());
+}
+
+void LibraryTest::showsTheSearchFieldWithoutItsFunction()
+{
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto *search = window.findChild<QLineEdit *>();
+    QVERIFY(search);
+    QVERIFY(search->isVisible());
+    QVERIFY(!search->isEnabled());
+    QCOMPARE(search->placeholderText(), QStringLiteral("Volltextsuche …"));
+
+    // The disabled field cannot show a tooltip of its own, so its wrapper
+    // carries the one the story asks for.
+    QCOMPARE(search->parentWidget()->toolTip(),
+             QStringLiteral("Die Volltextsuche steht noch nicht zur Verfügung."));
+}
+
+void LibraryTest::doesNotReadTheStoreAgainWhileADeletionIsCountingDown()
+{
+    storedNote(QStringLiteral("wird gelöscht"));
+    storedNote(QStringLiteral("bleibt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+    QCOMPARE(list->model()->rowCount(), 1);
+
+    // ShowLibrary() on an open window brings it to the front. Reading the
+    // store again would fetch the note that is still counting down back into
+    // the list.
+    window.showLibrary();
+
+    QCOMPARE(list->model()->rowCount(), 1);
+    QCOMPARE(list->model()->index(0, 0).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
+}
+
+void LibraryTest::keepsTheWindowSizeForTheNextSession()
+{
+    const QSize chosen(700, 480);
+
+    {
+        LibraryWindow window(m_store.get());
+        window.showLibrary();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        window.resize(chosen);
+        window.close();
+    }
+
+    LibraryWindow reopened(m_store.get());
+
+    QCOMPARE(reopened.size(), chosen);
 }
 
 QTEST_MAIN(LibraryTest)
