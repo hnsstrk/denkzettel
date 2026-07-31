@@ -29,6 +29,9 @@ public:
     /** The note in `row`; an empty note for a row outside the list. */
     Note noteAt(int row) const;
 
+    /** The row holding the note `noteId`, or -1 if the list has none. */
+    int rowOf(qint64 noteId) const;
+
     /** Removes a row without touching the store. */
     void takeRow(int row);
 

@@ -13,12 +13,15 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QApplication>
 #include <QLocale>
 #include <QSignalSpy>
+#include <QSplitter>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextBrowser>
+#include <QTimer>
 
 #include <memory>
 
@@ -71,7 +74,14 @@ private Q_SLOTS:
     void closesWithTheStandardShortcut();
     void showsTheSearchFieldWithoutItsFunction();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
+    void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
+    void leavesTheFocusAloneWhenTheOpenWindowIsShownAgain();
+    void keepsTheListWideEnoughForThePreview();
     void keepsTheWindowSizeForTheNextSession();
+
+    // Qt emits aboutToQuit once per process, so the test of the quit path has
+    // to be the last one of this class.
+    void carriesOutTheDeletionWhenTheApplicationQuits();
 
 private:
     static QDateTime at(const QString &isoDateTime);
@@ -719,6 +729,76 @@ void LibraryTest::doesNotReadTheStoreAgainWhileADeletionIsCountingDown()
     QCOMPARE(list->model()->index(0, 0).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
 }
 
+void LibraryTest::readsTheStoreAgainWhenTheOpenWindowIsShownAgain()
+{
+    storedNote(QStringLiteral("die neuere Notiz"));
+    storedNote(QStringLiteral("die ältere Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(1, 0));
+
+    // Meta+N while the library is open: the note captured meanwhile is the
+    // newest one and takes the top row, so the selected note moves down.
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    window.showLibrary();
+
+    QCOMPARE(list->model()->rowCount(), 3);
+    QCOMPARE(list->model()->index(0, 0).data(Qt::DisplayRole).toString(),
+             QStringLiteral("gerade festgehalten"));
+
+    // The selection follows the note, not the row it used to sit in.
+    QCOMPARE(list->currentIndex().row(), 2);
+    QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("die ältere Notiz"));
+
+    auto *reader = window.findChild<QTextBrowser *>();
+    QVERIFY(reader);
+    QCOMPARE(reader->toPlainText(), QStringLiteral("die ältere Notiz"));
+}
+
+void LibraryTest::leavesTheFocusAloneWhenTheOpenWindowIsShownAgain()
+{
+    storedNote(QStringLiteral("wird gelesen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    // The window that was not on screen puts the focus into the list.
+    QListView *list = listOf(window);
+    QCOMPARE(window.focusWidget(), list);
+
+    list->setCurrentIndex(list->model()->index(0, 0));
+    auto *reader = window.findChild<QTextBrowser *>();
+    QVERIFY(reader);
+    reader->setFocus();
+    QCOMPARE(window.focusWidget(), reader);
+
+    // The tray brings the open window to the front; the reading pane keeps the
+    // focus the user put there.
+    window.showLibrary();
+
+    QCOMPARE(window.focusWidget(), reader);
+}
+
+void LibraryTest::keepsTheListWideEnoughForThePreview()
+{
+    LibraryWindow window(m_store.get());
+
+    auto *splitter = window.findChild<QSplitter *>();
+    QVERIFY(splitter);
+
+    // Two lines of preview need room; the splitter must not squeeze the list
+    // down to the width of its placeholder text.
+    QCOMPARE(splitter->widget(0)->minimumWidth(), 220);
+}
+
 void LibraryTest::keepsTheWindowSizeForTheNextSession()
 {
     const QSize chosen(700, 480);
@@ -734,6 +814,35 @@ void LibraryTest::keepsTheWindowSizeForTheNextSession()
     LibraryWindow reopened(m_store.get());
 
     QCOMPARE(reopened.size(), chosen);
+}
+
+void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
+{
+    const qint64 id = storedNote(QStringLiteral("beim Beenden weg"));
+    const qint64 kept = storedNote(QStringLiteral("bleibt sowieso"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+
+    // The grace period is still running, the note is still in the store.
+    QVERIFY(m_store->note(id).has_value());
+
+    // D-Bus Quit() (SPEC 2.3) ends the event loop without closing the window,
+    // so no close event carries the deletion out. SPEC 9 has it deleted for
+    // good once the period is over, and quitting does not take it back.
+    QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+    qApp->exec();
+
+    QVERIFY(!m_store->note(id).has_value());
+
+    // The store still answers after the loop has ended — without this, the
+    // check above would pass on a store that has stopped reading.
+    QVERIFY(m_store->note(kept).has_value());
 }
 
 QTEST_MAIN(LibraryTest)

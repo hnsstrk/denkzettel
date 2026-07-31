@@ -38,6 +38,12 @@ constexpr int WindowHeight = 600;
 /** Width of the note list, as in wireframe 2b. */
 constexpr int ListWidth = 300;
 
+/**
+ * How far the splitter may squeeze the list. Two lines of preview need room —
+ * below this the list stops being a list of readable notes.
+ */
+constexpr int MinimumListWidth = 220;
+
 /** Edge length of the icon above an empty-state text. */
 constexpr int PlaceholderIconSize = 48;
 
@@ -118,6 +124,7 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
                                          true);
     m_listPages->addWidget(m_list);
     m_listPages->addWidget(m_emptyLibraryPage);
+    m_listPages->setMinimumWidth(MinimumListWidth);
 
     m_detailPages = new QStackedWidget(this);
     m_detailPage = buildDetail();
@@ -250,12 +257,14 @@ QWidget *LibraryWindow::buildDetail()
 
 void LibraryWindow::showLibrary()
 {
-    // Only a closed window reloads: a pending deletion has left its note in
-    // the store, and reading it back would put it into a list that is counting
-    // the deletion down. Closing the window carries the deletion out, so the
-    // reload below never sees a half-deleted note.
-    if (!isVisible()) {
-        reload();
+    const bool wasVisible = isVisible();
+
+    // The open window reads the store again as well — a note captured while the
+    // library stood open belongs into the list. Only a pending deletion stops
+    // that: its note is still in the store, and reading it back would put it
+    // into a list that is counting the deletion down.
+    if (!m_deletion->isPending()) {
+        reload(wasVisible ? Selection::Keep : Selection::Clear);
     }
 
     if (isMinimized()) {
@@ -266,7 +275,13 @@ void LibraryWindow::showLibrary()
 
     raise();
     activateWindow();
-    m_list->setFocus();
+
+    // Only a window that was off screen sends the focus into the list; on an
+    // open window that would pull it out of the reading pane. A minimized
+    // window counts as visible — the window manager restores the focus it had.
+    if (!wasVisible) {
+        m_list->setFocus();
+    }
 }
 
 void LibraryWindow::closeEvent(QCloseEvent *event)
@@ -283,14 +298,19 @@ void LibraryWindow::closeEvent(QCloseEvent *event)
     QWidget::closeEvent(event);
 }
 
-void LibraryWindow::reload()
+void LibraryWindow::reload(Selection selection)
 {
+    // The selection follows the note by its id, not by its row: notes written
+    // while the library stood open take the rows above it.
+    const qint64 selected =
+        selection == Selection::Keep ? m_model->noteAt(m_list->currentIndex().row()).id : -1;
+
     m_model->setNotes(m_store->notes());
 
-    // A freshly opened library has nothing selected (wireframe 2c). Saying so
-    // explicitly also stops QAbstractItemView from picking the first entry on
-    // its own the moment the list takes the focus.
-    m_list->setCurrentIndex(QModelIndex());
+    // Saying the empty selection explicitly also stops QAbstractItemView from
+    // picking the first entry on its own the moment the list takes the focus.
+    const int row = m_model->rowOf(selected);
+    m_list->setCurrentIndex(row >= 0 ? m_model->index(row) : QModelIndex());
 
     updatePages();
 }
@@ -316,7 +336,11 @@ void LibraryWindow::showNote(const QModelIndex &index)
     if (index.isValid()) {
         const Note note = m_model->noteAt(index.row());
         m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QDateTime::currentDateTime(), QLocale()));
-        m_detailText->setPlainText(note.content);
+        // Setting the same text again would send the reader back to its first
+        // line; a reload of the open window leaves the reader where it was.
+        if (m_detailText->toPlainText() != note.content) {
+            m_detailText->setPlainText(note.content);
+        }
     }
 
     updatePages();
