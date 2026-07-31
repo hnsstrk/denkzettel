@@ -1,0 +1,86 @@
+# Denkzettel — Scrum-Arbeitsvereinbarung
+
+Stand: 2026-07-31. Diese Vereinbarung regelt, wie das Agenten-Team an
+Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven.
+
+## Rollen
+
+| Rolle | Besetzung | Verantwortung |
+|---|---|---|
+| **Kunde** | hnsstrk | Ziele, Prioritätswünsche, Sprint-Freigaben, Abnahme des Produkts |
+| **Product Owner** | Claude (Haupt-Session) | Backlog-Inhalt und -Priorisierung, Story-Schnitt, Akzeptanzkriterien, Abnahme der Stories, Kundenkontakt |
+| **Scrum Master** | Agent `scrum-master` | Prozesshüter: moderiert Schätzung, schlägt Sprint-Schnitt vor, wacht über Definition of Done, moderiert Retrospektiven, pflegt Prozess-Doku, meldet Impediments |
+| **Entwickler** | Agenten `denkzettel-dev` (je Sprint gespawnt) | Umsetzung der Stories nach Spec, Tests, technische Entscheidungen im Story-Rahmen |
+| **QA / Review** | Agent `karpathy-reviewer` | Prüfung gegen die vier Karpathy-Prinzipien am Sprint-Ende und bei Prozess-Artefakt-Änderungen (Teil der DoD) |
+
+Der Scrum Master arbeitet mit dem karpathy-reviewer zusammen: Er definiert,
+wann ein Review fällig ist (DoD, Retro-Ergebnisse), formuliert den
+Review-Auftrag und nimmt die Befunde in die Sprint-/Retro-Protokolle auf.
+
+## Artefakte und Werkzeuge
+
+- **Product Backlog**: GitHub Issues im Repo `hnsstrk/denkzettel` — die
+  **einzige Quelle der Wahrheit** für Stories, Akzeptanzkriterien, Schätzung
+  und Status. Kein Backlog-Spiegel im Repo (Kundenentscheidung 31.07.2026).
+  Labels: `epic:M1`…`epic:M7`, `sp:1|2|3|5|8`, `typ:story|bug|tech`.
+- **Priorisierung**: Epic-Reihenfolge M1→M7 als Grundlinie; die
+  Feinreihenfolge legt der PO beim Sprint-Planning über die
+  Milestone-Zuordnung fest.
+- **Sprint**: GitHub Milestone `Sprint N` mit den gezogenen Issues.
+- **Protokolle**: `docs/scrum/sprints/sprint-NN.md` (Planning, Review,
+  ggf. Retro) — je Sprint eine Datei, angelegt beim Planning.
+- **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
+  Entscheidungen), `wireframes/` (UI-Referenz).
+
+## Sprint-Mechanik
+
+- **Sprint-Umfang**: 2–4 Stories, zusammen max. ~13 Story Points, mit einem
+  benennbaren Sprint-Ziel. Sprints sind Arbeitspakete, keine Zeiträume.
+- **Freigabemodell (Kundenentscheidung 31.07.2026)**: Jeder Sprint startet
+  erst nach Freigabe durch den Kunden (Sprint-Ziel + gezogene Stories werden
+  vorgelegt).
+- **Ablauf**: Planning (SM schlägt Schnitt vor, PO bestätigt, Kunde gibt
+  frei) → Umsetzung (Dev-Agenten; bei paralleler Arbeit Worktree-Isolation)
+  → Review (PO nimmt gegen Akzeptanzkriterien ab; karpathy-reviewer gemäß
+  DoD) → Protokoll → ggf. Retro.
+- **Schätzung**: Story Points, Fibonacci (1, 2, 3, 5, 8, 13). Zwei
+  unabhängige Schätzer je Story; weichen sie um mehr als eine Stufe ab,
+  konsolidiert der Scrum Master mit Begründung. 13er-Stories werden vor dem
+  Ziehen geteilt.
+
+## Definition of Done (je Story)
+
+1. Code kompiliert warnungsarm; neue Logik hat Unit-/Integrationstests, alle
+   Tests grün (auf Ganymed).
+2. Akzeptanzkriterien des Issues erfüllt und vom PO abgenommen.
+3. karpathy-reviewer-Durchgang ohne offene `fail`-Befunde
+   (Sprint-Ende-Review über den Sprint-Diff genügt, Einzel-Review bei
+   riskanten Stories).
+4. SPEC.md/KONZEPT.md nachgezogen, falls die Umsetzung eine Festlegung
+   ändert (mit Begründung im Issue).
+5. Commit(s) auf `main` bzw. Feature-Branch gemäß Kundenvorgabe; Issue
+   geschlossen mit Verweis auf Commit.
+6. Journal-Eintrag der Session gemäß globaler Protokollpflicht.
+
+## Retrospektiven
+
+- **Kadenz**: nach Sprint 3 die erste Retro, danach jede dritte
+  (Sprint 6, 9, 12, …).
+- **Moderation**: Scrum Master; Input: Sprint-Protokolle, Impediment-Liste,
+  Befunde des karpathy-reviewers, Kunden-Feedback.
+- **Ergebnisse sind Änderungen, keine Absichtserklärungen**: neue oder
+  geänderte Skills, Regeln (`~/.claude/rules/` bzw. `.claude/`), Agenten
+  (`.claude/agents/`), Memory-Einträge oder Prozess-Anpassungen an dieser
+  Datei. Jede Änderung wird im Retro-Protokoll
+  (`docs/scrum/sprints/sprint-NN.md`, Abschnitt Retro) mit Begründung
+  dokumentiert; Skill-/Regel-/Agenten-Änderungen durchlaufen den
+  karpathy-reviewer (globale Regel).
+
+## Loop-Disziplin (gemäß ~/.claude/rules/loop-conventions.md)
+
+- **goal met**: Sprint-Ziel erreicht und DoD erfüllt → Sprint endet.
+- **budget spent**: Umfangsgrenze (~13 SP) und je Story max. 2 Anläufe.
+- **stalled**: gleicher Fehler zweimal ohne neue Evidenz → Stopp, Impediment
+  an PO/Kunden — nicht weiterprobieren.
+- **needs a human**: Scope-Änderungen, Zielkonflikte, Kosten — Kundensache.
+- **Progress-Log**: jedes Sprint-Protokoll endet mit done/next.
