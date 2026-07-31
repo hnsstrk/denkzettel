@@ -427,8 +427,11 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   `whisper.cpp` (Vulkan) und `task` (Taskwarrior) — beides wird zur Laufzeit
   erkannt; fehlt eines, sind nur die betroffenen Funktionen deaktiviert
   (mit Hinweis in den Einstellungen), die App bleibt nutzbar.
-- Paketierung: zunächst lokales `cmake --install`; PKGBUILD/AUR nach
-  Stabilisierung.
+- Paketierung: zunächst lokales `cmake --install` — mit
+  `-DCMAKE_INSTALL_PREFIX=/usr`, denn nur dann landet der
+  XDG-Autostart-Eintrag in `/etc/xdg/autostart`; unter dem
+  CMake-Standard `/usr/local` liest ihn keine Plasma-Sitzung
+  (Sprint-2-Befund, Issue #6). PKGBUILD/AUR nach Stabilisierung.
 
 ## 16. Teststrategie
 
