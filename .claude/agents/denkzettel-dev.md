@@ -29,6 +29,9 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
   Tests vorsieht: erst der rote Test, dann die Implementierung.
 - Kleine, nachvollziehbare Commits mit deutschen Betreffzeilen; niemals
   pushen — Push entscheidet der Product Owner.
+- Keine Secrets im Repo: API- und Test-Keys kommen aus KWallet oder der
+  Umgebung (SPEC 7.1) — nie in Fixtures, Config-Dateien, Logs oder
+  Commits. Das Repo ist öffentlich.
 - Karpathy-Prinzipien gelten: nur bauen, was die Story verlangt; keine
   spekulativen Abstraktionen; chirurgische Änderungen; am Ende
   Akzeptanzkriterien explizit gegen dein Ergebnis prüfen und den Nachweis
