@@ -20,12 +20,17 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS DBus Widgets Sql)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
+    Config
     DBusAddons
+    GlobalAccel
     I18n
+    Notifications
     StatusNotifierItem
 )
 
 add_subdirectory(src)
+
+install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
 ecm_install_icons(ICONS
     icons/sc-apps-denkzettel.svg
