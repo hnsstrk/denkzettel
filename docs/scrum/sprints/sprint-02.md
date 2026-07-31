@@ -328,9 +328,10 @@ Fällig am Sprint-Ende, Stand nach den Entscheidungen aus 4.3.
 
 ## 5. Hinweise an den Product Owner
 
-**5.1 — GitHub-Aktionen zum Sprint-Start.** Ein Sprint ist nach PROZESS.md
-ein **Milestone mit den gezogenen Issues**, nicht nur eine Liste im
-Protokoll. Nach Kundenfreigabe fällig: Milestone „Sprint 2" anlegen; #5, #6
+**5.1 — GitHub-Aktionen zum Sprint-Start (vom PO erledigt, siehe Kopfzeile).**
+Ein Sprint ist nach PROZESS.md ein **Milestone mit den gezogenen Issues**,
+nicht nur eine Liste im
+Protokoll. Nach Kundenfreigabe fällig war: Milestone „Sprint 2" anlegen; #5, #6
 und #7 zuordnen; an #5 das Label `sp:5` durch `sp:3` ersetzen und die
 Neuschätzung samt der Scope-Präzisierung aus 1.4 als Kommentar hinterlegen;
 das neue Akzeptanzkriterium Konflikterkennung aus dem Nachtragskommentar in
@@ -432,19 +433,23 @@ Schätzer A; Belege: T1-Befund, `src/shell/daemonservice.cpp:17`,
 in M2 an den Issue-Beschreibungen geprüft (S5 → S6 + T3 → S7, S8 zusätzlich
 M5-abhängig); Sprint-2-Schnitt über 10 SP vorgeschlagen; Prüfbarkeit von T2
 geklärt (nur manuell abnehmbar, 3.3); Planning-Beratung `denkzettel-ux`
-eingearbeitet — S5 mit neun AK-Ergänzungen und drei PO-Entscheidungen unter
-Vorbehalt gezogen, S8 auf PO-Entscheidung zurückgestellt; UI-Review-Auftrag
-für S5 entworfen; S5 vom PO als UI-Story eingestuft (4.1); vier Hinweise an
-den PO; Impediment I2 geschlossen, I3 auf acht Fälle (davon einer strittig,
-mit Prüfauftrag an die Retro) und I4 fortgeschrieben.
+eingearbeitet — S5 mit neun AK-Ergänzungen und drei PO-Entscheidungen
+gezogen (Vorbehalt inzwischen erfüllt), S8 auf PO-Entscheidung
+zurückgestellt; UI-Review-Auftrag für S5 entworfen; S5 vom PO als UI-Story
+eingestuft (4.1); vier Hinweise an den PO; Impediment I2 geschlossen, I3 auf
+acht Fälle fortgeschrieben (Fall 8 der Scrum Master selbst; die Ursache ist
+offen, mit Prüfauftrag an die Retro), I4 fortgeschrieben. Der Kunde hat den
+Schnitt am 31.07.2026 freigegeben; Milestone und AK-Stände in #5 und #7 hat
+der PO nachgezogen.
 
-**next:** PO arbeitet die AK-Ergänzungen aus 4.2 und die Scope-Korrektur aus
-4.3 in Issue #7 ein — erst danach ist der Vorbehalt an S5 aufgelöst. Dann
-Vorlage des Sprint-Ziels und der drei Stories beim Kunden zur Freigabe. Nach
-Freigabe: Milestone „Sprint 2" anlegen, Issues zuordnen, Label und
-Akzeptanzkriterien an #5 nachziehen (5.1). Für S8 sind die beiden Bedingungen
-aus 4.4 zu erfüllen — Gestaltungsauftrag an `denkzettel-ux` und AK-Neufassung
-mit Herauslösung von AK 2 nach M5 —, damit die Story in Sprint 3 ziehbar
-wird. Für diese Planungssitzung ist zudem der Journal-Eintrag
-fällig (DoD 6, globale Protokollpflicht) — in Sprint 1 war genau das
-Mangel M3. Der Sprint startet nicht vor der Freigabe.
+**next:** Umsetzung in der Reihenfolge S4 → T2 → S5 (Begründung 3.1). Am
+Sprint-Ende fällig: die manuelle M1-Checkliste nach SPEC 16 einschließlich
+der drei T2-Punkte aus 3.3 (Installation in ein Präfix, Ab- und Anmelden,
+Sichtprüfung im Autostart-Modul), der karpathy-Review über den Sprint-Diff
+und der UI-Review zu S5 nach dem Auftrag in 4.5. Für S8 sind die beiden
+Bedingungen aus 4.4 zu erfüllen — Gestaltungsauftrag an `denkzettel-ux` und
+AK-Neufassung mit Herauslösung von AK 2 nach M5 —, damit die Story in
+Sprint 3 ziehbar wird. Hinweis 5.3 ist erledigt (#43 hängt jetzt am
+Milestone „Sprint 1", per API nachgezogen), und der Journal-Eintrag zur
+Planungssitzung ist geschrieben (Daily 2026-07-31, 23:34 Uhr) — der
+Sprint-1-Mangel M3 wiederholt sich nicht.
