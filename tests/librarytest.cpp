@@ -1,10 +1,16 @@
+#include "store/store.h"
 #include "ui/elidedlines.h"
 #include "ui/notelistmodel.h"
+#include "ui/pendingdeletion.h"
 #include "ui/timestampformat.h"
 
 #include <QFontMetrics>
 #include <QLocale>
+#include <QSignalSpy>
+#include <QTemporaryDir>
 #include <QTest>
+
+#include <memory>
 
 /**
  * Unit tests of the library building blocks that work without a visible
@@ -16,6 +22,9 @@ class LibraryTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void init();
+    void cleanup();
+
     void namesTodayAndYesterday();
     void switchesOnTheCalendarDayNotAfterTwentyFourHours();
     void usesTheWeekdayFormWithinTheLastSevenDays();
@@ -29,6 +38,13 @@ private Q_SLOTS:
     void listsNotesWithTheirTimestamp();
     void takesAndReinsertsARow();
 
+    void keepsTheGracePeriodOfFiveSeconds();
+    void deletesTheNoteWhenTheGracePeriodRunsOut();
+    void countsTheRemainingSecondsDown();
+    void keepsTheNoteWhenTheDeletionIsUndone();
+    void carriesOutTheFirstDeletionWhenASecondArrives();
+    void carriesOutThePendingDeletionOnFlush();
+
 private:
     static QDateTime at(const QString &isoDateTime);
     static QLocale german();
@@ -36,7 +52,28 @@ private:
 
     /** Width of ten wide characters — enough for a few words, not for many. */
     static int narrowWidth();
+
+    /** A store on a temporary file, plus the id of one note in it. */
+    qint64 storedNote(const QString &content);
+
+    std::unique_ptr<QTemporaryDir> m_dir;
+    std::unique_ptr<Store> m_store;
 };
+
+void LibraryTest::init()
+{
+    m_dir = std::make_unique<QTemporaryDir>();
+    QVERIFY(m_dir->isValid());
+
+    m_store = std::make_unique<Store>(m_dir->filePath(QStringLiteral("denkzettel.db")));
+    QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+}
+
+void LibraryTest::cleanup()
+{
+    m_store.reset();
+    m_dir.reset();
+}
 
 QDateTime LibraryTest::at(const QString &isoDateTime)
 {
@@ -179,6 +216,118 @@ void LibraryTest::takesAndReinsertsARow()
     QCOMPARE(model.rowCount(), 3);
     QCOMPARE(model.noteAt(1).content, QStringLiteral("zwei"));
     QCOMPARE(model.noteAt(2).content, QStringLiteral("drei"));
+}
+
+qint64 LibraryTest::storedNote(const QString &content)
+{
+    const std::optional<qint64> id = m_store->addNote(noteWith(content));
+    Q_ASSERT(id.has_value());
+    return *id;
+}
+
+void LibraryTest::keepsTheGracePeriodOfFiveSeconds()
+{
+    // SPEC 9 names the period; the tests below shorten it to keep the suite
+    // quick, so the value itself needs a test of its own.
+    QCOMPARE(PendingDeletion::DefaultGracePeriodSeconds, 5);
+}
+
+void LibraryTest::deletesTheNoteWhenTheGracePeriodRunsOut()
+{
+    const qint64 id = storedNote(QStringLiteral("geht weg"));
+    PendingDeletion deletion(m_store.get(), 1);
+    QSignalSpy committed(&deletion, &PendingDeletion::committed);
+
+    deletion.request(id);
+
+    // Still there while the period runs.
+    QVERIFY(deletion.isPending());
+    QVERIFY(m_store->note(id).has_value());
+
+    QVERIFY(committed.wait(3000));
+    QCOMPARE(committed.first().first().toLongLong(), id);
+    QVERIFY(!deletion.isPending());
+    QVERIFY(!m_store->note(id).has_value());
+}
+
+void LibraryTest::countsTheRemainingSecondsDown()
+{
+    PendingDeletion deletion(m_store.get(), 2);
+    QSignalSpy remaining(&deletion, &PendingDeletion::remainingChanged);
+
+    deletion.request(storedNote(QStringLiteral("zählt herunter")));
+
+    // The message shows the full period right away, then the last second.
+    QCOMPARE(remaining.size(), 1);
+    QCOMPARE(remaining.first().first().toInt(), 2);
+
+    QVERIFY(QTest::qWaitFor([&remaining] { return remaining.size() == 2; }, 3000));
+    QCOMPARE(remaining.last().first().toInt(), 1);
+}
+
+void LibraryTest::keepsTheNoteWhenTheDeletionIsUndone()
+{
+    const qint64 id = storedNote(QStringLiteral("bleibt doch"));
+    PendingDeletion deletion(m_store.get(), 1);
+    QSignalSpy reverted(&deletion, &PendingDeletion::reverted);
+    QSignalSpy committed(&deletion, &PendingDeletion::committed);
+
+    deletion.request(id);
+    deletion.undo();
+
+    QCOMPARE(reverted.size(), 1);
+    QCOMPARE(reverted.first().first().toLongLong(), id);
+    QVERIFY(!deletion.isPending());
+    QVERIFY(m_store->note(id).has_value());
+
+    // The timer is off: the note survives the period it would have run for.
+    QTest::qWait(1500);
+    QCOMPARE(committed.size(), 0);
+    QVERIFY(m_store->note(id).has_value());
+
+    // Nothing pending, nothing to undo.
+    deletion.undo();
+    QCOMPARE(reverted.size(), 1);
+}
+
+void LibraryTest::carriesOutTheFirstDeletionWhenASecondArrives()
+{
+    const qint64 first = storedNote(QStringLiteral("zuerst gelöscht"));
+    const qint64 second = storedNote(QStringLiteral("danach gelöscht"));
+    PendingDeletion deletion(m_store.get(), 5);
+    QSignalSpy committed(&deletion, &PendingDeletion::committed);
+    QSignalSpy remaining(&deletion, &PendingDeletion::remainingChanged);
+
+    deletion.request(first);
+    deletion.request(second);
+
+    // The first deletion happened at once, the period started over for the
+    // second one — one message, never a stack.
+    QCOMPARE(committed.size(), 1);
+    QCOMPARE(committed.first().first().toLongLong(), first);
+    QVERIFY(!m_store->note(first).has_value());
+
+    QCOMPARE(remaining.size(), 2);
+    QCOMPARE(remaining.last().first().toInt(), 5);
+    QVERIFY(deletion.isPending());
+    QVERIFY(m_store->note(second).has_value());
+}
+
+void LibraryTest::carriesOutThePendingDeletionOnFlush()
+{
+    const qint64 id = storedNote(QStringLiteral("Fenster wird geschlossen"));
+    PendingDeletion deletion(m_store.get(), 5);
+    QSignalSpy committed(&deletion, &PendingDeletion::committed);
+
+    deletion.request(id);
+    deletion.flush();
+
+    QCOMPARE(committed.size(), 1);
+    QVERIFY(!m_store->note(id).has_value());
+
+    // Flushing with nothing pending is a no-op, not a second deletion.
+    deletion.flush();
+    QCOMPARE(committed.size(), 1);
 }
 
 QTEST_MAIN(LibraryTest)
