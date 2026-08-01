@@ -12,6 +12,7 @@ class Store;
 class KMessageWidget;
 class QAction;
 class QLabel;
+class QLineEdit;
 class QListView;
 class QSplitter;
 class QStackedWidget;
@@ -65,8 +66,11 @@ private:
     QWidget *buildHeader();
     QWidget *buildDetail();
 
-    /** Reads the notes from the store into the list. */
+    /** Reads the notes matching the search field from the store into the list. */
     void reload(Selection selection);
+
+    /** Follows a change of the search text into the list. */
+    void searchChanged();
 
     /** Works the groups out again without reading the store. */
     void regroupList();
@@ -89,11 +93,13 @@ private:
     QAction *m_undoAction;
 
     QSplitter *m_splitter;
+    QLineEdit *m_search;
     QListView *m_list;
     KMessageWidget *m_message;
 
     QStackedWidget *m_listPages;
     QWidget *m_emptyLibraryPage;
+    QWidget *m_noResultsPage;
 
     QStackedWidget *m_detailPages;
     QWidget *m_detailPage;
