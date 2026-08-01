@@ -148,9 +148,13 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // the window under the header rather than into a screen corner, and it has
     // no close button: it would leave open whether closing carries the
     // deletion out or takes it back (wireframe 2c).
+    // Wireframe 2b draws the band as a single row, text and button side by
+    // side. Word wrap would put the button underneath and make the band half
+    // again as tall; the text is short and fixed in length, so it has nothing
+    // to wrap.
     m_message->setMessageType(KMessageWidget::Warning);
     m_message->setCloseButtonVisible(false);
-    m_message->setWordWrap(true);
+    m_message->setWordWrap(false);
     m_message->addAction(m_undoAction);
     m_message->hide();
 
@@ -159,7 +163,12 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     layout->setSpacing(0);
     layout->addWidget(buildHeader());
     layout->addWidget(m_message);
-    layout->addWidget(m_splitter);
+    // The surplus height belongs to list and reading pane. Without the stretch
+    // factor no item in this layout has a vertical direction to grow in — a
+    // horizontal QSplitter is vertically Preferred, the header as a plain
+    // QWidget as well — and Qt hands the surplus to every item alike: header
+    // and splitter end up with half the window each (wireframe 2b).
+    layout->addWidget(m_splitter, 1);
 
     m_deleteAction->setShortcut(QKeySequence::Delete);
     m_deleteAction->setEnabled(false);
