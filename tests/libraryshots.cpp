@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QKeyEvent>
 #include <QListView>
+#include <QScrollBar>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -273,6 +274,46 @@ int main(int argc, char **argv)
         QTest::qWait(100);
         walkUp(list, 9);
         shoot(window, directory, QStringLiteral("08-heilung-kopf-mitten-in-kleiner-gruppe.png"));
+    }
+
+    // 9 — the quiet picture within a group (UI review of 01.08.2026). The user
+    // rolled the list to this crossing; the arrow key has just moved the
+    // selection one entry down inside "Gestern", and the crossing has stayed
+    // where he put it. A picture can only show the state, not the jump that
+    // did not happen — that one is held by the roll value in librarytest.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        for (int hour = 8; hour < 16; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von heute, %1 Uhr — Tray-Icon im dunklen Theme testen").arg(hour),
+                    QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+        for (int hour = 8; hour < 16; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von gestern, %1 Uhr — Whisper-Warteschlange bei Suspend prüfen").arg(hour),
+                    QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        window.resize(900, 600);
+        window.showLibrary();
+        QTest::qWait(200);
+
+        QListView *list = listOf(window);
+        // Rows: head "Heute", eight notes, head "Gestern", eight notes. Rolled
+        // to the fourth note of "Heute", the crossing sits in the middle of
+        // the picture; the selection goes to the second note below it.
+        list->setCurrentIndex(list->model()->index(12, 0));
+        QTest::qWait(100);
+        list->verticalScrollBar()->setValue(4);
+        QTest::qWait(100);
+
+        QKeyEvent down(QEvent::KeyPress, Qt::Key_Down, Qt::NoModifier);
+        QCoreApplication::sendEvent(list, &down);
+        shoot(window, directory, QStringLiteral("09-ruhiges-bild-innerhalb-der-gruppe.png"));
     }
 
     return 0;
