@@ -1,0 +1,26 @@
+Leerzustand 1 (leere Bibliothek) 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31 aktiv=0 Tooltip="Die Volltextsuche steht noch nicht zur Verfügung."
+  Splitter : y=47 h=553 -> 92 % der Fensterhöhe, Rest unten 0 px
+  Aufteilung: Liste 300 px / Detail 599 px (Minimum Liste 220 px)
+Normalfall 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31 aktiv=0 Tooltip="Die Volltextsuche steht noch nicht zur Verfügung."
+  Splitter : y=47 h=553 -> 92 % der Fensterhöhe, Rest unten 0 px
+  Aufteilung: Liste 300 px / Detail 599 px (Minimum Liste 220 px)
+Normalfall 1200x800 — Fenster 1200x800
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31 aktiv=0 Tooltip="Die Volltextsuche steht noch nicht zur Verfügung."
+  Splitter : y=47 h=753 -> 94 % der Fensterhöhe, Rest unten 0 px
+  Aufteilung: Liste 300 px / Detail 899 px (Minimum Liste 220 px)
+Leerzustand 2 (nichts ausgewählt) 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31 aktiv=0 Tooltip="Die Volltextsuche steht noch nicht zur Verfügung."
+  Splitter : y=47 h=553 -> 92 % der Fensterhöhe, Rest unten 0 px
+  Aufteilung: Liste 300 px / Detail 599 px (Minimum Liste 220 px)
+Meldungszustand 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31 aktiv=0 Tooltip="Die Volltextsuche steht noch nicht zur Verfügung."
+  Meldung  : y=47 h=72 Text="Notiz gelöscht — noch 5 s" Schliessknopf=0
+  Splitter : y=119 h=481 -> 80 % der Fensterhöhe, Rest unten 0 px
+  Aufteilung: Liste 300 px / Detail 599 px (Minimum Liste 220 px)

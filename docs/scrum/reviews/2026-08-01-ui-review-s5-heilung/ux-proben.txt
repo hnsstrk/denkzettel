@@ -1,0 +1,4 @@
+Probe 1: Fenstersymbol gesetzt=1
+Probe 2: Meldungsband mit Wortumbruch : h=72 px (12 % von 600)
+Probe 2: Meldungsband ohne Wortumbruch: h=49 px (8 % von 600)
+Probe 2: Mindestbreite des Fensters ohne Wortumbruch: 414 px
