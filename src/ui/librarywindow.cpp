@@ -159,7 +159,12 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     layout->setSpacing(0);
     layout->addWidget(buildHeader());
     layout->addWidget(m_message);
-    layout->addWidget(m_splitter);
+    // The surplus height belongs to list and reading pane. Without the stretch
+    // factor no item in this layout has a vertical direction to grow in — a
+    // horizontal QSplitter is vertically Preferred, the header as a plain
+    // QWidget as well — and Qt hands the surplus to every item alike: header
+    // and splitter end up with half the window each (wireframe 2b).
+    layout->addWidget(m_splitter, 1);
 
     m_deleteAction->setShortcut(QKeySequence::Delete);
     m_deleteAction->setEnabled(false);
