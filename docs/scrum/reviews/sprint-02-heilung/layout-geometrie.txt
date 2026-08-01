@@ -1,0 +1,17 @@
+Leerzustand 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31
+  Splitter : y=47 h=553 -> 92 % der Fensterhöhe
+Normalfall 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31
+  Splitter : y=47 h=553 -> 92 % der Fensterhöhe
+Normalfall 1200x800 — Fenster 1200x800
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31
+  Splitter : y=47 h=753 -> 94 % der Fensterhöhe
+Meldungszustand 900x600 — Fenster 900x600
+  Kopfzeile: y=0 h=47 (sizeHint 47)
+  Suchfeld : y=8 h=31
+  Splitter : y=119 h=481 -> 80 % der Fensterhöhe
+  Meldung  : y=47 h=72 sichtbar=1

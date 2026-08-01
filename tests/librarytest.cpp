@@ -26,9 +26,11 @@
 #include <memory>
 
 /**
- * Unit tests of the library building blocks that work without a visible
- * window (SPEC 16). The window itself — layout, empty states, the look of the
- * message widget — stays on the manual checklist.
+ * Unit tests of the library building blocks and of the window itself (SPEC 16).
+ * The layout is measured here instead of standing on a manual checklist: the
+ * offscreen platform shows a real window, so position and height are as
+ * testable as any other state. Manual stays what only a compositor produces —
+ * decoration, colour scheme, HiDPI.
  */
 class LibraryTest : public QObject
 {
@@ -77,6 +79,9 @@ private Q_SLOTS:
     void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
     void leavesTheFocusAloneWhenTheOpenWindowIsShownAgain();
     void keepsTheListWideEnoughForThePreview();
+    void keepsTheHeaderAtTheTopAndTheRestForTheNotes_data();
+    void keepsTheHeaderAtTheTopAndTheRestForTheNotes();
+    void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
 
     // Qt emits aboutToQuit once per process, so the test of the quit path has
@@ -797,6 +802,93 @@ void LibraryTest::keepsTheListWideEnoughForThePreview()
     // Two lines of preview need room; the splitter must not squeeze the list
     // down to the width of its placeholder text.
     QCOMPARE(splitter->widget(0)->minimumWidth(), 220);
+}
+
+void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes_data()
+{
+    // Two sizes, because a missing stretch factor only shows in the height the
+    // layout has left over: at the sizeHint of the window there is none.
+    QTest::addColumn<QSize>("windowSize");
+
+    QTest::newRow("900x600") << QSize(900, 600);
+    QTest::newRow("1200x800") << QSize(1200, 800);
+}
+
+void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
+{
+    QFETCH(QSize, windowSize);
+
+    storedNote(QStringLiteral("die Liste braucht die Resthöhe"));
+
+    LibraryWindow window(m_store.get());
+    window.resize(windowSize);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QCOMPARE(window.size(), windowSize);
+
+    auto *search = window.findChild<QLineEdit *>();
+    QVERIFY(search);
+    // The search field sits in the header through its tooltip wrapper.
+    QWidget *header = search->parentWidget()->parentWidget();
+    QVERIFY(header);
+    auto *splitter = window.findChild<QSplitter *>();
+    QVERIFY(splitter);
+
+    // Wireframe 2b draws the header as a narrow bar along the top edge …
+    QCOMPARE(header->mapTo(&window, QPoint()).y(), 0);
+    QVERIFY2(header->height() <= header->sizeHint().height(),
+             qPrintable(QStringLiteral("Kopfzeile %1 px hoch, sizeHint %2 px")
+                            .arg(header->height())
+                            .arg(header->sizeHint().height())));
+
+    // … list and reading pane begin right below it …
+    QCOMPARE(splitter->mapTo(&window, QPoint()).y(), header->height());
+
+    // … and the rest of the window is theirs. Anything less means the surplus
+    // height went into empty space (customer finding of 01.08.2026).
+    QVERIFY2(splitter->height() >= window.height() * 3 / 4,
+             qPrintable(QStringLiteral("Splitter %1 px hoch in einem %2 px hohen Fenster")
+                            .arg(splitter->height())
+                            .arg(window.height())));
+
+    // The field belongs into the header, not into the middle of the window.
+    QVERIFY2(search->mapTo(&window, QPoint()).y() < 40,
+             qPrintable(QStringLiteral("Suchfeld bei y=%1").arg(search->mapTo(&window, QPoint()).y())));
+}
+
+void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
+{
+    storedNote(QStringLiteral("mit Frist gelöscht"));
+
+    LibraryWindow window(m_store.get());
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(list->model()->index(0, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+    // animatedShow() grows the widget out of nothing, so the geometry only
+    // settles once that animation has run its course.
+    QTRY_VERIFY(message->isVisible() && !message->isShowAnimationRunning());
+
+    auto *search = window.findChild<QLineEdit *>();
+    QVERIFY(search);
+    QWidget *header = search->parentWidget()->parentWidget();
+    auto *splitter = window.findChild<QSplitter *>();
+    QVERIFY(splitter);
+
+    // Wireframe 2c: the message is a band between header and content, and it
+    // takes its room from neither of them being pushed out of place.
+    QCOMPARE(message->mapTo(&window, QPoint()).y(), header->height());
+    QCOMPARE(splitter->mapTo(&window, QPoint()).y(), header->height() + message->height());
+    QVERIFY2(splitter->height() >= window.height() * 3 / 4,
+             qPrintable(QStringLiteral("Splitter %1 px hoch in einem %2 px hohen Fenster")
+                            .arg(splitter->height())
+                            .arg(window.height())));
 }
 
 void LibraryTest::keepsTheWindowSizeForTheNextSession()
