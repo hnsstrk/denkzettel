@@ -1,0 +1,22 @@
+# clang-tidy for Denkzettel (issue #45). Run through the CMake target
+# `lint-tidy` and never as CMAKE_CXX_CLANG_TIDY, so an ordinary build does not
+# pay for the analysis.
+#
+# cppcoreguidelines-* is left out on purpose: it contradicts the Qt
+# parent/child model systematically, where every `new QWidget(this)` is an
+# owning raw pointer by design.
+Checks: '-*,bugprone-*,performance-*,misc-const-correctness'
+
+# Project headers are analysed, the AUTOMOC output is not - it sits in
+# <build>/src/*_autogen/, a path that matches the src/ pattern as well.
+HeaderFilterRegex: '.*/(src|tests)/.*\.h$'
+ExcludeHeaderFilterRegex: '.*_autogen.*'
+
+CheckOptions:
+  # A registration at a foreign service must not lose its return value: an
+  # ignored false means the registration never arrived and nobody notices
+  # (SPEC 2.3, 2.4). Setting this option replaces the upstream default list
+  # instead of extending it, which is why the defaults are repeated in front of
+  # our own entries.
+  - key: bugprone-unused-return-value.CheckedFunctions
+    value: '^::std::async$;^::std::launder$;^::std::remove$;^::std::remove_if$;^::std::unique$;^::std::unique_ptr::release$;^::std::basic_string::empty$;^::std::vector::empty$;^::std::back_inserter$;^::std::distance$;^::std::find$;^::std::find_if$;^::std::inserter$;^::std::lower_bound$;^::std::make_pair$;^::std::map::count$;^::std::map::find$;^::std::map::lower_bound$;^::std::multimap::equal_range$;^::std::multimap::upper_bound$;^::std::set::count$;^::std::set::find$;^::std::setfill$;^::std::setprecision$;^::std::setw$;^::std::upper_bound$;^::std::vector::at$;^::bsearch$;^::ferror$;^::feof$;^::isalnum$;^::isalpha$;^::isblank$;^::iscntrl$;^::isdigit$;^::isgraph$;^::islower$;^::isprint$;^::ispunct$;^::isspace$;^::isupper$;^::iswalnum$;^::iswprint$;^::iswspace$;^::isxdigit$;^::memchr$;^::memcmp$;^::strcmp$;^::strcoll$;^::strncmp$;^::strpbrk$;^::strrchr$;^::strspn$;^::strstr$;^::wcscmp$;^::access$;^::bind$;^::connect$;^::difftime$;^::dlsym$;^::fnmatch$;^::getaddrinfo$;^::getopt$;^::htonl$;^::htons$;^::iconv_open$;^::inet_addr$;^::isascii$;^::isatty$;^::mmap$;^::newlocale$;^::openat$;^::pathconf$;^::pthread_equal$;^::pthread_getspecific$;^::pthread_mutex_trylock$;^::readdir$;^::readlink$;^::recvmsg$;^::regexec$;^::scandir$;^::semget$;^::setjmp$;^::shm_open$;^::shmget$;^::sigismember$;^::strcasecmp$;^::strsignal$;^::ttyname$;^::KGlobalAccel::setGlobalShortcut$;^::QDBusConnection::registerObject$;^::QDBusConnection::registerService$;^::DaemonService::registerOnSessionBus$'
