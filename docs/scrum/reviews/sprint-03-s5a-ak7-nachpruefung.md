@@ -143,6 +143,66 @@ Der Fall ist damit **benannte Entscheidung, nicht Versäumnis**. Abbruchkriteriu
 für #57, unabhängig vom gewählten Weg: *Ein Mausklick auf eine bereits
 vollständig sichtbare Zeile darf den Rollwert nicht verändern.*
 
+## Abschlusslauf nach der Heilung des `warn` (Stand `09b1435`)
+
+**Ergebnis: der `warn` ist geheilt, alle elf Szenen `ok`. Ein Hinweis.**
+Build warnungsfrei, `ctest` 7/7 grün. Bilder und Messwerte:
+`nach-der-warn-heilung/`; verglichen wurde Zeile für Zeile gegen den
+Vorher-Stand aus `messung-neue-szenen.txt`.
+
+Die Umsetzung entspricht der Auflage: `showNote()` vergleicht über
+`library::NoteGroup` — die **Gruppe der Notiz**, nicht die Zeilennummer ihres
+Kopfes —, die erste Auswahl nach dem Öffnen zählt als Grenzübertritt, die
+Passt-Bedingung steht unverändert daneben.
+
+| Szene | Vorher | Nachher | Verdikt |
+|---|---|---|---|
+| **N1** abwärts über die Grenze | Kopf im Bild, +1 | unverändert | ok |
+| **N3** aufwärts, große Gruppe | Kopf draußen, Auswahl ganz sichtbar | unverändert (−2 statt −1, andere Ausgangslage) | ok |
+| **N4** aufwärts, kleine Gruppe — *der geheilte `fail`* | Kopf „Gestern" y=0, −1 | **identisch** | ok |
+| **N5** mittlere Notiz derselben Gruppe | keine Bewegung | unverändert | ok |
+| **N6** Rad, dann Pfeil (99 px) | Rollwert 2 → **0** | Rollwert 2 → **2** | **geheilt** |
+| **N8** Rad, dann Pfeil (387 px) | Rollwert 6 → **0** | Rollwert 6 → **6** | **geheilt** |
+| **N10** Grenzübertritt auf schon sichtbare Zeile | Kopf y=0 im Bild | **identisch** | ok — die zurückgenommene Bedingung ist nicht eingebaut |
+| **N11** Mausklick (#57) | 6 → 0, 387 px | unverändert | benannte Entscheidung, siehe #57 |
+| **N12** Löschen und Undo an der Gruppengrenze | 12 → 10 → 12 Zeilen, Auswahl und Kopf wie erwartet | **identisch** | ok — der Gruppenvergleich bricht nicht an Zeilennummern |
+
+Der Nachweis für N6 und N8 ist der **Rollwert, nicht das Bild**: Ein Standbild
+kann einen nicht stattgefundenen Sprung nicht zeigen. Beide Szenen sehen
+vorher wie nachher plausibel aus; unterschieden werden sie allein durch die
+Bewegung.
+
+### Hinweis — eine Konstellation ist schlechter geworden
+
+**N2** (`nach-der-warn-heilung/ak7-n2-aufwaerts-erste-notiz-der-gruppe.png`):
+Die Auswahl wandert **innerhalb** einer großen Gruppe aufwärts bis zu deren
+**erster** Notiz. Vorher stand der Kopf „Gestern" dabei bei y=0 im Bild, jetzt
+bei **y=−35** — um genau seine eigene Höhe abgeschnitten. Im Bild: acht
+Einträge mit nackten Uhrzeiten, keine Überschrift; der Tag steht nur noch im
+Detailbereich.
+
+Das ist **regelkonform**: Es findet kein Gruppenwechsel statt, und AK 7
+verlangt den Kopf nur beim Grenzübertritt. Es ist aber ein Rückschritt
+gegenüber **beiden** Vorständen — der Stand vor dieser Heilung holte den Kopf,
+und der Stand vor der AK-7-Heilung tat es ebenfalls, weil die Auswahl direkt
+unter einem Kopf steht. Die Behebung kostete hier 35 px, also nach der
+Maßgabe, mit der #57 begründet wurde, nichts Merkliches.
+
+**Keine Auflage.** Der Fall gehört sachlich zu #57: Beide laufen auf dieselbe
+offene Frage hinaus — ein kleiner Ruck ist gratis, ein großer ist teuer, und
+die tragfähige Unterscheidung ist noch nicht gefunden. Empfehlung: bei der
+Bearbeitung von #57 mitprüfen, nicht vorher einzeln anfassen. **Auf Weisung des
+PO als Kommentar an #57 angehängt** (01.08.2026), mit den Zahlen beider Stände
+und dem ausdrücklichen Vermerk, dass daraus **kein** zusätzliches
+Akzeptanzkriterium mit Schwellwert folgen soll.
+
+*Zur Benennung, nach dem Fund des Entwicklers an seinem eigenen Test:* N2 heißt
+„aufwärts auf die erste Notiz einer Gruppe" und ist genau das — **kein**
+Grenzübertritt. Die Szenen mit echtem Grenzübertritt sind N1, N3, N4 und N10;
+in den Messwerten daran erkennbar, dass die Zeilennummer eine Kopfzeile
+überspringt (etwa „Zeile 12 → 10"). N5, N6 und N8 bewegen sich bewusst
+innerhalb einer Gruppe.
+
 ## Stand der Punkte aus dem Ursprungsreview
 
 1. **AK 7** — geheilt, Verdikt `ok`.
