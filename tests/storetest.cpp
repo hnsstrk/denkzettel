@@ -3,9 +3,13 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QUuid>
 
 #include <memory>
 
@@ -37,10 +41,13 @@ private Q_SLOTS:
     void searchTakesQueryTextLiterally();
     void searchWithoutTermsListsAllNotes();
     void keepsSearchIndexInSync();
+    void migratesDatabaseFromSchemaVersion1();
 
 private:
     QString databasePath() const;
     static Note sampleNote();
+    /** Writes a database in the M1 schema (version 1) with two notes and a tag. */
+    static bool writeSchemaVersion1Database(const QString &path, QString *error);
     /** Contents of the notes a search returns, in the order it returned them. */
     QStringList searchContents(const QString &text) const;
 
@@ -413,6 +420,111 @@ void StoreTest::keepsSearchIndexInSync()
     QVERIFY2(m_store->removeNote(*id), qPrintable(m_store->lastError()));
     QVERIFY(m_store->search(QStringLiteral("Schlafsack")).isEmpty());
     QVERIFY(m_store->search(QString()).isEmpty());
+}
+
+bool StoreTest::writeSchemaVersion1Database(const QString &path, QString *error)
+{
+    // The M1 schema, frozen as it shipped: a migration test is only worth
+    // something if the starting point cannot drift along with the code.
+    static const QStringList schema = {
+        QStringLiteral("CREATE TABLE meta ("
+                       "  key TEXT PRIMARY KEY,"
+                       "  value TEXT NOT NULL)"),
+        QStringLiteral("CREATE TABLE notes ("
+                       "  id INTEGER PRIMARY KEY,"
+                       "  created_at TEXT NOT NULL,"
+                       "  type TEXT NOT NULL CHECK (type IN ('text', 'audio')),"
+                       "  content TEXT NOT NULL,"
+                       "  audio_path TEXT,"
+                       "  audio_duration_s INTEGER,"
+                       "  category TEXT,"
+                       "  state TEXT NOT NULL CHECK (state IN ('neu', 'transkribiert', 'analysiert')),"
+                       "  needs_reembed INTEGER NOT NULL DEFAULT 0,"
+                       "  analysis_attempts INTEGER NOT NULL DEFAULT 0,"
+                       "  analysis_last_error TEXT)"),
+        QStringLiteral("CREATE TABLE tags ("
+                       "  note_id INTEGER NOT NULL REFERENCES notes(id),"
+                       "  tag TEXT NOT NULL,"
+                       "  PRIMARY KEY (note_id, tag))"),
+        QStringLiteral("INSERT INTO meta (key, value) VALUES ('schema_version', '1')"),
+        QStringLiteral("INSERT INTO notes (id, created_at, type, content, state)"
+                       " VALUES (1, '2026-07-20T08:15:00.000', 'text', 'Bücher über Straßenbahnen ansehen', 'neu')"),
+        QStringLiteral("INSERT INTO notes (id, created_at, type, content, category, state, analysis_attempts)"
+                       " VALUES (2, '2026-07-21T19:45:30.500', 'text', 'Backup der Fotos prüfen', 'todos', 'analysiert', 1)"),
+        QStringLiteral("INSERT INTO tags (note_id, tag) VALUES (2, 'backup')"),
+    };
+
+    const QString connection = QStringLiteral("m1-%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    bool ok = true;
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        db.setDatabaseName(path);
+        if (!db.open()) {
+            *error = db.lastError().text();
+            ok = false;
+        }
+        for (const QString &statement : schema) {
+            if (!ok) {
+                break;
+            }
+            QSqlQuery query(db);
+            if (!query.exec(statement)) {
+                *error = query.lastError().text() + QStringLiteral(" — ") + statement;
+                ok = false;
+            }
+        }
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return ok;
+}
+
+void StoreTest::migratesDatabaseFromSchemaVersion1()
+{
+    // T3 (issue #9): the first real migration of an existing database.
+    m_store.reset();
+    QVERIFY(QFile::remove(databasePath()));
+
+    QString error;
+    QVERIFY2(writeSchemaVersion1Database(databasePath(), &error), qPrintable(error));
+
+    m_store = std::make_unique<Store>(databasePath());
+    QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+
+    QCOMPARE(m_store->schemaVersion(), 2);
+
+    // Every field of the existing rows survives the upgrade.
+    const QList<Note> notes = m_store->notes();
+    QCOMPARE(notes.size(), 2);
+    QCOMPARE(notes.at(0).id, qint64(2));
+    QCOMPARE(notes.at(0).content, QStringLiteral("Backup der Fotos prüfen"));
+    QCOMPARE(notes.at(0).createdAt,
+             QDateTime::fromString(QStringLiteral("2026-07-21T19:45:30.500"), Qt::ISODateWithMs));
+    QCOMPARE(notes.at(0).category, QStringLiteral("todos"));
+    QCOMPARE(notes.at(0).state, Note::State::Analysed);
+    QCOMPARE(notes.at(0).analysisAttempts, 1);
+    QCOMPARE(notes.at(1).id, qint64(1));
+    QCOMPARE(notes.at(1).content, QStringLiteral("Bücher über Straßenbahnen ansehen"));
+    QCOMPARE(notes.at(1).type, Note::Type::Text);
+    QCOMPARE(m_store->tags(2), QStringList({QStringLiteral("backup")}));
+
+    // The new index covers the notes that were already there — a migration
+    // that only creates the table would leave the old notes unfindable.
+    QCOMPARE(searchContents(QStringLiteral("bucher")), QStringList({QStringLiteral("Bücher über Straßenbahnen ansehen")}));
+    QCOMPARE(searchContents(QStringLiteral("Fotos")), QStringList({QStringLiteral("Backup der Fotos prüfen")}));
+
+    // And it keeps working for notes written after the migration.
+    Note added = sampleNote();
+    added.content = QStringLiteral("Nach der Migration erfasst");
+    QVERIFY(m_store->addNote(added).has_value());
+    QCOMPARE(searchContents(QStringLiteral("Migration")), QStringList({added.content}));
+
+    // Opening again must not migrate a second time.
+    m_store.reset();
+    m_store = std::make_unique<Store>(databasePath());
+    QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+    QCOMPARE(m_store->schemaVersion(), 2);
+    QCOMPARE(m_store->notes().size(), 3);
 }
 
 QTEST_GUILESS_MAIN(StoreTest)
