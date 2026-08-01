@@ -1,9 +1,13 @@
 #include "shell/daemonservice.h"
 #include "shell/shortcutconflict.h"
 #include "shell/shortcutregistration.h"
+#include "shell/trayicon.h"
 #include "store/store.h"
 
+#include <KStatusNotifierItem>
+
 #include <QFile>
+#include <QMenu>
 #include <QSet>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -12,12 +16,12 @@
 #include <memory>
 
 /**
- * Unit tests of the D-Bus entry points, of the shortcut conflict rule and of
- * the reading of what the shortcut daemon answers (SPEC 2.3, 2.4). AddNote is
- * called as a plain method: the bus adds nothing to what the method does, and
- * the test stays independent of a session bus. The D-Bus conversation with
- * kglobalacceld itself needs a running daemon and stays manual (SPEC 16) —
- * what it answers is decided here.
+ * Unit tests of the D-Bus entry points, of the shortcut conflict rule, of the
+ * reading of what the shortcut daemon answers (SPEC 2.3, 2.4) and of what the
+ * tray item announces (SPEC 10). AddNote is called as a plain method: the bus
+ * adds nothing to what the method does, and the test stays independent of a
+ * session bus. The D-Bus conversation with kglobalacceld itself needs a running
+ * daemon and stays manual (SPEC 16) — what it answers is decided here.
  */
 class ShellTest : public QObject
 {
@@ -43,6 +47,8 @@ private Q_SLOTS:
     void readsAnUndeclaredDesktopActionAsAFailure();
     void readsTheActionsOfADesktopFile();
     void hasAMessageForEveryFailureAndNoneForSuccess();
+
+    void announcesItselfAsAMenuAndKeepsTheMenuToShow();
 
 private:
     std::unique_ptr<QTemporaryDir> m_dir;
@@ -249,6 +255,23 @@ void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
     QCOMPARE(QSet<QString>(messages.begin(), messages.end()).size(), messages.size());
 }
 
-QTEST_GUILESS_MAIN(ShellTest)
+void ShellTest::announcesItselfAsAMenuAndKeepsTheMenuToShow()
+{
+    TrayIcon icon;
+
+    // ItemIsMenu has no change signal in the SNI protocol: the host reads the
+    // property when the item registers and never asks again, so it has to stand
+    // by the time the constructor is through (issue #44). Whether the panel then
+    // opens the menu on a left click is the customer's check at the panel — no
+    // agent can produce that click under Wayland.
+    QVERIFY(icon.item()->isMenu());
+
+    // An item that announces a menu and has none would swallow the click. The
+    // right click has to keep finding the same menu it found before.
+    QVERIFY(icon.item()->contextMenu() != nullptr);
+    QVERIFY(!icon.item()->contextMenu()->actions().isEmpty());
+}
+
+QTEST_MAIN(ShellTest)
 
 #include "shelltest.moc"
