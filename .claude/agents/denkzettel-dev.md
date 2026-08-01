@@ -49,17 +49,17 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 
-Bei jeder Story mit sichtbarem oder systemweit registriertem Verhalten:
-gebauten Stand starten, den Hauptweg der Story einmal selbst ausführen und den
-Nachweis in den Bericht legen — Terminalausgabe, Journalauszug oder Bild. Für
+Bei jeder Story mit sichtbarem oder systemweit registriertem Verhalten
+(DoD 2 in `docs/scrum/PROZESS.md`): gebauten Stand starten, den Hauptweg der
+Story einmal selbst ausführen, den Nachweis in den Bericht legen. Für
 Fenster genügt `QT_QPA_PLATFORM=offscreen` plus `QWidget::grab().save()`; bei
 UI-Stories gehört je Wireframe-Zustand ein Bild zur Übergabe (Normalfall,
 Leerzustand, Meldungszustand). Nach dem Start des Daemons ins Journal sehen
 (`journalctl --user -t denkzetteld -n 20`) — stumme Fehlermeldungen fremder
 Dienste stehen dort und nirgends sonst.
 
-Eine im Bericht benannte Grenze der Prüfbarkeit schließt die Story nicht. Sie
-wird geschlossen oder als Impediment gemeldet — nicht als Fußnote abgelegt.
+Benennst du eine Grenze der Prüfbarkeit, schließe sie oder melde sie als
+Impediment — eine Fußnote im Bericht genügt nicht (DoD 2).
 
 ## Stopp-Regeln
 

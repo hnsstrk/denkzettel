@@ -709,7 +709,8 @@ einen Prozess ohne Kürzel-Registrierung.
 3. Komponentenname zur Laufzeit gegenprüfen (registrierter Name gegen
    `org.denkzettel.Denkzettel.desktop`).
 4. Konfliktzweig: nur reproduzierbar **nach Löschen des `FirstRunDone`-Markers**,
-   weil die Warnung bewusst einmalig ist.
+   weil die Warnung bewusst einmalig ist. — *Nachtrag 01.08.2026: Dieser
+   Prüfweg hätte den Kürzel-Fehler nicht aufgedeckt; korrigiert in 9.1.*
 5. Die drei qdbus-Aufrufe über den echten Session-Bus, wörtlich:
    `AddNote` (legt eine Notiz an und liefert deren ID), `ShowLibrary` (öffnet
    das Bibliotheksfenster) und `Quit` (beendet den Dienst). Empfehlung des
@@ -810,7 +811,9 @@ nicht abgenommen.** Drei Kundenbefunde, alle dokumentiert:
    die Registrierung schlägt still fehl, eine Meldung erschien nicht
    (Konfliktprüfung nur beim Erststart; `FirstRunDone` war gesetzt).
    Verdachtsmoment: Prüfung lief ohne systemweite Installation der
-   Desktop-Datei. Details im Issue-Kommentar.
+   Desktop-Datei. Details im Issue-Kommentar. — *Nachtrag 01.08.2026: Die
+   Klammer zur Erststart-Bindung trifft nicht zu, der Verdachtsmoment ist
+   bestätigt; Ursachenkette korrigiert in 9.1.*
 2. **Bibliotheks-Layout kaputt** (Issue #7): Suchfeld schwebt in der
    Fenstermitte, große Leerflächen, Liste beginnt erst in der unteren
    Fensterhälfte — Wireframe 2b verlangt Kopfzeile oben mit voller Resthöhe
@@ -1213,17 +1216,39 @@ zwanzigmal und committet einmal), *openQA* und *dogtail* (zu schwer bzw. zu alt)
 **Zu semgrep — die Evidenz des Teams steht gegen das Kundenbeispiel.** Das ist
 unbequem und wird deshalb ausgeschrieben statt weggelächelt.
 
-Der Entwickler lehnt semgrep für unser C++ mit Belegen ab: Die C++-Unterstützung
-der OSS-Engine ist ausdrücklich experimentell (Hersteller wörtlich: „the
-languages will stay experimental"; interprozedurale Analyse nur im
-Bezahlprodukt), die Regel-Registry enthält kein `cpp/`-Verzeichnis, und `#ifdef`
-bricht den Parser (offenes P0 von April 2026). Der gefährliche Teil ist der
-**stille Fehlermodus**: Eine Datei, die nicht vollständig geparst wird, liefert
-keine Treffer und sieht aus wie eine bestandene Prüfung. Das ist exakt die
-Fehlerbauart, die uns Sprint 2 gekostet hat — eine Wache, deren Schweigen kein
-Erfolgsnachweis ist. Die UX-Seite hält eine Regel „`QSplitter` per `addWidget`
-in ein `QBoxLayout` ohne Stretch-Faktor" für denkbar, nennt sie aber unerprobt
-und niemals als Ersatz für das Bild.
+Der Entwickler lehnt semgrep für unser C++ mit drei Belegen ab; der PO hat sie
+nachrecherchiert, und das Ergebnis steht hier so, wie es ausfiel — zwei
+bestätigt, einer nicht:
+
+1. **Die C++-Unterstützung der OSS-Engine ist experimentell — bestätigt.**
+   C/C++ erreicht GA nur im kommerziellen Semgrep Code; für die OSS-Engine
+   bleibt es laut Hersteller experimentell, interprozedurale Analyse ebenso
+   (https://semgrep.dev/docs/supported-languages,
+   https://semgrep.dev/products/product-updates/c-support/).
+2. **Kein `cpp/`-Verzeichnis in der Regel-Registry — bestätigt.**
+   https://github.com/semgrep/semgrep-rules führt `c/lang`, aber kein `cpp/`.
+3. **„Offenes P0 von April 2026" zu `#ifdef` — nicht verifizierbar, korrigiert.**
+   Ein solches Issue war nicht auffindbar. Die Aussageklasse trifft zu —
+   Präprozessor-Direktiven brechen den Parser, und dazu gibt es offene,
+   dokumentierte Vorgänge —, aber die konkrete Einstufung und Datierung ist
+   unbelegt und wird hier durch die belegbaren Fundstellen ersetzt:
+   https://github.com/returntocorp/semgrep/issues/1377 (`#define` verursacht
+   Parse-Fehler), https://github.com/semgrep/semgrep/issues/10666,
+   https://github.com/semgrep/semgrep/issues/10756.
+
+**Beobachtung und Schlussfolgerung getrennt:** Der Dev-Beleg war in Punkt 3
+unpräzise. Die Empfehlung ändert sich dadurch nicht — sie trägt bereits über
+die zwei bestätigten Punkte, und der Parser-Befund bleibt in seiner
+Aussageklasse gültig, nur eben mit anderer Quelle. Festgehalten wird beides,
+weil ein Protokoll, das nachträglich nur die haltbaren Belege zeigt, seine
+eigene Prüfbarkeit zerstört.
+
+Der gefährliche Teil bleibt der **stille Fehlermodus**: Eine Datei, die nicht
+vollständig geparst wird, liefert keine Treffer und sieht aus wie eine
+bestandene Prüfung. Das ist exakt die Fehlerbauart, die uns Sprint 2 gekostet
+hat — eine Wache, deren Schweigen kein Erfolgsnachweis ist. Die UX-Seite hält
+eine Regel „`QSplitter` per `addWidget` in ein `QBoxLayout` ohne Stretch-Faktor"
+für denkbar, nennt sie aber unerprobt und niemals als Ersatz für das Bild.
 
 Der Kunde hat während der Retro das Claude-Code-Plugin **„Semgrep Guardian"**
 installiert; `.claude/settings.json` führt `semgrep@claude-plugins-official` als
