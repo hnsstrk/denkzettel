@@ -403,6 +403,23 @@ void LibraryWindow::updatePages()
     }
 }
 
+std::optional<library::NoteGroup> LibraryWindow::groupOf(const QModelIndex &row) const
+{
+    // Asked of the note, not of the row its head sits in: deleting and undoing
+    // rebuild the rows, and a group told apart by row number would compare
+    // right or wrong by accident.
+    if (!row.isValid()) {
+        return std::nullopt;
+    }
+
+    const Note note = m_model->noteAt(row.row());
+    if (note.id < 0) {
+        return std::nullopt;
+    }
+
+    return library::noteGroup(note.createdAt, referenceTime(), QLocale());
+}
+
 QModelIndex LibraryWindow::groupHeadOf(const QModelIndex &note) const
 {
     // The head of a group is the next head row above the note — not
@@ -418,22 +435,34 @@ QModelIndex LibraryWindow::groupHeadOf(const QModelIndex &note) const
     return {};
 }
 
-void LibraryWindow::showNote(const QModelIndex &index)
+void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previous)
 {
     m_deleteAction->setEnabled(index.isValid());
 
     if (index.isValid()) {
-        // The selected note is not to stand without its heading: the head of
-        // its group comes into view first, then the note itself. Scrolling to
-        // the note last is what keeps it whole rather than cut off at an edge
-        // (wireframe 3b, case 4).
+        // Three conditions have to hold before the list is moved for a head,
+        // and each of them keeps out a way of moving it against the user.
         //
-        // Only where both fit into the list at once, though. In a group taller
-        // than the window the head cannot be shown without pushing the
-        // selection out — and a single key press that scrolls away what the
-        // user was looking at is worse than a missing heading.
+        // It crosses a group boundary — that is what AK 7 and wireframe 3b,
+        // case 4 ask for, and what the first selection after opening or
+        // rebuilding counts as, its predecessor being none. Moving within a
+        // group fetches nothing: the user has rolled the list to where he
+        // wants it, and one arrow key must not throw that away, least of all
+        // against the direction he presses in.
+        //
+        // Whether the entry is in the picture already does not enter into it.
+        // A note can stand in full view while its head sits just above the
+        // upper edge — that is the very case this fetches the head for (PO
+        // decision of 01.08.2026, after the case was measured).
+        //
+        // And both fit into the list at once. In a group taller than the
+        // window the head cannot be shown without pushing the selection out.
         const QModelIndex head = groupHeadOf(index);
-        if (head.isValid()) {
+        const std::optional<library::NoteGroup> group = groupOf(index);
+        const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
+        const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
+
+        if (head.isValid() && crossesAGroupBoundary) {
             const QRect heading = m_list->visualRect(head);
             const QRect selected = m_list->visualRect(index);
             if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
