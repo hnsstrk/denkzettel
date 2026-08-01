@@ -26,13 +26,13 @@ public:
      */
     static int textLeft(const QRect &row);
 
-    /** Room the text of `row` has, once both margins are taken off. */
-    static int textWidth(const QRect &row);
-
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 private:
+    /** Room the text of `row` has, once both margins are taken off. */
+    static int textWidth(const QRect &row);
+
     /**
      * Draws one line of text, elided, `top` pixels below the upper edge of
      * `row`.

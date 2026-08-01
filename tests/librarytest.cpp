@@ -1048,9 +1048,10 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
     QVERIFY(head.data(NoteListModel::GroupHeaderRole).toBool());
     QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
 
-    // The head of the new group is in the picture — the selection never stands
-    // without its heading (wireframe 3b, case 4) …
-    QVERIFY2(list->viewport()->rect().intersects(list->visualRect(head)),
+    // The head of the new group is in the picture, whole rather than half cut
+    // off — the selection never stands without its heading (wireframe 3b,
+    // case 4) …
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
              qPrintable(QStringLiteral("Kopf bei y=%1, Viewport %2 px hoch")
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
@@ -1477,6 +1478,13 @@ void LibraryTest::alignsTheGroupHeadsWithTheEntryTimestamps()
                             .arg(headRect.height())
                             .arg(list->visualRect(secondHead).height())));
     QCOMPARE(list->visualRect(secondHead).height() - headRect.height(), 8);
+
+    // Not checked here, and not checkable without measuring pixels: that the
+    // subject is drawn in text colour, the preview dimmed, both in
+    // HighlightedText while selected, and neither in bold. Like the left text
+    // edge above, that is held by the delegate having a single painting
+    // function (notelistdelegate.cpp) — and by the picture series of the UI
+    // review, which is what a colour is decided on anyway.
 
     // Every entry is as tall as every other, the single-line note included:
     // its preview row stays empty rather than shrinking the entry.
