@@ -22,6 +22,7 @@
 #include <QTest>
 #include <QTextBrowser>
 #include <QTimer>
+#include <QToolButton>
 
 #include <memory>
 
@@ -851,9 +852,18 @@ void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
                             .arg(splitter->height())
                             .arg(window.height())));
 
+    // Down to the bottom edge, at that: the check above alone would let a strip
+    // of empty space at the lower end pass (UI review of 01.08.2026).
+    QCOMPARE(splitter->mapTo(&window, QPoint()).y() + splitter->height(), window.height());
+
     // The field belongs into the header, not into the middle of the window.
     QVERIFY2(search->mapTo(&window, QPoint()).y() < 40,
              qPrintable(QStringLiteral("Suchfeld bei y=%1").arg(search->mapTo(&window, QPoint()).y())));
+
+    // The other axis, same class of mistake: wireframe 2b gives the list a
+    // fixed width and the reading pane the rest, so the same number has to come
+    // out at both window widths.
+    QCOMPARE(splitter->widget(0)->width(), 300);
 }
 
 void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
@@ -889,6 +899,35 @@ void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
              qPrintable(QStringLiteral("Splitter %1 px hoch in einem %2 px hohen Fenster")
                             .arg(splitter->height())
                             .arg(window.height())));
+    QCOMPARE(splitter->mapTo(&window, QPoint()).y() + splitter->height(), window.height());
+
+    // Wireframe 2b draws text and „Rückgängig" side by side in one row. With
+    // word wrap KMessageWidget puts the button underneath instead and the band
+    // grows by half; the rows are compared rather than the pixel heights,
+    // because those belong to the theme.
+    QLabel *text = nullptr;
+    for (QLabel *label : message->findChildren<QLabel *>()) {
+        if (label->text() == message->text()) {
+            text = label;
+        }
+    }
+    QToolButton *undo = nullptr;
+    for (QToolButton *button : message->findChildren<QToolButton *>()) {
+        if (button->text() == QStringLiteral("Rückgängig")) {
+            undo = button;
+        }
+    }
+    QVERIFY(text);
+    QVERIFY(undo);
+
+    const int textTop = text->mapTo(message, QPoint()).y();
+    const int undoTop = undo->mapTo(message, QPoint()).y();
+    QVERIFY2(textTop < undoTop + undo->height() && undoTop < textTop + text->height(),
+             qPrintable(QStringLiteral("Text y=%1 h=%2, Knopf y=%3 h=%4 — nicht in einer Zeile")
+                            .arg(textTop)
+                            .arg(text->height())
+                            .arg(undoTop)
+                            .arg(undo->height())));
 }
 
 void LibraryTest::keepsTheWindowSizeForTheNextSession()
