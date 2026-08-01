@@ -672,3 +672,27 @@ zunächst vergessen und nachträglich getaktet) und der gleichzeitige Zugriff
 zweier UX-Agenten auf die Wireframe-Datei (ebenfalls getaktet). **Beide Risiken
 entstehen erst durch Parallelität und wären bei einem einzelnen Dev nie
 aufgefallen.**
+
+### 12.6 Das Repository ist öffentlich — und niemand hat es benannt
+
+`gh repo view` weist `hnsstrk/denkzettel` als **PUBLIC** aus. Jeder
+Issue-Kommentar ist damit eine Veröffentlichung unter dem Namen des
+Eigentümers. Am 01.08.2026 sind über dreißig Kommentare entstanden — Grooming,
+Entscheidungen, Befunde, Prüfberichte —, ohne dass PO oder Agenten die
+Sichtbarkeit je geprüft hätten.
+
+**Aufgefallen ist es einem Prüf-Agenten**, nicht dem PO: Er holte sich vor
+einem Issue-Kommentar die Freigabe über das Berechtigungssystem, statt sie aus
+der fachlichen Beauftragung abzuleiten, und benannte den Grund.
+
+**Kein Schaden entstanden.** Die Inhalte sind Projektarbeit; die einzigen
+Systemangaben sind installierte KDE-Themes und Farbschemata. Aber die Prüfung
+hat gefehlt, und sie hätte vor dem ersten Kommentar stattfinden müssen, nicht
+nach dem einunddreißigsten.
+
+**Für die Retro:** Der Prozess kennt keine Regel dafür, was in ein öffentliches
+Repository geschrieben wird. Zu klären ist mindestens: Gehören wörtliche
+Kundenzitate hinein? Messwerte vom Rechner des Kunden? Interne Fehleranalysen
+des PO? Alles drei ist heute geschehen — vertretbar, aber unentschieden. Und
+die Frage stellt sich schärfer, sobald ein Fremder das Repository liest, was
+bei einem öffentlichen jederzeit möglich ist.
