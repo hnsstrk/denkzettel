@@ -170,6 +170,14 @@ meta(key TEXT PK, value TEXT)  -- Schema-Version u. Ä.
 ```
 
 - Volltextindex: **FTS5**-Tabelle `notes_fts(content)`, per Trigger synchron.
+  Sie hält **keinen eigenen Text**, sondern verweist mit `content='notes'`,
+  `content_rowid='id'` auf die Notiztabelle (Schemaversion 2, Issue #8) — der
+  Notiztext existiert genau einmal. Daraus folgt eine Bedingung, ohne die der
+  Index still verwahrlost: Die Trigger für Ändern und Löschen müssen FTS5 den
+  **alten** Text mitgeben (`'delete'`-Kommando mit `old.content`). Mit dem
+  neuen Text bleiben die alten Wörter auffindbar, und weder ein Fehler noch
+  FTS5s `integrity-check` zeigen das an — nur eine Suche nach dem alten Wort
+  (siehe `StoreTest::keepsSearchIndexInSync()`).
 - Audio liegt als Datei unter `audio/` (Name = Notiz-ISO-Zeitstempel), die DB
   hält den Verweis. Löschen einer Notiz löscht Tags, Embedding, FTS-Eintrag,
   `proposal_notes`-Verweise und Audio-Datei in einer Transaktion +
@@ -202,6 +210,21 @@ Interview). Syntax-Umfang (damit ist offene Frage 3 des Konzepts beantwortet):
 - Parser ist reine Funktion `QString → SearchQuery` — unit-testbar.
 - FTS5-Tokenizer: `unicode61 remove_diacritics 2` — „bucher" findet
   „Bücher"; deutsche Umlaut-Toleranz ist Kernanforderung der Suche.
+  **Grenze (Befund Issue #8, SQLite 3.53.4):** Der Tokenizer entfernt
+  diakritische Zeichen. `ß` trägt keines — es ist ein eigener Buchstabe und
+  bleibt stehen. „strassenbahn" findet „Straßenbahn" deshalb **nicht**,
+  „grosse" nicht „Größe". Eine ß/ss-Faltung verlangt einen eigenen Tokenizer
+  und ist nicht Teil von v1.
+- **Präfixsuche (Entscheidung Issue #8):** Jeder freie Suchbegriff sucht als
+  Präfix — „foto" findet „fotografieren". Begründung: Das Suchfeld filtert
+  beim Tippen, ohne Präfix bliebe die Liste leer, bis ein Wort fertig
+  getippt ist; und deutsche Komposita und Beugungen sind ohne Stemmer
+  anders nicht erreichbar. Nur am Wortanfang, keine Infixsuche —
+  „grafieren" findet „fotografieren" nicht. Ein `prefix=`-Index wird
+  **nicht** angelegt: FTS5 beantwortet Präfixanfragen auch ohne ihn, und
+  ohne gemessenen Bestand wäre er Optimierung auf Vorrat (Beschluss E2).
+- Die Trefferliste behält die Ordnung der Bibliothek (neueste zuerst, 9.)
+  statt der FTS5-Relevanzsortierung — nur so trägt sie deren Tagesgruppen.
 
 ## 7. KI-Pipeline
 
