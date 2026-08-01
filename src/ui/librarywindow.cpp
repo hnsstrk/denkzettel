@@ -122,8 +122,15 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_emptyLibraryPage = placeholderPage(i18n("Noch keine Notizen"),
                                          i18n("Mit Meta+N einen Gedanken festhalten."),
                                          true);
+    // A search without a hit is not an empty library: it says something else,
+    // and it carries no icon — the icon belongs to the first start, not to a
+    // state the user leaves again by typing (wireframe 2c).
+    m_noResultsPage = placeholderPage(i18n("Keine Treffer"),
+                                      i18n("Den Suchbegriff ändern oder das Feld leeren."),
+                                      false);
     m_listPages->addWidget(m_list);
     m_listPages->addWidget(m_emptyLibraryPage);
+    m_listPages->addWidget(m_noResultsPage);
     m_listPages->setMinimumWidth(MinimumListWidth);
 
     m_detailPages = new QStackedWidget(this);
@@ -217,23 +224,18 @@ QWidget *LibraryWindow::buildHeader()
 {
     auto *header = new QWidget(this);
 
-    auto *search = new QLineEdit(header);
-    search->setPlaceholderText(i18n("Volltextsuche …"));
-    search->setClearButtonEnabled(false);
-    search->setEnabled(false);
+    m_search = new QLineEdit(header);
+    m_search->setPlaceholderText(i18n("Volltextsuche …"));
+    // S5 kept the field switched off for a stable layout and said so in a
+    // tooltip; this story gives it its function, so both are gone. The clear
+    // button is the one-click way back to the full list.
+    m_search->setClearButtonEnabled(true);
 
-    // A disabled widget gets no mouse events and would swallow its own
-    // tooltip, so the tooltip sits on a wrapper of the same size. The field is
-    // here for a stable layout; S6/S7 add the search itself.
-    auto *wrapper = new QWidget(header);
-    wrapper->setToolTip(i18n("Die Volltextsuche steht noch nicht zur Verfügung."));
-    auto *wrapperLayout = new QVBoxLayout(wrapper);
-    wrapperLayout->setContentsMargins(0, 0, 0, 0);
-    wrapperLayout->addWidget(search);
+    connect(m_search, &QLineEdit::textChanged, this, &LibraryWindow::searchChanged);
 
     auto *layout = new QVBoxLayout(header);
     layout->setContentsMargins(8, 8, 8, 8);
-    layout->addWidget(wrapper);
+    layout->addWidget(m_search);
 
     return header;
 }
@@ -341,7 +343,10 @@ void LibraryWindow::reload(Selection selection)
     const qint64 selected =
         selection == Selection::Keep ? m_model->noteAt(m_list->currentIndex().row()).id : -1;
 
-    m_model->setNotes(m_store->notes(), referenceTime());
+    // An empty search field returns the whole library from the store, so the
+    // full list and a result list are the same code path — and clearing the
+    // field needs no case of its own (SPEC 6).
+    m_model->setNotes(m_store->search(m_search->text()), referenceTime());
 
     // Saying the empty selection explicitly also stops QAbstractItemView from
     // picking the first entry on its own the moment the list takes the focus.
@@ -363,10 +368,31 @@ void LibraryWindow::regroupList()
     updatePages();
 }
 
+void LibraryWindow::searchChanged()
+{
+    // The list has to agree with the store before it is read again: a note in
+    // its grace period has left the list but is still stored, and a search
+    // would fetch it back. Carrying the deletion out first is the rule a
+    // second deletion and the closing window already follow (SPEC 9).
+    m_deletion->flush();
+
+    // The note the user was reading stays selected if it is among the hits.
+    reload(Selection::Keep);
+}
+
 void LibraryWindow::updatePages()
 {
     const bool hasNotes = m_model->noteCount() > 0;
-    m_listPages->setCurrentWidget(hasNotes ? static_cast<QWidget *>(m_list) : m_emptyLibraryPage);
+    if (hasNotes) {
+        m_listPages->setCurrentWidget(m_list);
+    } else if (m_search->text().isEmpty()) {
+        m_listPages->setCurrentWidget(m_emptyLibraryPage);
+    } else {
+        // A search over an empty library lands here too and offers to change
+        // the term. Clearing the field then says "Noch keine Notizen", so the
+        // window corrects itself with the next keystroke.
+        m_listPages->setCurrentWidget(m_noResultsPage);
+    }
 
     if (!hasNotes) {
         m_detailPages->setCurrentWidget(m_blankPage);
