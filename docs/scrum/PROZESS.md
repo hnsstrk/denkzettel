@@ -1,6 +1,6 @@
 # Denkzettel — Scrum-Arbeitsvereinbarung
 
-Stand: 2026-07-31. Diese Vereinbarung regelt, wie das Agenten-Team an
+Stand: 2026-08-01. Diese Vereinbarung regelt, wie das Agenten-Team an
 Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven.
 
 ## Rollen
@@ -97,7 +97,9 @@ PO aus.
    Bilder aus dem Sprint-Stand und prüft sie gegen den Wireframe. Ein
    UI-Review ohne eigene Bildprüfung zählt für diesen Punkt nicht.
 4. SPEC.md/KONZEPT.md nachgezogen, falls die Umsetzung eine Festlegung
-   ändert **oder eine neue Bedingung entdeckt** (mit Begründung im Issue).
+   ändert **oder eine Bedingung entdeckt, ohne die eine Festlegung nicht
+   gilt** (Bauart: fehlende Build-Abhängigkeit, Installations-Präfix —
+   Retro Sprint 2, B9); mit Begründung im Issue.
 5. Commit(s) auf `main` bzw. Feature-Branch gemäß Kundenvorgabe; Issue
    geschlossen mit Verweis auf Commit.
 6. Journal-Eintrag der Session gemäß globaler Protokollpflicht.
