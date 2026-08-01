@@ -367,7 +367,7 @@
       </div>
       <div style="color:#333;font-size:13px;line-height:1.55">Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der Vault zugemüllt. Schwelle einstellbar machen.</div>
       <div style="display:flex;gap:5px"><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">software-idee</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">denkzettel</span><span style="border:1px solid #999;border-radius:9px;padding:0 7px;color:#666;font-size:10.5px">export</span></div>
-      <div style="margin-top:auto;font-size:11px;color:#aaa;line-height:1.5">Leseansicht · Bearbeiten siehe <a href="#2a" style="color:#2a78d6">2a</a><br>Suchfeld sichtbar, aber ohne Funktion bis S6 · Kategorien-Sidebar ab M3 (S12) · Vorschläge-Knopf ab M5</div>
+      <div style="margin-top:auto;font-size:11px;color:#aaa;line-height:1.5">Leseansicht · Bearbeiten siehe <a href="#2a" style="color:#2a78d6">2a</a><br>Suchfeld sichtbar, aber ohne Funktion bis S6 · Kategorien-Sidebar ab M3 (S12) · Vorschläge-Knopf ab M5<br><span style="color:#b3701f">Listenspalte überholt (01.08.2026): Die Liste wird als Posteingang gegliedert — maßgeblich ist <a href="#3a" style="color:#b3701f">3a</a> (S5a/#46). Fenster, Kopfzeile, Meldungszeile und Detailbereich gelten unverändert.</span></div>
     </div>
   </div>
 </div>
@@ -417,8 +417,9 @@
           <b style="color:#555">Undo-Kanten</b>: Zweites Löschen innerhalb der Frist führt das erste sofort aus und startet die Frist neu (nur eine Meldung, nie ein Stapel) · Fensterschließen innerhalb der Frist führt die Löschung aus · nach dem Löschen rückt die Auswahl auf den nachfolgenden Eintrag, bei dessen Fehlen auf den vorangehenden; ist die Liste leer, greift Leerzustand 1.
         </div>
         <div style="flex:1">
+          <b style="color:#555">Raumaufteilung</b> (Prüfsätze für die Geometrie-Zusicherungen, Beschluss B2 der Sprint-2-Retro): Die Kopfzeile mit dem Suchfeld sitzt <b style="color:#555">oben bündig</b> am Fensterinhalt und behält ihre Höhe — sie wächst nicht mit dem Fenster (bei 900×600 wie bei 1400×900 unter 40 px hoch). Darunter die Meldungszeile des Lösch-Undo; solange keine Meldung steht, belegt sie <b style="color:#555">keine Höhe</b>. Liste und Detail stehen <b style="color:#555">nebeneinander</b>, nicht untereinander, und füllen die <b style="color:#555">volle Resthöhe</b>: Ihre Unterkante ist die Unterkante des Fensterinhalts, dazwischen bleibt kein Streifen frei (bei 900×600 ist die Liste höher als 450 px). Beim Verbreitern des Fensters wächst der Detailbereich, die Liste behält ihre Breite (Startbreite 300 px, per Splitter schmälerbar bis 220 px). Am Sprint-2-Stand gemessen wären zwei dieser Sätze rot gewesen — Kopfzeile 137 px, Liste 300 px —, und genau dafür stehen sie hier.<br><br>
           <b style="color:#555">Deaktiviertes Suchfeld</b>: PO-Entscheidung (Planning-Protokoll 4.3) für Layoutstabilität — S5 legt die Kopfzeile an, S6/S7 rüsten die Funktion nach. Die KDE HIG rät sonst von dauerhaft funktionslosen Bedienelementen ab; die Ausnahme ist hier bewusst und befristet. Empfehlung: Tooltip „Die Volltextsuche steht noch nicht zur Verfügung."<br><br>
-          <b style="color:#555">Zeitstempel</b>: heute → „Heute HH:MM", gestern → „Gestern HH:MM", innerhalb der letzten sieben Tage → „Di, 28. Juli", älter → „28.07.2025". Umschaltpunkt ist der Kalendertag, nicht 24 Stunden.<br><br>
+          <b style="color:#555">Zeitstempel</b>: heute → „Heute HH:MM", gestern → „Gestern HH:MM", innerhalb der letzten sieben Tage → „Di, 28. Juli", älter → „28.07.2025". Umschaltpunkt ist der Kalendertag, nicht 24 Stunden.<br><span style="color:#b3701f">Überholt (01.08.2026) für die Liste: Mit der Posteingangs-Gliederung trägt der Gruppenkopf den Tag, der Eintrag kürzt sich entsprechend, und die rollenden sieben Tage werden zur Kalenderwoche — <a href="#3b" style="color:#b3701f">3b</a>. Im Detailbereich gilt diese Zeile unverändert weiter.</span><br><br>
           <b style="color:#555">Listeneintrag</b>: Zeitstempel, <b style="color:#555">zwei Zeilen</b> Text mit Auslassung am Ende, Tag-Chips; Sprachnotizen zusätzlich ▶ und Dauer.<br><br>
           <b style="color:#555">Tastatur</b>: Pfeiltasten wechseln die Auswahl, Entf löscht, <span style="font-family:ui-monospace,monospace;font-size:11px">KStandardShortcut::undo</span> macht innerhalb der Frist rückgängig, F2 öffnet das Bearbeiten (<a href="#2a" style="color:#2a78d6">2a</a>).<br><br>
           <b style="color:#555">Offen, PO-Entscheidung nötig</b>: Ansprache des Nutzers. Hier durchgehend unpersönlich im Infinitiv gezeichnet („Zum Lesen links eine Notiz auswählen.") — das ist die KDE-übliche Form und vermeidet die Wahl zwischen Du und Sie. Die Festlegung sollte einmal für die ganze App gelten, nicht je Fenster.
@@ -432,6 +433,202 @@
 
 </div>
 <p class="dv-next">Vorlage für: Neufassung der Akzeptanzkriterien von Issue #11 (S8) und UI-Review von Issue #7 (S5). Screen <a class="dv-oid" href="#1b">1b</a> zeigt den Zielstand ab M3 (mit Sidebar und Vorschlägen), <a class="dv-oid" href="#2b">2b</a> den Stand nach M2.</p>
+</section>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Backlog-Grooming 01.08.2026 — Notizliste als Posteingang gliedern (S5a/#46)</span></div>
+<div class="dv-opts">
+
+<!-- 3a Posteingangs-Gliederung -->
+<div class="dv-opt" id="3a" data-screen-label="Bibliothek — Posteingangs-Gliederung">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Screen 2 (Variante) · Notizliste als Posteingang — Tagesgruppen, erste Zeile als Betreff (ersetzt die Listenspalte aus <a href="#2b" style="color:#2a78d6">2b</a>)</div>
+<div class="dv-card" style="width:900px;font-family:'Patrick Hand',cursive">
+  <div style="padding:18px;display:flex;gap:16px;align-items:flex-start">
+
+    <div style="width:660px;border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+      <div style="background:#fff;border-bottom:1.5px solid #333;display:flex;align-items:center;gap:8px;padding:8px 12px">
+        <div style="width:12px;height:12px;border:1.5px solid #666;border-radius:50%"></div>
+        <div style="font-size:14px;color:#333">Denkzettel — Bibliothek</div>
+        <div style="margin-left:auto;display:flex;gap:6px"><div style="width:11px;height:11px;border:1.5px solid #999;border-radius:3px"></div><div style="width:11px;height:11px;border:1.5px solid #999;border-radius:3px"></div><div style="width:11px;height:11px;border:1.5px solid #999;border-radius:3px"></div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1.5px solid #333;background:#fafaf8">
+        <div style="flex:1;display:flex;align-items:center;gap:8px;border:1.5px dashed #ccc;border-radius:16px;padding:5px 12px;font-size:13px;color:#c4c4c4;background:#f4f3f0"><span style="width:11px;height:11px;border:1.5px solid #ccc;border-radius:50%;position:relative"><span style="position:absolute;width:6px;height:1.5px;background:#ccc;transform:rotate(45deg);left:9px;top:10px"></span></span>Volltextsuche …</div>
+      </div>
+      <div style="display:flex;min-height:330px">
+        <div style="width:280px;border-right:1.5px solid #333;display:flex;flex-direction:column;font-size:12px">
+
+          <div style="padding:6px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Heute</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">14:32</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">restic-Backup: prune-Policy prüfen,</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">monatliche Snapshots behalten — als …</div>
+          </div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd;background:#eef4fc;border-left:3px solid #2a78d6">
+            <div style="display:flex;justify-content:space-between;color:#999;font-size:11px"><span>11:05</span><span>▶ 0:41</span></div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Sprachnotiz: Idee für Denkzettel —</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">Bündel-Export erst vorschlagen, wenn …</div>
+          </div>
+
+          <div style="padding:14px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Gestern</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">21:48</div>
+            <div style="color:#222;line-height:1.35;font-family:ui-monospace,monospace;font-size:11.5px">journalctl -u whisperd --since today</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">&nbsp;</div>
+          </div>
+
+          <div style="padding:14px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Diese Woche</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">Di., 28. Juli</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Mara wegen Wochenende anrufen,</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">Kuchen nicht vergessen</div>
+          </div>
+
+          <div style="padding:14px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Letzte Woche</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">Do., 23. Juli</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Kategorien-Prompt: Beispiele</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">mitgeben, sonst rät das Modell</div>
+          </div>
+          <div style="padding:8px 12px;color:#bbb;text-align:center">⋯ weiter, dann „Älter" ⋯</div>
+        </div>
+        <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#999;font-size:11px">Heute 11:05 · Sprachnotiz</span><span style="display:flex;gap:7px"><span style="border:1.5px solid #333;background:#dce8f7;border-radius:5px;padding:2px 11px;color:#222">Bearbeiten</span><span style="border:1.5px solid #999;border-radius:5px;padding:2px 11px;color:#777">Löschen</span></span></div>
+          <div style="border:1.5px solid #888;border-radius:6px;padding:7px 10px;display:flex;align-items:center;gap:9px;background:#fafaf8">
+            <div style="width:22px;height:22px;border:1.5px solid #333;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">▶</div>
+            <div style="flex:1;height:4px;background:#ddd;border-radius:2px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:35%;background:#2a78d6;border-radius:2px"></div></div>
+            <span style="color:#999;font-size:11px">0:14 / 0:41</span>
+          </div>
+          <div style="color:#333;font-size:13px;line-height:1.55">Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der Vault zugemüllt. Schwelle einstellbar machen.</div>
+          <div style="margin-top:auto;font-size:11px;color:#aaa;line-height:1.5">Detailbereich unverändert gegenüber <a href="#2b" style="color:#2a78d6">2b</a> — <b style="color:#999">hier trägt der Zeitstempel weiter den Tag</b> („Heute 11:05"), denn über dem Detail steht kein Gruppenkopf.<br>Meldungszeile des Lösch-Undo hier nur weggelassen, um die Liste zu zeigen; sie sitzt unverändert zwischen Kopfzeile und Inhalt.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;font-size:12px;color:#777;line-height:1.55">
+      <div style="font-size:13px;color:#333;margin-bottom:8px">Maße der Gliederung</div>
+      <div style="border-left:3px solid #ddd;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:9px">
+        <div><b style="color:#555">Gruppenkopf, erster</b><br>6 px über und 6 px unter der Schrift.</div>
+        <div><b style="color:#555">Gruppenkopf, jeder weitere</b><br>14 px über und 6 px unter der Schrift — der größere Abstand oben ist die Gruppentrennung.</div>
+        <div><b style="color:#555">Kopftext</b><br>linksbündig mit dem Zeitstempel der Einträge: 12 px vom linken Rand der Liste. Kleinschrift wie der Zeitstempel, halbfett, in normaler Textfarbe.</div>
+        <div><b style="color:#555">Kopf ohne Linie, ohne Fläche</b><br>keine Trennlinie über oder unter dem Kopf, kein farbiger Balken — sonst schwächt jede Gruppe die Auswahlmarkierung.</div>
+        <div><b style="color:#555">Eintrag unverändert</b><br>9 px oben und unten, 12 px seitlich, Zeitstempel, dann zwei Textzeilen — gleiche Höhe für jeden Eintrag, auch für den kurzen.</div>
+        <div><b style="color:#555">Listenbreite unverändert</b><br>300 px Startbreite, per Splitter bis 220 px schmälerbar; die Gliederung ändert an der Raumaufteilung (<a href="#2c" style="color:#2a78d6">2c</a>) nichts.</div>
+        <div style="color:#999">Die Zahlen sind Prüfsätze im Sinne von Beschluss B2: je Satz eine Testfunktion, offscreen bei zwei Fenstergrößen.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- 3b Sonderfälle der Gliederung -->
+<div class="dv-opt" id="3b" data-screen-label="Posteingangs-Gliederung — Sonderfälle">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Screen 2 (Variante) · Gliederung — Sonderfälle: eine Gruppe mit einem Eintrag, lange erste Zeile, Einzeiler, Scrollen</div>
+<div class="dv-card" style="width:900px;font-family:'Patrick Hand',cursive">
+  <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+
+    <div style="display:flex;gap:14px;flex-wrap:wrap">
+
+      <div style="width:250px;border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+        <div style="padding:6px 10px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Fall 1 — Gruppe mit genau einem Eintrag</div>
+        <div style="font-size:12px">
+          <div style="padding:6px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Gestern</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">21:48</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Whisper-Warteschlange bei</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">Suspend prüfen</div>
+          </div>
+          <div style="padding:14px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Diese Woche</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">Di., 28. Juli</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Mara wegen Wochenende</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">anrufen, Kuchen nicht …</div>
+          </div>
+        </div>
+        <div style="padding:8px 10px;font-size:11px;color:#777;line-height:1.5;border-top:1px dashed #ccc">Der Kopf steht auch über einem einzigen Eintrag — <b style="color:#555">kein Sonderfall, keine Ausnahme</b>. Eine Gruppe ohne Eintrag wird gar nicht gezeichnet.</div>
+      </div>
+
+      <div style="width:250px;border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+        <div style="padding:6px 10px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Fall 2 — lange erste Zeile ohne Umbruch</div>
+        <div style="font-size:12px">
+          <div style="padding:6px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Heute</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">09:41</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Für den Vortrag nächste Woche noch</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">einmal durchgehen, ob die Zahlen zur …</div>
+          </div>
+        </div>
+        <div style="padding:8px 10px;font-size:11px;color:#777;line-height:1.5;border-top:1px dashed #ccc">Der Regelfall aus dem Capture-Fenster: ein Gedanke, kein Zeilenumbruch. Dann ist der <b style="color:#555">Betreff die erste umgebrochene Zeile</b> und die Vorschau ihre Fortsetzung — die Darstellung bleibt wie heute, nur die zweite Zeile ist gedämpft.</div>
+      </div>
+
+      <div style="width:250px;border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+        <div style="padding:6px 10px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Fall 3 — echter Umbruch · Einzeiler</div>
+        <div style="font-size:12px">
+          <div style="padding:6px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Heute</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">18:20</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Einkauf Samstag</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">Mehl · Hefe · Zitronen · Sahne · …</div>
+          </div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">17:02</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Reifen wechseln lassen</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">&nbsp;</div>
+          </div>
+        </div>
+        <div style="padding:8px 10px;font-size:11px;color:#777;line-height:1.5;border-top:1px dashed #ccc">Mit Umbruch trennt der Umbruch: Betreff „Einkauf Samstag", Vorschau der Rest <b style="color:#555">in einer Zeile</b>, weitere Umbrüche als „ · " gelesen. Beim Einzeiler bleibt die Vorschauzeile leer — die <b style="color:#555">Eintragshöhe bleibt gleich</b>.</div>
+      </div>
+
+      <div style="width:250px;border:1.5px solid #333;border-radius:6px;overflow:hidden;background:#fff">
+        <div style="padding:6px 10px;background:#f6f5f2;border-bottom:1px solid #ddd;font-size:11px;color:#999">Fall 4 — Übergang beim Scrollen</div>
+        <div style="font-size:12px">
+          <div style="padding:5px 12px;font-size:10.5px;color:#bbb;text-align:center;border-bottom:1px dashed #ddd">⋯ „Heute", „Gestern" nach oben weggescrollt ⋯</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd">
+            <div style="color:#999;font-size:11px">Mi., 29. Juli</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Tray-Icon im dunklen Theme</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">testen</div>
+          </div>
+          <div style="padding:14px 12px 6px;font-size:11.5px;font-weight:700;color:#222">Letzte Woche</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #ddd;background:#eef4fc;border-left:3px solid #2a78d6">
+            <div style="color:#999;font-size:11px">Do., 23. Juli</div>
+            <div style="color:#222;font-size:13px;line-height:1.35">Kategorien-Prompt: Beispiele</div>
+            <div style="color:#8d8d8d;font-size:13px;line-height:1.35">mitgeben</div>
+          </div>
+          <div style="padding:5px 12px;font-size:10.5px;color:#bbb;text-align:center">⋯ weiter ⋯</div>
+        </div>
+        <div style="padding:8px 10px;font-size:11px;color:#777;line-height:1.5;border-top:1px dashed #ccc">Köpfe <b style="color:#555">scrollen mit</b> und bleiben nicht oben kleben. Springt die Auswahl per Pfeiltaste über eine Gruppengrenze, wird der <b style="color:#555">neue Kopf mit ins Bild gescrollt</b> — die Auswahl steht nie ohne ihre Überschrift da.</div>
+      </div>
+
+    </div>
+
+    <div style="border:1.5px dashed #bbb;border-radius:6px;padding:9px 12px;font-size:12px;color:#777;line-height:1.55;background:#fbfaf8"><b style="color:#555">Leerzustände unverändert</b> (<a href="#2c" style="color:#2a78d6">2c</a>): Ohne Notizen gibt es keine Gruppe und damit keinen Kopf — die leere Bibliothek zeigt weiterhin nur ihren Platzhalter, nicht eine Überschrift über nichts.</div>
+
+    <div style="border-top:1.5px solid #333;padding-top:12px;font-size:12px;color:#666;line-height:1.65">
+      <div style="font-size:13px;color:#333;margin-bottom:6px">Festlegungen zu <a href="#3a" style="color:#2a78d6">3a</a> und <a href="#3b" style="color:#2a78d6">3b</a>, die sich nicht zeichnen lassen</div>
+      <div style="display:flex;gap:24px">
+        <div style="flex:1">
+          <b style="color:#555">Gruppenzuordnung</b>: fünf Gruppen in fester Reihenfolge — <b style="color:#555">Heute · Gestern · Diese Woche · Letzte Woche · Älter</b> (Kundenentscheidung 01.08.2026). Die Gruppen überschneiden sich, deshalb gilt: <b style="color:#555">die erste passende gewinnt</b>. „Diese Woche" ist die laufende <b style="color:#555">Kalenderwoche</b> (Wochenanfang Montag, <span style="font-family:ui-monospace,monospace;font-size:11px">QLocale::firstDayOfWeek</span>), „Letzte Woche" die davor. Probe: An einem Montag liegt der Vortag in „Gestern", der Rest der Vorwoche in „Letzte Woche" — „Diese Woche" ist dann leer und wird nicht gezeichnet.<br><br>
+          <b style="color:#b3701f">Ändert eine geltende Festlegung — DoD 4 greift</b>: Der Umschaltpunkt der Zeitstempel war „innerhalb der letzten sieben Tage" (rollend, <a href="#2c" style="color:#b3701f">2c</a> und AK von #7, umgesetzt als <span style="font-family:ui-monospace,monospace;font-size:11px">WeekdayFormLimit = 7</span>). Kalenderwochen sind etwas anderes als rollende sieben Tage: Am Montag ist der vorige Donnerstag drei Tage her und trotzdem „Letzte Woche". Eine Notiz vom Vormonat kann nicht in beiden Logiken gleich benannt sein — <b style="color:#555">eine Datumslogik für Gruppe und Zeitstempel</b> heißt deshalb: die Gruppe entscheidet, der Zeitstempel folgt ihr. Nachzuziehen sind SPEC 9, die Zeitstempel-Zeile in <a href="#2c" style="color:#b3701f">2c</a> und der bestehende Test <span style="font-family:ui-monospace,monospace;font-size:11px">usesTheWeekdayFormWithinTheLastSevenDays</span>.<br><br>
+          <b style="color:#555">Zeitstempel je Eintrag</b>, abgeleitet aus der Gruppe — nicht zweimal gerechnet: Heute und Gestern → nur die Uhrzeit („14:32"), denn der Kopf trägt den Tag · Diese Woche und Letzte Woche → „Di., 28. Juli" · Älter → „28.07.2026". Ein Zeitstempel in der Zukunft (Uhrensprung) bleibt wie bisher beim absoluten Datum und wird in „Heute" einsortiert.<br><br>
+          <b style="color:#555">Detailbereich unverändert</b>: Dort steht kein Gruppenkopf, also behält der Zeitstempel die volle Form („Heute 11:05"). Wer <span style="font-family:ui-monospace,monospace;font-size:11px">relativeTimestamp</span> für die Liste kürzt, nimmt dem Detail sonst den Tag mit weg — beide Stellen nutzen heute dieselbe Funktion.<br><br>
+          <b style="color:#555">Wann neu gruppiert wird</b>: bei jedem Neuaufbau der Liste (Öffnen, Nachladen, Anlegen, Löschen, Bearbeiten) und beim Aktivieren des Fensters. <b style="color:#555">Kein Mitternachts-Zeitgeber</b>: Ein Fenster, das über Nacht offen steht, ordnet sich beim nächsten Hinsehen um, nicht von selbst — das ist der billigere ehrliche Weg.
+        </div>
+        <div style="flex:1">
+          <b style="color:#555">Betreff und Vorschau</b>: Der Betreff ist der Text bis zum ersten Zeilenumbruch <i>oder</i> bis die Zeilenbreite erschöpft ist — je nachdem, was zuerst kommt; er wird elidiert und <b style="color:#555">nie umgebrochen</b>. Die Vorschau ist der unmittelbar folgende Text auf einer Zeile, weitere Umbrüche als Trenner gelesen, ebenfalls elidiert. Unterschieden wird <b style="color:#555">allein über die Farbe</b>: Betreff in Textfarbe, Vorschau gedämpft (<span style="font-family:ui-monospace,monospace;font-size:11px">PlaceholderText</span>, in der Auswahl <span style="font-family:ui-monospace,monospace;font-size:11px">HighlightedText</span> wie der Zeitstempel). <b style="color:#555">Kein Fettdruck im Eintrag</b> — fett heißt in Listen „ungelesen", und ein mitten im Satz abgeschnittener fetter Betreff sieht nach Fehler aus.<br><br>
+          <b style="color:#555">Gruppenkopf ist keine Notiz</b>: nicht auswählbar, nicht fokussierbar, von den Pfeiltasten übersprungen; Entf und F2 greifen ihn nie. Er ist eine Zeile <b style="color:#555">derselben Liste</b>, kein Baum — ein <span style="font-family:ui-monospace,monospace;font-size:11px">QTreeView</span> brächte Aufklapp-Pfeile ins Bild, die wir gerade nicht wollen.<br><br>
+          <b style="color:#555">Bewusst weggelassen: der Umschalter „In Gruppen anzeigen"</b>. Outlook braucht ihn, weil dort nach Absender, Größe, Kategorie und mehr angeordnet werden kann und die Gruppierung mitwandern muss. Denkzettel hat <b style="color:#555">genau eine Sortierung</b> (chronologisch, neueste zuerst, SPEC 9). Die Gliederung ist damit nur die lesbare Form dieser einen Ordnung und trägt nichts, was man abschalten wollen könnte — ein Schalter dafür wäre eine Entscheidung, die der Nutzer treffen muss, ohne etwas davon zu haben (KDE HIG: Einstellungen kosten Aufmerksamkeit).<br><br>
+          <b style="color:#555">Bewusst weggelassen: einklappbare Gruppenköpfe</b>. Einklappen hilft, an einem großen Block vorbei zu älterem Stoff zu kommen. Hier steht der Block, der wachsen kann, ohnehin <b style="color:#555">unten</b> („Älter"), und das Gesuchte liegt bei neueste-zuerst fast immer oben. Dafür fielen an: ein Zustand je Gruppe, seine Aufbewahrung über Sitzungen, ein Tastenvertrag auf dem Kopf und ein zweiter Weg, Notizen unsichtbar zu machen. Die Antwort auf „die Liste ist zu lang" heißt in dieser App <b style="color:#555">Suche</b> (S6/#8). <b style="color:#555">Wiedervorlage</b>, wenn der Kunde am eigenen Bestand über Scrollwege klagt oder die Bibliothek einige hundert Notizen trägt.<br><br>
+          <b style="color:#555">Kein Zähler am Kopf</b> (Outlook zeigt einen): In einer Liste ohne Ungelesen-Begriff zählt er nur, was ohnehin darunter steht.<br><br>
+          <b style="color:#555">Tag-Chips</b>: In M2 hat keine Notiz Tags, der Eintrag zeigt deshalb keine Chip-Zeile — die Chips aus <a href="#2b" style="color:#2a78d6">2b</a> kommen mit den KI-Tags ab M3 dazu, unter der Vorschauzeile, und erhöhen die Eintragshöhe um ihre Zeile. Innerhalb eines Standes bleibt die Eintragshöhe einheitlich.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Vorlage für: Akzeptanzkriterien von Issue #46 (S5a) und den UI-Review dazu. <a class="dv-oid" href="#3a">3a</a> ersetzt die Listenspalte aus <a class="dv-oid" href="#2b">2b</a>; Fenster, Kopfzeile, Meldungszeile, Detailbereich und Leerzustände gelten unverändert aus <a class="dv-oid" href="#2b">2b</a> und <a class="dv-oid" href="#2c">2c</a>. Die Trefferliste der Suche (S6/#8) zeigt dieselbe Gliederung.</p>
 </section>
 </x-dc>
 </body>
