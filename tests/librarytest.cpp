@@ -87,6 +87,8 @@ private Q_SLOTS:
     void walksPastTheGroupHeadsWithTheArrowKeys();
     void bringsTheHeadOfTheNewGroupIntoView_data();
     void bringsTheHeadOfTheNewGroupIntoView();
+    void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
+    void leavesTheHeadOutsideWhereItCannotFitWithTheSelection();
     void bringsBackTheHeadWhenTheDeletionIsUndone();
     void regroupsWhenTheWindowIsActivated();
     void undoesTheDeletionByKeyboard();
@@ -1084,6 +1086,120 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
     const QRect firstHead = list->visualRect(modelOf(list)->index(0));
     QVERIFY2(!list->viewport()->rect().intersects(firstHead),
              qPrintable(QStringLiteral("Kopf „Heute\" klebt bei y=%1").arg(firstHead.y())));
+}
+
+void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()
+{
+    // The case the UI review of 01.08.2026 found: the selection lands in the
+    // middle of a small group, so the head is not the row above it. It would
+    // fit into the picture easily — and has to be fetched, or three entries
+    // stand there with a bare time and no heading, while the only heading in
+    // sight belongs to the group below.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    QCOMPARE(modelOf(list)->noteCount(), 19);
+    QVERIFY(list->verticalScrollBar()->maximum() > 0);
+
+    // Up from the end of the list into the middle note of the three-note group
+    // "Gestern" — its head is two rows above the selection, not one.
+    list->setCurrentIndex(noteRow(list, 18));
+    for (int step = 0; step < 9; ++step) {
+        QTest::keyClick(list, Qt::Key_Up);
+    }
+
+    const QModelIndex selected = noteRow(list, 9);
+    QCOMPARE(list->currentIndex(), selected);
+    QCOMPARE(selected.data(Qt::DisplayRole).toString(), QStringLiteral("von gestern, 10 Uhr"));
+
+    const QModelIndex head = modelOf(list)->index(selected.row() - 2);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QVERIFY2(!modelOf(list)->index(selected.row() - 1).data(NoteListModel::GroupHeaderRole).toBool(),
+             "Der Fall verlangt eine Notiz, über der kein Kopf steht");
+
+    // Head and selection fit into the list together, so both are in the
+    // picture, whole.
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1, Viewport %2 px hoch")
+                            .arg(list->visualRect(head).y())
+                            .arg(list->viewport()->height())));
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
+             qPrintable(QStringLiteral("Auswahl y=%1 h=%2, Viewport %3 px hoch")
+                            .arg(list->visualRect(selected).y())
+                            .arg(list->visualRect(selected).height())
+                            .arg(list->viewport()->height())));
+}
+
+void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
+{
+    // The other side of the same rule: a group taller than the list. Fetching
+    // its head would push the selection out of the picture, so the head stays
+    // where it is — one key press must not scroll away what the user is
+    // looking at.
+    for (int minute = 0; minute < 30; ++minute) {
+        storedNote(QStringLiteral("von heute, Minute %1").arg(minute),
+                   QStringLiteral("2026-07-31T10:%1:00").arg(minute, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const QModelIndex head = modelOf(list)->index(0);
+    QVERIFY(head.data(NoteListModel::GroupHeaderRole).toBool());
+
+    // At the end of the list, where the head of the group is far above.
+    list->setCurrentIndex(noteRow(list, 29));
+
+    // The step goes to a row that is already in the picture, so the list must
+    // not move at all: fetching the far-away head and scrolling back would
+    // leave the selection at the opposite edge, with everything the user was
+    // reading gone (UI review of 01.08.2026).
+    const QModelIndex selected = noteRow(list, 28);
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
+             "Der Fall verlangt eine Zielzeile, die schon ganz im Bild steht");
+
+    const int scrolledTo = list->verticalScrollBar()->value();
+    QTest::keyClick(list, Qt::Key_Up);
+    QCOMPARE(list->verticalScrollBar()->value(), scrolledTo);
+
+    QCOMPARE(list->currentIndex(), selected);
+
+    // The head is further away than the list is tall …
+    const int span = list->visualRect(selected).bottom() - list->visualRect(head).top();
+    QVERIFY2(span > list->viewport()->height(),
+             qPrintable(QStringLiteral("Kopf und Auswahl umspannen %1 px, Viewport %2 px — der Fall "
+                                       "tritt nicht ein")
+                            .arg(span)
+                            .arg(list->viewport()->height())));
+
+    // … so it stays outside, and the selection keeps the picture, whole.
+    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
+             qPrintable(QStringLiteral("Auswahl y=%1 h=%2, Viewport %3 px hoch")
+                            .arg(list->visualRect(selected).y())
+                            .arg(list->visualRect(selected).height())
+                            .arg(list->viewport()->height())));
 }
 
 void LibraryTest::undoesTheDeletionByKeyboard()
