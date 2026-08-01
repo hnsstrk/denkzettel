@@ -1,0 +1,21 @@
+Schema                      Mid     Dark Midlight   Shadow
+BreezeClassic            1,47:1   2,91:1   1,06:1   7,85:1
+BreezeDark               1,05:1   1,16:1   1,23:1   1,22:1
+BreezeLight              1,47:1   2,91:1   1,06:1   7,85:1
+CachyOSNord              1,03:1   1,08:1   1,12:1   1,13:1
+CachyOSNordLightly       1,04:1   1,12:1   1,11:1   1,19:1
+Emerald                  1,04:1   1,06:1   1,02:1   1,11:1
+EmeraldDark              1,03:1   1,08:1   1,12:1   1,13:1
+EmeraldLight             1,04:1   1,06:1   1,02:1   1,11:1
+EmeraldSmooth            1,03:1   1,11:1   1,25:1   1,15:1
+IridescentLightly        2,76:1   4,43:1   6,10:1   6,10:1
+IridescentLightly2       2,76:1   4,43:1   6,10:1   6,10:1
+IridescentLightly3       2,68:1   4,33:1   5,99:1   5,99:1
+KritaBlender             1,08:1   1,29:1   1,21:1   1,39:1
+KritaBright              1,36:1   2,37:1   1,06:1   5,52:1
+KritaDark                1,13:1   1,47:1   1,13:1   1,74:1
+KritaDarkOrange          1,04:1   1,13:1   1,24:1   1,18:1
+KritaDarker              1,10:1   1,38:1   1,29:1   1,47:1
+KritaNeutral             1,28:1   2,35:1   1,16:1   3,31:1
+
+Schlechtester Fall: Mid 1,03:1 (CachyOSNord), Dark 1,06:1 (Emerald)

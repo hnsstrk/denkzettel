@@ -1,0 +1,18 @@
+Stil: breeze
+
+BreezeLight    Fenster(Window)=#eff0f1  Textfeld(Base)=#ffffff  Text=#232629  Platzhalter=#707d8a
+BreezeLight    Fenstergröße leer: 600x155
+BreezeLight    Fenstergröße getippt: 600x155
+
+BreezeDark     Fenster(Window)=#202326  Textfeld(Base)=#141618  Text=#fcfcfc  Platzhalter=#a1a9b1
+BreezeDark     Fenstergröße leer: 600x155
+BreezeDark     Fenstergröße getippt: 600x155
+
+CachyOSNord    Fenster(Window)=#181b28  Textfeld(Base)=#161925  Text=#47adda  Platzhalter=#666a73
+CachyOSNord    Fenstergröße leer: 600x155
+CachyOSNord    Fenstergröße getippt: 600x155
+
+KritaBright    Fenster(Window)=#d4d4d4  Textfeld(Base)=#f4f4f4  Text=#181818  Platzhalter=#6080a0
+KritaBright    Fenstergröße leer: 600x155
+KritaBright    Fenstergröße getippt: 600x155
+

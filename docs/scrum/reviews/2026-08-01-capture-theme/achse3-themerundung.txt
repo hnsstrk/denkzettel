@@ -1,0 +1,9 @@
+Desktop-Theme             Eckstueck topleft     Schatten im Theme
+CachyOS-Nord-round        (nicht gefunden)      nein
+Iridescent-round          (nicht gefunden)      nein
+breeze-dark               erbt vom Standard-Theme
+breeze-light              erbt vom Standard-Theme
+cachyos-emerald           (nicht gefunden)      nein
+cachyos-emerald-color     (nicht gefunden)      nein
+cachyos-emerald-light     (nicht gefunden)      nein
+default                   (nicht gefunden)      ja

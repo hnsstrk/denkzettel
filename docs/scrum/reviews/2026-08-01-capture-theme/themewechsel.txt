@@ -1,0 +1,16 @@
+vorher   Fensterhintergrund   = #202326
+vorher   Textfeld-Hintergrund = #141618   Textfarbe = #fcfcfc
+vorher   Kleintext "Denkzettel" = #a1a9b1
+vorher   Kleintext "Esc verwirft · Strg+Enter speichert" = #a1a9b1
+
+--- Farbschema gewechselt, Fenster bleibt bestehen ---
+
+nachher  Fensterhintergrund   = #eff0f1
+nachher  Textfeld-Hintergrund = #ffffff   Textfarbe = #232629
+nachher  Kleintext "Denkzettel" = #a1a9b1
+nachher  Kleintext "Esc verwirft · Strg+Enter speichert" = #a1a9b1
+
+neu      Fensterhintergrund   = #eff0f1
+neu      Textfeld-Hintergrund = #ffffff   Textfarbe = #232629
+neu      Kleintext "Denkzettel" = #707d8a
+neu      Kleintext "Esc verwirft · Strg+Enter speichert" = #707d8a

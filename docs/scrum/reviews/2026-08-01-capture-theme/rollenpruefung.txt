@@ -1,0 +1,23 @@
+Schema                  WindowText   Inactive   ViewText   auf Fensterflaeche
+KritaNeutral                4.74:1     1.98:1     4.22:1
+KritaDark                   5.55:1     3.62:1     5.55:1
+IridescentLightly3          5.80:1     3.66:1     5.80:1
+IridescentLightly           5.91:1     3.74:1     5.91:1
+IridescentLightly2          5.91:1     3.74:1     5.91:1
+EmeraldDark                 7.81:1     3.16:1     7.04:1
+CachyOSNordLightly          7.93:1     2.91:1     6.20:1
+CachyOSNord                 8.61:1     3.16:1     6.73:1
+KritaBright                 9.68:1     3.91:1    11.98:1
+KritaDarker                10.75:1     2.87:1    10.75:1
+KritaBlender               11.07:1     7.49:1    11.07:1
+EmeraldSmooth              12.11:1     3.15:1    12.11:1
+BreezeLight                13.33:1     3.69:1    13.33:1
+BreezeClassic              13.36:1     3.05:1    13.36:1
+BreezeDark                 15.39:1     6.64:1    15.39:1
+KritaDarkOrange            16.48:1     9.26:1    16.48:1
+Emerald                    20.87:1     3.59:1    20.87:1
+EmeraldLight               20.87:1     3.59:1    20.87:1
+
+WindowText auf Window: schlechtester 4.74:1, Median 10.22:1
+ViewText  auf Window: schlechtester 4.22:1, Median 10.91:1
+Inactive  auf Window: schlechtester 1.98:1, Median 3.61:1

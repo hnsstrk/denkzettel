@@ -1,0 +1,462 @@
+Stil: breeze, Locale: de_DE, Plattform: offscreen
+
+[A Posteingang 900x600] Fenster 900x600
+  Kopfzeile: y=0 h=47
+  Splitter : h=553 Liste 300 px / Detail 599 px (Minimum Liste 220)
+  Liste    : Viewport 279x553, Rollbalken max=2
+
+[A Posteingang 900x600] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  2 Notiz y=  105 h= 74 [Auswahl] 
+        Zeitstempel x=13 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile  3 KOPF  y=  179 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  4 Notiz y=  218 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=11 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  5 KOPF  y=  292 h= 39 "Diese Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  6 Notiz y=  331 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  7 KOPF  y=  405 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  8 Notiz y=  444 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  9 KOPF  y=  518 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  557 h= 74 [ausserhalb] Reifenwechsel: Termin bei Krau
+
+[A Posteingang 1200x800] Fenster 1200x800
+  Kopfzeile: y=0 h=47
+  Splitter : h=753 Liste 300 px / Detail 899 px (Minimum Liste 220)
+  Liste    : Viewport 300x753, Rollbalken max=0
+
+[A Posteingang 1200x800] Zeilen der Liste (Viewport 300x753)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  2 Notiz y=  105 h= 74 [Auswahl] 
+        Zeitstempel x=13 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile  3 KOPF  y=  179 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  4 Notiz y=  218 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=11 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  5 KOPF  y=  292 h= 39 "Diese Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  6 Notiz y=  331 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  7 KOPF  y=  405 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  8 Notiz y=  444 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  9 KOPF  y=  518 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  557 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+
+[A schmal (220 px)] Fenster 900x600
+  Kopfzeile: y=0 h=47
+  Splitter : h=553 Liste 220 px / Detail 679 px (Minimum Liste 220)
+  Liste    : Viewport 199x553, Rollbalken max=2
+
+[A schmal (220 px)] Zeilen der Liste (Viewport 199x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  2 Notiz y=  105 h= 74 [Auswahl] 
+        Zeitstempel x=13 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=13 Farbe=#ffffff
+  Zeile  3 KOPF  y=  179 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  4 Notiz y=  218 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=11 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  5 KOPF  y=  292 h= 39 "Diese Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  6 Notiz y=  331 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  7 KOPF  y=  405 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  8 Notiz y=  444 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  9 KOPF  y=  518 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  557 h= 74 [ausserhalb] Reifenwechsel: Termin bei Krau
+
+[A ohne Auswahl] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  2 Notiz y=  105 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  3 KOPF  y=  179 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  4 Notiz y=  218 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=11 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  5 KOPF  y=  292 h= 39 "Diese Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  6 Notiz y=  331 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  7 KOPF  y=  405 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  8 Notiz y=  444 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  9 KOPF  y=  518 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  557 h= 74 [ausserhalb] Reifenwechsel: Termin bei Krau
+
+[B Sonderfälle (Montag)] Fenster 900x600
+  Kopfzeile: y=0 h=47
+  Splitter : h=553 Liste 300 px / Detail 599 px (Minimum Liste 220)
+  Liste    : Viewport 279x553, Rollbalken max=2
+
+[B Sonderfälle (Montag)] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 [Auswahl] 
+        Zeitstempel x=12 Farbe=#ffffff
+        Betreff     x=13 Farbe=#ffffff
+        Vorschau    x=13 Farbe=#ffffff
+  Zeile  2 Notiz y=  105 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  3 Notiz y=  179 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  4 KOPF  y=  253 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  5 Notiz y=  292 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  6 KOPF  y=  366 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  7 Notiz y=  405 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  8 KOPF  y=  479 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  9 Notiz y=  518 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=127 Farbe=#030303
+        Vorschau    x=-1 Farbe=#000000
+
+[B nach dem Löschen der einzigen Notiz von Gestern] Zeilen der Liste (Viewport 300x504)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  2 Notiz y=  105 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  3 Notiz y=  179 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  4 KOPF  y=  253 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  5 Notiz y=  292 h= 74 [Auswahl] 
+        Zeitstempel x=13 Farbe=#ffffff
+        Betreff     x=13 Farbe=#ffffff
+        Vorschau    x=13 Farbe=#ffffff
+  Zeile  6 KOPF  y=  366 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  7 Notiz y=  405 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+
+[B nach dem Rückgängigmachen] Zeilen der Liste (Viewport 279x536)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y=    0 h= 31 "Heute" Textkante x=13 Farbe=#000000 (oben 6 unten 6)
+  Zeile  1 Notiz y=   31 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=13 Farbe=#7f7f7f
+  Zeile  2 Notiz y=  105 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=-1 Farbe=#ffffff
+  Zeile  3 Notiz y=  179 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  4 KOPF  y=  253 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  5 Notiz y=  292 h= 74 [Auswahl] 
+        Zeitstempel x=12 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=277 Farbe=#308cc6
+  Zeile  6 KOPF  y=  366 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile  7 Notiz y=  405 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=13 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  8 KOPF  y=  479 h= 39 "Älter" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile  9 Notiz y=  518 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=-1 Farbe=#000000
+        Vorschau    x=-1 Farbe=#000000
+
+[C1 vor der Grenze (letzte Notiz Heute)] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y= -105 h= 31 [ausserhalb] Heute
+  Zeile  1 Notiz y=  -74 h= 74 [ausserhalb] Von heute, 15 Uhr — eine Notiz
+  Zeile  2 Notiz y=    0 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  3 Notiz y=   74 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  4 Notiz y=  148 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  5 Notiz y=  222 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  6 Notiz y=  296 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  7 Notiz y=  370 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  8 Notiz y=  444 h= 74 [Auswahl] 
+        Zeitstempel x=12 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile  9 KOPF  y=  518 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  557 h= 74 [ausserhalb] Von gestern, 15 Uhr — eine Not
+  Zeile 11 Notiz y=  631 h= 74 [ausserhalb] Von gestern, 14 Uhr — eine Not
+  Zeile 12 Notiz y=  705 h= 74 [ausserhalb] Von gestern, 13 Uhr — eine Not
+  Zeile 13 Notiz y=  779 h= 74 [ausserhalb] Von gestern, 12 Uhr — eine Not
+  Zeile 14 Notiz y=  853 h= 74 [ausserhalb] Von gestern, 11 Uhr — eine Not
+  Zeile 15 Notiz y=  927 h= 74 [ausserhalb] Von gestern, 10 Uhr — eine Not
+  Zeile 16 Notiz y= 1001 h= 74 [ausserhalb] Von gestern, 9 Uhr — eine Noti
+  Zeile 17 Notiz y= 1075 h= 74 [ausserhalb] Von gestern, 8 Uhr — eine Noti
+
+[C1 abwärts über die Grenze (erste Notiz Gestern)] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y= -253 h= 31 [ausserhalb] Heute
+  Zeile  1 Notiz y= -222 h= 74 [ausserhalb] Von heute, 15 Uhr — eine Notiz
+  Zeile  2 Notiz y= -148 h= 74 [ausserhalb] Von heute, 14 Uhr — eine Notiz
+  Zeile  3 Notiz y=  -74 h= 74 [ausserhalb] Von heute, 13 Uhr — eine Notiz
+  Zeile  4 Notiz y=    0 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  5 Notiz y=   74 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  6 Notiz y=  148 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  7 Notiz y=  222 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  8 Notiz y=  296 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile  9 KOPF  y=  370 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  409 h= 74 [Auswahl] 
+        Zeitstempel x=13 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile 11 Notiz y=  483 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 12 Notiz y=  557 h= 74 [ausserhalb] Von gestern, 13 Uhr — eine Not
+  Zeile 13 Notiz y=  631 h= 74 [ausserhalb] Von gestern, 12 Uhr — eine Not
+  Zeile 14 Notiz y=  705 h= 74 [ausserhalb] Von gestern, 11 Uhr — eine Not
+  Zeile 15 Notiz y=  779 h= 74 [ausserhalb] Von gestern, 10 Uhr — eine Not
+  Zeile 16 Notiz y=  853 h= 74 [ausserhalb] Von gestern, 9 Uhr — eine Noti
+  Zeile 17 Notiz y=  927 h= 74 [ausserhalb] Von gestern, 8 Uhr — eine Noti
+
+[C2 aufwärts auf die erste Notiz von Gestern] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y= -623 h= 31 [ausserhalb] Heute
+  Zeile  1 Notiz y= -592 h= 74 [ausserhalb] Von heute, 15 Uhr — eine Notiz
+  Zeile  2 Notiz y= -518 h= 74 [ausserhalb] Von heute, 14 Uhr — eine Notiz
+  Zeile  3 Notiz y= -444 h= 74 [ausserhalb] Von heute, 13 Uhr — eine Notiz
+  Zeile  4 Notiz y= -370 h= 74 [ausserhalb] Von heute, 12 Uhr — eine Notiz
+  Zeile  5 Notiz y= -296 h= 74 [ausserhalb] Von heute, 11 Uhr — eine Notiz
+  Zeile  6 Notiz y= -222 h= 74 [ausserhalb] Von heute, 10 Uhr — eine Notiz
+  Zeile  7 Notiz y= -148 h= 74 [ausserhalb] Von heute, 9 Uhr — eine Notiz 
+  Zeile  8 Notiz y=  -74 h= 74 [ausserhalb] Von heute, 8 Uhr — eine Notiz 
+  Zeile  9 KOPF  y=    0 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=   39 h= 74 [Auswahl] 
+        Zeitstempel x=13 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile 11 Notiz y=  113 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 12 Notiz y=  187 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 13 Notiz y=  261 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 14 Notiz y=  335 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 15 Notiz y=  409 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 16 Notiz y=  483 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 17 Notiz y=  557 h= 74 [ausserhalb] Von gestern, 8 Uhr — eine Noti
+
+[C3 aufwärts über die Grenze (letzte Notiz Heute)] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y= -549 h= 31 [ausserhalb] Heute
+  Zeile  1 Notiz y= -518 h= 74 [ausserhalb] Von heute, 15 Uhr — eine Notiz
+  Zeile  2 Notiz y= -444 h= 74 [ausserhalb] Von heute, 14 Uhr — eine Notiz
+  Zeile  3 Notiz y= -370 h= 74 [ausserhalb] Von heute, 13 Uhr — eine Notiz
+  Zeile  4 Notiz y= -296 h= 74 [ausserhalb] Von heute, 12 Uhr — eine Notiz
+  Zeile  5 Notiz y= -222 h= 74 [ausserhalb] Von heute, 11 Uhr — eine Notiz
+  Zeile  6 Notiz y= -148 h= 74 [ausserhalb] Von heute, 10 Uhr — eine Notiz
+  Zeile  7 Notiz y=  -74 h= 74 [ausserhalb] Von heute, 9 Uhr — eine Notiz 
+  Zeile  8 Notiz y=    0 h= 74 [Auswahl] 
+        Zeitstempel x=12 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile  9 KOPF  y=   74 h= 39 "Gestern" Textkante x=12 Farbe=#000000 (oben 14 unten 6)
+  Zeile 10 Notiz y=  113 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 11 Notiz y=  187 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 12 Notiz y=  261 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 13 Notiz y=  335 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 14 Notiz y=  409 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 15 Notiz y=  483 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 16 Notiz y=  557 h= 74 [ausserhalb] Von gestern, 9 Uhr — eine Noti
+  Zeile 17 Notiz y=  631 h= 74 [ausserhalb] Von gestern, 8 Uhr — eine Noti
+
+[C4 aufwärts auf die letzte Notiz einer kleinen Gruppe] Zeilen der Liste (Viewport 279x553)
+  Schrift Eintrag: Noto Sans 9 pt, Zeilenhöhe 17, Grundlinienabstand 17
+  Schrift klein  : DejaVu Sans 12 pt, Zeilenhöhe 19, Grundlinienabstand 19
+  Palette: Text=#000000 PlaceholderText=#000000 PlaceholderText-Alpha=128 HighlightedText=#ffffff Highlight=#308cc6
+  Zeile  0 KOPF  y= -588 h= 31 [ausserhalb] Heute
+  Zeile  1 Notiz y= -557 h= 74 [ausserhalb] Von heute, 13 Uhr — Notiz mit 
+  Zeile  2 Notiz y= -483 h= 74 [ausserhalb] Von heute, 12 Uhr — Notiz mit 
+  Zeile  3 Notiz y= -409 h= 74 [ausserhalb] Von heute, 11 Uhr — Notiz mit 
+  Zeile  4 Notiz y= -335 h= 74 [ausserhalb] Von heute, 10 Uhr — Notiz mit 
+  Zeile  5 Notiz y= -261 h= 74 [ausserhalb] Von heute, 9 Uhr — Notiz mit g
+  Zeile  6 Notiz y= -187 h= 74 [ausserhalb] Von heute, 8 Uhr — Notiz mit g
+  Zeile  7 KOPF  y= -113 h= 39 [ausserhalb] Gestern
+  Zeile  8 Notiz y=  -74 h= 74 [ausserhalb] Von gestern, 10 Uhr — Notiz mi
+  Zeile  9 Notiz y=    0 h= 74 
+        Zeitstempel x=12 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 10 Notiz y=   74 h= 74 [Auswahl] 
+        Zeitstempel x=12 Farbe=#ffffff
+        Betreff     x=12 Farbe=#ffffff
+        Vorschau    x=12 Farbe=#ffffff
+  Zeile 11 KOPF  y=  148 h= 39 "Letzte Woche" Textkante x=13 Farbe=#000000 (oben 14 unten 6)
+  Zeile 12 Notiz y=  187 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 13 Notiz y=  261 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 14 Notiz y=  335 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+  Zeile 15 Notiz y=  409 h= 74 
+        Zeitstempel x=13 Farbe=#7f7f7f
+        Betreff     x=12 Farbe=#000000
+        Vorschau    x=12 Farbe=#7f7f7f
+
+[D leere Bibliothek] Fenster 900x600
+  Kopfzeile: y=0 h=47
+  Splitter : h=553 Liste 300 px / Detail 599 px (Minimum Liste 220)
+  Liste    : Viewport 100x30, Rollbalken max=0

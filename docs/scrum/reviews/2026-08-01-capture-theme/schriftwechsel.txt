@@ -1,0 +1,19 @@
+Systemschrift beim Start   : Sans Serif 9 pt
+Kleinste lesbare Systemschrift: DejaVu LGC Sans 12 pt
+
+vorher     Fenster 600 x 155 px, Textfeld 93 px hoch, Zeilenabstand 17 px
+vorher     Textfeld-Schrift : Sans Serif 9 pt
+vorher     Kleintext-Schrift: DejaVu LGC Sans 9 pt   ("Denkzettel")
+vorher     Kleintext-Schrift: DejaVu LGC Sans 9 pt   ("Esc verwirft")
+
+--- Systemschrift gewechselt auf Noto Serif 16 pt, Fenster bleibt bestehen ---
+
+nachher    Fenster 600 x 177 px, Textfeld 93 px hoch, Zeilenabstand 28 px
+nachher    Textfeld-Schrift : Noto Serif 16 pt
+nachher    Kleintext-Schrift: DejaVu LGC Sans 16 pt   ("Denkzettel")
+nachher    Kleintext-Schrift: DejaVu LGC Sans 16 pt   ("Esc verwirft")
+
+neu        Fenster 600 x 232 px, Textfeld 148 px hoch, Zeilenabstand 28 px
+neu        Textfeld-Schrift : Noto Serif 16 pt
+neu        Kleintext-Schrift: DejaVu LGC Sans 16 pt   ("Denkzettel")
+neu        Kleintext-Schrift: DejaVu LGC Sans 16 pt   ("Esc verwirft")

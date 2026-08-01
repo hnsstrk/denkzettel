@@ -1,0 +1,75 @@
+Suchfeld: aktiv=1 Löschknopf=1 Platzhalter="Volltextsuche …" Tooltip der Umhüllung=""
+
+[E0 volle Liste, kein Suchbegriff]
+  KOPF                 Heute
+  Notiz 14:32          restic-Backup: prune-Policy prüfen, monatliche S
+  Notiz 11:05          Für den Vortrag nächste Woche noch einmal durchg
+  KOPF                 Gestern
+  Notiz 21:48          journalctl -u whisperd --since today
+  Notiz 09:15          Vortrag: Folien auf zwölf kürzen, die Tabelle fl
+  KOPF                 Diese Woche
+  Notiz Di., 28. Juli  Mara wegen Wochenende anrufen, Kuchen nicht verg
+  Notiz Di., 28. Juli  Vortrag beim Verein — Termin bestätigen, Beamer 
+  KOPF                 Letzte Woche
+  Notiz Do., 23. Juli  Kategorien-Prompt: Beispiele mitgeben, sonst rät
+  Notiz Do., 23. Juli  Vortrag im Juli — Rückmeldung der Teilnehmer ein
+  KOPF                 Älter
+  Notiz 12.07.2026     Backup-Platte bei Kraus abholen, vor dem Vortrag
+  → 5 Köpfe, 9 Notizen, Liste sichtbar=ja
+
+[E1 Suche "backup" — Lücke zwischen den Gruppen]
+  KOPF                 Heute
+  Notiz 14:32          restic-Backup: prune-Policy prüfen, monatliche S
+  KOPF                 Älter
+  Notiz 12.07.2026     Backup-Platte bei Kraus abholen, vor dem Vortrag
+  → 2 Köpfe, 2 Notizen, Liste sichtbar=ja
+
+[E2 Suche "vortrag" — ein Treffer je Gruppe]
+  KOPF                 Heute
+  Notiz 11:05          Für den Vortrag nächste Woche noch einmal durchg
+  KOPF                 Gestern
+  Notiz 09:15          Vortrag: Folien auf zwölf kürzen, die Tabelle fl
+  KOPF                 Diese Woche
+  Notiz Di., 28. Juli  Vortrag beim Verein — Termin bestätigen, Beamer 
+  KOPF                 Letzte Woche
+  Notiz Do., 23. Juli  Vortrag im Juli — Rückmeldung der Teilnehmer ein
+  KOPF                 Älter
+  Notiz 12.07.2026     Backup-Platte bei Kraus abholen, vor dem Vortrag
+  → 5 Köpfe, 5 Notizen, Liste sichtbar=ja
+
+[E4 Suche ohne Treffer]
+  → 0 Köpfe, 0 Notizen, Liste sichtbar=nein
+
+[E5 Suchbegriff mit zwei Zeichen ("ra")]
+  KOPF                 Heute
+  Notiz 11:05          Für den Vortrag nächste Woche noch einmal durchg
+  KOPF                 Gestern
+  Notiz 09:15          Vortrag: Folien auf zwölf kürzen, die Tabelle fl
+  KOPF                 Diese Woche
+  Notiz Di., 28. Juli  Mara wegen Wochenende anrufen, Kuchen nicht verg
+  Notiz Di., 28. Juli  Vortrag beim Verein — Termin bestätigen, Beamer 
+  KOPF                 Letzte Woche
+  Notiz Do., 23. Juli  Vortrag im Juli — Rückmeldung der Teilnehmer ein
+  KOPF                 Älter
+  Notiz 12.07.2026     Backup-Platte bei Kraus abholen, vor dem Vortrag
+  → 5 Köpfe, 6 Notizen, Liste sichtbar=ja
+
+[E6 Operator tag:backup (S7 steht aus)]
+  → 0 Köpfe, 0 Notizen, Liste sichtbar=nein
+
+[E7 Feld geleert]
+  KOPF                 Heute
+  Notiz 14:32          restic-Backup: prune-Policy prüfen, monatliche S
+  Notiz 11:05          Für den Vortrag nächste Woche noch einmal durchg
+  KOPF                 Gestern
+  Notiz 21:48          journalctl -u whisperd --since today
+  Notiz 09:15          Vortrag: Folien auf zwölf kürzen, die Tabelle fl
+  KOPF                 Diese Woche
+  Notiz Di., 28. Juli  Mara wegen Wochenende anrufen, Kuchen nicht verg
+  Notiz Di., 28. Juli  Vortrag beim Verein — Termin bestätigen, Beamer 
+  KOPF                 Letzte Woche
+  Notiz Do., 23. Juli  Kategorien-Prompt: Beispiele mitgeben, sonst rät
+  Notiz Do., 23. Juli  Vortrag im Juli — Rückmeldung der Teilnehmer ein
+  KOPF                 Älter
+  Notiz 12.07.2026     Backup-Platte bei Kraus abholen, vor dem Vortrag
+  → 5 Köpfe, 9 Notizen, Liste sichtbar=ja

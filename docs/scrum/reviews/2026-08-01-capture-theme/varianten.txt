@@ -1,0 +1,19 @@
+=== beim Bau (BreezeDark.colors) ===
+A Ist      "Denkzettel"
+           Grund #202326  Text #a1a9b1  Kontrast 6,64:1
+A Ist      "Esc verwirft · Strg+Enter speichert"
+           Grund #202326  Text #a1a9b1  Kontrast 6,64:1
+B Rolle    "Denkzettel"
+           Grund #202326  Text #a1a9b1  Kontrast 6,64:1
+B Rolle    "Esc verwirft · Strg+Enter speichert"
+           Grund #202326  Text #a1a9b1  Kontrast 6,64:1
+
+=== nach dem Wechsel auf BreezeLight.colors, Fenster leben weiter ===
+A Ist      "Denkzettel"
+           Grund #eff0f1  Text #a1a9b1  Kontrast 2,09:1
+A Ist      "Esc verwirft · Strg+Enter speichert"
+           Grund #eff0f1  Text #a1a9b1  Kontrast 2,09:1
+B Rolle    "Denkzettel"
+           Grund #eff0f1  Text #707d8a  Kontrast 3,69:1
+B Rolle    "Esc verwirft · Strg+Enter speichert"
+           Grund #eff0f1  Text #707d8a  Kontrast 3,69:1

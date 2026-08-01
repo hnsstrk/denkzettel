@@ -1,0 +1,9 @@
+BreezeLight    Fenster=#eff0f1  Feld=#ffffff  Text=#232629
+BreezeLight    Auswahl=#3daee9  Auswahltext=#ffffff  Scrollbalken sichtbar=ja
+
+BreezeDark     Fenster=#202326  Feld=#141618  Text=#fcfcfc
+BreezeDark     Auswahl=#3daee9  Auswahltext=#fcfcfc  Scrollbalken sichtbar=ja
+
+CachyOSNord    Fenster=#181b28  Feld=#161925  Text=#47adda
+CachyOSNord    Auswahl=#47add6  Auswahltext=#0a0b0c  Scrollbalken sichtbar=ja
+

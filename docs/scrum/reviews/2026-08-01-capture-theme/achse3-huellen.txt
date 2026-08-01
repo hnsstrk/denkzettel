@@ -1,0 +1,22 @@
+Farbschema der Anwendung: BreezeLight  (Fenstergrund #eff0f1)
+
+default                  Raender l/r/o/u = 4/4/4/4 px   Schattenteile: ja    Fuellfarbe #cbcbcc
+breeze-light             Raender l/r/o/u = 4/4/4/4 px   Schattenteile: ja    Fuellfarbe #cbcbcc
+breeze-dark              Raender l/r/o/u = 4/4/4/4 px   Schattenteile: ja    Fuellfarbe #1b1e20
+cachyos-emerald          Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+cachyos-emerald-color    Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+cachyos-emerald-light    Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+CachyOS-Nord-round       Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #1e2233
+Iridescent-round         Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+
+Farbschema der Anwendung: BreezeDark  (Fenstergrund #202326)
+
+default                  Raender l/r/o/u = 4/4/4/4 px   Schattenteile: ja    Fuellfarbe #1b1e20
+breeze-light             Raender l/r/o/u = 4/4/4/4 px   Schattenteile: ja    Fuellfarbe #cbcbcc
+breeze-dark              Raender l/r/o/u = 4/4/4/4 px   Schattenteile: ja    Fuellfarbe #1b1e20
+cachyos-emerald          Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+cachyos-emerald-color    Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+cachyos-emerald-light    Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+CachyOS-Nord-round       Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #1e2233
+Iridescent-round         Raender l/r/o/u = 8/8/8/8 px   Schattenteile: ja    Fuellfarbe #000000
+

@@ -1,0 +1,19 @@
+Schema                Fenster   Feld      Kontrast
+IridescentLightly     #080413   #06030f   1.01:1  <- Feld praktisch unsichtbar
+IridescentLightly2    #080413   #06030f   1.01:1  <- Feld praktisch unsichtbar
+IridescentLightly3    #010b12   #010e17   1.02:1  <- Feld praktisch unsichtbar
+CachyOSNord           #181b28   #161925   1.02:1  <- Feld praktisch unsichtbar
+EmeraldDark           #181b28   #161925   1.02:1  <- Feld praktisch unsichtbar
+Emerald               #ffffff   #fafbfc   1.04:1  <- Feld praktisch unsichtbar
+EmeraldLight          #ffffff   #fafbfc   1.04:1  <- Feld praktisch unsichtbar
+EmeraldSmooth         #1a1c20   #1e2024   1.05:1  <- Feld praktisch unsichtbar
+KritaDarkOrange       #1f1f1f   #242424   1.06:1  <- Feld praktisch unsichtbar
+CachyOSNordLightly    #1e2233   #161925   1.11:1
+BreezeClassic         #eff0f1   #fcfcfc   1.11:1
+BreezeLight           #eff0f1   #ffffff   1.14:1
+BreezeDark            #202326   #141618   1.15:1
+KritaBlender          #303030   #3d3d3d   1.22:1
+KritaDark             #474747   #383838   1.26:1
+KritaDarker           #323232   #1c1c1c   1.33:1
+KritaBright           #d4d4d4   #f4f4f4   1.35:1
+KritaNeutral          #808080   #aaaaaa   1.70:1
