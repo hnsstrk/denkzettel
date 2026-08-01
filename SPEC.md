@@ -375,6 +375,12 @@ v1 aber nicht gebaut.
 - **KStatusNotifierItem**, dauerhaft. Menü: Capture öffnen (Meta+N),
   Sprachnotiz aufnehmen (Meta+Umschalt+N), Bibliothek, Analyse jetzt,
   Vorschläge (Zähler), Einstellungen, Beenden.
+- **Linksklick auf das Tray-Icon öffnet dasselbe Menü wie der Rechtsklick**
+  (`ItemIsMenu`). Das weicht bewusst vom KDE-Standard ab, der den Linksklick
+  für eine Hauptaktion vorsieht: Denkzettel hat kein Hauptfenster, sondern
+  mehrere gleichrangige Wege, und die Recherche zum KDE-Verhalten wurde dem
+  Kunden vorgelegt. Kundenentscheidung vom 01.08.2026, belegt in Issue #44 —
+  **bei HIG- oder UI-Reviews kein Befund.**
 - Icon-Zustände: normal · „Vorschlag wartet" (Badge) · Fehlerzustand
   (Analyse-/Transkriptionsfehler, Tooltip nennt Ursache).
 - Icons in v1 aus dem Breeze-Bestand (App- und Tray-Icon abgeleitet, Badge
