@@ -1,3 +1,7 @@
 build/
 compile_commands.json
 .cache/
+
+# Arbeitsbäume paralleler Agenten (Sprint 3: vier Stück, 296 MB).
+# Nur die Regel "nie git add -A" stand bisher zwischen ihnen und dem Repo.
+.claude/worktrees/
