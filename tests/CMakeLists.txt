@@ -40,6 +40,15 @@ target_link_libraries(searchshots PRIVATE
     Qt6::Test
 )
 
+# The same for the grouped note list (wireframes 3a/3b). Run it with
+# QT_QPA_PLATFORMTHEME=kde, or the substitute font misstates the type sizes.
+add_executable(libraryshots EXCLUDE_FROM_ALL libraryshots.cpp)
+
+target_link_libraries(libraryshots PRIVATE
+    denkzettelui
+    Qt6::Test
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE
