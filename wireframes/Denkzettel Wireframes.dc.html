@@ -34,7 +34,7 @@
         <div style="min-height:64px;font-size:14px;color:#222;line-height:1.45">restic-Backup: prune-Policy prüfen, monatliche Snapshots behalten — als Cronjob auf dem NAS?<span style="display:inline-block;width:1.5px;height:14px;background:#333;vertical-align:-2px;margin-left:2px"></span></div>
         <div style="border-top:1px dashed #bbb;padding-top:5px;font-size:11px;color:#999;text-align:center">Esc verwirft · Strg+Enter speichert</div>
       </div>
-      <div style="flex:1;font-size:13px;color:#777;line-height:1.5;padding-top:6px">Zustand B — getippt.<br>Fenster wächst mit dem Text nach unten (max. ~8 Zeilen), kein Scrollbalken vorher.<br>Kein Button, kein Menü — nur Tastatur.</div>
+      <div style="flex:1;font-size:13px;color:#777;line-height:1.5;padding-top:6px">Zustand B — getippt.<br>Fenster wächst mit dem Text nach unten (max. ~8 Zeilen), kein Scrollbalken vorher.<br>Kein Button, kein Menü — nur Tastatur.<br><span style="color:#b3701f;font-size:12px">Hülle und Flächenaufteilung überholt (01.08.2026, Kundenbefund zur Theme-Treue): Rundung, Kontur und Schatten sind hier als Zeichnung gesetzt (8 px Radius, fester Schattenversatz) — als Festlegung taugt das nicht, weil beides aus dem Desktop-Theme kommt. Auch der abgesetzte Kasten um den Textbereich entfällt. Maßgeblich ist <a href="#4a" style="color:#b3701f">4a</a> (Hülle) und <a href="#4b" style="color:#b3701f">4b</a> (eine Fläche). Aufbau, Reihenfolge und Kürzel dieses Entwurfs gelten unverändert.</span></div>
     </div>
   </div>
 </div>
@@ -629,6 +629,146 @@
 
 </div>
 <p class="dv-next">Vorlage für: Akzeptanzkriterien von Issue #46 (S5a) und den UI-Review dazu. <a class="dv-oid" href="#3a">3a</a> ersetzt die Listenspalte aus <a class="dv-oid" href="#2b">2b</a>; Fenster, Kopfzeile, Meldungszeile, Detailbereich und Leerzustände gelten unverändert aus <a class="dv-oid" href="#2b">2b</a> und <a class="dv-oid" href="#2c">2c</a>. Die Trefferliste der Suche (S6/#8) zeigt dieselbe Gliederung.</p>
+</section>
+
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Kundenbefund 01.08.2026 — Capture-Fenster theme-treu: Hülle aus dem Desktop-Theme, eine Fläche statt zwei</span></div>
+<div class="dv-opts">
+
+<!-- 4a Hülle aus dem Desktop-Theme -->
+<div class="dv-opt" id="4a" data-screen-label="Capture-Fenster — Hülle">
+<div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>Screen 1 (Hülle) · Rand, Radius und Schatten kommen aus dem Desktop-Theme — dieselbe Zeichnung unter zwei Themes (löst die Hülle aus <a href="#1a" style="color:#2a78d6">1a</a> ab)</div>
+<div class="dv-card" style="width:900px;font-family:'Patrick Hand',cursive">
+  <div style="padding:18px;display:flex;flex-direction:column;gap:16px">
+
+    <div style="display:flex;gap:16px;align-items:flex-start">
+
+      <!-- Theme A: Breeze-Familie, schmaler Rand -->
+      <div style="width:400px">
+        <div style="font-size:12px;color:#555;margin-bottom:6px">Desktop-Theme <b style="color:#333">Breeze</b> · Randmaß 4 px</div>
+        <div style="position:relative;height:190px;background:repeating-linear-gradient(135deg,#e9e7e2 0 8px,#f2f0eb 8px 16px);border:1.5px solid #444;border-radius:6px;overflow:hidden">
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:300px;background:#fff;border:1px solid #cfcfcf;border-radius:4px;box-shadow:0 3px 10px rgba(0,0,0,.28);padding:10px 12px 8px;display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:11px;color:#aaa">Denkzettel</div>
+            <div style="min-height:56px;font-size:14px;color:#222;line-height:1.45">Gedanke festhalten …<span style="display:inline-block;width:1.5px;height:14px;background:#333;vertical-align:-2px;margin-left:2px"></span></div>
+            <div style="margin-top:4px;font-size:11px;color:#999;text-align:center">Esc verwirft · Strg+Enter speichert</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+          <div style="font-size:11px;color:#888;width:70px;line-height:1.4">Linke obere<br>Ecke, 4-fach</div>
+          <div style="width:104px;height:74px;background:repeating-linear-gradient(135deg,#e9e7e2 0 8px,#f2f0eb 8px 16px);border:1px solid #bbb;position:relative;overflow:hidden">
+            <div style="position:absolute;left:22px;top:18px;right:-24px;bottom:-24px;background:#fff;border:2px solid #cfcfcf;border-radius:16px 0 0 0"></div>
+          </div>
+          <div style="font-size:11px;color:#888;line-height:1.4">flacher Bogen,<br>schmaler Rand</div>
+        </div>
+      </div>
+
+      <!-- Theme B: CachyOS-Nord-round, breiter Rand -->
+      <div style="width:400px">
+        <div style="font-size:12px;color:#555;margin-bottom:6px">Desktop-Theme <b style="color:#333">CachyOS-Nord-round</b> · Randmaß 8 px</div>
+        <div style="position:relative;height:190px;background:repeating-linear-gradient(135deg,#e9e7e2 0 8px,#f2f0eb 8px 16px);border:1.5px solid #444;border-radius:6px;overflow:hidden">
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:300px;background:#fff;border:1px solid #cfcfcf;border-radius:10px;box-shadow:0 5px 16px rgba(0,0,0,.34);padding:10px 12px 8px;display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:11px;color:#aaa">Denkzettel</div>
+            <div style="min-height:56px;font-size:14px;color:#222;line-height:1.45">Gedanke festhalten …<span style="display:inline-block;width:1.5px;height:14px;background:#333;vertical-align:-2px;margin-left:2px"></span></div>
+            <div style="margin-top:4px;font-size:11px;color:#999;text-align:center">Esc verwirft · Strg+Enter speichert</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+          <div style="font-size:11px;color:#888;width:70px;line-height:1.4">Linke obere<br>Ecke, 4-fach</div>
+          <div style="width:104px;height:74px;background:repeating-linear-gradient(135deg,#e9e7e2 0 8px,#f2f0eb 8px 16px);border:1px solid #bbb;position:relative;overflow:hidden">
+            <div style="position:absolute;left:22px;top:18px;right:-24px;bottom:-24px;background:#fff;border:2px solid #cfcfcf;border-radius:32px 0 0 0"></div>
+          </div>
+          <div style="font-size:11px;color:#888;line-height:1.4">runder Bogen,<br>breiter Rand</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="font-size:12.5px;color:#777;line-height:1.6;border-top:1px dashed #ccc;padding-top:12px">
+      <b style="color:#555">Beide Zeichnungen zeigen dasselbe Fenster unter demselben Farbschema.</b> Was sich unterscheidet, ist allein das Desktop-Theme — und mit ihm Rand, Radius und Schatten. Die Lupen sind 4-fach vergrößert; im Fenster selbst ist der Unterschied 4 px gegen 8 px und damit klein, aber er ist der ganze Punkt: <b style="color:#555">er gehört dem Theme, nicht uns</b>.<br><br>
+      Die Hülle wird nicht gezeichnet, sondern <b style="color:#555">aus dem Desktop-Theme gerendert</b>: <span style="font-family:ui-monospace,monospace;font-size:11px">dialogs/background</span>, dieselbe Grafik, aus der Plasma seine Popups und KRunner baut. Sie bringt Eckstücke, Randmaße und Schattenkacheln mit. Das <b style="color:#555">Randmaß</b> ist dabei nicht die Strichstärke der Kontur, sondern der Streifen, den die Hülle für sich beansprucht — der Inhalt beginnt dahinter. Auf dem Rechner des Kunden sind acht Desktop-Themes installiert; gemessen am 01.08.2026 haben die Breeze-Familie 4 px Rand, die vier CachyOS- und Iridescent-Themes 8 px — <b style="color:#555">alle acht bringen Schattenkacheln mit</b>.<br><br>
+      <b style="color:#555">Die Farbe kommt nicht aus dem Theme, sondern aus der Palette.</b> Das ist kein Widerspruch, sondern eine Messung: Von den acht Themes richtet nur <span style="font-family:ui-monospace,monospace;font-size:11px">default</span> seine Füllfarbe am Farbschema aus. <span style="font-family:ui-monospace,monospace;font-size:11px">breeze-dark</span> bleibt dunkel auch unter einem hellen Schema, die CachyOS-Themes bleiben schwarz. Wer die Theme-Fläche nähme und Text aus der Palette daraufsetzte, bekäme bei sieben von acht Themes dunkel auf dunkel. Dazu kommt: Scrollbalken, Auswahl und Textcursor zeichnet der Widget-Stil ohnehin aus der Palette. <b style="color:#555">Form und Schatten sind farbneutral — die kommen vom Theme; alles Farbige kommt aus der Palette.</b>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- 4b Fläche und Farbrollen -->
+<div class="dv-opt" id="4b" data-screen-label="Capture-Fenster — Fläche und Farbrollen">
+<div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>Screen 1 (Fläche) · Eine durchgehende Fläche statt Kasten im Kasten — mit den Farbrollen und den Maßen</div>
+<div class="dv-card" style="width:900px;font-family:'Patrick Hand',cursive">
+  <div style="padding:18px;display:flex;flex-direction:column;gap:16px">
+
+    <div style="display:flex;gap:18px;align-items:flex-start">
+
+      <!-- Ist-Zustand -->
+      <div style="width:330px">
+        <div style="font-size:12px;color:#555;margin-bottom:6px">Heute — zwei Flächen</div>
+        <div style="background:#eff0f1;border:1px solid #cfcfcf;border-radius:6px;padding:10px 12px 8px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;color:#aaa">Denkzettel</div>
+          <div style="min-height:56px;background:#fbfbfb;font-size:14px;color:#222;line-height:1.45;padding:2px 3px">Gedanke festhalten …</div>
+          <div style="font-size:11px;color:#999;text-align:center">Esc verwirft · Strg+Enter speichert</div>
+        </div>
+        <div style="font-size:11px;color:#b3701f;margin-top:4px">↑ Hier sitzt die zweite Fläche — in dieser Zeichnung so schwach wie in den Schemata, um die es geht.</div>
+        <div style="font-size:11.5px;color:#777;line-height:1.5;margin-top:8px">Der Textbereich sitzt als eigene Fläche im Fenster. Ob man ihn sieht, entscheidet allein das Schema: Bei <b style="color:#555">9 der 18 installierten Farbschemata</b> liegt der Unterschied zwischen Fenster- und Feldfläche unter 1,07 : 1 — dort ist der Kasten unsichtbar. Auch Breeze kommt nur auf 1,14 : 1.</div>
+      </div>
+
+      <!-- Neuer Stand -->
+      <div style="width:330px">
+        <div style="font-size:12px;color:#555;margin-bottom:6px">Neu — eine Fläche</div>
+        <div style="background:#eff0f1;border:1px solid #cfcfcf;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.18);padding:10px 12px 8px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;color:#aaa">Denkzettel</div>
+          <div style="min-height:56px;font-size:14px;color:#222;line-height:1.45">Gedanke festhalten …<span style="display:inline-block;width:1.5px;height:14px;background:#333;vertical-align:-2px;margin-left:2px"></span></div>
+          <div style="border-top:1px solid #dcdddd;padding-top:5px;font-size:11px;color:#999;text-align:center">Esc verwirft · Strg+Enter speichert</div>
+        </div>
+        <div style="font-size:11.5px;color:#777;line-height:1.5;margin-top:8px">Ein Blatt, auf das geschrieben wird. Der Textbereich hat keine eigene Fläche mehr — es gibt nichts, was verschwinden könnte. Getrennt wird durch Abstand; die Linie über der Fußzeile ist die einzige.</div>
+      </div>
+
+      <div style="flex:1;font-size:12px;color:#777;line-height:1.55;padding-top:22px">
+        <b style="color:#555">Warum eine Fläche</b><br>
+        Nicht nur, weil der Kasten bei der Hälfte der Schemata unsichtbar ist — sondern weil es <b style="color:#555">keine Palettenrolle gibt, mit der man ihn zuverlässig konturieren könnte</b>. Gemessen am 01.08.2026 über alle 18 Schemata, jeweils schlechtester Fall gegen die Fensterfläche: <span style="font-family:ui-monospace,monospace;font-size:11px">Mid</span> 1,03 : 1, <span style="font-family:ui-monospace,monospace;font-size:11px">Dark</span> 1,06 : 1, <span style="font-family:ui-monospace,monospace;font-size:11px">Midlight</span> 1,02 : 1, <span style="font-family:ui-monospace,monospace;font-size:11px">Shadow</span> 1,11 : 1. Ein zweiter Kasten wäre also nicht nur heute schwach, er wäre <b style="color:#555">nicht reparierbar</b>.<br><br>
+        Es geht auch nichts verloren: Das Textfeld hat immer den Tastaturfokus, es gibt kein zweites Element, gegen das es sich abgrenzen müsste. Eine Fokus-Umrandung hätte nichts anzuzeigen.
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:18px;align-items:flex-start;border-top:1px dashed #ccc;padding-top:14px">
+      <div style="flex:1;font-size:12px;color:#777;line-height:1.55">
+        <div style="font-size:13px;color:#333;margin-bottom:8px">Farbrollen</div>
+        <div style="border-left:3px solid #ddd;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:9px">
+          <div><b style="color:#555">Fläche</b><br><span style="font-family:ui-monospace,monospace;font-size:11px">Window</span>.</div>
+          <div><b style="color:#555">Notiztext</b><br><span style="font-family:ui-monospace,monospace;font-size:11px">WindowText</span> — <b style="color:#555">nicht</b> die Rolle für Eingabefelder. Auf der durchgehenden Fläche trägt <span style="font-family:ui-monospace,monospace;font-size:11px">WindowText</span> über alle 18 Schemata mit schlechtestens <b style="color:#555">4,74 : 1</b>; die Feldrolle käme auf 4,22 : 1 und läge damit unter dem Mindestwert von 4,5 : 1.</div>
+          <div><b style="color:#555">App-Name und Fußzeile</b><br><span style="font-family:ui-monospace,monospace;font-size:11px">PlaceholderText</span>, bei jedem Zeichnen neu aufgelöst — <b style="color:#555">keine festgeschriebene Farbe</b> (#54). Wie stark sie gedämpft sind, bestimmt das Schema: Breeze 3,69 : 1, KritaNeutral 1,98 : 1. Das ist die Definition des Schemas, keine Größe, die wir setzen.</div>
+          <div><b style="color:#555">Kontur und Trennlinie</b><br>Mischung aus <span style="font-family:ui-monospace,monospace;font-size:11px">Window</span> und <span style="font-family:ui-monospace,monospace;font-size:11px">WindowText</span> im Verhältnis <span style="font-family:ui-monospace,monospace;font-size:11px">frameContrast</span> des Farbschemas — das Verfahren, mit dem auch Kirigami seine Trennlinien und Umrisse färbt. Ergebnis über alle 18 Schemata: zwischen 1,24 : 1 und 1,91 : 1, also überall sichtbar und nirgends aufdringlich.</div>
+          <div><b style="color:#555">Auswahl, Cursor, Scrollbalken</b><br>unverändert aus der Palette und dem Widget-Stil; sie folgen dem Schema bereits heute.</div>
+        </div>
+      </div>
+
+      <div style="flex:1;font-size:12px;color:#777;line-height:1.55">
+        <div style="font-size:13px;color:#333;margin-bottom:8px">Maße und Prüfsätze</div>
+        <div style="border-left:3px solid #ddd;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:9px">
+          <div><b style="color:#555">Fensterbreite</b><br>600 px, unverändert.</div>
+          <div><b style="color:#555">Innenabstand</b><br>12 px seitlich, 10 px oben, 8 px unten — <b style="color:#555">zuzüglich</b> des Randes, den das Theme vorgibt. Der Text beginnt also bei Breeze 16 px vom Fensterrand, bei einem 8-px-Theme 20 px.</div>
+          <div><b style="color:#555">Fußzeile</b><br>mittig, unterster Baustein, 8 px über der Unterkante des Inhalts; darüber 5 px Abstand zur Trennlinie.</div>
+          <div><b style="color:#555">Textgrößen</b><br>Notiztext in der allgemeinen Systemschrift, App-Name und Fußzeile in der kleinsten lesbaren Systemschrift — beide aus den Systemeinstellungen, keine eigenen Größen.</div>
+          <div><b style="color:#555">Starthöhe und Wachstum</b><br>5 Zeilen beim Öffnen, mitwachsend bis 8, danach Scrollbalken (SPEC 3). <b style="color:#555">Die Höhe wird auch dann neu gerechnet, wenn sich die Schrift ändert</b> — nicht nur, wenn sich der Text ändert (#56).</div>
+          <div><b style="color:#555">Rundung, Rand und Schatten — die Zusicherung ist keine Zahl</b><br>Prüfsatz: Bei zwei Desktop-Themes mit unterschiedlichem Rand <b style="color:#555">unterscheiden sich Randmaß und Eckform des Fensters entsprechend</b>. Eine Zeichnung, die einen Radius festschreibt, wäre falsch; 4 px und 8 px oben sind Messwerte vom 01.08.2026, keine Vorgabe.</div>
+          <div style="color:#999">Die Sätze sind Prüfsätze im Sinne von Beschluss B2: je Satz eine Testfunktion, offscreen unter mindestens zwei Farbschemata und zwei Desktop-Themes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:#777;line-height:1.6;border-top:1px dashed #ccc;padding-top:12px">
+      <b style="color:#555">Zur Trennlinie über der Fußzeile:</b> Sie ist <b style="color:#555">keine Eintragstrennung</b> im Sinne des Maßpunktes „Liste ohne Trennlinien, Kopf ohne Fläche" in <a href="#3b" style="color:#2a78d6">3b</a>. Dort trennt sie gleichartige Listeneinträge und tritt mit der Auswahlmarkierung in Wettbewerb; hier trennt sie zwei <b style="color:#555">verschiedenartige</b> Bereiche — den Schreibraum von der dauerhaft stehenden Tastenauskunft. Beides sind verschiedene Fragen; die eine Antwort widerspricht der anderen nicht.<br>
+      <span style="color:#b3701f">Festgehaltene Abwägung (01.08.2026): Aus der Gestaltung heraus wurde geraten, die Linie wegzulassen — der Abstand trennt bereits, und Kontur und Trennlinie wären dieselbe Linienart zweimal im selben kleinen Fenster. Der PO hat sie nach dieser Rückmeldung erneut beauftragt; sie ist damit entschieden und oben gezeichnet. Der Weg der Entscheidung steht hier, damit später niemand die Linie für ein Versehen hält.</span>
+    </div>
+
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Vorlage für: die Story zur Fensterhülle (aus Befund B2 des UI-Reviews vom 01.08.2026) sowie die Bugs #54 (festgeschriebene Farbe) und #56 (Höhe bei Schriftwechsel). <a class="dv-oid" href="#4a">4a</a> und <a class="dv-oid" href="#4b">4b</a> lösen Hülle und Flächenaufteilung aus <a class="dv-oid" href="#1a">1a</a> ab; Aufbau, Reihenfolge und Kürzel gelten von dort unverändert weiter. Das Aufnahmefenster <a class="dv-oid" href="#1f">1f</a> ist „gleiche Machart wie Capture" (SPEC 4) und erbt Hülle und Fläche mit — seine Zeichnung ist noch nicht nachgezogen.</p>
 </section>
 </x-dc>
 </body>
