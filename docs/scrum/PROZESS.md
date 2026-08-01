@@ -86,6 +86,14 @@ PO aus.
    Build-Verzeichnis. Eine im Bericht benannte Grenze der Prüfbarkeit
    schließt die Story nicht — sie wird geschlossen oder als Impediment
    eskaliert.
+   **Bei mehreren gleichzeitig arbeitenden Agenten** (Präzisierung nach
+   Sprint-3-Mangel M1): Es gibt nur ein `/usr`. Installieren zwei annähernd
+   gleichzeitig, prüft einer den Stand des anderen — deshalb untersagt der PO
+   den Strängen die eigenmächtige Installation und taktet sie. **Dann trägt er
+   die Pflicht: Am Sprint-Ende wird der Endstand einmal installiert und der
+   Hauptweg jeder Story daran ausgeführt.** Wer die Regel für die Stränge
+   aussetzt, ohne diesen Ersatz zu schaffen, hebt DoD 2 auf, statt sie zu
+   schützen — genau das ist in Sprint 3 geschehen.
 3. karpathy-reviewer-Durchgang ohne offene `fail`-Befunde
    (Sprint-Ende-Review über den Sprint-Diff genügt, Einzel-Review bei
    riskanten Stories). UI-Stories zusätzlich: UI-Review durch
@@ -125,6 +133,18 @@ zu unterscheiden.
   (`docs/scrum/sprints/sprint-NN.md`, Abschnitt Retro) mit Begründung
   dokumentiert; Skill-/Regel-/Agenten-Änderungen durchlaufen den
   karpathy-reviewer (globale Regel).
+- **Abschlussprüfung jeder Retro — zwei Fragen, beide schriftlich beantwortet**
+  (Anweisung des Kunden vom Projektbeginn, präzisiert am 02.08.2026):
+  1. *Ist jeder Beschluss in einem Artefakt gelandet?* Eine Erkenntnis, die nur
+     im Sprint-Protokoll steht, ist dokumentiert, aber nicht verankert.
+  2. *Wird dieses Artefakt automatisch gelesen?* Eine Regel in einer Datei, die
+     keine Sitzung von selbst aufschlägt, wirkt nicht. **Das war die längste
+     Zeit die eigentliche Lücke dieses Projekts:** Alle zehn Beschlüsse der
+     Sprint-2-Retro waren korrekt in `PROZESS.md` und den Agentendateien
+     verankert — nur las `PROZESS.md` niemand von selbst. Deshalb existiert
+     seit dem 02.08.2026 eine `CLAUDE.md` im Projektstamm; sie ist der Ort, den
+     jede Sitzung ohne Zutun liest, und trägt die Regeln, die am häufigsten
+     übergangen wurden.
 
 ## Loop-Disziplin (gemäß ~/.claude/rules/loop-conventions.md)
 
