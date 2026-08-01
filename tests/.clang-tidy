@@ -1,0 +1,11 @@
+# The test code inherits the checks of the root configuration and switches off
+# exactly one of them (issue #45).
+#
+# bugprone-unchecked-optional-access cannot see through QTest: every
+# dereference in the tests is guarded by QVERIFY(x.has_value()), which returns
+# from the test function on failure, but the dataflow analysis only sees an
+# opaque call to QTest::qVerify() and reports all of them. Measured on
+# 01.08.2026: 52 of 72 findings came from this one check, all of them guarded.
+# In src/ the check stays on, where a plain `if (!x)` guard is understood.
+InheritParentConfig: true
+Checks: '-bugprone-unchecked-optional-access'
