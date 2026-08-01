@@ -1468,3 +1468,49 @@ steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nach
 - **Unverändert Backlog-Material:** #44 (Tray-Linksklick ohne Wirkung, aus der
   Abnahme) und #11 (S8) hängen an keinem Milestone und gehören ins
   Sprint-3-Planning.
+
+## 10. Abnahme und Sprint-Abschluss (01.08.2026)
+
+**Sprint 2 ist vollständig abgenommen und geschlossen.** Die Abnahme lief in
+zwei Etappen, weil T2 einen zweiten Anmeldezyklus verlangte.
+
+| Story | Abnahme | Beleg |
+|---|---|---|
+| S4 (#5) | 01.08., 13:20 | Kundensichtprüfung am installierten Stand bestanden |
+| S5 (#7) | 01.08., 13:20 | dieselbe Sichtprüfung |
+| T2 (#6) | 01.08., 21:30 | drei Punkte, davon zwei vom PO gemessen, Punkt 8 vom Kunden sichtgeprüft |
+
+**Die drei T2-Punkte im Einzelnen** (7.4, Punkte 6–8): Der Autostart-Eintrag
+liegt unter `/etc/xdg/autostart/` und ist inhaltlich identisch mit der
+Repo-Fassung, zusätzlich durch `tests/installtest.cmake` abgesichert (Punkt 6,
+PO). Der Dienst startet mit der Sitzung — Sitzungsbeginn 18:57:08,
+`/usr/bin/denkzetteld` 18:57:12, also vier Sekunden später ohne Zutun; ein
+echter Anmeldezyklus nach der Installation (Punkt 7, PO). Die Abschaltbarkeit
+im Plasma-Autostart-Modul hat der Kunde geprüft und bestätigt (Punkt 8).
+
+**Alle drei Mängel aus 7.5 sind erledigt**, am Repository nachgeprüft:
+
+- **M1** (Issues offen, DoD 5): #5, #6 und #7 geschlossen, Milestone „Sprint 2"
+  geschlossen. Der Mangel war Zeitpunkt-, nicht Sorgfaltsfrage — er entstand
+  dadurch, dass die DoD-Prüfung vor der Abnahme lief.
+- **M2** (Präfix-Bedingung, DoD 4): steht als Halbsatz mit Begründung in
+  `SPEC.md:453`.
+- **M3** (irreführender Testkommentar): entfernt; über
+  `carriesOutTheDeletionWhenTheApplicationQuits` steht jetzt nur noch der
+  zutreffende Hinweis auf `aboutToQuit`.
+
+**Nachträglich sichtbar gewordene Lücke, die dieser Sprint nicht bemerkt
+hat.** Beim Grooming am selben Abend fiel auf, dass die Zeitstempel-Regel
+„innerhalb der letzten sieben Tage die Wochentagsform" **nie in der SPEC
+stand** — sie lebte im Wireframe und in `src/ui/timestampformat.cpp:11`. Sie
+wurde in Sprint 2 gebaut und abgenommen, ohne dass ein DoD-Punkt jemanden
+gezwungen hätte hineinzusehen. Mit `1a308d3` ist SPEC 9 nachgezogen. Das ist
+der erste Anwendungsfall der an diesem Tag geschärften DoD 4 (B9) — und ein
+Beleg dafür, dass die Schärfung nötig war: Der alte Wortlaut hätte diese
+Lücke nicht erfasst, weil nichts *geändert* wurde, sondern etwas von Anfang an
+fehlte.
+
+**Sprint-Ziel erreicht.** Das Ziel lautete, Meilenstein M1 abzuschließen und
+die Bibliothek als ersten M2-Baustein sichtbar zu machen. Beides ist
+abgenommen; M2 selbst ist damit begonnen, nicht erreicht — Volltextsuche,
+Suchoperatoren und Bearbeiten-Ansicht stehen aus und gehen nach Sprint 3.
