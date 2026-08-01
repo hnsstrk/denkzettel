@@ -1388,3 +1388,53 @@ Danach erst Sprint-3-Planning; die Beschlüsse dieser Retro durchlaufen als
 Prozess-Artefakt-Änderung den karpathy-reviewer (PROZESS.md, Retrospektiven).
 Unverändert offen aus Abschnitt 8: Schließen von #5, #6, #7 nach der Abnahme
 (Mangel M1) und der Abschluss des Journal-Eintrags von 01:12.
+
+**next — Fortschreibung 01.08.2026, 12:17.** Der Stand jedes Punktes ist am
+Repository geprüft, nicht an Meldungen; die Prüfgrundlage steht jeweils dabei.
+Sie umfasst Quellcode, Tests, Commits, Issue-Stände, Wireframe-Datei und das
+Vault-Journal — **keinen** eigenen Build- und Testlauf. Wo unten „geheilt"
+steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nachweis
+über einen Testlauf gehört in die DoD-Prüfung des Sprint-Abschlusses.
+
+- **(1) Dev-Heilungslauf — erledigt.** Fünf Commits: `9ee8676` (Layout),
+  `7130f81` (Rücklesen der Registrierung), `bfc17af` (Belegübersicht der
+  Selbst-Sichtprüfung), `54249e0` (drei Auflagen des UI-Reviews), `0c90810`
+  (Zusammenführung). Am Code nachgeprüft: `librarywindow.cpp:171` lautet jetzt
+  `layout->addWidget(m_splitter, 1)`; `globalshortcuts.cpp:91` liest die
+  Registrierung mit `KGlobalAccel::self()->globalShortcut(componentName(), …)`
+  beim Dienst zurück. **B2 ist wörtlich umgesetzt**: `librarytest.cpp` hat mit
+  `keepsTheHeaderAtTheTopAndTheRestForTheNotes` eine datengetriebene
+  Testfunktion über zwei Fenstergrößen (900×600 und 1200×800) plus
+  `putsTheMessageBetweenTheHeaderAndTheNotes`; die Datei enthielt zum
+  Retro-Zeitpunkt null Geometrie-Zusicherungen, jetzt 22 Fundstellen.
+- **(2) Gestaltungsauftrag „Raumaufteilung" — offen.** Die Wireframe-Datei
+  enthält den Begriff nach wie vor kein einziges Mal (Suchlauf über
+  `wireframes/Denkzettel Wireframes.dc.html`: 0 Treffer). Damit fehlt B2 noch
+  die gezeichnete Referenz, gegen die die Zusicherungen prüfen sollen.
+- **(3) Erneute Kundensichtprüfung — offen**, am installierten Stand (B4). Die
+  elf Punkte aus 7.4 stehen weiterhin aus; #5, #6 und #7 sind unverändert
+  `OPEN` (Mangel M1 bleibt bis zur Abnahme).
+- **(4) Werkzeug-Entscheidung — gefallen und umgesetzt.** Der Kunde hat die
+  Ränge 1 und 2 angenommen: `9e8353b` legt die Targets `lint-tidy`,
+  `lint-clazy` und `lint-database` an (`CMakeLists.txt:87–117`, beide Werkzeuge
+  optional über `find_program`), Issue #45 ist geschlossen. **Offen bleiben
+  Rang 3 und 4**: Ein Verzeichnis `.claude/skills/` existiert weiterhin nicht,
+  der Screenshot-Helfer ist also kein Projekt-Skill, sondern lebt in den
+  Sitzungen; der AT-SPI-Prüfauftrag bleibt vor M3 fällig.
+- **(5) karpathy-Review der Prozess-Artefakte — teils erledigt.** Der Review
+  über `894baef` lief mit Gesamt `warn`, kein `fail`; seine fünf Befunde sind
+  mit `9bd5b4d` geheilt. Für den Nachtrag `038cdfb` (B9, B10) steht er aus.
+  Sprint-3-Planning weiterhin danach.
+- **Journal (DoD 6) — erledigt.** Der Eintrag von 01:12 steht zwar
+  unverändert auf „In Arbeit (DoD-Prüfung läuft)", ist aber durch den
+  Folgeeintrag 01:38 („DoD-Prüfung abgeschlossen, Sprint 2 abnahmereif")
+  inhaltlich geschlossen — genau die Alternative, die der Punkt zuließ. Auch
+  die Retro-Sitzung selbst ist protokolliert (10:47).
+- **Zusätzlich sichtbar geworden:** B3 und B7 sind in der Praxis angekommen —
+  `docs/scrum/reviews/2026-08-01-ui-review-s5-heilung/` enthält acht eigene
+  Bilder des UI-Reviews über mehrere Zustände und Fenstergrößen sowie die
+  Helferprogramme. Der Review, der in Sprint 2 ohne ein einziges Bild geführt
+  wurde, arbeitet jetzt mit Bildern.
+- **Unverändert Backlog-Material:** #44 (Tray-Linksklick ohne Wirkung, aus der
+  Abnahme) und #11 (S8) hängen an keinem Milestone und gehören ins
+  Sprint-3-Planning.
