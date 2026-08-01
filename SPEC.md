@@ -341,7 +341,9 @@ v1 aber nicht gebaut.
 - **Bibliothek** (Fenster): Sidebar mit KI-Kategorien + Zählern, chronologische
   Notizliste, wie ein Posteingang in Tagesgruppen gegliedert (**Heute ·
   Gestern · Diese Woche · Letzte Woche · Älter**; „Woche" ist die
-  Kalenderwoche, Wochenanfang Montag), innerhalb der Gruppen neueste zuerst.
+  Kalenderwoche, ihr Anfang folgt der Locale des Systems —
+  `QLocale::firstDayOfWeek`, in Deutschland Montag), innerhalb der Gruppen
+  neueste zuerst.
   Ein Eintrag zeigt Zeitstempel, die erste Zeile als Betreff, den Folgetext
   als Vorschau und Tag-Chips; Sprachnotizen zusätzlich ▶ und Dauer. Der
   Zeitstempel folgt der Gruppe: in Heute/Gestern die Uhrzeit, in den
