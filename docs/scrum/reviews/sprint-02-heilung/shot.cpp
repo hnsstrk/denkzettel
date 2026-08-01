@@ -19,7 +19,9 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDir>
 #include <QElapsedTimer>
+#include <QIcon>
 #include <QLineEdit>
 #include <QListView>
 #include <QSplitter>
@@ -85,6 +87,16 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
     const QString directory = QString::fromLocal8Bit(argv[1]);
 
+    // Ohne Fenstersymbol bliebe der Leerzustand ohne sein Symbol — placeholder-
+    // Page() liest qApp->windowIcon(), und die Ressource steckt nur im Daemon
+    // (UI-Review vom 01.08.2026, B6). Der Pfad ergibt sich aus dem Zielordner:
+    // docs/scrum/reviews/<Ordner> liegt vier Ebenen unter der Wurzel.
+    QDir root(directory);
+    for (int up = 0; up < 4; ++up) {
+        root.cdUp();
+    }
+    QApplication::setWindowIcon(QIcon(root.filePath(QStringLiteral("icons/sc-apps-denkzettel.svg"))));
+
     Store store(sandbox.filePath(QStringLiteral("heilung.db")));
     if (!store.open()) {
         printf("Store konnte nicht geöffnet werden: %s\n", qPrintable(store.lastError()));
@@ -118,6 +130,13 @@ int main(int argc, char **argv)
         window.resize(size);
         window.showLibrary();
         settle(300);
+
+        // Wireframe 2c zeichnet zwei Leerzustaende; der zweite ist genau dieser
+        // Moment — Notizen da, keine ausgewaehlt (UI-Review 01.08.2026, B7).
+        if (size == QSize(900, 600)) {
+            report("Ohne Auswahl 900x600", window);
+            shoot(window, directory, QStringLiteral("heilung-ohne-auswahl-900x600"));
+        }
 
         auto *list = window.findChild<QListView *>();
         list->setCurrentIndex(list->model()->index(0, 0));

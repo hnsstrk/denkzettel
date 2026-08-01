@@ -148,9 +148,13 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // the window under the header rather than into a screen corner, and it has
     // no close button: it would leave open whether closing carries the
     // deletion out or takes it back (wireframe 2c).
+    // Wireframe 2b draws the band as a single row, text and button side by
+    // side. Word wrap would put the button underneath and make the band half
+    // again as tall; the text is short and fixed in length, so it has nothing
+    // to wrap.
     m_message->setMessageType(KMessageWidget::Warning);
     m_message->setCloseButtonVisible(false);
-    m_message->setWordWrap(true);
+    m_message->setWordWrap(false);
     m_message->addAction(m_undoAction);
     m_message->hide();
 

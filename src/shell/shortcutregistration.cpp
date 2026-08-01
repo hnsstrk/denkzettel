@@ -25,9 +25,14 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration)
                     "Eintrag an. Nach der Installation steht das Kürzel zur Verfügung; bis dahin "
                     "bleibt das Capture-Fenster über das Symbol im Systemabschnitt erreichbar.");
     case ShortcutRegistration::DaemonKeptNothing:
+        // No process name and no question: whoever does not know what
+        // kglobalacceld is knows no more after reading it. What is left is a
+        // step that can be carried out and checked (KDE HIG, UI review B9).
         return i18n("Meta+N ist beim Kurzbefehl-Dienst nicht angekommen — er hat die Registrierung "
-                    "nicht behalten. Läuft kglobalacceld? Das Capture-Fenster bleibt über das "
-                    "Symbol im Systemabschnitt erreichbar.");
+                    "nicht behalten. Die Kurzbefehle lassen sich in den Systemeinstellungen unter "
+                    "„Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst "
+                    "zurück. Das Capture-Fenster bleibt über das Symbol im Systemabschnitt "
+                    "erreichbar.");
     }
 
     return {};

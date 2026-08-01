@@ -66,10 +66,16 @@ des Nutzers bleibt unberührt). Damit findet Denkzettel seine Desktop-Datei,
 kglobalacceld aber weiterhin nicht — die Meldung benennt jetzt den Dienst
 statt der Installation:
 
-  2026-08-01T11:24:55 denkzetteld[66907]: Meta+N ist beim Kurzbefehl-Dienst
-      nicht angekommen — er hat die Registrierung nicht behalten. Läuft
-      kglobalacceld? Das Capture-Fenster bleibt über das Symbol im
-      Systemabschnitt erreichbar.
+  2026-08-01T11:42:46 denkzetteld[81071]: Meta+N ist beim Kurzbefehl-Dienst
+      nicht angekommen — er hat die Registrierung nicht behalten. Die
+      Kurzbefehle lassen sich in den Systemeinstellungen unter „Kurzbefehle“
+      prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst zurück.
+      Das Capture-Fenster bleibt über das Symbol im Systemabschnitt
+      erreichbar.
+
+  (Erster Lauf um 11:24:55 mit dem ursprünglichen Wortlaut; der Text nennt
+  seit dem UI-Review vom 01.08.2026 einen überprüfbaren Schritt statt des
+  Prozessnamens kglobalacceld.)
 
 
 5. Gegenprobe: Die Wache schlägt nicht grundlos an

@@ -5,5 +5,5 @@ PASS   : LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes(900x600)
 PASS   : LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes(1200x800)
 PASS   : LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
 PASS   : LibraryTest::cleanupTestCase()
-Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 584ms
+Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 583ms
 ********* Finished testing of LibraryTest *********
