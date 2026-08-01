@@ -77,6 +77,20 @@ stattdessen `ShowCapture()` (Einzelinstanz).
   Besitzer. Beim Erststart und bei Kürzel-Änderung prüft Denkzettel die
   Sequenz gegen die bestehende Belegung (inkl. Mehrfachbelegungen) und
   meldet Konflikte sichtbar statt still zu scheitern.
+- **Auslösung über Desktop Actions (entdeckte Bedingung, Befund 01.08.2026):**
+  Bei installierter Anwendung endet der Komponentenname auf `.desktop`; damit
+  behandelt kglobalacceld die Komponente als *Service-Action-Komponente* und
+  startet beim Tastendruck die gleichnamige **Desktop Action** der
+  `.desktop`-Datei (ApplicationLauncherJob), statt ein D-Bus-Signal an den
+  laufenden Prozess zu senden. Fehlt die Gruppe, protokolliert der Dienst einen
+  Fehler und bricht ab — die Registrierung liegt vor, `isActive` ist wahr, und
+  der Tastendruck verpufft. Deshalb gilt: **Je Kürzel deklariert die
+  Desktop-Datei eine Gruppe `[Desktop Action <Aktions-Id>]` mit eigener
+  `Exec`-Zeile, und die Id steht in `Actions=`.** Die Aktions-Id ist zugleich
+  der `objectName` der `QAction` und muss ein gültiger XDG-Bezeichner sein
+  (Buchstaben, Ziffern, Bindestrich — kein Unterstrich; `desktop-file-validate`
+  weist ihn sonst zurück). Die `Exec`-Zeile startet `denkzetteld`; die
+  Einzelinstanz-Weiche aus 2.3 macht daraus den Aufruf des Fensters.
 
 ### 2.5 Autostart und Erststart (Ergänzung aus der Schätzklausur)
 

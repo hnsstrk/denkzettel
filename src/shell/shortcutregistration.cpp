@@ -1,17 +1,40 @@
 #include "shell/shortcutregistration.h"
 
+#include <KDesktopFile>
 #include <KLocalizedString>
 
-ShortcutRegistration shortcutRegistration(const QList<QKeySequence> &storedByTheDaemon, bool desktopFileFound)
+#include <QFileInfo>
+
+ShortcutRegistration shortcutRegistration(const QList<QKeySequence> &storedByTheDaemon,
+                                          bool desktopFileFound,
+                                          bool desktopFileDeclaresTheAction)
 {
-    // Which sequence the daemon holds is not our business: the user may have
-    // changed it in the Plasma settings, and that is a working registration.
-    if (!storedByTheDaemon.isEmpty()) {
-        return ShortcutRegistration::Reached;
+    if (storedByTheDaemon.isEmpty()) {
+        return desktopFileFound ? ShortcutRegistration::DaemonKeptNothing
+                                : ShortcutRegistration::ApplicationNotInstalled;
     }
 
-    return desktopFileFound ? ShortcutRegistration::DaemonKeptNothing
-                            : ShortcutRegistration::ApplicationNotInstalled;
+    // Which sequence the daemon holds is not our business: the user may have
+    // changed it in the Plasma settings, and that is a working registration.
+    // Where the key press goes, however, is: with a desktop file the daemon
+    // starts the desktop action instead of signalling us.
+    if (desktopFileFound && !desktopFileDeclaresTheAction) {
+        return ShortcutRegistration::DesktopActionMissing;
+    }
+
+    return ShortcutRegistration::Reached;
+}
+
+bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &actionId)
+{
+    if (desktopFilePath.isEmpty() || !QFileInfo::exists(desktopFilePath)) {
+        return false;
+    }
+
+    // Both halves are needed: kglobalacceld reads the list under `Actions=`, and
+    // the group is where the Exec line it starts lives.
+    KDesktopFile file(desktopFilePath);
+    return file.readActions().contains(actionId) && file.hasActionGroup(actionId);
 }
 
 QString shortcutRegistrationFailure(ShortcutRegistration registration)
@@ -33,6 +56,11 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration)
                     "„Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst "
                     "zurück. Das Capture-Fenster bleibt über das Symbol im Systemabschnitt "
                     "erreichbar.");
+    case ShortcutRegistration::DesktopActionMissing:
+        return i18n("Meta+N ist eingerichtet, löst aber nichts aus: In der Desktop-Datei von "
+                    "Denkzettel fehlt der Eintrag zu diesem Kürzel. Eine vollständige "
+                    "Neuinstallation bringt ihn zurück. Bis dahin bleibt das Capture-Fenster "
+                    "über das Symbol im Systemabschnitt erreichbar.");
     }
 
     return {};

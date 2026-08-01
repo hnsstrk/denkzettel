@@ -37,18 +37,21 @@ QString ownerDescription(const KGlobalShortcutInfo &info)
 }
 
 /**
- * Whether the desktop file that names our component can be found. kglobalacceld
+ * The desktop file that names our component, or an empty string. kglobalacceld
  * resolves a component name ending in `.desktop` through KService and falls back
  * to `<data>/kglobalaccel/<name>`; finding neither, it creates no component at
  * all. Both places are looked at here, so the message can name the real cause
- * (retro Sprint 2, 9.1).
+ * (retro Sprint 2, 9.1) — and so the file can be read for its actions.
  */
-bool desktopFileFound()
+QString desktopFilePath()
 {
-    return !QStandardPaths::locate(QStandardPaths::ApplicationsLocation, componentName()).isEmpty()
-        || !QStandardPaths::locate(QStandardPaths::GenericDataLocation,
-                                   QStringLiteral("kglobalaccel/") + componentName())
-                .isEmpty();
+    const QString application = QStandardPaths::locate(QStandardPaths::ApplicationsLocation, componentName());
+    if (!application.isEmpty()) {
+        return application;
+    }
+
+    return QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                  QStringLiteral("kglobalaccel/") + componentName());
 }
 }
 
@@ -58,8 +61,10 @@ GlobalShortcuts::GlobalShortcuts(QObject *parent)
 {
     // The object name identifies the action across restarts and must not change
     // once it is registered; the component decides where the shortcut shows up
-    // in the Plasma settings.
-    m_captureAction->setObjectName(QStringLiteral("show_capture"));
+    // in the Plasma settings. It doubles as the name of the desktop action that
+    // kglobalacceld starts on the key press (SPEC 2.4), so it has to be a valid
+    // XDG action identifier — letters, digits and the hyphen, no underscore.
+    m_captureAction->setObjectName(QStringLiteral("show-capture"));
     m_captureAction->setProperty("componentName", componentName());
     m_captureAction->setProperty("componentDisplayName", i18n("Denkzettel"));
 
@@ -84,18 +89,21 @@ QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
     // doRegister() sends its D-Bus call and drops the answer.
     KGlobalAccel::setGlobalShortcut(m_captureAction, sequence);
 
-    // So the daemon is asked what it actually holds. An empty answer means the
-    // registration never arrived — the failure the customer ran into on
-    // 01.08.2026, and the one no return value can tell us about (retro B5).
+    // So the daemon is asked what it actually holds, and the desktop file it
+    // resolves us through is read for the action it starts on the key press.
+    // Both failures are silent otherwise — the customer met each of them once,
+    // on 01.08.2026 (retro B5).
+    const QString desktopFile = desktopFilePath();
     const ShortcutRegistration registration =
         shortcutRegistration(KGlobalAccel::self()->globalShortcut(componentName(), m_captureAction->objectName()),
-                             desktopFileFound());
+                             !desktopFile.isEmpty(),
+                             desktopFileDeclaresAction(desktopFile, m_captureAction->objectName()));
     if (registration != ShortcutRegistration::Reached) {
-        // Unlike a conflict this leaves no shortcut at all, so it is reported
-        // at every start rather than on the first one only.
+        // Unlike a conflict this leaves no working shortcut at all, so it is
+        // reported at every start rather than on the first one only.
         const QString failure = shortcutRegistrationFailure(registration);
         qWarning("%s", qPrintable(failure));
-        KNotification::event(KNotification::Error, i18n("Kürzel nicht eingerichtet"), failure);
+        KNotification::event(KNotification::Error, i18n("Kürzel nicht einsatzbereit"), failure);
         return {};
     }
 

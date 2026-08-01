@@ -3,6 +3,8 @@
 #include "shell/shortcutregistration.h"
 #include "store/store.h"
 
+#include <QFile>
+#include <QSet>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -38,6 +40,8 @@ private Q_SLOTS:
     void takesAnyAnswerOfTheDaemonAsRegistered();
     void readsAnEmptyAnswerWithoutDesktopFileAsAMissingInstallation();
     void readsAnEmptyAnswerWithDesktopFileAsADaemonThatKeptNothing();
+    void readsAnUndeclaredDesktopActionAsAFailure();
+    void readsTheActionsOfADesktopFile();
     void hasAMessageForEveryFailureAndNoneForSuccess();
 
 private:
@@ -153,14 +157,17 @@ void ShellTest::takesAnyAnswerOfTheDaemonAsRegistered()
 {
     const QList<QKeySequence> stored = {QKeySequence(Qt::META | Qt::Key_N)};
 
-    QCOMPARE(shortcutRegistration(stored, true), ShortcutRegistration::Reached);
+    QCOMPARE(shortcutRegistration(stored, true, true), ShortcutRegistration::Reached);
 
     // Which sequence the daemon holds is none of our business — the user may
     // have changed it in the Plasma settings, and that is a registration that
-    // arrived. Nor does our own view of the desktop file overrule the daemon:
-    // it has answered, so it knows us.
+    // arrived.
     const QList<QKeySequence> changed = {QKeySequence(Qt::META | Qt::Key_F10)};
-    QCOMPARE(shortcutRegistration(changed, false), ShortcutRegistration::Reached);
+    QCOMPARE(shortcutRegistration(changed, true, true), ShortcutRegistration::Reached);
+
+    // An installation we cannot see is none we should judge: the daemon has
+    // answered, so it knows us, and the desktop action is beyond our sight.
+    QCOMPARE(shortcutRegistration(stored, false, false), ShortcutRegistration::Reached);
 }
 
 void ShellTest::readsAnEmptyAnswerWithoutDesktopFileAsAMissingInstallation()
@@ -168,14 +175,60 @@ void ShellTest::readsAnEmptyAnswerWithoutDesktopFileAsAMissingInstallation()
     // The customer finding of 01.08.2026: kglobalacceld resolves the component
     // through the desktop file and creates none without it, so the answer stays
     // empty however often we register.
-    QCOMPARE(shortcutRegistration({}, false), ShortcutRegistration::ApplicationNotInstalled);
+    QCOMPARE(shortcutRegistration({}, false, false), ShortcutRegistration::ApplicationNotInstalled);
 }
 
 void ShellTest::readsAnEmptyAnswerWithDesktopFileAsADaemonThatKeptNothing()
 {
     // Installed and still nothing stored — then the daemon is the suspect, and
     // a message blaming the installation would send the user the wrong way.
-    QCOMPARE(shortcutRegistration({}, true), ShortcutRegistration::DaemonKeptNothing);
+    QCOMPARE(shortcutRegistration({}, true, true), ShortcutRegistration::DaemonKeptNothing);
+}
+
+void ShellTest::readsAnUndeclaredDesktopActionAsAFailure()
+{
+    // The second customer finding of 01.08.2026: registration and read-back are
+    // both fine, and the key press still goes nowhere, because with an
+    // installed desktop file kglobalacceld starts the desktop action of that
+    // name instead of signalling us — and finds none.
+    const QList<QKeySequence> stored = {QKeySequence(Qt::META | Qt::Key_N)};
+
+    QCOMPARE(shortcutRegistration(stored, true, false), ShortcutRegistration::DesktopActionMissing);
+}
+
+void ShellTest::readsTheActionsOfADesktopFile()
+{
+    const QString path = m_dir->filePath(QStringLiteral("org.denkzettel.Denkzettel.desktop"));
+    const QString entry = QStringLiteral("[Desktop Entry]\nType=Application\nName=Denkzettel\n"
+                                         "Exec=denkzetteld\n");
+
+    auto write = [&path](const QString &contents) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        QCOMPARE(file.write(contents.toUtf8()), contents.toUtf8().size());
+    };
+
+    // Both halves have to be there — kglobalacceld reads the list, then looks
+    // for the group with the Exec line it is to start.
+    write(entry + QStringLiteral("Actions=show-capture;\n\n[Desktop Action show-capture]\n"
+                                 "Name=Capture öffnen\nExec=denkzetteld\n"));
+    QVERIFY(desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
+
+    write(entry + QStringLiteral("Actions=show-capture;\n"));
+    QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
+
+    write(entry + QStringLiteral("\n[Desktop Action show-capture]\nName=Capture öffnen\n"
+                                 "Exec=denkzetteld\n"));
+    QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
+
+    // The state before this sprint: a file without any action at all.
+    write(entry);
+    QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
+
+    // What cannot be read cannot be vouched for.
+    QVERIFY(!desktopFileDeclaresAction(m_dir->filePath(QStringLiteral("gibtsnicht.desktop")),
+                                       QStringLiteral("show-capture")));
+    QVERIFY(!desktopFileDeclaresAction(QString(), QStringLiteral("show-capture")));
 }
 
 void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
@@ -185,10 +238,15 @@ void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
     QVERIFY(shortcutRegistrationFailure(ShortcutRegistration::Reached).isEmpty());
     QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled).isEmpty());
     QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing).isEmpty());
+    QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::DesktopActionMissing).isEmpty());
 
-    // The two failures are told apart for the user as well, not only in code.
-    QVERIFY(shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled)
-            != shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing));
+    // The failures are told apart for the user as well, not only in code.
+    const QStringList messages = {
+        shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled),
+        shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing),
+        shortcutRegistrationFailure(ShortcutRegistration::DesktopActionMissing),
+    };
+    QCOMPARE(QSet<QString>(messages.begin(), messages.end()).size(), messages.size());
 }
 
 QTEST_GUILESS_MAIN(ShellTest)
