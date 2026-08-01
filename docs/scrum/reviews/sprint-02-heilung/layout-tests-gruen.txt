@@ -1,0 +1,9 @@
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+PASS   : LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes(900x600)
+PASS   : LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes(1200x800)
+PASS   : LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 583ms
+********* Finished testing of LibraryTest *********

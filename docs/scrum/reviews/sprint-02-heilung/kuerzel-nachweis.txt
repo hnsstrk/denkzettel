@@ -1,0 +1,103 @@
+Selbst-Sichtprüfung Befund 1 (Issue #5, Meta+N) — 01.08.2026, Ganymed
+======================================================================
+
+Prüfling: build/bin/denkzetteld aus dem Arbeitsbaum, gestartet auf dem echten
+Sitzungsbus. Die Instanz des Nutzers lief nicht (pgrep denkzetteld leer), die
+Einzelinstanz-Sperre hat also nicht gegriffen; nichts wurde installiert.
+
+WICHTIG: qWarning() landet auf diesem System im Journal, nicht auf stderr —
+der Terminalmitschnitt des Daemons ist in beiden Ständen leer. Deshalb steht
+der Nachweis unten im Journal (journalctl --user -t denkzetteld).
+
+
+1. Vorher (Stand 091fcc5, ohne Rücklesen) — der Fehlschlag bleibt stumm
+-----------------------------------------------------------------------
+Roher Lauf: siehe kuerzel-vorher.txt. Kernpunkte:
+
+  kglobalacceld kennt keine denkzettel-Komponente (Treffer: 0)
+  /component/org_denkzettel_Denkzettel_desktop -> UnknownObject
+  Meldung des Daemons: keine
+
+Journal desselben Laufs (11:20:00) — nur die Portal-Meldung, kein Wort zum
+Kürzel:
+
+  2026-08-01T11:20:00 denkzetteld[64561]: Failed to register with host portal
+      QDBusError("org.freedesktop.portal.Error.Failed", "Could not register
+      app ID: App info not found for 'org.denkzettel.Denkzettel'")
+
+
+2. Nachher — der Fehlschlag meldet sich, mit der richtigen Ursache
+------------------------------------------------------------------
+Zwei Läufe des geheilten Stands (11:21:44 aus dem Prüfskript, 11:22:56 im
+Vordergrund). Der D-Bus-Zustand ist unverändert — die Registrierung kommt
+weiterhin nicht an, sie wird jetzt nur nicht mehr verschwiegen:
+
+  2026-08-01T11:21:44 denkzetteld[65841]: Meta+N ist beim Kurzbefehl-Dienst
+      nicht angekommen: Denkzettel ist nicht systemweit installiert, und ohne
+      seine Desktop-Datei legt der Dienst keinen Eintrag an. Nach der
+      Installation steht das Kürzel zur Verfügung; bis dahin bleibt das
+      Capture-Fenster über das Symbol im Systemabschnitt erreichbar.
+  2026-08-01T11:22:56 denkzetteld[66251]: (dieselbe Zeile)
+
+Bei jedem Start, nicht erststart-gebunden: zwei aufeinanderfolgende Läufe,
+zwei Meldungen.
+
+
+3. Die Meldung erreicht auch den Bildschirm, nicht nur das Journal
+------------------------------------------------------------------
+Mitschnitt des Sitzungsbusses (dbus-monitor, interface
+org.freedesktop.Notifications, member Notify) während eines Starts:
+
+  method call ... member=Notify
+     string "Systembenachrichtigungen"
+     uint32 0
+     string "dialog-error"
+     string "Kürzel nicht eingerichtet"
+     string "Meta+N ist beim Kurzbefehl-Dienst nicht angekommen: Denkzettel
+             ist nicht systemweit installiert, …"
+     array [ … "desktop-entry" -> "org.denkzettel.Denkzettel" … ]
+     int32 -1
+
+
+4. Der zweite Meldezweig, gemessen statt behauptet
+---------------------------------------------------
+Lauf mit eigenem XDG_DATA_HOME, in dem die Desktop-Datei liegt (die Sitzung
+des Nutzers bleibt unberührt). Damit findet Denkzettel seine Desktop-Datei,
+kglobalacceld aber weiterhin nicht — die Meldung benennt jetzt den Dienst
+statt der Installation:
+
+  2026-08-01T11:42:46 denkzetteld[81071]: Meta+N ist beim Kurzbefehl-Dienst
+      nicht angekommen — er hat die Registrierung nicht behalten. Die
+      Kurzbefehle lassen sich in den Systemeinstellungen unter „Kurzbefehle“
+      prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst zurück.
+      Das Capture-Fenster bleibt über das Symbol im Systemabschnitt
+      erreichbar.
+
+  (Erster Lauf um 11:24:55 mit dem ursprünglichen Wortlaut; der Text nennt
+  seit dem UI-Review vom 01.08.2026 einen überprüfbaren Schritt statt des
+  Prozessnamens kglobalacceld.)
+
+
+5. Gegenprobe: Die Wache schlägt nicht grundlos an
+---------------------------------------------------
+kuerzel-probe.cpp liest denselben Weg gegen Komponenten, die kglobalacceld
+kennt. Eine angekommene Registrierung liefert eine nicht-leere Antwort, unsere
+liefert eine leere — die Unterscheidung trägt:
+
+  fremd, bekannt      org.kde.spectacle.desktop / RecordScreen -> 1  [Meta+Alt+R]
+  fremd, kwin         kwin / Window Close                      -> 1  [Alt+F4]
+  denkzettel, vor Register  … / show_capture                   -> 0
+  setGlobalShortcut -> true            <- der Rückgabewert lügt nicht, er weiß nichts
+  denkzettel, nach Register … / show_capture                   -> 0
+
+Zeile 4 ist der Kern des Befunds: setGlobalShortcut() meldet Erfolg, während
+beim Dienst nichts angekommen ist.
+
+
+Grenze
+------
+Das D-Bus-Gespräch mit kglobalacceld selbst bleibt manuell prüfbar (SPEC 16) —
+es braucht einen laufenden Dienst. Die Grenze ist damit benannt UND zur
+Laufzeit geschlossen: Der Rücklese-Mechanismus prüft bei jedem Start selbst
+nach und meldet sichtbar, wenn die Registrierung nicht angekommen ist.
+Die Auswertung dieser Antwort ist in shelltest abgedeckt (vier Testfunktionen).

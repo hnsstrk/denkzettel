@@ -1,0 +1,14 @@
+== Vorher: kennt kglobalacceld eine denkzettel-Komponente? ==
+0
+
+== Start: /home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a3e69b026b55f1442/build/bin/denkzetteld (stderr) ==
+
+== Nachher: Komponenten mit denkzettel im Namen ==
+(Treffer: 0)
+
+== Zurueckgelesenes Kuerzel der Komponente ==
+Error: org.freedesktop.DBus.Error.UnknownObject
+No such object path '/component/org_denkzettel_Denkzettel_desktop'
+
+== Beenden ueber org.denkzettel.Daemon.Quit() ==
+(Daemon beendet)

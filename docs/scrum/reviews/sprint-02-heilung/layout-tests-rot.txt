@@ -1,0 +1,12 @@
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+FAIL!  : LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes(900x600) 'header->height() <= header->sizeHint().height()' returned FALSE. (Kopfzeile 300 px hoch, sizeHint 41 px)
+   Loc: [/home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a3e69b026b55f1442/tests/librarytest.cpp(837)]
+FAIL!  : LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes(1200x800) 'header->height() <= header->sizeHint().height()' returned FALSE. (Kopfzeile 400 px hoch, sizeHint 41 px)
+   Loc: [/home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a3e69b026b55f1442/tests/librarytest.cpp(837)]
+FAIL!  : LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes() 'splitter->height() >= window.height() * 3 / 4' returned FALSE. (Splitter 265 px hoch in einem 600 px hohen Fenster)
+   Loc: [/home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a3e69b026b55f1442/tests/librarytest.cpp(886)]
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 2 passed, 3 failed, 0 skipped, 0 blacklisted, 585ms
+********* Finished testing of LibraryTest *********

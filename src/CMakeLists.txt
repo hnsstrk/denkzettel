@@ -52,6 +52,7 @@ add_library(denkzettelshell STATIC
     shell/firstrun.cpp
     shell/globalshortcuts.cpp
     shell/shortcutconflict.cpp
+    shell/shortcutregistration.cpp
     shell/trayicon.cpp
 )
 

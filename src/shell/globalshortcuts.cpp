@@ -1,5 +1,7 @@
 #include "shell/globalshortcuts.h"
 
+#include "shell/shortcutregistration.h"
+
 #include <KGlobalAccel>
 #include <KGlobalShortcutInfo>
 #include <KLocalizedString>
@@ -8,6 +10,7 @@
 #include <QAction>
 #include <QGuiApplication>
 #include <QKeySequence>
+#include <QStandardPaths>
 #include <QStringList>
 
 namespace
@@ -25,12 +28,27 @@ QString componentName()
 
 QString ownerDescription(const KGlobalShortcutInfo &info)
 {
-    const QString component =
+    QString component =
         info.componentFriendlyName().isEmpty() ? info.componentUniqueName() : info.componentFriendlyName();
     if (info.friendlyName().isEmpty()) {
         return component;
     }
     return i18nc("Kürzel-Besitzer: Anwendung und ihre Aktion", "%1 — %2", component, info.friendlyName());
+}
+
+/**
+ * Whether the desktop file that names our component can be found. kglobalacceld
+ * resolves a component name ending in `.desktop` through KService and falls back
+ * to `<data>/kglobalaccel/<name>`; finding neither, it creates no component at
+ * all. Both places are looked at here, so the message can name the real cause
+ * (retro Sprint 2, 9.1).
+ */
+bool desktopFileFound()
+{
+    return !QStandardPaths::locate(QStandardPaths::ApplicationsLocation, componentName()).isEmpty()
+        || !QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                   QStringLiteral("kglobalaccel/") + componentName())
+                .isEmpty();
 }
 }
 
@@ -61,15 +79,23 @@ QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
     }
 
     // Autoloading restores a sequence the user changed in the Plasma settings
-    // and only stores ours on the very first registration (SPEC 2.4).
-    if (!KGlobalAccel::setGlobalShortcut(m_captureAction, sequence)) {
+    // and only stores ours on the very first registration (SPEC 2.4). The
+    // return value is not looked at: it cannot show a backend failure, because
+    // doRegister() sends its D-Bus call and drops the answer.
+    KGlobalAccel::setGlobalShortcut(m_captureAction, sequence);
+
+    // So the daemon is asked what it actually holds. An empty answer means the
+    // registration never arrived — the failure the customer ran into on
+    // 01.08.2026, and the one no return value can tell us about (retro B5).
+    const ShortcutRegistration registration =
+        shortcutRegistration(KGlobalAccel::self()->globalShortcut(componentName(), m_captureAction->objectName()),
+                             desktopFileFound());
+    if (registration != ShortcutRegistration::Reached) {
         // Unlike a conflict this leaves no shortcut at all, so it is reported
         // at every start rather than on the first one only.
-        qWarning("Registering Meta+N failed; the capture window has no global shortcut.");
-        KNotification::event(KNotification::Error,
-                             i18n("Kürzel nicht eingerichtet"),
-                             i18n("Meta+N ließ sich nicht registrieren. Das Capture-Fenster "
-                                  "bleibt über das Symbol im Systemabschnitt erreichbar."));
+        const QString failure = shortcutRegistrationFailure(registration);
+        qWarning("%s", qPrintable(failure));
+        KNotification::event(KNotification::Error, i18n("Kürzel nicht eingerichtet"), failure);
         return {};
     }
 

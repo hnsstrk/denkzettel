@@ -1,0 +1,8 @@
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+FAIL!  : LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes() 'textTop < undoTop + undo->height() && undoTop < textTop + text->height()' returned FALSE. (Text y=11 h=17, Knopf y=34 h=24 — nicht in einer Zeile)
+   Loc: [/home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a3e69b026b55f1442/tests/librarytest.cpp(925)]
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 2 passed, 1 failed, 0 skipped, 0 blacklisted, 577ms
+********* Finished testing of LibraryTest *********
