@@ -46,11 +46,16 @@ const QList<QStringList> &migrations()
         // its own: `content='notes'` points it at the notes table, so the note
         // text exists once and cannot drift between two copies.
         {
+            // `trigram` indexes every three-character sequence, which is what
+            // makes „grafieren" find „fotografieren" (customer decision
+            // 01.08.2026). It costs index size — measured at roughly six times
+            // a unicode61 index — and it cannot represent anything shorter
+            // than three characters; Store::search() covers that gap.
             QStringLiteral("CREATE VIRTUAL TABLE notes_fts USING fts5("
                            "  content,"
                            "  content='notes',"
                            "  content_rowid='id',"
-                           "  tokenize='unicode61 remove_diacritics 2')"),
+                           "  tokenize='trigram remove_diacritics 1')"),
             // The three triggers of the external-content pattern. A deletion is
             // written as a 'delete' command carrying the *old* text: FTS5 needs
             // it to find the index entries it has to take out. Passing the new
@@ -139,19 +144,22 @@ QString noteColumns()
                           " category, state, needs_reembed, analysis_attempts, analysis_last_error");
 }
 
+/** Shortest term the trigram index can represent (SPEC 6). */
+constexpr qsizetype trigramLength = 3;
+
 /**
- * Turns what the user typed into an FTS5 MATCH expression, empty if the text
- * carries no searchable term.
+ * Splits what the user typed into search terms.
  *
  * Everything that is not a letter or a digit separates terms, so nothing the
  * user types can reach FTS5 as syntax: quotation marks, hyphens, parentheses
  * and words such as AND are plain text here, and a stray character is no
  * search error. The operators of SPEC 6 are the job of the search parser (S7).
  *
- * Terms are ANDed — FTS5 does that for a sequence of phrases by itself — and
- * each of them matches as a prefix, see Store::search().
+ * A term therefore consists of letters and digits only — which is why neither
+ * the FTS5 phrase nor the LIKE pattern built from it in Store::search() needs
+ * escaping: a quotation mark, a percent sign or an underscore cannot occur.
  */
-QString matchExpression(const QString &text)
+QStringList searchTerms(const QString &text)
 {
     QStringList terms;
     QString current;
@@ -166,16 +174,7 @@ QString matchExpression(const QString &text)
     if (!current.isEmpty()) {
         terms.append(current);
     }
-
-    QStringList phrases;
-    phrases.reserve(terms.size());
-    for (const QString &term : terms) {
-        // The quotes make the term a literal string to FTS5, the star makes it
-        // a prefix. A term holds letters and digits only, so it cannot contain
-        // a quotation mark that would have to be escaped here.
-        phrases.append(QStringLiteral("\"%1\"*").arg(term));
-    }
-    return phrases.join(QLatin1Char(' '));
+    return terms;
 }
 
 /** Reads the current row of a query built from noteColumns(). */
@@ -414,9 +413,31 @@ QList<Note> Store::notes() const
 
 QList<Note> Store::search(const QString &text) const
 {
-    const QString expression = matchExpression(text);
-    if (expression.isEmpty()) {
+    const QStringList terms = searchTerms(text);
+    if (terms.isEmpty()) {
         return notes();
+    }
+
+    // Terms of three characters and more go through the trigram index. Shorter
+    // ones cannot be in it — a trigram is three characters by definition — and
+    // take a plain substring comparison instead, so that „KI" or „PO" find
+    // something instead of silently nothing (SPEC 6).
+    QStringList phrases;
+    QStringList shortTerms;
+    for (const QString &term : terms) {
+        if (term.size() >= trigramLength) {
+            phrases.append(QStringLiteral("\"%1\"").arg(term));
+        } else {
+            shortTerms.append(term);
+        }
+    }
+
+    QStringList conditions;
+    if (!phrases.isEmpty()) {
+        conditions.append(QStringLiteral("id IN (SELECT rowid FROM notes_fts WHERE notes_fts MATCH :match)"));
+    }
+    for (qsizetype index = 0; index < shortTerms.size(); ++index) {
+        conditions.append(QStringLiteral("content LIKE :short%1").arg(index));
     }
 
     QSqlQuery query(m_db);
@@ -424,11 +445,17 @@ QList<Note> Store::search(const QString &text) const
     // both have a column named `content`, which a join would make ambiguous.
     // The order is the library's, not FTS5's relevance ranking — the result
     // list keeps the day grouping of the note list (SPEC 9).
-    query.prepare(QStringLiteral("SELECT %1 FROM notes"
-                                 " WHERE id IN (SELECT rowid FROM notes_fts WHERE notes_fts MATCH :match)"
+    query.prepare(QStringLiteral("SELECT %1 FROM notes WHERE %2"
                                  " ORDER BY created_at DESC, id DESC")
-                      .arg(noteColumns()));
-    query.bindValue(QStringLiteral(":match"), expression);
+                      .arg(noteColumns(), conditions.join(QStringLiteral(" AND "))));
+    if (!phrases.isEmpty()) {
+        // A sequence of phrases is an AND to FTS5.
+        query.bindValue(QStringLiteral(":match"), phrases.join(QLatin1Char(' ')));
+    }
+    for (qsizetype index = 0; index < shortTerms.size(); ++index) {
+        query.bindValue(QStringLiteral(":short%1").arg(index),
+                        QStringLiteral("%%%1%%").arg(shortTerms.at(index)));
+    }
 
     if (!query.exec()) {
         m_lastError = query.lastError().text();

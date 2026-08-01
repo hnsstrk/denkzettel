@@ -208,21 +208,42 @@ Interview). Syntax-Umfang (damit ist offene Frage 3 des Konzepts beantwortet):
 - Alle Bestandteile sind **UND-verknüpft**; kein OR, keine Klammern (V1).
 - Unbekannte `xyz:`-Präfixe werden als Volltext behandelt (kein Fehler).
 - Parser ist reine Funktion `QString → SearchQuery` — unit-testbar.
-- FTS5-Tokenizer: `unicode61 remove_diacritics 2` — „bucher" findet
-  „Bücher"; deutsche Umlaut-Toleranz ist Kernanforderung der Suche.
-  **Grenze (Befund Issue #8, SQLite 3.53.4):** Der Tokenizer entfernt
-  diakritische Zeichen. `ß` trägt keines — es ist ein eigener Buchstabe und
-  bleibt stehen. „strassenbahn" findet „Straßenbahn" deshalb **nicht**,
-  „grosse" nicht „Größe". Eine ß/ss-Faltung verlangt einen eigenen Tokenizer
-  und ist nicht Teil von v1.
-- **Präfixsuche (Entscheidung Issue #8):** Jeder freie Suchbegriff sucht als
-  Präfix — „foto" findet „fotografieren". Begründung: Das Suchfeld filtert
-  beim Tippen, ohne Präfix bliebe die Liste leer, bis ein Wort fertig
-  getippt ist; und deutsche Komposita und Beugungen sind ohne Stemmer
-  anders nicht erreichbar. Nur am Wortanfang, keine Infixsuche —
-  „grafieren" findet „fotografieren" nicht. Ein `prefix=`-Index wird
-  **nicht** angelegt: FTS5 beantwortet Präfixanfragen auch ohne ihn, und
-  ohne gemessenen Bestand wäre er Optimierung auf Vorrat (Beschluss E2).
+- FTS5-Tokenizer: **`trigram remove_diacritics 1`** (Kundenentscheidung
+  01.08.2026, Issue #8). Ein Suchbegriff findet **Wortteile an jeder Stelle**:
+  „grafieren" findet „fotografieren", „bahn" findet „Straßenbahn", „sprech"
+  findet „Besprechung". „bucher" findet „Bücher" — die Umlaut-Toleranz bleibt
+  Kernanforderung und ist mit `remove_diacritics 1` erhalten.
+  - **Damit ist die Präfixsuche keine eigene Festlegung mehr.** Sie ist im
+    Teilstring-Verhalten enthalten. Die Abfrage hängt **kein** `*` an: Am
+    System gemessen sind `"foto"` und `"foto"*` beim trigram-Tokenizer
+    identisch — er erzeugt ausschließlich vollständige Drei-Zeichen-Tokens,
+    an denen ein Präfixzeichen nichts erweitern kann. Ein `prefix=`-Index
+    wird ebenfalls nicht angelegt (Beschluss E2).
+  - **Preis, gemessen an 20 000 Notizen:** Der trigram-Index ist rund
+    **sechsmal** so groß wie ein `unicode61`-Index (1,8 MiB → 10,9 MiB) und
+    damit gut dreimal so groß wie der Rohtext selbst. Für den erwarteten
+    Bestand ist das tragbar; bei sechsstelligen Notizzahlen wäre es neu zu
+    bewerten.
+  - **Grenze (Befund Issue #8, SQLite 3.53.4):** Der Tokenizer entfernt
+    diakritische Zeichen. `ß` trägt keines — es ist ein eigener Buchstabe und
+    bleibt stehen. „strassenbahn" findet „Straßenbahn" deshalb **nicht**,
+    „grosse" nicht „Größe". Gilt für `unicode61` wie für `trigram`; die
+    ß/ss-Faltung verlangt einen eigenen Tokenizer und ist eigene Story (S30).
+- **Suchbegriffe unter drei Zeichen (Entscheidung Issue #8):** Ein
+  trigram-Index kann sie prinzipbedingt nicht enthalten — ein Trigramm ist
+  drei Zeichen lang. Solche Begriffe werden deshalb **als Teilstring direkt
+  auf `notes.content` verglichen** (`LIKE '%…%'`), die übrigen weiterhin über
+  den Index; beide Wege sind UND-verknüpft. Begründung: „KI", „PO" oder „ad"
+  sind echte Suchbegriffe, und eine Suche, die dabei wortlos leer bleibt,
+  wäre ein Fehler, den niemand als solchen erkennt. Der Alternativweg — ein
+  Hinweis im Leerzustand — würde eine reine Umsetzungsgrenze zur Regel
+  machen, die der Nutzer lernen muss. **Kosten gemessen** (20 000 Notizen):
+  3 ms je Abfrage, weniger als die Indexabfrage selbst (9 ms) — der
+  Einwand des vollen Tabellendurchlaufs trägt in dieser Größenordnung nicht.
+  - Grenze dieses Wegs: Er ignoriert Groß-/Kleinschreibung nur für ASCII
+    („ki" findet „KI"), faltet aber keine diakritischen Zeichen („u" findet
+    kein „ü") und keine Groß-/Kleinschreibung darüber hinaus („ü" findet
+    kein „Ü"). Betrifft ausschließlich Begriffe mit ein oder zwei Zeichen.
 - Die Trefferliste behält die Ordnung der Bibliothek (neueste zuerst, 9.)
   statt der FTS5-Relevanzsortierung — nur so trägt sie deren Tagesgruppen.
 

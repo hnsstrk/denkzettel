@@ -37,7 +37,8 @@ private Q_SLOTS:
 
     void findsNotesByFullText();
     void searchFindsWordsSpelledWithoutUmlauts();
-    void searchMatchesWordPrefixes();
+    void searchMatchesAnyPartOfAWord();
+    void searchFindsTermsShorterThanThreeCharacters();
     void searchTakesQueryTextLiterally();
     void searchWithoutTermsListsAllNotes();
     void keepsSearchIndexInSync();
@@ -345,19 +346,54 @@ void StoreTest::searchFindsWordsSpelledWithoutUmlauts()
     QCOMPARE(searchContents(QStringLiteral("straßenbahnen")), QStringList({books.content}));
 }
 
-void StoreTest::searchMatchesWordPrefixes()
+void StoreTest::searchMatchesAnyPartOfAWord()
 {
     Note note = sampleNote();
     note.content = QStringLiteral("Straßenbahnen fotografieren");
     QVERIFY(m_store->addNote(note).has_value());
 
-    // Decision of this story: every term searches as a prefix, so the list
-    // narrows while the user is still typing (SPEC 6).
-    QCOMPARE(searchContents(QStringLiteral("foto")), QStringList({note.content}));
-    QCOMPARE(searchContents(QStringLiteral("f")), QStringList({note.content}));
+    Note meeting = sampleNote();
+    meeting.content = QStringLiteral("Besprechung vorbereiten");
+    meeting.createdAt = QDateTime::fromString(QStringLiteral("2026-07-30T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(meeting).has_value());
 
-    // The prefix binds at the start of a word only — no infix search.
-    QVERIFY(m_store->search(QStringLiteral("grafieren")).isEmpty());
+    // The trigram tokenizer matches a term anywhere inside a word — start,
+    // middle and end (SPEC 6, customer decision 01.08.2026).
+    QCOMPARE(searchContents(QStringLiteral("foto")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("grafieren")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("bahn")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("sprech")), QStringList({meeting.content}));
+
+    QVERIFY(m_store->search(QStringLiteral("Fahrrad")).isEmpty());
+}
+
+void StoreTest::searchFindsTermsShorterThanThreeCharacters()
+{
+    Note pipeline = sampleNote();
+    pipeline.content = QStringLiteral("Besprechung mit Ada zur KI-Pipeline");
+    QVERIFY(m_store->addNote(pipeline).has_value());
+
+    Note windows = sampleNote();
+    windows.content = QStringLiteral("Fenster putzen");
+    windows.createdAt = QDateTime::fromString(QStringLiteral("2026-07-30T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(windows).has_value());
+
+    // A trigram index cannot hold anything shorter than three characters, so
+    // these terms take the substring route instead. Without it the search
+    // would stay silently empty for „KI" or „PO" (SPEC 6).
+    QCOMPARE(searchContents(QStringLiteral("KI")), QStringList({pipeline.content}));
+    QCOMPARE(searchContents(QStringLiteral("ad")), QStringList({pipeline.content}));
+
+    // Case does not matter on that route either — „ki" has to find „KI".
+    QCOMPARE(searchContents(QStringLiteral("ki")), QStringList({pipeline.content}));
+
+    // A short and a long term in one query are ANDed across both routes.
+    QCOMPARE(searchContents(QStringLiteral("ad sprech")), QStringList({pipeline.content}));
+    QVERIFY(m_store->search(QStringLiteral("ad Fenster")).isEmpty());
+
+    // A term that is nowhere still finds nothing — the fallback widens the
+    // search, it does not weaken it.
+    QVERIFY(m_store->search(QStringLiteral("qq")).isEmpty());
 }
 
 void StoreTest::searchTakesQueryTextLiterally()
