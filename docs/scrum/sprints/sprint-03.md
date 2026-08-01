@@ -696,3 +696,357 @@ Kundenzitate hinein? Messwerte vom Rechner des Kunden? Interne Fehleranalysen
 des PO? Alles drei ist heute geschehen — vertretbar, aber unentschieden. Und
 die Frage stellt sich schärfer, sobald ein Fremder das Repository liest, was
 bei einem öffentlichen jederzeit möglich ist.
+
+### 12.7 Die Story-Grenze hat niemand als Grenze wiedererkannt
+
+Nachtrag zu 12.3, aus der DoD-Prüfung. Das Planning hat den Fall wörtlich
+vorweggenommen (3.3): *„Aufnahme in Sprint 3 wäre nur als fünftes Issue möglich
+(13 SP) und bräche die Grenze ‚2–4 Stories' — Kundenentscheidung, siehe 9."*
+Die Schranke stand also da, aufgestellt für #50. Passiert hat sie #54 — und in
+diesem Moment hat sie niemand wiedererkannt. Der Kunde hat #54 freigegeben; dass
+er damit zugleich über die Story-Grenze entschied, ist ihm nicht vorgelegt
+worden.
+
+Bemerkenswert ist nicht der Bruch, sondern **warum er unbemerkt blieb**: Die
+Punktzahl wurde bei jedem Zugang mitgezählt, die Zahl der Issues nicht. Wer 13
+im Blick hat, sieht die 13 einhalten und übersieht die 5. Eine Grenze, die nur
+im Planning-Text steht und in keiner laufenden Zählung, ist keine Grenze.
+
+### 12.8 Die Worktrees lagen im Repository, ungeschützt
+
+`.claude/worktrees/` liegt innerhalb des Arbeitsbaums und steht **nicht** in
+`.gitignore` (dort nur `build/`, `compile_commands.json`, `.cache/`). Ein
+einziges `git add -A` hätte vier vollständige Arbeitsbäume eingecheckt. Kein
+Vorfall — die Regel B6 („gezielt stagen, nie `git add -A`") hat gehalten. Aber
+sie war das Einzige, was zwischen dem Repository und diesem Fehler stand, und
+sie ist eine Verhaltensregel, keine Sperre. Retro-Vorschlag: die Zeile in
+`.gitignore` nachtragen; Verhaltensregeln durch Mechanik zu stützen ist billiger
+als sie zu schärfen.
+
+## 13. DoD-Prüfung am Sprint-Ende (Scrum Master, 01.08.2026, 23:59)
+
+**Prüfstand:** `main` @ `47a1774`, alle Stränge gemergt. Geprüft wurde gegen
+Code, Binärstand, Git-Historie und GitHub, nicht gegen Meldungen. Jede Zahl
+unten ist in dieser Sitzung selbst gemessen.
+
+**Gesamturteil: Der Sprint ist inhaltlich fertig und formal unfertig.** Die
+Arbeit trägt — Build, Tests, Spezifikation und Prüfläufe sind in einem Zustand,
+der über das hinausgeht, was die DoD verlangt. Offen sind **acht Mängel**, davon
+einer schwer (M1). Sieben der acht sind Buchführung und in Minuten zu beheben;
+M1 verlangt eine Handlung.
+
+### 13.1 Die sechs Punkte
+
+| # | DoD-Punkt | #46 | #8 | #9 | #44 | #54 |
+|---|---|---|---|---|---|---|
+| 1 | Build warnungsarm, Tests grün, Geometrie bei zwei Größen | erfüllt | erfüllt | erfüllt | erfüllt | erfüllt |
+| 2 | AK erfüllt, PO-Abnahme, Selbstprüfung am **installierten** Stand | **M1, M2** | **M1, M2** | **M1, M2** | erfüllt | **M1, M2** |
+| 3 | karpathy ohne `fail`; UI-Story zusätzlich UX ohne `fail` | erfüllt, **M3** | erfüllt | erfüllt | erfüllt | erfüllt |
+| 4 | SPEC/KONZEPT nachgezogen | erfüllt | erfüllt | erfüllt | erfüllt | erfüllt |
+| 5 | Commits; Issue geschlossen mit Commit-Verweis | **M5** | **M5, M6** | **M5** | **M5** | **M5** |
+| 6 | Journal-Eintrag der Session | **M7** | **M7** | **M7** | **M7** | **M7** |
+
+Doku-Abgleich nach B10: **M8** (README). SPEC, KONZEPT und Wireframes: kein
+Befund — ausdrücklich festgehalten, damit „geprüft, nichts gefunden" von
+„vergessen" unterscheidbar bleibt.
+
+### 13.2 DoD 1 — erfüllt, mit eigener Messung
+
+Ein **frisches, leeres** Build-Verzeichnis konfiguriert und vollständig gebaut
+(`CMAKE_BUILD_TYPE=Debug`, 12 Jobs): Rückgabewert 0, **null Warnungen** über
+alle elf Ziele. Das bestehende `build/` war aktuell und hätte nichts gezeigt —
+ein Neubau war nötig, um die Aussage überhaupt führen zu können.
+
+`ctest` mit `QT_QPA_PLATFORM=offscreen`: **7/7 grün** in 4,33 s.
+
+Geometrie-Zusicherungen nach B2, offscreen bei zwei Fenstergrößen —
+nachgezählt in `tests/librarytest.cpp`:
+`keepsTheHeaderAtTheTopAndTheRestForTheNotes_data` und
+`keepsTheMeasuresOfTheGroupedList_data` fahren je 900×600 und 1200×800;
+`bringsTheHeadOfTheNewGroupIntoView_data` fährt 900×600 und „so flach wie
+möglich" (900×150) — mit einer Begründung im Code, warum gerade die flachste
+Größe die härtere Prüfung ist. Die Datei ist von 983 auf **2040 Zeilen** und 67
+Testfunktionen gewachsen; der im Planning (3.4) benannte Umbau ist geleistet.
+
+### 13.3 DoD 2 — M1: der Prüfling war der falsche
+
+**M1 (schwer).** `/usr/bin/denkzetteld` datiert auf **01.08., 22:00** und
+entspricht dem Merge von #44 (`2c1654c`, 22:00). Gemessen an den Zeichenketten
+des Binärstands:
+
+| Merkmal | installiert (`/usr`) | frischer HEAD-Build |
+|---|---|---|
+| „Keine Treffer" (#8) | **fehlt** | vorhanden |
+| „trigram" (#8) | **fehlt** | vorhanden |
+| „Diese Woche" / „Letzte Woche" (#46) | **fehlt** | vorhanden |
+| „Älter" (#46) | **fehlt** | vorhanden |
+
+Damit steht fest: **Von den fünf Issues ist allein #44 am installierten Stand
+geprüft worden.** Für #46, #8, #9 und #54 kann keine Prüfung am installierten
+Stand stattgefunden haben — der installierte Stand kennt ihren Code nicht. Die
+Selbst-Sichtprüfungen liefen gegen die Build-Verzeichnisse der Worktrees.
+
+Das ist genau Risiko **6.4** dieses Planning („Es gibt nur ein `/usr`, aber drei
+Devs") und die Fehlerbauart von **Sprint-2-Befund 1**: der falsche Prüfling.
+Vorhergesehen, benannt, mit einer Vorkehrung versehen — und trotzdem
+eingetreten. Die Vorkehrung war eine Taktung durch den PO; sie wurde laut 12.5
+zunächst vergessen und dann nur für die Reihenfolge nachgeholt, nicht für die
+Frage, ob am Ende der aktuelle Stand installiert ist.
+
+*Einordnung, damit der Mangel die richtige Größe behält:* Die betroffenen
+Prüfungen sind fachlich nicht wertlos. Für offscreen-Bildläufe und
+Geometriemessungen ist der Installationspfad ohne Belang; B4 wurde für den
+Desktop- und D-Bus-Pfad gefasst (Autostart, Kürzel), den #46 und #8 nicht
+berühren. **Der Mangel ist trotzdem einer**, weil DoD 2 den Satz ohne Vorbehalt
+führt und die Gegenprobe fehlt: Ob die Bibliothek unter `/usr` startet und ihre
+Datenbank migriert, ist an keinem Punkt dieses Sprints gezeigt worden — und die
+Migration auf Schemaversion 2 ist die erste, die auf einen **Bestand** trifft.
+
+**Empfehlung an den PO:** HEAD nach `/usr` installieren und den Hauptweg
+einmal ausführen — Bibliothek öffnen, Gliederung sehen, „bucher" tippen. Das ist
+zugleich der Stand, den der Kunde für seine Sichtprüfung braucht.
+
+**M2.** Die Akzeptanzkriterien sind in **allen fünf Issues unangehakt**; #9 und
+#54 haben null Kommentare. Die Abnahme des PO existiert damit in der einzigen
+Quelle der Wahrheit nicht. Erfüllt ist dagegen der Nachweis nach B5 für #44: Der
+Rücklese-Beleg zu `ItemIsMenu` über D-Bus liegt als Issue-Kommentar vor.
+
+### 13.4 DoD 3 — erfüllt, aber der Beleg der Abnahme liegt außerhalb des Repos
+
+**karpathy-Review** über `59d0d3f..HEAD`: Gesamt `warn`, kein `fail` — die
+Bedingung ist erfüllt. Drei Befunde sind mit `e18630c` und `7787339` geheilt,
+der vierte ist als **#59** im Backlog (angelegt 23:44). Ein `warn` blockiert
+DoD 3 nicht.
+
+**UI-Review #46** durch `denkzettel-ux`: ein `fail` an AK 7, geheilt (`7bc24ae`),
+nachgeprüft, danach ein neuer `warn`, ebenfalls geheilt (`c1b43a9`), Abschlusslauf
+**alle elf Szenen `ok`**. Die Zugabe zu #8 (Trefferliste, Leerzustand): kein
+`fail`, kein `warn`. Vier Prüfakten mit eigenen Bildern des Reviewers — DoD 3 in
+der Fassung nach B3 ist damit geführt.
+
+**M3.** Der Beleg für die Abnahme liegt **unversioniert** im Arbeitsbaum: die 60
+Zeilen „Abschlusslauf nach der Heilung des `warn`" in
+`docs/scrum/reviews/sprint-03-s5a-ak7-nachpruefung.md` sind nicht committet, der
+zugehörige Bilderordner `nach-der-warn-heilung/` ist untracked. **Genau der
+Satz, auf dem die Erfüllung von DoD 3 ruht — „alle elf Szenen `ok`" —, steht
+nicht im Repository.** Das ist der Fall, den B7 verhindern soll, und der PO hat
+ihn um 23:30 selbst benannt („sie lagen unversioniert und wären mit den
+Worktrees verschwunden"); für den letzten Lauf ist er noch offen.
+
+**M4 (leicht).** Kein karpathy-Bericht als Datei unter `docs/scrum/reviews/`. In
+Sprint 2 wurden die Befunde wenigstens im Sprint-Protokoll ausgeschrieben (7.3);
+für Sprint 3 fehlt bis zu diesem Abschnitt beides. Die Befundlage ist hier
+festgehalten, der Bericht selbst bleibt ein fehlender Beleg.
+
+### 13.5 DoD 4 — erfüllt, und über das Geforderte hinaus
+
+Der stärkste Punkt dieses Sprints. Nachgelesen, nicht gemeldet bekommen:
+
+- **SPEC 6** trägt den Tokenizer-Wechsel, die zurückgenommene Präfix-Festlegung
+  (mit dem Messgrund: `"foto"` und `"foto"*` sind beim trigram identisch), die
+  Indexkosten (Faktor 6 bei 20 000 Notizen, 1,8 → 10,9 MiB), die ß-Grenze und
+  den `LIKE`-Weg für Begriffe unter drei Zeichen samt gemessener Kosten (3 ms)
+  **und dessen eigener Grenzen**.
+- **SPEC 5.1** hält die Bedingung fest, ohne die der Index still verwahrlost:
+  Die Trigger müssen FTS5 den **alten** Text mitgeben. Das ist ein
+  Musterbeispiel für DoD 4 in der Fassung nach **B9** — eine entdeckte
+  Bedingung, ohne die eine Festlegung nicht gilt, mit dem Zusatz, dass weder ein
+  Fehler noch `integrity-check` sie anzeigen würde.
+- **SPEC 9** trägt die Gliederung samt Locale-Regel, **SPEC 10** den Linksklick
+  mit dem ausdrücklichen Vermerk „bei HIG- oder UI-Reviews kein Befund".
+- **Wireframes** nachgezogen: 3a/3b überarbeitet, 4a/4b neu, der Zustand „Keine
+  Treffer" gezeichnet. Damit ist die im Planning (4.2) benannte Lücke — ein
+  sichtbarer Anteil ohne Referenz, das Verdikt-Muster von S8 in Sprint 2 —
+  nachträglich geschlossen, obwohl der PO den Weg „textlich im AK" gewählt hatte.
+- **KONZEPT.md**: keine Änderung nötig, es ist Entscheidungshistorie.
+
+### 13.6 DoD 5 — M5: kein einziges Issue ist geschlossen
+
+**M5.** Milestone „Sprint 3": **fünf offen, null geschlossen**. Kein Issue trägt
+einen Commit-Verweis. DoD 5 verlangt beides. Der Punkt ist zum Prüfzeitpunkt
+schlicht noch nicht abgearbeitet — der Reihenfolge nach gehört er hinter die
+Kundenabnahme, aber er ist Teil der DoD und wird deshalb als offen geführt.
+
+**M6.** #8 widerspricht sich selbst: Der Kopf trägt weiterhin „**Schätzung:**
+3 SP" und „Tokenizer `unicode61 remove_diacritics 2`", während das Label `sp:5`
+steht und `trigram` umgesetzt ist. Dasselbe Muster hat dieses Planning in
+Abschnitt 1 schon einmal gerügt (Labels gegen Issue-Text). Da Issues die einzige
+Quelle der Wahrheit sind, ist ein Widerspruch dort teurer als anderswo.
+
+Die Commits selbst sind in Ordnung: 33 seit `59d0d3f`, sprechende Betreffzeilen,
+Issue-Verweis durchgehend.
+
+*Hinweis, kein DoD-Punkt:* `main` steht **33 Commits vor `origin/main`**. Der
+Push ist seit Sprint 2 offen (7.3) und war dort für den Sprintstart empfohlen.
+
+### 13.7 DoD 6 — M7: der Sprint ist bis 23:32 protokolliert
+
+Vault-Pfad dynamisch aufgelöst; `Journal/Daily/2026/2026-08-01.md` trägt
+`## Claude Code Protokoll` als letzten Abschnitt, chronologisch sortiert, mit
+den Pflichtfeldern je Eintrag. Der Sprint ist in drei Einträgen erfasst (22:17,
+22:51, 23:32), inhaltlich dicht und selbstkritisch.
+
+**M7.** Die Arbeit **nach 23:32** fehlt: fünf Commits zwischen 23:33 und 23:50 —
+der Wayland-Nachweis zu #54, der Merge von #54, der Retro-Punkt zur Sichtbarkeit
+des Repositories, die Heilung der drei karpathy-Befunde und ihr Merge. Der letzte
+Eintrag steht auf „In Arbeit" und trägt zusätzlich eine zweite Statuszeile
+„Abgeschlossen"; beides gehört bereinigt.
+
+### 13.8 Doku-Abgleich nach B10 — M8: der README behauptet den Stand von gestern
+
+**M8.** `README.md:7` lautet: *„Status: In Entwicklung — Daemon mit Tray,
+Capture-Fenster, globales Kürzel, Autostart und Bibliotheksfenster sind gebaut
+(Sprint 2 in der Kundenabnahme)."* Eine Suche über den ganzen README nach
+`suche|volltext|posteingang|gliederung|gruppe` liefert **null Treffer**. Die
+Volltextsuche — das halbe Sprint-Ziel — kommt an keiner Stelle vor, die
+Posteingangs-Gliederung ebenso wenig.
+
+Das ist die erste Anwendung von B10, und sie schlägt sofort an. Bemerkenswert
+ist die Richtung des Fehlers: Die **innere** Dokumentation (SPEC, Wireframes) ist
+vorbildlich nachgezogen, die **äußere** — die einzige, die ein Fremder liest —
+steht auf dem Stand von gestern. Das Repository ist öffentlich (12.6).
+
+Kein Befund bei SPEC, KONZEPT und Wireframes (13.5). `docs/` enthält
+ausschließlich Prozessdokumente; eine Nutzerdokumentation, die abweichen könnte,
+existiert nicht.
+
+### 13.9 Impediment I5 — geschlossen
+
+Geprüft nach dem **vorab in Abschnitt 8 festgelegten** Kriterium, damit „ohne
+Vorfall" nicht Ermessenssache ist. Alle vier Prüfungen schlagen **nicht** an:
+
+1. **Fremde Dateien im Story-Commit — nein.** Jeder der elf Produktivcode-Commits
+   trägt genau die Dateimenge seiner Story aus 2.1: #46 in `src/ui/*` +
+   `librarytest`, #8/#9 in `src/store/*` + `storetest`, #44 in `src/shell/*` +
+   `shelltest`, #54 in `src/capture/*` + `capturetest`. *Ein Grenzfall:*
+   `7787339` trägt die Betreffzeile „(#46)", ändert aber auch
+   `tests/searchshots.cpp` und `tests/storetest.cpp`. Das ist die
+   Sprint-Ende-Heilung **nach** allen Merges, keine Parallelarbeit — kein
+   Vorfall, aber die Betreffzeile nennt nur eine der berührten Stories.
+2. **`--amend` auf fremde oder gepushte Commits — nein.** Im Haupt-Reflog
+   stammen alle `amend`-, `rebase`- und `reset`-Einträge vom 31.07. und vom
+   01.08. um 00:04, also aus Sprint 1 und 2; Sprint 3 begann um 22:00. Die vier
+   Worktree-Reflogs (`.git/worktrees/*/logs/HEAD`) enthalten je genau einen
+   Eintrag `reset: moving to HEAD` — ein Nulleffekt ohne Änderungsverlust.
+3. **Beim Merge verlorene Änderungen — nein.** Alle acht Merges haben einen
+   **leeren** kombinierten Diff: keine Konfliktauflösung von Hand, also keine
+   Stelle, an der etwas hätte verlorengehen können. `git log main..<branch>` ist
+   für alle vier Story-Branches leer — nichts ist liegengeblieben.
+4. **`git add -A`-Signatur — nein.** Im gesamten Sprint-Diff kein Treffer auf
+   `.claude/`, `settings.json`, Build-Artefakte oder Cache-Dateien.
+
+**Entscheidung des Scrum Masters: I5 wird geschlossen.** Vier Agenten, vier
+Worktrees, 33 Commits, acht Merges, keine Kollision. Die Bedingung aus Sprint-02,
+9.7 („bis ein Sprint mit mehreren Dev-Agenten ohne Vorfall gelaufen ist") ist
+erfüllt, und zwar nach einem Maßstab, der vor dem Sprint feststand.
+
+*Grenze der Aussage, benannt statt verschwiegen:* Geschlossen ist das
+Impediment „Git-Hygiene". Die Parallelarbeit hat zwei **andere** Risiken erzeugt,
+die es ohne sie nicht gäbe — die Kollision am einen `/usr`-Präfix, die in M1
+tatsächlich eingetreten ist, und der gleichzeitige Zugriff zweier UX-Agenten auf
+die Wireframe-Datei. Beide sind keine Git-Fragen und gehören in die Retro
+(12.5), nicht in I5. Dazu die ungeschützte Lage der Worktrees im Repo (12.8).
+
+**Impediment I4 — ebenfalls geschlossen.** #46 ist die erste UI-Story, die die
+Kette aus B2 (Geometrie-Zusicherungen) und B3 (UI-Review mit eigener
+Bildprüfung) vollständig durchlaufen hat, und sie hat sie nicht nur durchlaufen,
+sondern belastbar gemacht: Der `fail` an AK 7 wurde durch die eigene Bildprüfung
+des Reviewers gefunden, nicht durch Tests. Damit ist die Bedingung aus
+Sprint-02, 9.7 erfüllt. **I1** (Werkzeugkette, betrifft M3/M4) bleibt offen; in
+diesem Sprint war keine Story berührt.
+
+### 13.10 Sprint-Umfang — die Punktzahl hält, die Story-Zahl nicht
+
+Klar beantwortet, weil danach gefragt wurde:
+
+- **Die SP-Grenze ist gehalten.** 5 + 5 + 1 + 1 + 1 = **13 SP**, PROZESS.md sagt
+  „max. ~13". Die Labels decken sich mit dieser Zählung. **Kein Mangel.**
+- **Die Story-Grenze ist gerissen.** PROZESS.md sagt „2–4 Stories", der Sprint
+  hat **fünf** Issues. **Mangel gegen die Sprint-Mechanik** — formal, nicht
+  fachlich.
+
+Fachlich war jeder der drei Zugänge einzeln begründet, und der zeitgebundene
+(Wortteil-Suche im noch nicht abgelieferten Tokenizer) war die billigste
+verfügbare Reihenfolge; ihn zu verschieben hätte eine zweite Migration samt Test
+gekostet. Auch die Aufwertung von #8 auf 5 SP ist keine Ausweitung, sondern eine
+Korrektur der Schätzung an gemessenem Mehraufwand — sie gehört ausdrücklich
+gemeldet und nicht versteckt.
+
+Was fehlt, ist die Regel, an der auffällt, dass die Summe eine Grenze passiert,
+die niemand für sich beansprucht. Siehe 12.7: Die Punktzahl wurde bei jedem
+Zugang mitgezählt, die Zahl der Issues nicht. **Retro-Thema, nicht Sprint-Thema.**
+
+### 13.11 Sprint-Ziel — zwei Teile erreicht, der dritte wartet auf den Kunden
+
+> „Die Bibliothek liest sich wie ein Posteingang, das Suchfeld findet Notizen im
+> Volltext samt Umlaut-Toleranz, und ein Linksklick auf das Tray-Icon öffnet das
+> Menü."
+
+1. **Posteingang — erreicht.** Am Bild geprüft, nicht am Bericht
+   (`docs/scrum/reviews/s5a-posteingang/01-normalfall.png`): Die Gruppen stehen
+   in der festgelegten Reihenfolge, jeder Eintrag trägt Betreff und gedämpfte
+   Vorschau, der Zeitstempel folgt seiner Gruppe („14:32" unter Heute, „Di., 28.
+   Juli" unter Diese Woche, „10.07.2026" unter Älter). Ob sie sich *liest* wie
+   ein Posteingang, bleibt Kundensache — im Planning (5.2) vorab so benannt.
+2. **Volltextsuche samt Umlaut-Toleranz — erreicht und erweitert.** Die
+   Zusicherungen stehen und laufen grün:
+   `searchFindsWordsSpelledWithoutUmlauts` („bucher" → „Bücher"),
+   `searchMatchesAnyPartOfAWord` („grafieren" → „fotografieren"),
+   `searchFindsTermsShorterThanThreeCharacters` („KI", auch klein geschrieben),
+   `keepsSearchIndexInSync`. Der Migrationstest #9 prüft eine echte Bestands-DB
+   von Schemaversion 1 auf 2 und sucht danach „bucher" im migrierten Bestand.
+3. **Tray-Linksklick — technisch belegt, Klick offen.** Der Rücklese-Beleg zu
+   `ItemIsMenu` liegt an #44, der Test greift. Der Klick am Panel ist im Planning
+   (5.1) vorab als Kundensache benannt. Nach DoD 2 in der Fassung nach B5 —
+   *„Eine im Bericht benannte Grenze der Prüfbarkeit schließt die Story nicht"* —
+   ist das **kein Mangel**, sondern der vorgesehene Weg.
+
+**Urteil: Das Sprint-Ziel ist erreicht, soweit es ohne den Kunden feststellbar
+ist.** Beide von Agenten prüfbaren Teile sind belegt; der dritte ist vorbereitet
+und liegt beim Kunden — zusammen mit der Frage, ob sich die Liste liest wie ein
+Posteingang, für die die Story gebaut wurde.
+
+### 13.12 Mängelliste zur Entscheidung durch den PO
+
+Melden, nicht heilen — nichts davon ist vom Scrum Master angefasst worden.
+
+| # | Mangel | Schwere | Betrifft |
+|---|---|---|---|
+| **M1** | Installierter Stand (`/usr`, 22:00) trägt nur #44; #46, #8, #9, #54 sind nie am installierten Stand geprüft | **schwer** | DoD 2 |
+| **M2** | AK-Haken und PO-Abnahme fehlen in allen fünf Issues; #9 und #54 ohne jeden Kommentar | mittel | DoD 2 |
+| **M3** | Der Beleg der DoD-3-Erfüllung (Abschlusslauf, alle elf Szenen `ok`) liegt unversioniert im Arbeitsbaum | mittel | DoD 3 / B7 |
+| **M4** | Kein karpathy-Bericht als Beleg im Repo | leicht | DoD 3 / B7 |
+| **M5** | Kein Sprint-Issue geschlossen, kein Commit-Verweis (5 offen, 0 geschlossen) | mittel | DoD 5 |
+| **M6** | #8 widerspricht sich: Kopf „3 SP" und `unicode61` gegen Label `sp:5` und umgesetztes `trigram` | leicht | DoD 5 |
+| **M7** | Journal endet bei 23:32; fünf Commits danach unprotokolliert, letzter Eintrag mit zwei Statuszeilen | leicht | DoD 6 |
+| **M8** | README behauptet den Sprint-2-Stand; Suche und Gliederung kommen nicht vor | mittel | B10 |
+| **M9** | Fünf Issues statt „2–4 Stories" (13.10) | formal | Sprint-Mechanik |
+
+**Empfohlene Reihenfolge:** M3 sofort (der Beleg kann verlorengehen, alles
+andere kann warten) → M1 (der Kunde braucht den installierten Stand ohnehin für
+seine Sichtprüfung) → M8, M6 → nach der Kundenabnahme M2 und M5 → M7 zum
+Sitzungsende. M4 und M9 sind Retro-Stoff.
+
+### 13.13 done / next
+
+**done:** DoD-Prüfung über fünf Issues gegen den tatsächlichen Stand geführt —
+frischer Build (0 Warnungen) und `ctest` (7/7) selbst gemessen statt übernommen,
+der installierte Stand am Binärinhalt gegen HEAD gehalten, Geometrie-Zusicherungen
+und Suchtests am Testcode nachgezählt, die Gliederung am Bild geprüft, SPEC und
+Wireframes gegen die Lieferung gelesen, Issue-Stand und Milestone über `gh`
+abgefragt, Journal im Vault über den dynamisch aufgelösten Pfad geprüft. **Acht
+Mängel** benannt, einer davon schwer (M1: der falsche Prüfling, vorhergesehen als
+Risiko 6.4 und trotzdem eingetreten), dazu ein formaler (M9). **I5 nach dem vorab
+festgelegten Vier-Punkte-Kriterium geprüft und geschlossen**, ebenso **I4**;
+Sprint-Ziel in zwei von drei Teilen als erreicht belegt, der dritte liegt
+vorbereitet beim Kunden. Zwei Retro-Beobachtungen ergänzt (12.7 Story-Grenze,
+12.8 Worktrees ohne `.gitignore`-Schutz).
+
+**next:** (1) PO entscheidet über die neun Mängel in der empfohlenen Reihenfolge;
+M3 ist eilig, weil ein unversionierter Beleg mit dem Arbeitsbaum verschwindet.
+(2) Kundenabnahme am **installierten** Stand: Tray-Linksklick, Gliederung,
+Suchprobe. (3) Danach Issues schließen, Milestone schließen, Push (33 Commits).
+(4) **Reguläre Retrospektive nach Sprint 3** — die Kadenz aus PROZESS.md; die
+Retro vom 01.08. war eine vom Kunden angeordnete Vorziehung und ersetzt sie
+nicht. Vorbereitetes Material: Abschnitt 12 mit acht Beobachtungen, die neun
+Mängel dieser Prüfung, die beiden geschlossenen Impedimente.
