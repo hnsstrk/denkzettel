@@ -4,7 +4,7 @@ Ein flüchtiger Scratchpad für KDE Plasma — ein Tastendruck hin, ein Tastendr
 
 Ein durchgehender Puffer statt vieler Dateien: kein Dateiname, kein Speichern-Dialog, keine Ablage-Entscheidung. Gedanken beim Arbeiten und Testen festhalten; was wichtig wird, wandert von Hand ins Hauptbuch (den Obsidian-Vault).
 
-**Status:** In Entwicklung — Daemon mit Tray, Capture-Fenster, globales Kürzel, Autostart und Bibliotheksfenster sind gebaut (Meilensteine M1/M2, Sprint 2 in der Kundenabnahme).
+**Status:** In Entwicklung — Daemon mit Tray, Capture-Fenster, globales Kürzel, Autostart und Bibliotheksfenster sind gebaut (Sprint 2 in der Kundenabnahme).
 
 ## Linter
 
