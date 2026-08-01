@@ -293,6 +293,32 @@ void LibraryWindow::showLibrary()
     }
 }
 
+void LibraryWindow::setReferenceTime(const QDateTime &now)
+{
+    // Setting it alone changes nothing on screen: the list takes it up the
+    // next time it is rebuilt or the window is activated, exactly like the
+    // clock the running application reads (wireframe 3b).
+    m_referenceTime = now;
+}
+
+QDateTime LibraryWindow::referenceTime() const
+{
+    return m_referenceTime.isValid() ? m_referenceTime : QDateTime::currentDateTime();
+}
+
+void LibraryWindow::changeEvent(QEvent *event)
+{
+    // The grouping is worked out whenever the list is rebuilt and whenever the
+    // window is activated — there is no midnight timer (wireframe 3b). A
+    // window left standing over night sorts itself anew at the next look, not
+    // on its own.
+    if (event->type() == QEvent::ActivationChange && isActiveWindow()) {
+        regroupList();
+    }
+
+    QWidget::changeEvent(event);
+}
+
 void LibraryWindow::closeEvent(QCloseEvent *event)
 {
     // SPEC 9: the grace period ends with the window — a deletion the user
@@ -310,11 +336,12 @@ void LibraryWindow::closeEvent(QCloseEvent *event)
 void LibraryWindow::reload(Selection selection)
 {
     // The selection follows the note by its id, not by its row: notes written
-    // while the library stood open take the rows above it.
+    // while the library stood open take the rows above it, and a new group
+    // brings a head row along with them.
     const qint64 selected =
         selection == Selection::Keep ? m_model->noteAt(m_list->currentIndex().row()).id : -1;
 
-    m_model->setNotes(m_store->notes());
+    m_model->setNotes(m_store->notes(), referenceTime());
 
     // Saying the empty selection explicitly also stops QAbstractItemView from
     // picking the first entry on its own the moment the list takes the focus.
@@ -324,9 +351,21 @@ void LibraryWindow::reload(Selection selection)
     updatePages();
 }
 
+void LibraryWindow::regroupList()
+{
+    const qint64 selected = m_model->noteAt(m_list->currentIndex().row()).id;
+
+    m_model->regroup(referenceTime());
+
+    const int row = m_model->rowOf(selected);
+    m_list->setCurrentIndex(row >= 0 ? m_model->index(row) : QModelIndex());
+
+    updatePages();
+}
+
 void LibraryWindow::updatePages()
 {
-    const bool hasNotes = m_model->rowCount() > 0;
+    const bool hasNotes = m_model->noteCount() > 0;
     m_listPages->setCurrentWidget(hasNotes ? static_cast<QWidget *>(m_list) : m_emptyLibraryPage);
 
     if (!hasNotes) {
@@ -343,8 +382,19 @@ void LibraryWindow::showNote(const QModelIndex &index)
     m_deleteAction->setEnabled(index.isValid());
 
     if (index.isValid()) {
+        // Sits the note right under a head, it is the first of its group: the
+        // head comes into view first, then the note itself. Scrolling to the
+        // note last is what keeps it whole rather than cut off at the edge,
+        // and the head above it stays in the picture (wireframe 3b, case 4).
+        const int row = index.row();
+        if (row > 0 && m_model->index(row - 1).data(NoteListModel::GroupHeaderRole).toBool()) {
+            m_list->scrollTo(m_model->index(row - 1), QAbstractItemView::EnsureVisible);
+        }
+        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+
         const Note note = m_model->noteAt(index.row());
-        m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QDateTime::currentDateTime(), QLocale()));
+        // The detail pane stands under no head and keeps the full timestamp.
+        m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, referenceTime(), QLocale()));
         // Setting the same text again would send the reader back to its first
         // line; a reload of the open window leaves the reader where it was.
         if (m_detailText->toPlainText() != note.content) {
@@ -358,21 +408,25 @@ void LibraryWindow::showNote(const QModelIndex &index)
 void LibraryWindow::deleteCurrentNote()
 {
     const QModelIndex current = m_list->currentIndex();
-    if (!current.isValid()) {
+    // A group head carries no note; the selection never lands on one, and Entf
+    // finds nothing to delete there (wireframe 3b).
+    const int index = current.isValid() ? m_model->noteIndexAt(current.row()) : -1;
+    if (index < 0) {
         return;
     }
 
-    m_deletedRow = current.row();
-    m_deletedNote = m_model->noteAt(m_deletedRow);
+    m_deletedIndex = index;
+    m_deletedNote = m_model->noteAt(current.row());
 
     m_deletion->request(m_deletedNote.id);
-    m_model->takeRow(m_deletedRow);
+    m_model->takeNote(m_deletedIndex);
 
-    // The selection moves on to the following entry, to the preceding one if
-    // there is none (wireframe 2c).
-    const int remaining = m_model->rowCount();
+    // The selection moves on to the following note, to the preceding one if
+    // there is none (wireframe 2c) — counted in notes, so it never lands on a
+    // head, whether or not the deletion took one with it.
+    const int remaining = m_model->noteCount();
     if (remaining > 0) {
-        m_list->setCurrentIndex(m_model->index(qMin(m_deletedRow, remaining - 1)));
+        m_list->setCurrentIndex(m_model->index(m_model->rowOfNote(qMin(m_deletedIndex, remaining - 1))));
     }
 
     updatePages();
@@ -380,8 +434,10 @@ void LibraryWindow::deleteCurrentNote()
 
 void LibraryWindow::undoDeletion()
 {
-    m_model->insertNote(m_deletedRow, m_deletedNote);
-    m_list->setCurrentIndex(m_model->index(m_deletedRow));
+    // The note comes back where it was — and its group head with it, if the
+    // deletion had emptied the group.
+    m_model->insertNote(m_deletedIndex, m_deletedNote);
+    m_list->setCurrentIndex(m_model->index(m_model->rowOfNote(m_deletedIndex)));
 
     m_undoAction->setEnabled(false);
     m_message->animatedHide();

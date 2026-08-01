@@ -41,6 +41,17 @@ TrayIcon::TrayIcon(QObject *parent)
     m_item->setToolTipSubTitle(i18n("Gedanken schnell festhalten"));
     m_item->setStandardActionsEnabled(false);
     m_item->setContextMenu(buildMenu());
+    // The left click is to open the same menu as the right one (issue #44,
+    // customer decision of 01.08.2026, deliberately unlike the KDE default).
+    // ItemIsMenu has no change signal in the SNI protocol — the host reads it
+    // when the item registers and never asks again, so it belongs here among
+    // the other properties and not to some later moment.
+    m_item->setIsMenu(true);
+}
+
+const KStatusNotifierItem *TrayIcon::item() const
+{
+    return m_item;
 }
 
 QMenu *TrayIcon::buildMenu()

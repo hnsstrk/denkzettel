@@ -1157,6 +1157,13 @@ Nachziehen nicht, weshalb beide Male nur ein nachgemeldeter Mangel blieb. Die
 Wiederholung derselben Mangelbauart in zwei aufeinanderfolgenden Sprints ist der
 Beleg, dass der Wortlaut und nicht die Sorgfalt die Lücke ließ.
 *Geändert:* `docs/scrum/PROZESS.md` (DoD 4).
+*Präzisiert am 01.08.2026 nach karpathy-Befund (siehe 9.8, Punkt 5):* Der
+Beschluss bleibt, sein Wortlaut in der DoD ist geschärft — „oder eine Bedingung
+entdeckt, **ohne die eine Festlegung nicht gilt**", dazu die Bauart-Beispiele
+aus dieser Begründung. Der Grund: Ohne diese Eingrenzung war im Regeltext nicht
+zu erkennen, was als Bedingung zählt; der Punkt wäre erst im Nachhinein über das
+Ermessen des Scrum Masters prüfbar gewesen — und genau daran hängt sich eine
+Abnahme auf.
 
 **B10 — Doku-Abgleich als fester Bestandteil der Sprint-Ende-Prüfung.**
 Der Scrum Master prüft am Sprint-Ende, ob README und `docs/` den gelieferten
@@ -1169,6 +1176,11 @@ je jemanden gezwungen hineinzusehen: DoD 4 deckt SPEC und KONZEPT ab, die
 übrigen Punkte Code, Review, Commit und Journal — die Projektbeschreibung selbst
 kam in der Prüfkette nicht vor. Die Korrektur hat der PO parallel ausgeführt
 (`c38a8fa`); vom Scrum Master am neuen Wortlaut nachgeprüft.
+*Grenze dieser Nachprüfung, nachgetragen am 01.08.2026:* Sie ließ die Klammer
+„Meilensteine M1/M2" stehen, obwohl M2 mit Volltextsuche und Bearbeiten-Ansicht
+zwei ungebaute Stories enthält — aufgedeckt hat das erst ein karpathy-Befund,
+korrigiert mit `4907213`. Der Doku-Abgleich reicht nur so weit, wie der Prüfende
+den Soll-Stand kennt.
 *Geändert:* `docs/scrum/PROZESS.md` (Satz unter der DoD-Liste).
 
 **Nicht beschlossen:** Quellcode-Änderungen. Die Heilung der Befunde 1 und 2 ist
@@ -1426,10 +1438,23 @@ steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nach
   Rang 3 und 4**: Ein Verzeichnis `.claude/skills/` existiert weiterhin nicht,
   der Screenshot-Helfer ist also kein Projekt-Skill, sondern lebt in den
   Sitzungen; der AT-SPI-Prüfauftrag bleibt vor M3 fällig.
-- **(5) karpathy-Review der Prozess-Artefakte — teils erledigt.** Der Review
-  über `894baef` lief mit Gesamt `warn`, kein `fail`; seine fünf Befunde sind
-  mit `9bd5b4d` geheilt. Für den Nachtrag `038cdfb` (B9, B10) steht er aus.
-  Sprint-3-Planning weiterhin danach.
+- **(5) karpathy-Review der Prozess-Artefakte — erledigt (01.08.2026, 19:56).**
+  Der Review über `894baef` lief mit Gesamt `warn`, kein `fail`; seine fünf
+  Befunde sind mit `9bd5b4d` geheilt. Der Nachtrag `038cdfb` (B9, B10) ist
+  nachgeholt und kommt auf dieselbe Note: Gesamt `warn`, kein `fail`. Alle vier
+  Belege der Begründungen (Sprint-1-M2, Sprint-2-M2, README-Zeile 7, `c38a8fa`)
+  hat der Reviewer unabhängig nachgeprüft und bestätigt gefunden; zwei
+  Schwächen des Ursprungsstands waren durch `a8ae153` bereits geheilt — die
+  irreführende Intro-Formulierung in 9.5 und die fehlende Berichtspflicht bei
+  Befundfreiheit, ohne die „geprüft, nichts gefunden" nicht von „vergessen" zu
+  unterscheiden gewesen wäre. Der `warn` galt DoD 4: „oder eine neue Bedingung
+  entdeckt" ließ im Regeltext offen, was als Bedingung zählt — prüfbar erst im
+  Nachhinein über das Ermessen des Scrum Masters. Geheilt mit diesem Commit
+  (Halbsatz „ohne die eine Festlegung nicht gilt" plus Bauart-Verweis in
+  `PROZESS.md`, DoD 4), ebenso zwei Nebenbefunde: die seit vier Änderungen
+  veraltete Stand-Zeile in `PROZESS.md` und die oben in 9.5 nachgetragene
+  Grenze der B10-Nachprüfung. **Sprint-3-Planning ist hierdurch nicht mehr
+  aufgehalten.**
 - **Journal (DoD 6) — erledigt.** Der Eintrag von 01:12 steht zwar
   unverändert auf „In Arbeit (DoD-Prüfung läuft)", ist aber durch den
   Folgeeintrag 01:38 („DoD-Prüfung abgeschlossen, Sprint 2 abnahmereif")
@@ -1443,3 +1468,49 @@ steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nach
 - **Unverändert Backlog-Material:** #44 (Tray-Linksklick ohne Wirkung, aus der
   Abnahme) und #11 (S8) hängen an keinem Milestone und gehören ins
   Sprint-3-Planning.
+
+## 10. Abnahme und Sprint-Abschluss (01.08.2026)
+
+**Sprint 2 ist vollständig abgenommen und geschlossen.** Die Abnahme lief in
+zwei Etappen, weil T2 einen zweiten Anmeldezyklus verlangte.
+
+| Story | Abnahme | Beleg |
+|---|---|---|
+| S4 (#5) | 01.08., 13:20 | Kundensichtprüfung am installierten Stand bestanden |
+| S5 (#7) | 01.08., 13:20 | dieselbe Sichtprüfung |
+| T2 (#6) | 01.08., 21:30 | drei Punkte, davon zwei vom PO gemessen, Punkt 8 vom Kunden sichtgeprüft |
+
+**Die drei T2-Punkte im Einzelnen** (7.4, Punkte 6–8): Der Autostart-Eintrag
+liegt unter `/etc/xdg/autostart/` und ist inhaltlich identisch mit der
+Repo-Fassung, zusätzlich durch `tests/installtest.cmake` abgesichert (Punkt 6,
+PO). Der Dienst startet mit der Sitzung — Sitzungsbeginn 18:57:08,
+`/usr/bin/denkzetteld` 18:57:12, also vier Sekunden später ohne Zutun; ein
+echter Anmeldezyklus nach der Installation (Punkt 7, PO). Die Abschaltbarkeit
+im Plasma-Autostart-Modul hat der Kunde geprüft und bestätigt (Punkt 8).
+
+**Alle drei Mängel aus 7.5 sind erledigt**, am Repository nachgeprüft:
+
+- **M1** (Issues offen, DoD 5): #5, #6 und #7 geschlossen, Milestone „Sprint 2"
+  geschlossen. Der Mangel war Zeitpunkt-, nicht Sorgfaltsfrage — er entstand
+  dadurch, dass die DoD-Prüfung vor der Abnahme lief.
+- **M2** (Präfix-Bedingung, DoD 4): steht als Halbsatz mit Begründung in
+  `SPEC.md:453`.
+- **M3** (irreführender Testkommentar): entfernt; über
+  `carriesOutTheDeletionWhenTheApplicationQuits` steht jetzt nur noch der
+  zutreffende Hinweis auf `aboutToQuit`.
+
+**Nachträglich sichtbar gewordene Lücke, die dieser Sprint nicht bemerkt
+hat.** Beim Grooming am selben Abend fiel auf, dass die Zeitstempel-Regel
+„innerhalb der letzten sieben Tage die Wochentagsform" **nie in der SPEC
+stand** — sie lebte im Wireframe und in `src/ui/timestampformat.cpp:11`. Sie
+wurde in Sprint 2 gebaut und abgenommen, ohne dass ein DoD-Punkt jemanden
+gezwungen hätte hineinzusehen. Mit `1a308d3` ist SPEC 9 nachgezogen. Das ist
+der erste Anwendungsfall der an diesem Tag geschärften DoD 4 (B9) — und ein
+Beleg dafür, dass die Schärfung nötig war: Der alte Wortlaut hätte diese
+Lücke nicht erfasst, weil nichts *geändert* wurde, sondern etwas von Anfang an
+fehlte.
+
+**Sprint-Ziel erreicht.** Das Ziel lautete, Meilenstein M1 abzuschließen und
+die Bibliothek als ersten M2-Baustein sichtbar zu machen. Beides ist
+abgenommen; M2 selbst ist damit begonnen, nicht erreicht — Volltextsuche,
+Suchoperatoren und Bearbeiten-Ansicht stehen aus und gehen nach Sprint 3.
