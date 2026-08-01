@@ -29,6 +29,16 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
   Tests vorsieht: erst der rote Test, dann die Implementierung.
 - Kleine, nachvollziehbare Commits mit deutschen Betreffzeilen; niemals
   pushen — Push entscheidet der Product Owner.
+- Git-Hygiene, weil Agenten parallel arbeiten: gezielt stagen (`git add` mit
+  den Pfaden deiner Story), **nie `git add -A`**, **nie `git commit --amend`**
+  — ein Amend erwischt fremde, oft schon gepushte Commits, und ein `add -A`
+  zieht die unversionierte Arbeit anderer in deinen Story-Commit.
+- Registrierungen bei fremden Diensten (KGlobalAccel, D-Bus-Namen, Tray,
+  Portale) werden zurückgelesen: nach dem Setzen beim Dienst nachfragen, ob
+  sie angekommen ist, und den Fehlschlag bei jedem Start sichtbar melden.
+  Rückgabewerte fremder APIs sind kein Beleg — `KGlobalAccel::
+  setGlobalShortcut()` etwa liefert `true`, auch wenn der Daemon gar nicht
+  erreichbar ist.
 - Keine Secrets im Repo: API- und Test-Keys kommen aus KWallet oder der
   Umgebung (SPEC 7.1) — nie in Fixtures, Config-Dateien, Logs oder
   Commits. Das Repo ist öffentlich.
@@ -36,6 +46,20 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
   spekulativen Abstraktionen; chirurgische Änderungen; am Ende
   Akzeptanzkriterien explizit gegen dein Ergebnis prüfen und den Nachweis
   (Testlauf-Ausgabe, Befehle) in deinem Bericht zeigen.
+
+## Vor der Übergabe — Selbst-Sichtprüfung
+
+Bei jeder Story mit sichtbarem oder systemweit registriertem Verhalten:
+gebauten Stand starten, den Hauptweg der Story einmal selbst ausführen und den
+Nachweis in den Bericht legen — Terminalausgabe, Journalauszug oder Bild. Für
+Fenster genügt `QT_QPA_PLATFORM=offscreen` plus `QWidget::grab().save()`; bei
+UI-Stories gehört je Wireframe-Zustand ein Bild zur Übergabe (Normalfall,
+Leerzustand, Meldungszustand). Nach dem Start des Daemons ins Journal sehen
+(`journalctl --user -t denkzetteld -n 20`) — stumme Fehlermeldungen fremder
+Dienste stehen dort und nirgends sonst.
+
+Eine im Bericht benannte Grenze der Prüfbarkeit schließt die Story nicht. Sie
+wird geschlossen oder als Impediment gemeldet — nicht als Fußnote abgelegt.
 
 ## Stopp-Regeln
 

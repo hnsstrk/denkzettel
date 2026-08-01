@@ -45,6 +45,10 @@ PO aus.
 - **Sprint**: GitHub Milestone `Sprint N` mit den gezogenen Issues.
 - **Protokolle**: `docs/scrum/sprints/sprint-NN.md` (Planning, Review,
   ggf. Retro) — je Sprint eine Datei, angelegt beim Planning.
+- **Belege**: UI-Review-Berichte samt geprüften Bildern unter
+  `docs/scrum/reviews/`, Retro-Stellungnahmen und Messbelege unter
+  `docs/scrum/retro/sprint-NN/`. Sitzungs-Scratchpads sind flüchtig; was ein
+  Protokoll behauptet, liegt im Repo (Retro Sprint 2, B7).
 - **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
   Entscheidungen), `wireframes/` (UI-Referenz; Spiegel im
   Claude-Design-Projekt „Denkzettel" auf claude.ai/design, Sync durch den
@@ -71,13 +75,27 @@ PO aus.
 ## Definition of Done (je Story)
 
 1. Code kompiliert warnungsarm; neue Logik hat Unit-/Integrationstests, alle
-   Tests grün (auf Ganymed).
-2. Akzeptanzkriterien des Issues erfüllt und vom PO abgenommen.
+   Tests grün (auf Ganymed). Jede Aussage des Wireframes über die
+   Raumaufteilung einer Ansicht ist als Geometrie-Zusicherung im Test
+   festgehalten, geprüft bei zwei Fenstergrößen (offscreen genügt).
+2. Akzeptanzkriterien des Issues erfüllt und vom PO abgenommen. Vor der
+   Übergabe hat der Entwickler den gebauten Stand selbst gestartet, den
+   Hauptweg der Story einmal ausgeführt und den Nachweis in den Bericht
+   gelegt (Terminalausgabe, Journalauszug oder Bild). Geprüft wird der
+   installierte Stand (`-DCMAKE_INSTALL_PREFIX=/usr`), nicht das
+   Build-Verzeichnis. Eine im Bericht benannte Grenze der Prüfbarkeit
+   schließt die Story nicht — sie wird geschlossen oder als Impediment
+   eskaliert.
 3. karpathy-reviewer-Durchgang ohne offene `fail`-Befunde
    (Sprint-Ende-Review über den Sprint-Diff genügt, Einzel-Review bei
    riskanten Stories). UI-Stories zusätzlich: UI-Review durch
    `denkzettel-ux` ohne offene `fail`-Befunde — welche Stories UI-Stories
    sind, legt der PO beim Planning fest (Kundenentscheidung 31.07.2026).
+   **Der UI-Review ist ohne Bild nicht geführt**: Der Entwickler legt je
+   UI-Story einen Screenshot pro Wireframe-Zustand bei (Normalfall,
+   Leerzustand, Meldungszustand), `denkzettel-ux` erzeugt zusätzlich eigene
+   Bilder aus dem Sprint-Stand und prüft sie gegen den Wireframe. Ein
+   UI-Review ohne eigene Bildprüfung zählt für diesen Punkt nicht.
 4. SPEC.md/KONZEPT.md nachgezogen, falls die Umsetzung eine Festlegung
    ändert (mit Begründung im Issue).
 5. Commit(s) auf `main` bzw. Feature-Branch gemäß Kundenvorgabe; Issue
@@ -87,7 +105,8 @@ PO aus.
 ## Retrospektiven
 
 - **Kadenz**: nach Sprint 3 die erste Retro, danach jede dritte
-  (Sprint 6, 9, 12, …).
+  (Sprint 6, 9, 12, …). Der Kunde kann jederzeit eine Retro anordnen; seine
+  Anweisung überstimmt die Kadenz (erstmals am 01.08.2026 nach Sprint 2).
 - **Moderation**: Scrum Master; Input: Sprint-Protokolle, Impediment-Liste,
   Befunde des karpathy-reviewers, Kunden-Feedback.
 - **Ergebnisse sind Änderungen, keine Absichtserklärungen**: neue oder

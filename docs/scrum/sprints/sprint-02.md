@@ -895,3 +895,439 @@ Journal-Punkt bleibt:** Der Eintrag von 01:12 im Daily 2026-08-01 steht auf
 „DoD-Prüfung läuft" — er braucht einen Abschluss oder einen Folgeeintrag mit
 dem Ergebnis dieses Reviews, sonst ist DoD 6 rückwirkend unvollständig und
 wiederholt sich als Mangel in Sprint 3.
+
+## 9. Retrospektive (01.08.2026)
+
+**Datum:** 2026-08-01, 10:27–10:36 (Ganymed)
+**Moderation:** Scrum Master
+**Teilnehmer:** Scrum Master · Product Owner · Entwickler (`dev-retro-s2`) ·
+UI/UX (`ux-retro-s2`). Beide Fachrollen haben unabhängig Stellung genommen,
+ohne den Bericht der jeweils anderen zu kennen; die Belege liegen unter
+`docs/scrum/retro/sprint-02/`.
+
+**Anlass — Kundenanweisung, nicht Kadenz.** PROZESS.md sah die erste Retro
+erst nach Sprint 3 vor. Der Kunde hat sie am 01.08.2026 vorgezogen; seine
+Entscheidung überstimmt die vereinbarte Kadenz. Kritik sinngemäß im Wortlaut:
+Der zweite Sprint lief nicht gut, das Kürzel funktioniert nicht, das
+Bibliotheks-Layout war kaputt — „Wozu haben wir einen UI/UX-Experten, wenn so
+etwas passiert?" Auftrag: die Arbeitsweise so anpassen, dass diese Probleme
+nicht wiederkehren, und über Werkzeuge nachdenken (Vorgabe: Open Source, ins
+Claude-Code-Ökosystem integrierbar; Kundenbeispiel semgrep).
+
+**Prüfgrundlage des Scrum Masters.** Nicht nur die beiden Stellungnahmen,
+sondern eigene Nachprüfung am Quellstand `091fcc5`: `src/ui/librarywindow.cpp`
+fügt den Splitter in Zeile 162 tatsächlich ohne Stretch-Faktor ein; eine Suche
+über `tests/librarytest.cpp` nach `y()`, `height()`, `geometry()` und
+`sizeHint()` liefert **null Treffer** — die Testdatei enthält keine einzige
+Geometrie-Zusicherung; beide Belegbilder wurden angesehen und zeigen den
+Kundenbefund und seine Heilung; `pacman -Si clazy` weist 1.17.1-1.1 in
+`cachyos-extra-v3` aus (nicht installiert); `.claude/settings.json` führt das
+Plugin `semgrep@claude-plugins-official` als aktiviert.
+
+### 9.1 Befund 1 — Meta+N ohne Wirkung (#5)
+
+**Ursachenkette, lückenlos belegt.** kglobalacceld behandelt jeden
+Komponentennamen mit `.desktop`-Endung als Service-Action-Komponente und
+verlangt eine auflösbare Desktop-Datei; findet es weder einen KService noch
+eine Datei unter `<Datenverzeichnis>/kglobalaccel/<name>`, gibt
+`createServiceActionComponent()` `nullptr` zurück und legt **gar keinen**
+Eintrag an (Beleg im Fremdquellcode `plasma/kglobalacceld`,
+`src/globalshortcutsregistry.cpp`). Genau das erklärt den Kundenbefund
+„`allMainComponents` ohne denkzettel, Komponentenpfad `UnknownObject`".
+Die Desktop-Datei war nie installiert: `/usr/share/applications/` und
+`/etc/xdg/autostart/` kennen keinen denkzettel-Eintrag, und **keine der fünf
+Dateien** aus `build/install_manifest.txt` existiert. Zweite, unabhängige
+Quelle aus dem Journal des Kundenlaufs: `Failed to register with host portal …
+"Could not register app ID: App info not found for 'org.denkzettel.Denkzettel'"`.
+
+**Warum keine Meldung kam.** `KGlobalAccel::setGlobalShortcut()` kann einen
+Backend-Fehlschlag strukturell nicht anzeigen: `doRegister()` setzt den
+D-Bus-Aufruf ab und **wertet dessen Ergebnis nicht aus**; `false` kommt nur bei
+Müll-Tastencode oder namenloser Aktion zurück. Der Meldezweig in
+`globalshortcuts.cpp:65–74` hängt also an einem Wert, der Fehlschläge nicht
+kennt. Gebaut wurde eine *Konflikt*erkennung; das Akzeptanzkriterium verlangte
+eine *Fehlschlag*meldung.
+
+**Erste Korrektur der bisherigen Protokolllage.** Abschnitt 7.5.2 führt als
+Teilerklärung „Konfliktprüfung nur beim Erststart; `FirstRunDone` war gesetzt".
+Das trifft nicht zu. Die Erststart-Bindung in `src/main.cpp:82` ist an diesem
+Befund **unbeteiligt** und keine Umsetzungslücke: SPEC 2.4 schreibt die Prüfung
+wörtlich „beim Erststart und bei Kürzel-Änderung" vor, die Umsetzung folgt der
+Spec. Es gab zudem nichts zu melden — dieselbe SPEC-Stelle hält fest, dass
+Meta+N auf Ganymed frei ist; die Konfliktliste war korrekt leer.
+
+**Zweite Korrektur — sie trifft den Scrum Master selbst.** Punkt 4 der
+Sichtprüfliste in 7.4 („Konfliktzweig nur reproduzierbar nach Löschen des
+`FirstRunDone`-Markers") hätte den Fehler **nicht** aufgedeckt: Auch mit
+gelöschtem Marker wäre keine Meldung erschienen, weil kein Konflikt vorlag. Der
+vom Scrum Master entworfene Prüfweg zielte am Fehler vorbei.
+
+**Der Stachel: Das Wissen lag im Team vor.** Punkt 2 derselben Liste sagt
+„erst nach systemweiter Installation, weil kglobalacceld die Komponente über die
+Desktop-Datei auflöst". Diese Erkenntnis wurde nur auf die *Sichtbarkeit im
+Systemeinstellungs-Modul* angewandt, nie auf die Frage, ob das Kürzel ohne
+Installation überhaupt funktionieren kann. Die Antwort ist nein, und sie stand
+implizit schon da. Drei Handgriffe hätten den Fehler im Entwicklerlauf
+aufgedeckt, jeder einzeln: ein Blick ins Journal
+(`journalctl --user -t denkzetteld -n 20`, dort stand um 23:51 und 23:58
+`Couldn't start kglobalaccel … ServiceUnknown`), ein Lesebefehl gegen den
+Daemon, oder eine programmatische Rückprüfung mit
+`KGlobalAccel::self()->globalShortcut(...)`.
+
+### 9.2 Befund 2 — Bibliotheks-Layout (#7)
+
+**Ursache: eine fehlende Zahl.** `src/ui/librarywindow.cpp:162` fügt den
+Splitter ohne Stretch-Faktor in das äußere `QVBoxLayout` ein. Ein horizontaler
+`QSplitter` hat vertikal die Größenpolitik **Preferred**, die Kopfzeile als
+nacktes `QWidget` ebenfalls — damit hat kein Posten eine Ausdehnungsrichtung,
+und Qt verteilt die Überschusshöhe gleichmäßig. In der aufgeblähten Kopfzeile
+zentriert Qt das `QLineEdit`, weil ein Eingabefeld feste Höhe hat: das
+„schwebende Suchfeld".
+
+Beide Fachrollen haben **unabhängig voneinander** am echten `LibraryWindow`
+gemessen (offscreen, 900×600) und kommen auf dieselben Zahlen: Kopfzeile
+`y=0 h=300`, Suchfeld `y=137`, Splitter `y=300 h=300` — je exakt die halbe
+Fensterhöhe. Mit Stretch-Faktor 1: Kopfzeile `h=41`, Suchfeld `y=8`, Splitter
+`y=41 h=559`. Die Bilder `ux-echt-ist.png` und `ux-echt-soll.png` in der
+Retro-Akte zeigen beides; der Scrum Master hat sie angesehen — das Ist-Bild ist
+der Kundenbefund, ohne Abstriche.
+
+**Warum 38 Tests das nicht fingen.** Nicht wegen fehlender Infrastruktur: Die
+steht vollständig (`QT_QPA_PLATFORM=offscreen` in `tests/CMakeLists.txt`, an
+neunzehn Stellen echte Fenster mit `qWaitForWindowExposed`). Es fehlt die
+geprüfte **Eigenschaft** — null Zusicherungen über Position oder Höhe, vom
+Scrum Master per Suchlauf bestätigt. Über das Suchfeld sagt der Test nur
+`QVERIFY(search->isVisible())`, und ein Widget in der Fenstermitte ist sichtbar.
+Der Test war nicht falsch, er prüfte das Falsche. Der Kopfkommentar der
+Testdatei (Zeilen 29–32) hatte die Grenze sogar schriftlich benannt — „the
+window itself — layout … stays on the manual checklist" —, nur stand das Layout
+auf keiner manuellen Liste.
+
+### 9.3 Antwort auf die Kundenfrage zum UI/UX-Experten
+
+Die Frage ist berechtigt, und die Antwort ist unbequem.
+
+**Der UI-Review hat das Fenster nie gesehen.** Er lief rein statisch am Code:
+geprüft wurde, ob die richtigen Bedienelemente existieren, beschriftet,
+übersetzt, tastaturbedienbar und in richtiger Reihenfolge angelegt sind — nicht,
+**wo sie landen**. Für die gesamte Fehlerklasse „Raumaufteilung" hatte das
+Verfahren kein Prüfmittel. `denkzettel-ux` fällt darüber das Verdikt **`fail`
+über den eigenen Review**, methodisch und im Einzelfall, und benennt zusätzlich
+das Übersehen: Die Ursache war ohne laufendes Programm an einer Zeile erkennbar,
+und der Testkopf hat schriftlich auf die Lücke hingewiesen. Dieselbe Rolle hatte
+im selben Review die *waagerechte* Achse abgesichert (Mindestbreite 220 px, als
+Test `keepsTheListWideEnoughForThePreview`) — es war kein Nicht-Können, sondern
+ein blinder Fleck ohne Systematik.
+
+**Der Prozess hat diese Lücke gedeckt, und daran trägt der Scrum Master
+mit.** Der Review-Auftrag in 4.5 stammt von ihm; er verlangt „Abgleich gegen den
+Wireframe" und nennt fünf Sichtprüfpunkte — **kein Punkt betrifft die
+Raumaufteilung, und kein Satz verlangt ein Bild**. Die DoD-Matrix in 7.2 hat den
+UI-Review anschließend als erfüllt gebucht, ohne zu fragen, woran er das Layout
+gemessen hat. Impediment I4 hatte genau dieses Restrisiko benannt und den
+UI-Review als Teil-Gegenmaßnahme geführt (Abschnitt 6) — eine Gegenmaßnahme, der
+das Prüfmittel fehlte.
+
+**Was die Rolle im selben Sprint nachweislich geleistet hat**, ohne dass es das
+Obige entschuldigt: neun AK-Ergänzungen an #7, die Zurückstellung von S8 wegen
+fehlender Zeichnung (das blockierte unabhängig von jeder AK-Formulierung und hat
+Fehlplanung verhindert), und der eine `fail` zum Nachladen bei offenem Fenster,
+deckungsgleich mit dem karpathy-Befund A. Ein Review, der Existenz und Semantik
+prüft, aber nie das Bild sieht, bleibt trotzdem ein Code-Review mit
+UI-Vokabular.
+
+### 9.4 Was gut lief
+
+- **Beide Ursachen waren binnen einer Sitzung eingegrenzt** — mit
+  Fremdquellcode, Journalauszügen und je einer eigenen Messung am echten
+  Fenster. Zwei unabhängige Messungen kamen auf identische Zahlen.
+- **Beide Fachrollen haben ihr eigenes Versagen zuerst benannt**, statt Werkzeug
+  oder Auftrag verantwortlich zu machen. Der Dev korrigiert dabei zwei
+  Protokollaussagen zu seinen eigenen Ungunsten (9.1).
+- **Das Herausziehen der Auswertungslogik nach `shortcutconflict`** hat sich
+  bewährt: Der nicht testbare D-Bus-Teil ist von der testbaren Regel getrennt.
+- **Die Logikabdeckung von S5 trug tatsächlich** — Löschfrist, Undo-Kanten,
+  Zeitstempel, Nachladen waren beim Kunden inhaltlich in Ordnung.
+- **Die Mutationstests des Scrum Masters** erzeugten Erkenntnis statt
+  Bestätigung: Mutation 2 widerlegte die im Testkommentar behauptete Qt-Mechanik.
+
+### 9.5 Beschlüsse
+
+Acht Beschlüsse. Jeder ist heute umgesetzt; das geänderte Artefakt steht dabei.
+
+**B1 — Selbst-Sichtprüfung des Entwicklers vor der Übergabe.**
+Bei jeder Story mit sichtbarem oder systemweit registriertem Verhalten startet
+der Entwickler den gebauten Stand, führt den Hauptweg einmal selbst aus und legt
+den Nachweis in den Bericht (Terminalausgabe, Journalauszug oder Bild).
+*Begründung:* Beide Befunde wären daran gescheitert — Meta+N an der leeren
+Komponentenliste, das Layout am ersten Blick auf ein `grab()`. Kein Dev-Lauf des
+Sprints hat je ein gerendertes Fenster erzeugt.
+*Geändert:* `docs/scrum/PROZESS.md` (DoD 2) · `.claude/agents/denkzettel-dev.md`
+(neuer Abschnitt „Vor der Übergabe").
+
+**B2 — Geometrie-Zusicherungen als Testfunktionen je Ansicht.**
+Jede Aussage des Wireframes über die Raumaufteilung wird als Testfunktion
+festgehalten, geprüft bei zwei Fenstergrößen; offscreen genügt.
+*Begründung:* Zusammenführung von Dev-V2 und UX-(b) — derselbe Beschluss aus
+zwei Richtungen. Die Wirksamkeit ist gemessen, nicht behauptet: Am Sprint-Stand
+wären die Zusicherungen rot gewesen (137 statt < 40; 300 statt > 450). Kein
+neues Werkzeug nötig. Vom Pixelvergleich wird ausdrücklich abgeraten —
+Schriftrendering und Theme machen ihn flackrig, und eine Wache, die grundlos
+anschlägt, wird ignoriert.
+*Geändert:* `docs/scrum/PROZESS.md` (DoD 1).
+
+**B3 — Der UI-Review ist ohne Bild nicht geführt.**
+Der Entwickler legt je UI-Story einen Screenshot pro Wireframe-Zustand bei
+(Normalfall, Leerzustand, Meldungszustand). `denkzettel-ux` erzeugt
+**zusätzlich eigene** Bilder aus dem Sprint-Stand und prüft sie gegen den
+Wireframe; die Prüfpunkte leitet er aus dem Wireframe ab — jeder gezeichnete
+Bereich erzeugt genau eine Prüffrage —, nicht aus dem Gedächtnis. Ein UI-Review
+ohne eigene Bildprüfung zählt für DoD 3 nicht.
+*Begründung:* 9.3. Der Weg ist erprobt und kostet rund fünf Minuten (out-of-source
+bauen, Helfer gegen `denkzettelui` linken, offscreen, `grab().save()`); die
+Dev-Bilder allein genügen nicht, sonst hängt die Prüfung wieder an einer fremden
+Meldung.
+*Geändert:* `docs/scrum/PROZESS.md` (DoD 3) · `.claude/agents/denkzettel-ux.md`
+(Modus 3).
+
+**B4 — Geprüft wird der installierte Stand.**
+Vor der Sichtprüfung wird mit `-DCMAKE_INSTALL_PREFIX=/usr` installiert;
+Prüfling ist die installierte Binärdatei, nicht das Build-Verzeichnis.
+*Begründung:* Befund 1 lag genau in dieser Lücke. Der Sprint hat die Regel
+zweimal berührt (7.4 Punkte 2 und 6), ohne sie zu ziehen. Nebeneffekt: Der
+Desktop-Datei-, D-Bus- und Portalpfad wird mitgeprüft — im Build-Verzeichnis ist
+er prinzipiell nicht prüfbar.
+*Geändert:* `docs/scrum/PROZESS.md` (DoD 2).
+
+**B5 — Keine stillen Fehlpfade; Registrierungen werden zurückgelesen.**
+Wo eine Registrierung bei einem fremden Dienst stattfindet (KGlobalAccel,
+D-Bus-Namen, Tray, Portale), fragt der Code anschließend beim Dienst nach, ob
+sie angekommen ist, und meldet den Fehlschlag bei jedem Start sichtbar. Dazu die
+Prozessregel: **Eine im Bericht benannte Grenze der Prüfbarkeit schließt die
+Story nicht** — sie wird geschlossen oder als Impediment eskaliert.
+*Begründung:* „Meldet, wenn der Rückgabewert `false` ist" war nachweislich
+wirkungslos (9.1). Die Grenze stand im S4-Bericht und wurde als Fußnote abgelegt,
+während die Story als AK-erfüllt gemeldet wurde — das ist der Kernfehler des
+Laufs, und er ist eine Prozess-, keine Codefrage.
+*Geändert:* `.claude/agents/denkzettel-dev.md` (Kodierregel) ·
+`docs/scrum/PROZESS.md` (DoD 2, Satz zur Prüfgrenze).
+
+**B6 — Git-Regeln dauerhaft in die Agentendefinition (I5).**
+Gezielt stagen, nie `git add -A`, nie `git commit --amend`.
+*Begründung:* Die Regeln wirkten, standen aber in jedem einzelnen Auftragstext
+und hingen daran, dass der PO sie jedes Mal erneut hinschreibt — dieselbe Bauart
+Gegenmaßnahme, die bei I3 ins Leere lief.
+*Geändert:* `.claude/agents/denkzettel-dev.md`.
+
+**B7 — Review- und Retro-Belege gehören ins Repo, nicht ins Scratchpad.**
+UI-Review-Berichte samt geprüften Bildern unter `docs/scrum/reviews/`,
+Retro-Stellungnahmen und Messbelege unter `docs/scrum/retro/sprint-NN/`.
+*Begründung:* In Sprint 2 lag der UI-Review-Bericht dem Scrum Master **gar nicht
+vor** (7.3, Zeile 632); er musste sich auf die Zusammenfassung des PO stützen —
+eine DoD-Prüfung gegen eine Behauptung statt gegen ein Artefakt. Sitzungs-
+Scratchpads sind flüchtig; was ein Protokoll behauptet, muss im Repo liegen.
+*Geändert:* `docs/scrum/PROZESS.md` (Artefakte) ·
+`.claude/agents/denkzettel-ux.md` (Berichtspflicht, Schreibzugriff) · vollzogen
+mit dieser Retro-Akte.
+
+**B8 — Kadenz-Regel an die Wirklichkeit angepasst.**
+Die Retro-Kadenz bleibt (nach Sprint 3, danach jede dritte); ergänzt wird, dass
+der Kunde jederzeit eine Retro anordnen kann.
+*Begründung:* Genau das ist heute geschehen. Ohne den Halbsatz steht die nächste
+außerplanmäßige Retro wieder im Widerspruch zur eigenen Arbeitsvereinbarung.
+*Geändert:* `docs/scrum/PROZESS.md` (Retrospektiven).
+
+**Nicht beschlossen:** Quellcode-Änderungen. Die Heilung der Befunde 1 und 2 ist
+Dev-Arbeit nach der Retro (Ursachen eingegrenzt, siehe „next"). Eine Retro
+ändert keinen Produktivcode.
+
+**Beschlossene Folgeaufgabe an `denkzettel-ux` (Gestaltungsmodus):** In die
+Festlegungstafel der Wireframes zu 2b/2c (Datei-Zeile 410 ff.) eine Zeile
+„Raumaufteilung" aufnehmen, die als Prüfsatz taugt — Kopfzeile oben bündig,
+Liste und Detail über die volle Resthöhe, keine Leerfläche dazwischen. Damit
+bekommt B2 seine Referenz. Der Scrum Master zeichnet nicht selbst; Beauftragung
+durch den PO.
+
+### 9.6 Werkzeug-Empfehlung an den Kunden
+
+**Vorab der unbequeme Befund: Keines der geprüften Werkzeuge hätte einen der
+beiden Sprint-2-Befunde gefunden.** Kein Linter kennt einen Check zu
+Stretch-Faktoren oder Größenpolitik, und keiner prüft, ob eine D-Bus-
+Registrierung beim Daemon ankommt. Werkzeuge helfen hier gegen *andere*
+Fehlerklassen. Die Lehre aus Sprint 2 lautet nicht „uns fehlt ein Linter",
+sondern: Die Tests prüften die falsche Eigenschaft, und niemand hat das Programm
+angesehen, bevor der Kunde es ansah. B1 bis B3 kosten zusammen etwa eine Stunde
+und hätten beide Befunde verhindert.
+
+Die Messlatte ist zudem hoch: `KDECompilerSettings` setzt bereits `-Wall
+-Wextra -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual
+-Wzero-as-null-pointer-constant -Wsuggest-override -Wlogical-op` sowie
+`QT_NO_CAST_FROM_ASCII`, `QT_NO_KEYWORDS`, `QT_NO_NARROWING_CONVERSIONS_IN_CONNECT`.
+
+**Rang 1 — clazy.** Das einzige Werkzeug im Feld, das Qt-Semantik versteht, und
+das, was KDE in seiner eigenen CI fährt. Verfügbar als `clazy 1.17.1-1.1` in
+`cachyos-extra-v3` (vom Scrum Master per `pacman -Si` bestätigt, **nicht
+installiert**). Findet, was weder GCC noch clang-tidy sehen: sechzehn
+Signal/Slot-Checks (`connect-3arg-lambda` — Lambda ohne Kontextobjekt, Absturz
+nach Empfängertod; `connect-by-name`; `connect-non-signal`),
+`auto-unexpected-qstringbuilder`, `range-loop-detach`, `qstring-allocations`.
+Für unseren `connect()`-lastigen Code real. Einstieg `level0,level1`;
+Fixit-Automatik **nicht** einschalten (das Upstream-README warnt selbst davor —
+im Agentenbetrieb editiert sie hinter dem Rücken des Agenten). Bekannter blinder
+Fleck: clazy kennt nur `tr()`-Checks, für `i18n()` ist es blind; diese Lücke
+schließt eine ripgrep-Zeile billiger als jedes Werkzeug.
+
+**Rang 2 — clang-tidy mit engem Checkset.** Bereits installiert
+(`/usr/bin/clang-tidy`), kostet also nur Konfiguration:
+`Checks: '-*, bugprone-*, performance-*, misc-const-correctness'`,
+`HeaderFilterRegex` ohne `_autogen`, `SKIP_LINTING` auf `mocs_compilation.cpp`,
+und als **eigenes CMake-Target**, nicht als `CMAKE_CXX_CLANG_TIDY` — sonst zahlt
+jeder Build die Analyse mit. `bugprone-unused-return-value` nimmt eine eigene
+Funktionsliste entgegen und erzwingt damit einen Teil von B5 per Konfiguration;
+noch billiger und vom Compiler geprüft ist `[[nodiscard]]` an eigenen Wrappern.
+`cppcoreguidelines-*` **nicht** — widerspricht dem Qt-Parent-Child-Modell
+systematisch.
+
+**Rang 3 — Screenshot-Helfer als Projekt-Skill unter `.claude/skills/`.** Nichts
+zu installieren, sofort wirksam, und es ist genau das Werkzeug, mit dem diese
+Retro ihre Belege erzeugt hat. Das Verzeichnis existiert noch nicht (`.claude/`
+enthält bisher nur `agents/` und `settings.json`) und wäre anzulegen. Trägt B3
+operativ.
+
+**Rang 4 — `selenium-webdriver-at-spi` (KDE) als Prüfauftrag vor M3.** Der
+offizielle KDE-Weg für Blackbox-GUI-Tests über AT-SPI, aktiv gepflegt, prüft
+Bedienung und Zugänglichkeit in einem: Was der Treiber nicht findet, findet Orca
+auch nicht. **Nicht in den Arch-Repos** — Beschaffung und Installation wären
+eine Kundenentscheidung nach der Werkzeug-Evaluationsregel, sinnvoll erst vor M3.
+
+**Ergänzend, ohne eigenen Rang:** ImageMagick `compare` (installiert, 7.1.2.29)
+taugt als Wächter „hat sich das Bild geändert", **nicht** als Abnahmekriterium —
+Theme- und Schriftwechsel erzeugen sonst Dauerfehlalarm. Nested
+`kwin_wayland --virtual` ist unerprobt; es wurde bewusst kein nested Compositor
+in der laufenden Sitzung des Kunden gestartet. Verworfen mit Begründung:
+*include-what-you-use* (kein Qt-6-Mapping, Kernproblem seit 2015 offen),
+*cppcheck* (starke Überlappung mit clang-tidy; allenfalls seltener CI-Lauf mit
+`--library=qt`), *pre-commit* (greift zum falschen Zeitpunkt — ein Agent schreibt
+zwanzigmal und committet einmal), *openQA* und *dogtail* (zu schwer bzw. zu alt).
+
+**Zu semgrep — die Evidenz des Teams steht gegen das Kundenbeispiel.** Das ist
+unbequem und wird deshalb ausgeschrieben statt weggelächelt.
+
+Der Entwickler lehnt semgrep für unser C++ mit Belegen ab: Die C++-Unterstützung
+der OSS-Engine ist ausdrücklich experimentell (Hersteller wörtlich: „the
+languages will stay experimental"; interprozedurale Analyse nur im
+Bezahlprodukt), die Regel-Registry enthält kein `cpp/`-Verzeichnis, und `#ifdef`
+bricht den Parser (offenes P0 von April 2026). Der gefährliche Teil ist der
+**stille Fehlermodus**: Eine Datei, die nicht vollständig geparst wird, liefert
+keine Treffer und sieht aus wie eine bestandene Prüfung. Das ist exakt die
+Fehlerbauart, die uns Sprint 2 gekostet hat — eine Wache, deren Schweigen kein
+Erfolgsnachweis ist. Die UX-Seite hält eine Regel „`QSplitter` per `addWidget`
+in ein `QBoxLayout` ohne Stretch-Faktor" für denkbar, nennt sie aber unerprobt
+und niemals als Ersatz für das Bild.
+
+Der Kunde hat während der Retro das Claude-Code-Plugin **„Semgrep Guardian"**
+installiert; `.claude/settings.json` führt `semgrep@claude-plugins-official` als
+aktiviert (die Datei ist unversioniert und wurde von dieser Retro nicht
+angetastet). Es stellt MCP-Werkzeuge für die Semgrep-AppSec-Plattform bereit:
+SAST-, Secrets- und Supply-Chain-Befunde, login-gebunden gegen einen
+Cloud-Dienst.
+
+Ehrliche Zusammenführung, was es **heute für dieses Repo** leistet:
+
+- *SAST auf unserem Quellcode:* nach obiger Beleglage nicht belastbar. Für die
+  zwei Sprint-2-Befunde hätte es nichts geliefert.
+- *Supply-Chain:* keine Angriffsfläche vorhanden — das Repo enthält **kein**
+  Paketmanifest (kein `package.json`, `Cargo.toml`, `go.mod`,
+  `requirements.txt`) und **keine CI** (kein `.github/workflows`); Abhängigkeiten
+  kommen aus Distributionspaketen. Das ändert sich mit dem PKGBUILD (S28, M7)
+  und dem Tag, an dem eine CI entsteht — **dann** ist die Prüfung sinnvoll.
+- *Secrets:* der plausibelste Nutzen. Das Repo ist öffentlich, und SPEC 7.1
+  verlangt API-Schlüssel aus KWallet oder Umgebung. Sobald M6 die
+  API-Anbindungen bringt, ist ein Secrets-Lauf vor dem Push eine billige
+  Zusatzwache — dafür braucht es keine C++-Semantik, nur Mustererkennung.
+- *Zu bedenken:* Der Dienst ist login-gebunden und cloud-seitig; Quellcode
+  verlässt die Maschine. Bei einem öffentlichen Repo ist das weniger heikel,
+  bleibt aber eine bewusste Entscheidung.
+
+**Die Entscheidung über jede Werkzeug-Einführung bleibt beim Kunden** (Regel
+`werkzeug-evaluation`). Diese Retro hat recherchiert und gelesen, **nichts
+installiert und nichts ausgeführt**. Empfehlung des Scrum Masters in einem Satz:
+zuerst B1–B3 wirken lassen, dann clazy `level0,level1` als einmaligen Lauf
+ansehen, und das Guardian-Plugin für Secrets und Supply-Chain vormerken, sobald
+Manifeste oder CI existieren.
+
+### 9.7 Impediments
+
+**I3 — „Agent meldet sich untätig statt Bericht zu liefern": GESCHLOSSEN.**
+
+Neue Evidenz aus dieser Retro-Runde, vom PO beobachtet: **Beide** Retro-Agenten
+meldeten sich zuerst untätig; ihre Berichte trafen jeweils erst im Folgezug ein,
+nachdem der PO formlos nachgefasst hatte — **obwohl beide Auftragstexte den
+Zustellhinweis trugen**. Genau das entscheidet die Frage. Ein Hinweis an den
+*Absender* kann nichts bewirken, wenn der Absender nie das Problem war: Die
+Untätig-Meldung überholt die bereits abgesetzte Nachricht. Das ist Mechanik des
+Zustellwegs, kein Agentenverhalten.
+
+Damit liegt die These dreifach gestützt vor: die Selbstaufzeichnung des Scrum
+Masters in Fall 8 (SendMessage quittierte mit „queued for the main
+conversation's next turn", der Bericht stand zusätzlich im Abschlusstext); die
+ununterbrochene Serie von fünf Agenten nach Einführung des Zustellhinweises
+(Abschnitt 6); und jetzt zwei Agenten, die **trotz** Hinweis erst im Folgezug
+ankamen.
+
+**Entscheidung des Scrum Masters:** I3 wird geschlossen, und zwar mit der
+Gegenmaßnahme, die der PO vorschlägt — **geänderte Empfänger-Erwartung** statt
+schärferer Berichtsauflagen. Eine Untätig-Meldung ohne Bericht ist **kein
+Fehlverhalten**; der PO wartet einen Zug ab oder fasst formlos nach. Der Scrum
+Master schließt sich dem fachlich an: Die alternative Gegenmaßnahme (Auflagen in
+Aufträgen und Agentendateien) ist an acht Fällen nachweislich wirkungslos
+geblieben, während die Erwartungsänderung risikolos ist.
+
+*Grenze der Beweislage, benannt statt verschwiegen:* Der Zustellweg wurde nicht
+am Werkzeug selbst gemessen, sondern aus dem Verhalten erschlossen — es ist ein
+Indizienbeweis. **Wiedereröffnung**, falls ein Agent einen Bericht tatsächlich
+nie liefert, auch nicht im Folgezug: Dann läge ein anderes Problem vor als das
+hier geschlossene.
+
+**I5 — Git-Hygiene bei parallel arbeitenden Agenten (offen, Gegenmaßnahme jetzt
+dauerhaft verankert).** Mit B6 stehen die Regeln in
+`.claude/agents/denkzettel-dev.md` statt in jedem Auftragstext. Das Impediment
+bleibt **offen**, bis ein Sprint mit mehreren Dev-Agenten ohne Vorfall gelaufen
+ist — die Verankerung ist die Maßnahme, nicht der Beleg. Prüfung am Sprint-3-Ende.
+
+**I1** (Werkzeugkette unvollständig) und **I4** (automatisierte Prüfbarkeit
+UI-lastiger Stories) bleiben offen. I4 hat mit B2 und B3 erstmals
+Gegenmaßnahmen, die auf die Fehlerklasse zielen, an der es gescheitert ist;
+geschlossen wird es erst, wenn eine UI-Story diese Kette einmal vollständig
+durchlaufen hat.
+
+### 9.8 done / next
+
+**done:** Retro auf Kundenanweisung vorgezogen und moderiert; beide
+Fachstellungnahmen unabhängig eingeholt und ihre Kernaussagen am Quellstand
+`091fcc5` nachgeprüft (Layout-Zeile, null Geometrie-Zusicherungen in
+`librarytest.cpp`, beide Belegbilder gesichtet, `pacman -Si clazy`,
+`.claude/settings.json`); Ursachenketten beider Befunde konsolidiert,
+einschließlich zweier Korrekturen an der bisherigen Protokolllage — die
+Erststart-Bindung ist unbeteiligt und SPEC-konform, und der Prüfweg aus 7.4
+Punkt 4 hätte den Fehler nicht aufgedeckt; die Kundenfrage zum UI/UX-Experten
+direkt beantwortet (Selbstverdikt `fail` der Rolle, plus der Anteil des Scrum
+Masters an Review-Auftrag und DoD-Buchung); acht Beschlüsse gefasst und **am
+selben Tag umgesetzt** (`docs/scrum/PROZESS.md`,
+`.claude/agents/denkzettel-dev.md`, `.claude/agents/denkzettel-ux.md`);
+Werkzeug-Empfehlung mit Rangfolge und ehrlicher semgrep-Abwägung erstellt, ohne
+etwas zu installieren; I3 geschlossen, I5 fortgeschrieben; Retro-Akte unter
+`docs/scrum/retro/sprint-02/` angelegt (zwei Stellungnahmen, drei Belegbilder).
+
+**next:** (1) Dev-Heilungslauf zu Befund 1 und 2 — die Ursachen sind
+eingegrenzt: fehlende systemweite Installation plus fehlende Rücklese-Prüfung
+(B5) für das Kürzel, `librarywindow.cpp:162` Stretch-Faktor für das Layout; die
+Heilung bringt nach B2 ihre Geometrie-Zusicherungen mit. (2) Gestaltungsauftrag
+an `denkzettel-ux`: Zeile „Raumaufteilung" in die Festlegungstafel zu 2b/2c.
+(3) Erneute Sichtprüfung durch den Kunden — die elf offenen Punkte aus 7.4
+stehen weiterhin aus, jetzt am **installierten** Stand (B4). (4) Entscheidung
+des Kunden über clazy, clang-tidy, Screenshot-Skill und AT-SPI-Treiber. (5)
+Danach erst Sprint-3-Planning; die Beschlüsse dieser Retro durchlaufen als
+Prozess-Artefakt-Änderung den karpathy-reviewer (PROZESS.md, Retrospektiven).
+Unverändert offen aus Abschnitt 8: Schließen von #5, #6, #7 nach der Abnahme
+(Mangel M1) und der Abschluss des Journal-Eintrags von 01:12.
