@@ -4,6 +4,8 @@
 
 #include <KLocalizedString>
 
+#include <QApplication>
+#include <QLabel>
 #include <QPlainTextEdit>
 #include <QTemporaryDir>
 #include <QTest>
@@ -32,6 +34,8 @@ private Q_SLOTS:
     void savesTextOnControlReturn();
     void keepsBlankTextOutOfTheStore();
     void discardsTextOnEscape();
+
+    void textsFollowAColourSchemeChange();
 
 private:
     QPlainTextEdit *textArea() const;
@@ -168,6 +172,33 @@ void CaptureTest::discardsTextOnEscape()
     QVERIFY(!m_store->note(1).has_value());
     QVERIFY(text->toPlainText().isEmpty());
     QVERIFY(!m_window->isVisible());
+}
+
+void CaptureTest::textsFollowAColourSchemeChange()
+{
+    // The daemon builds the window once and keeps it (SPEC 2.1), so a colour
+    // scheme change reaches a window that is already standing. Every text has
+    // to follow it — the application name and the key hint included (issue #54).
+    const QPalette startPalette = qApp->palette();
+
+    QPalette switched = startPalette;
+    switched.setColor(QPalette::WindowText, QColor(0x23, 0x26, 0x29));
+    switched.setColor(QPalette::PlaceholderText, QColor(0x70, 0x7d, 0x8a));
+    qApp->setPalette(switched);
+
+    // Qt hands the new palette to the widgets through a posted event; without a
+    // running event loop the test has to let it through itself.
+    QCoreApplication::processEvents();
+
+    const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+    QCOMPARE(labels.size(), 2);
+
+    for (QLabel *label : labels) {
+        // What the label paints with: its own palette, read through its role.
+        QCOMPARE(label->palette().color(label->foregroundRole()), QColor(0x70, 0x7d, 0x8a));
+    }
+
+    qApp->setPalette(startPalette);
 }
 
 QTEST_MAIN(CaptureTest)
