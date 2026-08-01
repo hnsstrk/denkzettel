@@ -550,3 +550,45 @@ die Spawn-Aufträge (7.1). (3) Push des Ausgangsstands vor dem Sprintstart (7.3)
 Bilder nach `docs/scrum/reviews/` (B7). (5) Am Sprint-Ende: DoD-Prüfung
 einschließlich Doku-Abgleich (B10), I5-Prüfung nach dem Kriterium aus Abschnitt 8,
 I4-Schließung prüfen — und die reguläre Retrospektive nach Sprint 3.
+
+## 11. Scope-Änderung während des Sprints (01.08.2026, 23:00)
+
+**Was passiert ist.** Nach der Abgabe von Etappe 1 und 2 durch Strang B hat der
+Kunde eine neue Anforderung gestellt: „Die Suche in Denkzettel muss eine fuzzy
+Suche haben." Der PO hat den Begriff im Interview zerlegt, weil er vier
+verschiedene Verhaltensweisen mit sehr unterschiedlichem Aufwand meinen kann.
+Der Kunde wollte drei davon: Wortteile in der Mitte, Schreibvarianten,
+Tippfehler — ausdrücklich **nicht** die sinnverwandte Suche (M5, S17).
+
+**Entscheidung und Begründung.** Nur eine der drei ist in den laufenden Sprint
+gewandert, und das aus einem Grund, der zeitlich gebunden war:
+
+- **Wortteile in der Mitte → in #8 aufgenommen.** Der Tokenizer steht in der
+  Migration, die Strang B gebaut, aber noch nicht abgeliefert hatte. Ein
+  Wechsel auf `trigram` kostet dort wenige Zeilen; dieselbe Änderung nach dem
+  Merge hätte eine zweite Migration samt eigenem Test verlangt. Der PO hat vor
+  der Vorlage am System gemessen: `trigram` findet „grafieren" in
+  „fotografieren", behält mit `remove_diacritics` die Umlaut-Toleranz und
+  erzeugt bei 2000 Notizen **keinen größeren** Index.
+- **Schreibvarianten → S30 (#51)**, bereits vor dieser Entscheidung angelegt.
+- **Tippfehler → T9 (#52)**, Klärungsauftrag. Der einzige der drei Wünsche
+  ohne Weg mit Bordmitteln; er berührt über eine mögliche SQLite-Erweiterung
+  auch die Paketierung (S28, #41) und wird deshalb erst geklärt, dann
+  geschnitten.
+
+**Der Preis, benannt statt verschwiegen.** Der `trigram`-Tokenizer findet
+prinzipbedingt nichts unter drei Zeichen: „KI" oder „PO" liefern künftig keine
+Treffer. Das ist als Akzeptanzkriterium an Strang B gegeben — er entscheidet
+den Umgang damit, begründet ihn und zieht SPEC 6 nach. **Eine Suche, die bei
+kurzen Begriffen wortlos leer bleibt, wäre ein Fehler mit Ansage.**
+
+**Offene Frage an den Sprint:** Ob die Erweiterung die 3 SP von #8 sprengt, hat
+Strang B zu melden — mit Zahl und früh. Die Punktzahl des Sprints bleibt bis
+dahin bei 10; eine Korrektur gehört in die DoD-Prüfung am Sprint-Ende.
+
+**Für die Retro vorgemerkt.** Dies ist die erste Scope-Änderung nach einer
+erteilten Sprint-Freigabe. Sie war fachlich richtig — der Zeitpunkt war die
+billigste Gelegenheit, und Warten hätte doppelte Arbeit erzeugt. Sie zeigt
+aber, dass der Prozess für diesen Fall keine Regel kennt: Wer entscheidet, was
+eine Freigabe noch trägt, und ab welcher Größe ist es ein neuer Sprint? Bisher
+hat der PO im Einzelfall abgewogen und den Kunden entscheiden lassen.
