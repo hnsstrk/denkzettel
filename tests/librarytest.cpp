@@ -89,6 +89,9 @@ private Q_SLOTS:
     void bringsTheHeadOfTheNewGroupIntoView();
     void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
     void leavesTheHeadOutsideWhereItCannotFitWithTheSelection();
+    void staysPutWhileTheSelectionMovesWithinItsGroup();
+    void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
+    void bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked();
     void bringsBackTheHeadWhenTheDeletionIsUndone();
     void regroupsWhenTheWindowIsActivated();
     void undoesTheDeletionByKeyboard();
@@ -1027,15 +1030,18 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
 {
     QFETCH(QSize, windowSize);
 
-    // Two full groups, so that the boundary lies outside the first screenful
-    // and the list has to be scrolled at all.
+    // Three groups, the middle one holding a single note: entering it from
+    // below puts the selection right under its head, which is what lets this
+    // hold at the flattest window too. The outer groups are full, so the
+    // boundary lies outside the first screenful and the list has to scroll.
     for (int hour = 8; hour < 16; ++hour) {
         storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
                    QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
     }
+    storedNote(QStringLiteral("von gestern"), QStringLiteral("2026-07-30T21:48:00"));
     for (int hour = 8; hour < 16; ++hour) {
-        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
-                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
     }
 
     LibraryWindow window(m_store.get());
@@ -1045,16 +1051,16 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
     QListView *list = listOf(window);
-    QCOMPARE(modelOf(list)->noteCount(), 16);
+    QCOMPARE(modelOf(list)->noteCount(), 17);
     // A list that fits into the window would let this pass without scrolling.
     QVERIFY2(list->verticalScrollBar()->maximum() > 0,
              qPrintable(QStringLiteral("Liste passt ganz ins Bild, der Fall tritt nicht ein")));
 
-    // From the end of the list upwards to the first note of "Gestern". Going
-    // up is what puts the entry against the upper edge — and its head just
-    // outside it, unless the window pulls the head along.
-    list->setCurrentIndex(noteRow(list, 15));
-    for (int step = 0; step < 7; ++step) {
+    // From the end of the list upwards across the boundary into "Gestern".
+    // Going up is what puts the entry against the upper edge — and its head
+    // just outside it, unless the window pulls the head along.
+    list->setCurrentIndex(noteRow(list, 16));
+    for (int step = 0; step < 8; ++step) {
         QTest::keyClick(list, Qt::Key_Up);
     }
 
@@ -1086,6 +1092,163 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
     const QRect firstHead = list->visualRect(modelOf(list)->index(0));
     QVERIFY2(!list->viewport()->rect().intersects(firstHead),
              qPrintable(QStringLiteral("Kopf „Heute\" klebt bei y=%1").arg(firstHead.y())));
+}
+
+void LibraryTest::staysPutWhileTheSelectionMovesWithinItsGroup()
+{
+    // AK 7 and wireframe 3b, case 4 both say "springt die Auswahl über eine
+    // Gruppengrenze". Within one group nothing is fetched, however far the
+    // head may have scrolled away: the user rolled the list to where he wanted
+    // it, and one press of an arrow key must not throw that away — least of
+    // all against the direction he is pressing in (UI review of 01.08.2026).
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // The selection sits in "Gestern", and the user has rolled the list so
+    // that the entry stands at the top with its head above the upper edge.
+    list->setCurrentIndex(noteRow(list, 9));
+    const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+
+    list->verticalScrollBar()->setValue(noteRow(list, 9).row());
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1 — der Fall verlangt ihn außerhalb")
+                            .arg(list->visualRect(head).y())));
+
+    // The next note down is in the picture already …
+    const QModelIndex target = noteRow(list, 10);
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
+
+    const int rolledTo = list->verticalScrollBar()->value();
+    QTest::keyClick(list, Qt::Key_Down);
+
+    // … so the list does not move, and the crossing the user had scrolled to
+    // stays where he put it.
+    QCOMPARE(list->currentIndex(), target);
+    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
+}
+
+void LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready()
+{
+    // The trap this guards against: it looks like a saving to fetch the head
+    // only where the list has to be scrolled anyway — and it would undo the
+    // whole heal. A note stands in full view while its head sits just above
+    // the upper edge, and that is exactly the case the head is fetched for
+    // (PO decision of 01.08.2026, taken back after the case was measured).
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // Selection in "Letzte Woche", then the list rolled so that the last note
+    // of "Gestern" stands in the picture while its head does not.
+    list->setCurrentIndex(noteRow(list, 11));
+    const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+
+    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1 — der Fall verlangt ihn außerhalb")
+                            .arg(list->visualRect(head).y())));
+
+    // The row the selection is about to reach is already in the picture, whole.
+    const QModelIndex target = noteRow(list, 10);
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(target)),
+             qPrintable(QStringLiteral("Zielzeile y=%1 — der Fall verlangt sie ganz im Bild")
+                            .arg(list->visualRect(target).y())));
+
+    QTest::keyClick(list, Qt::Key_Up);
+
+    // It crossed a group boundary, so the head is in the picture afterwards —
+    // never mind that nothing had to be scrolled for the note itself.
+    QCOMPARE(list->currentIndex(), target);
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1, Viewport %2 px hoch")
+                            .arg(list->visualRect(head).y())
+                            .arg(list->viewport()->height())));
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
+}
+
+void LibraryTest::bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked()
+{
+    // The mouse takes the same road, and it is worth writing down because the
+    // trade was weighed twice: clicking a visible note of another group moves
+    // the list to fetch that group's head. The user loses the place he was
+    // looking at and gains the heading of what he picked — a trade rather than
+    // a loss, since the note he pointed at stays selected and in view (PO
+    // decision of 01.08.2026). Should it grate in daily use, this is the test
+    // that says where the decision was made.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    // A third group below, so the list can be rolled far enough for the head
+    // of "Gestern" to leave the picture at all.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    list->setCurrentIndex(noteRow(list, 2));
+    const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+
+    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
+
+    const QModelIndex target = noteRow(list, 10);
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
+
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(target).center());
+
+    QCOMPARE(list->currentIndex(), target);
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
+    // What the user pointed at stays selected and in the picture, whole.
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
 }
 
 void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()

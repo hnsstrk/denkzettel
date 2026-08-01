@@ -1,9 +1,12 @@
 #pragma once
 
 #include "store/note.h"
+#include "ui/timestampformat.h"
 
 #include <QModelIndex>
 #include <QWidget>
+
+#include <optional>
 
 class NoteListModel;
 class PendingDeletion;
@@ -84,7 +87,23 @@ private:
     /** The head row of the group `note` belongs to; invalid if there is none. */
     QModelIndex groupHeadOf(const QModelIndex &note) const;
 
-    void showNote(const QModelIndex &index);
+    /**
+     * The group the note in `row` belongs to; nothing for a head row, an
+     * invalid row or one that holds no note any more.
+     *
+     * Told from the note rather than from the row number of its head: deleting
+     * and undoing rebuild the rows, and numbers shift as they do.
+     */
+    std::optional<library::NoteGroup> groupOf(const QModelIndex &row) const;
+
+    /**
+     * Shows the selected note and, when the selection has crossed into
+     * another group, brings that group's head into view (AK 7).
+     *
+     * `previous` comes from QItemSelectionModel::currentChanged; an invalid
+     * one means the list has just been opened or rebuilt.
+     */
+    void showNote(const QModelIndex &index, const QModelIndex &previous = QModelIndex());
     void deleteCurrentNote();
     void undoDeletion();
 
