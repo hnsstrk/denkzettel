@@ -15,7 +15,12 @@
  * of `add_test()`: a picture nobody looks at proves nothing, and a failing
  * screenshot writer must not turn the suite red.
  *
- * Usage: searchshots <target directory>
+ * Run it with QT_QPA_PLATFORMTHEME=kde. Without it Qt falls back to a
+ * substitute font whose sizes are not the ones the running application uses —
+ * group heads and timestamps then look heavier than the note text, and a
+ * picture that misstates its own type sizes is worse than none.
+ *
+ * Usage: QT_QPA_PLATFORMTHEME=kde searchshots <target directory>
  */
 namespace
 {
@@ -44,6 +49,15 @@ void shoot(LibraryWindow &window, const QString &file)
 
 int main(int argc, char **argv)
 {
+    // The series is to show the state as shipped, not the window size and
+    // splitter position whoever takes it happens to have stored: the library
+    // window restores both from denkzettelrc, and with an application name set
+    // that is the real one. Pointing the configuration at an empty directory
+    // keeps the pictures reproducible on any machine — and keeps this from
+    // writing into the user's own file.
+    const QTemporaryDir configuration;
+    qputenv("XDG_CONFIG_HOME", configuration.path().toLocal8Bit());
+
     const QApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
