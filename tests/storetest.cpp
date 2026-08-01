@@ -339,7 +339,7 @@ void StoreTest::searchFindsWordsSpelledWithoutUmlauts()
     // The other direction works as well: typing the umlaut finds the note.
     QCOMPARE(searchContents(QStringLiteral("BÜCHER")), QStringList({books.content}));
 
-    // Documented limit: `remove_diacritics 2` folds diacritics, and ß carries
+    // Documented limit: `remove_diacritics 1` folds diacritics, and ß carries
     // none — it is a letter of its own. „strassenbahnen" therefore does not
     // find „Straßenbahnen" (SPEC 6).
     QVERIFY(m_store->search(QStringLiteral("strassenbahnen")).isEmpty());

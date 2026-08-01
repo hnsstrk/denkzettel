@@ -111,8 +111,8 @@ private Q_SLOTS:
     void keepsTheListWideEnoughForThePreview();
     void keepsTheHeaderAtTheTopAndTheRestForTheNotes_data();
     void keepsTheHeaderAtTheTopAndTheRestForTheNotes();
-    void alignsTheGroupHeadsWithTheEntryTimestamps_data();
-    void alignsTheGroupHeadsWithTheEntryTimestamps();
+    void keepsTheMeasuresOfTheGroupedList_data();
+    void keepsTheMeasuresOfTheGroupedList();
     void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
 
@@ -1850,7 +1850,7 @@ void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
     QCOMPARE(splitter->widget(0)->width(), 300);
 }
 
-void LibraryTest::alignsTheGroupHeadsWithTheEntryTimestamps_data()
+void LibraryTest::keepsTheMeasuresOfTheGroupedList_data()
 {
     // The measurements of wireframe 3a are checked at two window sizes, like
     // the room split of 2b: a number that only holds at one width holds by
@@ -1861,7 +1861,7 @@ void LibraryTest::alignsTheGroupHeadsWithTheEntryTimestamps_data()
     QTest::newRow("1200x800") << QSize(1200, 800);
 }
 
-void LibraryTest::alignsTheGroupHeadsWithTheEntryTimestamps()
+void LibraryTest::keepsTheMeasuresOfTheGroupedList()
 {
     QFETCH(QSize, windowSize);
 
@@ -1884,17 +1884,17 @@ void LibraryTest::alignsTheGroupHeadsWithTheEntryTimestamps()
     QVERIFY(firstHead.data(NoteListModel::GroupHeaderRole).toBool());
     QVERIFY(secondHead.data(NoteListModel::GroupHeaderRole).toBool());
 
-    // The head text starts where the timestamp of an entry starts, 12 px from
-    // the left edge of the list (wireframe 3a).
+    // Text starts 12 px from the left edge of the list (wireframe 3a).
     //
-    // No test can see where a delegate put its ink without measuring pixels,
-    // so the alignment is not held by this check but by the delegate itself:
-    // head, timestamp, subject and preview are drawn by one single function,
-    // and the edge is worked out in one single place. What is checked here is
-    // the number that place uses.
+    // That head and entry start at the same place is deliberately not checked
+    // here: both would ask the same function about rectangles of the same
+    // width, and the comparison could never fail. Where a delegate puts its
+    // ink is invisible to a test that does not count pixels, so the alignment
+    // is held by the delegate instead — head, timestamp, subject and preview
+    // go through one single drawing function, and the edge is worked out in
+    // one single place. What this checks is the number that place uses.
     const QRect headRect = list->visualRect(firstHead);
     const QRect entryRect = list->visualRect(noteRow(list, 0));
-    QCOMPARE(NoteListDelegate::textLeft(headRect), NoteListDelegate::textLeft(entryRect));
     QCOMPARE(NoteListDelegate::textLeft(entryRect) - list->viewport()->rect().x(), 12);
 
     // The first head sits close under the upper edge, every following one
