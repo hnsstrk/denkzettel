@@ -403,18 +403,42 @@ void LibraryWindow::updatePages()
     }
 }
 
+QModelIndex LibraryWindow::groupHeadOf(const QModelIndex &note) const
+{
+    // The head of a group is the next head row above the note — not
+    // necessarily the row right above it, which is what a note in the middle
+    // of its group has (UI review of 01.08.2026).
+    for (int row = note.row() - 1; row >= 0; --row) {
+        const QModelIndex candidate = m_model->index(row);
+        if (candidate.data(NoteListModel::GroupHeaderRole).toBool()) {
+            return candidate;
+        }
+    }
+
+    return {};
+}
+
 void LibraryWindow::showNote(const QModelIndex &index)
 {
     m_deleteAction->setEnabled(index.isValid());
 
     if (index.isValid()) {
-        // Sits the note right under a head, it is the first of its group: the
-        // head comes into view first, then the note itself. Scrolling to the
-        // note last is what keeps it whole rather than cut off at the edge,
-        // and the head above it stays in the picture (wireframe 3b, case 4).
-        const int row = index.row();
-        if (row > 0 && m_model->index(row - 1).data(NoteListModel::GroupHeaderRole).toBool()) {
-            m_list->scrollTo(m_model->index(row - 1), QAbstractItemView::EnsureVisible);
+        // The selected note is not to stand without its heading: the head of
+        // its group comes into view first, then the note itself. Scrolling to
+        // the note last is what keeps it whole rather than cut off at an edge
+        // (wireframe 3b, case 4).
+        //
+        // Only where both fit into the list at once, though. In a group taller
+        // than the window the head cannot be shown without pushing the
+        // selection out — and a single key press that scrolls away what the
+        // user was looking at is worse than a missing heading.
+        const QModelIndex head = groupHeadOf(index);
+        if (head.isValid()) {
+            const QRect heading = m_list->visualRect(head);
+            const QRect selected = m_list->visualRect(index);
+            if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
+                m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
+            }
         }
         m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
 

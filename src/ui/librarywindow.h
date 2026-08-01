@@ -81,6 +81,9 @@ private:
     /** Picks list and detail page for the current number of notes. */
     void updatePages();
 
+    /** The head row of the group `note` belongs to; invalid if there is none. */
+    QModelIndex groupHeadOf(const QModelIndex &note) const;
+
     void showNote(const QModelIndex &index);
     void deleteCurrentNote();
     void undoDeletion();
