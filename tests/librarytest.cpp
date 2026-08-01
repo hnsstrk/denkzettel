@@ -94,7 +94,12 @@ private Q_SLOTS:
     void showsTheRemainingTimeInTheMessage();
     void keepsOneMessageWhenASecondNoteIsDeleted();
     void closesWithTheStandardShortcut();
-    void showsTheSearchFieldWithoutItsFunction();
+    void showsTheSearchField();
+    void filtersTheListWithTheSearchField();
+    void groupsTheSearchResultsLikeTheLibrary();
+    void showsTheEmptyStateWhenNothingMatches();
+    void restoresTheFullListWhenTheSearchFieldIsCleared();
+    void carriesOutAPendingDeletionWhenTheSearchChanges();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
     void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
     void leavesTheFocusAloneWhenTheOpenWindowIsShownAgain();
@@ -133,6 +138,9 @@ private:
 
     /** Texts of the labels the window shows right now. */
     static QStringList visibleLabels(const QWidget &window);
+
+    /** The search field of the header. */
+    static QLineEdit *searchOf(const QWidget &window);
 
     static QListView *listOf(const QWidget &window);
     static NoteListModel *modelOf(const QListView *list);
@@ -642,6 +650,13 @@ QStringList LibraryTest::visibleLabels(const QWidget &window)
         }
     }
     return texts;
+}
+
+QLineEdit *LibraryTest::searchOf(const QWidget &window)
+{
+    QLineEdit *search = window.findChild<QLineEdit *>();
+    Q_ASSERT(search);
+    return search;
 }
 
 QListView *LibraryTest::listOf(const QWidget &window)
@@ -1252,22 +1267,158 @@ void LibraryTest::closesWithTheStandardShortcut()
     QVERIFY(!window.isVisible());
 }
 
-void LibraryTest::showsTheSearchFieldWithoutItsFunction()
+void LibraryTest::showsTheSearchField()
 {
     LibraryWindow window(m_store.get());
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    auto *search = window.findChild<QLineEdit *>();
-    QVERIFY(search);
+    QLineEdit *search = searchOf(window);
     QVERIFY(search->isVisible());
-    QVERIFY(!search->isEnabled());
     QCOMPARE(search->placeholderText(), QStringLiteral("Volltextsuche …"));
 
-    // The disabled field cannot show a tooltip of its own, so its wrapper
-    // carries the one the story asks for.
-    QCOMPARE(search->parentWidget()->toolTip(),
-             QStringLiteral("Die Volltextsuche steht noch nicht zur Verfügung."));
+    // S5 left the field switched off and explained that in a tooltip. This
+    // story switches it on, so neither may be left over.
+    QVERIFY(search->isEnabled());
+    const QList<QWidget *> widgets = window.findChildren<QWidget *>();
+    for (const QWidget *widget : widgets) {
+        QVERIFY2(!widget->toolTip().contains(QStringLiteral("steht noch nicht zur Verfügung")),
+                 qPrintable(widget->toolTip()));
+    }
+}
+
+void LibraryTest::filtersTheListWithTheSearchField()
+{
+    storedNote(QStringLiteral("Bücher über Straßenbahnen ansehen"));
+    storedNote(QStringLiteral("Backup der Fotos prüfen"));
+    storedNote(QStringLiteral("Milch kaufen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    QCOMPARE(modelOf(list)->noteCount(), 3);
+
+    // Typing filters while the user types — the store decides what matches,
+    // the window only passes the text on (SPEC 6).
+    searchOf(window)->setText(QStringLiteral("Fotos"));
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("Backup der Fotos prüfen"));
+
+    // A part in the middle of a word finds it too, and so does a term spelled
+    // without its umlaut — both come from the store layer.
+    searchOf(window)->setText(QStringLiteral("bahn"));
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("Bücher über Straßenbahnen ansehen"));
+
+    searchOf(window)->setText(QStringLiteral("bucher"));
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+}
+
+void LibraryTest::groupsTheSearchResultsLikeTheLibrary()
+{
+    // Two notes of today, one of a day the grouping puts elsewhere.
+    storedNote(QStringLiteral("Backup heute früh"), QStringLiteral("2026-07-31T08:00:00"));
+    storedNote(QStringLiteral("Milch kaufen"), QStringLiteral("2026-07-31T07:00:00"));
+    storedNote(QStringLiteral("Backup vom Vortag"), QStringLiteral("2026-07-30T09:00:00"));
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    NoteListModel *model = modelOf(listOf(window));
+    QCOMPARE(rowsOf(*model),
+             QStringList({QStringLiteral("Kopf: Heute"),
+                          QStringLiteral("Notiz: Backup heute früh"),
+                          QStringLiteral("Notiz: Milch kaufen"),
+                          QStringLiteral("Kopf: Gestern"),
+                          QStringLiteral("Notiz: Backup vom Vortag")}));
+
+    // The result list carries the same heads — and the group whose only note
+    // dropped out of the results loses its head with it.
+    searchOf(window)->setText(QStringLiteral("Backup"));
+    QCOMPARE(rowsOf(*model),
+             QStringList({QStringLiteral("Kopf: Heute"),
+                          QStringLiteral("Notiz: Backup heute früh"),
+                          QStringLiteral("Kopf: Gestern"),
+                          QStringLiteral("Notiz: Backup vom Vortag")}));
+
+    searchOf(window)->setText(QStringLiteral("Milch"));
+    QCOMPARE(rowsOf(*model),
+             QStringList({QStringLiteral("Kopf: Heute"), QStringLiteral("Notiz: Milch kaufen")}));
+}
+
+void LibraryTest::showsTheEmptyStateWhenNothingMatches()
+{
+    storedNote(QStringLiteral("Milch kaufen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    searchOf(window)->setText(QStringLiteral("Fahrrad"));
+
+    const QStringList visible = visibleLabels(window);
+    QVERIFY2(visible.contains(QStringLiteral("Keine Treffer")), qPrintable(visible.join(QLatin1Char('|'))));
+    QVERIFY(visible.contains(QStringLiteral("Den Suchbegriff ändern oder das Feld leeren.")));
+
+    // The list itself is out of sight, and the detail area stays empty — the
+    // list column says it once, as in wireframe 2c.
+    QVERIFY(!listOf(window)->isVisible());
+    QVERIFY2(!visible.contains(QStringLiteral("Keine Notiz ausgewählt")),
+             qPrintable(visible.join(QLatin1Char('|'))));
+
+    // The empty library says something else: no notes at all is not the same
+    // as none that match.
+    QVERIFY(!visible.contains(QStringLiteral("Noch keine Notizen")));
+}
+
+void LibraryTest::restoresTheFullListWhenTheSearchFieldIsCleared()
+{
+    storedNote(QStringLiteral("Bücher ansehen"));
+    storedNote(QStringLiteral("Milch kaufen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    searchOf(window)->setText(QStringLiteral("Fahrrad"));
+    QCOMPARE(modelOf(list)->noteCount(), 0);
+    QVERIFY(!list->isVisible());
+
+    searchOf(window)->clear();
+
+    QCOMPARE(modelOf(list)->noteCount(), 2);
+    QVERIFY(list->isVisible());
+    QVERIFY(!visibleLabels(window).contains(QStringLiteral("Keine Treffer")));
+}
+
+void LibraryTest::carriesOutAPendingDeletionWhenTheSearchChanges()
+{
+    storedNote(QStringLiteral("wird gelöscht"));
+    storedNote(QStringLiteral("bleibt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+
+    // A search reads the store again, and the note counting down is still in
+    // it. Carrying the deletion out first is what keeps list and store in
+    // agreement — the rule a second deletion and the closing window follow.
+    searchOf(window)->setText(QStringLiteral("gelöscht"));
+
+    QCOMPARE(modelOf(list)->noteCount(), 0);
+    QCOMPARE(m_store->notes().size(), 1);
+    QCOMPARE(m_store->notes().at(0).content, QStringLiteral("bleibt"));
 }
 
 void LibraryTest::doesNotReadTheStoreAgainWhileADeletionIsCountingDown()
@@ -1384,10 +1535,7 @@ void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     QCOMPARE(window.size(), windowSize);
 
-    auto *search = window.findChild<QLineEdit *>();
-    QVERIFY(search);
-    // The search field sits in the header through its tooltip wrapper.
-    QWidget *header = search->parentWidget()->parentWidget();
+    QWidget *header = searchOf(window)->parentWidget();
     QVERIFY(header);
     auto *splitter = window.findChild<QSplitter *>();
     QVERIFY(splitter);
@@ -1414,8 +1562,8 @@ void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
     QCOMPARE(splitter->mapTo(&window, QPoint()).y() + splitter->height(), window.height());
 
     // The field belongs into the header, not into the middle of the window.
-    QVERIFY2(search->mapTo(&window, QPoint()).y() < 40,
-             qPrintable(QStringLiteral("Suchfeld bei y=%1").arg(search->mapTo(&window, QPoint()).y())));
+    const QPoint searchTopLeft = searchOf(window)->mapTo(&window, QPoint());
+    QVERIFY2(searchTopLeft.y() < 40, qPrintable(QStringLiteral("Suchfeld bei y=%1").arg(searchTopLeft.y())));
 
     // The other axis, same class of mistake: wireframe 2b gives the list a
     // fixed width and the reading pane the rest, so the same number has to come
@@ -1516,9 +1664,8 @@ void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
     // settles once that animation has run its course.
     QTRY_VERIFY(message->isVisible() && !message->isShowAnimationRunning());
 
-    auto *search = window.findChild<QLineEdit *>();
-    QVERIFY(search);
-    QWidget *header = search->parentWidget()->parentWidget();
+    QWidget *header = searchOf(window)->parentWidget();
+    QVERIFY(header);
     auto *splitter = window.findChild<QSplitter *>();
     QVERIFY(splitter);
 
