@@ -1056,7 +1056,8 @@ UI-Vokabular.
 
 ### 9.5 Beschlüsse
 
-Acht Beschlüsse. Jeder ist heute umgesetzt; das geänderte Artefakt steht dabei.
+Acht Beschlüsse, dazu zwei per Nachtrag am Ende dieses Abschnitts (B9, B10).
+Jeder ist heute umgesetzt; das geänderte Artefakt steht dabei.
 
 **B1 — Selbst-Sichtprüfung des Entwicklers vor der Übergabe.**
 Bei jeder Story mit sichtbarem oder systemweit registriertem Verhalten startet
@@ -1139,6 +1140,36 @@ der Kunde jederzeit eine Retro anordnen kann.
 *Begründung:* Genau das ist heute geschehen. Ohne den Halbsatz steht die nächste
 außerplanmäßige Retro wieder im Widerspruch zur eigenen Arbeitsvereinbarung.
 *Geändert:* `docs/scrum/PROZESS.md` (Retrospektiven).
+
+**Nachtrag 01.08.2026 — zwei Beschlüsse auf Kundenentscheidung.** Anlass:
+Kundenfrage zur Doku-Abdeckung der DoD, gestellt nach dem Abschluss der
+Retro-Sitzung. Beide Punkte gehören sachlich in diese Retro und werden deshalb
+hier fortgeschrieben statt in einem eigenen Protokoll.
+
+**B9 — DoD 4 erfasst auch entdeckte Bedingungen.**
+Der Punkt lautet jetzt „…falls die Umsetzung eine Festlegung ändert **oder eine
+neue Bedingung entdeckt**".
+*Begründung:* Das kodifiziert die bereits geübte Bewertungspraxis, statt sie neu
+zu erfinden. Sprint-1-Mangel M2 (zwei fehlende Build-Abhängigkeiten in SPEC 15)
+und Sprint-2-Mangel M2 (die Präfix-Bedingung des Autostart-Eintrags) waren beide
+*entdeckte*, nicht *geänderte* Festlegungen — der bisherige Wortlaut erzwang das
+Nachziehen nicht, weshalb beide Male nur ein nachgemeldeter Mangel blieb. Die
+Wiederholung derselben Mangelbauart in zwei aufeinanderfolgenden Sprints ist der
+Beleg, dass der Wortlaut und nicht die Sorgfalt die Lücke ließ.
+*Geändert:* `docs/scrum/PROZESS.md` (DoD 4).
+
+**B10 — Doku-Abgleich als fester Bestandteil der Sprint-Ende-Prüfung.**
+Der Scrum Master prüft am Sprint-Ende, ob README und `docs/` den gelieferten
+Stand beschreiben, und meldet Abweichungen als Mangel; die Korrektur bleibt bei
+PO oder Dev (melden, nicht heilen).
+*Begründung:* Die Statuszeile des README lautete nach zwei Sprints wörtlich
+„Konzeptphase — noch kein Code" (Zeile 7, Stand vor `c38a8fa`), während Daemon,
+Tray, Capture-Fenster, Bibliothek und sieben Tests standen. Kein DoD-Punkt hat
+je jemanden gezwungen hineinzusehen: DoD 4 deckt SPEC und KONZEPT ab, die
+übrigen Punkte Code, Review, Commit und Journal — die Projektbeschreibung selbst
+kam in der Prüfkette nicht vor. Die Korrektur hat der PO parallel ausgeführt
+(`c38a8fa`); vom Scrum Master am neuen Wortlaut nachgeprüft.
+*Geändert:* `docs/scrum/PROZESS.md` (Satz unter der DoD-Liste).
 
 **Nicht beschlossen:** Quellcode-Änderungen. Die Heilung der Befunde 1 und 2 ist
 Dev-Arbeit nach der Retro (Ursachen eingegrenzt, siehe „next"). Eine Retro
@@ -1337,7 +1368,8 @@ einschließlich zweier Korrekturen an der bisherigen Protokolllage — die
 Erststart-Bindung ist unbeteiligt und SPEC-konform, und der Prüfweg aus 7.4
 Punkt 4 hätte den Fehler nicht aufgedeckt; die Kundenfrage zum UI/UX-Experten
 direkt beantwortet (Selbstverdikt `fail` der Rolle, plus der Anteil des Scrum
-Masters an Review-Auftrag und DoD-Buchung); acht Beschlüsse gefasst und **am
+Masters an Review-Auftrag und DoD-Buchung); acht Beschlüsse gefasst, zwei
+weitere auf Kundenentscheidung nachgetragen (B9, B10), alle **am
 selben Tag umgesetzt** (`docs/scrum/PROZESS.md`,
 `.claude/agents/denkzettel-dev.md`, `.claude/agents/denkzettel-ux.md`);
 Werkzeug-Empfehlung mit Rangfolge und ehrlicher semgrep-Abwägung erstellt, ohne

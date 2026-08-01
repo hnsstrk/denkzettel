@@ -97,10 +97,14 @@ PO aus.
    Bilder aus dem Sprint-Stand und prüft sie gegen den Wireframe. Ein
    UI-Review ohne eigene Bildprüfung zählt für diesen Punkt nicht.
 4. SPEC.md/KONZEPT.md nachgezogen, falls die Umsetzung eine Festlegung
-   ändert (mit Begründung im Issue).
+   ändert **oder eine neue Bedingung entdeckt** (mit Begründung im Issue).
 5. Commit(s) auf `main` bzw. Feature-Branch gemäß Kundenvorgabe; Issue
    geschlossen mit Verweis auf Commit.
 6. Journal-Eintrag der Session gemäß globaler Protokollpflicht.
+
+Zur Sprint-Ende-Prüfung des Scrum Masters gehört der **Doku-Abgleich**:
+Beschreiben README und `docs/` den gelieferten Stand? Abweichungen meldet er
+als Mangel; die Korrektur ist Sache von PO oder Dev (melden, nicht heilen).
 
 ## Retrospektiven
 
