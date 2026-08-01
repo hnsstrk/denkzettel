@@ -39,6 +39,10 @@ target_link_libraries(shelltest PRIVATE
 
 add_test(NAME shelltest COMMAND shelltest)
 
+# The tray item carries a menu, so the test needs a QApplication and with it a
+# platform that runs without a compositor.
+set_tests_properties(shelltest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(firstruntest firstruntest.cpp)
 
 target_link_libraries(firstruntest PRIVATE
