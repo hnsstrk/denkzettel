@@ -170,6 +170,14 @@ meta(key TEXT PK, value TEXT)  -- Schema-Version u. Ä.
 ```
 
 - Volltextindex: **FTS5**-Tabelle `notes_fts(content)`, per Trigger synchron.
+  Sie hält **keinen eigenen Text**, sondern verweist mit `content='notes'`,
+  `content_rowid='id'` auf die Notiztabelle (Schemaversion 2, Issue #8) — der
+  Notiztext existiert genau einmal. Daraus folgt eine Bedingung, ohne die der
+  Index still verwahrlost: Die Trigger für Ändern und Löschen müssen FTS5 den
+  **alten** Text mitgeben (`'delete'`-Kommando mit `old.content`). Mit dem
+  neuen Text bleiben die alten Wörter auffindbar, und weder ein Fehler noch
+  FTS5s `integrity-check` zeigen das an — nur eine Suche nach dem alten Wort
+  (siehe `StoreTest::keepsSearchIndexInSync()`).
 - Audio liegt als Datei unter `audio/` (Name = Notiz-ISO-Zeitstempel), die DB
   hält den Verweis. Löschen einer Notiz löscht Tags, Embedding, FTS-Eintrag,
   `proposal_notes`-Verweise und Audio-Datei in einer Transaktion +
@@ -200,8 +208,44 @@ Interview). Syntax-Umfang (damit ist offene Frage 3 des Konzepts beantwortet):
 - Alle Bestandteile sind **UND-verknüpft**; kein OR, keine Klammern (V1).
 - Unbekannte `xyz:`-Präfixe werden als Volltext behandelt (kein Fehler).
 - Parser ist reine Funktion `QString → SearchQuery` — unit-testbar.
-- FTS5-Tokenizer: `unicode61 remove_diacritics 2` — „bucher" findet
-  „Bücher"; deutsche Umlaut-Toleranz ist Kernanforderung der Suche.
+- FTS5-Tokenizer: **`trigram remove_diacritics 1`** (Kundenentscheidung
+  01.08.2026, Issue #8). Ein Suchbegriff findet **Wortteile an jeder Stelle**:
+  „grafieren" findet „fotografieren", „bahn" findet „Straßenbahn", „sprech"
+  findet „Besprechung". „bucher" findet „Bücher" — die Umlaut-Toleranz bleibt
+  Kernanforderung und ist mit `remove_diacritics 1` erhalten.
+  - **Damit ist die Präfixsuche keine eigene Festlegung mehr.** Sie ist im
+    Teilstring-Verhalten enthalten. Die Abfrage hängt **kein** `*` an: Am
+    System gemessen sind `"foto"` und `"foto"*` beim trigram-Tokenizer
+    identisch — er erzeugt ausschließlich vollständige Drei-Zeichen-Tokens,
+    an denen ein Präfixzeichen nichts erweitern kann. Ein `prefix=`-Index
+    wird ebenfalls nicht angelegt (Beschluss E2).
+  - **Preis, gemessen an 20 000 Notizen:** Der trigram-Index ist rund
+    **sechsmal** so groß wie ein `unicode61`-Index (1,8 MiB → 10,9 MiB) und
+    damit gut dreimal so groß wie der Rohtext selbst. Für den erwarteten
+    Bestand ist das tragbar; bei sechsstelligen Notizzahlen wäre es neu zu
+    bewerten.
+  - **Grenze (Befund Issue #8, SQLite 3.53.4):** Der Tokenizer entfernt
+    diakritische Zeichen. `ß` trägt keines — es ist ein eigener Buchstabe und
+    bleibt stehen. „strassenbahn" findet „Straßenbahn" deshalb **nicht**,
+    „grosse" nicht „Größe". Gilt für `unicode61` wie für `trigram`; die
+    ß/ss-Faltung verlangt einen eigenen Tokenizer und ist eigene Story (S30).
+- **Suchbegriffe unter drei Zeichen (Entscheidung Issue #8):** Ein
+  trigram-Index kann sie prinzipbedingt nicht enthalten — ein Trigramm ist
+  drei Zeichen lang. Solche Begriffe werden deshalb **als Teilstring direkt
+  auf `notes.content` verglichen** (`LIKE '%…%'`), die übrigen weiterhin über
+  den Index; beide Wege sind UND-verknüpft. Begründung: „KI", „PO" oder „ad"
+  sind echte Suchbegriffe, und eine Suche, die dabei wortlos leer bleibt,
+  wäre ein Fehler, den niemand als solchen erkennt. Der Alternativweg — ein
+  Hinweis im Leerzustand — würde eine reine Umsetzungsgrenze zur Regel
+  machen, die der Nutzer lernen muss. **Kosten gemessen** (20 000 Notizen):
+  3 ms je Abfrage, weniger als die Indexabfrage selbst (9 ms) — der
+  Einwand des vollen Tabellendurchlaufs trägt in dieser Größenordnung nicht.
+  - Grenze dieses Wegs: Er ignoriert Groß-/Kleinschreibung nur für ASCII
+    („ki" findet „KI"), faltet aber keine diakritischen Zeichen („u" findet
+    kein „ü") und keine Groß-/Kleinschreibung darüber hinaus („ü" findet
+    kein „Ü"). Betrifft ausschließlich Begriffe mit ein oder zwei Zeichen.
+- Die Trefferliste behält die Ordnung der Bibliothek (neueste zuerst, 9.)
+  statt der FTS5-Relevanzsortierung — nur so trägt sie deren Tagesgruppen.
 
 ## 7. KI-Pipeline
 

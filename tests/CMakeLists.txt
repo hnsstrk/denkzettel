@@ -30,6 +30,16 @@ add_test(NAME librarytest COMMAND librarytest)
 
 set_tests_properties(librarytest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+# Writes the picture series of the search states for the story handover. No
+# add_test(): it produces pictures for a human to look at, and a broken
+# screenshot writer must not colour the suite red.
+add_executable(searchshots EXCLUDE_FROM_ALL searchshots.cpp)
+
+target_link_libraries(searchshots PRIVATE
+    denkzettelui
+    Qt6::Test
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE

@@ -42,6 +42,41 @@ const QList<QStringList> &migrations()
                            "  tag TEXT NOT NULL,"
                            "  PRIMARY KEY (note_id, tag))"),
         },
+        // Version 2 — full-text index (SPEC 5.1, 6). The index keeps no text of
+        // its own: `content='notes'` points it at the notes table, so the note
+        // text exists once and cannot drift between two copies.
+        {
+            // `trigram` indexes every three-character sequence, which is what
+            // makes „grafieren" find „fotografieren" (customer decision
+            // 01.08.2026). It costs index size — measured at roughly six times
+            // a unicode61 index — and it cannot represent anything shorter
+            // than three characters; Store::search() covers that gap.
+            QStringLiteral("CREATE VIRTUAL TABLE notes_fts USING fts5("
+                           "  content,"
+                           "  content='notes',"
+                           "  content_rowid='id',"
+                           "  tokenize='trigram remove_diacritics 1')"),
+            // The three triggers of the external-content pattern. A deletion is
+            // written as a 'delete' command carrying the *old* text: FTS5 needs
+            // it to find the index entries it has to take out. Passing the new
+            // text instead leaves the old words findable — which is what
+            // StoreTest::keepsSearchIndexInSync() watches for.
+            QStringLiteral("CREATE TRIGGER notes_fts_after_insert AFTER INSERT ON notes BEGIN"
+                           "  INSERT INTO notes_fts (rowid, content) VALUES (new.id, new.content);"
+                           " END"),
+            QStringLiteral("CREATE TRIGGER notes_fts_after_delete AFTER DELETE ON notes BEGIN"
+                           "  INSERT INTO notes_fts (notes_fts, rowid, content)"
+                           "  VALUES ('delete', old.id, old.content);"
+                           " END"),
+            QStringLiteral("CREATE TRIGGER notes_fts_after_update AFTER UPDATE ON notes BEGIN"
+                           "  INSERT INTO notes_fts (notes_fts, rowid, content)"
+                           "  VALUES ('delete', old.id, old.content);"
+                           "  INSERT INTO notes_fts (rowid, content) VALUES (new.id, new.content);"
+                           " END"),
+            // Notes written before this migration predate the triggers; without
+            // the rebuild they would stay invisible to the search for good.
+            QStringLiteral("INSERT INTO notes_fts (notes_fts) VALUES ('rebuild')"),
+        },
     };
     return steps;
 }
@@ -107,6 +142,39 @@ QString noteColumns()
 {
     return QStringLiteral("id, created_at, type, content, audio_path, audio_duration_s,"
                           " category, state, needs_reembed, analysis_attempts, analysis_last_error");
+}
+
+/** Shortest term the trigram index can represent (SPEC 6). */
+constexpr qsizetype trigramLength = 3;
+
+/**
+ * Splits what the user typed into search terms.
+ *
+ * Everything that is not a letter or a digit separates terms, so nothing the
+ * user types can reach FTS5 as syntax: quotation marks, hyphens, parentheses
+ * and words such as AND are plain text here, and a stray character is no
+ * search error. The operators of SPEC 6 are the job of the search parser (S7).
+ *
+ * A term therefore consists of letters and digits only — which is why neither
+ * the FTS5 phrase nor the LIKE pattern built from it in Store::search() needs
+ * escaping: a quotation mark, a percent sign or an underscore cannot occur.
+ */
+QStringList searchTerms(const QString &text)
+{
+    QStringList terms;
+    QString current;
+    for (const QChar character : text) {
+        if (character.isLetterOrNumber()) {
+            current.append(character);
+        } else if (!current.isEmpty()) {
+            terms.append(current);
+            current.clear();
+        }
+    }
+    if (!current.isEmpty()) {
+        terms.append(current);
+    }
+    return terms;
 }
 
 /** Reads the current row of a query built from noteColumns(). */
@@ -341,6 +409,64 @@ QList<Note> Store::notes() const
         notes.append(noteFromQuery(query));
     }
     return notes;
+}
+
+QList<Note> Store::search(const QString &text) const
+{
+    const QStringList terms = searchTerms(text);
+    if (terms.isEmpty()) {
+        return notes();
+    }
+
+    // Terms of three characters and more go through the trigram index. Shorter
+    // ones cannot be in it — a trigram is three characters by definition — and
+    // take a plain substring comparison instead, so that „KI" or „PO" find
+    // something instead of silently nothing (SPEC 6).
+    QStringList phrases;
+    QStringList shortTerms;
+    for (const QString &term : terms) {
+        if (term.size() >= trigramLength) {
+            phrases.append(QStringLiteral("\"%1\"").arg(term));
+        } else {
+            shortTerms.append(term);
+        }
+    }
+
+    QStringList conditions;
+    if (!phrases.isEmpty()) {
+        conditions.append(QStringLiteral("id IN (SELECT rowid FROM notes_fts WHERE notes_fts MATCH :match)"));
+    }
+    for (qsizetype index = 0; index < shortTerms.size(); ++index) {
+        conditions.append(QStringLiteral("content LIKE :short%1").arg(index));
+    }
+
+    QSqlQuery query(m_db);
+    // The rows are picked by id rather than joined: `notes` and `notes_fts`
+    // both have a column named `content`, which a join would make ambiguous.
+    // The order is the library's, not FTS5's relevance ranking — the result
+    // list keeps the day grouping of the note list (SPEC 9).
+    query.prepare(QStringLiteral("SELECT %1 FROM notes WHERE %2"
+                                 " ORDER BY created_at DESC, id DESC")
+                      .arg(noteColumns(), conditions.join(QStringLiteral(" AND "))));
+    if (!phrases.isEmpty()) {
+        // A sequence of phrases is an AND to FTS5.
+        query.bindValue(QStringLiteral(":match"), phrases.join(QLatin1Char(' ')));
+    }
+    for (qsizetype index = 0; index < shortTerms.size(); ++index) {
+        query.bindValue(QStringLiteral(":short%1").arg(index),
+                        QStringLiteral("%%%1%%").arg(shortTerms.at(index)));
+    }
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<Note> found;
+    while (query.next()) {
+        found.append(noteFromQuery(query));
+    }
+    return found;
 }
 
 bool Store::removeNote(qint64 id)
