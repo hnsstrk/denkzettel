@@ -1324,6 +1324,29 @@ zuerst B1–B3 wirken lassen, dann clazy `level0,level1` als einmaligen Lauf
 ansehen, und das Guardian-Plugin für Secrets und Supply-Chain vormerken, sobald
 Manifeste oder CI existieren.
 
+**Nachtrag 02.08.2026 — der Kunde hat entschieden: Plugin deaktiviert.** Die
+oben festgehaltene Beleglage („`.claude/settings.json` führt
+`semgrep@claude-plugins-official` als aktiviert") war zum Prüfzeitpunkt richtig
+und ist seit dem 01.08., 11:01 überholt: Die Datei enthält jetzt
+`{"enabledPlugins": {}}`. Der Kunde hat das Plugin abgeschaltet — in
+Übereinstimmung mit der Empfehlung, nicht gegen sie.
+
+*Was damit entschieden ist und was nicht:* Erledigt ist der **SAST-Teil** — für
+unser C++ nicht belastbar, an zwei bestätigten Belegen. **Nicht erledigt sind
+Secrets und Supply-Chain.** Beide waren oben ausdrücklich an eine Bedingung
+geknüpft, die noch nicht eingetreten ist: ein Paketmanifest (S28, M7) oder eine
+CI für die Supply-Chain, und die API-Anbindungen aus M6 für die Secrets. Das
+Repository ist öffentlich, und SPEC 7.1 verlangt API-Schlüssel aus KWallet oder
+Umgebung — **spätestens mit M6 gehört die Frage neu gestellt**, dann für eine
+Prüfung, die keine C++-Semantik braucht, sondern Mustererkennung.
+
+*Nebenbefund aus derselben Prüfung:* Die Datei `.claude/settings.json` war
+unversioniert und wurde deshalb nie Teil der Historie — der Beleg dieser Retro
+ist damit nachträglich nicht mehr nachprüfbar. Sie steht seit dem 02.08. in der
+Ignorierliste, weil sie leer ist und nichts dokumentiert. Die Lehre gilt über
+den Einzelfall hinaus und ist am selben Tag ein zweites Mal aufgetreten
+(Sprint-3-Mangel M3): **Ein unversionierter Beleg ist kein Beleg.**
+
 ### 9.7 Impediments
 
 **I3 — „Agent meldet sich untätig statt Bericht zu liefern": GESCHLOSSEN.**
