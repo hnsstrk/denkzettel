@@ -592,3 +592,83 @@ billigste Gelegenheit, und Warten hätte doppelte Arbeit erzeugt. Sie zeigt
 aber, dass der Prozess für diesen Fall keine Regel kennt: Wer entscheidet, was
 eine Freigabe noch trägt, und ab welcher Größe ist es ein neuer Sprint? Bisher
 hat der PO im Einzelfall abgewogen und den Kunden entscheiden lassen.
+
+## 12. Beobachtungen für die Retrospektive (fortlaufend während des Sprints)
+
+Gesammelt, während sie frisch waren, statt am Sprint-Ende rekonstruiert.
+
+### 12.1 Vier Sätze zur Prüfbarkeit, aus konkreten Fehlern gewonnen
+
+> **Bei Bewegungen ist der Weg der Prüfgegenstand, nicht das Ziel.**
+> **Bei Zuständen ist das Bild der Prüfgegenstand, nicht die Zusicherung.**
+> **Eine Vereinfachung ist erst geprüft, wenn sie gegen die zuletzt geheilten Fälle gehalten wurde.**
+> **Eine Begründung, die nicht trägt, fällt auf; eine, die trägt und trotzdem den falschen Schluss stützt, nicht.**
+
+Der erste Satz stammt aus drei Scroll-Fehlern desselben Bauart-Typs: Das Bild
+*nach* dem Tastendruck war jedes Mal richtig, falsch war die Bewegung dorthin.
+Der Entwickler ist zweimal in dieselbe Falle gelaufen und hat sie beim zweiten
+Mal selbst gefunden — durch Messung des Rollwerts statt Vergleich der
+Endbilder. Der UI-Review fand den dritten Fall mit derselben Technik.
+
+Der zweite Satz ist seine Umkehrung und stammt aus Sprint 2: Das kaputte
+Bibliotheks-Layout war in keinem Test zu sehen, nur im Bild. Zusammen sind
+beide die Begründung dafür, warum die Bildprüfung aus Beschluss B3 **neben**
+den Tests steht und nicht durch sie zu ersetzen ist.
+
+Der dritte und vierte Satz stammen aus zwei Beinahe-Fehlern des PO (12.2).
+
+### 12.2 Zwei Fehlentscheidungen des PO, beide aus schlüssigen Begründungen
+
+**Erster Fall — AK 7.** Der Entwickler meldete eine Auslegungsfrage statt sie
+still zu entscheiden, und begründete seine Lesart mit Wireframe 3b Fall 4. Der
+PO stimmte zu. Der UI-Review widerlegte beides: Der dort ohne Überschrift
+gezeichnete Eintrag ist **nicht die Auswahl**. Eine Berufung auf die Zeichnung,
+die die Zeichnung nicht gelesen hatte — und eine Zustimmung, die den Grenzfall
+nicht gesucht hat, der die Lesart kippt.
+
+**Zweiter Fall — die Zusatzbedingung.** Nach dem Fund des Rad-Sprungs empfahl
+der Reviewer, nur noch vorzuscrollen, wenn die Auswahl nicht ohnehin sichtbar
+ist. Der PO entschied so. Der Reviewer maß nach und nahm die eigene Empfehlung
+**zurück**: Im gerade geheilten Fall war die Zielzeile bereits vollständig
+sichtbar, der Kopf lag 35 px darüber draußen — die neue Regel hätte ihn
+draußen gelassen und damit den Befund von einer Stunde zuvor wiederhergestellt.
+Die Korrektur erreichte den Entwickler, bevor er sie einbaute.
+
+**Das Muster ist beide Male dasselbe und liegt beim PO:** Zustimmung zu einer
+plausiblen Begründung, ohne den Fall zu suchen, der sie kippt. Beide Male war
+die Begründung sachlich richtig und der Schluss daraus falsch. Gerettet hat
+beide Male dieselbe Methode — nachmessen statt nachdenken.
+
+**Gegenmaßnahme, die schon greift:** Der Prüfsatz „Springt die Auswahl über
+eine Gruppengrenze auf eine schon vollständig sichtbare Zeile, muss der Kopf
+danach im Bild sein" ist in die Testauflage gewandert. Ohne ihn hätte jede
+spätere Vereinfachung wieder wie eine Verbesserung ausgesehen.
+
+### 12.3 Der Sprint ist um 30 % gewachsen
+
+Von 10 auf 13 SP, damit an der oberen Grenze aus PROZESS.md. Drei Zugänge nach
+der Kundenfreigabe, jeder einzeln entschieden und begründet: die Wortteil-Suche
+(zeitgebunden — der Tokenizer stand in der noch nicht abgelieferten Migration),
+der Capture-Farbfehler #54 (eine Zeile, trifft den Kundenwunsch wörtlich) und
+die Aufwertung von #8 (3 → 5 SP nach gemeldetem Mehraufwand). **Jede für sich
+begründet, in der Summe ein Drittel mehr Sprint.** Für die Retro: Der Prozess
+kennt keine Regel dafür, was eine erteilte Freigabe noch trägt.
+
+### 12.4 Bildläufe brauchen das Plattformthema
+
+Ohne `QT_QPA_PLATFORMTHEME=kde` liefert `SmallestReadableFont` eine Ersatzschrift,
+die **größer** ausfällt als die Eintragsschrift — die beabsichtigte Rangfolge
+kehrt sich um. Wer so ein Bild beurteilt, beurteilt eine Schrift, die im Betrieb
+nie erscheint. Gehört in die Bildlauf-Regel von B3. Der Entwickler hat die
+Warnung inzwischen in den Kopf seines Bildprogramms geschrieben.
+
+### 12.5 I5 (Git-Hygiene bei parallelen Agenten) — erster Prüflauf
+
+Vier Agenten in getrennten Worktrees, 18 Commits, **keine Kollision**. Die
+formale Bewertung nach dem Kriterium aus Abschnitt 8 gehört in die DoD-Prüfung.
+Bemerkenswert ist, was die Parallelarbeit **neu** erzeugt hat: die Kollision am
+einen `/usr`-Präfix (im Planning vorhergesehen, vom PO in den Spawn-Aufträgen
+zunächst vergessen und nachträglich getaktet) und der gleichzeitige Zugriff
+zweier UX-Agenten auf die Wireframe-Datei (ebenfalls getaktet). **Beide Risiken
+entstehen erst durch Parallelität und wären bei einem einzelnen Dev nie
+aufgefallen.**
