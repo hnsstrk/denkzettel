@@ -63,8 +63,8 @@ void FirstRunTest::createsDataDirectoryDatabaseAndConfiguration()
 
     QVERIFY2(QFileInfo(dataDirectory).isDir(), qPrintable(dataDirectory));
     QVERIFY2(QFile::exists(databasePath), qPrintable(databasePath));
-    // Version 1 is the current schema (SPEC 5.1); storetest holds the detail.
-    QCOMPARE(store.schemaVersion(), 1);
+    // Version 2 is the current schema (SPEC 5.1); storetest holds the detail.
+    QCOMPARE(store.schemaVersion(), 2);
 
     // The file name follows from the application name, so the daemon has to be
     // back to "denkzettel" before this call — otherwise the configuration lands

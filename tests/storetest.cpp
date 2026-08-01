@@ -31,9 +31,18 @@ private Q_SLOTS:
     void removesAudioFileAfterDeletingNote();
     void reopensExistingDatabaseWithoutMigrating();
 
+    void findsNotesByFullText();
+    void searchFindsWordsSpelledWithoutUmlauts();
+    void searchMatchesWordPrefixes();
+    void searchTakesQueryTextLiterally();
+    void searchWithoutTermsListsAllNotes();
+    void keepsSearchIndexInSync();
+
 private:
     QString databasePath() const;
     static Note sampleNote();
+    /** Contents of the notes a search returns, in the order it returned them. */
+    QStringList searchContents(const QString &text) const;
 
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
@@ -79,7 +88,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 1);
+    QCOMPARE(m_store->schemaVersion(), 2);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -264,11 +273,146 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 1);
+    QCOMPARE(m_store->schemaVersion(), 2);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
     QCOMPARE(m_store->tags(*id), QStringList({QStringLiteral("backup")}));
+}
+
+QStringList StoreTest::searchContents(const QString &text) const
+{
+    QStringList contents;
+    const QList<Note> found = m_store->search(text);
+    contents.reserve(found.size());
+    for (const Note &note : found) {
+        contents.append(note.content);
+    }
+    return contents;
+}
+
+void StoreTest::findsNotesByFullText()
+{
+    Note books = sampleNote();
+    books.content = QStringLiteral("Bücher über Straßenbahnen ansehen");
+    books.createdAt = QDateTime::fromString(QStringLiteral("2026-07-31T18:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(books).has_value());
+
+    Note backup = sampleNote();
+    backup.content = QStringLiteral("Backup der Bücher-Datenbank prüfen");
+    backup.createdAt = QDateTime::fromString(QStringLiteral("2026-07-30T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(backup).has_value());
+
+    Note unrelated = sampleNote();
+    unrelated.content = QStringLiteral("Milch kaufen");
+    unrelated.createdAt = QDateTime::fromString(QStringLiteral("2026-07-29T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(unrelated).has_value());
+
+    // One term hits both notes, and the newest comes first — a result list is
+    // ordered like the library list, not by relevance (SPEC 9).
+    QCOMPARE(searchContents(QStringLiteral("Bücher")), QStringList({books.content, backup.content}));
+
+    // Two terms are ANDed, not ORed (SPEC 6).
+    QCOMPARE(searchContents(QStringLiteral("Bücher Backup")), QStringList({backup.content}));
+
+    QVERIFY(m_store->search(QStringLiteral("Fahrrad")).isEmpty());
+}
+
+void StoreTest::searchFindsWordsSpelledWithoutUmlauts()
+{
+    Note books = sampleNote();
+    books.content = QStringLiteral("Bücher über Straßenbahnen ansehen");
+    QVERIFY(m_store->addNote(books).has_value());
+
+    // The acceptance criterion of the story, spelled out (SPEC 6).
+    QCOMPARE(searchContents(QStringLiteral("bucher")), QStringList({books.content}));
+    QCOMPARE(searchContents(QStringLiteral("uber")), QStringList({books.content}));
+
+    // The other direction works as well: typing the umlaut finds the note.
+    QCOMPARE(searchContents(QStringLiteral("BÜCHER")), QStringList({books.content}));
+
+    // Documented limit: `remove_diacritics 2` folds diacritics, and ß carries
+    // none — it is a letter of its own. „strassenbahnen" therefore does not
+    // find „Straßenbahnen" (SPEC 6).
+    QVERIFY(m_store->search(QStringLiteral("strassenbahnen")).isEmpty());
+    QCOMPARE(searchContents(QStringLiteral("straßenbahnen")), QStringList({books.content}));
+}
+
+void StoreTest::searchMatchesWordPrefixes()
+{
+    Note note = sampleNote();
+    note.content = QStringLiteral("Straßenbahnen fotografieren");
+    QVERIFY(m_store->addNote(note).has_value());
+
+    // Decision of this story: every term searches as a prefix, so the list
+    // narrows while the user is still typing (SPEC 6).
+    QCOMPARE(searchContents(QStringLiteral("foto")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("f")), QStringList({note.content}));
+
+    // The prefix binds at the start of a word only — no infix search.
+    QVERIFY(m_store->search(QStringLiteral("grafieren")).isEmpty());
+}
+
+void StoreTest::searchTakesQueryTextLiterally()
+{
+    Note note = sampleNote();
+    note.content = QStringLiteral("Backup und Notizen aufräumen");
+    QVERIFY(m_store->addNote(note).has_value());
+
+    // Both terms are in the note, so the search finds it.
+    QCOMPARE(searchContents(QStringLiteral("Backup Notizen")), QStringList({note.content}));
+
+    // Adding AND in between finds nothing — and that is the point: AND is
+    // searched for as a word, and the note has none starting with „and". Were
+    // it read as an FTS5 operator, the note would still show up. Operators
+    // arrive with the search parser (S7).
+    QVERIFY(m_store->search(QStringLiteral("Backup AND Notizen")).isEmpty());
+
+    // Punctuation that is FTS5 syntax must not raise a search error either;
+    // it separates terms like any other character.
+    QCOMPARE(searchContents(QStringLiteral("\"Backup\"")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("Backup (Notizen)")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("Backup -Notizen")), QStringList({note.content}));
+    QCOMPARE(searchContents(QStringLiteral("aufräumen^*")), QStringList({note.content}));
+
+    // A query of pure punctuation carries no term and must not be a syntax
+    // error either.
+    QCOMPARE(m_store->search(QStringLiteral("\"*()")).size(), 1);
+    QVERIFY2(m_store->lastError().isEmpty(), qPrintable(m_store->lastError()));
+}
+
+void StoreTest::searchWithoutTermsListsAllNotes()
+{
+    QVERIFY(m_store->addNote(sampleNote()).has_value());
+    QVERIFY(m_store->addNote(sampleNote()).has_value());
+
+    // An emptied search field restores the full list (acceptance criterion).
+    QCOMPARE(m_store->search(QString()).size(), 2);
+    QCOMPARE(m_store->search(QStringLiteral("   ")).size(), 2);
+}
+
+void StoreTest::keepsSearchIndexInSync()
+{
+    Note note = sampleNote();
+    note.content = QStringLiteral("Zeltheringe nachkaufen");
+    const std::optional<qint64> id = m_store->addNote(note);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    // Adding.
+    QCOMPARE(searchContents(QStringLiteral("Zeltheringe")), QStringList({note.content}));
+
+    // Editing: the old wording disappears from the index, the new one appears.
+    Note edited = note;
+    edited.id = *id;
+    edited.content = QStringLiteral("Schlafsack lüften");
+    QVERIFY2(m_store->updateNote(edited), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->search(QStringLiteral("Zeltheringe")).isEmpty());
+    QCOMPARE(searchContents(QStringLiteral("Schlafsack")), QStringList({edited.content}));
+
+    // Deleting.
+    QVERIFY2(m_store->removeNote(*id), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->search(QStringLiteral("Schlafsack")).isEmpty());
+    QVERIFY(m_store->search(QString()).isEmpty());
 }
 
 QTEST_GUILESS_MAIN(StoreTest)

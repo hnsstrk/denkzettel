@@ -52,6 +52,26 @@ public:
     /** All notes, newest first — the order the library lists them in (SPEC 9). */
     QList<Note> notes() const;
 
+    /**
+     * Notes whose text matches a free-text query, newest first (SPEC 6).
+     *
+     * The terms are ANDed, and each of them matches as a **prefix**: „foto"
+     * finds „fotografieren", so the list narrows while the user is still
+     * typing. There is no infix search — „grafieren" finds nothing.
+     *
+     * The tokenizer folds diacritics, so „bucher" finds „Bücher"; it does not
+     * fold ß, so „strassenbahn" does not find „Straßenbahn".
+     *
+     * A query without any searchable term — empty, blank, pure punctuation —
+     * returns the same list as notes(): clearing the search field restores the
+     * full list.
+     *
+     * The search operators of SPEC 6 (`tag:`, `kat:`, phrases …) are not part
+     * of this method; they arrive with the search parser (S7). Until then
+     * every character the user types is plain search text.
+     */
+    QList<Note> search(const QString &text) const;
+
     /** Deletes note and tags in one transaction, then its audio file. */
     bool removeNote(qint64 id);
 
