@@ -105,6 +105,9 @@ PO aus.
 Zur Sprint-Ende-Prüfung des Scrum Masters gehört der **Doku-Abgleich**:
 Beschreiben README und `docs/` den gelieferten Stand? Abweichungen meldet er
 als Mangel; die Korrektur ist Sache von PO oder Dev (melden, nicht heilen).
+Das Ergebnis steht in der DoD-Prüfung des Sprint-Protokolls, auch bei
+Befundfreiheit — sonst ist „geprüft, nichts gefunden" nicht von „vergessen"
+zu unterscheiden.
 
 ## Retrospektiven
 

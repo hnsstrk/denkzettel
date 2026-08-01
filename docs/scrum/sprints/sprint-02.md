@@ -1056,7 +1056,7 @@ UI-Vokabular.
 
 ### 9.5 Beschlüsse
 
-Acht Beschlüsse, dazu zwei per Nachtrag am Ende dieses Abschnitts (B9, B10).
+Acht Beschlüsse, dazu zwei per Nachtrag am Ende der Beschlussliste (B9, B10).
 Jeder ist heute umgesetzt; das geänderte Artefakt steht dabei.
 
 **B1 — Selbst-Sichtprüfung des Entwicklers vor der Übergabe.**
@@ -1405,8 +1405,13 @@ steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nach
   beim Dienst zurück. **B2 ist wörtlich umgesetzt**: `librarytest.cpp` hat mit
   `keepsTheHeaderAtTheTopAndTheRestForTheNotes` eine datengetriebene
   Testfunktion über zwei Fenstergrößen (900×600 und 1200×800) plus
-  `putsTheMessageBetweenTheHeaderAndTheNotes`; die Datei enthielt zum
-  Retro-Zeitpunkt null Geometrie-Zusicherungen, jetzt 22 Fundstellen.
+  `putsTheMessageBetweenTheHeaderAndTheNotes`. Zahlen mit Methode, weil die
+  Aussage sonst nicht nachzählbar ist: Zum Retro-Zeitpunkt (`091fcc5`) enthielt
+  die Datei **keine einzige Zeile** mit `height()`, `geometry()`, `sizeHint()`
+  oder `mapTo`; am Stand `55448f7` sind es 22 solche Zeilen, und die beiden
+  neuen Geometrie-Funktionen tragen zusammen **23 Zusicherungen** (12 und 11
+  `QCOMPARE`/`QVERIFY`, gezählt zwischen Funktionskopf und schließender
+  Klammer).
 - **(2) Gestaltungsauftrag „Raumaufteilung" — offen.** Die Wireframe-Datei
   enthält den Begriff nach wie vor kein einziges Mal (Suchlauf über
   `wireframes/Denkzettel Wireframes.dc.html`: 0 Treffer). Damit fehlt B2 noch
@@ -1416,7 +1421,7 @@ steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nach
   `OPEN` (Mangel M1 bleibt bis zur Abnahme).
 - **(4) Werkzeug-Entscheidung — gefallen und umgesetzt.** Der Kunde hat die
   Ränge 1 und 2 angenommen: `9e8353b` legt die Targets `lint-tidy`,
-  `lint-clazy` und `lint-database` an (`CMakeLists.txt:87–117`, beide Werkzeuge
+  `lint-clazy` und `lint-database` an (`CMakeLists.txt:78–117`, beide Werkzeuge
   optional über `find_program`), Issue #45 ist geschlossen. **Offen bleiben
   Rang 3 und 4**: Ein Verzeichnis `.claude/skills/` existiert weiterhin nicht,
   der Screenshot-Helfer ist also kein Projekt-Skill, sondern lebt in den
@@ -1431,10 +1436,10 @@ steht, heißt das „im Code belegt", nicht „von mir grün gemessen"; der Nach
   inhaltlich geschlossen — genau die Alternative, die der Punkt zuließ. Auch
   die Retro-Sitzung selbst ist protokolliert (10:47).
 - **Zusätzlich sichtbar geworden:** B3 und B7 sind in der Praxis angekommen —
-  `docs/scrum/reviews/2026-08-01-ui-review-s5-heilung/` enthält acht eigene
-  Bilder des UI-Reviews über mehrere Zustände und Fenstergrößen sowie die
-  Helferprogramme. Der Review, der in Sprint 2 ohne ein einziges Bild geführt
-  wurde, arbeitet jetzt mit Bildern.
+  `docs/scrum/reviews/2026-08-01-ui-review-s5-heilung/` enthält **sieben**
+  eigene Bilder des UI-Reviews über mehrere Zustände und Fenstergrößen sowie
+  die Helferprogramme. Der Review, der in Sprint 2 ohne ein einziges Bild
+  geführt wurde, arbeitet jetzt mit Bildern.
 - **Unverändert Backlog-Material:** #44 (Tray-Linksklick ohne Wirkung, aus der
   Abnahme) und #11 (S8) hängen an keinem Milestone und gehören ins
   Sprint-3-Planning.
