@@ -48,3 +48,27 @@ braucht der Nachweis den hellen Zwischenzustand.)
 Bilder: `ungeheilt-*` (Gegenprobe), `geheilt-leer-*` (Leerzustand),
 `geheilt-getippt-*` (mit Text — belegt, dass auch Textfarbe und
 Feldhintergrund folgen).
+
+## Vierter Lauf: nativ unter Wayland
+
+Die drei Läufe oben holen ihre Bilder über X (der Dienst lief als
+XWayland-Klient), damit sie ohne Schnappschuss-Berechtigung auskommen. Damit
+das keine offene Grenze bleibt, ein vierter Lauf mit `QT_QPA_PLATFORM=wayland`
+und `spectacle` innerhalb der Sandbox-Sitzung (`nachweis-wayland.sh`):
+
+| Zustand | Kopf „Denkzettel" | Fußzeile „Esc verwirft …" |
+|---|---|---|
+| Start unter BreezeDark | `#a1a9b1` / 6,64:1 | `#a0a8b0` / 6,56:1 |
+| **nach Wechsel auf BreezeLight** | `#707d8a` / **3,69:1** | `#717e8a` / **3,64:1** |
+| zurück auf BreezeDark | `#a1a9b1` / 6,64:1 | `#a0a8b0` / 6,56:1 |
+
+Das sind auf die Stelle genau die Zahlen der UX-Untersuchung: 6,64:1 dunkel
+und 3,69:1 nach dem Wechsel — letzterer ist dort der Wert des **frisch
+gebauten** Fensters. Das über Stunden stehende Fenster sieht nach dem Wechsel
+also exakt so aus wie ein neu gestarteter Dienst. Über X fallen die Werte
+etwas milder aus (3,44:1 statt 3,69:1), weil die Subpixel-Glättung dort den
+Kern der Glyphe nicht voll durchfärbt — ein Messweg-Unterschied, kein
+Farbunterschied.
+
+Bilder: `wayland-sitzung-*` (ganze Sandbox-Sitzung, 1000×700),
+`wayland-fenster-*` (daraus ausgeschnitten mit `ausschnitt.py`, gemessen).
