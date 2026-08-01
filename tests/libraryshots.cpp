@@ -64,6 +64,16 @@ void walkUp(QListView *list, int steps)
     }
 }
 
+/** Shows the window and waits until it is really on screen. */
+void open(LibraryWindow &window)
+{
+    window.resize(900, 600);
+    window.showLibrary();
+    if (!QTest::qWaitForWindowExposed(&window)) {
+        qFatal("Fenster kam nicht auf den Schirm");
+    }
+}
+
 void shoot(QWidget &window, const QString &directory, const QString &name)
 {
     // The message band of the deletion grows out of nothing over about half a
@@ -72,12 +82,23 @@ void shoot(QWidget &window, const QString &directory, const QString &name)
     if (!window.grab().save(directory + QLatin1Char('/') + name)) {
         qFatal("Bild %s ließ sich nicht schreiben", qUtf8Printable(name));
     }
+    qInfo("geschrieben: %s", qUtf8Printable(name));
 }
 }
 
 int main(int argc, char **argv)
 {
-    QApplication app(argc, argv);
+    // The series is to show the state as shipped, not the window size and
+    // splitter position whoever takes it happens to have stored: the library
+    // window restores both from denkzettelrc, and with an application name set
+    // that is the real one. Pointing the configuration at an empty directory
+    // keeps the pictures reproducible on any machine — and keeps this from
+    // writing into the user's own file.
+    const QTemporaryDir configuration;
+    qputenv("XDG_CONFIG_HOME", configuration.path().toLocal8Bit());
+
+    const QApplication app(argc, argv);
+    QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
     if (argc < 2) {
         qFatal("Aufruf: libraryshots <Zielverzeichnis>");
@@ -109,9 +130,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
-        QTest::qWait(200);
+        open(window);
         listOf(window)->setCurrentIndex(listOf(window)->model()->index(2, 0));
         shoot(window, directory, QStringLiteral("01-normalfall.png"));
     }
@@ -124,8 +143,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
+        open(window);
         shoot(window, directory, QStringLiteral("02-leerzustand.png"));
     }
 
@@ -141,9 +159,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
-        QTest::qWait(200);
+        open(window);
         QListView *list = listOf(window);
         list->setCurrentIndex(list->model()->index(3, 0));
         QKeyEvent del(QEvent::KeyPress, Qt::Key_Delete, Qt::NoModifier);
@@ -166,8 +182,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(at(QStringLiteral("2026-08-03T10:00:00")));
-        window.resize(900, 600);
-        window.showLibrary();
+        open(window);
         shoot(window, directory, QStringLiteral("04-fall1-gruppe-mit-einem-eintrag.png"));
     }
 
@@ -183,8 +198,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
+        open(window);
         shoot(window, directory, QStringLiteral("05-fall2-lange-erste-zeile.png"));
     }
 
@@ -200,9 +214,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
-        QTest::qWait(200);
+        open(window);
         listOf(window)->setCurrentIndex(listOf(window)->model()->index(2, 0));
         shoot(window, directory, QStringLiteral("06-fall3-umbruch-und-einzeiler.png"));
     }
@@ -229,9 +241,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
-        QTest::qWait(200);
+        open(window);
 
         QListView *list = listOf(window);
         list->setCurrentIndex(list->model()->index(list->model()->rowCount() - 1, 0));
@@ -265,9 +275,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
-        QTest::qWait(200);
+        open(window);
 
         QListView *list = listOf(window);
         list->setCurrentIndex(list->model()->index(list->model()->rowCount() - 1, 0));
@@ -298,9 +306,7 @@ int main(int argc, char **argv)
 
         LibraryWindow window(&store);
         window.setReferenceTime(friday());
-        window.resize(900, 600);
-        window.showLibrary();
-        QTest::qWait(200);
+        open(window);
 
         QListView *list = listOf(window);
         // Rows: head "Heute", eight notes, head "Gestern", eight notes. Rolled
