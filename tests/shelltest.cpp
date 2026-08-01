@@ -1,5 +1,6 @@
 #include "shell/daemonservice.h"
 #include "shell/shortcutconflict.h"
+#include "shell/shortcutregistration.h"
 #include "store/store.h"
 
 #include <QSignalSpy>
@@ -9,11 +10,12 @@
 #include <memory>
 
 /**
- * Unit tests of the D-Bus entry points and of the shortcut conflict rule
- * (SPEC 2.3, 2.4). AddNote is called as a plain method: the bus adds nothing
- * to what the method does, and the test stays independent of a session bus.
- * The registration of Meta+N itself needs a running kglobalacceld and belongs
- * to the manual checklist (SPEC 16).
+ * Unit tests of the D-Bus entry points, of the shortcut conflict rule and of
+ * the reading of what the shortcut daemon answers (SPEC 2.3, 2.4). AddNote is
+ * called as a plain method: the bus adds nothing to what the method does, and
+ * the test stays independent of a session bus. The D-Bus conversation with
+ * kglobalacceld itself needs a running daemon and stays manual (SPEC 16) —
+ * what it answers is decided here.
  */
 class ShellTest : public QObject
 {
@@ -32,6 +34,11 @@ private Q_SLOTS:
     void ignoresOurOwnRegistration();
     void reportsForeignOwner();
     void reportsEveryForeignOwnerOfAMultipleAssignment();
+
+    void takesAnyAnswerOfTheDaemonAsRegistered();
+    void readsAnEmptyAnswerWithoutDesktopFileAsAMissingInstallation();
+    void readsAnEmptyAnswerWithDesktopFileAsADaemonThatKeptNothing();
+    void hasAMessageForEveryFailureAndNoneForSuccess();
 
 private:
     std::unique_ptr<QTemporaryDir> m_dir;
@@ -140,6 +147,48 @@ void ShellTest::reportsEveryForeignOwnerOfAMultipleAssignment()
     QCOMPARE(conflicts.size(), 2);
     QCOMPARE(conflicts.at(0).component, QStringLiteral("kwin"));
     QCOMPARE(conflicts.at(1).component, QStringLiteral("org.kde.spectacle.desktop"));
+}
+
+void ShellTest::takesAnyAnswerOfTheDaemonAsRegistered()
+{
+    const QList<QKeySequence> stored = {QKeySequence(Qt::META | Qt::Key_N)};
+
+    QCOMPARE(shortcutRegistration(stored, true), ShortcutRegistration::Reached);
+
+    // Which sequence the daemon holds is none of our business — the user may
+    // have changed it in the Plasma settings, and that is a registration that
+    // arrived. Nor does our own view of the desktop file overrule the daemon:
+    // it has answered, so it knows us.
+    const QList<QKeySequence> changed = {QKeySequence(Qt::META | Qt::Key_F10)};
+    QCOMPARE(shortcutRegistration(changed, false), ShortcutRegistration::Reached);
+}
+
+void ShellTest::readsAnEmptyAnswerWithoutDesktopFileAsAMissingInstallation()
+{
+    // The customer finding of 01.08.2026: kglobalacceld resolves the component
+    // through the desktop file and creates none without it, so the answer stays
+    // empty however often we register.
+    QCOMPARE(shortcutRegistration({}, false), ShortcutRegistration::ApplicationNotInstalled);
+}
+
+void ShellTest::readsAnEmptyAnswerWithDesktopFileAsADaemonThatKeptNothing()
+{
+    // Installed and still nothing stored — then the daemon is the suspect, and
+    // a message blaming the installation would send the user the wrong way.
+    QCOMPARE(shortcutRegistration({}, true), ShortcutRegistration::DaemonKeptNothing);
+}
+
+void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
+{
+    // A failure without a message is exactly the silent failure SPEC 2.4
+    // forbids; a message on success would cry wolf at every start.
+    QVERIFY(shortcutRegistrationFailure(ShortcutRegistration::Reached).isEmpty());
+    QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled).isEmpty());
+    QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing).isEmpty());
+
+    // The two failures are told apart for the user as well, not only in code.
+    QVERIFY(shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled)
+            != shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing));
 }
 
 QTEST_GUILESS_MAIN(ShellTest)
