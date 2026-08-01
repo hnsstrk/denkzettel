@@ -121,6 +121,10 @@ void NoteListModel::takeNote(int noteIndex)
         row > 0 && m_rows.at(row - 1).note < 0 && (row + 1 >= m_rows.size() || m_rows.at(row + 1).note < 0);
     const int first = aloneInItsGroup ? row - 1 : row;
 
+    // Against the reference time the list was built with, not against a fresh
+    // one: only then does the undo put the note back where it was. A deletion
+    // is no occasion to regroup — the note that leaves does not change what
+    // group the others are in.
     beginRemoveRows(QModelIndex(), first, row);
     m_notes.removeAt(noteIndex);
     m_rows = buildRows(m_notes, m_now);
