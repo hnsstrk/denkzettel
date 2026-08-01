@@ -339,8 +339,16 @@ v1 aber nicht gebaut.
 ## 9. Bibliothek und Vorschlags-Review
 
 - **Bibliothek** (Fenster): Sidebar mit KI-Kategorien + Zählern, chronologische
-  Notizliste (Zeitstempel, erste Zeilen, Tag-Chips; Sprachnotizen mit ▶ und
-  Dauer), Suchfeld (Abschnitt 6), Button „Vorschläge" mit Badge.
+  Notizliste, wie ein Posteingang in Tagesgruppen gegliedert (**Heute ·
+  Gestern · Diese Woche · Letzte Woche · Älter**; „Woche" ist die
+  Kalenderwoche, Wochenanfang Montag), innerhalb der Gruppen neueste zuerst.
+  Ein Eintrag zeigt Zeitstempel, die erste Zeile als Betreff, den Folgetext
+  als Vorschau und Tag-Chips; Sprachnotizen zusätzlich ▶ und Dauer. Der
+  Zeitstempel folgt der Gruppe: in Heute/Gestern die Uhrzeit, in den
+  Wochengruppen Wochentag und Datum, in Älter das absolute Datum; im
+  Detailbereich die volle Form. Die Gliederung ist fest — kein Umschalter,
+  keine einklappbaren Gruppen (Wireframes 3a/3b). Dazu Suchfeld
+  (Abschnitt 6) und Button „Vorschläge" mit Badge.
 - Detailansicht: **Lese- und Bearbeiten-Ansicht** (Entscheidung drittes
   Interview — v. a. für fehlerhafte Transkripte). Bearbeiten behält
   Kategorie/Tags und `state`, setzt aber `needs_reembed = 1` — der nächste
