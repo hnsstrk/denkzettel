@@ -10,12 +10,16 @@
 #include <KStandardShortcut>
 
 #include <QAction>
+#include <QDialogButtonBox>
 #include <QFontMetrics>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QApplication>
 #include <QLocale>
+#include <QMessageBox>
+#include <QPlainTextEdit>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QSignalSpy>
 #include <QSplitter>
@@ -116,6 +120,27 @@ private Q_SLOTS:
     void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
 
+    void opensTheEditorWithTheButton();
+    void opensTheEditorWithF2();
+    void leavesTheWordSelectionToTheDoubleClick();
+    void putsTheCursorAtTheEndWithoutSelectingTheText();
+    void showsCategoryAndTagsAsPlainDisplayWhileEditing();
+    void putsTheEditingBadgeWhereTheButtonsStand();
+    void savesTheChangedTextWithTheButton();
+    void savesTheChangedTextWithControlEnter();
+    void keepsCategoryTagsAndStateWhileSaving();
+    void marksTheSavedNoteForANewEmbedding();
+    void findsTheSavedTextInTheSearchIndex();
+    void keepsTheAudioFileWhenTheTranscriptIsEdited();
+    void refusesToSaveAnEmptyText();
+    void leavesTheEditorWithoutAskingWhenNothingWasChanged();
+    void namesTheThreeAnswersOfTheGuardDialog();
+    void asksBeforeUnsavedChangesAreLost_data();
+    void asksBeforeUnsavedChangesAreLost();
+    void keepsTheSavedNoteInTheResultListUntilTheSearchChanges();
+    void keepsTheMeasuresOfTheEditState_data();
+    void keepsTheMeasuresOfTheEditState();
+
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
     void carriesOutTheDeletionWhenTheApplicationQuits();
@@ -141,6 +166,9 @@ private:
     /** Adds a note of a fixed age, for the tests that look at the groups. */
     qint64 storedNote(const QString &content, const QString &isoDateTime);
 
+    /** Fills in what the analysis run fills in — category, tags and state. */
+    void analysed(qint64 id, const QString &category, const QStringList &tags);
+
     /** Texts of the labels the window shows right now. */
     static QStringList visibleLabels(const QWidget &window);
 
@@ -150,6 +178,29 @@ private:
     static QListView *listOf(const QWidget &window);
     static NoteListModel *modelOf(const QListView *list);
     static QAction *actionNamed(const QWidget &window, const QString &text);
+
+    /** The button carrying `text`, or nullptr if the window shows none. */
+    static QPushButton *buttonNamed(const QWidget &window, const QString &text);
+
+    /** The label carrying `text`, or nullptr. */
+    static QLabel *labelNamed(const QWidget &window, const QString &text);
+
+    /** The reading pane and the text field of the edit state (wireframe 2a). */
+    static QTextBrowser *readerOf(const QWidget &window);
+    static QPlainTextEdit *editorOf(const QWidget &window);
+
+    /** The page reader and editor sit on — the right half of the splitter. */
+    static QWidget *detailOf(const QWidget &window);
+
+    /**
+     * Clicks the button with `role` in the guard dialog that the next action
+     * opens (wireframe 2a, state C).
+     *
+     * The dialog is modal and runs an event loop of its own, so the answer has
+     * to be queued before the action that opens it — from inside that loop
+     * there is no other way back into the test.
+     */
+    static void answerNextDialog(QMessageBox::ButtonRole role);
 
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
@@ -687,6 +738,88 @@ QAction *LibraryTest::actionNamed(const QWidget &window, const QString &text)
         }
     }
     return nullptr;
+}
+
+void LibraryTest::analysed(qint64 id, const QString &category, const QStringList &tags)
+{
+    // The analysis run of M3 writes these fields; in M2 nothing does, so the
+    // test bench fills them in. That is what the check "unchanged after
+    // saving" needs — against empty fields it could never fail (issue #11, K3).
+    const std::optional<Note> stored = m_store->note(id);
+    Q_ASSERT(stored.has_value());
+
+    Note note = *stored;
+    note.category = category;
+    note.state = Note::State::Analysed;
+    Q_ASSERT(m_store->updateNote(note));
+    Q_ASSERT(m_store->setTags(id, tags));
+}
+
+QPushButton *LibraryTest::buttonNamed(const QWidget &window, const QString &text)
+{
+    const QList<QPushButton *> buttons = window.findChildren<QPushButton *>();
+    for (QPushButton *button : buttons) {
+        if (button->text() == text) {
+            return button;
+        }
+    }
+    return nullptr;
+}
+
+QLabel *LibraryTest::labelNamed(const QWidget &window, const QString &text)
+{
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (QLabel *label : labels) {
+        if (label->text() == text) {
+            return label;
+        }
+    }
+    return nullptr;
+}
+
+QTextBrowser *LibraryTest::readerOf(const QWidget &window)
+{
+    auto *reader = window.findChild<QTextBrowser *>();
+    Q_ASSERT(reader);
+    return reader;
+}
+
+QPlainTextEdit *LibraryTest::editorOf(const QWidget &window)
+{
+    auto *editor = window.findChild<QPlainTextEdit *>();
+    Q_ASSERT(editor);
+    return editor;
+}
+
+QWidget *LibraryTest::detailOf(const QWidget &window)
+{
+    // Reader and editor share one stack; the page below it is the detail pane.
+    QWidget *page = readerOf(window)->parentWidget()->parentWidget();
+    Q_ASSERT(page);
+    return page;
+}
+
+void LibraryTest::answerNextDialog(QMessageBox::ButtonRole role)
+{
+    QTimer::singleShot(0, qApp, [role] {
+        QMessageBox *dialog = nullptr;
+        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
+            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+            if (!dialog) {
+                QTest::qWait(10);
+            }
+        }
+        QVERIFY2(dialog, "Der Wächterdialog ist nicht erschienen");
+
+        const QList<QAbstractButton *> buttons = dialog->buttons();
+        for (QAbstractButton *button : buttons) {
+            if (dialog->buttonRole(button) == role) {
+                button->click();
+                return;
+            }
+        }
+        QFAIL("Der Wächterdialog hat keine Schaltfläche mit dieser Rolle");
+    });
 }
 
 void LibraryTest::keepsTheGracePeriodOfFiveSeconds()
@@ -2002,6 +2135,593 @@ void LibraryTest::keepsTheWindowSizeForTheNextSession()
     LibraryWindow reopened(m_store.get());
 
     QCOMPARE(reopened.size(), chosen);
+}
+
+void LibraryTest::opensTheEditorWithTheButton()
+{
+    storedNote(QStringLiteral("Transkript mit einem Hörfehler"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    // Wireframe 2a, state A: the way in is a visible button, not a hidden key.
+    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    QVERIFY2(edit, "Der Detailbereich zeigt keine Schaltfläche „Bearbeiten“");
+    QVERIFY(edit->isVisible());
+
+    edit->click();
+
+    QVERIFY(editorOf(window)->isVisible());
+    QVERIFY(!readerOf(window)->isVisible());
+    QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("Transkript mit einem Hörfehler"));
+}
+
+void LibraryTest::opensTheEditorWithF2()
+{
+    storedNote(QStringLiteral("Transkript mit einem Hörfehler"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+
+    QTest::keyClick(list, Qt::Key_F2);
+
+    QVERIFY(editorOf(window)->isVisible());
+    QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("Transkript mit einem Hörfehler"));
+}
+
+void LibraryTest::leavesTheWordSelectionToTheDoubleClick()
+{
+    storedNote(QStringLiteral("Vault statt Fold"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    QTextBrowser *reader = readerOf(window);
+    QTest::mouseDClick(reader->viewport(), Qt::LeftButton, Qt::NoModifier, QPoint(6, 6));
+
+    // Wireframe 2a: a double click picks a word — the common way of copying
+    // something out of a note. A third way into the editor is not worth it.
+    QVERIFY2(!editorOf(window)->isVisible(), "Der Doppelklick hat das Bearbeiten geöffnet");
+    QVERIFY2(reader->textCursor().hasSelection(), "Die Wortauswahl ist verlorengegangen");
+}
+
+void LibraryTest::putsTheCursorAtTheEndWithoutSelectingTheText()
+{
+    const QString content = QStringLiteral("Transkript mit einem Hörfehler");
+    storedNote(content);
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+
+    // Wireframe 2a: the cursor stands at the end and nothing is selected —
+    // the first keystroke must not be able to overwrite the note.
+    const QTextCursor cursor = editorOf(window)->textCursor();
+    QVERIFY2(!cursor.hasSelection(), "Der ganze Text ist markiert");
+    QCOMPARE(cursor.position(), static_cast<int>(content.size()));
+}
+
+void LibraryTest::showsCategoryAndTagsAsPlainDisplayWhileEditing()
+{
+    const qint64 id = storedNote(QStringLiteral("Idee für Denkzettel"));
+    analysed(id,
+             QStringLiteral("Software-Ideen"),
+             QStringList({QStringLiteral("software-idee"), QStringLiteral("denkzettel")}));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    // While reading, the edit state's rows are away — they belong to state B.
+    QVERIFY(!labelNamed(window, QStringLiteral("Kategorie"))->isVisible());
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+
+    const QStringList visible = visibleLabels(window);
+    QVERIFY2(visible.contains(QStringLiteral("Software-Ideen")), qPrintable(visible.join(QLatin1Char('|'))));
+    // In the order the store hands them out, which is alphabetical.
+    QVERIFY2(visible.contains(QStringLiteral("denkzettel · software-idee")),
+             qPrintable(visible.join(QLatin1Char('|'))));
+    QVERIFY(visible.contains(QStringLiteral("Kategorie")));
+    QVERIFY(visible.contains(QStringLiteral("Tags")));
+
+    // Wireframe 2a: as plain display, deliberately not as greyed-out input
+    // fields — those would promise an editing that does not exist. The note
+    // text is the only input field of the pane.
+    const QList<QLineEdit *> fields = detailOf(window)->findChildren<QLineEdit *>();
+    QVERIFY2(fields.isEmpty(), "Kategorie oder Tags stehen in einem Eingabefeld");
+    QCOMPARE(detailOf(window)->findChildren<QPlainTextEdit *>().size(), 1);
+}
+
+void LibraryTest::putsTheEditingBadgeWhereTheButtonsStand()
+{
+    storedNote(QStringLiteral("Idee für Denkzettel"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+    QVERIFY(edit);
+    QVERIFY(remove);
+    QVERIFY(edit->isVisible());
+    QVERIFY(remove->isVisible());
+    QVERIFY(!visibleLabels(window).contains(QStringLiteral("wird bearbeitet")));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+
+    // Wireframe 2a, state B: the head says that the note is being edited where
+    // the two buttons stand while reading.
+    QVERIFY2(visibleLabels(window).contains(QStringLiteral("wird bearbeitet")),
+             qPrintable(visibleLabels(window).join(QLatin1Char('|'))));
+    QVERIFY(!edit->isVisible());
+    QVERIFY(!remove->isVisible());
+
+    // With the button gone the key must not delete either — the note under the
+    // editor is not up for deletion.
+    QVERIFY(!actionNamed(window, QStringLiteral("Löschen"))->isEnabled());
+}
+
+void LibraryTest::savesTheChangedTextWithTheButton()
+{
+    const qint64 id = storedNote(QStringLiteral("sonst wird der Fold zugemüllt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("sonst wird der Vault zugemüllt"));
+
+    buttonNamed(window, QStringLiteral("Speichern"))->click();
+
+    QCOMPARE(m_store->note(id)->content, QStringLiteral("sonst wird der Vault zugemüllt"));
+
+    // The answer is the way back into the reading state — and nothing else:
+    // no success message, no band under the header (wireframe 2a).
+    QVERIFY(!editorOf(window)->isVisible());
+    QVERIFY(readerOf(window)->isVisible());
+    QCOMPARE(readerOf(window)->toPlainText(), QStringLiteral("sonst wird der Vault zugemüllt"));
+    QVERIFY(buttonNamed(window, QStringLiteral("Bearbeiten"))->isVisible());
+
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+    QVERIFY2(!message->isVisible(), "Nach dem Speichern erscheint eine Erfolgsmeldung");
+
+    // The list shows the note it now holds, not the one it was opened with.
+    QCOMPARE(noteRow(listOf(window), 0).data(Qt::DisplayRole).toString(),
+             QStringLiteral("sonst wird der Vault zugemüllt"));
+}
+
+void LibraryTest::savesTheChangedTextWithControlEnter()
+{
+    const qint64 id = storedNote(QStringLiteral("sonst wird der Fold zugemüllt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    QPlainTextEdit *editor = editorOf(window);
+    editor->setPlainText(QStringLiteral("sonst wird der Vault zugemüllt"));
+
+    QTest::keyClick(editor, Qt::Key_Return, Qt::ControlModifier);
+
+    QCOMPARE(m_store->note(id)->content, QStringLiteral("sonst wird der Vault zugemüllt"));
+    QVERIFY(!editor->isVisible());
+}
+
+void LibraryTest::keepsCategoryTagsAndStateWhileSaving()
+{
+    const qint64 id = storedNote(QStringLiteral("Idee für Denkzettel"));
+    analysed(id,
+             QStringLiteral("Software-Ideen"),
+             QStringList({QStringLiteral("software-idee"), QStringLiteral("denkzettel")}));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("Idee für Denkzettel, überarbeitet"));
+    buttonNamed(window, QStringLiteral("Speichern"))->click();
+
+    // SPEC 9: editing keeps category, tags and state — the analysis run keeps
+    // those, not the editor.
+    const std::optional<Note> saved = m_store->note(id);
+    QVERIFY(saved.has_value());
+    QCOMPARE(saved->content, QStringLiteral("Idee für Denkzettel, überarbeitet"));
+    QCOMPARE(saved->category, QStringLiteral("Software-Ideen"));
+    QCOMPARE(saved->state, Note::State::Analysed);
+    QCOMPARE(m_store->tags(id),
+             QStringList({QStringLiteral("denkzettel"), QStringLiteral("software-idee")}));
+}
+
+void LibraryTest::marksTheSavedNoteForANewEmbedding()
+{
+    const qint64 id = storedNote(QStringLiteral("Idee für Denkzettel"));
+    QVERIFY(!m_store->note(id)->needsReembed);
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("Idee für Denkzettel, überarbeitet"));
+    buttonNamed(window, QStringLiteral("Speichern"))->click();
+
+    // SPEC 9 / 7.2: the embedding ages with the text, so the next analysis run
+    // renews it — and only it.
+    QVERIFY2(m_store->note(id)->needsReembed, "needs_reembed steht nach dem Speichern nicht auf 1");
+}
+
+void LibraryTest::findsTheSavedTextInTheSearchIndex()
+{
+    storedNote(QStringLiteral("sonst wird der Fold zugemüllt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("sonst wird der Vault zugemüllt"));
+    buttonNamed(window, QStringLiteral("Speichern"))->click();
+
+    // The full-text index follows the text; the search of S6 finds the note
+    // under its new word and no longer under the old one.
+    QCOMPARE(m_store->search(QStringLiteral("Vault")).size(), 1);
+    QCOMPARE(m_store->search(QStringLiteral("Fold")).size(), 0);
+}
+
+void LibraryTest::keepsTheAudioFileWhenTheTranscriptIsEdited()
+{
+    Note spoken = noteWith(QStringLiteral("Transkript mit einem Hörfehler"));
+    spoken.type = Note::Type::Audio;
+    spoken.audioPath = QStringLiteral("2026/07/notiz.opus");
+    spoken.audioDurationS = 41;
+    const std::optional<qint64> id = m_store->addNote(spoken);
+    QVERIFY(id.has_value());
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("Transkript ohne Hörfehler"));
+    buttonNamed(window, QStringLiteral("Speichern"))->click();
+
+    // SPEC 9: only the transcript is edited, never the recording.
+    const std::optional<Note> saved = m_store->note(*id);
+    QVERIFY(saved.has_value());
+    QCOMPARE(saved->content, QStringLiteral("Transkript ohne Hörfehler"));
+    QCOMPARE(saved->type, Note::Type::Audio);
+    QCOMPARE(saved->audioPath, QStringLiteral("2026/07/notiz.opus"));
+    QCOMPARE(saved->audioDurationS, std::optional<int>(41));
+}
+
+void LibraryTest::refusesToSaveAnEmptyText()
+{
+    const qint64 id = storedNote(QStringLiteral("bleibt so stehen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    QPlainTextEdit *editor = editorOf(window);
+    editor->setPlainText(QStringLiteral("   \n  "));
+
+    // Wireframe 2a: an empty field is no valid state to save. Deleting runs
+    // over the delete action, not over emptying the field.
+    QVERIFY2(!buttonNamed(window, QStringLiteral("Speichern"))->isEnabled(),
+             "„Speichern“ ist bei leerem Feld auslösbar");
+
+    QTest::keyClick(editor, Qt::Key_Return, Qt::ControlModifier);
+
+    QCOMPARE(m_store->note(id)->content, QStringLiteral("bleibt so stehen"));
+    QVERIFY2(editor->isVisible(), "Strg+Enter hat den leeren Text gespeichert");
+
+    // Filling it again makes the button live once more.
+    editor->setPlainText(QStringLiteral("doch etwas"));
+    QVERIFY(buttonNamed(window, QStringLiteral("Speichern"))->isEnabled());
+}
+
+void LibraryTest::leavesTheEditorWithoutAskingWhenNothingWasChanged()
+{
+    storedNote(QStringLiteral("unverändert"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    QVERIFY(editorOf(window)->isVisible());
+
+    // Nothing to lose, so nothing to ask about: Esc goes straight back. Were a
+    // dialog to come up here, exec() would hang this test.
+    QTest::keyClick(editorOf(window), Qt::Key_Escape);
+
+    QVERIFY(!editorOf(window)->isVisible());
+    QVERIFY(readerOf(window)->isVisible());
+
+    // The button beside it is the same action and answers the same way.
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    QVERIFY(editorOf(window)->isVisible());
+    buttonNamed(window, QStringLiteral("Abbrechen"))->click();
+    QVERIFY(!editorOf(window)->isVisible());
+}
+
+void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
+{
+    storedNote(QStringLiteral("wird geändert"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("geändert"));
+
+    // The dialog is read out of the running window rather than described from
+    // memory: roles and labels are what the platform orders the buttons by.
+    QStringList labels;
+    QList<int> roles;
+    QTimer::singleShot(0, qApp, [&labels, &roles] {
+        QMessageBox *dialog = nullptr;
+        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
+            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+            if (!dialog) {
+                QTest::qWait(10);
+            }
+        }
+        QVERIFY(dialog);
+        const QList<QAbstractButton *> buttons = dialog->buttons();
+        for (QAbstractButton *button : buttons) {
+            labels.append(button->text());
+            roles.append(dialog->buttonRole(button));
+        }
+        QVERIFY(dialog->findChild<QDialogButtonBox *>());
+        dialog->buttons().constFirst()->click();
+    });
+
+    QTest::keyClick(editorOf(window), Qt::Key_Escape);
+
+    QCOMPARE(labels.size(), 3);
+    QVERIFY2(labels.contains(QStringLiteral("Speichern")), qPrintable(labels.join(QLatin1Char('|'))));
+    QVERIFY(labels.contains(QStringLiteral("Verwerfen")));
+    QVERIFY(labels.contains(QStringLiteral("Abbrechen")));
+    QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Speichern"))), int(QMessageBox::AcceptRole));
+    QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Verwerfen"))), int(QMessageBox::DestructiveRole));
+    QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Abbrechen"))), int(QMessageBox::RejectRole));
+}
+
+void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
+{
+    // Three ways out of the edit state and three answers to each — the matrix
+    // of wireframe 2a, state C. Leaving one column out would leave one way of
+    // losing a correction unwatched.
+    QTest::addColumn<QString>("trigger");
+    QTest::addColumn<int>("answer");
+
+    const QList<QPair<QString, int>> answers = {
+        {QStringLiteral("speichern"), QMessageBox::AcceptRole},
+        {QStringLiteral("verwerfen"), QMessageBox::DestructiveRole},
+        {QStringLiteral("abbrechen"), QMessageBox::RejectRole},
+    };
+
+    for (const QString &trigger :
+         {QStringLiteral("auswahlwechsel"), QStringLiteral("fensterschliessen"), QStringLiteral("esc")}) {
+        for (const auto &answer : answers) {
+            QTest::newRow(qPrintable(trigger + QLatin1Char('-') + answer.first))
+                << trigger << answer.second;
+        }
+    }
+}
+
+void LibraryTest::asksBeforeUnsavedChangesAreLost()
+{
+    QFETCH(QString, trigger);
+    QFETCH(int, answer);
+
+    const qint64 edited = storedNote(QStringLiteral("erste Notiz"));
+    storedNote(QStringLiteral("zweite Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("erste Notiz, berichtigt"));
+
+    answerNextDialog(static_cast<QMessageBox::ButtonRole>(answer));
+
+    if (trigger == QStringLiteral("auswahlwechsel")) {
+        list->setCurrentIndex(noteRow(list, 1));
+    } else if (trigger == QStringLiteral("fensterschliessen")) {
+        window.close();
+    } else {
+        QTest::keyClick(editorOf(window), Qt::Key_Escape);
+    }
+
+    // „Speichern“ writes, „Verwerfen“ and „Abbrechen“ leave the note alone.
+    const QString stored = m_store->note(edited)->content;
+    if (answer == QMessageBox::AcceptRole) {
+        QCOMPARE(stored, QStringLiteral("erste Notiz, berichtigt"));
+    } else {
+        QCOMPARE(stored, QStringLiteral("erste Notiz"));
+    }
+
+    // „Speichern“ and „Verwerfen“ carry the triggering act out, „Abbrechen“
+    // stays in the edit state and takes the act back.
+    const bool carriedOut = answer != QMessageBox::RejectRole;
+
+    if (trigger == QStringLiteral("auswahlwechsel")) {
+        QCOMPARE(list->currentIndex(), noteRow(list, carriedOut ? 1 : 0));
+        QCOMPARE(editorOf(window)->isVisible(), !carriedOut);
+        if (!carriedOut) {
+            QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("erste Notiz, berichtigt"));
+        }
+    } else if (trigger == QStringLiteral("fensterschliessen")) {
+        QCOMPARE(window.isVisible(), !carriedOut);
+        if (!carriedOut) {
+            QVERIFY(editorOf(window)->isVisible());
+            QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("erste Notiz, berichtigt"));
+        }
+    } else {
+        QCOMPARE(editorOf(window)->isVisible(), !carriedOut);
+        QCOMPARE(list->currentIndex(), noteRow(list, 0));
+        if (!carriedOut) {
+            QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("erste Notiz, berichtigt"));
+        }
+    }
+}
+
+void LibraryTest::keepsTheSavedNoteInTheResultListUntilTheSearchChanges()
+{
+    // A list long enough to be rolled: only then can a jump show at all.
+    for (int number = 0; number < 20; ++number) {
+        storedNote(QStringLiteral("Straßenbahn Nummer %1").arg(number, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    searchOf(window)->setText(QStringLiteral("Straßenbahn"));
+    QCOMPARE(modelOf(list)->noteCount(), 20);
+
+    list->setCurrentIndex(noteRow(list, 10));
+    QTest::qWait(50);
+    const int rolledTo = list->verticalScrollBar()->value();
+    const QStringList before = rowsOf(*modelOf(list));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("Fahrkarte Nummer 10"));
+    buttonNamed(window, QStringLiteral("Speichern"))->click();
+
+    // The saved note no longer matches the running term, and it stays all the
+    // same: it keeps its row, its selection and the roll value (issue #11, K2).
+    QCOMPARE(modelOf(list)->noteCount(), 20);
+    QCOMPARE(list->currentIndex(), noteRow(list, 10));
+    QCOMPARE(noteRow(list, 10).data(Qt::DisplayRole).toString(), QStringLiteral("Fahrkarte Nummer 10"));
+    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+
+    QStringList expected = before;
+    expected[expected.indexOf(QStringLiteral("Notiz: Straßenbahn Nummer 10"))] =
+        QStringLiteral("Notiz: Fahrkarte Nummer 10");
+    QCOMPARE(rowsOf(*modelOf(list)), expected);
+
+    // The next change of the term reads the store again, and there it is gone.
+    searchOf(window)->setText(QStringLiteral("Straßenbahn Nummer"));
+    QCOMPARE(modelOf(list)->noteCount(), 19);
+}
+
+void LibraryTest::keepsTheMeasuresOfTheEditState_data()
+{
+    // Two window sizes, as for the reading state: a room split that only holds
+    // at one height holds by accident.
+    QTest::addColumn<QSize>("windowSize");
+
+    QTest::newRow("900x600") << QSize(900, 600);
+    QTest::newRow("1200x800") << QSize(1200, 800);
+}
+
+void LibraryTest::keepsTheMeasuresOfTheEditState()
+{
+    QFETCH(QSize, windowSize);
+
+    const qint64 id = storedNote(QStringLiteral("Idee für Denkzettel"));
+    analysed(id, QStringLiteral("Software-Ideen"), QStringList({QStringLiteral("software-idee")}));
+
+    LibraryWindow window(m_store.get());
+    window.resize(windowSize);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QCOMPARE(window.size(), windowSize);
+
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+
+    QWidget *detail = detailOf(window);
+    QWidget *stack = editorOf(window)->parentWidget();
+    QLabel *badge = labelNamed(window, QStringLiteral("wird bearbeitet"));
+    QWidget *meta = labelNamed(window, QStringLiteral("Kategorie"))->parentWidget();
+    QWidget *footer =
+        labelNamed(window, QStringLiteral("Esc bricht ab · Strg+Enter speichert"))->parentWidget();
+    QVERIFY(badge);
+    QVERIFY(meta);
+    QVERIFY(footer);
+
+    const auto top = [detail](QWidget *widget) {
+        return widget->mapTo(detail, QPoint()).y();
+    };
+    const auto bottom = [&top](QWidget *widget) {
+        return top(widget) + widget->height();
+    };
+
+    // Wireframe 2a, state B, from top to bottom: head, text field, category
+    // and tags, then the row of buttons.
+    QVERIFY2(bottom(badge) <= top(stack),
+             qPrintable(QStringLiteral("Kopfzeile endet bei %1, Textfeld beginnt bei %2")
+                            .arg(bottom(badge))
+                            .arg(top(stack))));
+    QVERIFY2(bottom(stack) <= top(meta),
+             qPrintable(QStringLiteral("Textfeld endet bei %1, Merkmalszeile beginnt bei %2")
+                            .arg(bottom(stack))
+                            .arg(top(meta))));
+    QVERIFY2(bottom(meta) <= top(footer),
+             qPrintable(QStringLiteral("Merkmalszeile endet bei %1, Fußzeile beginnt bei %2")
+                            .arg(bottom(meta))
+                            .arg(top(footer))));
+
+    // The button row sits on the lower edge of the pane, the note text gets
+    // the surplus height. Without that the text field keeps its hint size and
+    // the pane ends in a field of empty space — the mistake the header row of
+    // the window already made once (customer finding of 01.08.2026).
+    QVERIFY2(detail->height() - bottom(footer) <= 12,
+             qPrintable(QStringLiteral("Unter der Fußzeile bleiben %1 px").arg(detail->height() - bottom(footer))));
+    QVERIFY2(stack->height() >= detail->height() / 2,
+             qPrintable(QStringLiteral("Textfeld %1 px hoch in einem %2 px hohen Bereich")
+                            .arg(stack->height())
+                            .arg(detail->height())));
+
+    // Both extra rows stay one row high — they must not grow into the text.
+    QVERIFY2(meta->height() <= meta->sizeHint().height(),
+             qPrintable(QStringLiteral("Merkmalszeile %1 px hoch").arg(meta->height())));
+    QVERIFY2(footer->height() <= footer->sizeHint().height(),
+             qPrintable(QStringLiteral("Fußzeile %1 px hoch").arg(footer->height())));
+
+    // The other axis: editing does not move the split between list and pane.
+    auto *splitter = window.findChild<QSplitter *>();
+    QVERIFY(splitter);
+    QCOMPARE(splitter->widget(0)->width(), 300);
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
