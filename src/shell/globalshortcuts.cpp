@@ -57,13 +57,16 @@ QString desktopFilePath()
 
 GlobalShortcuts::GlobalShortcuts(QObject *parent)
     : QObject(parent)
-    , m_captureAction(new QAction(i18n("Capture öffnen"), this))
+    , m_captureAction(new QAction(i18n("Notiz erfassen"), this))
 {
     // The object name identifies the action across restarts and must not change
     // once it is registered; the component decides where the shortcut shows up
     // in the Plasma settings. It doubles as the name of the desktop action that
     // kglobalacceld starts on the key press (SPEC 2.4), so it has to be a valid
     // XDG action identifier — letters, digits and the hyphen, no underscore.
+    // Being an identifier and not a label, it keeps its name while the labels
+    // around it turn German (issue #60): renaming it would drop the shortcut
+    // the user has set.
     m_captureAction->setObjectName(QStringLiteral("show-capture"));
     m_captureAction->setProperty("componentName", componentName());
     m_captureAction->setProperty("componentDisplayName", i18n("Denkzettel"));

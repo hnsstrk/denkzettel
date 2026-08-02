@@ -46,7 +46,7 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration)
         return i18n("Meta+N ist beim Kurzbefehl-Dienst nicht angekommen: Denkzettel ist nicht "
                     "systemweit installiert, und ohne seine Desktop-Datei legt der Dienst keinen "
                     "Eintrag an. Nach der Installation steht das Kürzel zur Verfügung; bis dahin "
-                    "bleibt das Capture-Fenster über das Symbol im Systemabschnitt erreichbar.");
+                    "bleibt das Erfassungsfenster über das Symbol im Systemabschnitt erreichbar.");
     case ShortcutRegistration::DaemonKeptNothing:
         // No process name and no question: whoever does not know what
         // kglobalacceld is knows no more after reading it. What is left is a
@@ -54,12 +54,12 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration)
         return i18n("Meta+N ist beim Kurzbefehl-Dienst nicht angekommen — er hat die Registrierung "
                     "nicht behalten. Die Kurzbefehle lassen sich in den Systemeinstellungen unter "
                     "„Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst "
-                    "zurück. Das Capture-Fenster bleibt über das Symbol im Systemabschnitt "
+                    "zurück. Das Erfassungsfenster bleibt über das Symbol im Systemabschnitt "
                     "erreichbar.");
     case ShortcutRegistration::DesktopActionMissing:
         return i18n("Meta+N ist eingerichtet, löst aber nichts aus: In der Desktop-Datei von "
                     "Denkzettel fehlt der Eintrag zu diesem Kürzel. Eine vollständige "
-                    "Neuinstallation bringt ihn zurück. Bis dahin bleibt das Capture-Fenster "
+                    "Neuinstallation bringt ihn zurück. Bis dahin bleibt das Erfassungsfenster "
                     "über das Symbol im Systemabschnitt erreichbar.");
     }
 
