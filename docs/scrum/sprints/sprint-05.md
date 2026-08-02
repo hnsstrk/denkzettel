@@ -573,3 +573,694 @@ erfüllt (`711d899`); K1/K5/K6 in den Issues vermerkt.
 **Sprint-Konto bei Freigabe: 11 von ~13 SP · 4 von 4 Stories** — die
 Story-Grenze ist ausgeschöpft, jeder Zugang ist eine Grenzüberschreitung
 und wird dem Kunden als solche vorgelegt.
+
+---
+
+# Sprint 5 — DoD-Prüfung, Takt 1 (vor der Kundenabnahme)
+
+**Datum:** 02.08.2026, 18:11 (Ganymed) · **Prüfer:** Scrum Master (Agent
+`scrum-master`, frischer Kontext)
+**Prüfgegenstand:** `main` @ `7247500` — beauftragt war `43abc06`; der PO hat
+während der Prüfung den UI-Review-Befund W1 nachgezogen (`7247500`, nur
+`wireframes/…dc.html`). **Kein Commit seit `1adffd3` fasst `src/` oder `tests/`
+an**, der Prüfgegenstand für Code und Tests ist also unverändert; der
+Zuwachs wird unter DoD 3 gewürdigt.
+**Installierter Stand:** `/usr/bin/denkzetteld`, Dienst PID 460335 (seit
+02.08.2026 18:02:36).
+
+**Grundlage:** `PROZESS.md`, DoD 1–6 und „Sprint-Abschluss", Takt 1
+(Punkte 1–4). DoD 5 und DoD 6 sind **nicht** Gegenstand dieses Takts — sie
+sind vor der Abnahme nicht erfüllbar (Sprint-3-Mängel M2/M5).
+
+**Prüfhaltung:** Jede Zeile unten steht auf einem Befehl, den ich selbst
+gefahren habe. Wo ich einen fremden Bericht nur bestätige, steht es dabei; wo
+ich eine Behauptung nicht selbst nachmessen konnte, steht das ebenfalls.
+
+## 13. Was ich selbst gemessen habe
+
+Out-of-source gebaut, um den Arbeitsbaum des PO nicht anzufassen
+(`cmake -B <scratch>/build-sm -S . -DCMAKE_BUILD_TYPE=Debug`).
+
+| Messung | Befehl | Ergebnis |
+|---|---|---|
+| Bau am Endstand | `cmake --build … -j 12` | rc=0, **0 Warnungen** im ganzen Protokoll |
+| Testsatz | `ctest --output-on-failure` | **7/7 passed**, 5,81 s |
+| `librarytest` **ohne** Plattformthema | `QT_QPA_PLATFORM=offscreen` | **107 passed, 0 failed** |
+| `librarytest` **mit** Plattformthema | `+ QT_QPA_PLATFORMTHEME=kde` | **107 passed, 0 failed** |
+| `lint-tidy` | `cmake --build … --target lint-tidy` | rc=0, drei Befunde auf `librarywindow` |
+| `lint-clazy` | `cmake --build … --target lint-clazy` | zwei Befunde, **keiner** auf `librarywindow` |
+
+**Zu den Linterbefunden — alle Altbestand, keiner aus diesem Sprint.** Ich habe
+sie nicht geglaubt, sondern zugeordnet (`git blame` + `git merge-base
+--is-ancestor <commit> sprint-05-basis`):
+
+| Befund | Herkunft | Einordnung |
+|---|---|---|
+| `librarywindow.cpp:134` `bugprone-easily-swappable-parameters` | `9ddd64af` (01.08.) | vor Sprint 5 |
+| `librarywindow.h:72` `performance-enum-size` (`Selection`) | `54ae35d1` (01.08.) | vor Sprint 5 |
+| `librarywindow.h:80` `performance-enum-size` (`UnsavedAnswer`) | `4740e5d4` (02.08.) | vor `sprint-05-basis` |
+| `librarytest.cpp:2336`/`:2342` `range-loop-detach` | `54249e0b` (01.08.) | vor Sprint 5 |
+
+Damit ist die Aussage von Strang A („keine neuen Linterbefunde, was steht,
+ist Altbestand") **unabhängig bestätigt** — nicht nachgelesen.
+
+## 14. DoD 1 — Bau, Tests, Geometrie-Zusicherungen
+
+**Ergebnis: erfüllt.**
+
+- **Warnungsarm:** 0 Warnungen (13). Keine Linterbefunde aus diesem Sprint.
+- **Neue Logik hat Tests:** 102 → **107**. Fünf netto neue Zusicherungen, eine
+  Umkehrung. Gezählt am Diff, nicht am Bericht:
+  `leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked` (ersetzt
+  `bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked`),
+  `keepsTheHeadFetchAfterAClickThatSelectedNothing`,
+  `textsFollowAColourSchemeChange`, `showsTheWarningSymbolInTheGuardDialog`,
+  `namesTheSymbolsOfTheDetailButtons`, `namesTheSymbolOfTheUndoAction`.
+  102 + 6 − 1 = 107 — die Rechnung geht auf.
+- **Beide Umgebungen grün.** Das ist der Punkt, den Planning 5.3.2 als
+  Prüfmittel festgelegt hat: Am Ausgangsstand stand es 102/0 und 101/1, heute
+  107/0 und 107/0. Der Unterschied ist genau die Arbeit von Strang A.
+
+**Geometrie-Zusicherungen, bei zwei Fenstergrößen — nachgezählt, nicht
+übernommen.** Drei Familien, jede mit `_data()` und **je zwei** Größen
+(900×600 und 1200×800), belegt in `tests/librarytest.cpp:2165 ff.`,
+`:2223 ff.`, `:3279 ff.`:
+
+| Zusicherung | Wireframe | Größen |
+|---|---|---|
+| `keepsTheHeaderAtTheTopAndTheRestForTheNotes` | 2b (Kopfleiste, Restraum) | 900×600 · 1200×800 |
+| `keepsTheMeasuresOfTheGroupedList` | 3a (Listenmaße) | 900×600 · 1200×800 |
+| `keepsTheMeasuresOfTheEditState` | 2a Zustand B (Bearbeiten) | 900×600 · 1200×800 |
+
+**Sprint 5 fügt keine Ansicht mit eigener Raumaufteilung hinzu**, also fällt
+keine neue Geometriefamilie an. Der einzige neue gezeichnete Gegenstand ist der
+Wächterdialog (2a Zustand C) — und die Zeichnung sichert dort ausdrücklich
+**keine** Maße und **keine** Reihenfolge zu, sondern Rollen und Wirkung
+(Annotation „Anordnung der Schaltflächen ist **nicht** durch diese Zeichnung
+festgelegt"). Das ist auch sachlich richtig: Das Innenleben eines
+`KMessageDialog` gehört dem Framework, nicht dieser Anwendung. Gemessen wird
+deshalb, was die Zeichnung wirklich behauptet — dass ein Warnsymbol da ist
+(`showsTheWarningSymbolInTheGuardDialog`, misst das Bildetikett) und dass die
+Antworten ihre Symbole und ihre Bedeutung tragen.
+
+## 15. DoD 2 — Akzeptanzkriterien am Stand, installierter Stand
+
+**Ergebnis: erfüllt bis auf einen Punkt — der Hauptweg keiner der vier Stories
+ist am installierten Stand belegt (Mangel M1).**
+
+### 15.1 Der installierte Stand ist der Endstand — von mir nachgewiesen
+
+Der Installationsbericht behauptet Binärgleichheit; ich habe sie nachgemessen
+und um den Teil ergänzt, den er offenlässt (dass das Abbild wirklich die
+Sprint-5-Arbeit trägt):
+
+| Prüfung | Befehl | Ergebnis |
+|---|---|---|
+| Binärgleichheit | `md5sum /usr/bin/denkzetteld build/bin/denkzetteld` | identisch, `228bbbbd2b839ab91b2d640006baa652` |
+| Aktualität | `stat` gegen `git log -1 1adffd3` | Abbild gebaut 17:39:22, letzter Quell-Commit 17:39:15 — **7 s danach** |
+| Kein Nachzug seither | `git diff --name-only 43abc06..HEAD` | nur `wireframes/…dc.html` |
+| Sprint-5-Arbeit im Abbild | `strings -el /usr/bin/denkzetteld` | `document-edit`, `edit-undo`, `dialog-warning` vorhanden; `KMessageDialog` und `WarningTwoActionsCancel` als Typinformation vorhanden |
+| Dienst läuft daraus | `ps -p 460335` | `/usr/bin/denkzetteld`, gestartet 18:02:36 |
+| Dienst antwortet | `gdbus introspect --dest org.denkzettel.Daemon` | `ShowCapture`, `AddNote`, `ShowLibrary`, `Quit` |
+
+*Zur Vollständigkeit der Symbolprobe:* `edit-delete`, `document-save` und
+`dialog-cancel` stehen **nicht** im Abbild, und das ist richtig so — sie kommen
+aus `KStandardGuiItem::del()/save()/cancel()` und werden erst zur Laufzeit vom
+Framework geliefert (`librarywindow.cpp:368`, `:441`, `:444`, `:995–997`). Nur
+die drei wörtlich gesetzten Namen können im Abbild stehen, und sie stehen darin.
+
+### 15.2 Was daran **nicht** geführt ist
+
+`docs/scrum/reviews/sprint-05-installationstakt.md` belegt Installation,
+Binärgleichheit und Dienstwechsel — **aber keinen einzigen Story-Hauptweg am
+installierten Stand.** Alle vier stehen unter „Offen für die Kundenabnahme".
+Takt 1, Punkt 1 verlangt beides: installieren *und* den Hauptweg jeder Story
+daran ausführen, mit Belegform (Terminalausgabe, Journalauszug oder Bild).
+→ **M1.**
+
+Der Maßstab liegt im eigenen Haus: Der Sprint-4-Takt
+(`sprint-04-installationstakt.md`, Punkte 5 und 6) hat für #60 das Menü am
+installierten Dienst per `GetLayout` und die Kürzelkette gemessen; nur der
+Bearbeiten-Hauptweg ging an den Kunden. Hier geht alles an den Kunden.
+
+### 15.3 Selbstprüfung der Stränge vor der Übergabe — geführt
+
+DoD 2 verlangt vom Entwickler den selbst gestarteten Stand *vor* der Übergabe.
+Beide Stränge haben sie geführt und belegt, jeder am **gebauten** Stand (die
+Installation war ihnen untersagt, Planning Risiko 5):
+
+| Strang | Nachweis | Form |
+|---|---|---|
+| A (#66/#67) | Bericht §5 „Selbstprüfung am gebauten Stand (DoD 2)", `bildlauf-messwerte.txt`, fünf Bilder | Messwerte + Bild |
+| B (#57/#58) | `selbststart.txt` — eigener Sitzungsbus (`dbus-run-session`), eigene XDG-Pfade, `ShowLibrary`/`ShowCapture`/`Quit` über D-Bus, Journalauszug zu PID 403740 | Terminalausgabe + Journal |
+
+Strang B hat dabei die Sitzung des Kunden ausdrücklich nicht angefasst — die
+richtige Auslegung des `/usr`-Verbots.
+
+### 15.4 Akzeptanzkriterien je Story, am Stand nachgemessen
+
+Stichproben von mir selbst gefahren, nicht aus den Berichten übernommen.
+
+**#66 — Wächterdialog auf KDE-Bauart**
+
+| AK | Befund | Beleg |
+|---|---|---|
+| Drei Knöpfe tragen unter echtem Plasma die Symbole (Foto) | **offen — Kundensache**, so im AK selbst festgelegt | — |
+| Drei Antworten behalten ihre Bedeutung; Matrix auf Bedeutungsebene | erfüllt | UI-Review §2 (Abbrechen endet wieder im Bearbeiten-Zustand); karpathy Prinzip 4, Mutation 4 |
+| Testumgebung festgelegt (K1) | erfüllt | `tests/CMakeLists.txt:52–53` setzt `QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde` — selbst gelesen |
+| SPEC 9 nachgezogen | erfüllt | siehe 17 |
+
+Eigene Bildprüfung an `sprint-05-ui-review/bilder/s5-edit-03-waechterdialog.png`
+(ich habe das Bild angesehen, nicht seine Beschreibung gelesen): orangefarbenes
+Warndreieck links, „Änderungen speichern?" als erste Zeile, Leerzeile,
+Erläuterung mit dem Zeitstempel in Klammern; drei Knöpfe mit Symbol —
+*Speichern* (Diskette, mit Fokusrahmen als Vorgabe), *Verwerfen* (roter
+Papierkorb), *Abbrechen* (durchgestrichener Kreis).
+
+**#67 — Symbole an den Bibliotheks-Schaltflächen**
+
+Sechs Stellen, fünf Namen. Ich habe die Quelle jeder einzelnen gelesen
+(`librarywindow.cpp:173`, `:361`, `:368`, `:441`, `:444`, `:995–997`) und das
+Bild `s5-edit-01-lesen.png` selbst angesehen: „Bearbeiten" mit Stift,
+„Löschen" mit rotem Papierkorb, beide mit Text daneben. Alle sechs Stellen sind
+im UI-Review namentlich gegen die Tafel gehalten — Verdikt **ok**. Der
+Bildnachweis am echten Plasma ist auch hier Kundensache.
+
+**#57 — Klick auf eine sichtbare Notiz lässt das Bild springen**
+
+| AK | Befund | Beleg |
+|---|---|---|
+| Klick auf eine vollständig sichtbare Zeile bewegt das Bild nicht | erfüllt | `leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked` (`:1481`); UI-Review §4.1: Rollwert bleibt 6, der 387-px-Sprung ist weg |
+| AK-7-Heilung unangetastet | erfüllt | `bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready` (`:1424`) steht unverändert — selbst nachgesehen |
+| Gemessen wird der Rollwert vorher/nachher, nicht der Endzustand | erfüllt | UI-Review fuhr das S8-Szenenprogramm **unverändert** (md5 geprüft) gegen `main`; `diff` gegen den Nachher-Lauf des Strangs: kein Unterschied |
+
+**#58 — Zeitstempel und Hinweise am Schemawechsel**
+
+| AK | Befund | Beleg |
+|---|---|---|
+| Nach dem Schemawechsel bei laufendem Dienst folgen die Texte | erfüllt | `textsFollowAColourSchemeChange`; UI-Review §3.2 misst `#707d8a` → `#a1a9b1` |
+| Bilder vor/nach aus **einem** Lauf, hell und dunkel | erfüllt | `s5-58-a`…`-e`, dazu die Gegenbilder vom Basisstand |
+| Test in der Machart von `CaptureTest::textsFollowAColourSchemeChange()` | erfüllt | gleichnamiger Test in `librarytest.cpp` |
+| **Kein weiteres Vorkommen der Bauart in `src/ui/`** | erfüllt — **selbst gefahren** | `grep -rn "setPalette" src/` → **kein Treffer**; verblieben sind drei `setForegroundRole`-Aufrufe (`capturewindow.cpp:36`, `librarywindow.cpp:125`, `:353`) |
+
+Der stärkste Beleg dieses Sprints steht im UI-Review §3.2 und ist keiner der
+beauftragten: `QPalette::PlaceholderText` auf `#ff00ff` gesetzt — eine Farbe,
+die in keinem Schema vorkommt. Am geheilten Stand werden alle betroffenen
+Stellen magenta, am Basisstand bleiben sie grau. Das trennt „folgt der Rolle"
+von „sieht zufällig richtig aus", und genau diese Trennung ist der Kern von
+#58.
+
+## 16. DoD 3 — Prüfläufe, Berichte, Vollzähligkeit
+
+**Ergebnis: erfüllt.** Kein offener `fail` in beiden Ketten.
+
+### 16.1 Die Berichte liegen als Datei vor, vor dieser Prüfung (Takt 1, Punkt 2)
+
+| Lauf | Bericht | Verdikt |
+|---|---|---|
+| karpathy-Review (Sprint-Diff) | `docs/scrum/reviews/sprint-05-karpathy.md` | **warn**, kein `fail` |
+| UI-Review (`denkzettel-ux`) | `docs/scrum/reviews/sprint-05-ui-review/bericht.md` + 20 eigene Bilder | **abnahmefähig**, drei `warn` |
+| Strang A (#66/#67) | `docs/scrum/reviews/sprint-05-s-symbole/bericht.md` + Bilder, sechs Läufe | — |
+| Strang B (#57/#58) | `docs/scrum/reviews/sprint-05-s-verhalten/bericht.md` + Bilder, sieben Messdateien | — |
+| Installationstakt (PO) | `docs/scrum/reviews/sprint-05-installationstakt.md` | siehe M1 |
+
+**Vollzähligkeit nach dem Prüfweg aus B11.2** (Commit-Botschaften, die Befunde
+eines Prüflaufs nennen, gegen die abgelegten Berichte): `7247500`, `a44784b`,
+`4cd37c2`, `fe0c83b`, `8a8c652`, `afe55e5`, `3e6f562` durchgesehen. **Jeder
+genannte Befund hat seinen Bericht.** Der eine Grenzfall ist der
+UX-Zwischenlauf zum Warnsymbol (`8a8c652`, „UX-Votum mit Messbefund") — er hat
+keine eigene Berichtsdatei, aber sein Messbefund ist versioniert: im Strang-A-
+Bericht §9 (samt der von der UX gemessenen 64×64) und, dauerhafter, als
+Bedingung in SPEC 9. **Kein Mangel**, sondern der Fall, für den B11.2 gedacht
+ist — er ist eingetreten und die Substanz ist im Repo gelandet.
+
+### 16.2 Der UI-Review ist mit eigenem Bild geführt (DoD 3, B3)
+
+Das ist der Punkt, an dem dieses Projekt schon gescheitert ist, deshalb
+ausdrücklich: `denkzettel-ux` hat **nicht** die Bilder der Stränge bewertet,
+sondern einen eigenen Out-of-source-Bau angelegt, die Läufer frisch gebaut
+(die Lehre aus dem `EXCLUDE_FROM_ALL`-Vorfall dieses Sprints, `CLAUDE.md`),
+ein **eigenes Prüfprogramm** geschrieben (`ux-review-s5.cpp`, versioniert) und
+20 eigene Bilder erzeugt. Zusätzlich hat er denselben Lauf gegen den
+Basisstand `a322b86` gefahren — eine Gegenprobe, die kein AK verlangt hat.
+Für #57 kam der beim Planning festgelegte **Prüfmittel-Ersatz** zum Tragen
+(Rollwert statt Bildvergleich, K4) und er steht als Ersatz im Bericht, nicht
+als stillschweigende Auslassung.
+
+### 16.3 Die Befunde und ihr Verbleib — alle abgearbeitet
+
+| Befund | Art | Verbleib | von mir geprüft |
+|---|---|---|---|
+| karpathy 1: Wireframe-Satz „`librarytest` setzt es heute nicht" | warn | `4cd37c2` — steht jetzt „setzt es seit Sprint 5 (`tests/CMakeLists.txt`); wer den Lauf dort wieder herausnimmt, macht den Prüfsatz still unwirksam" | Wortlaut selbst gelesen |
+| karpathy 2: `SPEC.md:597` KWidgetsAddons-Klammer unvollständig | warn | `fe0c83b` — Klammer nennt jetzt „KMessageDialog samt KStandardGuiItem" | `SPEC.md:596–598` selbst gelesen |
+| karpathy 3: N2-Fall als Issue anlegen | warn | **#70** angelegt | `gh issue view 70` |
+| UI-Review W1: Zeichnung 2a C trägt überholten Dialogtext | warn | `7247500` — Text auf den gebauten Wortlaut, dritter Nachtrag begründet die fehlende Größenstufung | Diff selbst gelesen |
+| UI-Review B1: #58-Bilder zeigen den Zweigstand ohne #67-Symbole | warn | `a44784b` — Nachtrag in `sprint-05-s-verhalten/bericht.md:201–202` | Zeilen selbst gelesen |
+| UI-Review B2: Klick auf angeschnittene Zeile | warn | **#71** angelegt | `gh issue view 71` |
+| UI-Review H1: Tooltips mit Kürzel (Empfehlung) | keine | **#72** angelegt | `gh issue view 72` |
+
+**Beobachtung ohne Mangelcharakter:** Die beiden Wireframe-Korrekturen
+(`4cd37c2`, `7247500`) sind *nach* den jeweiligen Reviews entstanden und
+deshalb selbst ungeprüft. Das ist die Natur einer Auflagenerfüllung und kein
+Befund; ich halte es fest, weil der nächste Prüfer sonst annimmt, der
+UI-Review habe den heutigen Zeichnungsstand gesehen. Er hat den Stand von
+`5a4a83a` gesehen.
+
+**Ebenfalls festgehalten:** Der karpathy-Lauf deckt den `CLAUDE.md`-Absatz aus
+`5a4a83a` mit ab (Bericht, Prinzip 3) — die globale Regel „Regel-Änderungen
+durchlaufen den Reviewer" ist damit eingehalten, nicht übersprungen.
+
+## 17. DoD 4 — SPEC/KONZEPT nachgezogen, einschließlich entdeckter Bedingungen
+
+**Ergebnis: erfüllt, und zwar in der strengen Fassung nach B9.** Ich habe den
+SPEC-Diff Zeile für Zeile gelesen (`git diff sprint-05-basis..HEAD -- SPEC.md`,
++69 Zeilen).
+
+**Die geänderten Festlegungen:**
+
+- **SPEC 9, Abschnitt Wächterdialog:** Die Bauart ist jetzt entschieden und
+  benannt — `KMessageDialog` vom Typ `WarningTwoActionsCancel` mit
+  `KStandardGuiItem`-Symbolen, Vorgabeantwort „Speichern".
+- **SPEC 9, Listenteil:** Der Kopf wird beim Grenzübertritt **per Taste**
+  geholt, **nicht per Mausklick** — mit dem gemessenen Wert (387 px) und der
+  Begründung im Text.
+- **SPEC 15:** `KMessageDialog` samt `KStandardGuiItem` in der
+  KWidgetsAddons-Klammer; Teststrategie um die Plattformthema-Bedingung
+  ergänzt.
+
+**Die entdeckten Bedingungen — der Punkt, an dem B9 gemessen wird.** Beide vom
+PO benannten Bedingungen stehen in SPEC, und drei weitere dazu:
+
+| Bedingung | Fundstelle | Vom PO benannt? |
+|---|---|---|
+| Die Plattformintegration beantwortet einen gebauten `QMessageBox` mit einem **eigenen Meldungsfenster samt eigenen Knopfobjekten**; ein `KMessageDialog` ist ein gewöhnlicher `QDialog` und bleibt der eigene | SPEC 9, „Bauart des Dialogs" | **ja** |
+| `KMessageDialog::setIcon()` sagt zu, bei leerem Symbol eines nach Dialogtyp zu wählen — **gemessen kommt keines**; das Warnsymbol wird ausdrücklich gesetzt | SPEC 9, letzter Spiegelstrich | **ja** (Doku-Falle) |
+| `KMessageDialog` kennt **keinen Zweittext**; Frage und Erläuterung in einem Text, durch Leerzeile getrennt | SPEC 9 | nein |
+| Antwortrollen sind `Yes`·`No`·`Reject`; **zugesichert ist die Bedeutung**, nicht Rolle und nicht Reihenfolge | SPEC 9 | nein |
+| Die Vorgabeantwort **folgt dem Fokus** — „Speichern" muss nach dem Anzeigen Fokus *und* Vorgabe erhalten, und eine Zusicherung darüber gilt erst am **sichtbaren** Dialog | SPEC 9 | nein |
+| Von Hand angezeigt ist der Dialog **nicht mehr modal** durch ein späteres `exec()` | SPEC 9 | nein |
+| Ohne Plattformthema löst `QIcon::fromTheme()` nichts auf und liefert ein Symbol **ohne Namen** — die Zusicherung wäre rot, ohne dass am Bau etwas fehlt | SPEC 15 | nein |
+
+Sieben Bedingungen, alle mit Messdatum. Die dritte bis siebte sind gerade die
+Sorte, die sonst als Stammeswissen im Kopf eines Agenten verschwindet. Dass
+sie in SPEC stehen, ist die eigentliche Erfüllung von B9 — nicht dass eine
+Festlegung geändert wurde.
+
+## 18. Doku-Abgleich nach B10
+
+**Ergebnis: eine Abweichung — M3.** Geprüft wurde `README.md` (22 Zeilen,
+ganz gelesen) und `docs/`; `docs/` enthält ausschließlich `scrum/`, also keine
+Produktdokumentation, die nachziehen müsste.
+
+- **Statuszeile (`README.md:7`): in Ordnung.** Sie beschreibt den gelieferten
+  Stand und **nicht** das Verfahren — kein „Sprint N in der Kundenabnahme".
+  Genau daran ist der Abgleich in Sprint 3 gescheitert.
+- **Aber sie beschreibt drei der vier gelieferten Verhaltensweisen nicht:**
+
+| Lieferung | im README? |
+|---|---|
+| Wächterdialog gegen ungespeicherte Änderungen | ja (aus Sprint 4) |
+| Symbole an den Bibliotheks-Schaltflächen und im Wächterdialog (#66/#67) | **nein** |
+| Die Liste bleibt beim Klick stehen (#57) | **nein** |
+| Zeitstempel und Hinweise folgen dem Farbschema (#58) | **nein** |
+
+Der Maßstab ist der eigene: Für das Tray-Menü steht seit Sprint 4 der Satz
+„Das Tray-Menü trägt Symbole und deutsche Beschriftungen" im README. Was dort
+nennenswert war, ist hier nicht weniger nennenswert. → **M3.**
+
+## 19. Sprint-Konto (B12) — Schlussstand
+
+| Buchung | Issues | Story Points | Grenzen (2–4 · ~13) |
+|---|---|---|---|
+| Freigabe-Stand (02.08.2026, 16:25) | 4 | 11 | beide gehalten, Story-Grenze **am Anschlag** |
+| Zugänge im Sprint | **0** | **0** | — |
+| **Schlussstand** | **4** | **11** | **beide gehalten** |
+
+**Selbst geprüft, nicht übernommen:** `gh issue list --milestone "Sprint 5"
+--state all` liefert genau #66, #67, #57, #58. Die drei im Sprint entstandenen
+Befunde sind als Issues **#70** (N2-Fall), **#71** (angeschnittene Zeile, B2)
+und **#72** (Tooltips, H1) angelegt und tragen **keinen Milestone** — sie sind
+im Backlog gelandet, nicht im Sprint. `gh api …/milestones` bestätigt:
+`Sprint 5: open=4 closed=0`.
+
+**Das ist der Punkt, an dem B12 seine Probe bestanden hat.** Der Sprint startete
+mit ausgeschöpfter Story-Grenze; jeder Zugang wäre eine Grenzüberschreitung
+gewesen. Drei Befunde, die zum Thema des Sprints gehören und die man leicht
+„noch mitgenommen" hätte, sind stattdessen Backlog geworden. In Sprint 3 wäre
+das nicht aufgefallen — dort endete der Sprint bei fünf Issues, ohne dass es
+jemand vorgelegt hätte.
+
+**Ein Nebenbefund zur Kontoführung, kein eigener Mangel:** Die Kontotabelle in
+§1 trägt in der Zeile *Freigabe-Stand* noch den Platzhalter „einzutragen nach
+der Kundenentscheidung"; der Stand steht in Prosa in §9 (Kundenfreigabe). Der
+eigene next-Punkt (4) des Plannings ist damit offen geblieben. Ich trage ihn
+oben nicht nach — das ist der Abschnitt eines anderen Laufs, und die Zahl ist
+hier belegt. *(Ebenfalls nur zur Kenntnis: das Protokoll führt die
+Abschnittsnummer 9 zweimal.)*
+
+## 20. Changelog — Vorbereitung für Takt 2
+
+Kein Prüfpunkt dieses Takts; die Einträge entstehen nach der Abnahme
+(Sprint-Abschluss, Punkt 9). Zwei Feststellungen, die dem PO Arbeit sparen:
+
+1. **Keine Schemaänderung in Sprint 5.** Selbst geprüft: Der Sprint-Diff fasst
+   an Quellcode ausschließlich `src/ui/librarywindow.{h,cpp}` an — `src/store/`
+   ist unberührt. Damit greift weder die Nennungspflicht für Schemaänderungen
+   noch der erzwungene MINOR-Sprung aus Punkt 10.
+2. **Alle vier Stories gehören aus Nutzersicht hinein**, auch die beiden mit
+   `typ:bug`: Symbole an Schaltflächen, eine Liste, die unter dem Zeiger
+   stehenbleibt, und Texte, die dem Farbschema folgen, sind samt und sonders
+   sichtbar. Der Maßstab ist die Nutzersicht, nicht das Label.
+3. Punkt 10 (Version und Tag) bleibt **ausgesetzt**, bis #61 umgesetzt ist —
+   `CMakeLists.txt` steht bei `0.1.0`, die Einträge sammeln sich weiter unter
+   `[Unveröffentlicht]`. Der Vollzugsvermerk in Takt 2 muss das so führen.
+
+## 21. Mängelliste an den PO (Takt 1, Punkt 4)
+
+Melden, nicht heilen. Nichts davon ist von mir behoben worden.
+
+### M1 — Kein Story-Hauptweg am installierten Stand belegt · **Schwere: mittel**
+
+**Regel:** Sprint-Abschluss Takt 1, Punkt 1 — „Der Endstand ist einmal nach
+`/usr` installiert, **und der Hauptweg jeder Story ist daran ausgeführt**
+(DoD 2). … Ohne Belegform ist ‚mit Beleg abgehakt' eine Behauptung."
+
+**Befund:** `sprint-05-installationstakt.md` belegt Installation (rc=0),
+Binärgleichheit, Dienstwechsel (PID 460335) und D-Bus-Antwort. Von den vier
+Hauptwegen ist **keiner** am installierten Stand ausgeführt; alle vier stehen
+unter „Offen für die Kundenabnahme".
+
+**Warum das zählt:** Genau diese Pflicht ist als Ersatz dafür entstanden, dass
+den Strängen die eigene Installation untersagt wird (Sprint-3-Mangel M1). Wird
+der Ersatz nicht geleistet, ist DoD 2 für den Sprint aufgehoben statt
+geschützt. Die Kundenabnahme ist **nicht** dieser Ersatz: Sie prüft, ob das
+Produkt gefällt, nicht ob der ausgelieferte Stand den Hauptweg trägt.
+
+**Abgeschwächt, aber nicht geheilt:** Ich habe nachgewiesen, dass das
+installierte Abbild der Sprint-5-Stand ist (15.1) — der **Stand** ist belegt,
+der **Weg** nicht.
+
+**Vorschlag (PO-Fläche, drei Handgriffe):** Der Dienst nimmt `ShowLibrary`
+an — die Methode ist vorhanden (von mir per Introspektion belegt), `spectacle`
+ist installiert. Ein Aufruf, ein Bildschirmfoto der Bibliothek mit Symbolen und
+eines des Wächterdialogs am laufenden `/usr`-Dienst, abgelegt in
+`docs/scrum/reviews/sprint-05-installationstakt/`, schließt den Punkt für
+#66/#67 und #58. Für #57 (Mausbewegung) und für die Kundenfotos bleibt der
+Kundenblick — das ist eine benannte Grenze der Prüfbarkeit und schließt die
+Story nach DoD 2 nicht. **Die Grenze gehört benannt, nicht stillschweigend
+ausgelassen.**
+
+### M2 — Schätzung steht nicht am Backlog · **Schwere: gering (Rückverfolgbarkeit)**
+
+**Regel:** `PROZESS.md`, Artefakte — GitHub Issues sind „die **einzige Quelle
+der Wahrheit** für Stories, Akzeptanzkriterien, **Schätzung** und Status";
+Labels `sp:1|2|3|5|8`. Planning §10, Punkt 5 hat es dem PO ausdrücklich
+aufgetragen.
+
+**Befund, selbst erhoben** (`gh issue list --milestone "Sprint 5"`):
+
+| Issue | Konsolidiert (Planning §2) | Label heute |
+|---|---|---|
+| #66 | 5 | **keines** |
+| #67 | 2 | **keines** |
+| #57 | 3 (ersetzt `sp:2` mit Begründung, §2.1) | **`sp:2`** — veraltet |
+| #58 | 1 | `sp:1` ✓ |
+
+**Warum das zählt:** Aus den Labels ergäbe sich heute ein Sprint von **3 SP**
+statt 11. Wer in einem halben Jahr die Velocity aus dem Backlog zieht — der
+einzigen Quelle der Wahrheit —, bekommt eine falsche Zahl. Bei #57 ist es
+mehr als eine fehlende Zahl: Die Erhöhung war eine begründete Entscheidung
+zweier unabhängiger Schätzer gegen das Alt-Label, und im Backlog steht weiter
+das Alt-Label.
+
+**Vorschlag:** `sp:5` an #66, `sp:2` an #67, `sp:2` → `sp:3` an #57. Drei
+`gh`-Aufrufe, vor dem Schließen der Issues in Takt 2.
+
+### M3 — README beschreibt drei der vier Lieferungen nicht · **Schwere: gering**
+
+**Regel:** `PROZESS.md`, DoD-Anhang — „Beschreiben README und `docs/` den
+gelieferten Stand? Abweichungen meldet er als Mangel"; Takt 1, Punkt 3.
+
+**Befund:** `README.md:7` nennt den Wächterdialog (Sprint 4), aber weder die
+Symbole an Dialog und Schaltflächen (#66/#67) noch die ruhige Liste (#57) noch
+das Mitgehen der Texte beim Schemawechsel (#58). Für das Tray-Menü steht der
+entsprechende Satz seit Sprint 4 darin.
+
+**Vorschlag:** ein bis zwei Halbsätze in der Statuszeile, in derselben Machart
+wie der Tray-Satz. Formulierung ist PO-Sache; **Zeitpunkt: vor Takt 2**, damit
+der Changelog-Eintrag und die Statuszeile dasselbe sagen.
+
+### Was ich geprüft und **nicht** beanstandet habe
+
+Ausdrücklich, damit „geprüft, nichts gefunden" von „vergessen" unterscheidbar
+bleibt (PROZESS.md verlangt das für den Doku-Abgleich; ich führe es für alle
+Punkte):
+
+- **DoD 1** — Bau warnungsarm (0 Warnungen), 107/0 in beiden Umgebungen,
+  ctest 7/7, drei Geometriefamilien bei je zwei Fenstergrößen, keine
+  Linterbefunde aus diesem Sprint.
+- **DoD 3** — beide Prüfketten geführt, Berichte als Datei, kein offener
+  `fail`, alle sieben Befunde abgearbeitet, UI-Review mit **eigenen** Bildern
+  und eigenem Prüfprogramm.
+- **DoD 4** — SPEC 9 und 15 nachgezogen; **sieben** entdeckte Bedingungen
+  festgehalten, darunter beide vom PO benannten.
+- **Sprint-Konto** — 4/4 Issues, 11/~13 SP, null Zugänge, drei neue Issues
+  sauber im Backlog.
+- **Dateimengen** — kein Übergriff; die eine Abweichung (Belegordnername) ist
+  vom Strang selbst deklariert und geht auf den Spawn-Auftrag zurück.
+- **Melden statt heilen** — von beiden Strängen eingehalten: Strang A meldete
+  die SPEC-15-Klammer und fasste sie nicht an, Strang B ließ den roten
+  Strang-A-Test ausdrücklich stehen.
+
+## 22. Abnahme-Checkliste für den Kunden
+
+Vier Handgriffe am laufenden, installierten Stand (Dienst PID 460335 aus
+`/usr/bin`). Die Bilder daneben sind aus dem Prüflauf — sie zeigen, worauf zu
+schauen ist, ersetzen den eigenen Blick aber nicht.
+
+### 1 · Die Bibliothek hat Symbole (#67)
+
+Bibliothek öffnen, eine Notiz in der Liste anklicken.
+
+- [ ] Oben rechts stehen **„Bearbeiten"** mit einem **Stift** und **„Löschen"**
+      mit einem **roten Papierkorb**.
+- [ ] Jedes Symbol steht **neben** seiner Beschriftung, keines ersetzt sie.
+- [ ] F2 drücken: unten rechts stehen **„Speichern"** (Diskette) und
+      **„Abbrechen"** (durchgestrichener Kreis).
+- [ ] Eine Notiz löschen: die Meldungszeile bietet **„Rückgängig"** mit einem
+      **Pfeil nach links**.
+
+*Vergleichsbild: `docs/scrum/reviews/sprint-05-ui-review/bilder/s5-edit-01-lesen.png`*
+
+### 2 · Der Nachfragedialog sieht aus wie ein KDE-Dialog (#66) — **Foto-Punkt**
+
+F2 drücken, etwas tippen, dann eine andere Notiz anklicken.
+
+- [ ] Links im Dialog steht ein **großes orangefarbenes Warndreieck**.
+- [ ] Der Text beginnt mit **„Änderungen speichern?"**, darunter nach einer
+      Leerzeile die Erklärung mit dem Zeitstempel in Klammern.
+- [ ] Alle **drei** Antworten tragen ein Symbol: **Speichern** (Diskette),
+      **Verwerfen** (roter Papierkorb), **Abbrechen** (durchgestrichener Kreis).
+- [ ] **„Speichern" ist vorausgewählt** — es trägt den Rahmen, und Enter löst es
+      aus.
+- [ ] Die Antworten tun, was sie sagen: *Speichern* schreibt und wechselt zur
+      angeklickten Notiz, *Verwerfen* wechselt ohne zu schreiben, *Abbrechen*
+      bleibt im Editor.
+
+**Bitte ein Foto** — dieser Punkt ist der Grund für die Story: In der
+Sprint-4-Abnahme trug derselbe Dialog unter echtem Plasma **keine** Symbole,
+und kein Test hat das gesehen. Nur das Bild aus Ihrer Sitzung schließt ihn.
+*Vergleichsbild aus dem Prüflauf:
+`docs/scrum/reviews/sprint-05-ui-review/bilder/s5-edit-03-waechterdialog.png`*
+
+### 3 · Die Liste bleibt unter dem Zeiger stehen (#57)
+
+In der Liste weit nach unten rollen, bis Notizen mehrerer Tage sichtbar sind.
+Dann eine **vollständig sichtbare** Notiz aus einer **anderen** Tagesgruppe
+anklicken.
+
+- [ ] **Die Liste bewegt sich nicht.** Die angeklickte Zeile bleibt genau da,
+      wo der Zeiger sie getroffen hat.
+- [ ] Der Tag steht trotzdem da: rechts im Detailbereich, mit vollem
+      Zeitstempel.
+- [ ] Gegenprobe mit der **Tastatur**: mit den Pfeiltasten über eine
+      Tagesgrenze gehen — hier **soll** die Liste den Gruppenkopf ins Bild
+      holen. Das ist Absicht: Wer zeigt, will Ruhe; wer tippt, will geführt
+      werden.
+
+*Vorher war das ein Sprung über den halben Bildschirm (387 px gemessen).*
+*Bekannte Ausnahme, als Issue #71 im Backlog: Eine am unteren Rand
+**angeschnittene** Zeile rückt beim Anklicken noch um eine Zeilenhöhe — das ist
+Bestand, kein Rückschritt dieses Sprints.*
+
+### 4 · Farbschema wechseln, ohne den Dienst neu zu starten (#58)
+
+Bibliothek geöffnet lassen. In den Systemeinstellungen von einem **hellen** auf
+ein **dunkles** Farbschema wechseln (oder umgekehrt).
+
+- [ ] Die **Uhrzeiten** in der Liste und die **Vorschauzeilen** wechseln
+      **sofort** mit — sie bleiben lesbar, nicht dunkelgrau auf dunkel.
+- [ ] Auch im Detailbereich: der Zeitstempel oben, und im Bearbeiten-Zustand
+      die Beschriftungen **„Kategorie"** und **„Tags"** sowie der Fußzeilenhinweis
+      *„Esc bricht ab · Strg+Enter speichert"*.
+- [ ] **Kein Neustart nötig** — das war der Kern des Befundes: Das Fenster wird
+      beim Dienststart gebaut und vorgehalten, die Farben froren bis zum
+      Neustart ein.
+- [ ] Auch zurück auf hell prüfen.
+
+*Vergleichsbild: `docs/scrum/reviews/sprint-05-ui-review/bilder/s5-58-b-dunkel-lesen.png`;
+danebengelegt das ungeheilte Bild `s5-58-b-UNGEHEILT-dunkel-lesen.png`.*
+
+### Was der Kunde **nicht** prüfen muss
+
+Diese drei Punkte sind in diesem Sprint gefunden und bewusst **nicht** gebaut
+worden; sie liegen als Issues im Backlog und gehören nicht in die Abnahme:
+**#70** (Pfeiltaste zur ersten Gruppen-Notiz lässt den Kopf 35 px draußen —
+braucht eine Produktentscheidung), **#71** (angeschnittene Zeile, siehe oben),
+**#72** (Tastenkürzel als Tooltip an den Schaltflächen — nie beauftragt,
+Empfehlung des UI-Reviews).
+
+## 23. done / next
+
+**done:** DoD-Prüfung Takt 1 für Sprint 5 geführt — Bau, `ctest` und
+`librarytest` in **beiden** Umgebungen selbst gefahren (0 Warnungen, 7/7,
+107/0 und 107/0), beide Linter selbst gefahren und **jeden** ihrer fünf
+Befunde per `git blame` gegen `sprint-05-basis` als Altbestand nachgewiesen
+statt den Bericht zu glauben; die drei Geometriefamilien und ihre je zwei
+Fenstergrößen nachgezählt und begründet, warum der Wächterdialog keine vierte
+verlangt; den installierten Stand über vier unabhängige Wege als den Endstand
+belegt (Binärgleichheit, Bauzeit 7 s nach dem letzten Quell-Commit,
+Sprint-5-Zeichenketten im Abbild, laufender Dienst mit `ShowLibrary`); die
+Akzeptanzkriterien aller vier Stories am Stand geprüft, darunter #58 AK 4
+selbst gefahren (`grep -rn setPalette src/` → kein Treffer) und zwei Bilder
+selbst angesehen statt ihre Beschreibung zu lesen; die Vollzähligkeit der
+Prüfberichte über den Commit-Prüfweg aus B11.2 geführt und den einen
+Grenzfall (UX-Zwischenlauf zum Warnsymbol) als versioniert nachgewiesen; alle
+sieben Review-Befunde bis zu ihrem Verbleib verfolgt; den SPEC-Diff Zeile für
+Zeile gelesen und **sieben** entdeckte Bedingungen nach B9 ausgewiesen; den
+Doku-Abgleich nach B10 geführt; das Sprint-Konto geschlossen (4/4 Issues,
+11/~13 SP, **null Zugänge** — die drei Sprint-Funde liegen milestone-frei im
+Backlog). **Drei Mängel** an den PO gemeldet, keiner geheilt. Abnahme-Checkliste
+in Kundensprache mit vier Handgriffen und einem ausgewiesenen Foto-Punkt
+vorgelegt.
+
+**next:** (1) PO behebt M1 vor der Abnahme — der Aufwand ist ein D-Bus-Aufruf
+und zwei Bildschirmfotos am laufenden `/usr`-Dienst; die verbleibende Grenze
+(#57 und die Plasma-Fotos) gehört benannt, nicht ausgelassen. (2) M2 vor dem
+Schließen der Issues: drei `sp:`-Label. (3) M3 vor Takt 2: Statuszeile im
+README um die drei fehlenden Verhaltensweisen ergänzen. (4) Kundenabnahme
+gegen die Checkliste in 22, mit Foto zum Wächterdialog. (5) Nach der Abnahme
+Takt 2 in der Reihenfolge der Punkte 5–**12**; Punkt 10 bleibt **ausgesetzt**
+(#61 offen), die Einträge sammeln sich unter `[Unveröffentlicht]`. Der
+Scrum Master vermerkt den Vollzug (Punkt 11). **Punkt 12 ist neu**
+(Schätzhistorie, Kundenauftrag 02.08.2026) und läuft in diesem Sprint zum
+ersten Mal: Der Ausgangsbestand samt den vier Sprint-5-Zeilen liegt in §24,
+der Verwalter überträgt ihn mechanisch. (6) Retro nach Sprint 6 —
+Kandidaten unverändert aus Sprint 4 §17.6, dazu der B13-Nachzug aus §5.1
+dieses Protokolls.
+
+## 24. Anhang — Schätzhistorie, Ausgangsbestand (Kundenauftrag 02.08.2026)
+
+**Diese Tabelle ist die einzige Quelle, aus der `docs/scrum/diagramme/schaetzhistorie.json`
+erzeugt wird.** Jede Zeile ist an ihrer Quelle nachgelesen; die
+Anlass-Kennzeichen sind mein Urteil und stehen nirgendwo sonst. Ab Sprint 5
+schreibt die DoD-Prüfung je Sprint die neuen Zeilen fort (PROZESS.md,
+Sprint-Abschluss Punkt 12).
+
+**Festlegungen, ohne die die Reihe nicht eindeutig ist:**
+
+- **Erstschätzung ist die erste *konsolidierte* Schätzung** — der Wert, mit dem
+  die Story im Backlog stand, nicht die Rohzahl eines einzelnen Schätzers. Die
+  Streuung zweier Schätzer am selben Tag ist eine andere Größe und gehört nicht
+  in diesen Kegel (dieselbe Begründung, mit der die Sprint-5-Deckungsgleichheiten
+  von #58, #59 und #55 als Datenpunkte ausscheiden).
+- **Abstand** = Zahl der Sprints zwischen dem Sprint, in dem die Erstschätzung
+  fiel, und dem Sprint der Umsetzung.
+- **Faktor** = Endwert ÷ Erstwert. Er kann **unter 1** liegen (#5), und die
+  Achse muss das darstellen können.
+- **Provenienz wird mitgeführt, nicht geglättet:** „Klausur/Planning (2
+  unabhängige)" ist etwas anderes als „Label bei Anlage (1 Hand)". Wer die
+  Reihe später gewichten will, braucht die Unterscheidung; wer sie einebnet,
+  verliert sie unwiederbringlich.
+
+### 12.1 Reihe — Stories mit mindestens einer Gelegenheit zur Revision
+
+Nur diese Zeilen tragen den Kegel: Zwischen Erstschätzung und Umsetzung lag ein
+Ereignis, bei dem eine Revision **hätte** stattfinden können.
+
+| Story | Issue | Erstschätzung | Quelle | Revision | End | Umsetzung | Abst. | Faktor | Anlass |
+|---|---|---|---|---|---|---|---|---|---|
+| S4 Globales Kürzel + D-Bus | #5 | **5** · 31.07.2026 | Schätzklausur, `sprint-01.md` §2 (A 3 · B 5, Regel höherer Wert) — 2 unabhängige | **3** · 01.08.2026, `sprint-02.md` §1.3 | 3 | Sprint 2 | 1 | **0,60** | `erkenntnis` |
+| T2 Autostart und Erststart | #6 | **2** · 31.07.2026 | Schätzklausur, §4.2 (neu geschnitten) | — | 2 | Sprint 2 | 1 | 1,00 | `keine` |
+| S5 Bibliotheksfenster | #7 | **5** · 31.07.2026 | Schätzklausur §2 (A 5 · B 3, Regel höherer Wert) — 2 unabhängige | — | 5 | Sprint 2 | 1 | 1,00 | `keine` |
+| S6 Volltextsuche (FTS5) | #8 | **3** · 31.07.2026 | Schätzklausur §2 (A 3 · B 3, einig) — 2 unabhängige | **5** · während Sprint 3, `sprint-03.md` 13.10 | 5 | Sprint 3 | 2 | **1,67** | `erkenntnis` |
+| T3 Migrationstest 1→2 | #9 | **1** · 31.07.2026 | Schätzklausur §4.3 (neu) | — | 1 | Sprint 3 | 2 | 1,00 | `keine` |
+| S8 Bearbeiten-Ansicht | #11 | **2** · 31.07.2026 | Schätzklausur §2 (A 2 · B 2, Entscheidung E3) — 2 unabhängige | **5** · 02.08.2026, `sprint-04.md` §2.1 | 5 | Sprint 4 | 3 | **2,50** | `gegenstand-geändert` |
+| T4 Ollama-Modelle | #12 | **1** · 31.07.2026 | Schätzklausur §4.4 (neu) | — | 1 | Sprint 4 | 3 | 1,00 | `keine` |
+
+**Hüllkurve:** Abstand 1 → [0,60; 1,00] · 2 → [1,00; 1,67] · 3 → [1,00; 2,50].
+Sie weitet sich monoton — das ist der gemessene Kegel.
+
+**Zu den drei Kennzeichen, weil sie das Urteil tragen:**
+
+- **#5 `erkenntnis`, abwärts.** B's Aufschlag stand für ein Wayland-Risiko; das
+  Risiko wurde gemessen und löste sich auf, der Gegenstand blieb derselbe
+  (`sprint-02.md` §1.3). **Der einzige Punkt unter 1,0** — und der Beleg dafür,
+  dass Unsicherheit sich in beide Richtungen auflöst.
+- **#8 `erkenntnis`.** Die Story ging mit 3 in Sprint 3 (`sprint-03.md`, Tabelle
+  Zeile 31) und endete bei 5. Der Zuwachs kam aus der Arbeit am Gegenstand, nicht
+  aus einer Änderung an ihm.
+- **#11 `gegenstand-geändert`, nicht `erkenntnis`.** Zwischen der 2 und der 5
+  liegen S5a und S6 — Flächen, mit denen die Bearbeiten-Ansicht wechselwirkt, und
+  neugefasste Akzeptanzkriterien. `sprint-04.md` §2.1 wörtlich: *„Die 2 hat einen
+  anderen Gegenstand geschätzt."* **Der größte Faktor der Reihe ist zugleich der,
+  der am wenigsten über Schätzgenauigkeit sagt** — genau dafür existiert die
+  Spalte.
+
+### 12.2 Erfasst, aber nicht in der Kurve
+
+| Story | Issue | Erst | End | Umsetzung | Grund der Auslassung |
+|---|---|---|---|---|---|
+| T1 Wayland-Fokus-Spike | #1 | 2 | 2 | Sprint 1 | Erstschätzung und Umsetzung im selben Planning |
+| S1 Projektgerüst mit Tray | #2 | 3 | 3 | Sprint 1 | dito |
+| S2 SQLite-Store | #3 | 3 | 3 | Sprint 1 | dito (Klausur A 5 · B 3, Entscheidung E2) |
+| S3 Text-Capture-Fenster | #4 | 5 | 5 | Sprint 1 | dito |
+| Capture Starthöhe 5 Zeilen | #42 | 1 | 1 | Sprint 1 | Zugang im laufenden Sprint, Label bei Anlage |
+| App-Icon und Tray-Icon | #43 | 2 | 2 | Sprint 1 | dito |
+| Tray-Linksklick ohne Wirkung | #44 | 1 | 1 | Sprint 3 | Zugang im laufenden Sprint (2 unabhängige, beide 1, 01.08.2026) |
+| S5a Notizliste als Posteingang | #46 | 5 | 5 | Sprint 3 | Zugang im laufenden Sprint (2 unabhängige, beide 5, 01.08.2026) |
+| Capture folgt Themewechsel nicht | #54 | 1 | 1 | Sprint 3 | Zugang im laufenden Sprint, Label bei Anlage |
+| S33 Tray-Menüs | #60 | 5 | 5 | Sprint 4 | im selben Planning geschätzt (Dev 3 · UX 5 → 5) |
+| T10 Spike spellfix1 | #62 | 3 | 3 | eigener Lauf | **Schätzregel nicht erfüllt** (nur eine Schätzung, `sprint-04.md` §2.3), kein Sprint-Milestone |
+
+**Warum diese elf draußen bleiben — und warum sie trotzdem dastehen.** Ihr
+Faktor ist 1,0, weil zwischen Erstschätzung und Umsetzung **keine Gelegenheit
+zur Revision lag**, nicht weil eine Schätzung sich als richtig erwiesen hätte.
+Wer sie mitzeichnet, drückt den linken Rand des Kegels künstlich zusammen und
+lässt das Diagramm eine Genauigkeit behaupten, die nirgends gemessen wurde. Sie
+stehen hier, damit die Auslassung sichtbar ist und niemand sie später für ein
+Versehen hält (dieselbe Form, in der die Sprint-4-Protokolle ihre eigenen
+Grenzen benennen).
+
+### 12.3 Anwärter — Erstwert erfasst, Endwert offen
+
+Die Zeilen des laufenden Sprints, damit die Fortschreibung in Takt 2 nichts
+rekonstruieren muss. Sie werden erst mit dem Sprint-Abschluss gültig.
+
+| Story | Issue | Erstschätzung | Quelle | Stand Sprint-5-Planning | Abst. | Faktor (vorläufig) | Anlass |
+|---|---|---|---|---|---|---|---|
+| Wächterdialog KDE-Bauart | #66 | 5 · 02.08.2026 | Sprint-5-Planning (Dev 5 · UX 3) — 2 unabhängige | 5 | 0 | 1,00 | `keine` — **12.2-Fall** |
+| Bibliotheks-Symbole | #67 | 2 · 02.08.2026 | Sprint-5-Planning (Dev 2 · UX 1) — 2 unabhängige | 2 | 0 | 1,00 | `keine` — **12.2-Fall** |
+| Klick-Sprung | #57 | **2** · 01.08.2026 | Label bei Anlage — 1 Hand | **3** (§2.1) | 2 | **1,50** | `erkenntnis` |
+| Palettenrolle | #58 | 1 · 01.08.2026 | Label bei Anlage — 1 Hand | 1 | 2 | 1,00 | `keine` |
+
+**#57 ist die einzige der vier, die in die Kurve kommt** — und sie ist
+`erkenntnis`, nicht `gegenstand-geändert`: Die Akzeptanzkriterien sind
+unverändert; gestiegen ist der Wert, weil die naheliegende Lösung **belegt
+widerlegt** wurde (§2.1). #58 hatte die Gelegenheit zur Revision und hat sie
+nicht genutzt — der Punkt ist gültig, anders als die 1,0-Fälle in 12.2.
+
+**Offen und bewusst nicht entschieden:** ob Zeilen mit Provenienz „1 Hand"
+(#57, #58) gleich schwer wiegen wie die der Schätzklausur. Das ist eine Frage an
+die Reihe, wenn sie länger ist — heute wäre jede Antwort darauf eine Erfindung.
+Die Spalte hält sie offen.

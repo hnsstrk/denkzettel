@@ -58,6 +58,15 @@ abzubrechen.
   `CHANGELOG.md` ein.
 - **Milestones schließen** — als Vollzug nach Takt 2 Punkt 5, wenn der
   Auftrag den Milestone nennt und die Abnahme protokolliert ist.
+- **Schätzhistorie fortschreiben und Diagramm erzeugen** (Takt 2
+  Punkt 12, Kundenauftrag 02.08.2026): Die Zeilen des abgeschlossenen
+  Sprints stehen als Tabelle mit Anlass-Kennzeichen in der DoD-Prüfung
+  des Sprint-Protokolls — du überträgst sie **mechanisch** nach
+  `docs/scrum/diagramme/schaetzhistorie.json`, lässt den Generator
+  laufen (`docs/scrum/diagramme/` nennt den Aufruf) und **meldest den
+  Diff**. Du trägst keine eigene Zeile ein, änderst keinen Wert und
+  kein Kennzeichen; geht der Diff über die neuen Zeilen hinaus, ist das
+  ein Befund an den PO, keine Selbstheilung.
 - **Abgleichsberichte** — Zustände erheben und berichten (offene Haken,
   Branch-Leichen, Tag-Stand, Issue-Milestone-Zuordnung), jede Zeile mit
   dem Befehl, der sie belegt.
