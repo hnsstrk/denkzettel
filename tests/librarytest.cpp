@@ -32,6 +32,44 @@
 
 #include <memory>
 
+namespace
+{
+/**
+ * Answers away every guard dialog that turns up while it lives, and remembers
+ * whether one did.
+ *
+ * For the paths on which no dialog may appear. Without it a wrongly raised
+ * dialog would hang the test inside QMessageBox::exec() instead of failing it,
+ * and a suite that hangs is worse than one that goes red — measured on
+ * 02.08.2026, when the counter-check of the guard ran into the timeout instead
+ * of into an assertion.
+ */
+class DialogWatch
+{
+public:
+    DialogWatch()
+    {
+        QObject::connect(&m_timer, &QTimer::timeout, &m_timer, [this] {
+            auto *dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+            if (dialog) {
+                m_appeared = true;
+                dialog->reject();
+            }
+        });
+        m_timer.start(10);
+    }
+
+    bool appeared() const
+    {
+        return m_appeared;
+    }
+
+private:
+    QTimer m_timer;
+    bool m_appeared = false;
+};
+}
+
 /**
  * Unit tests of the library building blocks and of the window itself (SPEC 16).
  * The layout is measured here instead of standing on a manual checklist: the
@@ -137,6 +175,8 @@ private Q_SLOTS:
     void namesTheThreeAnswersOfTheGuardDialog();
     void asksBeforeUnsavedChangesAreLost_data();
     void asksBeforeUnsavedChangesAreLost();
+    void keepsTheEditorWhenTheListIsRebuiltUnderIt();
+    void keepsTheEditorWhenTheWindowIsActivatedAgain();
     void keepsTheSavedNoteInTheResultListUntilTheSearchChanges();
     void keepsTheMeasuresOfTheEditState_data();
     void keepsTheMeasuresOfTheEditState();
@@ -2599,6 +2639,83 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost()
             QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("erste Notiz, berichtigt"));
         }
     }
+}
+
+void LibraryTest::keepsTheEditorWhenTheListIsRebuiltUnderIt()
+{
+    storedNote(QStringLiteral("wird gerade bearbeitet"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    const QModelIndex before = list->currentIndex();
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
+
+    // Meta+N while the library stands open: the new note takes the top row and
+    // pushes the edited one down. Its row number changes, the note does not —
+    // and a question about unsaved changes here would be a question about
+    // nothing.
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    DialogWatch watch;
+    window.showLibrary();
+    QTest::qWait(100);
+
+    // The row really did move — otherwise this test would prove nothing.
+    QCOMPARE(modelOf(list)->noteCount(), 2);
+    QVERIFY2(list->currentIndex() != before, "Die Zeile ist gar nicht verrutscht");
+
+    QVERIFY2(!watch.appeared(), "Der Wächterdialog kam, obwohl die Notiz dieselbe geblieben ist");
+    QVERIFY(editorOf(window)->isVisible());
+    QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("halb getippt"));
+}
+
+void LibraryTest::keepsTheEditorWhenTheWindowIsActivatedAgain()
+{
+    storedNote(QStringLiteral("gestern Abend gedacht"), QStringLiteral("2026-07-31T21:48:00"));
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T22:00:00")));
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
+
+    // The window stood open past midnight and is looked at again: the
+    // activation regroups the list, and the regrouping rebuilds every row
+    // under the editor. The note stays the same one, so the question must not
+    // come up — a user coming back from another window would otherwise be
+    // asked about a change he has not finished making.
+    window.setReferenceTime(at(QStringLiteral("2026-08-01T09:00:00")));
+
+    DialogWatch watch;
+
+    QWidget elsewhere;
+    elsewhere.show();
+    elsewhere.activateWindow();
+    QTRY_VERIFY(!window.isActiveWindow());
+
+    window.activateWindow();
+    QTRY_VERIFY(window.isActiveWindow());
+    QTest::qWait(100);
+
+    // The regrouping really did happen — otherwise nothing was rebuilt here.
+    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+
+    QVERIFY2(!watch.appeared(), "Der Wächterdialog kam beim Zurückkommen ans Fenster");
+    QVERIFY(editorOf(window)->isVisible());
+    QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("halb getippt"));
+    QCOMPARE(list->currentIndex(), noteRow(list, 0));
 }
 
 void LibraryTest::keepsTheSavedNoteInTheResultListUntilTheSearchChanges()
