@@ -12,7 +12,10 @@
 #include <QAction>
 #include <QDialogButtonBox>
 #include <QFontMetrics>
+#include <QIcon>
+#include <KStandardGuiItem>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QListView>
 #include <QApplication>
@@ -21,6 +24,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSet>
 #include <QSignalSpy>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -173,6 +177,10 @@ private Q_SLOTS:
     void refusesToSaveAnEmptyText();
     void leavesTheEditorWithoutAskingWhenNothingWasChanged();
     void namesTheThreeAnswersOfTheGuardDialog();
+    void keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks();
+    void namesTheEditedNoteWithoutBreakingTheSentence_data();
+    void namesTheEditedNoteWithoutBreakingTheSentence();
+    void saysWhyTheSearchFieldRestsWhileEditing();
     void asksBeforeUnsavedChangesAreLost_data();
     void asksBeforeUnsavedChangesAreLost();
     void keepsTheEditorWhenTheListIsRebuiltUnderIt();
@@ -252,6 +260,20 @@ void LibraryTest::initTestCase()
     // The window stores its size through KSharedConfig. Without the test mode
     // that write would land in the user's denkzettelrc.
     QStandardPaths::setTestModeEnabled(true);
+
+    // Symbols come from the system theme, and the bare offscreen platform
+    // brings no platform theme that would name one. Without this the check on
+    // the dialog buttons could not tell „no symbol was asked for“ from „there
+    // was no theme to ask“ — and it is the first of the two that it is meant
+    // to catch. Breeze is the icon stock SPEC 15 builds on.
+    // Measured on 02.08.2026: the theme name alone is not enough. Test mode
+    // rewrites the XDG data locations, and the icon loader looks for themes
+    // under those — so `QIcon::fromTheme()` came back null although breeze was
+    // installed. The system icon directory has to be named as well.
+    QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QStringLiteral("/usr/share/icons"));
+    if (QIcon::themeName().isEmpty()) {
+        QIcon::setThemeName(QStringLiteral("breeze"));
+    }
 }
 
 void LibraryTest::init()
@@ -2529,7 +2551,8 @@ void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
     // memory: roles and labels are what the platform orders the buttons by.
     QStringList labels;
     QList<int> roles;
-    QTimer::singleShot(0, qApp, [&labels, &roles] {
+    QStringList icons;
+    QTimer::singleShot(0, qApp, [&labels, &roles, &icons] {
         QMessageBox *dialog = nullptr;
         for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
             dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
@@ -2542,6 +2565,7 @@ void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
         for (QAbstractButton *button : buttons) {
             labels.append(button->text());
             roles.append(dialog->buttonRole(button));
+            icons.append(button->icon().name());
         }
         QVERIFY(dialog->findChild<QDialogButtonBox *>());
         dialog->buttons().constFirst()->click();
@@ -2556,6 +2580,149 @@ void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
     QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Speichern"))), int(QMessageBox::AcceptRole));
     QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Verwerfen"))), int(QMessageBox::DestructiveRole));
     QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Abbrechen"))), int(QMessageBox::RejectRole));
+
+    // Three similarly long German words side by side are told apart fastest by
+    // their symbol, and the destructive one carries the usual marking
+    // (UI review of 02.08.2026, finding 5). The names are asked for rather than
+    // the pixels: whether the theme resolves them is the theme's business, and
+    // an empty name means no symbol was ever asked for.
+    QVERIFY2(!icons.contains(QString()), qPrintable(icons.join(QLatin1Char('|'))));
+    QCOMPARE(icons.size(), QSet<QString>(icons.begin(), icons.end()).size());
+}
+
+void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
+{
+    storedNote(QStringLiteral("wird bearbeitet"));
+    storedNote(QStringLiteral("die andere"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
+
+    QModelIndex selectedWhileAsking;
+    QTimer::singleShot(0, qApp, [&selectedWhileAsking, list] {
+        QMessageBox *dialog = nullptr;
+        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
+            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+            if (!dialog) {
+                QTest::qWait(10);
+            }
+        }
+        QVERIFY(dialog);
+
+        selectedWhileAsking = list->currentIndex();
+
+        const QList<QAbstractButton *> buttons = dialog->buttons();
+        for (QAbstractButton *button : buttons) {
+            if (dialog->buttonRole(button) == QMessageBox::RejectRole) {
+                button->click();
+                return;
+            }
+        }
+    });
+
+    list->setCurrentIndex(noteRow(list, 1));
+
+    // The dialog asks about the note under the editor, so the list has to point
+    // at that note while the question stands. currentChanged runs after the
+    // selection has already jumped — without taking it back first, list and
+    // question name different notes at the moment of the decision
+    // (UI review of 02.08.2026, finding 2).
+    QCOMPARE(selectedWhileAsking, noteRow(list, 0));
+    QCOMPARE(list->currentIndex(), noteRow(list, 0));
+    QVERIFY(editorOf(window)->isVisible());
+}
+
+void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence_data()
+{
+    // The timestamp goes into the sentence in the form its group gives it, and
+    // the sentence has to carry every one of them — „Die Notiz von Heute 11:05
+    // wurde geändert“ carried none (UI review of 02.08.2026, finding 3).
+    QTest::addColumn<QString>("written");
+    QTest::addColumn<QString>("expected");
+
+    QTest::newRow("heute") << QStringLiteral("2026-07-31T11:05:00")
+                           << QStringLiteral("Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte "
+                                             "Änderungen. Ohne Speichern gehen sie verloren.");
+    QTest::newRow("älter") << QStringLiteral("2026-07-19T09:00:00")
+                           << QStringLiteral("Die bearbeitete Notiz (19.07.2026) hat ungespeicherte "
+                                             "Änderungen. Ohne Speichern gehen sie verloren.");
+}
+
+void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence()
+{
+    QFETCH(QString, written);
+    QFETCH(QString, expected);
+
+    storedNote(QStringLiteral("wird bearbeitet"), written);
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
+
+    QString informative;
+    QTimer::singleShot(0, qApp, [&informative] {
+        QMessageBox *dialog = nullptr;
+        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
+            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+            if (!dialog) {
+                QTest::qWait(10);
+            }
+        }
+        QVERIFY(dialog);
+
+        informative = dialog->informativeText();
+
+        const QList<QAbstractButton *> buttons = dialog->buttons();
+        for (QAbstractButton *button : buttons) {
+            if (dialog->buttonRole(button) == QMessageBox::RejectRole) {
+                button->click();
+                return;
+            }
+        }
+    });
+
+    QTest::keyClick(editorOf(window), Qt::Key_Escape);
+
+    QCOMPARE(informative, expected);
+}
+
+void LibraryTest::saysWhyTheSearchFieldRestsWhileEditing()
+{
+    storedNote(QStringLiteral("wird bearbeitet"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+    QVERIFY(searchOf(window)->isEnabled());
+    QVERIFY(searchOf(window)->toolTip().isEmpty());
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+
+    // The KDE HIG argue against controls that are switched off without a
+    // visible reason. That the field rests is plain to see, why it rests was
+    // not (UI review of 02.08.2026, finding 4).
+    QVERIFY(!searchOf(window)->isEnabled());
+    QVERIFY2(!searchOf(window)->toolTip().isEmpty(), "Das ruhende Suchfeld sagt nicht, warum");
+
+    // Nothing was changed, so Esc goes straight back — and the hint goes with
+    // the state that explains it.
+    QTest::keyClick(editorOf(window), Qt::Key_Escape);
+
+    QVERIFY(searchOf(window)->isEnabled());
+    QVERIFY2(searchOf(window)->toolTip().isEmpty(), "Die Kurzhilfe bleibt am wieder freien Feld stehen");
 }
 
 void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
@@ -2784,10 +2951,27 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
     QCOMPARE(window.size(), windowSize);
 
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
 
     QWidget *detail = detailOf(window);
-    QWidget *stack = editorOf(window)->parentWidget();
+    // Reader and editor share this stack, so it is the one thing that can be
+    // measured in both states.
+    QWidget *stack = readerOf(window)->parentWidget();
+    QTest::qWait(50);
+    const int readingTop = stack->mapTo(detail, QPoint()).y();
+    const int readingHeight = stack->height();
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    QTest::qWait(50);
+
+    // Wireframe 2a puts the badge where the buttons stand, in the same row —
+    // and a mode change must not shift the content: the eye rests on the spot
+    // that is to be corrected when F2 is pressed, and it would travel with the
+    // text. The head row is the one that shrank, from button height to label
+    // height (UI review of 02.08.2026, finding 1).
+    QVERIFY2(stack->mapTo(detail, QPoint()).y() == readingTop,
+             qPrintable(QStringLiteral("Notiztext beginnt beim Lesen bei y=%1, beim Bearbeiten bei y=%2")
+                            .arg(readingTop)
+                            .arg(stack->mapTo(detail, QPoint()).y())));
     QLabel *badge = labelNamed(window, QStringLiteral("wird bearbeitet"));
     QWidget *meta = labelNamed(window, QStringLiteral("Kategorie"))->parentWidget();
     QWidget *footer =
@@ -2834,6 +3018,13 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
              qPrintable(QStringLiteral("Merkmalszeile %1 px hoch").arg(meta->height())));
     QVERIFY2(footer->height() <= footer->sizeHint().height(),
              qPrintable(QStringLiteral("Fußzeile %1 px hoch").arg(footer->height())));
+
+    // The text field is shorter while editing — by exactly the two rows that
+    // came in below it and their spacing, and by nothing else. The head row
+    // above it is expressly not part of that difference; that one has to keep
+    // its height, which is what the y-coordinate above holds.
+    const int spacing = detail->layout()->spacing();
+    QCOMPARE(readingHeight - stack->height(), meta->height() + footer->height() + 2 * spacing);
 
     // The other axis: editing does not move the split between list and pane.
     auto *splitter = window.findChild<QSplitter *>();

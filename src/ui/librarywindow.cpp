@@ -10,6 +10,7 @@
 #include <KLocalizedString>
 #include <KMessageWidget>
 #include <KSharedConfig>
+#include <KStandardGuiItem>
 #include <KStandardShortcut>
 #include <KWindowConfig>
 
@@ -290,8 +291,7 @@ QWidget *LibraryWindow::buildDetail()
     m_detailTimestamp = subtleLabel(QString(), detail);
 
     // Wireframe 2a: while editing, the head says so where the two buttons
-    // stand while reading — one row for both states, so the pane keeps its
-    // height when the state changes.
+    // stand while reading.
     m_editingBadge = smallLabel(i18n("wird bearbeitet"), detail);
     // The role rather than a colour taken from the palette once: the window
     // lives as long as the daemon and has to follow a colour scheme changed
@@ -304,12 +304,36 @@ QWidget *LibraryWindow::buildDetail()
     m_deleteButton = new QPushButton(i18n("Löschen"), detail);
     connect(m_deleteButton, &QPushButton::clicked, m_deleteAction, &QAction::trigger);
 
+    auto *reading = new QWidget(detail);
+    auto *readingRow = new QHBoxLayout(reading);
+    readingRow->setContentsMargins(0, 0, 0, 0);
+    readingRow->addWidget(m_editButton);
+    readingRow->addWidget(m_deleteButton);
+
+    auto *editing = new QWidget(detail);
+    auto *editingRow = new QHBoxLayout(editing);
+    editingRow->setContentsMargins(0, 0, 0, 0);
+    editingRow->addStretch();
+    editingRow->addWidget(m_editingBadge);
+
+    // Buttons and badge share one stack, and a QStackedLayout takes its size
+    // hint from the largest of its pages — so the head row keeps the height of
+    // the buttons in both states and the note text below it does not move when
+    // the state changes (UI review of 02.08.2026, finding 1).
+    //
+    // Simply hiding the buttons let the row shrink from button height to label
+    // height, and the text jumped by that difference. A minimum height copied
+    // off the button once would work today and go stale at the next font
+    // change — the mistake issue #54 taught for colours. The stack asks anew
+    // every time it lays out.
+    m_headPages = new QStackedWidget(detail);
+    m_headPages->addWidget(reading);
+    m_headPages->addWidget(editing);
+
     auto *head = new QHBoxLayout();
     head->addWidget(m_detailTimestamp);
     head->addStretch();
-    head->addWidget(m_editingBadge);
-    head->addWidget(m_editButton);
-    head->addWidget(m_deleteButton);
+    head->addWidget(m_headPages);
 
     m_detailText = new QTextBrowser(detail);
     m_detailText->setFrameShape(QFrame::NoFrame);
@@ -571,25 +595,43 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
     if (isEditing() && m_model->noteAt(index.row()).id != m_editedNote.id) {
         // An untouched editor is left behind without a word; only a change
         // that would be lost is worth a dialog (wireframe 2a, state C).
-        switch (hasUnsavedChanges() ? askAboutUnsavedChanges() : UnsavedAnswer::Discard) {
-        case UnsavedAnswer::Save:
-            saveEdit();
-            break;
-        case UnsavedAnswer::Discard:
+        if (!hasUnsavedChanges()) {
             stopEditing();
-            break;
-        case UnsavedAnswer::Cancel: {
-            // Back to the note under the editor, told by its id: the list may
-            // have been rebuilt since, and a row number would then point
-            // somewhere else.
-            const int row = m_model->rowOf(m_editedNote.id);
-            if (row >= 0) {
+        } else {
+            // The selection goes back onto the edited note before the question
+            // is asked. currentChanged runs after the selection has already
+            // jumped, so without this the list highlights one note while the
+            // dialog asks about another — and that is the moment the user has
+            // to decide in (UI review of 02.08.2026, finding 2).
+            //
+            // Told by the note's id, not by `previous`: the list may have been
+            // rebuilt since, and a row number would then point somewhere else.
+            const int editedRow = m_model->rowOf(m_editedNote.id);
+            if (editedRow >= 0) {
                 m_restoringSelection = true;
-                m_list->setCurrentIndex(m_model->index(row));
+                m_list->setCurrentIndex(m_model->index(editedRow));
                 m_restoringSelection = false;
             }
-            return;
-        }
+
+            switch (askAboutUnsavedChanges()) {
+            case UnsavedAnswer::Save:
+                saveEdit();
+                break;
+            case UnsavedAnswer::Discard:
+                stopEditing();
+                break;
+            case UnsavedAnswer::Cancel:
+                // The selection already stands where it belongs.
+                return;
+            }
+
+            // The edit state has ended, so carrying the switch out now takes
+            // the ordinary path — the group logic then even sees the note that
+            // was really left behind as the predecessor.
+            if (editedRow >= 0) {
+                m_list->setCurrentIndex(index);
+                return;
+            }
         }
     }
 
@@ -790,16 +832,33 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     dialog.setIcon(QMessageBox::Warning);
     dialog.setWindowTitle(i18nc("@title:window", "Ungespeicherte Änderungen"));
     dialog.setText(i18n("Änderungen speichern?"));
+    // The timestamp stands in brackets, not in the middle of the sentence: it
+    // comes in the form its group gives it — „Heute 11:05“, „Di, 28.07.“,
+    // „19.07.2026“ — and no single German sentence carries all three as an
+    // object („Die Notiz von Heute 11:05 wurde geändert“, UI review of
+    // 02.08.2026, finding 3). The brackets take the grammar out of the
+    // format's hands.
     dialog.setInformativeText(
-        i18n("Die Notiz von %1 wurde geändert. Ohne Speichern gehen die Änderungen verloren.",
+        i18n("Die bearbeitete Notiz (%1) hat ungespeicherte Änderungen. Ohne Speichern gehen sie verloren.",
              library::relativeTimestamp(m_editedNote.createdAt, referenceTime(), QLocale())));
 
     // The roles order the buttons, this window does not: QMessageBox lays them
     // out through a QDialogButtonBox and inherits the platform convention
     // (wireframe 2a, state C).
     QPushButton *save = dialog.addButton(i18n("Speichern"), QMessageBox::AcceptRole);
-    const QPushButton *discard = dialog.addButton(i18n("Verwerfen"), QMessageBox::DestructiveRole);
+    QPushButton *discard = dialog.addButton(i18n("Verwerfen"), QMessageBox::DestructiveRole);
     QPushButton *cancel = dialog.addButton(i18n("Abbrechen"), QMessageBox::RejectRole);
+
+    // Symbols from the system theme; three similarly long German words side by
+    // side are told apart fastest by their picture, and „Verwerfen“ gets the
+    // marking KDE gives a destructive action (UI review of 02.08.2026,
+    // finding 5). Taken from KStandardGuiItem, so they are the ones every
+    // other KDE dialog uses — the icons only: the texts stay under this
+    // application's own i18n() and must not depend on which KF6 catalogue
+    // happens to be installed.
+    save->setIcon(KStandardGuiItem::save().icon());
+    discard->setIcon(KStandardGuiItem::discard().icon());
+    cancel->setIcon(KStandardGuiItem::cancel().icon());
 
     dialog.setDefaultButton(save);
     // Esc over the dialog is the harmless answer: back into the edit state.
@@ -822,9 +881,8 @@ void LibraryWindow::updateEditState()
     const bool hasNote = m_list->currentIndex().isValid();
 
     m_textPages->setCurrentWidget(editing ? static_cast<QWidget *>(m_editor) : m_detailText);
-    m_editingBadge->setVisible(editing);
-    m_editButton->setVisible(!editing);
-    m_deleteButton->setVisible(!editing);
+    // Page 0 carries the two buttons, page 1 the badge.
+    m_headPages->setCurrentIndex(editing ? 1 : 0);
     m_metaRow->setVisible(editing);
     m_editFooter->setVisible(editing);
 
@@ -841,5 +899,13 @@ void LibraryWindow::updateEditState()
     // A search while the editor is open would rebuild the list under it, and a
     // cancelled switch would then have no row left to return to. The field
     // comes back the moment the edit state ends (discovered condition, SPEC 9).
+    //
+    // And it says why while it rests: the KDE HIG argue against controls that
+    // are switched off without a visible reason, and that the field is off is
+    // all one could see (UI review of 02.08.2026, finding 4). The hint goes
+    // with the state that explains it.
     m_search->setEnabled(!editing);
+    m_search->setToolTip(editing ? i18n("Während des Bearbeitens abgeschaltet — eine Suche würde die "
+                                        "Liste unter dem Editor neu aufbauen.")
+                                 : QString());
 }
