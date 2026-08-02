@@ -39,6 +39,34 @@ zwischen den Serien vergleichbar bleiben.
   (AK 8) — das hält der Test `putsTheCursorAtTheEndWithoutSelectingTheText`,
   nicht dieses Bild.
 
+## Stand nach dem UI-Review vom 02.08.2026
+
+Die Bilder sind nach der Heilung der fünf Befunde neu erzeugt. Sichtbar
+geändert gegenüber der ersten Fassung:
+
+- Der Notiztext **springt nicht mehr**, wenn zwischen Lesen und Bearbeiten
+  gewechselt wird (Befund 1): Bild 01 und 02 setzen ihn auf dieselbe Höhe.
+- Beim Auswahlwechsel bleibt die **bearbeitete Notiz hervorgehoben**, während
+  der Dialog nach ihr fragt (Befund 2).
+- Der Dialogsatz lautet jetzt „Die bearbeitete Notiz (Heute 11:05) hat
+  ungespeicherte Änderungen. …“ (Befund 3).
+- Das ruhende Suchfeld trägt eine Kurzhilfe (Befund 4) — im Bild nicht zu
+  sehen, weil eine Kurzhilfe erst beim Zeigen erscheint; sie hängt am Test
+  `saysWhyTheSearchFieldRestsWhileEditing`.
+
+**Grenze dieser Bildstrecke (Befund 5):** Die Symbole der Dialogknöpfe sind
+gesetzt (`KStandardGuiItem`), **aber auf dieser Maschine nicht darstellbar**.
+Gemessen am 02.08.2026, offscreen wie auf der echten Wayland-Sitzung: Das
+Symbolthema löst sich dem Namen nach zu „breeze-dark“ auf, `QIcon::fromTheme()`
+liefert darunter trotzdem `null` — die Knöpfe in Bild 03 bleiben deshalb blank.
+Dass die Knöpfe Symbole **anfordern**, hält der Test
+`namesTheThreeAnswersOfTheGuardDialog`, der ein eigenes Symbolthema benennt und
+drei verschiedene, nicht leere Symbolnamen misst. Weder ein zusätzlicher
+Suchpfad noch ein erzwungener Themenname hat hier etwas geändert; ein
+erzwungener Name hätte nur ein Bild erzeugt, das mehr behauptet als diese
+Maschine zeigt. **Das gehört nachgeprüft, sobald jemand einen Bildlauf mit
+auflösendem Symbolthema fahren kann.**
+
 ## Was in M2 fehlt und kein Befund ist
 
 - **Kein Player** über dem Transkript (Wireframe 2a zeichnet ihn). Er kommt mit

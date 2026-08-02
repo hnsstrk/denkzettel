@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QIcon>
 #include <QLineEdit>
 #include <QListView>
 #include <QMessageBox>
@@ -178,6 +179,15 @@ int main(int argc, char **argv)
     const QApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
+    // Note on the symbols of the guard dialog (finding 5 of the UI review):
+    // this bench cannot show them. Measured on 02.08.2026, offscreen and on a
+    // real Wayland session alike: the icon theme resolves by name to
+    // „breeze-dark“, and `QIcon::fromTheme()` still comes back null under it —
+    // so the dialog is drawn with bare buttons here. That the buttons ask for
+    // symbols is held by `namesTheThreeAnswersOfTheGuardDialog` in
+    // `librarytest`, which names an icon theme of its own. Neither a search
+    // path nor a forced theme name changed anything here; forcing one would
+    // only produce a picture that claims more than this machine shows.
     if (argc < 2) {
         qFatal("Aufruf: editshots <Zielverzeichnis>");
     }
