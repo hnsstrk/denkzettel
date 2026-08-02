@@ -206,6 +206,18 @@ Das Ergebnis steht in der DoD-Prüfung des Sprint-Protokolls, auch bei
 Befundfreiheit — sonst ist „geprüft, nichts gefunden" nicht von „vergessen"
 zu unterscheiden.
 
+Ebenfalls zur Sprint-Ende-Prüfung gehört die **Schätzhistorie** (Takt 2,
+Punkt 12): Der Scrum Master legt in der DoD-Prüfung die Tabelle der Stories
+dieses Sprints vor — Issue · Erstschätzung (Wert, Datum, Quelle, Zahl der
+Schätzer) · Revisionen · Endwert · Umsetzungssprint · **Anlass-Kennzeichen**
+(`gegenstand-geändert` | `erkenntnis` | `keine`) — und prüft, ob das
+committete Diagramm aus der aktuellen Datenreihe erzeugt ist. Das Kennzeichen
+ist das Urteil, das der Verwalter später mechanisch überträgt und nicht
+selbst fällen darf: Eine Schätzung, die stieg, **weil sich der Gegenstand
+änderte**, ist keine Schätzabweichung, und ein Punkt, der beides vermengt,
+zeichnet einen Kegel, der nichts misst. Auch dieses Ergebnis steht im
+Protokoll, wenn nichts zu beanstanden war.
+
 **Prüfzeitpunkte: siehe „Sprint-Abschluss".** DoD 1–4 und der Doku-Abgleich
 gehören in Takt 1 (vor der Kundenabnahme), DoD 5 und DoD 6 in Takt 2 (nach
 ihr) — vor der Abnahme sind sie nicht erfüllbar. Wer alle sechs Punkte in einem
@@ -300,6 +312,26 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
     `sprint-03-abschluss` ist eine Übergangsform aus der Zeit vor dieser Regel
     (Sprint 3, 16.13) und kein drittes Tag-Schema.
 11. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
+12. **Schätzhistorie fortgeschrieben** (Kundenauftrag 02.08.2026): Die
+    Datenreihe `docs/scrum/diagramme/schaetzhistorie.json` trägt die Stories
+    des abgeschlossenen Sprints, und das Diagramm ist daraus neu erzeugt.
+    **Arbeitsteilung:** Die Zeile je Story steht mit ihrem
+    **Anlass-Kennzeichen** bereits in der DoD-Prüfung des Sprint-Protokolls
+    (Takt 1) — dort ist sie ein **Urteil**. Der `denkzettel-verwalter`
+    überträgt sie **mechanisch**, lässt den Generator laufen und **meldet den
+    Diff**; er trägt keine eigene Zeile ein und ändert weder Wert noch
+    Kennzeichen. Geht der Diff über die neuen Zeilen hinaus, ist das ein
+    Befund an den PO, keine Selbstheilung. Der PO committet.
+    *Was das Diagramm zeigt und was nicht:* Es misst den **Revisionsfaktor**
+    (Endwert ÷ Erstwert) über dem **Abstand in Sprints** zwischen
+    Erstschätzung und Umsetzung — **nicht** den Abstand zum tatsächlichen
+    Aufwand; dieser wird im Projekt nicht erhoben. Der Satz, der das sagt,
+    steht unter dem Bild und ist Bedingung, nicht Zierde: Eine Story, die
+    niemand neu geschätzt hat, steht bei 1,0, auch wenn sie teurer war.
+    Deshalb bleiben Stories, deren Erstschätzung und Umsetzung in **dasselbe**
+    Planning fallen, aus der Kurve heraus — ihr Faktor ist 1,0 von
+    Konstruktion wegen und keine Messung. Sie werden trotzdem erfasst, damit
+    die Auslassung sichtbar bleibt.
 
 Zwei Takte, weil DoD 5 und DoD 6 vor der Abnahme gar nicht erfüllbar sind: In
 Sprint 3 wurden sie zum Prüfzeitpunkt trotzdem als Mängel geführt (M2, M5),

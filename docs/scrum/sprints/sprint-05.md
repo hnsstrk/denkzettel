@@ -98,7 +98,7 @@ Beide Issues sagen „Symbole fehlen", und beide werden im selben Strang gebaut
   (UX-Befund F2, PO-Kommentar an #66). Die 3 des UX-Schätzers ist die
   optimistische Lesart derselben Lage; die Stufenregel existiert genau dafür.
 
-## 2.4 Was nicht geschätzt werden konnte
+### 2.4 Was nicht geschätzt werden konnte
 
 **#69 (S35, spellfix1)** liegt seit dem Spike vor und benennt selbst drei
 Klärungen vor der Schätzung (Nachführung der spellfix1-Tabelle, Schwellwert und
@@ -560,7 +560,7 @@ zu heilen: zweite Schätzung und drei Klärungen zu #69 (2.4). (6) Retro nach
 Sprint 6 mit den vier Kandidaten aus Sprint 4, 17.6 — der B13-Nachzug (5.1) ist
 dort einzutragen.
 
-## 9. Kundenfreigabe (PO-Vermerk, 02.08.2026, 16:25)
+## 12.1 Kundenfreigabe (PO-Vermerk, 02.08.2026, 16:25)
 
 Der Kunde hat den Schnitt freigegeben — **11 SP / 4 Stories in zwei
 Strängen** (A: #66+#67, B: #57+#58), Sprint-Ziel wie in Abschnitt 1.
@@ -1183,7 +1183,7 @@ Sprint-Abschluss Punkt 12).
   Reihe später gewichten will, braucht die Unterscheidung; wer sie einebnet,
   verliert sie unwiederbringlich.
 
-### 12.1 Reihe — Stories mit mindestens einer Gelegenheit zur Revision
+### 24.1 Reihe — Stories mit mindestens einer Gelegenheit zur Revision
 
 Nur diese Zeilen tragen den Kegel: Zwischen Erstschätzung und Umsetzung lag ein
 Ereignis, bei dem eine Revision **hätte** stattfinden können.
@@ -1199,7 +1199,14 @@ Ereignis, bei dem eine Revision **hätte** stattfinden können.
 | T4 Ollama-Modelle | #12 | **1** · 31.07.2026 | Schätzklausur §4.4 (neu) | — | 1 | Sprint 4 | 3 | 1,00 | `keine` |
 
 **Hüllkurve:** Abstand 1 → [0,60; 1,00] · 2 → [1,00; 1,67] · 3 → [1,00; 2,50].
-Sie weitet sich monoton — das ist der gemessene Kegel.
+
+**Nachgerechnet statt behauptet:** Im Logarithmus, auf dem die Achse steht, ist
+die größte Abweichung je Abstand **0,51 · 0,51 · 0,92** — denn `ln(5/3)` und
+`ln(3/5)` sind betragsgleich. Die Hüllkurve ist damit **nicht-fallend, aber
+nicht streng wachsend**: Abstand 1 und 2 sind gleich weit, die Weitung tritt
+erst bei Abstand 3 ein. Ein Kegel im Sinne der Lehrbuchfigur wäre erst mit mehr
+Punkten je Abstand belegt. Wer hier „monoton weitend" schreibt, sagt mehr, als
+die sieben Punkte hergeben.
 
 **Zu den drei Kennzeichen, weil sie das Urteil tragen:**
 
@@ -1217,7 +1224,7 @@ Sie weitet sich monoton — das ist der gemessene Kegel.
   der am wenigsten über Schätzgenauigkeit sagt** — genau dafür existiert die
   Spalte.
 
-### 12.2 Erfasst, aber nicht in der Kurve
+### 24.2 Erfasst, aber nicht in der Kurve
 
 | Story | Issue | Erst | End | Umsetzung | Grund der Auslassung |
 |---|---|---|---|---|---|
@@ -1242,23 +1249,39 @@ stehen hier, damit die Auslassung sichtbar ist und niemand sie später für ein
 Versehen hält (dieselbe Form, in der die Sprint-4-Protokolle ihre eigenen
 Grenzen benennen).
 
-### 12.3 Anwärter — Erstwert erfasst, Endwert offen
+### 24.3 Sprint 5 — die vier Zeilen dieses Sprints
 
-Die Zeilen des laufenden Sprints, damit die Fortschreibung in Takt 2 nichts
-rekonstruieren muss. Sie werden erst mit dem Sprint-Abschluss gültig.
+Der Sprint ist umgesetzt; **kein Wert ist im Sprint revidiert worden** (§19:
+null Zugänge, keine Heraufsetzung). Damit stehen Erst- und Endwerte fest, und
+der Verwalter hat für Takt 2 nichts zu rekonstruieren.
 
-| Story | Issue | Erstschätzung | Quelle | Stand Sprint-5-Planning | Abst. | Faktor (vorläufig) | Anlass |
+| Story | Issue | Erstschätzung | Quelle | End | Abst. | Faktor | Anlass |
 |---|---|---|---|---|---|---|---|
-| Wächterdialog KDE-Bauart | #66 | 5 · 02.08.2026 | Sprint-5-Planning (Dev 5 · UX 3) — 2 unabhängige | 5 | 0 | 1,00 | `keine` — **12.2-Fall** |
-| Bibliotheks-Symbole | #67 | 2 · 02.08.2026 | Sprint-5-Planning (Dev 2 · UX 1) — 2 unabhängige | 2 | 0 | 1,00 | `keine` — **12.2-Fall** |
-| Klick-Sprung | #57 | **2** · 01.08.2026 | Label bei Anlage — 1 Hand | **3** (§2.1) | 2 | **1,50** | `erkenntnis` |
+| Wächterdialog KDE-Bauart | #66 | 5 · 02.08.2026 | Sprint-5-Planning §2 (Dev 5 · UX 3) — 2 unabhängige | 5 | 0 | 1,00 | `keine` — **24.2-Fall** |
+| Bibliotheks-Symbole | #67 | 2 · 02.08.2026 | Sprint-5-Planning §2 (Dev 2 · UX 1) — 2 unabhängige | 2 | 0 | 1,00 | `keine` — **24.2-Fall** |
+| Klick-Sprung | #57 | **2** · 01.08.2026 | Label bei Anlage — 1 Hand | **3** · 02.08.2026, §2.1 | 2 | **1,50** | `erkenntnis` |
 | Palettenrolle | #58 | 1 · 01.08.2026 | Label bei Anlage — 1 Hand | 1 | 2 | 1,00 | `keine` |
 
-**#57 ist die einzige der vier, die in die Kurve kommt** — und sie ist
-`erkenntnis`, nicht `gegenstand-geändert`: Die Akzeptanzkriterien sind
-unverändert; gestiegen ist der Wert, weil die naheliegende Lösung **belegt
-widerlegt** wurde (§2.1). #58 hatte die Gelegenheit zur Revision und hat sie
-nicht genutzt — der Punkt ist gültig, anders als die 1,0-Fälle in 12.2.
+**#57 und #58 gehen in die Kurve, #66 und #67 nicht.** #57 ist `erkenntnis`,
+nicht `gegenstand-geändert`: Die Akzeptanzkriterien sind unverändert; gestiegen
+ist der Wert, weil die naheliegende Lösung **belegt widerlegt** wurde (§2.1).
+#58 hatte zwei Sprints lang Gelegenheit zur Revision und hat sie nicht genutzt —
+der Punkt ist gemessen, anders als die 1,0-Fälle in 24.2.
+
+**Damit wächst die Reihe auf neun Punkte**, und der Abstand 2 bekommt seinen
+dritten und vierten Wert. Die Hüllkurve ändert sich dadurch **nicht**
+(Abstand 2 bleibt [1,00; 1,67], jetzt mit vier statt zwei Punkten) — der
+Zuwachs macht die mittlere Spalte dichter, nicht breiter. Das ist der
+gewöhnliche Fall und der Grund, warum die Reihe Zeit braucht: Ein Kegel
+entsteht aus Belegdichte, nicht aus Einzelwerten.
+
+> **Achtung für den mechanischen Lauf:** Die Endwerte dieser vier Zeilen
+> stehen **hier**, nicht verlässlich am Backlog. Mangel **M2** (§21) hat
+> gemessen, dass #66 und #67 **kein** `sp:`-Label tragen und #57 noch das
+> veraltete `sp:2` — aus den Labeln ergäbe sich ein Sprint von 3 SP statt 11.
+> Solange M2 offen ist, ist die Spalte „End" aus dem Protokoll zu ziehen und
+> **nicht** aus dem Issue. Das ist kein Umweg um M2, sondern seine zweite
+> Begründung: Die Labelpflege hat ab jetzt einen zweiten Abnehmer.
 
 **Offen und bewusst nicht entschieden:** ob Zeilen mit Provenienz „1 Hand"
 (#57, #58) gleich schwer wiegen wie die der Schätzklausur. Das ist eine Frage an
