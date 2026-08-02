@@ -420,16 +420,42 @@ v1 aber nicht gebaut.
     Liste neu auf; die Notiz unter dem Editor kann dabei aus ihr
     herausfallen, und dann hat der Dialog keine Zeile mehr, auf die er die
     Auswahl zurücknehmen könnte.
-  - **Bedingung (entdeckt in Sprint 4, DoD 4/B9):** Unter der
-    KDE-Plattformintegration (`QT_QPA_PLATFORMTHEME=kde`) ersetzt das
-    System einen gebauten `QMessageBox` durch einen **eigenen Dialog mit
-    eigenen Knopfobjekten** — er übernimmt Beschriftung, Rollen und
-    Reihenfolge, aber nichts, was nachträglich am `QPushButton` gesetzt
-    wird (Symbole, Vorgabe-/Escape-Knopf). Jede Zusicherung über das
-    Aussehen dieses Dialogs gilt deshalb nur für die Umgebung, in der sie
-    gemessen wurde; ein Test ohne Plattform-Thema misst einen Dialog, den
-    kein KDE-Sitzungsnutzer sieht. Ob der Weg über `KMessageBox` führt,
-    entscheidet der PO nach dem Abnahme-Befund (S8-Befund 5).
+  - **Bauart des Dialogs (entschieden in Sprint 5, #66):** Der Wächter ist
+    ein **`KMessageDialog`** vom Typ `WarningTwoActionsCancel` mit
+    `KStandardGuiItem`-Symbolen; **Vorgabeantwort ist „Speichern"**.
+    Grund ist die in Sprint 4 entdeckte Bedingung (DoD 4/B9): Unter der
+    KDE-Plattformintegration (`QT_QPA_PLATFORMTHEME=kde`) beantwortet das
+    System einen gebauten `QMessageBox` mit einem **eigenen Meldungsfenster
+    samt eigenen Knopfobjekten** — es übernimmt Beschriftung, Rollen und
+    Reihenfolge, aber nichts, was nachträglich am `QPushButton` gesetzt wird
+    (Symbole, Vorgabe-/Escape-Knopf). Ein `KMessageDialog` ist ein
+    gewöhnlicher `QDialog` und bleibt der eigene. Daraus folgt für die
+    Prüfung: Der Dialogtest misst den Dialog, den die Anwendung **zeigt**
+    (`QApplication::activeModalWidget()`), unter gesetztem Plattform-Thema —
+    ein Test ohne Plattform-Thema misst einen Dialog, den kein
+    KDE-Sitzungsnutzer sieht.
+  - **Bedingungen dieser Bauart, alle am 02.08.2026 gemessen** (DoD 4/B9):
+    - `KMessageDialog` kennt **keinen Zweittext** (`informativeText`); Frage
+      und Erläuterung stehen in einem Text, durch eine Leerzeile getrennt.
+    - Die Antwortrollen sind `Yes` · `No` · `Reject` statt
+      `Accept` · `Destructive` · `Reject`. **Zugesichert ist die Bedeutung**
+      (Speichern schreibt und führt die Handlung aus, Verwerfen führt sie
+      ohne Schreiben aus, Abbrechen bleibt im Editor), nicht die Rolle und
+      nicht die Reihenfolge.
+    - Die Vorgabeantwort **folgt dem Fokus**: Unter selbstvorgabefähigen
+      Knöpfen macht der Fokuswechsel den fokussierten Knopf zur Vorgabe. Die
+      KDE-Bauart gibt beim Sichtbarwerden Fokus und Vorgabe an „Abbrechen";
+      „Speichern" muss deshalb **nach** dem Anzeigen Fokus *und* Vorgabe
+      erhalten, und eine Zusicherung darüber ist erst gültig, wenn sie am
+      **sichtbaren** Dialog gemessen wird.
+    - Wird der Dialog von Hand angezeigt, ist er **nicht mehr modal** durch
+      ein späteres `exec()`; die Modalität ist dann selbst zu setzen.
+    - Das **Warnsymbol** (`dialog-warning`) wird **ausdrücklich gesetzt**.
+      `KMessageDialog::setIcon()` sagt zwar zu, bei leerem Symbol eines nach
+      Dialogtyp zu wählen — gemessen kommt keines, und der Dialog trägt dann
+      gar kein Bildetikett. Ein Dialog über drohenden Datenverlust ist der
+      Kernfall des Warnsymbols (PO-Entscheidung 02.08.2026; Zeichnung 2a,
+      Zustand C nachgezogen).
 - Steckt die Notiz in einem **offenen Vorschlag**, verwirft Bearbeiten oder
   Löschen diesen Vorschlag (seine Vorschau wäre veraltet); der nächste
   Analyse-Lauf erzeugt ihn auf aktuellem Stand neu.
@@ -594,6 +620,16 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   gegen ein **eigenes `TASKDATA`-Testverzeichnis** (nie der Produktivbestand).
 - **Migrationstest**: Sobald die erste reale Schema-Migration existiert,
   prüft ein Test das Upgrade einer Bestands-DB von Version n auf n+1.
+- **Bedingung für Symbol- und Dialogzusicherungen** (entdeckt bei #60,
+  bestätigt bei #66/#67 — DoD 4/B9): Tests, die Symbolnamen oder das
+  Aussehen eines Meldungsdialogs zusichern, laufen mit
+  `QT_QPA_PLATFORM=offscreen` **und `QT_QPA_PLATFORMTHEME=kde`. Ohne das
+  Plattform-Thema** löst `QIcon::fromTheme()` nichts auf und liefert ein
+  Symbol **ohne Namen** — die Zusicherung ist dann rot, ohne dass am Bau
+  etwas fehlt —, und die Plattformintegration baut den Meldungsdialog nicht
+  so, wie ein Sitzungsnutzer ihn sieht (Abschnitt 9). Das gilt derzeit für
+  `shelltest` und `librarytest`. **Es ersetzt keine Plasma-Sitzung:** Der
+  Bildnachweis am installierten Stand bleibt.
 - KI-Qualität (Klassifikation/Clustering) wird nicht automatisiert getestet —
   der Vorschlags-Review ist die menschliche Kontrollinstanz.
 

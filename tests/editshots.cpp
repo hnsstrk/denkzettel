@@ -2,18 +2,23 @@
 #include "store/store.h"
 #include "ui/librarywindow.h"
 
+#include <KMessageWidget>
+
 #include <QApplication>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QIcon>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListView>
-#include <QMessageBox>
 #include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTimer>
+#include <QToolButton>
 
 /**
  * Writes the picture series of the edit view for the handover of S8 (#11)
@@ -101,6 +106,31 @@ QPushButton *buttonNamed(QWidget &window, const QString &text)
     qFatal("Schaltfläche „%s“ nicht gefunden", qUtf8Printable(text));
 }
 
+/**
+ * The answers of a message dialog.
+ *
+ * Out of its QDialogButtonBox: a KMessageDialog also carries a hidden „do not
+ * ask again“ checkbox, and that is a QAbstractButton as well.
+ */
+QList<QAbstractButton *> answersOf(QDialog *dialog)
+{
+    auto *box = dialog->findChild<QDialogButtonBox *>();
+    return box ? box->buttons() : QList<QAbstractButton *>();
+}
+
+/** The answer Return would give, or nullptr. */
+QAbstractButton *defaultAnswer(QDialog *dialog)
+{
+    const QList<QAbstractButton *> answers = answersOf(dialog);
+    for (QAbstractButton *answer : answers) {
+        auto *push = qobject_cast<QPushButton *>(answer);
+        if (push && push->isDefault()) {
+            return push;
+        }
+    }
+    return nullptr;
+}
+
 void open(LibraryWindow &window)
 {
     window.resize(900, 600);
@@ -179,21 +209,15 @@ int main(int argc, char **argv)
     const QApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
-    // Note on the symbols of the guard dialog (finding 5 of the UI review):
-    // this bench cannot show them, and no setting here changes that.
+    // Note on the symbols of the guard dialog: this bench can show them again
+    // since issue #66, and that is the point of the change.
     //
-    // Measured by the second pass of the UI review on 02.08.2026: under
-    // QT_QPA_PLATFORMTHEME=kde the KDE platform integration replaces the
-    // QMessageBox this window builds with a substitute dialog of its own, and
-    // that one does not carry over icons set on the QPushButton afterwards.
-    // The buttons in the picture are not the buttons this branch gave symbols
-    // to. Naming an icon theme or a search path here was tried and changed
-    // nothing — which fits, since the buttons are not ours to begin with.
-    //
-    // That the buttons ask for symbols is held by
-    // `namesTheThreeAnswersOfTheGuardDialog` in `librarytest`. Whether
-    // QMessageBox stays or KMessageBox moves in is decided at the installed
-    // state under Plasma, not here.
+    // Until then it could not, and no setting here helped: under
+    // QT_QPA_PLATFORMTHEME=kde the KDE platform integration answered a built
+    // QMessageBox with a message box of its own, and that one carried none of
+    // the icons set on our buttons afterwards — the buttons in the picture
+    // were not the buttons the code had given symbols to. The guard is a
+    // KMessageDialog now, a plain QDialog that stays ours (SPEC 9).
     if (argc < 2) {
         qFatal("Aufruf: editshots <Zielverzeichnis>");
     }
@@ -217,9 +241,31 @@ int main(int argc, char **argv)
         list->setCurrentIndex(list->model()->index(2, 0));
         shoot(window, directory, QStringLiteral("01-lesen.png"));
 
+        // Beside the picture, in words: the symbol name and what the symbol
+        // costs in button width. The picture shows a drawing, the name shows
+        // what was asked for, and only the two together say whether issue #67
+        // is met (wireframe 2a, table „Symbole an den Schaltflächen“).
+        for (const QString &label : {QStringLiteral("Bearbeiten"), QStringLiteral("Löschen")}) {
+            const QPushButton *button = buttonNamed(window, label);
+            qInfo("Detailkopf: „%s“ Symbol „%s“, %d px breit (natürlich %d px)",
+                  qUtf8Printable(label),
+                  qUtf8Printable(button->icon().name()),
+                  button->width(),
+                  button->sizeHint().width());
+        }
+
         buttonNamed(window, QStringLiteral("Bearbeiten"))->click();
         correct(editorOf(window), QStringLiteral("Fold"), QStringLiteral("Vault"));
         shoot(window, directory, QStringLiteral("02-bearbeiten.png"));
+
+        for (const QString &label : {QStringLiteral("Speichern"), QStringLiteral("Abbrechen")}) {
+            const QPushButton *button = buttonNamed(window, label);
+            qInfo("Bearbeiten-Fußzeile: „%s“ Symbol „%s“, %d px breit (natürlich %d px)",
+                  qUtf8Printable(label),
+                  qUtf8Printable(button->icon().name()),
+                  button->width(),
+                  button->sizeHint().width());
+        }
 
         qInfo("vor dem Speichern: „Fold“ %lld Treffer, „Vault“ %lld Treffer, needs_reembed=%d",
               static_cast<long long>(store.search(QStringLiteral("Fold")).size()),
@@ -269,9 +315,9 @@ int main(int argc, char **argv)
         correct(editorOf(window), QStringLiteral("Fold"), QStringLiteral("Vault"));
 
         QTimer::singleShot(0, qApp, [&window, &directory] {
-            QMessageBox *dialog = nullptr;
+            QDialog *dialog = nullptr;
             for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
-                dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+                dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget());
                 if (!dialog) {
                     QTest::qWait(10);
                 }
@@ -284,6 +330,34 @@ int main(int argc, char **argv)
             }
             QTest::qWait(200);
 
+            // What the picture is to be judged on, written out beside it: the
+            // symbol names and the default answer are what issues #66 and #67
+            // are about, and a picture alone cannot tell „no symbol asked for“
+            // from „theme did not resolve it“.
+            const QList<QAbstractButton *> answers = answersOf(dialog);
+            for (const QAbstractButton *answer : answers) {
+                qInfo("Wächterdialog: „%s“ Symbol „%s“%s",
+                      qUtf8Printable(answer->text()),
+                      qUtf8Printable(answer->icon().name()),
+                      defaultAnswer(dialog) == answer ? " (Vorgabe)" : "");
+            }
+
+            // The warning symbol sits in a picture label and has no name to
+            // ask for, so its size is what can be said about it. It stands in
+            // the log as well as in the picture on purpose: a picture does not
+            // carry its build state in its face — this bench is
+            // EXCLUDE_FROM_ALL, and a plain `cmake --build build` leaves it as
+            // it was (measured 02.08.2026, when a fresh picture showed an old
+            // dialog).
+            QSize warning;
+            const QList<QLabel *> labels = dialog->findChildren<QLabel *>();
+            for (const QLabel *label : labels) {
+                if (label->isVisible() && !label->pixmap().isNull()) {
+                    warning = label->pixmap().size();
+                }
+            }
+            qInfo("Wächterdialog: Warnsymbol %dx%d", warning.width(), warning.height());
+
             QPixmap behind = window.grab();
             const QPixmap front = dialog->grab();
             QPainter painter(&behind);
@@ -294,19 +368,64 @@ int main(int argc, char **argv)
             save(behind, directory, QStringLiteral("03-waechterdialog.png"));
 
             // Back into the edit state, so the run ends where it started —
-            // told by the role, because the order is the platform's.
-            const QList<QAbstractButton *> buttons = dialog->buttons();
-            for (QAbstractButton *button : buttons) {
-                if (dialog->buttonRole(button) == QMessageBox::RejectRole) {
-                    button->click();
+            // by the label, because the order is the platform's.
+            for (QAbstractButton *answer : answers) {
+                if (answer->text() == QStringLiteral("Abbrechen")) {
+                    answer->click();
                     return;
                 }
             }
+            qFatal("Der Wächterdialog bietet kein „Abbrechen“");
         });
 
         // The third of the three ways into the dialog (wireframe 2a, state C).
         window.close();
         qInfo("Fenster nach „Abbrechen“ noch offen: %s", window.isVisible() ? "ja" : "nein");
+    }
+
+    // 5 — the message row of the deletion, the fourth labelled control of the
+    // library and the only one outside the detail pane (wireframe 2b, #67).
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        fill(store);
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        open(window);
+
+        QListView *list = listOf(window);
+        list->setCurrentIndex(list->model()->index(2, 0));
+        buttonNamed(window, QStringLiteral("Löschen"))->click();
+
+        // animatedShow() grows the band out of nothing; the picture is to show
+        // it grown.
+        QTest::qWait(600);
+
+        auto *message = window.findChild<KMessageWidget *>();
+        if (!message || !message->isVisible()) {
+            qFatal("Die Meldungszeile ist nicht erschienen");
+        }
+
+        const QList<QToolButton *> buttons = message->findChildren<QToolButton *>();
+        for (const QToolButton *button : buttons) {
+            qInfo("Meldungszeile: „%s“ Symbol „%s“",
+                  qUtf8Printable(button->text()),
+                  qUtf8Printable(button->icon().name()));
+        }
+
+        shoot(window, directory, QStringLiteral("05-loeschmeldung.png"));
+
+        // Taken back again, so the bench leaves the store as it found it.
+        for (QToolButton *button : buttons) {
+            if (button->text() == QStringLiteral("Rückgängig")) {
+                button->click();
+                break;
+            }
+        }
+        QTest::qWait(100);
+        qInfo("Notizen nach „Rückgängig“: %lld", static_cast<long long>(store.notes().size()));
     }
 
     return 0;
