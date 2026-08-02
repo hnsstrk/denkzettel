@@ -49,6 +49,15 @@ target_link_libraries(libraryshots PRIVATE
     Qt6::Test
 )
 
+# The reading, editing and guard-dialog states of wireframe 2a, plus the main
+# path of S8 (#11). Same rules: run it by hand with QT_QPA_PLATFORMTHEME=kde.
+add_executable(editshots EXCLUDE_FROM_ALL editshots.cpp)
+
+target_link_libraries(editshots PRIVATE
+    denkzettelui
+    Qt6::Test
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE
