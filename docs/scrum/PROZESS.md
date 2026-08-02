@@ -209,14 +209,27 @@ zu unterscheiden.
 Ebenfalls zur Sprint-Ende-Prüfung gehört die **Schätzhistorie** (Takt 2,
 Punkt 12): Der Scrum Master legt in der DoD-Prüfung die Tabelle der Stories
 dieses Sprints vor — Issue · Erstschätzung (Wert, Datum, Quelle, Zahl der
-Schätzer) · Revisionen · Endwert · Umsetzungssprint · **Anlass-Kennzeichen**
-(`gegenstand-geändert` | `erkenntnis` | `keine`) — und prüft, ob das
-committete Diagramm aus der aktuellen Datenreihe erzeugt ist. Das Kennzeichen
-ist das Urteil, das der Verwalter später mechanisch überträgt und nicht
-selbst fällen darf: Eine Schätzung, die stieg, **weil sich der Gegenstand
-änderte**, ist keine Schätzabweichung, und ein Punkt, der beides vermengt,
-zeichnet einen Kegel, der nichts misst. Auch dieses Ergebnis steht im
-Protokoll, wenn nichts zu beanstanden war.
+Schätzer) · Revisionen · Endwert · Umsetzungssprint · **Abstand in Sprints** ·
+**Faktor** · **Anlass-Kennzeichen** (`gegenstand-geändert` | `erkenntnis` |
+`keine`) — und prüft, ob das committete Diagramm aus der aktuellen Datenreihe
+erzeugt ist. Das Kennzeichen ist das Urteil, das der Verwalter später
+mechanisch überträgt und nicht selbst fällen darf: Eine Schätzung, die stieg,
+**weil sich der Gegenstand änderte**, ist keine Schätzabweichung, und ein
+Punkt, der beides vermengt, zeichnet einen Kegel, der nichts misst. Auch
+dieses Ergebnis steht im Protokoll, wenn nichts zu beanstanden war.
+
+**Abstand und Faktor stehen ausgerechnet in der Tabelle, nicht nur als
+Rechenvorschrift** — beide Spalten haben je einen eigenen Grund, und beide
+fielen bei der ersten Fassung dieses Absatzes durch:
+
+- **Ohne Faktor-Spalte prüft der Transkriptionsschutz sich selbst.** Der
+  Generator rechnet Endwert ÷ Erstwert nach und bricht bei Abweichung ab; das
+  fängt einen Übertragungsfehler aber nur, wenn der Vergleichswert aus einer
+  **anderen Hand** stammt. Müsste der Verwalter ihn selbst ausrechnen, verglichen
+  Generator und Verwalter dieselbe Rechnung — die Sicherung liefe leer.
+- **Ohne Abstand-Spalte müsste der Verwalter rechnen, also urteilen.** Der
+  Abstand setzt voraus zu wissen, in welchem Sprint die Erstschätzung fiel; das
+  ist eine Auslegung des Protokolls und steht ihm nicht zu.
 
 **Prüfzeitpunkte: siehe „Sprint-Abschluss".** DoD 1–4 und der Doku-Abgleich
 gehören in Takt 1 (vor der Kundenabnahme), DoD 5 und DoD 6 in Takt 2 (nach
@@ -322,6 +335,13 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
     Diff**; er trägt keine eigene Zeile ein und ändert weder Wert noch
     Kennzeichen. Geht der Diff über die neuen Zeilen hinaus, ist das ein
     Befund an den PO, keine Selbstheilung. Der PO committet.
+    **Zur mechanischen Übertragung gehört das Feld `stand`** — es trägt die
+    Sprintnummer aus dem Protokollkopf ins Bild und wird mit fortgeschrieben.
+    Das ist ausdrücklich **keine** Wertung, sondern Abschreiben, und es steht
+    hier, weil es sonst niemandem gehört: Ein Standdatum, das keiner
+    fortschreibt, ist nach einem Sprint **still falsch** — das Bild sieht
+    richtig aus und datiert sich selbst zurück. Genau diese Bauart soll die
+    Fortschreibung verhindern.
     *Was das Diagramm zeigt und was nicht:* Es misst den **Revisionsfaktor**
     (Endwert ÷ Erstwert) über dem **Abstand in Sprints** zwischen
     Erstschätzung und Umsetzung — **nicht** den Abstand zum tatsächlichen
