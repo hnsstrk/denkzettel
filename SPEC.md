@@ -402,6 +402,24 @@ v1 aber nicht gebaut.
   Text. Löschen-Aktion mit 5-Sekunden-Undo (Spec-Ergänzung, nicht im
   Konzept: rein client-seitig verzögertes Löschen, kein Soft-Delete-Zustand
   in der DB).
+- **Bedingungen des Bearbeiten-Zustands** (S8; die letzten beiden entdeckt
+  bei der Umsetzung, DoD 4):
+  - Ungespeicherte Änderungen werden **nie ohne Nachfrage** geschrieben oder
+    verworfen. Auswahlwechsel, Fensterschließen, Esc und „Abbrechen“ führen
+    denselben Dialog mit **Speichern · Verwerfen · Abbrechen**. Das weicht
+    bewusst vom Capture-Fenster ab, wo Esc still verwirft (3): dort steht ein
+    nie gespeicherter Entwurf, hier eine bereits gespeicherte Notiz.
+    „Abbrechen“ liegt mit im Dialog, weil Schaltfläche und Kürzel dieselbe
+    Handlung sind — ein Fehlklick auf sie ist genau der Fall, gegen den der
+    Dialog gefasst ist.
+  - Die gespeicherte Notiz **bleibt in der laufenden Trefferliste stehen**,
+    auch wenn ihr neuer Text nicht mehr auf den Suchbegriff (6) passt; erst
+    die nächste Änderung des Suchbegriffs liest den Store neu. Sonst
+    verschwände die Notiz unter der Hand, die sie eben berichtigt hat.
+  - Das **Suchfeld ist währenddessen abgeschaltet**. Eine Suche baut die
+    Liste neu auf; die Notiz unter dem Editor kann dabei aus ihr
+    herausfallen, und dann hat der Dialog keine Zeile mehr, auf die er die
+    Auswahl zurücknehmen könnte.
 - Steckt die Notiz in einem **offenen Vorschlag**, verwirft Bearbeiten oder
   Löschen diesen Vorschlag (seine Vorschau wäre veraltet); der nächste
   Analyse-Lauf erzeugt ihn auf aktuellem Stand neu.
