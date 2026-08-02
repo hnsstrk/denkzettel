@@ -51,7 +51,7 @@ Punktzahl mitgezählt, die Zahl der Issues nicht — die Grenze fiel niemandem
 auf.
 
 **Flüchtige Belege sofort sichern.** Kundenbilder liegen in temporären
-Ordnern; von acht Bildern der Sprint-3-Abnahme überlebten sieben Minuten nur
+Ordnern; von acht Bildern der Sprint-3-Abnahme überlebte sieben Minuten nur
 eines.
 
 ## Prüfhaltung
