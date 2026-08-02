@@ -1320,3 +1320,344 @@ eigener Farbe, und der Vorbehalt steht ausgeschrieben unter dem Bild. Gründe:
 
 Wer die andere Lesart will, ändert `envelope()` **und** 24.1 gemeinsam —
 Protokoll und Bild dürfen nicht auseinanderlaufen.
+
+---
+
+# Sprint 5 — Vollzugsvermerk Takt 2 (B11, Punkt 11)
+
+**Datum:** 02.08.2026, 19:47 (Ganymed) · **Prüfer:** Scrum Master (Agent
+`scrum-master`) · **Prüfgegenstand:** `main` @ `427d9c6`, Arbeitsbaum sauber,
+`origin/main` auf demselben Stand.
+
+**Grundlage:** `PROZESS.md`, Sprint-Abschluss Takt 2, Punkte 5–12. Jeder Punkt
+unten steht auf einem Befehl, den ich selbst gefahren habe; wo ich ein Bild
+zitiere, habe ich es angesehen und nicht seine Beschreibung gelesen.
+
+## 25. Die Kundenabnahme
+
+**Hier ist sie protokolliert** — sie hatte bis jetzt keinen eigenen Abschnitt.
+Beleg: `docs/scrum/reviews/sprint-05-kundenabnahme/` (Bericht und Foto,
+`cd2ce7a`).
+
+Der Kunde hat die vier Handgriffe der Checkliste aus §22 am installierten Stand
+ausgeführt und abgenommen: *„1. Symbole sind da. […] 4. Bei der Bibliothek habe
+ich die Anpassungen gesehen."*
+
+**Das Foto belegt #66 und #67 am echten Plasma.** Ich habe es angesehen und
+gegen die Zusicherungen gehalten — es trägt sie alle auf einem Bild:
+orangefarbenes Warndreieck links; „Änderungen speichern?" als erste Zeile,
+Leerzeile, „Die bearbeitete Notiz (Heute 00:26) hat ungespeicherte Änderungen.
+Ohne Speichern gehen sie verloren."; drei Antworten mit Symbol — Speichern
+(Diskette, hervorgehoben als Vorgabe), Verwerfen (roter Papierkorb), Abbrechen
+(durchgestrichener Kreis); im Hintergrund die Bearbeiten-Fußzeile mit
+„Speichern"/„Abbrechen" samt Symbolen, die Marke „wird bearbeitet" und der
+Fußzeilenhinweis. Fenstertitel „Ungespeicherte Änderungen".
+
+**Damit ist die Prüfbarkeitsgrenze geschlossen, die Takt 1 für #66 und #67
+benannt hat** — durch den Kundenblick, wie DoD 2 es vorsieht.
+
+### 25.1 Was der Kunde nicht prüfen konnte — #57
+
+**Der Kunde hat #57 nicht gesehen, sondern nicht sehen können:** *„habe nicht
+genug Elemente."* Sein Bestand füllt keine zwei Tagesgruppen über eine
+Bildschirmhöhe hinaus; der Fall, den die Story heilt, tritt bei ihm gar nicht
+auf. Das ist am Bild nachvollziehbar — `bibliothek-installiert.png` zeigt fünf
+Notizen in zwei Gruppen ohne Bildlauf.
+
+**Die Grenze gehört in den Vermerk, nicht in eine Fußnote.** Belegt bleibt die
+Story durch zwei **unabhängige** Messreihen, die ich in Takt 1 bereits
+nachvollzogen habe: Strang B und der UI-Reviewer fuhren dasselbe
+Szenenprogramm (der Reviewer unverändert, md5 vor dem Lauf geprüft) über je
+zwölf Szenen — **genau eine Zeile ändert sich**, `Rollwert 6 → 0, Kopf y=0`
+wird zu `6 → 6, Kopf y=-387`. Dazu die Testumkehrung nach K5: keine
+Zusicherung fordert das alte Verhalten mehr.
+
+**Das ist eine Abnahme über die Messung, nicht über den Blick.** Sie trägt —
+DoD 2 lässt eine im Bericht benannte Grenze der Prüfbarkeit ausdrücklich zu,
+solange sie benannt wird. Genau das ist hier geschehen. Wer das Protokoll
+später liest, soll wissen: An dieser einen Story hat kein Mensch das Verhalten
+gesehen.
+
+## 26. Takt 2, Punkt für Punkt
+
+### Punkt 5 — Issues und Milestone geschlossen (DoD 5)
+
+**Vollzogen.** Selbst erhoben über `gh`:
+
+| Issue | Zustand | Milestone | `sp:` | AK-Haken |
+|---|---|---|---|---|
+| #66 | CLOSED 17:40:06Z | Sprint 5 | `sp:5` | 4 von 4 `[x]` |
+| #67 | CLOSED 17:40:06Z | Sprint 5 | `sp:2` | 6 von 6 `[x]` |
+| #57 | CLOSED 17:40:08Z | Sprint 5 | `sp:3` | 3 von 3 `[x]` |
+| #58 | CLOSED 17:40:08Z | Sprint 5 | `sp:1` | 4 von 4 `[x]` |
+
+**Keine offene Kastenzeile** an keinem der vier Issues — nachgezählt, nicht
+gemeldet bekommen. Milestone „Sprint 5": `state=closed`, `open=0`,
+`closed=4`. Die Abnahmekommentare tragen den Commit-Verweis (`32bb5fc` bzw.
+`1adffd3`) und benennen bei #57 die Grenze offen.
+
+**#70, #71 und #72 sind OPEN und milestone-frei** — die drei im Sprint
+gefundenen Befunde liegen im Backlog, nicht am geschlossenen Sprint.
+
+### Punkt 6 — Journal (DoD 6)
+
+**Vollzogen.** `Journal/Daily/2026/2026-08-02.md`, Eintrag **19:42** —
+„Denkzettel: Sprint 5 abgeschlossen, Schätzkegel gebaut, README und Lizenz".
+Selbst gelesen: Zusammenfassung, acht Arbeitspunkte, Status *Abgeschlossen*,
+Wiki-Link. `## Claude Code Protokoll` ist die letzte Sektion der Datei, der
+Eintrag der letzte darin — beides geprüft. Er benennt auch das Unbequeme: den
+karpathy-`fail` an der eigenen README-Behauptung und den zweiten
+Verwalter-Erstlauf ohne Bericht.
+
+### Punkt 7 — `main` gepusht
+
+**Vollzogen.** `git fetch` + `git rev-parse HEAD origin/main` → beide
+`427d9c6fc2ea…`; `git status -sb` zeigt weder Vor- noch Rücklauf.
+
+### Punkt 8 — Zweige und Worktrees geräumt, auch auf `origin`
+
+**Vollzogen.** `git branch -a` kennt nur noch `main` und
+`remotes/origin/main` (+ `origin/HEAD`); `git worktree list` nur den
+Hauptbaum. **Die beiden Story-Zweige sind auch auf `origin` weg** — in Takt 1
+standen dort noch `origin/story/66-67-symbole` und
+`origin/story/57-58-verhalten`. Das Repo ist öffentlich; genau dafür steht die
+Zeile in Punkt 8.
+
+### Punkt 9 — Changelog fortgeschrieben
+
+**Vollzogen und inhaltlich geprüft.** `CHANGELOG.md`, `[Unveröffentlicht]`
+trägt jetzt „Stand aus den Sprints 4 und 5". Alle vier Stories sind
+aufgenommen, nach Nutzersicht sortiert statt nach Label:
+
+| Rubrik | Eintrag | Issue |
+|---|---|---|
+| Hinzugefügt | Symbole in der Bibliothek, samt Warnsymbol im Nachfragedialog | #66, #67 |
+| Geändert | Wächterdialog auf KDE-Bauart, „Speichern" bleibt vorausgewählt | #66 |
+| Behoben | Klick auf eine sichtbare Notiz lässt die Liste nicht mehr springen | #57 |
+| Behoben | Zeitstempel und Hinweise folgen dem Farbschema ohne Neustart | #58 |
+
+**Keine Schemazeile fällig** — von mir gegengeprüft: Der Sprint-Diff fasst
+`src/store/` nicht an. Damit greift auch der erzwungene MINOR-Sprung nicht.
+
+### Punkt 10 — Version und Tag: **ausgesetzt**, regelkonform
+
+`CMakeLists.txt` steht unverändert bei `project(denkzettel VERSION 0.1.0)`,
+kein `v*`-Tag gesetzt (`git tag -l`: `sprint-03-abschluss`, `sprint-04-basis`,
+`sprint-05-basis`). Das ist **die Regel, nicht ihre Verletzung**: Punkt 10 ist
+bis zur Umsetzung von **#61** ausgesetzt, weil die Zahl die Anwendung sonst
+nicht erreicht. Die Einträge sammeln sich unter `[Unveröffentlicht]`, und diese
+Abnahme bekommt keine Version rückwirkend.
+
+### Punkt 12 — Schätzhistorie fortgeschrieben (Erstlauf)
+
+**Vollzogen.** Der Punkt ist in diesem Sprint erst entstanden (`7699791`) und
+lief hier zum ersten Mal. Ich habe ihn nicht abgenommen, sondern nachgerechnet:
+
+| Prüfung | Ergebnis |
+|---|---|
+| Die vier Sprint-5-Zeilen in `schaetzhistorie.json` | vorhanden: #57 (2→3, Abstand 2, Faktor 1,5, `erkenntnis`), #58 (1→1, Faktor 1,0, `keine`), #66 und #67 (Abstand 0, `in_kurve: false`) |
+| Feld `stand` | `"Sprint 5"` — fortgeschrieben |
+| Reihe gesamt | 22 Stories, davon **9 in der Kurve** |
+| **Endwert ↔ `sp:`-Label** | **alle vier deckungsgleich** (5·2·3·1) |
+| Diagramm aus der heutigen Reihe erzeugt? | **ja** — Generator in einer Kopie im Scratchpad gefahren, Ergebnis **byteweise identisch** mit dem committeten `kegel.svg` |
+| README-Bildunterschrift | „9 Punkte, Stand Sprint 5" — deckt sich mit der Bilanz des Generators |
+
+**Der letzte Punkt ist der eigentliche Prüfsatz.** Ein Diagramm, das im Repo
+liegt, ohne aus der committeten Reihe zu stammen, sieht nicht falsch aus — es
+ist still falsch, und genau diese Bauart soll Punkt 12 verhindern. Der Beleg
+ist der Diff, nicht die Zusage.
+
+**Dass die Deckung Endwert ↔ Label hält, ist kein Zufall, sondern die
+Wirkung von M2.** Vor der Berichtigung hätten die Label 3 SP statt 11 ergeben;
+eine Reihe, die daraus gezogen worden wäre, hätte drei falsche Endwerte
+getragen. Der Mangel und dieser Punkt hängen zusammen — das gehört
+festgehalten, weil M2 sonst als Formalie erinnert wird.
+
+## 27. Die drei Mängel aus Takt 1 — Stand
+
+### M1 (mittel) — **geschlossen, mit benannter Grenze**
+
+`sprint-05-installationstakt.md` trägt einen Nachtrag (18:19) und drei Bilder
+in `sprint-05-installationstakt/`. Von mir geprüft:
+
+- **Bibliothek öffnet am installierten Dienst** — `ShowLibrary` über D-Bus an
+  PID 460335 aus `/usr/bin`, Bild `bibliothek-installiert.png`.
+- **#58 am installierten Stand vollständig belegt.** Ich habe beide Bilder
+  angesehen: `schema-hell-installiert.png` und `schema-dunkel-installiert.png`
+  zeigen **dasselbe Fenster mit demselben Inhalt** (fünf Notizen, dieselben
+  Zeitstempel 15:04 · 00:32 · 00:26 · 23:52 · 21:49, dieselbe Geometrie), einmal
+  unter BreezeLight, einmal unter BreezeDark. Zeitstempel, Vorschauzeilen und
+  der Hinweis „Zum Lesen links eine Notiz auswählen." sind in **beiden**
+  lesbar — hell wie dunkel. Das ist die Zusicherung von #58, am installierten
+  Stand, ohne Neustart. Die Deckungsgleichheit des Inhalts ist selbst der
+  Beleg dafür, dass es dieselbe Fensterinstanz war.
+- **Benannte Grenze:** Die Hauptwege von #66, #67 und #57 brauchen einen
+  echten Mausklick, den ein Agent unter Wayland nicht erzeugen kann (in
+  Sprint 4 gemessen). Sie sind der Kundenabnahme vorbehalten — und für #66/#67
+  hat sie sie geliefert (25).
+- **Zwei misslungene Aufnahmen wurden verworfen und der Fehlgriff dokumentiert**
+  (`spectacle -a` nimmt das *aktive* Fenster; die ersten beiden Bilder zeigten
+  das Terminal). Dass das im Bericht steht statt still korrigiert zu sein, ist
+  die richtige Form — und der Merksatz daraus („Ein Bild belegt nur, was
+  darauf zu sehen ist") ist derselbe, den der `EXCLUDE_FROM_ALL`-Vorfall dieses
+  Sprints schon erzwungen hat.
+
+### M2 (gering) — **geschlossen**
+
+`sp:5` an #66, `sp:2` an #67, `sp:2` → `sp:3` an #57, `sp:1` an #58
+unverändert. Alle vier decken sich mit der Konsolidierung aus §2 **und** mit
+den Endwerten der Schätzhistorie. Der Planning-Scrum-Master hat sie unabhängig
+nachgemessen; ich habe sie ein drittes Mal erhoben.
+
+### M3 (gering) — **geschlossen, weit über das Beanstandete hinaus**
+
+Der README ist seither zweimal überarbeitet und vollständig neu gefasst
+(`326febd`, `02f76fc`, `e5e8d78`). Ich habe **den heutigen Stand** gegen die
+Lieferung gehalten, nicht den Diff:
+
+| Lieferung | im README |
+|---|---|
+| Symbole an Schaltflächen und im Dialog (#66/#67) | „Symbole und Beschriftungen aus dem System" (Funktionen) |
+| Wächterdialog (Sprint 4) | „Bearbeiten mit Rückfrage, bevor ungespeicherte Änderungen verlorengehen" |
+| Farbschema folgt ohne Neustart (#58) | „ein Wechsel des Farbschemas wird sofort übernommen" |
+| Ruhige Liste beim Klick (#57) | **nicht genannt — und das ist vertretbar** |
+
+**Zu #57 ausdrücklich, damit es nicht als Auslassung stehenbleibt:** Der README
+ist jetzt eine Produktbeschreibung, keine Änderungsliste. Eine Liste, die
+*nicht* springt, ist die Abwesenheit eines Fehlers und taugt nicht als
+Funktionszeile; der Changelog trägt sie an der richtigen Stelle („Behoben").
+Das ist ein Urteil, kein Übersehen — ich schreibe es hin, damit der nächste
+Doku-Abgleich es nicht als offenen Punkt neu aufmacht.
+
+**Weiter geprüft, weil ein neu geschriebener README neue Behauptungen
+aufstellt** (B10 fragt, ob er den Stand beschreibt — in beide Richtungen):
+
+| Behauptung im README | geprüft mit | Ergebnis |
+|---|---|---|
+| KF6-Komponenten (Config, DBusAddons, GlobalAccel, I18n, Notifications, StatusNotifierItem, WidgetsAddons, WindowSystem) | `CMakeLists.txt`, `find_package(KF6 …)` | **deckungsgleich, alle acht** |
+| `qdbus6 org.denkzettel.Daemon /Daemon AddNote/ShowLibrary` | `command -v qdbus6`; `gdbus introspect` an `/Daemon` | Werkzeug vorhanden; Dienstname, Pfad und **beide** Methoden bestätigt |
+| `third_party/spellfix/spellfix.c` ist Public Domain | Verzeichnis samt `HERKUNFT.md` | vorhanden |
+| MIT-Lizenz | `LICENSE` | vorhanden |
+| Bilder `docs/bilder/*.png` | Verzeichnis | beide vorhanden |
+| Verzeichnisblock nennt `src/capture`, `src/store`, `src/ui`, `src/shell` | `ls -d src/*/` | vollständig — `src/analysis`, `src/proposals` und `src/transcribe` sind **leer** und damit gar nicht im Repo; ihr Fehlen im Block ist richtig, nicht lückenhaft |
+
+**Kein Befund.** Ich hatte den Verzeichnisblock zunächst für unvollständig
+gehalten und die Voraussetzung meiner eigenen Begründung geprüft, bevor ich sie
+vorgetragen habe — die drei Verzeichnisse sind leer.
+
+## 28. Befunde dieses Vermerks — drei, alle klein, keiner blockierend
+
+Melden, nicht heilen. Nichts davon ist von mir geändert worden.
+
+### V1 — Zwei Abnahmekommentare verweisen auf die falsche Protokollstelle · gering
+
+**Befund:** Die Abschlusskommentare an **#66** und **#57** nennen als
+Fundstelle der Kundenabnahme „sprint-05.md **§12.1**". §12.1 ist die
+**Kundenfreigabe** vom 16:25 — die Abnahme steht dort nicht und stand bis zu
+diesem Vermerk überhaupt nirgends im Protokoll. (#67 und #58 tragen keinen
+§-Verweis; der Fehler betrifft zwei von vier.)
+
+**Warum es zählt:** Das Repo ist öffentlich, und ein Abnahmekommentar ist
+Beweislage. Ein Verweis, der ins Leere zeigt, ist in einem Jahr nicht mehr als
+Tippfehler erkennbar — er sieht aus wie ein Beleg.
+
+**Vorschlag:** In beiden Kommentaren `§12.1` durch `§25` ersetzen (die Abnahme
+ist ab jetzt dort protokolliert). Zwei `gh issue comment --edit-last`-Aufrufe,
+PO-Fläche.
+
+### V2 — Ein Bild, drei Namen, drei Zwecke · gering (Belegpflege)
+
+**Befund, gemessen** (`md5sum`): Diese drei Dateien sind **byteweise
+identisch** (`5d59f735…`):
+
+```
+docs/scrum/reviews/sprint-05-installationstakt/bibliothek-installiert.png
+docs/scrum/reviews/sprint-05-installationstakt/schema-dunkel-installiert.png
+docs/bilder/bibliothek.png
+```
+
+Die Doppelung ist erklärbar — das Fenster ist statisch und die Sitzung lief
+unter BreezeDark, ein zweiter Auslöser liefert dieselben Pixel — und **keine
+der drei Aussagen ist falsch**. Aber der Nachtrag führt sie als zwei getrennte
+Belege auf, und wer zählt, zählt zwei Aufnahmen, wo eine steht.
+
+**Warum es zählt:** Genau dieser Sprint hat sich den Satz aufgeschrieben, dass
+ein Bild nur belegt, was darauf zu sehen ist. Der Zwilling dazu: Zwei Belege
+sind erst zwei, wenn sie zwei Aufnahmen sind.
+
+**Vorschlag:** Eine Zeile im Nachtrag, dass `bibliothek-installiert.png` und
+`schema-dunkel-installiert.png` **dieselbe Aufnahme** sind (oder die Doppelung
+löschen und einmal verweisen). Für `docs/bilder/bibliothek.png` ist die
+Wiederverwendung sachgerecht und braucht nichts.
+
+### V3 — Verwalter-Erstlauf zum zweiten Mal ohne Bericht · **Retro-Befund, verschärft**
+
+**Sachstand:** Der Verwalter hat Punkt 12 erstmals ausgeführt; die Arbeit ist
+vom PO nachgemessen und korrekt (ich habe sie unabhängig nachgerechnet: Reihe,
+`stand`, Generator-Diff — 26, Punkt 12). **Ein Bericht ist zum zweiten Mal
+ausgeblieben.**
+
+**Und hier verschiebt sich der Befund gegenüber Sprint 4.** Der Retro-Kandidat
+lautete dort (Sprint 4, §17.6, Punkt 3): *„Berichtspflicht des Verwalters in
+seine Agentendatei."* **Sie steht bereits darin** — ich habe nachgesehen, wann:
+`.claude/agents/denkzettel-verwalter.md` trägt den Abschnitt „## Berichtsform"
+(„Am Ende jedes Auftrags: je erledigtem Punkt eine Zeile mit Beleg …") seit
+`a484d49` vom **02.08.2026, 10:55** — also **vor beiden Läufen**. Der Auftrag
+zu Punkt 12 verlangt zusätzlich ausdrücklich, den Diff zu **melden**.
+
+**Damit ist der Kandidat in seiner alten Fassung erledigt und trotzdem offen:**
+Es fehlt nicht die Regel, es fehlt ihre Wirkung. Eine Regel in der eigenen
+Definitionsdatei eines Agenten ist der bestmögliche Ort — sie wird garantiert
+gelesen. Wenn sie zweimal folgenlos bleibt, liegt die Ursache woanders: an der
+Auftragsform, am Modell, oder daran, dass niemand den ausbleibenden Bericht
+zum Abbruchkriterium macht. **Das ist die eigentliche Retro-Frage für
+Sprint 6**, und sie ist eine andere als die aufgeschriebene.
+
+*Zur Einordnung, ohne den Befund kleinzureden:* Beide Male ist die Arbeit
+korrekt gewesen, und beide Male hat der PO sie nachgemessen. Der Schaden ist
+heute null — er entsteht an dem Tag, an dem niemand nachmisst, weil es zweimal
+gutgegangen ist.
+
+## 29. Sprint-Ziel — erreicht
+
+> *„Die Bibliothek sieht und verhält sich wie eine KDE-Anwendung: Jede
+> Schaltfläche und jede Antwort im Nachfragedialog trägt ihr Symbol, die Liste
+> springt nicht mehr unter dem Zeiger weg, und Zeitstempel und Hinweise folgen
+> dem Farbschema, während der Dienst läuft."*
+
+Alle vier Hälften des Ziels sind belegt — drei durch Kundenblick oder Bild am
+installierten Stand, eine (#57) durch zwei unabhängige Messreihen mit benannter
+Grenze. **11 von 11 Story Points geliefert, 4 von 4 Stories abgenommen, null
+Zugänge, beide Grenzen des Sprint-Kontos gehalten.**
+
+## 30. done / next
+
+**done:** Vollzug von Takt 2 geprüft und vermerkt — die **Kundenabnahme
+erstmals protokolliert** (sie hatte keinen Abschnitt) samt der Grenze, die sie
+für #57 nicht schließen konnte; Punkte 5–12 einzeln am Stand nachgemessen
+statt abgenommen: AK-Haken an allen vier Issues nachgezählt (17 Kästen, keiner
+offen), Milestone-Schluss und Milestone-Freiheit von #70/#71/#72 über `gh`
+erhoben, Push-Gleichstand mit `origin` geprüft, Zweig- und Worktree-Räumung
+**auch auf `origin`** bestätigt, Changelog gegen die Nutzersicht **und** gegen
+einen leeren `src/store`-Diff geprüft (keine Schemazeile fällig), Punkt 10 als
+regelkonform ausgesetzt bestätigt; **Punkt 12 in seinem Erstlauf nachgerechnet**
+— Generator in einer Kopie gefahren, Ergebnis byteweise identisch mit dem
+committeten `kegel.svg`, und die Deckung Endwert ↔ `sp:`-Label an allen vier
+Stories bestätigt; das Kundenfoto und die drei Installationsbilder **selbst
+angesehen**; M1, M2 und M3 als geschlossen bestätigt, M3 gegen den **neu
+gefassten** README samt seiner sieben neuen Behauptungen geprüft (alle halten,
+und die von mir vermutete Verzeichnislücke war keine — die drei Verzeichnisse
+sind leer). **Drei Befunde** gemeldet, keiner geheilt.
+
+**next:** (1) V1 — die §12.1-Verweise in den Kommentaren zu #66 und #57 auf
+§25 richtigstellen; öffentliche Beweislage. (2) V2 — im Installations-Nachtrag
+vermerken, dass zwei der drei Bilder dieselbe Aufnahme sind. (3) V3 in die
+Sprint-6-Retro tragen, **in der neuen Fassung**: Die Berichtspflicht steht seit
+`a484d49` in der Agentendatei und ist zweimal folgenlos geblieben — zu klären
+ist die Wirkung, nicht die Regel. (4) Für Sprint 6 offen: **#61** (hält
+Punkt 10 ausgesetzt und ist damit die Voraussetzung jeder Versionszählung),
+**#70** (Produktentscheidung nötig), **#71**, **#72**. (5) Vor dem
+Sprint-6-Planning zu heilen: zweite Schätzung und drei Klärungen zu **#69**
+(§2.4) — steht seit dem Sprint-5-Planning offen. (6) Retro nach Sprint 6 mit
+den Kandidaten aus Sprint 4 §17.6 (Punkt 3 in der Fassung aus V3), dem
+B13-Nachzug aus §5.1 und V1–V3 dieses Vermerks.

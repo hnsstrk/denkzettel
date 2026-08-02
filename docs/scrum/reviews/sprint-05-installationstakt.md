@@ -26,6 +26,16 @@ möglich — Belege im Ordner `sprint-05-installationstakt/`:
 
 - **Bibliothek öffnet am installierten Dienst** (`ShowLibrary` über
   D-Bus an PID 460335 aus `/usr/bin`): `bibliothek-installiert.png`.
+**Wie viele Aufnahmen hier wirklich stehen (V2, Scrum Master):** Es sind
+**zwei**, nicht drei. `bibliothek-installiert.png` und
+`schema-dunkel-installiert.png` haben dieselbe Prüfsumme (`5d59f735…`) —
+erklärbar, weil beide bei unverändertem Fensterinhalt unter BreezeDark
+entstanden, aber der Text unten führte sie als zwei Belege auf. Der
+#58-Nachweis trägt trotzdem: Er ruht auf dem Unterschied zwischen der
+hellen und der dunklen Aufnahme, und die hell-Aufnahme ist eine eigene.
+Merksatz zum Sprint-Merksatz: Zwei Belege sind erst zwei, wenn sie zwei
+Aufnahmen sind.
+
 - **#58 Schemawechsel bei laufendem Dienst — vollständig belegt:**
   `schema-hell-installiert.png` und `schema-dunkel-installiert.png`
   zeigen **dasselbe Fenster ohne Neustart** unter BreezeLight und
