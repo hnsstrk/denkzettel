@@ -161,6 +161,7 @@ private Q_SLOTS:
     void keepsTheMeasuresOfTheGroupedList();
     void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
+    void textsFollowAColourSchemeChange();
 
     void opensTheEditorWithTheButton();
     void opensTheEditorWithF2();
@@ -2197,6 +2198,64 @@ void LibraryTest::keepsTheWindowSizeForTheNextSession()
     LibraryWindow reopened(m_store.get());
 
     QCOMPARE(reopened.size(), chosen);
+}
+
+void LibraryTest::textsFollowAColourSchemeChange()
+{
+    // The daemon builds this window at start and keeps it (SPEC 2.1, main.cpp),
+    // so a colour scheme changed underneath it reaches a window that is already
+    // standing — and stays there until the daemon is restarted. Every text has
+    // to follow it (issue #58, the second site of issue #54).
+    //
+    // Asked of every label rather than of the two known ones: the point of the
+    // fault is that it spreads by copying, and a check that names its sites
+    // cannot see the next copy.
+    storedNote(QStringLiteral("eine Notiz von gestern"), QStringLiteral("2026-07-30T11:00:00"));
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    const QPalette startPalette = qApp->palette();
+
+    QPalette switched = startPalette;
+    switched.setColor(QPalette::WindowText, QColor(0x23, 0x26, 0x29));
+    switched.setColor(QPalette::PlaceholderText, QColor(0x70, 0x7d, 0x8a));
+    switched.setColor(QPalette::Link, QColor(0x2d, 0x7d, 0x9a));
+    qApp->setPalette(switched);
+
+    // Qt hands the new palette to the widgets through a posted event; without a
+    // running event loop the test has to let it through itself. Without this the
+    // test stays red after the correction and looks like a failed fix
+    // (CaptureTest::textsFollowAColourSchemeChange, issue #54).
+    QCoreApplication::processEvents();
+
+    // The message band paints its own colours by message type — that is
+    // KMessageWidget's business, not this window's.
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    QVERIFY(!labels.isEmpty());
+
+    for (QLabel *label : labels) {
+        if (message->isAncestorOf(label)) {
+            continue;
+        }
+
+        // What the label paints with: its own palette, read through its role.
+        // A colour written into that palette once would still stand here.
+        QVERIFY2(label->palette().color(label->foregroundRole())
+                     == switched.color(label->foregroundRole()),
+                 qPrintable(QStringLiteral("„%1“ malt in %2, das Schema sagt %3")
+                                .arg(label->text(),
+                                     label->palette().color(label->foregroundRole()).name(),
+                                     switched.color(label->foregroundRole()).name())));
+    }
+
+    qApp->setPalette(startPalette);
 }
 
 void LibraryTest::opensTheEditorWithTheButton()
