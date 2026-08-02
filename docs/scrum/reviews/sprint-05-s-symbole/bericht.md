@@ -231,6 +231,19 @@ Kein Befund: Auf dem privaten Bus gibt es weder Kurzbefehl-Dienst noch Tray.
    Terminalausgabe sieht, hält einen stummen Lauf für einen wortlosen. Betrifft
    `editshots`, `libraryshots`, `searchshots` gleichermaßen.
 
+## 7a. Nachgeprüft: die Zeichnung ist auf `main` weitergerückt
+
+Nach dem Abzweig dieses Zweiges hat `main` den Commit `88e6dc8` bekommen
+(„Wireframe-Symboltafel: Zählkorrektur — fünf Namen für sechs Stellen"). Mein
+Arbeitsbaum trug also die Fassung davor. Gegen die **neue** Fassung geprüft:
+
+- **Kein Name hat sich geändert.** Die Korrektur ist redaktionell — sie hält
+  fest, dass `edit-delete` Löschen *und* Verwerfen trägt, und nimmt die drei
+  Dialogknöpfe aus dem Prüfsatz der Bibliotheks-Schaltflächen heraus, weil ihre
+  Symbole aus der KDE-Bauart kommen. Genau so ist es gebaut.
+- Dieser Zweig fasst `wireframes/` nicht an; der Merge bleibt konfliktfrei.
+  Ein Rebase war nicht nötig — der Zweig braucht `main` nicht.
+
 ## 8. Berührte Dateien
 
 | Datei | Was |
