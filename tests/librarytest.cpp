@@ -2960,6 +2960,24 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
     const int readingTop = stack->mapTo(detail, QPoint()).y();
     const int readingHeight = stack->height();
 
+    // A button carries the width of its label (KDE HIG) and must not grow with
+    // the window. The stack that fixed finding 1 made them grow: its editing
+    // page carries a stretch of its own, which turned the whole stack
+    // horizontally expanding, and the buttons inside it took the surplus
+    // (UI review of 02.08.2026, second pass, finding 7).
+    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+    QVERIFY(edit);
+    QVERIFY(remove);
+    QVERIFY2(edit->width() == edit->sizeHint().width(),
+             qPrintable(QStringLiteral("„Bearbeiten“ ist %1 px breit, seine natürliche Breite ist %2 px")
+                            .arg(edit->width())
+                            .arg(edit->sizeHint().width())));
+    QVERIFY2(remove->width() == remove->sizeHint().width(),
+             qPrintable(QStringLiteral("„Löschen“ ist %1 px breit, seine natürliche Breite ist %2 px")
+                            .arg(remove->width())
+                            .arg(remove->sizeHint().width())));
+
     actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
     QTest::qWait(50);
 

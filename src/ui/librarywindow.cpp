@@ -327,6 +327,17 @@ QWidget *LibraryWindow::buildDetail()
     // change — the mistake issue #54 taught for colours. The stack asks anew
     // every time it lays out.
     m_headPages = new QStackedWidget(detail);
+    // …and it never takes more width than its widest page needs, or the two
+    // buttons inside it grow with the window — 80 px of label in a 194 px
+    // button at 1200 px window width (UI review, second pass, finding 7).
+    // `Maximum` is the half that was measured to matter; `Fixed` guards the
+    // other direction, where a head row has nothing to gain either.
+    //
+    // The stretch on the editing page is not the cause: taking it out changes
+    // none of these numbers (measured 02.08.2026). It is the stack itself that
+    // asks for the surplus, and the stretch in the head layout cannot hold it
+    // back — so the stack has to be told not to want it.
+    m_headPages->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
     m_headPages->addWidget(reading);
     m_headPages->addWidget(editing);
 
