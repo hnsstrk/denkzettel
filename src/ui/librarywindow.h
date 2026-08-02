@@ -17,6 +17,8 @@ class QAction;
 class QLabel;
 class QLineEdit;
 class QListView;
+class QPlainTextEdit;
+class QPushButton;
 class QSplitter;
 class QStackedWidget;
 class QTextBrowser;
@@ -66,6 +68,16 @@ private:
         Keep,
     };
 
+    /** The answers of the guard dialog over unsaved changes (wireframe 2a). */
+    enum class UnsavedAnswer {
+        /** Write, then carry the triggering act out. */
+        Save,
+        /** Carry the triggering act out without writing. */
+        Discard,
+        /** Take the act back and stay in the edit state. */
+        Cancel,
+    };
+
     QWidget *buildHeader();
     QWidget *buildDetail();
 
@@ -104,8 +116,36 @@ private:
      * one means the list has just been opened or rebuilt.
      */
     void showNote(const QModelIndex &index, const QModelIndex &previous = QModelIndex());
+
+    /** Puts the note of `index` into the reading pane, leaving the list alone. */
+    void showNoteText(const QModelIndex &index);
+
     void deleteCurrentNote();
     void undoDeletion();
+
+    /** True while the pane holds a note in the editor rather than in the reader. */
+    bool isEditing() const;
+
+    /** True while the editor holds something else than what is stored. */
+    bool hasUnsavedChanges() const;
+
+    /** Opens the editor on the selected note (SPEC 9, wireframe 2a). */
+    void startEditing();
+
+    /** Writes the edited text; keeps category, tags and state (SPEC 9). */
+    void saveEdit();
+
+    /** „Abbrechen“ and Esc: leaves the editor, asking first if need be. */
+    void cancelEdit();
+
+    /** Leaves the edit state without writing and without asking. */
+    void stopEditing();
+
+    /** Shows the dialog of wireframe 2a, state C, and reports the answer. */
+    UnsavedAnswer askAboutUnsavedChanges();
+
+    /** Follows the edit state into buttons, rows, actions and search field. */
+    void updateEditState();
 
     Store *m_store;
     NoteListModel *m_model;
@@ -113,6 +153,9 @@ private:
 
     QAction *m_deleteAction;
     QAction *m_undoAction;
+    QAction *m_editAction;
+    QAction *m_saveAction;
+    QAction *m_cancelEditAction;
 
     QSplitter *m_splitter;
     QLineEdit *m_search;
@@ -130,6 +173,48 @@ private:
 
     QLabel *m_detailTimestamp;
     QTextBrowser *m_detailText;
+
+    /** Reader and editor share one place in the pane (wireframe 2a). */
+    QStackedWidget *m_textPages;
+    QPlainTextEdit *m_editor;
+
+    /**
+     * Buttons and badge share one place in the head row: page 0 carries
+     * „Bearbeiten“ and „Löschen“, page 1 the badge.
+     *
+     * A stack rather than showing and hiding, because its size hint is the
+     * largest of its pages — that is what keeps the row, and with it the note
+     * text below, from moving when the state changes.
+     */
+    QStackedWidget *m_headPages;
+
+    QPushButton *m_editButton;
+    QPushButton *m_deleteButton;
+    QPushButton *m_saveButton;
+    QLabel *m_editingBadge;
+
+    /** Category and tags as plain display, only while editing. */
+    QWidget *m_metaRow;
+    QLabel *m_category;
+    QLabel *m_tags;
+
+    /** Key hint and the two buttons of the edit state. */
+    QWidget *m_editFooter;
+
+    /**
+     * The note under the editor; an id below zero means the pane is reading.
+     *
+     * Kept whole rather than as an id: the guard dialog runs after the
+     * selection has already moved on, so the list no longer knows which note
+     * is being edited.
+     */
+    Note m_editedNote;
+
+    /** What the editor was opened with — the measure of an unsaved change. */
+    QString m_textBeforeEditing;
+
+    /** True while a cancelled switch puts the selection back; stops the loop. */
+    bool m_restoringSelection = false;
 
     /**
      * Where the pending deletion took its note from, counted in notes rather
