@@ -168,6 +168,31 @@ drei Spec-Detailfragen. Noch keine verabschiedete Spec.
   `qwen3:8b` (LLM) und `bge-m3` (mehrsprachiges Embedding); bei Cloud-Providern
   deren Embedding-API. Beides in den Einstellungen änderbar.
 
+## Entschieden (viertes Design-Interview 02.08.2026): KI-Suche und Suchtoleranz
+
+- **Überlagerte Suche, ein Feld:** Das bestehende Suchfeld der Bibliothek
+  bedient beide Suchen — es gibt kein zweites Eingabefeld (Kundenvorgabe
+  vom 01.08.2026, im Interview bestätigt).
+- **Suchmoment — automatisch nachgelegt:** Wörtliche Treffer erscheinen
+  sofort wie heute; sinnverwandte Treffer („Auto" findet „Fahrzeug")
+  werden im Hintergrund ermittelt und ergänzen die Liste, ohne die
+  wörtlichen zu verzögern.
+- **Kennzeichnung — eigene Gruppe:** Sinnverwandte Treffer stehen unter
+  einer eigenen Überschrift (Arbeitsname „Sinnverwandt") unterhalb der
+  wörtlichen Treffer — passend zum Posteingangs-Stil der Liste.
+- **Ohne KI — dezenter Hinweis:** Ist das Modell nicht verfügbar,
+  arbeitet die wörtliche Suche unverändert; ein unaufdringlicher Hinweis
+  am Listenende benennt, dass sinnverwandte Treffer derzeit nicht möglich
+  sind. Die Suche muss ohne KI tragen (Kundenlinie vom 01.08.2026).
+- **Reihenfolge der KI-Elemente:** Zuerst die automatische Ordnung
+  (Klassifikation, Schlagworte, Kategorien-Seitenleiste — Epic M3), dann
+  die sinnverwandte Suche, dann die Vorschläge (Epic M5).
+- **Suchtoleranz — Vollausbau (Option A der Recherche
+  `recherche/2026-08-02-fuzzy-suche.md`):** Tippfehler und
+  Schreibvarianten werden in einem Mechanismus toleriert (spellfix1 mit
+  deutscher Kostentabelle); vorgelagert ein Spike zu Einbindung und
+  Vokabularquelle. Ersetzt die Einzellösungen aus #51/#52.
+
 ## Anwendungseinstellungen
 
 Konsolidierter Umfang des Einstellungen-Dialogs (KDE-typisch, Seitenliste links):
