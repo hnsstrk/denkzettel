@@ -66,14 +66,17 @@ PO aus.
   eine Veröffentlichung. Wörtliche Kundenzitate und Messwerte dürfen hinein;
   **Systemdetails und personenbezogene Angaben nicht**. Gilt gleichermaßen für
   Issues, Commits, Protokolle, Belege und den Changelog.
-  **Offen: Was „Systemdetail" heißt, ist am Einzelfall noch nicht
-  entscheidbar** (karpathy-Befund 4e vom 02.08.2026). Nach strenger Lesart
-  verstößt der Bestand bereits — der Rechnername „Ganymed" steht in dieser
-  Datei selbst (DoD 1), dazu Home-Pfade und `stat`-Belege an Systempfaden; und
-  viele Messwerte *sind* Systemdetails, sobald sie an einem Pfad hängen. Die
-  Grenze zieht der Kunde, nicht der PO (Sprint 3, 16.13). **Bis dahin: im
-  Zweifel fragen, nicht löschen**; der Altbestand wird nach der bereits
-  getroffenen Entscheidung umformuliert statt entfernt (16.9, Punkt 5).
+  **Was „Systemdetail" heißt, ist entschieden** (Kunde, viertes
+  Design-Interview 02.08.2026, auf die Frage aus Sprint 3, 16.13):
+  - **Tabu:** Zugangsdaten und Schlüssel; Interna des Heimnetzes (Hostnamen
+    und Adressen anderer Rechner, Freigaben); Pfade außerhalb des Projekts.
+  - **Erlaubt:** der Name der Entwicklungsmaschine und Projektpfade in
+    Messbelegen — ohne sie ist kein Beleg zu führen, und die Belegpflicht ist
+    die tragende Regel dieses Projekts.
+  - **Altbestand** wird umformuliert, nicht gelöscht.
+  Damit ist der karpathy-Befund 4e vom 02.08.2026 geschlossen: Der
+  Rechnername „Ganymed" in DoD 1 und die `stat`-Belege an Systempfaden sind
+  regelkonform, Home-Pfade außerhalb des Projekts sind es nicht.
 - **Belege**: UI-Review-Berichte samt geprüften Bildern unter
   `docs/scrum/reviews/`, Retro-Stellungnahmen und Messbelege unter
   `docs/scrum/retro/sprint-NN/`. Sitzungs-Scratchpads sind flüchtig; was ein

@@ -197,6 +197,7 @@
       <div style="padding:6px 14px">Einstellungen</div>
       <div style="padding:6px 14px;color:#888">Beenden</div>
     </div>
+    <div style="font-size:12px;color:#b3701f;line-height:1.55">Menü überholt (02.08.2026, Kundenbefund aus der Sprint-3-Abnahme, <b style="color:#b3701f">Issue #60</b>): Diese Zeichnung zeigt <b style="color:#b3701f">ein</b> Menü für beide Maustasten, mit dem englischen „Capture öffnen“, ohne Symbole und mit „Beenden“ in derselben Liste wie die Arbeitswege. Das gilt nicht mehr — der Linksklick trägt künftig nur die Arbeitswege, die Verwaltung sitzt in einem eigenen Rechtsklick-Menü, und jeder Eintrag trägt ein Symbol aus dem Symbol-Thema. Maßgeblich ist <a href="#5a" style="color:#b3701f">5a</a>. <b style="color:#b3701f">Unverändert gültig bleiben</b> die Icon-Zustände oben (normal · Vorschlag wartet), die Gruppierung der Arbeitswege in zwei Blöcke und der Kürzel-Hinweis am ersten Eintrag.</div>
   </div>
 </div>
 </div>
@@ -774,6 +775,175 @@
 
 </div>
 <p class="dv-next">Vorlage für: die Story zur Fensterhülle (aus Befund B2 des UI-Reviews vom 01.08.2026) sowie die Bugs #54 (festgeschriebene Farbe) und #56 (Höhe bei Schriftwechsel). <a class="dv-oid" href="#4a">4a</a> und <a class="dv-oid" href="#4b">4b</a> lösen Hülle und Flächenaufteilung aus <a class="dv-oid" href="#1a">1a</a> ab; Aufbau, Reihenfolge und Kürzel gelten von dort unverändert weiter. Das Aufnahmefenster <a class="dv-oid" href="#1f">1f</a> ist „gleiche Machart wie Capture" (SPEC 4) und erbt Hülle und Fläche mit — seine Zeichnung ist noch nicht nachgezogen.</p>
+</section>
+
+<section class="dv-turn" id="t5">
+<div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Sprint-4-Planning 02.08.2026 — Tray-Menüs getrennt: Arbeitswege links, Verwaltung rechts (S33/#60)</span></div>
+<div class="dv-opts">
+
+<!-- 5a Tray-Menüs, Linksklick und Rechtsklick -->
+<div class="dv-opt" id="5a" data-screen-label="Tray-Menüs — Linksklick und Rechtsklick">
+<div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a>Screen 5 (Menüs) · Zwei Menüs statt einem — Aufbau, Beschriftungen, Symbolnamen und Zustände (löst das Menü aus <a href="#1e" style="color:#2a78d6">1e</a> ab)</div>
+<div class="dv-card" style="width:900px;font-family:'Patrick Hand',cursive">
+  <div style="padding:18px;display:flex;flex-direction:column;gap:16px">
+
+    <div style="display:flex;gap:18px;align-items:flex-start">
+
+      <!-- Linksklick-Menü -->
+      <div style="width:300px">
+        <div style="font-size:12px;color:#555;margin-bottom:6px"><b style="color:#333">Linksklick</b> — Arbeitswege</div>
+        <div style="background:#fff;border:1.5px solid #333;border-radius:7px;box-shadow:4px 5px 0 rgba(0,0,0,.12);padding:5px 0;font-size:13px;color:#333">
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center;font-size:14px;color:#333">✎</span>
+            <span>Notiz erfassen</span>
+            <span style="margin-left:auto;color:#999;font-size:11px">Meta+N</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px;color:#aaa">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:5.5px;top:1.5px;width:5px;height:8px;border:1.5px solid #aaa;border-radius:3px"></span>
+              <span style="position:absolute;left:3.5px;top:8.5px;width:9px;height:4px;border:1.5px solid #aaa;border-top:0;border-radius:0 0 5px 5px"></span>
+              <span style="position:absolute;left:7.5px;top:13px;width:1.5px;height:2.5px;background:#aaa"></span>
+            </span>
+            <span>Sprachnotiz aufnehmen</span>
+          </div>
+
+          <div style="border-top:1px solid #ddd;margin:4px 0"></div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:2px;top:4px;width:12px;height:1.5px;background:#333"></span>
+              <span style="position:absolute;left:2px;top:8px;width:12px;height:1.5px;background:#333"></span>
+              <span style="position:absolute;left:2px;top:12px;width:8px;height:1.5px;background:#333"></span>
+            </span>
+            <span>Bibliothek öffnen</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px;color:#aaa">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:1.5px;top:3px;width:13px;height:10px;border:1.5px solid #aaa;border-radius:2px"></span>
+              <span style="position:absolute;left:6.5px;top:6px;width:0;height:0;border-left:5px solid #aaa;border-top:3px solid transparent;border-bottom:3px solid transparent"></span>
+            </span>
+            <span>Jetzt analysieren</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px;color:#aaa">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:0px;top:10px;width:11px;height:2px;background:#aaa;transform:rotate(-38deg)"></span>
+              <span style="position:absolute;left:9.5px;top:-3px;font-size:12px;line-height:1;color:#999">✦</span>
+            </span>
+            <span>Vorschläge</span>
+          </div>
+
+        </div>
+        <div style="margin-top:10px;height:24px;background:#dcdad4;border:1.5px solid #444;border-radius:4px;display:flex;align-items:center;gap:7px;padding:0 8px;font-size:11px;color:#777">
+          <span style="width:13px;height:13px;flex:none;border:1.5px solid #555;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#555">✎</span>
+          Systemabschnitt der Plasma-Leiste
+        </div>
+        <div style="font-size:11.5px;color:#777;line-height:1.5;margin-top:6px">Fünf Einträge, ein Trenner — das sind die beiden oberen Gruppen aus <a href="#1e" style="color:#2a78d6">1e</a> unverändert. Die dritte Gruppe wandert nach rechts.</div>
+      </div>
+
+      <!-- Rechtsklick-Menü -->
+      <div style="width:250px">
+        <div style="font-size:12px;color:#555;margin-bottom:6px"><b style="color:#333">Rechtsklick</b> — Verwaltung, Endausbau</div>
+        <div style="background:#fff;border:1.5px solid #333;border-radius:7px;box-shadow:4px 5px 0 rgba(0,0,0,.12);padding:5px 0;font-size:13px;color:#333">
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:2px;top:5px;width:12px;height:1.5px;background:#333"></span>
+              <span style="position:absolute;left:9px;top:2.5px;width:4px;height:4px;border:1.5px solid #333;border-radius:50%;background:#fff"></span>
+              <span style="position:absolute;left:2px;top:11px;width:12px;height:1.5px;background:#333"></span>
+              <span style="position:absolute;left:3px;top:8.5px;width:4px;height:4px;border:1.5px solid #333;border-radius:50%;background:#fff"></span>
+            </span>
+            <span>Denkzettel einrichten …</span>
+          </div>
+
+          <div style="border-top:1px solid #ddd;margin:4px 0"></div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:2px;top:4px;width:12px;height:9px;border:1.5px solid #333;border-radius:2px"></span>
+              <span style="position:absolute;left:5px;top:7.5px;width:6px;height:1.5px;background:#333"></span>
+            </span>
+            <span>Beenden</span>
+          </div>
+
+        </div>
+        <div style="font-size:11.5px;color:#b3701f;line-height:1.5;margin-top:7px"><b style="color:#b3701f">„Denkzettel einrichten …“ erscheint erst mit dem Einstellungs-Dialog (#16).</b> Bis dahin zeigt das Rechtsklick-Menü nur „Beenden“ — <b style="color:#b3701f">kein ausgegrauter Platzhalter</b>, denn ein dauerhaft grauer Eintrag erklärt dem Nutzer nicht, warum er grau ist.</div>
+
+        <div style="font-size:12px;color:#555;margin:14px 0 6px">Stand bis <b style="color:#333">#16</b></div>
+        <div style="background:#fff;border:1.5px solid #333;border-radius:7px;box-shadow:4px 5px 0 rgba(0,0,0,.12);padding:5px 0;font-size:13px;color:#333">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:2px;top:4px;width:12px;height:9px;border:1.5px solid #333;border-radius:2px"></span>
+              <span style="position:absolute;left:5px;top:7.5px;width:6px;height:1.5px;background:#333"></span>
+            </span>
+            <span>Beenden</span>
+          </div>
+        </div>
+        <div style="margin-top:10px;height:24px;background:#dcdad4;border:1.5px solid #444;border-radius:4px;display:flex;align-items:center;gap:7px;padding:0 8px;font-size:11px;color:#777">
+          <span style="width:13px;height:13px;flex:none;border:1.5px solid #555;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#555">✎</span>
+          dasselbe Symbol, andere Maustaste
+        </div>
+      </div>
+
+      <!-- Erläuterung -->
+      <div style="flex:1;font-size:12px;color:#777;line-height:1.6;padding-top:20px">
+        <b style="color:#555">Warum getrennt wird</b><br>
+        „Beenden“ beendet den Dienst und mit ihm das Kürzel — eine zerstörerische Aktion, die heute einen Klick neben der häufigsten sitzt. Der Linksklick ist der Arbeitsweg; was ihn nicht weiterbringt, gehört nicht hinein.<br><br>
+        <b style="color:#555">Das ist keine neue Abweichung von Plasma, sondern eine Annäherung.</b> Die vier Applets, die der Kunde am 02.08.2026 als Vorbild gezeigt hat (Benachrichtigungen, Kontakt, Wetterbericht, Energieverwaltung), verhalten sich genau so: Linksklick öffnet den Inhalt, Rechtsklick die Verwaltung im Muster „… einrichten …“. Der Beleg liegt unter <span style="font-family:ui-monospace,monospace;font-size:11px">docs/scrum/reviews/sprint-03-kundenabnahme/</span>.<br><br>
+        <b style="color:#555">Die Symbole sind hier Platzhalter.</b> Verbindlich ist der <b style="color:#555">Name</b>, nicht die gezeichnete Form — die Grafik kommt aus dem Symbol-Thema und ändert sich mit ihm, genau wie die Fensterhülle in <a href="#4a" style="color:#2a78d6">4a</a>. Nachgesehen im Bestand von Breeze am 02.08.2026: alle sieben Namen sind in <span style="font-family:ui-monospace,monospace;font-size:11px">breeze</span> und <span style="font-family:ui-monospace,monospace;font-size:11px">breeze-dark</span> vorhanden.<br><br>
+        <b style="color:#555">Kein Maßbild.</b> Breite, Abstände, Schrift und Position dieser Menüs bestimmt <span style="font-family:ui-monospace,monospace;font-size:11px">plasmashell</span>, nicht Denkzettel: Über das Tray-Protokoll geht nur die <b style="color:#555">Struktur</b> — Beschriftung, Symbolname, Zustand, Trenner, Kürzel-Hinweis. Genau das und nichts anderes zeigt diese Zeichnung, und genau das ist prüfbar.
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:18px;align-items:flex-start;border-top:1px dashed #ccc;padding-top:14px">
+
+      <div style="flex:1;font-size:12px;color:#777;line-height:1.55">
+        <div style="font-size:13px;color:#333;margin-bottom:8px">Einträge, Symbole, Zustände</div>
+        <div style="border-left:3px solid #ddd;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:9px">
+          <div><b style="color:#555">Notiz erfassen</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">document-edit</span> · aktiv · Kürzel-Hinweis <b style="color:#555">Meta+N</b><br>Wortfamilie der SPEC („Erfassungsfenster“). Geprüfte Alternativen: „Notiz schreiben“ (trennt schärfer gegen die Sprachnotiz, verspricht aber längeren Text), „Neue Notiz“ (kürzer, aber Eintrag 2 ist auch eine neue Notiz), „Erfassungsfenster öffnen“ (benennt das Fenster statt der Handlung).</div>
+          <div><b style="color:#555">Sprachnotiz aufnehmen</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">audio-input-microphone</span> · inaktiv<br>Nicht <span style="font-family:ui-monospace,monospace;font-size:11px">media-record</span>: der rote Vollkreis ist in einer Menüzeile ein Fremdkörper. Der Kürzel-Hinweis Meta+Umschalt+N kommt mit der Sprachnotiz, nicht vorher.</div>
+          <div><b style="color:#555">Trenner</b><br>Trennt Erfassen von Ansehen und Verarbeiten — die einzige Gliederung im Menü, wie in <a href="#1e" style="color:#2a78d6">1e</a>.</div>
+          <div><b style="color:#555">Bibliothek öffnen</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">view-list-text</span> · aktiv<br>Nicht <span style="font-family:ui-monospace,monospace;font-size:11px">documentation</span> (aufgeschlagenes Buch): das liest sich in KDE als Handbuch.</div>
+          <div><b style="color:#555">Jetzt analysieren</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">system-run</span> · inaktiv<br>Nicht <span style="font-family:ui-monospace,monospace;font-size:11px">view-refresh</span>: die Kreispfeile heißen „aktualisieren“, hier wird etwas ausgeführt.</div>
+          <div><b style="color:#555">Vorschläge</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">tools-wizard</span> · inaktiv<br>Als Einziges eine Nominalform, weil der Zähler an die Beschriftung tritt, sobald es Vorschläge gibt (<a href="#1e" style="color:#2a78d6">1e</a>). Über das Tray-Protokoll gibt es keine Plakette, nur Text.</div>
+          <div><b style="color:#555">Denkzettel einrichten …</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">configure</span> · <b style="color:#555">erst mit #16</b><br>Muster und Symbol aus dem Vorbild des Kunden („Energieverwaltung einrichten …“). Auslassungspunkte, weil der Dialog weitere Eingaben verlangt — die Arbeitswege tragen deshalb keine.</div>
+          <div><b style="color:#555">Beenden</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">application-exit</span> · aktiv<br>Letzter Eintrag, hinter dem Trenner.</div>
+        </div>
+      </div>
+
+      <div style="flex:1;font-size:12px;color:#777;line-height:1.55">
+        <div style="font-size:13px;color:#333;margin-bottom:8px">Festlegungen und Prüfsätze</div>
+        <div style="border-left:3px solid #ddd;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:9px">
+          <div><b style="color:#555">„Beenden“ ist im Linksklick-Menü nicht enthalten</b><br>Prüfsatz: Das Menü, das der Linksklick zeigt, führt keinen Eintrag mit dieser Beschriftung.</div>
+          <div><b style="color:#555">Symbole kommen aus dem Thema, nicht aus einer Ressource</b><br>Prüfsatz: Jede Aktion trägt ein Symbol, dessen Name der Tabelle entspricht. Wird das Symbol nicht aus dem Thema geholt, hat es keinen Namen — dann geht über das Tray-Protokoll kein Name an Plasma, und die Zusicherung ist nicht prüfbar. <b style="color:#555">Der Name ist das Prüfmerkmal, nicht das Bild.</b></div>
+          <div><b style="color:#555">Reihenfolge und Trenner</b><br>Prüfsatz: Die fünf Arbeitswege stehen in der gezeichneten Reihenfolge, mit genau einem Trenner nach „Sprachnotiz aufnehmen“.</div>
+          <div><b style="color:#555">Kein englisches Wort im Sichtbaren</b><br>Der Wortlaut gilt an allen Stellen zugleich — Menü, Kürzel-Aktion, Desktop-Aktion, Meldungstexte. „Capture-Fenster“ heißt künftig <b style="color:#555">Erfassungsfenster</b>. Die Aktions-Id <span style="font-family:ui-monospace,monospace;font-size:11px">show-capture</span> ist keine Beschriftung und bleibt.</div>
+          <div><b style="color:#555">Kürzel-Hinweis ist ein Hinweis</b><br>Meta+N steht als Text am Eintrag. Er darf die bestehende Kürzel-Registrierung nicht doppeln — das ist zu messen, nicht anzunehmen.</div>
+          <div><b style="color:#555">Zwei Menüs sind eine Zusicherung über die Struktur, nicht über die Lage</b><br>Ob das Linksklick-Menü unter Wayland verlässlich am Symbol aufgeht, ist offen und der erste Schritt der Story. Trägt es nicht, entscheidet der Kunde — diese Zeichnung beschreibt dann den Sollstand, nicht den Lieferstand.</div>
+          <div style="color:#999">Die Sätze sind Prüfsätze im Sinne von Beschluss B2, hier ohne Geometrie: Ein Tray-Menü ist keine Ansicht von Denkzettel, es hat keine Raumaufteilung, die wir zusichern könnten.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="font-size:12px;color:#777;line-height:1.6;border-top:1px dashed #ccc;padding-top:12px">
+      <b style="color:#555">Drei bewusste Abweichungen von den KDE-Richtlinien — benannt, damit sie kein Prüfbefund werden.</b><br>
+      <b style="color:#555">A1</b> Der Linksklick öffnet ein Menü statt einer Hauptaktion. Kundenentscheidung vom 01.08.2026 (#44), am 02.08.2026 ausdrücklich bestätigt; die Recherche zum KDE-Verhalten lag vor. <b style="color:#555">Gilt unverändert weiter.</b><br>
+      <b style="color:#555">A2</b> Links- und Rechtsklick zeigen verschiedene Menüs. Das Tray-Protokoll kennt je Symbol nur ein Kontextmenü — die Trennung ist deshalb technisch eine Abweichung, gestalterisch aber die Annäherung an das Verhalten der Plasma-Applets.<br>
+      <b style="color:#555">A3</b> „Beenden“ ist nur über den Rechtsklick erreichbar. Ein Kontextmenü soll nicht der einzige Zugang zu einer Funktion sein — Denkzettel hat aber weder Hauptfenster noch Menüleiste, und die Plasma-Applets halten es ebenso. Die Abweichung endet, sobald der Einstellungs-Dialog (#16) einen zweiten Weg anbietet.<br>
+      <span style="color:#b3701f">Weg der Entscheidung (02.08.2026): Der Kunde hat in der Sprint-3-Abnahme vier Befunde am Menü erhoben und vier Plasma-Applets als Vorbild gezeigt; die Beratung der Gestaltung im Sprint-4-Planning hat daraus Beschriftungen, Symbolnamen und Zustände festgelegt, der PO hat sie vollständig übernommen. <b style="color:#b3701f">Ausdrücklich nicht wiedereröffnet</b> wurde die naheliegende dritte Möglichkeit — Linksklick öffnet ohne Umweg das Erfassungsfenster, Rechtsklick zeigt das ganze Menü. Sie wäre richtlinienkonform und ließe die Wayland-Frage entfallen, kehrt aber die Kundenentscheidung aus <b style="color:#b3701f">#44</b> um. Der Vermerk steht hier, damit sie nicht in einem halben Jahr als übersehene Möglichkeit eingebracht wird.</span>
+    </div>
+
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Vorlage für: Issue #60 (S33) und den Prüfnachweis dazu. <a class="dv-oid" href="#5a">5a</a> löst das Menü aus <a class="dv-oid" href="#1e">1e</a> ab; die Icon-Zustände des Tray-Symbols (normal · Vorschlag wartet · Fehler) gelten von dort unverändert weiter. Sobald der Einstellungs-Dialog (#16) steht, tritt „Denkzettel einrichten …“ in das Rechtsklick-Menü und Abweichung A3 entfällt.</p>
 </section>
 </x-dc>
 </body>
