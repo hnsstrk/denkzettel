@@ -1,0 +1,29 @@
+Nachprüfung 2026-08-02 13:11
+laufender Dienst: 166362 /home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-aa52df518da9f9286/build/bin/denkzetteld
+
+=== 1. Was kglobalacceld hält ===
+friendlyName der Komponente: Denkzettel
+aktiv: true
+Aktionen:
+  _launch
+  show-capture
+allShortcutInfos (Id · Anzeigename · Komponente · … · Tasten · Vorgabe):
+  ([('_launch', 'Denkzettel', 'org.denkzettel.Denkzettel.desktop', 'Denkzettel', 'default', 'Default Context', [0], [0]),
+    ('show-capture', 'Notiz erfassen', 'org.denkzettel.Denkzettel.desktop', 'Denkzettel', 'default', 'Default Context', [268435534], [268435534])],)
+  0x1000004E = 268435534 = Meta+N
+Einträge für show-capture (1 erwartet, mehr hieße gedoppelt): 1
+
+=== 2. Was die Desktop-Datei erklärt ===
+gefunden: /usr/share/applications/org.denkzettel.Denkzettel.desktop
+  Name=Denkzettel
+  Exec=denkzetteld
+  Keywords=Notiz;Notizen;Gedanke;Capture;
+  Actions=show-capture;
+  [Desktop Action show-capture]
+  Name=Capture öffnen
+  Exec=denkzetteld
+
+=== 3. Auslösen wie beim Tastendruck ===
+Notizen vorher: 4
+ausgelöst — ob das Erfassungsfenster steht, zeigt das Bild daneben.
+Notizen nachher: 4

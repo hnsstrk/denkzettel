@@ -7,6 +7,7 @@
 #include <KStatusNotifierItem>
 
 #include <QFile>
+#include <QIcon>
 #include <QMenu>
 #include <QSet>
 #include <QSignalSpy>
@@ -28,6 +29,7 @@ class ShellTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void init();
     void cleanup();
 
@@ -49,12 +51,28 @@ private Q_SLOTS:
     void hasAMessageForEveryFailureAndNoneForSuccess();
 
     void announcesItselfAsAMenuAndKeepsTheMenuToShow();
+    void showsTheEntriesOfTheWireframeWithTheirIcons();
+    void keepsQuitApartInTheLastGroup();
+    void hintsTheShortcutWithoutBindingItASecondTime();
 
 private:
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
     std::unique_ptr<DaemonService> m_service;
 };
+
+void ShellTest::initTestCase()
+{
+    // The menu entries name their icons; whether a name comes back out of them
+    // depends on an icon theme being resolvable at all. Without one,
+    // QIcon::fromTheme() yields a null icon with an empty name — the icon
+    // search paths then hold nothing but the Qt resource (SPEC 10). The test
+    // environment brings the KDE platform theme for the paths; the theme itself
+    // is pinned here so the run does not depend on which one the user has set.
+    QIcon::setThemeName(QStringLiteral("breeze"));
+    QVERIFY2(QIcon::hasThemeIcon(QStringLiteral("document-edit")),
+             "Breeze fehlt — SPEC 10 holt die Menü-Symbole aus dem Breeze-Bestand.");
+}
 
 void ShellTest::init()
 {
@@ -217,13 +235,13 @@ void ShellTest::readsTheActionsOfADesktopFile()
     // Both halves have to be there — kglobalacceld reads the list, then looks
     // for the group with the Exec line it is to start.
     write(entry + QStringLiteral("Actions=show-capture;\n\n[Desktop Action show-capture]\n"
-                                 "Name=Capture öffnen\nExec=denkzetteld\n"));
+                                 "Name=Notiz erfassen\nExec=denkzetteld\n"));
     QVERIFY(desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
 
     write(entry + QStringLiteral("Actions=show-capture;\n"));
     QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
 
-    write(entry + QStringLiteral("\n[Desktop Action show-capture]\nName=Capture öffnen\n"
+    write(entry + QStringLiteral("\n[Desktop Action show-capture]\nName=Notiz erfassen\n"
                                  "Exec=denkzetteld\n"));
     QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
 
@@ -270,6 +288,80 @@ void ShellTest::announcesItselfAsAMenuAndKeepsTheMenuToShow()
     // right click has to keep finding the same menu it found before.
     QVERIFY(icon.item()->contextMenu() != nullptr);
     QVERIFY(!icon.item()->contextMenu()->actions().isEmpty());
+}
+
+void ShellTest::showsTheEntriesOfTheWireframeWithTheirIcons()
+{
+    // Wireframe 5a and issue #60 fix labels, icon names, order and state. The
+    // icon name is the test subject, not the picture: only an icon taken from
+    // the theme carries a name, and only a name travels to Plasma over the tray
+    // protocol. An icon built from a resource would arrive nameless, and the
+    // assurance would not be checkable at all.
+    struct Entry {
+        const char *text;
+        const char *iconName;
+        bool enabled;
+    };
+    const QList<Entry> expected = {
+        {"Notiz erfassen", "document-edit", true},
+        {"Sprachnotiz aufnehmen", "audio-input-microphone", false},
+        {nullptr, nullptr, false}, // Trenner: Erfassen von Ansehen und Verarbeiten
+        {"Bibliothek öffnen", "view-list-text", true},
+        {"Jetzt analysieren", "system-run", false},
+        {"Vorschläge", "tools-wizard", false},
+        {nullptr, nullptr, false}, // Trenner: Arbeitswege von der Verwaltung
+        {"Beenden", "application-exit", true},
+    };
+
+    TrayIcon icon;
+    const QList<QAction *> actions = icon.item()->contextMenu()->actions();
+    QCOMPARE(actions.size(), expected.size());
+
+    for (qsizetype i = 0; i < expected.size(); ++i) {
+        const Entry &entry = expected.at(i);
+        QAction *action = actions.at(i);
+
+        if (entry.text == nullptr) {
+            QVERIFY2(action->isSeparator(), qPrintable(QStringLiteral("Eintrag %1 ist kein Trenner").arg(i)));
+            continue;
+        }
+
+        QCOMPARE(action->text(), QString::fromUtf8(entry.text));
+        QCOMPARE(action->icon().name(), QString::fromUtf8(entry.iconName));
+        QCOMPARE(action->isEnabled(), entry.enabled);
+    }
+}
+
+void ShellTest::keepsQuitApartInTheLastGroup()
+{
+    // Customer finding 1 of 02.08.2026 asked for "Beenden" to leave the left
+    // click list. Two menus would have been the answer; the measurement of
+    // 02.08.2026 (docs/scrum/reviews/sprint-04-s33-traymenues/messung.md) shows
+    // they do not carry under Wayland. What is left of the finding is the
+    // distance: the destructive action is last and behind a separator, never
+    // next to the entry that is used most.
+    TrayIcon icon;
+    const QList<QAction *> actions = icon.item()->contextMenu()->actions();
+
+    QVERIFY(!actions.isEmpty());
+    QCOMPARE(actions.last()->text(), QStringLiteral("Beenden"));
+    QVERIFY(actions.at(actions.size() - 2)->isSeparator());
+    QVERIFY(!actions.first()->isSeparator());
+    QVERIFY(actions.first()->text() != QStringLiteral("Beenden"));
+}
+
+void ShellTest::hintsTheShortcutWithoutBindingItASecondTime()
+{
+    // The hint Meta+N is a hint: it is drawn next to the entry and must not
+    // become a second binding beside the one kglobalacceld holds (issue #60).
+    // A shortcut on a menu action reaches only the window of that menu, and the
+    // tray menu has none — it is drawn by plasmashell. So the entry may carry
+    // the sequence for display, and no window of ours may answer to it.
+    TrayIcon icon;
+    QAction *capture = icon.item()->contextMenu()->actions().first();
+
+    QCOMPARE(capture->shortcut(), QKeySequence(Qt::META | Qt::Key_N));
+    QCOMPARE(capture->shortcutContext(), Qt::WidgetShortcut);
 }
 
 QTEST_MAIN(ShellTest)
