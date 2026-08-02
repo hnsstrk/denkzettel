@@ -42,7 +42,15 @@ target_link_libraries(librarytest PRIVATE
 
 add_test(NAME librarytest COMMAND librarytest)
 
-set_tests_properties(librarytest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+# The KDE platform theme comes on top, as it does for shelltest: the library
+# checks its buttons for their icon names, and without a resolvable theme
+# QIcon::fromTheme() hands back a null icon whose name is empty (issue #67).
+# It is more than a search path here, though — under this theme the platform
+# integration replaces a built QMessageBox with a substitute dialog of its own,
+# so the guard dialog the test measures is the one a Plasma user sees
+# (issue #66, SPEC 9).
+set_tests_properties(librarytest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
 
 # Writes the picture series of the search states for the story handover. No
 # add_test(): it produces pictures for a human to look at, and a broken
