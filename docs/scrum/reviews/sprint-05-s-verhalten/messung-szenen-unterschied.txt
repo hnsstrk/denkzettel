@@ -1,0 +1,4 @@
+71c71
+<   Nach dem Klick: Auswahl Zeile 6, Rollwert 6 → 0, Kopf y=0
+---
+>   Nach dem Klick: Auswahl Zeile 6, Rollwert 6 → 6, Kopf y=-387
