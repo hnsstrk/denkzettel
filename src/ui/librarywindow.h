@@ -178,6 +178,16 @@ private:
     QStackedWidget *m_textPages;
     QPlainTextEdit *m_editor;
 
+    /**
+     * Buttons and badge share one place in the head row: page 0 carries
+     * „Bearbeiten“ and „Löschen“, page 1 the badge.
+     *
+     * A stack rather than showing and hiding, because its size hint is the
+     * largest of its pages — that is what keeps the row, and with it the note
+     * text below, from moving when the state changes.
+     */
+    QStackedWidget *m_headPages;
+
     QPushButton *m_editButton;
     QPushButton *m_deleteButton;
     QPushButton *m_saveButton;
