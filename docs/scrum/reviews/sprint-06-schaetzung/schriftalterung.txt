@@ -1,0 +1,19 @@
+Messung 1 — Alterung der Systemschrift im laufenden Prozess
+===========================================================
+
+Plattformthema: kde
+
+vorher   QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+
+nach qApp->setFont(doppelte Punktgröße):
+
+nachher  QApplication::font()=20  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+
+  Label mit ausdrücklich gesetzter Schrift: 15 -> 15 px
+  Label mit geerbter Schrift              : 18 -> 37 px
+
+Befund: systemFont() bleibt auf beiden Rängen stehen, obwohl die
+Anwendungsschrift verdoppelt wurde. Ein Label mit ausdrücklich gesetzter
+Schrift folgt nicht; nur das erbende folgt. Im Projekt tragen 12 Labels
+eine ausdrücklich gesetzte Schrift (2 im Erfassungsfenster, 10 in der
+Bibliothek), 8 davon werden inline erzeugt und nirgends gehalten.

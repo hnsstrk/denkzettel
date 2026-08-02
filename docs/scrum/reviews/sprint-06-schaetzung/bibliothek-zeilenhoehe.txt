@@ -1,0 +1,12 @@
+Messung 4 — Zeilenhöhen der Bibliotheksliste nach einer Schriftänderung
+======================================================================
+
+Start                  Schrift der Liste=10 pt  Gruppenkopf=27 px  Eintrag=72 px  gezeichnet=72 px
+Anwendungsschrift 2x   Schrift der Liste=20 pt  Gruppenkopf=27 px  Eintrag=110 px  gezeichnet=110 px
+nach doItemsLayout     Schrift der Liste=20 pt  Gruppenkopf=27 px  Eintrag=110 px  gezeichnet=110 px
+
+Befund: Der Gruppenkopf steht still — er wird ganz aus groupHeadFont()
+gerechnet, also aus systemFont(). Der Eintrag wächst nur um seine beiden
+Textzeilen; die Zeitstempelzeile darin steuert vorher wie nachher dieselben
+Pixel bei. Eine Bibliothek nach Schriftwechsel zeigt damit alte
+Überschriften über gewachsenen Notizen. Das Relayout heilt es nicht.
