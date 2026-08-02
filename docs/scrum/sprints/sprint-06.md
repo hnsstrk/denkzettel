@@ -1,11 +1,20 @@
 # Sprint 6 — Planning-Protokoll
 
-**Datum:** 2026-08-02, 19:40 (Ganymed) · **Moderation:** Scrum Master (Agent
-`scrum-master`, frischer Kontext)
-**Teilnehmer:** Scrum Master · Product Owner. Schätzer Dev und UI/UX sind zum
-Zeitpunkt dieses Protokolls **nicht** befragt worden — das ist der Kern von
-Abschnitt 2 und der Grund, warum der Schnitt unter Vorbehalt steht.
-**Status des Sprint-Vorschlags:** vorgelegt, Freigabe durch den Kunden steht aus.
+**Datum:** 2026-08-02, 19:40 (Ganymed), **nachgezogen 20:03** ·
+**Moderation:** Scrum Master (Agent `scrum-master`, frischer Kontext)
+**Teilnehmer:** Scrum Master · Product Owner · Schätzer Dev.
+**Status des Sprint-Vorschlags:** **festgeschrieben**, Freigabe durch den Kunden
+steht aus.
+
+**Zwei Durchgänge, und der Unterschied ist protokolliert.** Der erste Durchgang
+(19:40) hat den Schnitt **unter Vorbehalt** vorgelegt: Von acht Kandidaten
+erfüllten nur zwei die Schätzregel, und ob der Sprint zwei oder drei Stories
+trägt, hing an der ausstehenden Schätzung für #68. Der zweite Durchgang (20:03)
+schreibt ihn fest, nachdem die beiden blockierenden Schätzungen vorlagen (2.1).
+**Was der Vorbehalt vorab benannt hatte, ist eingetreten:** #68 kam mit **5 SP**
+und ist damit nach der eigenen Bedingung dieses Plannings draußen — der Schnitt
+lautet **#55 + #56, 9 SP, zwei Stories**. Die Bedingung stand **vor** der Zahl
+im Protokoll; sie ist nicht nachträglich um das Ergebnis herumgelegt worden.
 
 **Grundlagen:** `CLAUDE.md`, `docs/scrum/PROZESS.md` (Stand 02.08.2026,
 einschließlich Sprint-Abschluss Punkt 12 und der Schätzhistorie-Pflicht in der
@@ -30,19 +39,28 @@ steht es dabei.
 
 | Buchung | Issues | Story Points | Grenzen (2–4 · ~13) |
 |---|---|---|---|
-| Kandidatenfeld (#55, #56, #68, #59, #70, #71, #72, #61) | 8 | **nicht summierbar** — nur #55 (8) und #59 (2) sind regelkonform geschätzt | Story-Grenze doppelt gerissen |
+| Kandidatenfeld (#55, #56, #68, #59, #70, #71, #72, #61) | 8 | **nicht summierbar** — nur #55 (8) und #59 (2) waren regelkonform geschätzt | Story-Grenze doppelt gerissen |
 | Nach Ausschluss des nicht Ziehbaren (#70 AK offen, #71/#72/#61 ungeschätzt) | 4 | 8 + 1 + 2 + *#68 offen* | Story-Grenze **gehalten, am Anschlag** |
-| **Vorschlag des Scrum Masters** (2, falls #68 ≤ 3: 3) | **2–3** | **9**, mit #68 **12** | beide gehalten |
+| Vorschlag des Scrum Masters, 19:40 (2, falls #68 ≤ 3: 3) | 2–3 | 9, mit #68 12 | beide gehalten |
+| **Festgeschriebener Schnitt, 20:03** (#68 mit 5 SP draußen) | **2** | **9** | **beide gehalten** — 2 Stories und 4 SP Luft |
 | *Freigabe-Stand* | *einzutragen nach der Kundenentscheidung* | | |
 
-**Der erste Befund des Kontos ist, dass es sich nicht führen lässt.** Von acht
-Kandidaten trägt genau **einer** eine regelkonforme Schätzung, die auch am
-Backlog steht (#59, `sp:2`). Der Kern des Sprints (#55) ist deckungsgleich mit
-8 SP geschätzt, aber **ohne `sp:`-Label** — das ist derselbe Mangel, den ich in
-Sprint 5 als **M2** gemeldet habe, an der nächsten Story wiederholt. Seit
-Abschluss-Punkt 12 gilt: *„Endwert ist das `sp:`-Label des Issues"* (Sprint 5,
-§24). Ein fehlendes Label ist damit nicht mehr nur eine Frage der
-Rückverfolgbarkeit, sondern eine **Lücke in der Datenreihe des Schätzkegels**.
+**Der erste Befund des Kontos war, dass es sich nicht führen ließ** — und er ist
+inzwischen zur Hälfte geheilt. Von acht Kandidaten trug am 19:40 genau **einer**
+eine regelkonforme Schätzung, die auch am Backlog stand (#59, `sp:2`). Der Kern
+des Sprints (#55) war deckungsgleich mit 8 SP geschätzt, aber **ohne
+`sp:`-Label** — derselbe Mangel, den ich in Sprint 5 als **M2** gemeldet habe,
+an der nächsten Story wiederholt. Seit Abschluss-Punkt 12 gilt: *„Endwert ist
+das `sp:`-Label des Issues"* (Sprint 5, §24). Ein fehlendes Label ist damit
+nicht mehr nur eine Frage der Rückverfolgbarkeit, sondern eine **Lücke in der
+Datenreihe des Schätzkegels**.
+
+**Stand 20:03, von mir am Backlog nachgemessen** (`gh issue view`, nicht aus der
+Meldung übernommen): **#55 `sp:8` · #56 `sp:1` · #68 `sp:5`** — alle drei
+gesetzt. K1 und K2 sind damit erledigt (8). **Der Befund bleibt trotzdem
+stehen**, weil er zweimal in Folge eingetreten ist und die Heilung beide Male
+eine Nachforderung war, keine Regel: Sprint 5 M2, Sprint 6 K1. Er gehört in die
+Retro (10, Punkt 9).
 
 **Die Rechnung, was neben die 8 passt** — beide Grenzen zugleich, nicht nur die
 Punkte (das war die Blindstelle, gegen die B12 gefasst ist):
@@ -50,10 +68,10 @@ Punkte (das war die Blindstelle, gegen die B12 gefasst ist):
 | Kombination | Issues | SP | Urteil |
 |---|---|---|---|
 | #55 allein | 1 | 8 | **Story-Grenze unterschritten** (Minimum 2) — kein zulässiger Sprint |
-| #55 + #56 | 2 | 9 | hält; 2 Stories und 4 SP Luft |
+| **#55 + #56** | **2** | **9** | hält; 2 Stories und 4 SP Luft — **← eingetreten** |
 | #55 + #59 | 2 | 10 | hält; Thema gerissen (Bibliothek statt Erfassungsfenster) |
-| **#55 + #56 + #68**, falls #68 ≤ 3 | **3** | **≤ 12** | **hält; 1 Story und ≥ 1 SP Luft** |
-| #55 + #56 + #68, falls #68 = 5 | 3 | 14 | **SP-Grenze gerissen** |
+| #55 + #56 + #68, falls #68 ≤ 3 | 3 | ≤ 12 | hätte gehalten; 1 Story und ≥ 1 SP Luft |
+| **#55 + #56 + #68, bei #68 = 5** | 3 | **14** | **SP-Grenze gerissen — der gemessene Fall** |
 | #55 + #56 + #59 | 3 | 11 | hält; Thema gerissen |
 | #55 + #56 + #68(3) + #59 | 4 | 14 | **SP-Grenze gerissen** |
 | #55 + #56 + #59 + #61(2) | 4 | 13 | beide **am Anschlag**, keine Luft |
@@ -74,56 +92,103 @@ Anlage und wurde von zwei unabhängigen Schätzern auf **3** gehoben — *„Die
 beiden Schätzer ersetzen das Label, sie übernehmen es nicht"* (Sprint 5, §2.1).
 Dieselbe Lage liegt bei #56 vor.
 
-| Issue | Vorliegende Schätzung | Quelle | Schätzregel erfüllt? | `sp:`-Label heute | Ziehbar? |
+**Stand 20:03.** Die beiden blockierenden Schätzungen liegen vor; die Zeilen sind
+nachgezogen und die Label von mir am Backlog nachgemessen.
+
+| Issue | Vorliegende Schätzung | Quelle | Schätzregel erfüllt? | `sp:`-Label | Ziehbar? |
 |---|---|---|---|---|---|
-| **#55** | Dev 8 · UX 8 | Sprint-5-Planning §2, 02.08.2026 | **ja** — 2 unabhängige, deckungsgleich | **keines** ✗ | **ja**, Label fehlt (K1) |
-| **#59** | Dev 2 · UX 2 · Label 2 | Sprint-5-Planning §2, 02.08.2026 | **ja** — dreifach deckungsgleich | `sp:2` ✓ | **ja** |
-| **#56** | 1 | Label bei Anlage 01.08.2026 — **1 Hand** | **nein** | `sp:1` | **nein**, bis zwei Schätzungen vorliegen |
-| **#68** | — | — | **nein** | keines | **nein** |
+| **#55** | Dev 8 · UX 8 | Sprint-5-Planning §2, 02.08.2026 | **ja** — 2 unabhängige, deckungsgleich | `sp:8` ✓ *(20:03 gesetzt)* | **ja — gezogen** |
+| **#56** | Label 1 · **Dev 1** | Anlage 01.08.2026 (1 Hand) + Zweitschätzung 02.08.2026 | **ja** *(seit 20:03)* — deckungsgleich | `sp:1` ✓ | **ja — gezogen**, unter einer Bedingung (2.3) |
+| **#68** | **Dev 5** | Zweitschätzung 02.08.2026, am Code gemessen | *einseitig, aber entscheidungsreif* (2.4) | `sp:5` ✓ *(20:03 gesetzt)* | **nein** — 14 SP rissen die Punktgrenze |
+| **#59** | Dev 2 · UX 2 · Label 2 | Sprint-5-Planning §2, 02.08.2026 | **ja** — dreifach deckungsgleich | `sp:2` ✓ | ja, aber außerhalb der Klammer (4.3) |
 | **#71** | — | — | **nein** | keines | nein |
 | **#72** | — | — | **nein** | keines | nein |
 | **#61** | — | — | **nein** | keines | nein |
 | **#70** | — | — | **nein** | keines | **nein, doppelt** — die AK sind offen (Produktentscheidung) |
 | **#69** | — | drei Klärungen offen | **nein** | keines | **nein** — ausdrücklich nicht für Sprint 6 |
 
-### 2.1 Was ich vom PO brauche, bevor der Schnitt steht
+### 2.1 Die beiden blockierenden Schätzungen — angefordert 19:40, eingetroffen 20:03
 
-**Zwingend — ohne diese beiden Schätzungen ist gar kein zulässiger Sprint
-schneidbar** (#55 allein unterschreitet die Story-Untergrenze):
+**K2 ist erledigt.** Angefordert waren zwei Schätzungen, ohne die kein
+zulässiger Sprint schneidbar war (#55 allein unterschreitet die
+Story-Untergrenze). Beide liegen als Issue-Kommentar am Backlog — der einzigen
+Quelle der Wahrheit —, beide mit Begründung am Code:
 
-1. **#56** — zwei unabhängige Schätzungen. Erwartungswert klein: Die Heilung
-   ist zeichengenau bekannt (`adjustHeight()` zusätzlich bei
-   `QEvent::FontChange`), die Stolperstelle steht im AK, und die Prüfbarkeit
-   ohne Plasma ist im AK selbst gelöst. Das ist die Lage von #58 in Sprint 5,
-   *„die seltene Lage, in der eine 1 wirklich eine 1 ist"* — aber das Urteil
-   fällen die Schätzer, nicht ich.
-2. **#68** — zwei unabhängige Schätzungen. **Der Wert entscheidet den
-   Schnitt:** ≤ 3 heißt drei Stories und ≤ 12 SP, 5 heißt 14 SP und damit
-   draußen. Hinweis für die Schätzer, damit sie nicht am falschen Gegenstand
-   schätzen: #68 ist **nicht** capture-only — sein AK nennt „Erfassungsfenster
-   **und Bibliothek**", also `src/capture/` *und* `src/ui/`.
+| Issue | Angefordert | Eingetroffen | Wirkung auf den Schnitt |
+|---|---|---|---|
+| **#68** | zuerst, weil sein Wert die Story-Zahl entscheidet | **5 SP** | **draußen** — 14 SP rissen die Punktgrenze |
+| **#56** | Erwartungswert klein, Urteil bei den Schätzern | **1 SP bestätigt** | **drin**, unter der Bedingung aus 2.3 |
 
-**Bedingt — nur falls der Kunde das Konto voller haben will** (siehe 4.4):
+**Die empfohlene Reihenfolge hat getragen.** #68 zuerst zu schätzen war der
+Vorschlag von 19:40, und genau dieser Wert hat den Sprint von drei auf zwei
+Stories festgelegt. Wäre #56 zuerst gekommen, wäre nichts entschieden gewesen.
 
-3. **#61** — zwei unabhängige Schätzungen. Argument für die Aufnahme: Solange
-   #61 offen ist, ist **Abschluss-Punkt 10 ausgesetzt**; jeder abgenommene
-   Sprint erzeugt keine Version, und die Changelog-Einträge sammeln sich unter
-   `[Unveröffentlicht]`. Das ist eine Schuld, die mit jedem Sprint wächst.
-   Argument dagegen: Es liegt im Epic M7 und außerhalb der Sprint-Klammer.
+**Die Messbelege des Devs liegen versioniert unter
+`docs/scrum/reviews/sprint-06-schaetzung/`** — vier Sonden mit Quelltext,
+Ausgabe und einem Skript `pruefen.sh`, das sie wiederholbar macht; committet mit
+`573901e`, gemerged mit `5982327`. Ich gebe die Zahlen hier nicht doppelt
+wieder; die tragenden Sätze stehen in den Issue-Kommentaren an #56 und #68.
 
-**Nicht angefragt und warum:** #71 und #72 sind Bibliotheksbefunde aus dem
-Sprint-5-UI-Review. Sie sind ungeschätzt, aber ihre Schätzung anzufordern hätte
-nur Sinn, wenn sie in den Schnitt könnten — beide reißen die Klammer, und die
-Punkte trügen sie ohnehin nicht (1). Sie bleiben im Backlog; Priorisierung ist
-PO-Sache.
+**Von mir geprüft, nicht geglaubt** (`git ls-files`): Die vier `*.txt`, die vier
+`*.cpp`, `LIESMICH.md`, `CMakeLists.txt` und `pruefen.sh` sind im Repo; nur der
+Bauplatz `build/` ist ausgeschlossen. **Damit ist B7 erfüllt** — und zwar in der
+stärkeren Form, die dieses Projekt sonst nur bei Prüfläufen kennt: Der Beleg ist
+nicht nur abgelegt, er ist **nachfahrbar**. *Zur Redlichkeit:* Als ich diesen
+Absatz um 20:03 zuerst schrieb, lag der Ordner noch nicht im Repo, und ich habe
+ihn als offenen Prüfpunkt (K9) hingeschrieben statt als erledigt zu behaupten.
+Er ist es inzwischen; K9 ist damit geschlossen, nicht weggefallen.
 
 ### 2.2 Keine 13er-Story, aber die erste 8er
 
 **#55 ist mit 8 SP die größte Story des Projekts.** Sie ist nicht
 teilungsbedürftig im Sinne der Regel (die greift bei 13), aber sie ist der
-erste Fall, in dem eine einzige Story **zwei Drittel des Sprint-Budgets** trägt.
-Das gehört ausgesprochen, weil es die Bauart des Sprints bestimmt: Dieser
-Sprint hat einen Gegenstand und Beiwerk, nicht vier gleichrangige Stories.
+erste Fall, in dem eine einzige Story **zwei Drittel des Sprint-Budgets** trägt
+— nach dem Ausscheiden von #68 sind es sogar **acht von neun Punkten**. Das
+gehört ausgesprochen, weil es die Bauart des Sprints bestimmt: Dieser Sprint
+hat einen Gegenstand und ein kleines Beiwerk, nicht zwei gleichrangige Stories.
+
+### 2.3 Die Bedingung, unter der die 1 an #56 hält
+
+Der Zweitschätzer bindet seine 1 an eine Festlegung dieses Plannings: **Der
+Bildläufer `tests/captureshots.cpp` bleibt in der Dateimenge von #55 gebucht**
+(5.2). Würde die Bildpflicht aus DoD 3 auf #56 gebucht, zahlte #56 den Läufer
+und wäre eine **2** — der Sprint stünde dann bei 10 SP.
+
+**Die Bedingung ist erfüllt und bleibt es**, aus einem Grund, der unabhängig von
+der Schätzung trägt: #55 braucht den Läufer für **zwölf** Bilder (3 Zustände ×
+2 Farbschemata × 2 Desktop-Themes, AK 8), #56 für **zwei** (zwei Schriftgrößen).
+Wer den Läufer der Story anlastet, die zwei Bilder braucht, statt der, die zwölf
+braucht, bucht ihn falsch.
+
+**Prüfsatz für die DoD-Prüfung:** Kippt diese Zuordnung im Sprint, ist #56
+nachzuschätzen und die Änderung im Sprint-Konto zu buchen. Eine Bedingung, an
+der eine Schätzung hängt, gehört mitgeprüft — sonst ist sie eine Fußnote, die
+niemand liest.
+
+### 2.4 #68 trägt `sp:5` aus **einer** Hand — das gehört Sprint 7 gesagt
+
+Die 5 stammt vom Dev, am Code gemessen und ausführlich begründet. Sie ist
+**entscheidungsreif genug, um #68 auszuschließen**: Der Ausschluss braucht nur
+die Aussage „größer als 3", und die trägt eine Hand allemal — zumal sie in die
+teure Richtung zeigt und ihre Begründung den Gegenstand ausweitet (drei
+Fundstellen in zwei Bibliotheken, eine fehlende Verkabelung, eine offene
+Entwurfsentscheidung zu den inline erzeugten Labels).
+
+**Sie ist aber keine regelkonforme Schätzung.** Die Sprint-Mechanik verlangt
+zwei unabhängige Schätzer, und das Label `sp:5` steht seit 20:03 am Issue.
+**Damit droht in Sprint 7 genau der Fehler, den Sprint 5 an #57 gemacht und
+korrigiert hat:** Ein Label wird für eine Schätzung gehalten, weil es am Backlog
+steht. Es ist keine — die Provenienz ist *„1 Hand (Dev, am Code gemessen,
+02.08.2026)"*, nicht *„Planning, 2 unabhängige"*, und Sprint 5 §24 verlangt, die
+Unterscheidung **mitzuführen und nicht einzuebnen**. Vor dem Ziehen von #68 ist
+eine zweite Schätzung einzuholen; sie kann die 5 bestätigen oder ersetzen
+(next, Punkt 7).
+
+**Nicht angefragt und warum:** #71 und #72 sind Bibliotheksbefunde aus dem
+Sprint-5-UI-Review. Ihre Schätzung anzufordern hätte nur Sinn, wenn sie in den
+Schnitt könnten — beide reißen die Klammer, und die Punkte trügen sie ohnehin
+nicht (1). **#61** ist mit dem Wegfall von #68 ebenfalls nicht mehr angefragt
+(4.4). Alle drei bleiben im Backlog; Priorisierung ist PO-Sache.
 
 ---
 
@@ -259,10 +324,9 @@ die der Sprint **erst schreibt** (7.5).
 ### 4.1 Sprint-Ziel
 
 > **Das Erfassungsfenster sieht aus wie ein KDE-Fenster: Es trägt Rundung,
-> Kontur und Schatten seines Desktop-Themes — und es behält seine fünf Zeilen,
-> wenn der Nutzer die Systemschrift ändert.**
+> Kontur und Schatten seines Desktop-Themes.**
 
-Nachprüfbar in drei Handgriffen ohne Werkzeug:
+Nachprüfbar in zwei Handgriffen ohne Werkzeug:
 
 1. Kürzel drücken — **die Ecken des Fensters sind rund**, und es liegt ein
    Schatten darunter wie unter einem Plasma-Popup (#55). Das ist der Satz, den
@@ -270,12 +334,42 @@ Nachprüfbar in drei Handgriffen ohne Werkzeug:
 2. Desktop-Theme wechseln, **ohne** den Dienst neu zu starten — die Hülle
    wechselt mit: schmaler flacher Bogen bei Breeze, breiter runder bei
    CachyOS-Nord-round (#55, AK 7).
-3. Systemschrift vergrößern — **das Feld bleibt fünf Zeilen hoch**, statt auf
-   drei zu fallen (#56).
+### 4.1.1 Warum #56 **nicht** im Sprint-Ziel steht — Korrektur am eigenen Entwurf
 
-Falls #68 hinzukommt, tritt ein vierter Handgriff daneben: Systemschrift
-ändern und die Fenster folgen **ohne Neustart** — dann trägt das Ziel den
-Zusatz *„und beides folgt dem laufenden Betrieb"*.
+Der erste Durchgang (19:40) trug im Ziel den Halbsatz *„und es behält seine fünf
+Zeilen, wenn der Nutzer die Systemschrift ändert"* und dazu einen dritten
+Handgriff *„Systemschrift vergrößern — das Feld bleibt fünf Zeilen hoch"*.
+**Beides ist falsch, und der Wegfall von #68 macht es sichtbar.**
+
+**Der Kunde kann #56 nicht nachprüfen.** Der Grund steht in #56 selbst: *„Der
+Fehler ist zurzeit nicht sichtbar, weil Plasma Schriftänderungen an
+Qt-Widgets-Anwendungen ohnehin nicht nachreicht (B6)."* Wer nach Sprint 6 die
+Systemschrift ändert, sieht am stehenden Fenster **gar nichts** — weder den
+Fehler noch die Heilung. Ein frisch gestarteter Dienst hätte die richtige Höhe
+schon heute. Genau diese Zustellung nachzurüsten ist **#68**, und #68 ist
+draußen.
+
+**Ein Sprint-Ziel, das eine Nachprüfbarkeit behauptet, die es nicht gibt, ist
+schlechter als ein schmales Ziel.** Es schickt den Kunden in einen Handgriff,
+der nichts zeigen kann — *„Ein Testaufbau, in dem der Fehler gar nicht auftreten
+kann, ist kein Test"* (`CLAUDE.md`); für eine Abnahme-Checkliste gilt das
+genauso. Im ersten Durchgang stand der Halbsatz nur deshalb da, weil #68
+danebenstand und die Lücke zudeckte.
+
+**Was #56 stattdessen ist: eine vorgezogene Heilung, und sie gehört genau
+hierher.** Das Issue begründet es selbst — *„Heute verdeckt, morgen akut. Sobald
+jemand das nachrüstet, tritt dieser Fehler sofort zutage. Er gehört deshalb
+vorher behoben, nicht nachher: Sonst baut man eine Verbesserung und liefert die
+Verschlechterung mit."* Da #68 als Kern von Sprint 7 empfohlen ist (4.3), ist
+Sprint 6 der letzte Sprint, in dem diese Reihenfolge kostenlos zu haben ist.
+
+**Wie #56 belegt wird, wenn nicht am Kundenblick:** durch Test und Bild — sein
+AK 2 legt den Weg selbst fest (die Schrift des Widgets direkt setzen und die
+Höhe gegen den Zeilenabstand messen), AK 3 verlangt zwei deutlich verschiedene
+Schriftgrößen. **Das ist eine benannte Grenze der Prüfbarkeit** (DoD 2: eine
+benannte Grenze schließt die Story nicht) — und sie gehört in die
+Abnahme-Vorlage, damit der Kunde nicht nach etwas sucht, das er nicht finden
+kann.
 
 **Warum diese Klammer und keine weitere.** Das Ziel deckt genau die Stories, die
 darunter fallen. Ein Bibliotheksbefund wie #59 oder #71 wäre unter dieser
@@ -284,36 +378,49 @@ KDE-Anwendung"* verwässern, also zum Sprint-5-Ziel zurück. Der Sprint-5-Maßst
 gilt hier gegen die eigene Versuchung, das Konto zu füllen: *„der Sprint hätte
 kein Thema mehr, sondern ein Vorhaben"* (Sprint 5, §4.1).
 
-### 4.2 Der Schnitt
+### 4.2 Der Schnitt — festgeschrieben 20:03
 
 | Strang | Issue | Story | SP |
 |---|---|---|---|
-| A | #55 | Capture-Fensterhülle — Rundung, Kontur, Schatten aus dem Theme | **8** |
-| A | #56 | Feldhöhe folgt einer Schriftänderung nicht | *1, zu bestätigen* |
-| A | #68 | Schrift folgt zur Laufzeit nicht (KConfigWatcher) | ***offen — nur bei ≤ 3*** |
-| | | **Summe ohne #68** | **9** |
-| | | **Summe mit #68 (bei 3)** | **12** |
+| A | **#55** | Capture-Fensterhülle — Rundung, Kontur, Schatten aus dem Theme | **8** |
+| A | **#56** | Feldhöhe folgt einer Schriftänderung nicht | **1** |
+| | | **Summe** | **9** |
+
+**Zwei Stories, 9 von ~13 SP — beide Grenzen gehalten, mit Luft.** #68 ist mit
+5 SP ausgeschieden (2.1); der Sprint wäre mit ihm bei 14 SP gelandet.
 
 **Ein Strang, nicht zwei — und das ist ein Befund, kein Versäumnis.** Dazu 5.
 
-**Reihenfolge innerhalb des Strangs: #56 → #55 → #68.** Nicht Ermessen, sondern
-aus den Issues abgeleitet:
+**Reihenfolge innerhalb des Strangs: #56 → #55.** Nicht Ermessen, sondern aus
+den Issues abgeleitet:
 
-- **#56 vor #68**, weil #56 es selbst verlangt: *„Sobald jemand das nachrüstet
-  [#68], tritt dieser Fehler sofort zutage. Er gehört deshalb vorher behoben,
-  nicht nachher: Sonst baut man eine Verbesserung und liefert die
-  Verschlechterung mit."* Das beantwortet zugleich die offene Frage in #68 AK 2
-  (*„löst #56 mit oder baut darauf auf — im Planning entscheiden"*) → **K3**.
-- **#56 vor #55**, weil #56 die kleinste und am genauesten bekannte Änderung
-  ist und dieselbe Datei anfasst. Wer zuerst die 1 baut, hat einen grünen Stand,
-  gegen den er die 8 misst.
+- **#56 zuerst**, weil es die kleinste und am genauesten bekannte Änderung ist
+  und dieselbe Datei anfasst. Wer zuerst die 1 baut, hat einen grünen Stand,
+  gegen den er die 8 misst. Der Zweitschätzer nennt dieselbe Reihenfolge in
+  seiner Bedingung (2.3).
+- **#56 überhaupt in diesem Sprint**, weil es #68 vorausgeht: *„Sobald jemand
+  das nachrüstet, tritt dieser Fehler sofort zutage. Er gehört deshalb vorher
+  behoben, nicht nachher."* Mit #68 als Sprint-7-Kern (4.3) ist das jetzt der
+  richtige Zeitpunkt — die Reihenfolge ist hier noch kostenlos, in Sprint 7
+  nicht mehr.
 
 ### 4.3 Was draußen bleibt und warum
 
-- **#59 (2 SP, geschätzt und ziehbar)** — das einzige Issue des Feldes, das
-  heute sofort ziehbar wäre. Es bleibt draußen, weil es die Klammer reißt
-  (Bibliothek statt Erfassungsfenster). Es ist zugleich der naheliegendste
-  Zugang, falls der Kunde drei Stories will und #68 zu groß ausfällt (4.4).
+- **#68 (5 SP)** — die Schätzung hat es ausgeschlossen, und zwar nach der
+  Bedingung, die vor der Zahl im Protokoll stand. **Der Dev empfiehlt es als
+  Kern eines Bibliotheks-Sprints 7 neben #59, #71 und #72**, und die Empfehlung
+  trägt: Seine Begründung (Belege in `docs/scrum/reviews/sprint-06-schaetzung/`,
+  Kommentar an #68) zeigt, dass der Gegenstand zum größeren Teil **nicht** im
+  Erfassungsfenster liegt, sondern in `src/ui/` — Delegate, Gruppenüberschriften
+  und zwölf Labels mit gesetzter Schrift. **Damit ist #68 keine
+  Capture-Story, die man an #55 anhängt, sondern die Klammer eines eigenen
+  Sprints.** Das ist ein Fund der Schätzung, den das Planning von 19:40 nicht
+  hatte: Dort stand nur die Vermutung, #68 sei „nicht capture-only".
+- **#59 (2 SP, geschätzt und ziehbar)** — das einzige weitere Issue des Feldes,
+  das sofort ziehbar wäre. Es bleibt draußen, weil es die Klammer reißt
+  (Bibliothek statt Erfassungsfenster) — und es ist nach der #68-Schätzung
+  ohnehin besser in Sprint 7 aufgehoben, wo es mit #68, #71 und #72 dieselbe
+  Fläche teilt.
 - **#70** — die AK sind offen, es braucht eine Produktentscheidung. Nicht
   ziehbar, unabhängig von jeder Schätzung. **Wenn der Kunde ohnehin am Tisch
   sitzt, ist die Freigabe der billigste Moment, diese Entscheidung
@@ -325,30 +432,43 @@ aus den Issues abgeleitet:
   Sprint-5-Plannings, sie vor diesem Planning zu heilen, ist **nicht erledigt**.
   Festgehalten, nicht beanstandet — die Priorität liegt beim PO.
 
-### 4.4 Der Ersatzweg, falls #68 nicht hineinpasst
+### 4.4 Die vier freien Punkte — bewusst nicht gefüllt
 
-Fällt die Schätzung für #68 auf **5**, ist der Schnitt **#55 + #56 = 9 SP /
-2 Stories**. Das hält beide Grenzen und lässt bewusst Luft. Zwei Lesarten, und
-ich empfehle die erste:
+Der Sprint steht bei **9 von ~13 SP und 2 von 4 Stories**. Der eingetretene Fall
+ist der, den ich um 19:40 für ihn empfohlen habe; die Begründung ist unverändert
+und wird durch die #68-Schätzung eher stärker:
 
-1. **Bei 2 Stories und 9 SP bleiben.** Die Luft ist nicht Leerlauf, sondern
-   Vorsorge: #55 ist die erste 8er des Projekts, hat drei ungemessene Punkte,
-   und ihr Schatten-Nachweis hängt an einem Kundenfoto (6.2). Sprint 2 erzeugte
-   aus einem einzigen UI-Review drei Auflagen.
-2. **#59 als dritte Story ziehen** (11 SP / 3 Stories). Kostet die Klammer;
-   dafür ist es das einzige heute ziehbare Issue und läge in einer **vollständig
-   disjunkten Fläche** (`src/ui/librarywindow.cpp`), wäre also der einzige
-   Kandidat für einen echten zweiten Strang. **Gegenargument aus dem eigenen
-   Prozess:** *„Sprints sind Arbeitspakete, keine Zeiträume"* — Parallelität ist
-   in diesem Projekt kein Wert an sich, also trägt das Argument
-   „läuft nebenher" hier nicht.
+**Die Luft ist Vorsorge, kein Leerlauf.** #55 ist die erste 8er des Projekts,
+trägt **acht von neun Punkten** des Sprints, hat drei ungemessene Punkte (7),
+und ihr Schatten-Nachweis hängt an einem Kundenfoto (6.2). Sprint 2 erzeugte aus
+einem einzigen UI-Review drei Auflagen, Sprint 3 einen `fail` und einen `warn`.
+Ein Sprint, dessen Konto beim Start ausgeschöpft ist, verträgt keine davon.
 
-Ein dritter Weg, **#61**, ist von anderer Art: Er füllt das Konto nicht besser
-als #59, löst aber eine Prozessschuld (Abschluss-Punkt 10 ausgesetzt). Er
-braucht zuerst zwei Schätzungen. **Empfehlung: nicht in Sprint 6** — ein Sprint
-mit einer 8er-Risikostory ist der falsche Ort für eine Story aus einem fremden
-Epic. Als **Sprint-7-Kandidat vormerken**, damit die Aussetzung nicht dauerhaft
-wird.
+**Die beiden Wege, das Konto trotzdem zu füllen — und warum ich abrate:**
+
+1. **#59 als dritte Story** (11 SP / 3 Stories). Es kostet die Klammer des
+   Sprint-Ziels, und seit der #68-Schätzung kostet es mehr: #59 gehört
+   fachlich zu dem Bibliothekspaket, das der Dev für Sprint 7 vorschlägt
+   (#68, #59, #71, #72). Es jetzt einzeln herauszubrechen, zerlegt genau das
+   Paket, das nächsten Sprint die Klammer bilden soll.
+   **Gegenargument, das nicht trägt:** #59 läge in einer vollständig disjunkten
+   Fläche und wäre der einzige Kandidat für einen zweiten Strang — aber
+   *„Sprints sind Arbeitspakete, keine Zeiträume"* (PROZESS.md). Parallelität
+   ist in diesem Projekt kein Wert an sich.
+2. **#61** ist von anderer Art: Es füllt das Konto nicht besser als #59, löst
+   aber eine Prozessschuld (Abschluss-Punkt 10 ausgesetzt, jeder abgenommene
+   Sprint erzeugt keine Version, die Changelog-Einträge sammeln sich unter
+   `[Unveröffentlicht]`). Es bräuchte zuerst zwei Schätzungen — die habe ich
+   mit dem Wegfall von #68 nicht mehr angefordert.
+   **Empfehlung: nicht in Sprint 6** — ein Sprint mit einer 8er-Risikostory ist
+   der falsche Ort für eine Story aus einem fremden Epic. Als
+   **Sprint-7-Kandidat vormerken**, damit die Aussetzung nicht zum Dauerzustand
+   wird.
+
+**Sprint-7-Bild, das sich aus diesem Planning ergibt** (Vorschlag, keine
+Festlegung — Priorisierung ist PO-Sache): ein Bibliothekssprint mit **#68** als
+Kern, dazu **#59**, **#71**, **#72** und, falls die Punkte reichen, **#61**.
+Vier der fünf brauchen vorher Schätzungen (2.4).
 
 ---
 
@@ -363,30 +483,32 @@ war ausgeschlossen.
 
 **Hier ist die Lage anders, und zwar messbar:**
 
-| Datei | Länge | #55 fasst an | #56 fasst an | #68 fasst an |
-|---|---|---|---|---|
-| `src/capture/capturewindow.cpp` | **157 Zeilen** | Konstruktor `:42–74` (Ränder `:58`, Abstände `:59`), neu `paintEvent`/`resizeEvent`, `present()` `:111–116` | Konstruktor `:67–70` (Signalbindung), `adjustHeight()` `:148–157`, neu `changeEvent` | dieselben Stellen wie #56, dazu Signalbindung an `KConfigWatcher` |
-| `src/capture/capturewindow.h` | 38 Zeilen | neue Member, neue überschriebene Methoden | neue überschriebene Methode | dito |
+| Datei | Länge | #55 fasst an | #56 fasst an |
+|---|---|---|---|
+| `src/capture/capturewindow.cpp` | **157 Zeilen** | Konstruktor `:42–74` (Ränder `:58`, Abstände `:59`), neu `paintEvent`/`resizeEvent`, `present()` `:111–116` | `eventFilter()` `:91–109` (**nicht** `changeEvent`, siehe 5.3.3), `adjustHeight()` `:148–157` |
+| `src/capture/capturewindow.h` | 38 Zeilen | neue Member, neue überschriebene Methoden | ggf. neuer Slot |
 
-**Der kleinste Abstand ist null: Alle drei schreiben in denselben Konstruktor
-(`:42–74`) und in dieselbe Kopfdatei von 38 Zeilen.** Ein Textkonflikt ist bei
-paralleler Arbeit nicht unwahrscheinlich, sondern der Normalfall.
+**Der kleinste Abstand ist null: Beide schreiben in dieselbe 157-Zeilen-Datei
+und dieselbe Kopfdatei von 38 Zeilen.** Ein Textkonflikt ist bei paralleler
+Arbeit nicht unwahrscheinlich, sondern der Normalfall. Mit #68 wäre es noch
+enger gewesen — es hätte dieselben Stellen wie #56 angefasst.
 
 **Empfohlene Zahl der Dev-Agenten: eins.** Sie folgt aus den Bereichen, nicht
 aus der Erlaubnis — dieselbe Herleitung wie in Sprint 5, mit umgekehrtem
-Ergebnis.
+Ergebnis. **Der Wegfall von #68 ändert daran nichts**: Zwei Stories in einer
+157-Zeilen-Datei parallelisieren so wenig wie drei.
 
 ### 5.2 Dateimenge Strang A
 
 | | **Strang A** — die einzige Fläche dieses Sprints |
 |---|---|
-| **Issues** | #55, #56 (+#68 nach Schätzung) |
+| **Issues** | **#55, #56** (9 SP) |
 | **Zweig** | `story/55-fensterhuelle` |
 | **Quellen & Tests** | `src/capture/capturewindow.{h,cpp}` — **ganz**, der Strang ist allein darin; `src/capture/textareaheight.{h,cpp}` **nur**, falls #56 die Höhenformel berührt (sie sollte es nicht: der Fehler sitzt im Auslöser, nicht in der Formel); `tests/capturetest.cpp` |
 | **Build** | `src/CMakeLists.txt` — **nur** der `denkzettelcapture`-Block (`:41–52`, `target_link_libraries` bei `:48–52`): `KF6::Svg` und `KF6::WindowSystem` ergänzen; `CMakeLists.txt` (Wurzel) — **nur** die `find_package(KF6 …)`-Komponentenliste (`:24–33`): `Svg` aufnehmen; `tests/CMakeLists.txt` — **nur** der `capturetest`-Block (`:24–34`, Plattformthema nach 3.4) und ein **neuer** `captureshots`-Block nach dem Muster von `libraryshots` (`:65–72`) |
 | **Belege & Prüfmittel** | `docs/scrum/reviews/sprint-06-s55-huelle/` — Bericht, eigene Bilder, Messprotokolle; **neu anzulegen: `tests/captureshots.cpp`** (es gibt heute keinen Bildläufer für das Erfassungsfenster — `searchshots`, `libraryshots` und `editshots` hängen alle an `denkzettelui`) |
 | **Fachliche Quellen** | **SPEC 3** (`:110–131`) — kennt die Hülle heute nicht (AK 9); **SPEC 15** (`:591–615`) — die KF6-Liste nennt `KSvg` nicht; **SPEC 16** (`:616–640`) — der Bedingungssatz zum Plattformthema führt heute nur `shelltest` und `librarytest`; Wireframes 4a/4b als Referenz, **nicht** zu ändern |
-| **Ausdrücklich nicht** | `src/ui/*` (außer #68, siehe unten), `src/shell/*`, `src/store/*`, `tests/librarytest.cpp`, `tests/libraryshots.cpp`, `tests/editshots.cpp`, `wireframes/` |
+| **Ausdrücklich nicht** | **`src/ui/*`** — mit dem Wegfall von #68 ist die Fläche jetzt vollständig auf `src/capture/` begrenzt; ferner `src/shell/*`, `src/store/*`, `tests/librarytest.cpp`, `tests/libraryshots.cpp`, `tests/editshots.cpp`, `wireframes/` |
 
 **Zwei Zeilen, die leicht übersehen werden und beide zur Pflicht gehören:**
 
@@ -395,13 +517,17 @@ Ergebnis.
   × 2 Desktop-Themes = **12 Bilder**. Ohne Läufer entstehen sie nicht. Er steht
   deshalb **in** der Dateimenge — das ist genau der karpathy-3.1-Befund aus
   Sprint 4, angewandt statt wiederholt.
-- **#68 sprengt die Fläche.** Sein AK nennt Erfassungsfenster **und**
-  Bibliothek. Wird es gezogen, kommt `src/ui/librarywindow.cpp` und
-  `tests/librarytest.cpp` in die Dateimenge des Strangs. Da nur ein Strang
-  läuft, ist das kein Konfliktrisiko — aber es ist der Grund, warum #68s
-  Schätzung nicht am Capture-Fenster allein bemessen werden darf (2.1).
+- **Der Läufer ist auf #55 gebucht, nicht auf #56**, und daran hängt eine
+  Schätzung: Der Zweitschätzer bindet seine 1 an genau diese Zuordnung (2.3).
+  #56 nutzt den Läufer für seine zwei Bilder mit, zahlt ihn aber nicht.
 
-### 5.3 Zwei Festlegungen
+**Was der Wegfall von #68 an der Fläche ändert:** Die Dateimenge ist jetzt
+**vollständig auf `src/capture/` begrenzt** — kein Zugriff auf
+`src/ui/librarywindow.cpp`, keinen Delegate, keine Labels der Bibliothek. Das
+ist der saubere Zuschnitt, den das Planning von 19:40 nur unter der Bedingung
+„#68 ≤ 3" nicht bekommen hätte.
+
+### 5.3 Drei Festlegungen
 
 1. **`QT_QPA_PLATFORMTHEME=kde` an `capturetest` setzt Strang A**, wann immer
    er es braucht. Es ist heute wirkungslos (3.4, 10/10 in beiden Umgebungen),
@@ -418,6 +544,21 @@ Ergebnis.
    unterscheiden sich von denen unter Theme Y —, nicht absolut. Meine Messung
    liefert den Grund gleich mit: `marginSize()` gibt `7,99998`, nicht `8`
    (3.2, Folgerung 2).
+3. **Die #56-Heilung gehört in den `eventFilter` auf `m_text`, nicht in ein
+   `changeEvent` am Fenster.** Das ist ein Messbefund des Zweitschätzers
+   (Kommentar an #56, Belege unter `docs/scrum/reviews/sprint-06-schaetzung/`):
+   `QEvent::FontChange` erreicht den `eventFilter` auf **allen drei** Wegen, ein
+   `changeEvent` am Fenster verpasst **Weg C** — und Weg C (`field.setFont`) ist
+   genau der, den **AK 2 dem Test vorschreibt**.
+   **Warum das als Festlegung dasteht und nicht als Hinweis:** Wer die Heilung
+   ins `changeEvent` legt und den Test nach AK 2 schreibt, bekommt einen roten
+   Test, der nichts über die Sache sagt — die Bauart, gegen die `CLAUDE.md`
+   seine Prüfhaltung fasst („Ein Testaufbau, in dem der Fehler gar nicht
+   auftreten *kann*, ist kein Test" — hier in der Spiegelform: ein Aufbau, in
+   dem die Heilung gar nicht wirken *kann*). Der naheliegende Weg ist hier der
+   falsche, und das fällt ohne Messung nicht auf.
+   `capturewindow.cpp` hat den Filter bereits (`:52`, `:91–109`) — die Heilung
+   hängt sich an einen bestehenden Weg, sie baut keinen neuen.
 
 ---
 
@@ -426,11 +567,12 @@ Ergebnis.
 Welche Stories UI-Stories im Sinne von DoD 3 sind, legt der PO beim Planning
 fest (Kundenentscheidung 31.07.2026).
 
+### 6.1 Beide Stories sind UI-Stories
+
 | Issue | UI-Story? | Prüfmittel nach DoD 3 | Grund |
 |---|---|---|---|
 | **#55** | **ja, mit geteilter Bildpflicht** | *Rundung, Kontur, Fläche, Farbrollen, Maße:* eigene Bilder von `denkzettel-ux` aus dem Sprint-Stand, offscreen, 3 Zustände × 2 Farbschemata × 2 Desktop-Themes. *Schatten:* **kein Bild möglich** — benannter Ersatz, siehe 6.2 | Reiner **Zustand**: „Bei Zuständen ist das Bild der Prüfgegenstand, nicht die Zusicherung" (B3). Es ist die bildlastigste Story, die das Projekt bisher hatte |
-| **#56** | **ja, mit Bildpflicht** | Zwei Bilder aus **einem** Lauf: kleine und große Systemschrift, je das ganze Fenster | Die Feldhöhe ist ein Zustand, und der Kunde hat die 3 Zeilen bei der Sprint-1-Abnahme am Bild zurückgewiesen — dasselbe Bild schließt sie wieder aus |
-| **#68** *(falls gezogen)* | **ja, mit Bildpflicht** | Bilder vor/nach der Schriftänderung aus **einem** Lauf, Erfassungsfenster **und** Bibliothek | Dieselbe Bauart wie #58 in Sprint 5: geprüft wird, dass ein **stehendes** Fenster der Änderung folgt |
+| **#56** | **ja, mit Bildpflicht — auf #55s Läufer** | Zwei Bilder aus **einem** Lauf: kleine und große Systemschrift, je das ganze Fenster. **Der Läufer wird von #55 gestellt** (2.3, 5.2) | Die Feldhöhe ist ein Zustand, und der Kunde hat die 3 Zeilen bei der Sprint-1-Abnahme am Bild zurückgewiesen — dasselbe Bild schließt sie wieder aus. **Und es ist der einzige Nachweis, den es hier gibt:** Am Kundenblick ist #56 nicht prüfbar (4.1.1) |
 
 ### 6.2 Die Konsequenz für DoD 3 — ausdrücklich, weil sie sonst später als Auslassung gelesen wird
 
@@ -505,20 +647,24 @@ drücken — liegt der Schatten beim zweiten Mal noch darunter?"*
    die rote Zusicherung geschrieben hat, heilt sie.** Bei einem Strang ist das
    trivial — bis ein *bestehender* fremder Test rot wird; dann ist es ein
    Impediment an den PO, keine Eigenreparatur (melden, nicht heilen).
-6. **Der `/usr`-Takt.** Alle Stories brauchen den installierten Stand: #55 für
-   Hülle und Schatten am echten Plasma, #56 für die Schriftumstellung, #68 für
-   den laufenden Betrieb. **Der Strang installiert nicht selbst** (DoD 2,
+6. **Der `/usr`-Takt.** #55 braucht den installierten Stand für Hülle und
+   Schatten am echten Plasma. **Der Strang installiert nicht selbst** (DoD 2,
    Präzisierung nach Sprint-3-M1); der PO taktet, und der Endstand wird am
    Sprint-Ende einmal installiert und **der Hauptweg jeder Story daran
    ausgeführt**. *Das war der Mangel M1 aus Sprint 5* — dort belegte der
    Installationstakt den Stand, aber keinen einzigen Hauptweg. Bei #55 ist die
    Wiederholung besonders teuer: Der Schatten ist der einzige Nachweis, der
    **ausschließlich** dort zu führen ist.
-7. **Eine Story trägt zwei Drittel des Sprints.** Fällt #55 in die
-   Loop-Disziplin (zweimal derselbe Fehlschlag ohne neue Evidenz → Stopp und
-   Impediment), fällt der Sprint, nicht ein Viertel davon. Das ist der Preis
-   dieses Schnitts, und er ist bewusst gezahlt: Der Kunde hat den Befund
-   zweimal angemahnt.
+   **#56 hat hier keinen Hauptweg am installierten Stand** — das ist die Folge
+   von 4.1.1 und gehört im Installationstakt **als benannte Grenze notiert**,
+   nicht stillschweigend ausgelassen. Sein Nachweis ist Test und Bild.
+7. **Eine Story trägt acht von neun Punkten.** Fällt #55 in die Loop-Disziplin
+   (zweimal derselbe Fehlschlag ohne neue Evidenz → Stopp und Impediment),
+   fällt der Sprint — was bliebe, wäre eine 1. Das ist der Preis dieses
+   Schnitts, und er ist bewusst gezahlt: Der Kunde hat den Befund zweimal
+   angemahnt. **Mit dem Wegfall von #68 hat sich das Verhältnis verschärft**
+   (vorher 8 von 12 möglichen); die vier freien Punkte (4.4) sind die einzige
+   Reserve, die dieser Sprint hat.
 8. **Bilderzahl.** AK 8 ergibt 3 Zustände × 2 Schemata × 2 Themes = **12
    Bilder** vom Strang, dazu die eigenen Bilder des UI-Reviews (Sprint 5: 20).
    Der Läufer muss das Desktop-Theme **im Lauf** wechseln können — meine Sonde
@@ -532,22 +678,25 @@ drücken — liegt der Schatten beim zweiten Mal noch darunter?"*
 Die AK- und Label-Anpassungen macht der PO; der Scrum Master legt den Wortlaut
 vor.
 
-**K1 — `sp:8` an #55, und die Label-Disziplin als Dauerpflicht.**
-#55 trägt kein `sp:`-Label, obwohl die Schätzung seit dem 02.08.2026 im
-Issue-Text steht. Das ist **M2 aus Sprint 5**, an der nächsten Story wiederholt.
-*Vorschlag:* `sp:8` an #55 setzen, **vor** der Freigabe. Und: Seit
+**K1 — `sp:8` an #55, und die Label-Disziplin als Dauerpflicht. ✅ ERLEDIGT 20:03.**
+#55 trug kein `sp:`-Label, obwohl die Schätzung seit dem 02.08.2026 im
+Issue-Text stand. Das war **M2 aus Sprint 5**, an der nächsten Story wiederholt.
+*Vollzug, von mir am Backlog nachgemessen:* **#55 `sp:8` · #68 `sp:5`** gesetzt,
+#56 trug `sp:1` bereits.
+**Der Vorschlag zur Dauerpflicht steht weiter offen und geht in die Retro:** Seit
 Abschluss-Punkt 12 ist das Label die Quelle des **Endwerts** der Schätzhistorie
 (Sprint 5, §24) — ein fehlendes Label erzeugt jetzt eine Lücke in der
-Datenreihe, nicht nur eine unsaubere Rückverfolgung. Wird ein Issue geschätzt,
-wird im selben Zug das Label gesetzt.
+Datenreihe, nicht nur eine unsaubere Rückverfolgung. **Wird ein Issue geschätzt,
+wird im selben Zug das Label gesetzt.** Dieser Satz steht in keiner Regeldatei;
+zweimal in Folge hat ihn eine Nachforderung ersetzt (10, Punkt 9).
 
-**K2 — Schätzungen für #56 und #68 einholen (blockierend).**
-Ohne beide ist **kein zulässiger Sprint schneidbar** (1). Der PO holt sie nach
-dem üblichen Muster: zwei unabhängige Schätzer, kein Blick auf den Alt-Wert.
-*Vorschlag zur Reihenfolge:* zuerst #68 — sein Wert entscheidet, ob der Sprint
-drei oder zwei Stories hat.
+**K2 — Schätzungen für #56 und #68 einholen (blockierend). ✅ ERLEDIGT 20:03.**
+Beide liegen vor: **#68 = 5** (damit draußen), **#56 = 1 bestätigt** (damit
+drin, unter der Bedingung 2.3). Der Vollzug samt Wirkung steht in 2.1. Die
+empfohlene Reihenfolge — #68 zuerst — hat den Schnitt entschieden.
 
-**K3 — #68 AK 2: die offene Frage ist entscheidbar, und zwar jetzt.**
+**K3 — #68 AK 2: die offene Frage ist entscheidbar, und zwar jetzt.
+Gilt weiter, jetzt für Sprint 7.**
 Das AK sagt selbst: *„löst #56 mit oder baut darauf auf — im Planning
 entscheiden."*
 *Vorschlag:* **#68 baut auf #56 auf, #56 wird zuerst gebaut.** Begründung steht
@@ -584,7 +733,17 @@ eine Sicherung.
 Vor dem Strang-Spawn setzt der PO `sprint-06-basis` auf den Ausgangsstand
 (`PROZESS.md`, Sprint-Mechanik). Er trägt den Prüf-Diff des Sprint-Endes.
 
-**K8 — Milestone „Sprint 6"** anlegen und die gezogenen Issues zuordnen.
+**K8 — Milestone „Sprint 6"** anlegen und **#55 und #56** zuordnen — nicht #68.
+
+**K9 — den Schätz-Belegordner prüfen. *(neu 20:03)* ✅ ERLEDIGT.**
+Als ich den Nachtrag begann, lag `docs/scrum/reviews/sprint-06-schaetzung/`
+noch nicht im Repo, während Protokoll und Issue-Kommentare bereits darauf
+verwiesen — genau die Bauart, die ich in 3.1 an der AK-1-Richtigstellung
+beanstandet habe. Ich habe sie deshalb als offenen Punkt hingeschrieben statt
+sie zu übergehen.
+*Vollzug, von mir mit `git ls-files` geprüft:* Elf Dateien versioniert
+(`573901e`, gemerged `5982327`), darunter alle vier Messausgaben und ein
+Skript, das die Messungen wiederholbar macht. **Kein offener Rest.**
 
 ---
 
@@ -606,9 +765,8 @@ nicht.
 
 | Story | Issue | Erstschätzung | Quelle | Revision | End | Umsetzung | Abst. | Faktor | Anlass |
 |---|---|---|---|---|---|---|---|---|---|
-| Capture-Fensterhülle | **#55** | **8** · 02.08.2026 | Sprint-5-Planning §2 (Dev 8 · UX 8, deckungsgleich) — **2 unabhängige** | *keine bisher* | 8 | Sprint 6 | **1** | **1,00** | `keine` |
-| Feldhöhe nach Schriftänderung | **#56** | **1** · 01.08.2026 | Label bei Anlage — **1 Hand** | *ausstehend (K2)* | *offen* | Sprint 6 | **3** | *offen* | *offen* |
-| Schrift folgt zur Laufzeit | **#68** | *ausstehend (K2)* | Sprint-6-Planning — 2 unabhängige | — | *offen* | Sprint 6 | **0** | 1,00 | `keine` — **24.2-Fall** |
+| Capture-Fensterhülle | **#55** | **8** · 02.08.2026 | Sprint-5-Planning §2 (Dev 8 · UX 8, deckungsgleich) — **2 unabhängige** | *keine* | **8** | Sprint 6 | **1** | **1,00** | `keine` |
+| Feldhöhe nach Schriftänderung | **#56** | **1** · 01.08.2026 | Label bei Anlage — **1 Hand** | **bestätigt 1** · 02.08.2026, Zweitschätzung Dev (2.1) | **1** | Sprint 6 | **3** | **1,00** | `keine` |
 
 **Drei Anmerkungen, die das Urteil tragen und die der Verwalter später nicht
 selbst fällen darf:**
@@ -618,78 +776,116 @@ selbst fällen darf:**
   genau ein Ereignis, bei dem eine Revision hätte stattfinden können: dieses
   Planning hier. Damit ist der §24.1-Maßstab erfüllt. **Abstand 1 bekommt seinen
   vierten Punkt**, und zum ersten Mal einen aus einer 8er-Story.
-- **#56 hat Abstand 3.** Angelegt am 01.08.2026, also während Sprint 3;
-  umgesetzt in Sprint 6. Die Zählweise ist die von Sprint 5 (#57 und #58, beide
-  01.08. angelegt, Umsetzung Sprint 5, dort Abstand 2). **Das wäre der bislang
-  weiteste Abstand der Reihe** — bisher reicht sie bis 3 (#11, #12), und beide
-  Punkte dort stammen aus der Schätzklausur. Ein Punkt mit Provenienz „1 Hand"
-  bei Abstand 3 ist deshalb inhaltlich interessant, wie auch immer er ausfällt.
-- **#68 ist ein 24.2-Fall.** Erstschätzung und Umsetzung fallen in dasselbe
-  Planning; sein Faktor ist 1,00 von Konstruktion wegen und keine Messung. Er
-  wird **erfasst, aber nicht gezeichnet** — damit die Auslassung sichtbar bleibt.
+- **#56 hat Abstand 3 und `keine` als Anlass.** Angelegt am 01.08.2026, also
+  während Sprint 3; umgesetzt in Sprint 6. Die Zählweise ist die von Sprint 5
+  (#57 und #58, beide 01.08. angelegt, Umsetzung Sprint 5, dort Abstand 2).
+  **Das ist der bislang weiteste Abstand der Reihe zusammen mit #11 und #12** —
+  und der erste dort, der **nicht** aus der Schätzklausur stammt.
+  **Der Punkt ist gemessen, nicht konstruiert:** #56 hatte drei Sprints lang
+  Gelegenheit zur Revision, und die Zweitschätzung vom 02.08.2026 hat die 1
+  ausdrücklich **bestätigt** statt sie zu übernehmen — dieselbe Form, in der
+  Sprint 5 die 1 an #58 als echten Datenpunkt gewertet hat (dort §24.3).
+  **Das ist der inhaltlich wertvollste Punkt dieses Sprints für die Reihe:** Ein
+  Faktor 1,00 bei Abstand 3, der auf einer Prüfung beruht und nicht auf einer
+  Auslassung.
+- **#68 hat keine Zeile.** Es ist nicht umgesetzt, und eine nicht umgesetzte
+  Story hat keinen Umsetzungssprint. **Seine `sp:5` gehört ausdrücklich nicht in
+  die Reihe** — auch nicht als 24.2-Fall, denn 24.2 erfasst umgesetzte Stories
+  ohne Revisionsgelegenheit, nicht ungezogene. Die Zeile entsteht in dem
+  Planning, das #68 zieht; ihre **Erstschätzung ist dann die 5 vom 02.08.2026
+  mit Provenienz „1 Hand"** (2.4), nicht der Wert, den Sprint 7 konsolidiert.
+  *Der Satz steht hier, weil genau er später verlorengeht.*
 
 **Was die DoD-Prüfung am Sprint-Ende nachzutragen hat:** die tatsächlichen
 Endwerte aus den `sp:`-Labeln, jede Revision im Sprint mit Datum und Fundstelle,
-und das endgültige Anlass-Kennzeichen je Zeile. Fällt #68 aus dem Schnitt,
-entfällt seine Zeile ersatzlos — eine nicht umgesetzte Story hat keinen
-Umsetzungssprint.
+und die Bestätigung des Anlass-Kennzeichens je Zeile. **Ein besonderer
+Prüfpunkt:** Kippt die Läufer-Zuordnung aus 2.3, wird #56 zur 2 — dann ändert
+sich sein Endwert, sein Faktor **und** sein Anlass-Kennzeichen (auf
+`gegenstand-geändert`, weil dann der Umfang der Story gewachsen wäre, nicht die
+Einsicht in sie).
 
 ---
 
 ## 10. Hinweise an den Product Owner
 
-1. **Zwei Schätzungen sind blockierend** (K2): #56 und #68. Ohne sie ist der
-   Sprint nicht schneidbar, weil #55 allein die Story-Untergrenze
-   unterschreitet.
-2. **`sp:8` an #55 vor der Freigabe** (K1) — und ab jetzt Label im selben Zug
-   wie die Schätzung, weil die Schätzhistorie daran hängt.
+1. **K1 und K2 sind erledigt** — beide Schätzungen liegen vor, alle drei
+   `sp:`-Label sind gesetzt und von mir nachgemessen (1, 2.1). **Offen bleibt
+   der Grundsatz dahinter:** Label im selben Zug wie die Schätzung (Punkt 9).
+2. **K9 ist ebenfalls erledigt** — die Schätzbelege liegen versioniert und
+   **wiederholbar** unter `docs/scrum/reviews/sprint-06-schaetzung/`
+   (`pruefen.sh`), von mir per `git ls-files` geprüft.
 3. **Der Schnitt geht dem Kunden zur Freigabe** (Freigabemodell,
    Kundenentscheidung 31.07.2026). Vorzulegen sind Sprint-Ziel (4.1), die
-   gezogenen Issues (4.2) und **ausdrücklich der Kontostand** samt der
+   **zwei** Issues (4.2) und **ausdrücklich der Kontostand** samt der
    Feststellung, dass die Luft Vorsorge für eine 8er-Risikostory ist und kein
    Leerlauf.
 4. **UI-Story-Einstufung ist PO-Entscheidung** (6) — sie muss **vor** dem Spawn
    fallen, besonders die geteilte Belegform bei #55 (6.2).
 5. **Ein Dev-Agent, nicht zwei** (5.1), und der `/usr`-Takt gehört als Verbot
    mit Begründung in den Spawn-Auftrag, nicht als Hinweis (Risiko 6).
-6. **Vier Punkte für den Spawn-Auftrag, die aus meinen Messungen stammen** und
-   dem Strang je einen Fehlversuch ersparen: `marginSize()` liefert `7,99998`
-   statt `8` (3.2); `KWindowShadow::create()` ist offscreen immer `false`, das
-   ist kein Fehler des Codes (3.3); `KSvg` findet das Theme offscreen
-   vollständig, der Bildnachweis trägt (3.2); die Schattenbindung gehört in
-   `present()` nach `show()`, nicht in den Konstruktor (Risiko 2).
+6. **Sechs Punkte für den Spawn-Auftrag, die je einen Fehlversuch ersparen** —
+   vier aus meinen Messungen, zwei aus denen des Zweitschätzers:
+   - `KSvg` findet das Theme offscreen vollständig, der Bildnachweis trägt (3.2);
+   - `marginSize()` liefert bei 8-px-Themes **`7,99998`** statt `8` — eine
+     absolute Zusicherung fällt (3.2, 5.3.2);
+   - `KWindowShadow::create()` ist offscreen **immer** `false`; das ist kein
+     Fehler des Codes (3.3);
+   - die Schattenbindung gehört in `present()` **nach** `show()`, nicht in den
+     Konstruktor (Risiko 2);
+   - **die #56-Heilung gehört in den `eventFilter`, nicht in ein `changeEvent`**
+     — ein `changeEvent` verpasst genau den Weg, den AK 2 dem Test vorschreibt
+     (5.3.3, Dev-Messung);
+   - #56 ist **am Kundenblick nicht prüfbar**; sein Nachweis ist Test und Bild
+     (4.1.1).
 7. **#70 bei der Freigabe mitentscheiden lassen** (K5) — ein Satz vom Kunden,
    und das Issue wird für Sprint 7 schätzbar.
-8. **#61 für Sprint 7 vormerken** (4.4) — Abschluss-Punkt 10 bleibt bis dahin
-   ausgesetzt, und die Aussetzung sollte nicht zum Dauerzustand werden.
+8. **Sprint 7 zeichnet sich ab** (4.4): ein Bibliothekssprint mit **#68** als
+   Kern (Dev-Empfehlung, am Code begründet), dazu **#59**, **#71**, **#72** und
+   ggf. **#61** — letzteres, damit Abschluss-Punkt 10 nicht dauerhaft ausgesetzt
+   bleibt. **Vier der fünf brauchen vorher Schätzungen; #68s `sp:5` stammt aus
+   einer Hand und ist keine** (2.4).
 9. **Retro nach Sprint 6 ist fällig** (Kadenz: Sprint 3, 6, 9, …). Kandidaten
    liegen vor: die vier aus Sprint 4 §17.6 und der B13-Nachzug der erweiterten
-   Dateimengen-Notation aus Sprint 5 §5.1. **Dazu neu aus diesem Planning:** die
-   Frage, ob die Label-Pflicht nach der Schätzung in `PROZESS.md` gehört — sie
-   ist jetzt zweimal in Folge gerissen worden (M2 in Sprint 5, K1 hier).
+   Dateimengen-Notation aus Sprint 5 §5.1. **Dazu zwei neue aus diesem
+   Planning:**
+   - **Label im selben Zug wie die Schätzung.** Zweimal in Folge gerissen (M2 in
+     Sprint 5, K1 hier), beide Male durch Nachforderung geheilt statt durch eine
+     Regel. Der Satz steht in keiner Datei, die eine Sitzung von selbst liest.
+   - **Ein Sprint-Ziel behauptet keine Nachprüfbarkeit, die es nicht gibt.**
+     Mein eigener Entwurf von 19:40 hat es getan (4.1.1); aufgefallen ist es
+     erst, als #68 wegfiel und die Stütze verschwand.
 
 ---
 
 ## 11. Was dem Kunden zur Entscheidung vorliegt
 
-1. **Sprint-Ziel und Schnitt** — das Erfassungsfenster bekommt die Hülle seines
-   Desktop-Themes (#55) und behält seine fünf Zeilen bei größerer Systemschrift
-   (#56); je nach Schätzung kommt hinzu, dass Schriftänderungen im laufenden
-   Betrieb ankommen (#68).
-2. **Der Sprint hat einen Gegenstand, nicht vier.** #55 trägt allein 8 der 9
-   bis 12 Punkte. Das ist Absicht — der Befund ist zweimal angemahnt worden —,
-   und es heißt: Fällt diese Story, fällt der Sprint.
-3. **Bewusst nicht gefüllt.** Zwei bis drei von vier zulässigen Stories, 9 bis
-   12 von ~13 Punkten. Die Luft ist Vorsorge für Review-Auflagen an der größten
-   Story, die dieses Projekt bisher hatte. Wer das Konto voller will: #59
-   (ruhige Liste bei Fensteraktivierung) wäre der Zugang — er kostet die
-   Klammer des Sprint-Ziels.
-4. **Ein Nachweis kann nur vom Kunden kommen.** Der **Schatten** ist am
-   Prüfrechner grundsätzlich nicht abzubilden — gemessen, nicht vermutet.
-   In der Abnahme steht deshalb wieder ein **Foto-Punkt**, wie beim
-   Wächterdialog in Sprint 5, und dazu die Frage: Liegt der Schatten auch beim
-   **zweiten** Öffnen des Fensters noch darunter?
-5. **Eine kleine Entscheidung nebenbei** (K5): Soll die Liste beim Wandern mit
+1. **Sprint-Ziel und Schnitt — zwei Stories, 9 Punkte.** Das Erfassungsfenster
+   bekommt die Hülle seines Desktop-Themes: **runde Ecken**, Kontur und Schatten
+   (#55). Dazu wird ein Fehler vorgezogen geheilt, der heute noch nicht sichtbar
+   ist (#56).
+2. **Der Sprint hat einen Gegenstand, nicht mehrere.** #55 trägt **acht der
+   neun Punkte**. Das ist Absicht — der Befund ist zweimal angemahnt worden —,
+   und es heißt auch: Fällt diese Story, fällt der Sprint.
+3. **Bewusst nicht gefüllt.** Zwei von vier zulässigen Stories, 9 von ~13
+   Punkten. Die Luft ist Vorsorge für Review-Auflagen an der größten Story, die
+   dieses Projekt bisher hatte. Wer das Konto voller will: #59 (ruhige Liste bei
+   Fensteraktivierung) wäre der Zugang — er kostet die Klammer des Sprint-Ziels
+   und nimmt Sprint 7 eine seiner vier Stories weg.
+4. **#56 werden Sie nicht sehen können — und das ist kein Versäumnis.** Die
+   Feldhöhe fällt nach einer Schriftänderung von fünf auf drei Zeilen; genau die
+   drei Zeilen, die Sie bei der Sprint-1-Abnahme zurückgewiesen haben. Sichtbar
+   wird der Fehler erst, wenn Denkzettel Schriftänderungen im laufenden Betrieb
+   überhaupt annimmt — **das ist #68 und kommt in Sprint 7.** Wir heilen ihn
+   **vorher**, damit die Verbesserung dann nicht die Verschlechterung mitbringt.
+   Belegt wird er durch Test und Bild, nicht durch Ihren Blick.
+5. **Ein Nachweis kann nur von Ihnen kommen.** Der **Schatten** ist am
+   Prüfrechner grundsätzlich nicht abzubilden — gemessen, nicht vermutet. In der
+   Abnahme steht deshalb wieder ein **Foto-Punkt**, wie beim Wächterdialog in
+   Sprint 5, und dazu eine zweite Frage: Liegt der Schatten auch beim
+   **zweiten** Öffnen des Fensters noch darunter? (Das Fenster wird bei jedem
+   Zeigen neu aufgebaut — der Schatten kann dabei verlorengehen, und kein Test
+   dieses Projekts würde es bemerken.)
+6. **Eine kleine Entscheidung nebenbei** (K5): Soll die Liste beim Wandern mit
    der Pfeiltaste den Tageskopf ins Bild holen oder stehenbleiben? Kein Scope
    für diesen Sprint — die Antwort macht #70 für den nächsten schätzbar.
 
@@ -716,18 +912,36 @@ und die drei Verkabelungsstellen von `KF6::Svg` ergänzt; die Konsequenz der
 nicht bildbaren Schatten für DoD 3 ausformuliert samt der Grenze, die
 ausschließlich am Kundenblick hängt; acht Risiken und acht Klärungspunkte mit
 Wortlautvorschlag benannt; die **Schätzhistorie erstmals beim Planning** angelegt
-(Abschluss-Punkt 12) — mit der Feststellung, dass #55 in die Kurve geht und #56
-den bislang weitesten Abstand der Reihe trägt.
+(Abschluss-Punkt 12).
 
-**next:** (1) PO holt die zwei blockierenden Schätzungen (#56, #68) — der Wert
-von #68 entscheidet zwischen zwei und drei Stories. (2) PO setzt `sp:8` an #55.
-(3) PO legt die UI-Story-Einstufung fest, besonders die geteilte Belegform bei
-#55 (6.2), und arbeitet K3, K4 und K6 in die Issues ein. (4) PO legt Sprint-Ziel
-und Schnitt dem Kunden zur Freigabe vor, **mit dem Kontostand** und der Frage
-aus K5 (#70). (5) Nach der Freigabe: Milestone „Sprint 6", `sprint-06-basis`,
-dann Spawn **eines** Strangs nach 5.2, in der Reihenfolge #56 → #55 → #68.
-(6) Freigabe-Stand in die Kontotabelle (1) eintragen — dieser Punkt ist in
-Sprint 5 offen geblieben (dort §19). (7) Vor dem Sprint-7-Planning zu heilen:
-die drei Klärungen und die zweite Schätzung zu #69, unverändert offen seit
-Sprint 5 §2.4. (8) **Retro nach diesem Sprint** (Kadenz) — Kandidaten in 10,
-Punkt 9.
+**Zweiter Durchgang (20:03), nach Eintreffen der beiden Schätzungen:** den
+**Schnitt festgeschrieben** — #68 mit 5 SP ausgeschieden nach der Bedingung, die
+**vor** der Zahl im Protokoll stand, #56 mit 1 SP bestätigt, Ergebnis **#55 +
+#56 = 9 SP / 2 Stories**; alle drei `sp:`-Label am Backlog nachgemessen statt
+die Meldung zu glauben (K1, K2 erledigt); **einen Fehler im eigenen Entwurf
+korrigiert** — das Sprint-Ziel von 19:40 behauptete für #56 eine
+Nachprüfbarkeit, die es nicht gibt, und der Wegfall von #68 hat die Stütze
+weggezogen (4.1.1); die Bedingung des Zweitschätzers (Bildläufer auf #55
+gebucht) als **Prüfsatz für die DoD-Prüfung** verankert samt der Folge für das
+Anlass-Kennzeichen (2.3, 9); festgehalten, dass #68s `sp:5` **aus einer Hand**
+stammt und in Sprint 7 nicht für eine Schätzung gehalten werden darf (2.4); die
+beiden Dev-Messbefunde als **Festlegung** in den Strang-Zuschnitt genommen
+(5.3.3, 10.6); den zunächst fehlenden Belegordner als **K9** offen
+hingeschrieben statt ihn als erledigt zu behaupten — und nach seinem Eintreffen
+per `git ls-files` geprüft und geschlossen; das Sprint-7-Bild aus der
+Dev-Empfehlung abgeleitet (4.4).
+
+**next:** (1) *(erledigt während des Nachtrags: K9 — die Schätzbelege sind
+versioniert und wiederholbar, `573901e`.)* (2) PO legt die UI-Story-Einstufung
+fest, besonders die geteilte Belegform bei #55 (6.2), und arbeitet K4 und K6 in
+die Issues ein; **K3 wandert nach Sprint 7** (#68 AK 2 auf „setzt #56 voraus"
+fassen). (3) PO legt Sprint-Ziel und Schnitt dem Kunden zur Freigabe vor, **mit
+dem Kontostand**, mit der Erklärung zu #56 (11, Punkt 4) und mit der Frage aus
+K5 (#70). (4) Nach der Freigabe: Milestone „Sprint 6" mit **#55 und #56**,
+`sprint-06-basis`, dann Spawn **eines** Strangs nach 5.2, in der Reihenfolge
+**#56 → #55**. (5) Freigabe-Stand in die Kontotabelle (1) eintragen — dieser
+Punkt ist in Sprint 5 offen geblieben (dort §19). (6) Vor dem
+Sprint-7-Planning zu heilen: zweite Schätzungen für **#68, #59 ist gedeckt,
+#71, #72, #61**, dazu die drei Klärungen und die zweite Schätzung zu **#69**,
+unverändert offen seit Sprint 5 §2.4. (7) **Retro nach diesem Sprint**
+(Kadenz) — Kandidaten in 10, Punkt 9.
