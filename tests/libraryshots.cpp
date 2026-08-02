@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QKeyEvent>
 #include <QListView>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QTemporaryDir>
 #include <QTest>
@@ -53,6 +54,61 @@ QListView *listOf(QWidget &window)
     auto *list = window.findChild<QListView *>();
     Q_ASSERT(list);
     return list;
+}
+
+QPushButton *buttonNamed(QWidget &window, const QString &text)
+{
+    const QList<QPushButton *> buttons = window.findChildren<QPushButton *>();
+    for (QPushButton *button : buttons) {
+        if (button->text() == text) {
+            return button;
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * The two colour schemes of the scheme-change series (issue #58).
+ *
+ * The four colours that carry the picture are the measured ones of Breeze
+ * Light and Breeze Dark, taken from the UX investigation of 01.08.2026
+ * (`docs/scrum/reviews/2026-08-01-capture-theme/palette.txt`); the rest is
+ * derived from them, because a picture in which only the text colour changes
+ * would show a light window with dark text and prove nothing.
+ */
+QPalette breezePalette(bool dark)
+{
+    const QColor window = dark ? QColor(0x20, 0x23, 0x26) : QColor(0xef, 0xf0, 0xf1);
+    const QColor base = dark ? QColor(0x14, 0x16, 0x18) : QColor(0xff, 0xff, 0xff);
+    const QColor text = dark ? QColor(0xfc, 0xfc, 0xfc) : QColor(0x23, 0x26, 0x29);
+    const QColor placeholder = dark ? QColor(0xa1, 0xa9, 0xb1) : QColor(0x70, 0x7d, 0x8a);
+
+    QPalette palette;
+    palette.setColor(QPalette::Window, window);
+    palette.setColor(QPalette::WindowText, text);
+    palette.setColor(QPalette::Base, base);
+    palette.setColor(QPalette::AlternateBase, window);
+    palette.setColor(QPalette::Text, text);
+    palette.setColor(QPalette::Button, window);
+    palette.setColor(QPalette::ButtonText, text);
+    palette.setColor(QPalette::ToolTipBase, base);
+    palette.setColor(QPalette::ToolTipText, text);
+    palette.setColor(QPalette::PlaceholderText, placeholder);
+    palette.setColor(QPalette::Highlight, QColor(0x3d, 0xae, 0xe9));
+    palette.setColor(QPalette::HighlightedText, dark ? QColor(0xfc, 0xfc, 0xfc) : QColor(0xff, 0xff, 0xff));
+    palette.setColor(QPalette::Link, dark ? QColor(0x1d, 0x99, 0xf3) : QColor(0x29, 0x80, 0xb9));
+
+    return palette;
+}
+
+/** Hands the new scheme to the standing window, as a scheme change does. */
+void applyScheme(const QPalette &palette)
+{
+    qApp->setPalette(palette);
+    // Qt delivers the palette through a posted event. Without letting it
+    // through, the picture would be taken before the window has seen it — and
+    // an unhealed window would look healed (issue #58, AK 3).
+    QCoreApplication::processEvents();
 }
 
 /** Walks the selection up `steps` rows, as the arrow key does. */
@@ -320,6 +376,44 @@ int main(int argc, char **argv)
         QKeyEvent down(QEvent::KeyPress, Qt::Key_Down, Qt::NoModifier);
         QCoreApplication::sendEvent(list, &down);
         shoot(window, directory, QStringLiteral("09-ruhiges-bild-innerhalb-der-gruppe.png"));
+    }
+
+    // 10 — the colour scheme changed under the standing window (issue #58).
+    // One window, four pictures, no rebuild in between: the daemon builds this
+    // window at start and keeps it (SPEC 2.1, main.cpp), so a scheme that
+    // reaches it late has to reach it at all. The reading state carries the
+    // timestamp of the note, the edit state „Kategorie", „Tags" and the key
+    // hint — those are the QLabel places; the timestamps inside the list are
+    // painted by the delegate and have always followed.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        addNote(store,
+                QStringLiteral("Idee für Denkzettel — Bündel-Export erst vorschlagen, wenn mindestens "
+                               "fünf Notizen zum selben Thema da sind"),
+                QStringLiteral("2026-07-31T11:05:00"));
+        addNote(store, QStringLiteral("journalctl -u whisperd --since today"),
+                QStringLiteral("2026-07-30T21:48:00"));
+
+        applyScheme(breezePalette(false));
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        open(window);
+        // Rows: head „Heute", its note, head „Gestern", its note — the note of
+        // yesterday, so the reading pane carries „Gestern 21:48".
+        listOf(window)->setCurrentIndex(listOf(window)->model()->index(3, 0));
+        shoot(window, directory, QStringLiteral("10a-schema-hell-lesen.png"));
+
+        applyScheme(breezePalette(true));
+        shoot(window, directory, QStringLiteral("10b-schema-dunkel-lesen.png"));
+
+        buttonNamed(window, QStringLiteral("Bearbeiten"))->click();
+        shoot(window, directory, QStringLiteral("10c-schema-dunkel-bearbeiten.png"));
+
+        applyScheme(breezePalette(false));
+        shoot(window, directory, QStringLiteral("10d-schema-hell-bearbeiten.png"));
     }
 
     return 0;

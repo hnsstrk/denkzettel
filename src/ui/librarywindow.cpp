@@ -76,9 +76,12 @@ QLabel *subtleLabel(const QString &text, QWidget *parent)
 {
     QLabel *label = smallLabel(text, parent);
 
-    QPalette palette = label->palette();
-    palette.setColor(QPalette::WindowText, palette.color(QPalette::PlaceholderText));
-    label->setPalette(palette);
+    // The role, not the colour: this window is built at daemon start and kept
+    // (SPEC 2.1, main.cpp), so a colour taken from the palette once would stay
+    // put when the user changes the colour scheme — and stay put until the
+    // daemon is restarted. A role is resolved anew on every palette change
+    // (issue #58, the second site of issue #54).
+    label->setForegroundRole(QPalette::PlaceholderText);
 
     return label;
 }
