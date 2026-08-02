@@ -59,8 +59,12 @@ target_link_libraries(shelltest PRIVATE
 add_test(NAME shelltest COMMAND shelltest)
 
 # The tray item carries a menu, so the test needs a QApplication and with it a
-# platform that runs without a compositor.
-set_tests_properties(shelltest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+# platform that runs without a compositor. The KDE platform theme comes on top
+# because the menu entries are checked for their icon names: without it the icon
+# search paths hold nothing but the Qt resource, QIcon::fromTheme() returns a
+# null icon, and every name would read empty (issue #60).
+set_tests_properties(shelltest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
 
 add_executable(firstruntest firstruntest.cpp)
 

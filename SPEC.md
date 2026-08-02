@@ -416,15 +416,60 @@ v1 aber nicht gebaut.
 
 ## 10. Tray und Benachrichtigungen
 
-- **KStatusNotifierItem**, dauerhaft. Menü: Capture öffnen (Meta+N),
-  Sprachnotiz aufnehmen (Meta+Umschalt+N), Bibliothek, Analyse jetzt,
-  Vorschläge (Zähler), Einstellungen, Beenden.
+- **KStatusNotifierItem**, dauerhaft. **Ein** Menü, in drei Gruppen; Wortlaut
+  und Symbolnamen sind verbindlich (Wireframe 5a, Issue #60). Die Symbole
+  kommen ausnahmslos aus dem Symbol-Thema: Nur ein Symbol aus dem Thema trägt
+  einen Namen, und über das Tray-Protokoll geht der **Name**, nicht das Bild.
+
+  | Eintrag | Symbolname | Zustand | Kürzel-Hinweis |
+  |---|---|---|---|
+  | Notiz erfassen | `document-edit` | aktiv | Meta+N |
+  | Sprachnotiz aufnehmen | `audio-input-microphone` | inaktiv bis M4 | Meta+Umschalt+N ab M4 |
+  | *— Trenner —* | | | |
+  | Bibliothek öffnen | `view-list-text` | aktiv | — |
+  | Jetzt analysieren | `system-run` | inaktiv bis M5 | — |
+  | Vorschläge (Zähler) | `tools-wizard` | inaktiv bis M5 | — |
+  | *— Trenner —* | | | |
+  | Denkzettel einrichten … | `configure` | **erst mit #16** | — |
+  | Beenden | `application-exit` | aktiv | — |
+
+  **„Beenden" steht abgesetzt in der letzten Gruppe** und nie neben dem
+  häufigsten Eintrag: Es beendet den Dienst und mit ihm das Kürzel. Bis der
+  Einstellungs-Dialog (#16) steht, ist „Denkzettel einrichten …" **gar kein
+  Eintrag** — ein dauerhaft ausgegrauter erklärt dem Nutzer nicht, warum er
+  grau ist (KDE HIG).
+- **Der Kürzel-Hinweis ist ein Hinweis.** Meta+N steht als Text am Eintrag und
+  darf die Registrierung bei KGlobalAccel nicht doppeln; das Kürzel der
+  Menü-Aktion trägt deshalb `Qt::WidgetShortcut` und erreicht nur das Fenster
+  seines Menüs — und das hat keines, plasmashell zeichnet es.
 - **Linksklick auf das Tray-Icon öffnet dasselbe Menü wie der Rechtsklick**
   (`ItemIsMenu`). Das weicht bewusst vom KDE-Standard ab, der den Linksklick
   für eine Hauptaktion vorsieht: Denkzettel hat kein Hauptfenster, sondern
   mehrere gleichrangige Wege, und die Recherche zum KDE-Verhalten wurde dem
-  Kunden vorgelegt. Kundenentscheidung vom 01.08.2026, belegt in Issue #44 —
-  **bei HIG- oder UI-Reviews kein Befund.**
+  Kunden vorgelegt. Kundenentscheidung vom 01.08.2026, belegt in Issue #44, am
+  02.08.2026 nach erneuter Vorlage bestätigt — **bei HIG- oder UI-Reviews kein
+  Befund.**
+- **Entdeckte Bedingung (Messung 02.08.2026, Issue #60): Getrennte Menüs für
+  Links- und Rechtsklick sind unter Plasma/Wayland nicht zu haben.** Sie
+  hießen `ItemIsMenu=false` plus ein eigenes Menü im
+  `activateRequested`-Handler; das Menü müsste dann Denkzettel selbst
+  zeichnen. Als Popup wird es erzeugt und zwei Millisekunden später wieder
+  geschlossen — ein `Qt::Popup` braucht unter Wayland eine Elternfläche und
+  einen Eingabe-Grab, und ein Klient mit nichts als einem Tray-Symbol hat
+  beides nicht. Als gewöhnliches Fenster bleibt es stehen, aber die
+  gewünschte Lage wird verworfen und KWin setzt es in die Bildschirmmitte.
+  Deshalb bleibt es bei einem Menü; der Kunde hat den Rückfall am 02.08.2026
+  entschieden. Beleg: `docs/scrum/reviews/sprint-04-s33-traymenues/`. Von den
+  drei in Wireframe 5a benannten HIG-Abweichungen bleibt damit **nur A1**
+  (Linksklick öffnet ein Menü); A2 (zwei verschiedene Menüs) und A3 („Beenden"
+  nur über den Rechtsklick) entfallen ersatzlos, weil es die zweite Liste
+  nicht gibt.
+- **Zweite entdeckte Bedingung (ebenda): Die Symbolnamen erreichen Plasma nur,
+  solange ein Symbol-Thema auflösbar ist.** Ohne Plattform-Thema enthalten die
+  Suchpfade nichts als die Qt-Ressource, `QIcon::fromTheme()` liefert ein
+  leeres Symbol ohne Namen, und das Menü käme unbebildert an. Unter Plasma ist
+  das Thema da; für Testläufe ist `QT_QPA_PLATFORMTHEME=kde` deshalb
+  Voraussetzung, nicht Zierde.
 - Icon-Zustände: normal · „Vorschlag wartet" (Badge) · Fehlerzustand
   (Analyse-/Transkriptionsfehler, Tooltip nennt Ursache).
 - Icons in v1 aus dem Breeze-Bestand (App- und Tray-Icon abgeleitet, Badge
