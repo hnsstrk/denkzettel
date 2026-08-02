@@ -1,0 +1,24 @@
+Messung 2 — KConfigWatcher auf kdeglobals gegen die Schriftfrage
+===============================================================
+
+XDG_CONFIG_HOME: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-06-schaetzung/build/sandkasten
+Sitzungsbus    : unix:path=/tmp/dbus-DC7E…
+
+start     QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+t+1s    QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+
+WATCHER  Gruppe=General  Schlüssel=font  readEntry(font)=20  readEntry(smallestReadableFont)=10
+nach dem Signal  QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+
+WATCHER  Gruppe=General  Schlüssel=smallestReadableFont  readEntry(font)=20  readEntry(smallestReadableFont)=16
+nach dem Signal  QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+t+2s    QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+t+3s    QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+t+4s    QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+t+5s    QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+t+6s    QApplication::font()=10  systemFont(GeneralFont)=10  systemFont(SmallestReadableFont)=8
+
+Befund: Der Watcher feuert sofort, nennt den geänderten Schlüssel und
+liefert den neuen Wert. QApplication::font() und QFontDatabase::systemFont()
+bleiben über die ganze Beobachtungszeit stehen — die Anwendung muss die
+Schrift also selbst lesen und selbst anwenden.

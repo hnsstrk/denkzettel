@@ -1,0 +1,21 @@
+Messung 3 — Feldhöhe und Zustellwege einer Schriftänderung (#56)
+================================================================
+
+A) Die Feldhöhe folgt der Schrift nicht
+
+Start                   Zeilenabstand=18 px  Feldhöhe=98 px  entspricht 5.44 Zeilen  Fensterhöhe=162 px
+qApp->setFont(16pt)     Zeilenabstand=28 px  Feldhöhe=98 px  entspricht 3.50 Zeilen  Fensterhöhe=162 px
+        FontChange an CaptureWindow=1  an QPlainTextEdit=1
+window.setFont(24pt)    Zeilenabstand=43 px  Feldhöhe=98 px  entspricht 2.28 Zeilen  Fensterhöhe=162 px
+        FontChange an CaptureWindow=1  an QPlainTextEdit=1
+field.setFont(32pt)     Zeilenabstand=59 px  Feldhöhe=98 px  entspricht 1.66 Zeilen  Fensterhöhe=162 px
+        FontChange an CaptureWindow=0  an QPlainTextEdit=1
+frisch gebaut @16pt     Zeilenabstand=28 px  Feldhöhe=148 px  entspricht 5.29 Zeilen  Fensterhöhe=212 px
+
+B) Befund zu den Zustellwegen
+
+Die Schrift kann auf drei Wegen ankommen. Der eventFilter, der ohnehin auf
+m_text liegt (capturewindow.cpp:52), sieht alle drei; ein changeEvent am
+Fenster sieht Weg C nicht — und Weg C ist der, den AK 2 dem Test vorschreibt.
+Wer die Heilung ins changeEvent des Fensters legt und den Test nach AK 2
+schreibt, bekommt einen roten Test, der nichts über die Sache sagt.
