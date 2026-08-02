@@ -131,18 +131,29 @@ PO aus.
   Sprint-Endes stabil (`git diff sprint-NN-basis..main` statt einer von Hand
   gesuchten Commit-Kennung) — die Reviews nach DoD 3 laufen über „den
   Sprint-Diff", und der wurde bisher jedes Mal neu konstruiert.
-- **PR-Probelauf, befristet auf Sprint 4 (Kundenentscheidung 02.08.2026)**: Je
-  Story-Strang ein Pull Request, geöffnet bei der Übergabe, Dev-Bericht und
-  Review-Befunde als Kommentare; gemerged wird weiter ausschließlich vom PO,
-  mit `--no-ff` statt Squash. **Den Zweig pusht und den PR öffnet der PO** —
-  die Regel „ein Dev pusht nie" (`.claude/agents/denkzettel-dev.md`) bleibt
-  unangetastet, sonst stünde der Probelauf bei der ersten Übergabe still.
-  Prozess-, Doku- und SPEC-Commits bleiben direkt auf `main`. **Abbruchkriterium, vorab festgelegt** (Verfahren wie bei I5):
-  Am Ende von Sprint 4 hängt mindestens ein Befund an einer Diff-Zeile, der
-  ohne PR nicht auffindbar gewesen wäre, **oder** ein automatischer Testlauf
-  ist auf einem PR gelaufen. Trifft keines von beidem zu, endet der Probelauf
-  und der Basis-Tag bleibt allein. Die Bewertung steht in der DoD-Prüfung von
-  Sprint 4.
+- **PR-Probelauf: durchgeführt in Sprint 4, nicht bestanden, beendet.** Das
+  Verfahren (je Story-Strang ein Pull Request, Dev-Bericht und Review-Befunde
+  als Kommentare, Merge mit `--no-ff` durch den PO) lief unter einem **vorab
+  festgelegten** Abbruchkriterium: Am Sprint-Ende hängt mindestens ein Befund
+  an einer Diff-Zeile, der ohne PR nicht auffindbar gewesen wäre, **oder** ein
+  automatischer Testlauf ist auf einem PR gelaufen — sonst wird das Verfahren
+  eingestellt (Kundenentscheidung 02.08.2026). **Beide Hälften sind gemessen
+  nicht eingetreten** (Sprint 4, §15.8): `statusCheckRollup` war für #64 und
+  #65 leer, und der einzige `fail`-Befund des Sprints hing an Zeilen aus einem
+  einzigen Commit, war über `git show` also ebenso auffindbar. Der Probelauf
+  ist damit **beendet**.
+  **Es gilt der Stand davor:** Zweige und Worktrees nach „Parallelarbeit",
+  gemerged ausschließlich vom PO, **kein PR-Zwang**. Basis-Tag und
+  Review-Kette bleiben unverändert. Aus dem Probelauf bleibt eine Zeile: das
+  Räumen der Zweige **auch auf `origin`** (Sprint-Abschluss, Punkt 8) — sie
+  hängt am öffentlichen Repo und nicht am Pull Request und gilt weiter, sooft
+  ein Story-Zweig überhaupt auf `origin` gelangt.
+  *Zur Ehrlichkeit des Ergebnisses:* Der Probelauf ist nur zur Hälfte
+  durchgeführt worden — an beiden PRs stand weder ein Dev-Bericht noch ein
+  Review-Befund; getragen hat allein die Mechanik. Eine spätere Einführung
+  automatischer Testläufe (CI) ist davon unberührt und wäre eine **neue
+  Kundenentscheidung**; sie ist der einzige der beiden Kriteriumsteile, der
+  ohne menschliche Disziplin trägt.
 - **Push-Kadenz (Kundenentscheidung 02.08.2026)**: Der PO pusht nach jedem
   abgeschlossenen Arbeitsblock ohne Rückfrage. `main` ist ohnehin
   veröffentlicht — die Sichtbarkeit ändert sich dadurch nicht, das Liegenbleiben
