@@ -559,3 +559,17 @@ Issues ein. (2) PO legt Sprint-Ziel und Schnitt dem Kunden zur Freigabe vor,
 zu heilen: zweite Schätzung und drei Klärungen zu #69 (2.4). (6) Retro nach
 Sprint 6 mit den vier Kandidaten aus Sprint 4, 17.6 — der B13-Nachzug (5.1) ist
 dort einzutragen.
+
+## 9. Kundenfreigabe (PO-Vermerk, 02.08.2026, 16:25)
+
+Der Kunde hat den Schnitt freigegeben — **11 SP / 4 Stories in zwei
+Strängen** (A: #66+#67, B: #57+#58), Sprint-Ziel wie in Abschnitt 1.
+Vorgelegt mit vollständiger Inhaltsangabe in der Frage selbst (Lehre aus
+zwei Fällen heute: Erklärtext vor einem Fragedialog erreicht den Kunden
+nicht zuverlässig — entscheidungsrelevanter Inhalt gehört in die Frage).
+Die Startbedingung K2 (Zeichnungen 2a/2b mit Symbolen) war zur Freigabe
+erfüllt (`711d899`); K1/K5/K6 in den Issues vermerkt.
+
+**Sprint-Konto bei Freigabe: 11 von ~13 SP · 4 von 4 Stories** — die
+Story-Grenze ist ausgeschöpft, jeder Zugang ist eine Grenzüberschreitung
+und wird dem Kunden als solche vorgelegt.
