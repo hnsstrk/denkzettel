@@ -196,3 +196,9 @@ und der Wächterdialog ebenso wenig. Nach `/usr` wurde nichts installiert.
 **Abweichung von der Dateimengen-Tabelle des Plannings (5.2):** Der Belegordner
 heißt `sprint-05-s-verhalten/` statt `sprint-05-s57-s58/` — so lautete der
 Spawn-Auftrag des PO. Sonst keine.
+
+---
+**Nachtrag (UI-Review B1, PO, 02.08.2026):** Die Bilder 10a–10d zeigen den
+Zweigstand — ohne die #67-Symbole, die erst der Merge brachte. Für den
+#58-Nachweis (Farbfolge) tragen sie; als Bild des Auslieferungsstands nicht.
+Das Bild des gemergten Standes liegt unter `../sprint-05-ui-review/`.

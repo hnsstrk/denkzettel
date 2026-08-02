@@ -1,0 +1,52 @@
+
+=== A  #58 Schemawechsel, ein Fenster, kein Neuaufbau ===
+helles Schema, Lesezustand:
+  Zeitstempel des Detailbereichs: Hintergrund #eff0f1, Text #707d8a (Text „Gestern 21:48“)
+  geschrieben: s5-58-a-hell-lesen.png
+nach dem Wechsel auf dunkel, dasselbe Fenster:
+  Zeitstempel des Detailbereichs: Hintergrund #202326, Text #a1a9b1 (Text „Gestern 21:48“)
+  geschrieben: s5-58-b-dunkel-lesen.png
+Bearbeiten-Zustand unter dunkel:
+  Fusszeilenhinweis: Hintergrund #202326, Text #a0a8b0 (Text „Esc bricht ab · Strg+Enter speichert“)
+  Beschriftung „Kategorie“: Hintergrund #202326, Text #a1a9b1 (Text „Kategorie“)
+  geschrieben: s5-58-c-dunkel-bearbeiten.png
+Signalfarbe #ff00ff auf PlaceholderText:
+  Fusszeilenhinweis: Hintergrund #eff0f1, Text #ff01ff (Text „Esc bricht ab · Strg+Enter speichert“)
+  Zeitstempel des Detailbereichs: Hintergrund #eff0f1, Text #ff00ff (Text „Gestern 21:48“)
+  geschrieben: s5-58-d-signalfarbe.png
+zurück auf hell:
+  Fusszeilenhinweis: Hintergrund #eff0f1, Text #717e8a (Text „Esc bricht ab · Strg+Enter speichert“)
+  geschrieben: s5-58-e-hell-bearbeiten.png
+
+=== B1 Klick auf eine ANGESCHNITTENE Zeile ===
+  Zielzeile 14: y=539 h=72, Bildhöhe 552
+  geschrieben: s5-57-b1a-vor-dem-klick.png
+  nach dem Klick: Auswahl Zeile 14, Rollwert 6 → 7, Kopf y=144 (im Bild), Auswahl y=467 (ganz sichtbar)
+  geschrieben: s5-57-b1b-nach-dem-klick.png
+
+=== B2 Klick auf eine sichtbare Zeile DERSELBEN Gruppe ===
+  nach dem Klick: Auswahl Zeile 6, Rollwert 3 → 3, Kopf y=-171 (draussen), Auswahl y=216 (ganz sichtbar)
+
+=== B3 Erst klicken, dann per Taste über die Grenze ===
+  Klick auf die eigene Zeile: Auswahl Zeile 7, Rollwert 0 → 0, Kopf y=0 (im Bild), Auswahl y=459 (ganz sichtbar)
+  zweimal Pfeil ab (Grenzübertritt): Auswahl Zeile 10, Rollwert 0 → 3, Kopf y=432 (im Bild), Auswahl y=467 (ganz sichtbar)
+  geschrieben: s5-57-b3-taste-nach-klick.png
+
+=== B4 Klick auf einen Gruppenkopf (wählt nichts), dann Taste ===
+  Auswahl nach dem Kopfklick: Zeile 7
+  zweimal Pfeil ab (Grenzübertritt): Auswahl Zeile 10, Rollwert 0 → 3, Kopf y=432 (im Bild), Auswahl y=467 (ganz sichtbar)
+  geschrieben: s5-57-b4-taste-nach-kopfklick.png
+
+=== B6 Klick auf eine angeschnittene Zeile, Schritt für Schritt ===
+  Zielzeile 14: y=539 h=72
+  vor dem Druck: Rollwert 6, aktuelle Zeile 11, markiert 11
+  nach dem Druck: Rollwert 7, aktuelle Zeile 14, markiert 15
+  nach dem Loslassen: Rollwert 7, aktuelle Zeile 14, markiert 15
+  Zeile unter dem Zeiger am Ende: 15
+  geschrieben: s5-57-b6-nach-dem-loslassen.png
+
+=== B5 Klick in den Leerraum, dann Taste ===
+  Auswahl nach dem Leerraumklick: Zeile 7
+  zweimal Pfeil ab (Grenzübertritt): Auswahl Zeile 10, Rollwert 11 → 8, Kopf y=72 (im Bild), Auswahl y=107 (ganz sichtbar)
+
+fertig

@@ -1,0 +1,43 @@
+# Bauplan der Prüfmittel des UI-Reviews zu Sprint 5. Nicht Teil des Produkts —
+# er linkt nur gegen die fertig gebaute libdenkzettelui.a und übersetzt keinen
+# Projektcode.
+#
+# Zum Nachfahren: DENKZETTEL_BUILD unten auf ein eigenes, out-of-source
+# gebautes Verzeichnis zeigen lassen (dort muss zuvor `cmake --build <dir>`
+# gelaufen sein) und ux-nachpruefung-ak7.cpp aus
+# docs/scrum/reviews/sprint-03-s5a-ak7-nachpruefung/ danebenlegen. Gelaufen ist
+# beides mit QT_QPA_PLATFORM=offscreen, QT_QPA_PLATFORMTHEME=kde, -style breeze.
+
+cmake_minimum_required(VERSION 3.20)
+project(ux-review-s5 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Test)
+find_package(KF6I18n REQUIRED)
+find_package(KF6WidgetsAddons REQUIRED)
+find_package(KF6Config REQUIRED)
+find_package(KF6ConfigWidgets REQUIRED)
+find_package(KF6WindowSystem REQUIRED)
+
+set(DENKZETTEL_SRC "/home/hnsstrk/Projekte/denkzettel/src")
+set(DENKZETTEL_BUILD "/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/1c0c07d4-ec76-4da6-9f6f-71611643fb7d/scratchpad/build-uxreview")
+
+foreach(program ux-review-s5 ux-nachpruefung-ak7)
+    add_executable(${program} ${program}.cpp)
+    target_include_directories(${program} PRIVATE ${DENKZETTEL_SRC})
+    target_link_libraries(${program} PRIVATE
+        ${DENKZETTEL_BUILD}/lib/libdenkzettelui.a
+        ${DENKZETTEL_BUILD}/lib/libdenkzettelstore.a
+        Qt6::Widgets
+        Qt6::Sql
+        Qt6::Test
+        KF6::I18n
+        KF6::WidgetsAddons
+        KF6::ConfigCore
+        KF6::ConfigGui
+        KF6::ConfigWidgets
+        KF6::WindowSystem
+    )
+endforeach()
