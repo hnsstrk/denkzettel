@@ -11,11 +11,13 @@ Ein durchgehender Puffer statt vieler Dateien: kein Dateiname, kein Speichern-Di
 ![Schätzkegel: Revisionsfaktor (Endwert ÷ Erstwert) über dem Abstand in Sprints zwischen Erstschätzung und Umsetzung; 9 Punkte, Stand Sprint 5](docs/scrum/diagramme/kegel.svg)
 
 Denkzettel entsteht in Sprints mit geschätzten Stories. Der Kegel zeigt, wie
-stark Schätzungen später revidiert wurden — je weiter eine Schätzung von der
-Umsetzung entfernt lag, desto mehr. Er misst **nicht** den Abstand zum
-tatsächlichen Aufwand; der wird im Projekt nicht erhoben. Datenreihe und
-Generator liegen unter `docs/scrum/diagramme/`, die Werte stammen aus den
-Sprint-Protokollen.
+stark Schätzungen später revidiert wurden, aufgetragen über den Abstand
+zwischen Schätzung und Umsetzung. Die gemessene Hüllkurve ist bisher
+nicht-fallend, aber **nicht durchgängig weiter werdend** — die Vorbehalte
+stehen unter dem Bild, samt der dünnen Belegdichte von neun Punkten. Der
+Faktor misst **nicht** den Abstand zum tatsächlichen Aufwand; der wird im
+Projekt nicht erhoben. Datenreihe und Generator liegen unter
+`docs/scrum/diagramme/`, die Werte stammen aus den Sprint-Protokollen.
 
 ## Linter
 
