@@ -1668,6 +1668,27 @@ nächste Retro prüft nach, ob er ausgeführt wurde.
 
 ### 16.9 Was dem Kunden zur Entscheidung vorliegt
 
+> **Entschieden am 02.08.2026: alle sechs Punkte wie empfohlen.** Kundenwort:
+> „Alle sechs wie empfohlen." Die Vorschläge unten bleiben im Wortlaut stehen,
+> damit nachlesbar bleibt, worüber entschieden wurde.
+
+**Wohin die sechs Entscheidungen gewandert sind** — vom Scrum Master am Stand
+`c7ee93b` nachgeprüft, nicht der Meldung entnommen:
+
+| Punkt | Verankert in | Beleg |
+|---|---|---|
+| 1 Basis-Tag | `PROZESS.md`, Sprint-Mechanik („Basis-Tag") | Tag `sprint-03-abschluss` gesetzt und gepusht (`git ls-remote --tags origin`); er trägt denselben Produktivcode wie der abgenommene Stand — `git diff 47a1774..c7ee93b -- src tests CMakeLists.txt desktop` ist leer |
+| 1 PR-Probelauf | `PROZESS.md`, Sprint-Mechanik („PR-Probelauf, befristet auf Sprint 4") | mit dem beschlossenen Abbruchkriterium und dem Bewertungsort (DoD-Prüfung Sprint 4) |
+| 2 Versionierung | `PROZESS.md`, Sprint-Abschluss Takt 2, Punkt 10; Umsetzung als Story **#61** | #61 offen, `epic:M7`, `typ:story` |
+| 3 Changelog | `PROZESS.md`, Sprint-Abschluss Takt 2, Punkt 9; Artefakte (Datei benannt) | `CHANGELOG.md` angelegt, Abschnitt 0.1.0 aus den Milestones Sprint 1–3, `typ:tech` draußen, Schemaänderung genannt |
+| 4 Verwaltungsagent | `PROZESS.md`, Rollentabelle und Modellzuordnung | `.claude/agents/denkzettel-verwalter.md`, `model: haiku`; karpathy-Review über den Gesamtdiff steht aus |
+| 5 Repo-Grenzen | `PROZESS.md`, Artefakte („Öffentlichkeit des Repositories") | Zitate und Messwerte ja, Systemdetails und Personenbezug nein |
+| 6 Push-Kadenz | `PROZESS.md`, Sprint-Mechanik („Push-Kadenz") | je Arbeitsblock ohne Rückfrage |
+
+Die Abschlussliste wächst dadurch von neun auf **elf** Punkte; B11 bleibt in
+seiner Fassung vom Vormittag protokolliert, die geltende Liste steht in
+`PROZESS.md`.
+
 1. **Pull Requests.** Vorschlag: ein PR je Story-Strang, ab Sprint 4, als
    Probelauf über **einen** Sprint mit vorab festgelegtem Kriterium (am Ende
    hängt entweder ein Befund an einer Diff-Zeile, der sonst nicht auffindbar
@@ -1855,31 +1876,262 @@ Gegen den Stand gemessen, nicht gegen die Meldung. Prüfstand `main` @ `5cefea0`
 | # | Punkt | Zustand | Beleg (in dieser Sitzung gemessen) |
 |---|---|---|---|
 | 1 | Endstand installiert, Hauptweg ausgeführt | erfüllt | `stat -c %z /usr/bin/denkzetteld` → 02.08. 00:23:58; Merkmale im Binärstand (16.1.1); Kundenabnahme am installierten Stand (15) |
-| 2 | Bericht je Prüflauf, vor der DoD-Prüfung | für Sprint 3 nachträglich erfüllt | `47af87a`, `0b1a3a1`; der Retro-Review-Bericht liegt vor, ist aber noch untracked — Versionierung vom PO mit dem nächsten Commit angekündigt |
+| 2 | Bericht je Prüflauf, vor der DoD-Prüfung | erfüllt | `47af87a`, `0b1a3a1`; der Retro-Review-Bericht ist mit `c7ee93b` versioniert (`git log -1 -- docs/scrum/reviews/sprint-03-retro-karpathy.md`) |
 | 3 | DoD 1–4 und Doku-Abgleich | erfüllt | 13.2–13.5, 13.8; `sed -n '7p' README.md` trägt keine Verfahrensangabe mehr |
 | 4 | Mängelliste an den PO | erfüllt | 13.12 (neun Mängel) |
 | 5 | Issues und Milestone geschlossen | erfüllt | `gh issue list --milestone "Sprint 3"` → 5/5 `CLOSED` |
 | 6 | Journal nachgeführt | erfüllt | Einträge 00:05, 00:34, 09:14 im Vault |
-| 7 | `main` gepusht | **offen** | `git rev-list --left-right --count origin/main...main` → `0 2` |
+| 7 | `main` gepusht | erfüllt | `git rev-list --left-right --count origin/main...main` → `0 0` (10:26 nachgemessen) |
 | 8 | Zweige und Worktrees geräumt | erfüllt | `git worktree list` → nur der Hauptbaum; `git branch -a` → nur `main` und `origin/main`; `du -sh .claude/worktrees` → **0** |
 | 9 | Vollzugsvermerk | dieser Abschnitt | — |
 
-**Acht von neun Punkten sind vollzogen**; offen ist allein der Push, den der PO
-für diese Sitzung angekündigt hat. Der Rückstand, der heute früh in fünf Punkten
-offen stand (16.2), ist binnen einer Stunde nach der Retro geräumt worden.
-*Ob das an der Liste liegt oder an der Aufmerksamkeit dieser einen Sitzung, ist
-an einem Fall nicht zu entscheiden — die Probe ist der Abschluss von Sprint 4.*
+**Nachtrag 10:26 — der Vermerk ist geschlossen: alle neun Punkte vollzogen.**
+Push durch (`0 0`), Review-Bericht mit `c7ee93b` versioniert. Damit ist der
+Sprint-3-Abschluss nach der Liste aus B11 vollständig, und zwar in ihrer
+Fassung vom Vormittag; die beiden am Nachmittag beschlossenen Punkte 9 und 10
+(Changelog, Version und Tag) sind für Sprint 3 nachgeholt worden — `CHANGELOG.md`
+mit Abschnitt 0.1.0 und der Tag `sprint-03-abschluss`. Die Versionszählung
+selbst greift erst ab #61, weil die Zahl die Anwendung heute nicht erreicht.
+
+Der Rückstand, der heute früh in fünf Punkten offen stand (16.2), war binnen
+einer Stunde nach der Retro geräumt. *Ob das an der Liste liegt oder an der
+Aufmerksamkeit dieser einen Sitzung, ist an einem Fall nicht zu entscheiden —
+die Probe ist der Abschluss von Sprint 4.*
+
+**Review-Auftrag über den Gesamtdiff (Entwurf des Scrum Masters, Aufruf durch
+den PO).** Fällig, weil eine **Agentendatei neu entstanden** ist und
+`PROZESS.md` ein zweites Mal geändert wurde.
+
+> **Was geändert wurde:** Umsetzung der sechs Kundenentscheidungen aus 16.9 —
+> neue Agentendatei `.claude/agents/denkzettel-verwalter.md` (Haiku), neue
+> Datei `CHANGELOG.md`, Issue #61, Tag `sprint-03-abschluss`, dazu in
+> `PROZESS.md` eine Rollenzeile, ein Modell-Eintrag, zwei Artefakt-Einträge
+> (Changelog, Repo-Grenzen), drei Sprint-Mechanik-Einträge (Basis-Tag,
+> PR-Probelauf, Push-Kadenz) und zwei neue Abschlusspunkte (9 Changelog,
+> 10 Version/Tag); in `CLAUDE.md` drei Ergänzungen.
+>
+> **Worauf zu schauen ist:**
+> 1. **Die Grenze des Verwalters.** Ist „führt aus, entscheidet nicht" in der
+>    Agentendatei so gefasst, dass sie am Einzelfall trägt — oder gibt es einen
+>    Auftrag, den sie zulässt und der doch ein Urteil enthält? Der teuerste
+>    Fehlgriff wäre ein gesetzter AK-Haken; er ist nicht umkehrbar und wird zur
+>    Beweislage.
+> 2. **Werkzeug- und Schreibrechte** des neuen Agenten gegen seine Rolle: Kann
+>    er etwas ändern, was er nur berichten dürfte (Code, SPEC, Issue-Rümpfe,
+>    Prozessdateien)?
+> 3. **Prinzip 2 an den zwei neuen Abschlusspunkten:** Erzeugen Changelog und
+>    Versionsregel Arbeit, die niemand braucht, solange #61 offen ist? Punkt 10
+>    behauptet Wirksamkeit „ab #61" — ist das im Text eindeutig?
+> 4. **Widerspruchsfreiheit:** PR-Probelauf gegen „Merge nur durch den PO" und
+>    gegen die Parallelarbeit-Regel; Push-Kadenz gegen Takt 2 Punkt 7;
+>    Repo-Grenzen gegen die bereits veröffentlichten Kundenzitate in den
+>    Protokollen dieses Repos.
+> 5. **Prinzip 3:** Ist der Diff chirurgisch, oder ist angrenzender Regeltext
+>    mitverändert worden?
+>
+> **Ergebnisformat:** `pass`/`fail`/`Hinweis` je Befund mit Fundstelle; Bericht
+> ungekürzt als Datei unter `docs/scrum/reviews/` (B11 Takt 1 Punkt 2).
 
 **done (Fortschreibung):** Vier Hinweise des Reviews aus der eigenen Dateimenge
 bewertet und umgesetzt (H3, H4 mit Grenzangabe, H6 an drei statt zwei Stellen,
 H7), drei begründet abgelehnt oder als nicht zuständig zurückgegeben (H1, H2,
-H5); Vollzug von Takt 2 gegen den gemessenen Stand geprüft und vermerkt — die
-Meldung des PO ist in allen acht als erfüllt gemeldeten Punkten bestätigt.
+H5); Vollzug von Takt 2 gegen den gemessenen Stand geprüft, in allen neun
+Punkten bestätigt und geschlossen; die sechs Kundenentscheidungen in
+`PROZESS.md` verankert und ihre Umsetzung durch den PO am Stand `c7ee93b`
+nachgeprüft statt übernommen — einschließlich der Frage, ob der Tag denselben
+Produktivcode trägt wie der abgenommene Stand (er tut es).
 
-**next (Fortschreibung):** (1) PO committet und pusht gesammelt; damit fällt
-Takt 2 Punkt 7, und der Review-Bericht wird versioniert (Takt 1 Punkt 2). Der
-Scrum Master schließt den Vermerk danach. (2) Unverändert offen: die sechs
-Kundenentscheidungen aus 16.9. (3) **Für die Retro nach Sprint 6 vorgemerkt
-(H2):** `CLAUDE.md` wiederholt die Sprint-Grenzen „2–4 Stories, ~13 SP" im
+**next (Fortschreibung, 10:26):** (1) **erledigt** — Push durch, Bericht
+versioniert, Vermerk geschlossen. (2) **erledigt** — der Kunde hat alle sechs
+Punkte aus 16.9 wie empfohlen entschieden; die Verankerung ist dort tabellarisch
+nachgewiesen, `PROZESS.md` trägt sie in Rollentabelle, Modellzuordnung,
+Artefakten, Sprint-Mechanik und Sprint-Abschluss. (3) Offen: karpathy-Review
+über den Gesamtdiff, weil mit `denkzettel-verwalter` eine **Agentendatei** neu
+entstanden ist und `PROZESS.md` erneut geändert wurde (globale Regel;
+`PROZESS.md`, Retrospektiven). (4) Offen: **#61** — bis dahin ist Takt 2
+Punkt 10 nicht ausführbar, die Version erreicht die Anwendung nicht.
+(5) **Für die Retro nach Sprint 6 vorgemerkt (H2):** `CLAUDE.md` wiederholt die Sprint-Grenzen „2–4 Stories, ~13 SP" im
 Wortlaut. Ändert eine Retro sie in `PROZESS.md`, driftet `CLAUDE.md` — der
 B11-Absatz macht es richtig und verweist, statt zu kopieren.
+
+### 16.13 Nachtrag: Review der Entscheidungsumsetzung — zwei `fail`, beide behoben (02.08.2026, 10:42)
+
+Bericht: `docs/scrum/reviews/2026-08-02-entscheidungen-karpathy.md`. Prüfpunkte
+3 und 5 `pass`, Punkt 2 Hinweis, **Punkte 1 und 4 `fail`** — 1a (der
+Kernauftrag des Verwalters kollidiert mit seiner Verbotsliste) und 4a (die
+Changelog-Filterregel widerspricht ihrem eigenen ersten Präzedenzfall).
+
+**Das ist ein gutes Ergebnis, kein schlechtes.** Beide `fail` sind Regeln, die
+an ihrem **ersten Anwendungsfall** scheitern: 1a am Hauptanwendungsfall, für den
+der Agent überhaupt geschaffen wurde, 4a am ersten Changelog, den es gibt.
+Beide Regeln waren plausibel formuliert und trotzdem falsch — genau die
+Fehlerart, die dieses Projekt nur durch Messung am Einzelfall findet
+(CLAUDE.md, Prüfhaltung). Ein Review, das hier `pass` gemeldet hätte, wäre
+wertlos gewesen.
+
+| Befund | Zuständig | Entscheidung |
+|---|---|---|
+| **1a** `fail` — Takt 2 Punkt 5 verlangt AK-Haken, die Verbotsliste untersagt sie | Scrum Master | **umgesetzt.** Punkt 5 ist entflochten: Haken setzt der PO (Abnahmeentscheidung, nicht umkehrbar), Schließen und Milestone sind Vollzug und delegierbar |
+| **4a** `fail` — „`typ:tech` bleibt draußen" gegen #6 (`typ:tech`, drin) und die damals fehlende Story #3 | Scrum Master | **umgesetzt.** Punkt 9 misst an der **Nutzersicht statt am Label**, mit drei am Changelog nachgezählten Präzedenzfällen (#6 drin, #1 draußen, #9 nur als Schemabeleg); „der Entwurf ist mechanisch" gestrichen und durch die Trennung Rohliste (mechanisch) / Auswahl und Text (Urteil, PO) ersetzt |
+| **4c** — Punkt 8 räumt keine Remote-Zweige | Scrum Master | **umgesetzt**, samt Grund: Das Repo ist öffentlich; ungeräumte PR-Zweige sind dauerhaft veröffentlichte Zwischenstände |
+| **3b** — „wirksam ab #61" mehrdeutig | Scrum Master | **umgesetzt:** Bis #61 führt der Vollzugsvermerk Punkt 10 als *ausgesetzt*, Einträge sammeln sich unter `[Unveröffentlicht]`, keine rückwirkenden Versionen |
+| **1c** — Rollentabelle verspricht „Milestones pflegen", die Agentendatei deckt nur „erheben und berichten" | Scrum Master | **umgesetzt:** Rollenzeile auf den gedeckten Umfang gezogen und um die Konfliktregel ergänzt |
+| Randnotiz zu 1a — zwei Formulierungen desselben Zweig-Kriteriums | Scrum Master | **umgesetzt:** Punkt 8 nennt beide als gleichwertig, damit sie nicht auseinanderlaufen |
+| **3c** — `[0.1.0]` im Changelog hat kein Siegel; `sprint-03-abschluss` ist ein drittes Tag-Schema | Scrum Master, mit Position | **teils umgesetzt, teils widersprochen** — siehe unten |
+| **4e** — „Systemdetails" am Einzelfall nicht entscheidbar | **Kunde** | **nicht entschieden, eskaliert** — siehe unten |
+| **5b** — zwei neue Wortlaut-Duplikate in `CLAUDE.md` | Scrum Master | **umgesetzt:** in der H2-Vormerkung mitgezählt (next) |
+| **1b**, **2a**, **2b** | PO | außerhalb der Dateimenge des Scrum Masters — 2a ist erledigt, 1b steht noch aus (unten) |
+
+**Zu 1a: beide vom Reviewer angebotenen Wege, nicht einer.** Er stellte frei
+zwischen Konfliktregel in der Agentendatei und Entflechtung in `PROZESS.md`.
+Richtig sind beide, und sie leisten Verschiedenes: Die Konfliktregel trägt den
+Agenten auch bei **künftigen** Kollisionen, die heute niemand kennt; die
+Entflechtung lässt **diese** Kollision gar nicht erst entstehen. Eine Regel, die
+einen Konflikt gut verwaltet, ist schlechter als eine, die ihn nicht hat.
+
+**Zu 4a: nicht der Weg „#6 umlabeln".** Ein Label zu ändern, damit eine
+Filterregel wieder stimmt, hieße die Wirklichkeit an die Regel anzupassen. Die
+Nicht-Deckung von Labels und Changelog-Kategorien ist in 16.3.3 gemessen und
+war schon dort der Grund für den Widerspruch gegen die Dev-Stellungnahme — der
+Fehler lag in der Regel, nicht im Label.
+
+**Und ein Beinahe-Fehler derselben Bauart, im Schreiben dieses Abschnitts
+bemerkt:** Der Reviewer führte #3 als Beispiel einer zu Recht fehlenden Story;
+der PO hat #3 zwischenzeitlich in `CHANGELOG.md` ergänzt (Zeile 23). Der
+Regeltext hätte damit ein Beispiel getragen, das der Stand widerlegt — genau
+4a noch einmal. Die Präzedenzfälle in Punkt 9 sind deshalb am **jetzigen**
+Changelog nachgezählt (#6 drin, #1 draußen, #9 als Schemabeleg) statt aus dem
+Bericht übernommen. *Eine Regel gegen einen Stand zu schreiben, den man nicht
+selbst gemessen hat, ist der Fehler, den dieses Review zweimal gefunden hat.* **Selbstkritisch:** Ich habe die
+Nicht-Deckung protokolliert und die Klammer „(`typ:tech`)" trotzdem in den
+Regeltext geschrieben. Eine Erkenntnis, die im Protokoll steht und in der Regel
+das Gegenteil erzeugt, ist derselbe Fehlertyp wie eine Regel ohne Ort — nur
+eine Etage höher.
+
+**Zu 3c — Position: kein `v0.1.0` nachziehen.** Ein Siegel für eine Version, die
+die Anwendung nicht anzeigt, wäre genau die „Behauptung ohne Sichtbarkeit", die
+Punkt 10 vermeiden will; und die Versionsregel galt zum Zeitpunkt der Abnahme
+noch nicht — ein rückwirkendes Siegel behauptete einen Vorgang, der nicht
+stattgefunden hat. Umgesetzt ist stattdessen die zweite Hälfte des
+Reviewer-Vorschlags: `sprint-03-abschluss` ist in Punkt 10 ausdrücklich als
+**einmalige Übergangsform** benannt und ab #61 entfällt ein Abschluss-Tag, weil
+der `vX.Y.Z`-Tag ihn ersetzt. Kein drittes Schema. Will der PO das Siegel
+dennoch, gehört es auf `c7ee93b` und in denselben Satz.
+
+**Zu 4e — neue Kundenfrage, Nachtrag zur Liste in 16.9.** Der Befund trifft:
+„Systemdetails" ist unbestimmt, und nach strenger Lesart verstößt der Bestand
+bereits — der Rechnername „Ganymed" steht in `PROZESS.md` selbst (DoD 1). In
+der Regel ist der Punkt jetzt **als offen markiert** mit der einzigen
+Zwischenlinie, die nichts vorwegnimmt: im Zweifel fragen, nicht löschen.
+
+> **7. Was zählt als „Systemdetail"?** *Vorschlag:* **Nicht** ins öffentliche
+> Repo gehören Zugangsdaten und Schlüssel, Interna des Heimnetzes (Hostnamen
+> und Adressen anderer Rechner, Freigaben) und Pfade außerhalb des Projekts.
+> **Zulässig** bleiben der Name der Entwicklungsmaschine, Projekt- und
+> Systempfade in Messbelegen — ohne sie ist kein Beleg zu führen, und die
+> Belegpflicht ist die tragende Regel dieses Projekts. Der Altbestand wird
+> umformuliert, nicht gelöscht (bereits entschieden, 16.9 Punkt 5).
+> *Empfehlung: so festlegen.*
+
+**done (Fortschreibung):** Karpathy-Bericht gegen die eigene Dateimenge
+ausgewertet; beide `fail` in `PROZESS.md` behoben (Punkt 5 entflochten, Punkt 9
+auf Nutzersicht umgestellt), vier Hinweise umgesetzt (4c Remote-Räumung, 3b
+Aussetzung bis #61, 1c Rollenzeile, Randnotiz Zweig-Kriterium), einem Hinweis
+mit Begründung widersprochen (3c, kein rückwirkendes Siegel), einer als
+Kundenfrage eskaliert (4e) statt ihn zu entscheiden.
+
+**next (Fortschreibung, 10:42):** (1) **Nachprüfung durch den
+`karpathy-reviewer`** — das Gesamtverdikt war `fail`; nach dem Muster der
+UI-Reviews folgt auf die Heilung ein Nachprüflauf über die geheilten Stellen
+(`PROZESS.md` Punkte 5, 8, 9, 10, Rollenzeile, Artefakt-Eintrag;
+`denkzettel-verwalter.md`). Erst danach ist der Stand befundfrei.
+(2) **Offen beim PO: Befund 1b** — die Stopp-Klausel des Verwalters deckt nur
+die fehlende Fundstelle, nicht die fehlende Issue-Liste und den fehlenden
+Kommentartext; beides wäre ein Urteil des Agenten. (3) Kundenfrage 7
+(Systemdetails) vorlegen. (4) Für die Retro nach Sprint 6 wächst die
+H2-Wartungsstelle um zwei Einträge: `CLAUDE.md` dupliziert jetzt auch
+Repo-Grenzen und Push-Kadenz im Wortlaut; dazu die uneinheitliche
+`tools:`-Konvention der Agentendateien (Befund 2b).
+
+#### 16.13.1 Nachprüfung und Abschluss des Blocks (02.08.2026, 10:53)
+
+**Gesamtverdikt der Nachprüfung: `pass`** — alle fünf geheilten Stellen tragen,
+beide `fail` des Vorlaufs sind behoben. Bericht:
+`docs/scrum/reviews/2026-08-02-entscheidungen-karpathy-nachpruefung.md`. Vier
+neue Hinweise N1–N4, sämtlich **durch die Heilung entstanden** und keiner mit
+einem Weg zu einem falschen Ergebnis.
+
+Der Scrum Master hat den Stand selbst nachgesehen, statt die Meldung zu
+übernehmen: Die Konfliktregel steht in `denkzettel-verwalter.md` samt Beispiel,
+die Stopp-Klausel verlangt Fundstelle, konkrete Liste und vorgegebene Texte mit
+Stopp je Punkt, `tools:` führt `Read, Glob, Grep, Bash, Write` ohne `Edit`,
+„Milestones schließen" und der `origin`-Schritt stehen als eigene Tu-Punkte.
+
+**N1, N2 und N4 hatten eine zweite Seite in `PROZESS.md`** — der PO hat sie in
+der Agentendatei geschlossen, damit klafften sie gegen meine Datei. Beide
+Seiten sind jetzt deckungsgleich:
+
+| Hinweis | Seite des Scrum Masters | Änderung |
+|---|---|---|
+| **N1** Rohliste gegen Entwurf | Punkt 9 sagte „Rohliste", Rollenzeile und Agentendatei sagen „Entwurf" | Punkt 9 legt die Reichweite fest: **Rohliste oder vorformulierter Entwurf, je nach Auftrag** — in beiden Fällen verantwortet der PO Auswahl und Text, der Verwalter trägt nichts selbst ein |
+| **N2** Milestone-Schließen | in Punkt 5 delegierbar erklärt, in der Rollenzeile nur „erheben und berichten" | Rollenzeile deckt jetzt „abgenommene Issues **und den Milestone** schließen" |
+| **N4** `origin`-Räumung | Rollenzeile nannte das Räumen ohne die Remote-Seite | Rollenzeile: „Zweige und Worktrees räumen (auf `origin` nur auf Auftrag)" |
+
+**Zu N3 — ich sehe es anders als „hinnehmen", aber nicht dramatischer.** Der
+Reviewer trifft einen echten Restweg: Liegen Fundstelle und Texte vor und wird
+nur die Issue-Aufzählung durch „alle Issues des Milestones X" ersetzt, ist die
+mechanische Auflösung gedeckt und kein Stopp erzwungen. Dass der teuerste
+Fehlweg — selbst formulierte Texte — immer stoppt, stimmt und macht das Risiko
+klein. Es ist aber nicht null: Ein Issue kann am Milestone hängen, **ohne
+abgenommen zu sein** (nachgeschoben, zurückgestellt, aus der Abnahme
+herausgefallen). Dann trüge es einen Abnahmekommentar, der nicht stimmt — und
+Kommentare sind der Teil, der zur Beweislage wird. Die Entdeckung käme erst bei
+der nächsten DoD-Prüfung, also nachträglich.
+
+Statt die Klausel in der Agentendatei zu verschärfen — was Sache des PO wäre —,
+ist der Fall **an der Quelle beseitigt**, in meiner Datei: Takt 2 Punkt 5 sagt
+jetzt, dass Gegenstand der Delegation **die Abnahme ist, nicht der Milestone**;
+der Auftrag zählt die abgenommenen Issues auf, „alle Issues des Milestones" ist
+kein Ersatz. Damit gibt es die mehrdeutige Auftragsform nicht mehr, und die
+Klausel muss sie nicht abfangen. Dasselbe Vorgehen wie bei 1a: **einen Konflikt
+beseitigen ist besser, als ihn gut zu verwalten.** Wenn der PO die Klammer in
+der Agentendatei zusätzlich je Aufgabenart zuordnen will, spricht nichts
+dagegen; nötig ist es nach dieser Änderung nicht.
+
+**Befundfrei-Vermerk.** Der Stand ist nach dem Nachprüflauf **ohne offene
+`fail`-Befunde**; die vier Hinweise sind bewertet und beidseitig umgesetzt
+(N1, N2, N4) beziehungsweise an der Quelle aufgelöst (N3). Damit ist die
+Auflage aus `PROZESS.md` (Retrospektiven — Prozess-Artefakt- und
+Agenten-Änderungen durchlaufen den karpathy-reviewer) für den gesamten Block
+erfüllt: Retro-Beschlüsse, Umsetzung der sechs Kundenentscheidungen und die
+neue Agentendatei sind geprüft, geheilt und nachgeprüft.
+
+**Abschluss des Blocks vom 02.08.2026.** Aus einer Retrospektive sind
+geworden: fünf Beschlüsse (B11–B15) in `PROZESS.md`, drei Absätze in
+`CLAUDE.md`, sechs Kundenentscheidungen samt ihrer Verankerung, eine neue
+Rolle mit eigener Agentendatei, ein `CHANGELOG.md`, ein Tag, Issue #61 — und
+drei karpathy-Läufe, von denen einer `fail` war. **Der `fail` ist der
+wertvollste Teil dieses Tages:** Zwei Regeln, die ich plausibel formuliert
+hatte, scheiterten an ihrem ersten Anwendungsfall. Dazu kommt der
+Beinahe-Fehler, den ich beim Schreiben von 16.13 selbst fand (ein
+Präzedenzfall aus einem Bericht statt vom gemessenen Stand). Drei Fälle
+derselben Bauart an einem Tag, alle drei nur durch Messung am Einzelfall
+gefunden — die Prüfhaltung aus `CLAUDE.md` hat sich damit auch auf
+**Prozesstexte** bewährt, nicht nur auf Code.
+
+**done (Abschluss):** Nachprüfung ausgewertet, Stand selbst gegengeprüft; N1,
+N2 und N4 auf der Seite des Scrum Masters nachgezogen, sodass Rollenzeile,
+Abschlussliste und Agentendatei deckungsgleich sind; N3 mit abweichender
+Bewertung an der Quelle aufgelöst (Delegationsgegenstand ist die Abnahme, nicht
+der Milestone); Befundfreiheit vermerkt.
+
+**next (Abschluss):** (1) PO committet und pusht den Gesamtstand — letzter
+Commit dieses Blocks. (2) **Kundenfrage 7** (Systemdetails) liegt vor; bis zur
+Antwort gilt in `PROZESS.md`: im Zweifel fragen, nicht löschen. (3) **#61**
+schaltet Takt 2 Punkt 10 scharf; bis dahin führt der Vollzugsvermerk ihn als
+ausgesetzt. (4) Sprint-4-Planning: Basis-Tag `sprint-04-basis` setzen,
+Sprint-Konto ab der ersten Zeile führen, PR-Probelauf mit seinem
+Abbruchkriterium starten; erste Kandidaten #11 (S8) und #10 (S7), dazu #60,
+#51, #52 und #61. (5) Retro nach Sprint 6: H2-Wartungsstelle (drei
+`CLAUDE.md`-Duplikate) und die uneinheitliche `tools:`-Konvention der
+Agentendateien.

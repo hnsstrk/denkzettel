@@ -13,6 +13,7 @@ Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven.
 | **Entwickler** | Agenten `denkzettel-dev` (je Sprint gespawnt) | Umsetzung der Stories nach Spec, Tests, technische Entscheidungen im Story-Rahmen |
 | **UI/UX** | Agent `denkzettel-ux` | Planning-Beratung zu UI-Stories, Gestaltung von Wireframes und Mockups (`wireframes/`), UI-Review gegen Wireframes, SPEC und KDE HIG (Teil der DoD für UI-Stories) |
 | **QA / Review** | Agent `karpathy-reviewer` | Prüfung gegen die vier Karpathy-Prinzipien am Sprint-Ende und bei Prozess-Artefakt-Änderungen (Teil der DoD) |
+| **Verwaltung** | Agent `denkzettel-verwalter` (Kundenentscheidung 02.08.2026) | Vollzug bereits protokollierter Entscheidungen: abgenommene Issues und den Milestone schließen, Zweige und Worktrees räumen (auf `origin` nur auf Auftrag), Changelog-**Entwurf** aus den Milestone-Issues; dazu Abgleichsstände **erheben und berichten**. **Führt aus, entscheidet nicht** — keine AK-Haken, keine Mängelbehebung, kein Versionssprung, keine Tags, keine Änderung an Code, SPEC, Prozess oder `CHANGELOG.md`. Fehlt die Fundstelle der Entscheidung, oder verlangt seine Arbeitsliste einen verbotenen Schritt, führt er den erlaubten Teil aus und meldet den Rest |
 
 Der Scrum Master arbeitet mit dem karpathy-reviewer zusammen: Er definiert,
 wann ein Review fällig ist (DoD, Retro-Ergebnisse), formuliert den
@@ -31,6 +32,12 @@ PO aus.
   `model`-Parameter auf Fable hoch.
 - `karpathy-reviewer` bleibt auf **Fable** (Session-Modell) — das
   Sicherheitsnetz wird nicht abgestuft.
+- `denkzettel-verwalter` läuft auf **Haiku** (Kundenentscheidung 02.08.2026).
+  Tragfähig, weil seine Arbeit die drei Bedingungen erfüllt, unter denen
+  Modellgröße gleichgültig wird: Das Ergebnis ist per Befehl prüfbar, die
+  Handlung ist umkehrbar, und die Entscheidung dahinter hat ein anderer
+  getroffen. Wo eine dieser Bedingungen fällt, ist er nicht zuständig — nicht
+  wegen des Modells, sondern wegen der Rolle.
 - **Revision in der Sprint-3-Retro (02.08.2026): bestätigt** (Belege im
   Sprint-3-Protokoll, 16.4). Der eine Fund des Sprints, den eine Opus-Rolle
   geschrieben und keine andere Opus-Rolle gefunden hat — die tautologische
@@ -51,6 +58,22 @@ PO aus.
 - **Sprint**: GitHub Milestone `Sprint N` mit den gezogenen Issues.
 - **Protokolle**: `docs/scrum/sprints/sprint-NN.md` (Planning, Review,
   ggf. Retro) — je Sprint eine Datei, angelegt beim Planning.
+- **Changelog**: `CHANGELOG.md` nach *Keep a Changelog*, aus Nutzersicht
+  geschrieben (Kundenentscheidung 02.08.2026). Quelle sind die geschlossenen
+  Issues des Sprint-Milestones; Pflege siehe „Sprint-Abschluss", Takt 2.
+- **Öffentlichkeit des Repositories** (Kundenentscheidung 02.08.2026): Das
+  Repo ist öffentlich, jeder Issue-Kommentar und jede Commit-Botschaft also
+  eine Veröffentlichung. Wörtliche Kundenzitate und Messwerte dürfen hinein;
+  **Systemdetails und personenbezogene Angaben nicht**. Gilt gleichermaßen für
+  Issues, Commits, Protokolle, Belege und den Changelog.
+  **Offen: Was „Systemdetail" heißt, ist am Einzelfall noch nicht
+  entscheidbar** (karpathy-Befund 4e vom 02.08.2026). Nach strenger Lesart
+  verstößt der Bestand bereits — der Rechnername „Ganymed" steht in dieser
+  Datei selbst (DoD 1), dazu Home-Pfade und `stat`-Belege an Systempfaden; und
+  viele Messwerte *sind* Systemdetails, sobald sie an einem Pfad hängen. Die
+  Grenze zieht der Kunde, nicht der PO (Sprint 3, 16.13). **Bis dahin: im
+  Zweifel fragen, nicht löschen**; der Altbestand wird nach der bereits
+  getroffenen Entscheidung umformuliert statt entfernt (16.9, Punkt 5).
 - **Belege**: UI-Review-Berichte samt geprüften Bildern unter
   `docs/scrum/reviews/`, Retro-Stellungnahmen und Messbelege unter
   `docs/scrum/retro/sprint-NN/`. Sitzungs-Scratchpads sind flüchtig; was ein
@@ -100,6 +123,27 @@ PO aus.
   Merges, kein Vorfall (13.9) —, stand aber nur in den Spawn-Aufträgen und
   hing daran, dass der PO es jedes Mal erneut hinschreibt. Genau diese Bauart
   war der Anlass für B6.
+- **Basis-Tag (Kundenentscheidung 02.08.2026)**: Beim Planning setzt der PO
+  auf den Ausgangsstand den Tag `sprint-NN-basis`. Er macht den Prüf-Diff des
+  Sprint-Endes stabil (`git diff sprint-NN-basis..main` statt einer von Hand
+  gesuchten Commit-Kennung) — die Reviews nach DoD 3 laufen über „den
+  Sprint-Diff", und der wurde bisher jedes Mal neu konstruiert.
+- **PR-Probelauf, befristet auf Sprint 4 (Kundenentscheidung 02.08.2026)**: Je
+  Story-Strang ein Pull Request, geöffnet bei der Übergabe, Dev-Bericht und
+  Review-Befunde als Kommentare; gemerged wird weiter ausschließlich vom PO,
+  mit `--no-ff` statt Squash. **Den Zweig pusht und den PR öffnet der PO** —
+  die Regel „ein Dev pusht nie" (`.claude/agents/denkzettel-dev.md`) bleibt
+  unangetastet, sonst stünde der Probelauf bei der ersten Übergabe still.
+  Prozess-, Doku- und SPEC-Commits bleiben direkt auf `main`. **Abbruchkriterium, vorab festgelegt** (Verfahren wie bei I5):
+  Am Ende von Sprint 4 hängt mindestens ein Befund an einer Diff-Zeile, der
+  ohne PR nicht auffindbar gewesen wäre, **oder** ein automatischer Testlauf
+  ist auf einem PR gelaufen. Trifft keines von beidem zu, endet der Probelauf
+  und der Basis-Tag bleibt allein. Die Bewertung steht in der DoD-Prüfung von
+  Sprint 4.
+- **Push-Kadenz (Kundenentscheidung 02.08.2026)**: Der PO pusht nach jedem
+  abgeschlossenen Arbeitsblock ohne Rückfrage. `main` ist ohnehin
+  veröffentlicht — die Sichtbarkeit ändert sich dadurch nicht, das Liegenbleiben
+  schon: Der Push war in drei Sprints zweimal der letzte offene Punkt.
 
 ## Definition of Done (je Story)
 
@@ -188,21 +232,70 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
 **Takt 2 — nach der Kundenabnahme.** Ausführung PO:
 
 5. Issues mit AK-Haken, Abnahmekommentar und Commit-Verweis geschlossen,
-   Milestone geschlossen (DoD 5).
+   Milestone geschlossen (DoD 5). **Arbeitsteilung, weil dieser Punkt zugleich
+   Arbeitsliste des `denkzettel-verwalter` ist:** Die **AK-Haken setzt der PO**
+   — sie sind seine Abnahmeentscheidung, nicht umkehrbar und werden zur
+   Beweislage. Das **Schließen der abgenommenen Issues** mit Kommentar und
+   Commit-Verweis sowie das Schließen des Milestones ist Vollzug einer bereits
+   getroffenen Entscheidung und delegierbar. **Gegenstand der Delegation ist
+   die Abnahme, nicht der Milestone:** Der Auftrag zählt die Issues auf, die
+   der PO abgenommen hat. „Alle Issues des Milestones" ist kein Ersatz — ein
+   Issue kann am Milestone hängen, ohne abgenommen zu sein, und ein
+   Abnahmekommentar an einer nicht abgenommenen Story ist ein falscher Eintrag
+   in der Beweislage (karpathy-Nachprüfung, N3).
 6. Journal bis zum letzten Commit nachgeführt (DoD 6).
 7. `main` gepusht.
 8. Story-Zweige und Worktrees entfernt. Das Kriterium ist ein Exit-Code, kein
-   Ermessen: `git merge-base --is-ancestor <zweig> main` → 0 heißt löschbar.
-   Erst `git worktree remove`, dann `git branch -d`.
-9. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
+   Ermessen: `git merge-base --is-ancestor <zweig> main` → 0 heißt löschbar
+   (gleichwertig: der Zweig steht in `git branch --merged main` und nicht in
+   `git branch --no-merged main`). Erst `git worktree remove`, dann
+   `git branch -d` — niemals `-D`. **Ab dem PR-Probelauf auch auf `origin`:**
+   `git push origin --delete <zweig>`. Sonst bleiben genau die
+   Zwischenstände dauerhaft öffentlich stehen, die der Basis-Tag vermeiden
+   sollte — das Repo ist öffentlich.
+9. **Changelog fortgeschrieben** (Kundenentscheidung 02.08.2026): ein Abschnitt
+   je Version in `CHANGELOG.md`, gezogen aus den geschlossenen Issues des
+   Milestones. **Maßstab ist die Nutzersicht, nicht das Label.** `typ:tech` ist
+   ein Anhaltspunkt, kein Filter — am ersten Changelog gemessen: **#6**
+   (Autostart) trägt `typ:tech` und steht zu Recht drin, weil ein Dienst, der
+   sich selbst startet, sichtbar ist; **#1** (Wayland-Spike) trägt dasselbe
+   Label und bleibt zu Recht draußen; **#9** (Migrationstest) erscheint nur
+   dort, wo er die Schemazeile belegt. **Jede Änderung am Datenbank-Schema
+   wird genannt**, auch wenn kein Issue sie im Titel trägt — sie steckt als
+   Nebenwirkung in einer Story und ist das, was einen Nutzer am meisten
+   angeht. Die
+   Repo-Grenzen (Artefakte) gelten. Der `denkzettel-verwalter` liefert je nach
+   Auftrag die **Rohliste** oder einen **vorformulierten Entwurf**; in beiden
+   Fällen **verantwortet der PO Auswahl und Text**, und der Verwalter trägt
+   nichts selbst in `CHANGELOG.md` ein. Das Ziehen ist mechanisch, die
+   Aufnahme eines Eintrags ist ein Urteil — deshalb taugen die Labels hier
+   nicht als Filter (Sprint 3, 16.3.3).
+10. **Version erhöht und getaggt** (Kundenentscheidung 02.08.2026): 0.x-SemVer,
+    **MINOR bei jeder Kundenabnahme**, PATCH für außerplanmäßige Behebungen,
+    `1.0.0` erst auf Erklärung des Kunden; **jede Schemamigration erzwingt
+    mindestens einen MINOR-Sprung**. Einzige Quelle ist `CMakeLists.txt`, der
+    Tag `vX.Y.Z` ist das Siegel, nicht die Quelle. Auslöser ist die Abnahme,
+    nicht das Sprint-Ende: Der Sprintschluss ist ein Ereignis des Teams, ein
+    Release eines für den Kunden — ein Sprint ohne Abnahme erzeugt keine
+    Version. **Wirksam ab #61**; bis dahin erreicht die Zahl die Anwendung
+    nicht und wäre eine Behauptung ohne Sichtbarkeit. **Bis #61 umgesetzt ist,
+    führt der Vollzugsvermerk (Punkt 11) diesen Punkt als *ausgesetzt*, die
+    Einträge sammeln sich unter `[Unveröffentlicht]`, und Abnahmen davor
+    bekommen keine Version rückwirkend.** Ab #61 siegelt der `vX.Y.Z`-Tag den
+    Abschluss; ein zusätzlicher Abschluss-Tag entfällt dann. Der einmalige
+    `sprint-03-abschluss` ist eine Übergangsform aus der Zeit vor dieser Regel
+    (Sprint 3, 16.13) und kein drittes Tag-Schema.
+11. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
 
 Zwei Takte, weil DoD 5 und DoD 6 vor der Abnahme gar nicht erfüllbar sind: In
 Sprint 3 wurden sie zum Prüfzeitpunkt trotzdem als Mängel geführt (M2, M5),
 und der Doku-Abgleich lief vor der Abnahme — deshalb ging er an der
 Statuszeile vorbei, die erst durch die Abnahme falsch wurde.
 
-Version, Tag und Changelog stehen bewusst **nicht** in dieser Liste. Sie sind
-Kundenentscheidung (Sprint 3, 16.9) und werden erst nach ihr aufgenommen.
+Version, Tag und Changelog standen bis zum 02.08.2026 bewusst **nicht** in
+dieser Liste, weil sie Kundenentscheidung waren. Der Kunde hat sie am
+02.08.2026 wie vorgeschlagen entschieden (Sprint 3, 16.9); seitdem sind sie
+die Punkte 9 und 10.
 
 ## Retrospektiven
 
