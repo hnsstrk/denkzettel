@@ -2,7 +2,7 @@
   "_datei": "Schätzhistorie des Projekts Denkzettel — Datenreihe für den Schätzkegel.",
   "_quelle": "docs/scrum/sprints/sprint-05.md §24 (24.1 Reihe · 24.2 erfasst, nicht gezeichnet · 24.3 Sprint 5). Einzige Quelle.",
   "_regel": "Werte kommen aus dem Sprint-Protokoll, nie aus den Issues abgeleitet — das Protokoll trägt das Anlass-Kennzeichen, das Label nicht. Warum die Reihenfolge zählt: Mangel M2 (sprint-05.md §21) fand die sp:-Label von #66/#67/#57 falsch oder fehlend; aus ihnen hätte sich ein Sprint von 3 statt 11 Punkten ergeben. M2 ist am 02.08.2026 behoben (Label nachgemessen, §24.3), die Lehre bleibt: ein Diagramm aus falschen Labeln sieht nicht falsch aus, es ist still falsch.",
-  "_fortschreibung": "PROZESS.md, Sprint-Abschluss Punkt 12: Der Scrum Master legt die Zeile je Story mit Anlass-Kennzeichen in der DoD-Prüfung vor (Takt 1, Urteil); der denkzettel-verwalter überträgt sie mechanisch, lässt kegel.py laufen und meldet den Diff. Er fällt kein Kennzeichen selbst.",
+  "_fortschreibung": "Verfahren und Rollenteilung stehen in PROZESS.md, Sprint-Abschluss Punkt 12 — dort und nur dort. Hier keine Kopie, damit beide nicht auseinanderlaufen.",
   "_kennzeichen": {
     "gegenstand-geändert": "Die Schätzung stieg, weil sich der Gegenstand änderte — das ist keine Schätzabweichung.",
     "erkenntnis": "Der Gegenstand blieb derselbe; die Arbeit an ihm hat den Wert verschoben.",
