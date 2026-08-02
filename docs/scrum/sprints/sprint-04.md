@@ -443,3 +443,23 @@ erledigt: #11 nachgeschärft (K1–K3, K7), Labels angeglichen (#11 sp:5,
 ollama.com erreichbar, HTTP 200), Wireframe 5a liegt vor (K6 erfüllt).
 
 **Sprint-Konto bei Freigabe: 11 von ~13 SP · 3 von 4 Stories.**
+
+## 14. Scope-Entscheidung während des Sprints (PO-Vermerk, 02.08.2026, 13:09)
+
+Strang B hat die SNI-Messung als ersten Schritt geführt — **Negativbefund**:
+Ein selbst gezeichnetes Menü ist unter Plasma/Wayland unsichtbar (Abbau nach
+2 ms) oder landet in der Bildschirmmitte; die Kette bis zum Handler trägt,
+erst das Anzeigen scheitert (Belege im Zweig `story/60-traymenues`,
+Commit `cacc4d2`). Die Rückfallregel aus #60 griff wie vorgesehen: Stopp,
+Meldung, Kundenentscheidung.
+
+Dem Kunden lagen beide Wege samt Einordnung vor (die Referenz-Applets sind
+Bausteine der Leiste und öffnen links ihren Inhalt, kein zweites Menü):
+**Direktstart** (Linksklick öffnet das Erfassungsfenster; PO-Empfehlung) und
+**ein Menü mit abgesetztem „Beenden"**. Der Kunde wählte das eine Menü —
+die #44-Entscheidung gilt fort (A1), A2/A3 entfallen, der ausgegraute
+„Einstellungen"-Eintrag entfällt bis #16. AK von #60 umgestellt, Strang B
+baut mit dem Rückfallstand weiter, Wireframe 5a wird angepasst.
+
+Sprint-Konto unverändert: 11 von ~13 SP · 3 von 4 Stories (Umfang von #60
+verengt sich, wird nicht nachgebucht — die Messung war eingepreist).
