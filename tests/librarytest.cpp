@@ -179,6 +179,7 @@ private Q_SLOTS:
     void refusesToSaveAnEmptyText();
     void leavesTheEditorWithoutAskingWhenNothingWasChanged();
     void namesTheThreeAnswersOfTheGuardDialog();
+    void showsTheWarningSymbolInTheGuardDialog();
     void namesTheSymbolsOfTheDetailButtons();
     void namesTheSymbolOfTheUndoAction();
     void keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks();
@@ -2674,6 +2675,50 @@ void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
     // PO decision F3). Saving meets the likely intention of someone who has
     // just typed — and it is the answer that loses nothing either way.
     QCOMPARE(defaultAnswer, QStringLiteral("Speichern"));
+}
+
+void LibraryTest::showsTheWarningSymbolInTheGuardDialog()
+{
+    storedNote(QStringLiteral("wird geändert"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("geändert"));
+
+    // Wireframe 2a, state C: a dialog about losing work carries the warning
+    // symbol. It is the one symbol the platform's substitute dialog did have,
+    // and the story that heals the missing symbols must not take the largest
+    // one away (PO decision of 02.08.2026 on the handover finding).
+    //
+    // The measurement is the picture label, not a name: the symbol sits in a
+    // QLabel, and a pixmap has no name to ask for. Empty or hidden means the
+    // dialog shows none — which is exactly what KMessageDialog does when no
+    // icon is handed to it, its documentation notwithstanding.
+    QSize symbol;
+    QTimer::singleShot(0, qApp, [&symbol] {
+        QDialog *dialog = waitForGuardDialog();
+        QVERIFY(dialog);
+
+        const QList<QLabel *> labels = dialog->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->isVisible() && !label->pixmap().isNull()) {
+                symbol = label->pixmap().size();
+            }
+        }
+
+        QAbstractButton *cancel = dialogButton(dialog, QStringLiteral("Abbrechen"));
+        QVERIFY(cancel);
+        cancel->click();
+    });
+
+    QTest::keyClick(editorOf(window), Qt::Key_Escape);
+
+    QVERIFY2(!symbol.isEmpty(),
+             "Der Wächterdialog zeigt kein Warnsymbol — kein sichtbares Etikett trägt ein Bild");
 }
 
 void LibraryTest::namesTheSymbolsOfTheDetailButtons()

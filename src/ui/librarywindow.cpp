@@ -924,6 +924,14 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
                           this);
     dialog.setCaption(i18nc("@title:window", "Ungespeicherte Änderungen"));
 
+    // The warning symbol, set out loud although the dialog type is a warning
+    // one. KMessageDialog::setIcon() promises a generic symbol by type for a
+    // null QIcon; measured on 02.08.2026 it hands out none, and the dialog
+    // then carries no picture label at all. A dialog about losing work is the
+    // very case the symbol exists for — and it is the one symbol the
+    // platform's substitute dialog did have (wireframe 2a, state C).
+    dialog.setIcon(QIcon::fromTheme(QStringLiteral("dialog-warning")));
+
     // Symbols from the system theme; three similarly long German words side by
     // side are told apart fastest by their picture, and „Verwerfen“ gets the
     // marking KDE gives a destructive action (UI review of 02.08.2026,

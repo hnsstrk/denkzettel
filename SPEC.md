@@ -450,9 +450,12 @@ v1 aber nicht gebaut.
       **sichtbaren** Dialog gemessen wird.
     - Wird der Dialog von Hand angezeigt, ist er **nicht mehr modal** durch
       ein späteres `exec()`; die Modalität ist dann selbst zu setzen.
-    - Der Dialog trägt **kein Warnsymbol** neben dem Text — `KMessageDialog`
-      setzt nur ein ausdrücklich übergebenes. Das deckt sich mit Zeichnung
-      2a, Zustand C; der Ersatzdialog der Plattform hatte eines.
+    - Das **Warnsymbol** (`dialog-warning`) wird **ausdrücklich gesetzt**.
+      `KMessageDialog::setIcon()` sagt zwar zu, bei leerem Symbol eines nach
+      Dialogtyp zu wählen — gemessen kommt keines, und der Dialog trägt dann
+      gar kein Bildetikett. Ein Dialog über drohenden Datenverlust ist der
+      Kernfall des Warnsymbols (PO-Entscheidung 02.08.2026; Zeichnung 2a,
+      Zustand C nachgezogen).
 - Steckt die Notiz in einem **offenen Vorschlag**, verwirft Bearbeiten oder
   Löschen diesen Vorschlag (seine Vorschau wäre veraltet); der nächste
   Analyse-Lauf erzeugt ihn auf aktuellem Stand neu.

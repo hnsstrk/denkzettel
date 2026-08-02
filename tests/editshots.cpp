@@ -9,6 +9,7 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QIcon>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QPainter>
@@ -340,6 +341,22 @@ int main(int argc, char **argv)
                       qUtf8Printable(answer->icon().name()),
                       defaultAnswer(dialog) == answer ? " (Vorgabe)" : "");
             }
+
+            // The warning symbol sits in a picture label and has no name to
+            // ask for, so its size is what can be said about it. It stands in
+            // the log as well as in the picture on purpose: a picture does not
+            // carry its build state in its face — this bench is
+            // EXCLUDE_FROM_ALL, and a plain `cmake --build build` leaves it as
+            // it was (measured 02.08.2026, when a fresh picture showed an old
+            // dialog).
+            QSize warning;
+            const QList<QLabel *> labels = dialog->findChildren<QLabel *>();
+            for (const QLabel *label : labels) {
+                if (label->isVisible() && !label->pixmap().isNull()) {
+                    warning = label->pixmap().size();
+                }
+            }
+            qInfo("Wächterdialog: Warnsymbol %dx%d", warning.width(), warning.height());
 
             QPixmap behind = window.grab();
             const QPixmap front = dialog->grab();
