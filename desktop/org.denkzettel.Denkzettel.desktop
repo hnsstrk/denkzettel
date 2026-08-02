@@ -7,6 +7,9 @@ Exec=denkzetteld
 Icon=denkzettel
 Terminal=false
 Categories=Utility;Qt;KDE;
+# Suchbegriffe, keine Beschriftung: "Capture" bleibt hier stehen, obwohl es aus
+# allen sichtbaren Texten verschwunden ist (Issue #60) — wer das Werkzeug unter
+# seinem alten Namen sucht, soll es weiter finden.
 Keywords=Notiz;Notizen;Gedanke;Capture;
 Actions=show-capture;
 
@@ -15,8 +18,10 @@ Actions=show-capture;
 # Komponente als Service-Action-Komponente und der Tastendruck startet die
 # gleichnamige Aktion. Der Gruppenname ist die Aktions-Id aus
 # GlobalShortcuts (show-capture), Name deckt sich mit dem dort gesetzten
-# Anzeigenamen. Exec startet denkzetteld; die Einzelinstanz-Weiche des
-# laufenden Dienstes macht daraus ShowCapture() (SPEC 2.3, 2.4).
+# Anzeigenamen — beide ändern sich nur gemeinsam, sonst trägt dieselbe Aktion
+# in den Systemeinstellungen und im Startmenü zwei verschiedene Namen. Exec
+# startet denkzetteld; die Einzelinstanz-Weiche des laufenden Dienstes macht
+# daraus ShowCapture() (SPEC 2.3, 2.4).
 [Desktop Action show-capture]
-Name=Capture öffnen
+Name=Notiz erfassen
 Exec=denkzetteld
