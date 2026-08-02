@@ -2961,10 +2961,15 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
     const int readingHeight = stack->height();
 
     // A button carries the width of its label (KDE HIG) and must not grow with
-    // the window. The stack that fixed finding 1 made them grow: its editing
-    // page carries a stretch of its own, which turned the whole stack
-    // horizontally expanding, and the buttons inside it took the surplus
-    // (UI review of 02.08.2026, second pass, finding 7).
+    // the window. The stack that fixed finding 1 made them grow: it asks for
+    // the surplus width itself and passes it on to the buttons inside it —
+    // 80 px of label in a 194 px button at 1200 px window width (UI review of
+    // 02.08.2026, second pass, finding 7).
+    //
+    // Not the stretch on its editing page, although that was the reading the
+    // finding came with: taking the stretch out changes none of these numbers
+    // (measured 02.08.2026). What holds the width is the horizontal
+    // QSizePolicy::Maximum on the stack — see librarywindow.cpp, buildDetail().
     QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
     QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
     QVERIFY(edit);
