@@ -6,10 +6,12 @@
 #include "ui/pendingdeletion.h"
 #include "ui/timestampformat.h"
 
+#include <KLocalizedString>
 #include <KMessageWidget>
 #include <KStandardShortcut>
 
 #include <QAction>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QFontMetrics>
 #include <QIcon>
@@ -20,11 +22,9 @@
 #include <QListView>
 #include <QApplication>
 #include <QLocale>
-#include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
-#include <QSet>
 #include <QSignalSpy>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -43,10 +43,10 @@ namespace
  * whether one did.
  *
  * For the paths on which no dialog may appear. Without it a wrongly raised
- * dialog would hang the test inside QMessageBox::exec() instead of failing it,
- * and a suite that hangs is worse than one that goes red — measured on
- * 02.08.2026, when the counter-check of the guard ran into the timeout instead
- * of into an assertion.
+ * dialog would hang the test inside exec() instead of failing it, and a suite
+ * that hangs is worse than one that goes red — measured on 02.08.2026, when
+ * the counter-check of the guard ran into the timeout instead of into an
+ * assertion.
  */
 class DialogWatch
 {
@@ -54,7 +54,9 @@ public:
     DialogWatch()
     {
         QObject::connect(&m_timer, &QTimer::timeout, &m_timer, [this] {
-            auto *dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
+            // Any modal dialog, not a QMessageBox: since issue #66 the guard is
+            // a KMessageDialog, and it is a plain QDialog.
+            auto *dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget());
             if (dialog) {
                 m_appeared = true;
                 dialog->reject();
@@ -177,6 +179,8 @@ private Q_SLOTS:
     void refusesToSaveAnEmptyText();
     void leavesTheEditorWithoutAskingWhenNothingWasChanged();
     void namesTheThreeAnswersOfTheGuardDialog();
+    void namesTheSymbolsOfTheDetailButtons();
+    void namesTheSymbolOfTheUndoAction();
     void keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks();
     void namesTheEditedNoteWithoutBreakingTheSentence_data();
     void namesTheEditedNoteWithoutBreakingTheSentence();
@@ -241,14 +245,47 @@ private:
     static QWidget *detailOf(const QWidget &window);
 
     /**
-     * Clicks the button with `role` in the guard dialog that the next action
-     * opens (wireframe 2a, state C).
+     * The guard dialog once it stands, or nullptr — for the lambdas that run
+     * inside its modal loop (wireframe 2a, state C).
+     *
+     * It asks the application which window is modal rather than the library
+     * which dialog it built: under the KDE platform theme those are not the
+     * same object for a QMessageBox, which is why the guard is a
+     * KMessageDialog since issue #66.
+     */
+    static QDialog *waitForGuardDialog();
+
+    /**
+     * The answers `dialog` offers.
+     *
+     * Out of its QDialogButtonBox rather than out of all its children: a
+     * KMessageDialog also carries a hidden „do not ask again“ checkbox, and
+     * that is a QAbstractButton too — measured on 02.08.2026, when a test
+     * clicked it instead of an answer and waited for a dialog that nobody had
+     * answered.
+     */
+    static QList<QAbstractButton *> dialogAnswerButtons(QDialog *dialog);
+
+    /** The answer of `dialog` labelled `label`, or nullptr. */
+    static QAbstractButton *dialogButton(QDialog *dialog, const QString &label);
+
+    /** The labels of the answers `dialog` offers. */
+    static QStringList dialogAnswers(QDialog *dialog);
+
+    /**
+     * Clicks the answer labelled `label` in the guard dialog that the next
+     * action opens (wireframe 2a, state C).
      *
      * The dialog is modal and runs an event loop of its own, so the answer has
      * to be queued before the action that opens it — from inside that loop
      * there is no other way back into the test.
+     *
+     * By label, not by role: the label is what the user reads and acts on. A
+     * test that picks its button by the role it also expects to find would
+     * click whatever sits in the „discard“ slot and never notice two answers
+     * having swapped places.
      */
-    static void answerNextDialog(QMessageBox::ButtonRole role);
+    static void answerNextDialog(const QString &label);
 
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
@@ -861,26 +898,69 @@ QWidget *LibraryTest::detailOf(const QWidget &window)
     return page;
 }
 
-void LibraryTest::answerNextDialog(QMessageBox::ButtonRole role)
+QDialog *LibraryTest::waitForGuardDialog()
 {
-    QTimer::singleShot(0, qApp, [role] {
-        QMessageBox *dialog = nullptr;
-        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
-            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
-            if (!dialog) {
-                QTest::qWait(10);
-            }
+    QDialog *dialog = nullptr;
+    for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
+        dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+        if (!dialog) {
+            QTest::qWait(10);
         }
+    }
+
+    // …and then until it is really on the screen. A dialog that merely exists
+    // is not yet the dialog the user meets: focus is handed out at that later
+    // moment, and with the focus goes the default answer. Measured on
+    // 02.08.2026 — read one turn of the event loop earlier, the default read
+    // „Speichern“ and settled on „Abbrechen“ afterwards. The assertion on it
+    // was green and meant nothing.
+    // A dialog that never reaches the screen is no dialog for the caller
+    // either — it gets nullptr and says so through its own assertion.
+    if (dialog && !QTest::qWaitForWindowExposed(dialog)) {
+        return nullptr;
+    }
+
+    return dialog;
+}
+
+QList<QAbstractButton *> LibraryTest::dialogAnswerButtons(QDialog *dialog)
+{
+    auto *box = dialog->findChild<QDialogButtonBox *>();
+    return box ? box->buttons() : QList<QAbstractButton *>();
+}
+
+QAbstractButton *LibraryTest::dialogButton(QDialog *dialog, const QString &label)
+{
+    const QList<QAbstractButton *> buttons = dialogAnswerButtons(dialog);
+    for (QAbstractButton *button : buttons) {
+        if (KLocalizedString::removeAcceleratorMarker(button->text()) == label) {
+            return button;
+        }
+    }
+    return nullptr;
+}
+
+QStringList LibraryTest::dialogAnswers(QDialog *dialog)
+{
+    QStringList labels;
+    const QList<QAbstractButton *> buttons = dialogAnswerButtons(dialog);
+    for (QAbstractButton *button : buttons) {
+        labels.append(KLocalizedString::removeAcceleratorMarker(button->text()));
+    }
+    return labels;
+}
+
+void LibraryTest::answerNextDialog(const QString &label)
+{
+    QTimer::singleShot(0, qApp, [label] {
+        QDialog *dialog = waitForGuardDialog();
         QVERIFY2(dialog, "Der Wächterdialog ist nicht erschienen");
 
-        const QList<QAbstractButton *> buttons = dialog->buttons();
-        for (QAbstractButton *button : buttons) {
-            if (dialog->buttonRole(button) == role) {
-                button->click();
-                return;
-            }
-        }
-        QFAIL("Der Wächterdialog hat keine Schaltfläche mit dieser Rolle");
+        QAbstractButton *button = dialogButton(dialog, label);
+        QVERIFY2(button,
+                 qPrintable(QStringLiteral("Der Wächterdialog bietet keine Antwort „%1“, sondern %2")
+                                .arg(label, dialogAnswers(dialog).join(QLatin1Char('|')))));
+        button->click();
     });
 }
 
@@ -2548,27 +2628,27 @@ void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
     editorOf(window)->setPlainText(QStringLiteral("geändert"));
 
     // The dialog is read out of the running window rather than described from
-    // memory: roles and labels are what the platform orders the buttons by.
+    // memory — and out of the window the *user* gets: activeModalWidget(), not
+    // the object this window built. Under QT_QPA_PLATFORMTHEME=kde those were
+    // two different objects as long as the guard was a QMessageBox, and the
+    // one on screen carried none of the symbols set on ours (issue #66).
     QStringList labels;
-    QList<int> roles;
     QStringList icons;
-    QTimer::singleShot(0, qApp, [&labels, &roles, &icons] {
-        QMessageBox *dialog = nullptr;
-        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
-            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
-            if (!dialog) {
-                QTest::qWait(10);
+    QString defaultAnswer;
+    QTimer::singleShot(0, qApp, [&labels, &icons, &defaultAnswer] {
+        QDialog *dialog = waitForGuardDialog();
+        QVERIFY(dialog);
+
+        const QList<QAbstractButton *> buttons = dialogAnswerButtons(dialog);
+        QVERIFY(!buttons.isEmpty());
+        for (QAbstractButton *button : buttons) {
+            labels.append(KLocalizedString::removeAcceleratorMarker(button->text()));
+            icons.append(button->icon().name());
+            if (auto *push = qobject_cast<QPushButton *>(button); push && push->isDefault()) {
+                defaultAnswer = KLocalizedString::removeAcceleratorMarker(button->text());
             }
         }
-        QVERIFY(dialog);
-        const QList<QAbstractButton *> buttons = dialog->buttons();
-        for (QAbstractButton *button : buttons) {
-            labels.append(button->text());
-            roles.append(dialog->buttonRole(button));
-            icons.append(button->icon().name());
-        }
-        QVERIFY(dialog->findChild<QDialogButtonBox *>());
-        dialog->buttons().constFirst()->click();
+        buttons.constFirst()->click();
     });
 
     QTest::keyClick(editorOf(window), Qt::Key_Escape);
@@ -2577,17 +2657,94 @@ void LibraryTest::namesTheThreeAnswersOfTheGuardDialog()
     QVERIFY2(labels.contains(QStringLiteral("Speichern")), qPrintable(labels.join(QLatin1Char('|'))));
     QVERIFY(labels.contains(QStringLiteral("Verwerfen")));
     QVERIFY(labels.contains(QStringLiteral("Abbrechen")));
-    QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Speichern"))), int(QMessageBox::AcceptRole));
-    QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Verwerfen"))), int(QMessageBox::DestructiveRole));
-    QCOMPARE(roles.at(labels.indexOf(QStringLiteral("Abbrechen"))), int(QMessageBox::RejectRole));
 
     // Three similarly long German words side by side are told apart fastest by
-    // their symbol, and the destructive one carries the usual marking
-    // (UI review of 02.08.2026, finding 5). The names are asked for rather than
-    // the pixels: whether the theme resolves them is the theme's business, and
-    // an empty name means no symbol was ever asked for.
-    QVERIFY2(!icons.contains(QString()), qPrintable(icons.join(QLatin1Char('|'))));
-    QCOMPARE(icons.size(), QSet<QString>(icons.begin(), icons.end()).size());
+    // their symbol, and the destructive one carries the marking KDE gives a
+    // destructive action (UI review of 02.08.2026, finding 5). The names are
+    // asked for rather than the pixels: whether the theme resolves them is the
+    // theme's business, and an empty name means no symbol was ever asked for.
+    // The three names are the ones the drawing lays down (wireframe 2a, table
+    // „Symbole an den Schaltflächen“, state C).
+    QCOMPARE(icons.at(labels.indexOf(QStringLiteral("Speichern"))), QStringLiteral("document-save"));
+    QCOMPARE(icons.at(labels.indexOf(QStringLiteral("Verwerfen"))), QStringLiteral("edit-delete"));
+    QCOMPARE(icons.at(labels.indexOf(QStringLiteral("Abbrechen"))), QStringLiteral("dialog-cancel"));
+
+    // The default answer is „Speichern“, and it has to be said out loud: the
+    // KDE build puts the default on the cancel button (measured 02.08.2026,
+    // PO decision F3). Saving meets the likely intention of someone who has
+    // just typed — and it is the answer that loses nothing either way.
+    QCOMPARE(defaultAnswer, QStringLiteral("Speichern"));
+}
+
+void LibraryTest::namesTheSymbolsOfTheDetailButtons()
+{
+    storedNote(QStringLiteral("trägt Symbole"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    // Wireframe 2a, table „Symbole an den Schaltflächen“: what is laid down is
+    // the *name*, not the drawn shape — the graphic comes from the icon theme
+    // and changes with it. An empty name means no symbol was ever asked for,
+    // which is what the customer saw („Die Bibliothek hat keine Icons“, #67).
+    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+    QVERIFY(edit);
+    QVERIFY(remove);
+    QCOMPARE(edit->icon().name(), QStringLiteral("document-edit"));
+    QCOMPARE(remove->icon().name(), QStringLiteral("edit-delete"));
+
+    // The symbol steps beside the label, never in its place (KDE HIG). A
+    // symbol-only button would not appear anywhere in this window.
+    QCOMPARE(edit->text(), QStringLiteral("Bearbeiten"));
+    QCOMPARE(remove->text(), QStringLiteral("Löschen"));
+
+    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+
+    // State B, the edit footer. Same two symbols the guard dialog uses for the
+    // same two answers — the window says the same thing in both places.
+    QPushButton *save = buttonNamed(window, QStringLiteral("Speichern"));
+    QPushButton *cancel = buttonNamed(window, QStringLiteral("Abbrechen"));
+    QVERIFY(save);
+    QVERIFY(cancel);
+    QCOMPARE(save->icon().name(), QStringLiteral("document-save"));
+    QCOMPARE(cancel->icon().name(), QStringLiteral("dialog-cancel"));
+    QCOMPARE(save->text(), QStringLiteral("Speichern"));
+    QCOMPARE(cancel->text(), QStringLiteral("Abbrechen"));
+}
+
+void LibraryTest::namesTheSymbolOfTheUndoAction()
+{
+    storedNote(QStringLiteral("wird gelöscht"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+    QTRY_VERIFY(message->isVisible() && !message->isShowAnimationRunning());
+
+    // The fourth labelled control of the library and the only one outside the
+    // detail pane (wireframe 2b). Read off the button KMessageWidget builds
+    // rather than off the QAction behind it: the button is what is on screen,
+    // and it is the button that would go without a symbol if the widget stopped
+    // passing it on.
+    QToolButton *undo = nullptr;
+    const QList<QToolButton *> buttons = message->findChildren<QToolButton *>();
+    for (QToolButton *button : buttons) {
+        if (button->text() == QStringLiteral("Rückgängig")) {
+            undo = button;
+        }
+    }
+    QVERIFY(undo);
+    QCOMPARE(undo->icon().name(), QStringLiteral("edit-undo"));
 }
 
 void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
@@ -2606,24 +2763,14 @@ void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
 
     QModelIndex selectedWhileAsking;
     QTimer::singleShot(0, qApp, [&selectedWhileAsking, list] {
-        QMessageBox *dialog = nullptr;
-        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
-            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
-            if (!dialog) {
-                QTest::qWait(10);
-            }
-        }
+        QDialog *dialog = waitForGuardDialog();
         QVERIFY(dialog);
 
         selectedWhileAsking = list->currentIndex();
 
-        const QList<QAbstractButton *> buttons = dialog->buttons();
-        for (QAbstractButton *button : buttons) {
-            if (dialog->buttonRole(button) == QMessageBox::RejectRole) {
-                button->click();
-                return;
-            }
-        }
+        QAbstractButton *cancel = dialogButton(dialog, QStringLiteral("Abbrechen"));
+        QVERIFY(cancel);
+        cancel->click();
     });
 
     list->setCurrentIndex(noteRow(list, 1));
@@ -2643,15 +2790,22 @@ void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence_data()
     // The timestamp goes into the sentence in the form its group gives it, and
     // the sentence has to carry every one of them — „Die Notiz von Heute 11:05
     // wurde geändert“ carried none (UI review of 02.08.2026, finding 3).
+    //
+    // Both sentences stand in one text since issue #66: KMessageDialog has no
+    // informative text beside the main one. The question keeps its place at the
+    // top, the explanation below it, and the blank line between them does what
+    // the second field did (wireframe 2a, state C).
     QTest::addColumn<QString>("written");
     QTest::addColumn<QString>("expected");
 
     QTest::newRow("heute") << QStringLiteral("2026-07-31T11:05:00")
-                           << QStringLiteral("Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte "
-                                             "Änderungen. Ohne Speichern gehen sie verloren.");
+                           << QStringLiteral("Änderungen speichern?\n\nDie bearbeitete Notiz (Heute 11:05) "
+                                             "hat ungespeicherte Änderungen. Ohne Speichern gehen sie "
+                                             "verloren.");
     QTest::newRow("älter") << QStringLiteral("2026-07-19T09:00:00")
-                           << QStringLiteral("Die bearbeitete Notiz (19.07.2026) hat ungespeicherte "
-                                             "Änderungen. Ohne Speichern gehen sie verloren.");
+                           << QStringLiteral("Änderungen speichern?\n\nDie bearbeitete Notiz (19.07.2026) "
+                                             "hat ungespeicherte Änderungen. Ohne Speichern gehen sie "
+                                             "verloren.");
 }
 
 void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence()
@@ -2670,31 +2824,28 @@ void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence()
     actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
 
-    QString informative;
-    QTimer::singleShot(0, qApp, [&informative] {
-        QMessageBox *dialog = nullptr;
-        for (int attempt = 0; attempt < 200 && !dialog; ++attempt) {
-            dialog = qobject_cast<QMessageBox *>(QApplication::activeModalWidget());
-            if (!dialog) {
-                QTest::qWait(10);
-            }
-        }
+    // Every line the dialog shows, so the comparison below is an equality
+    // against the whole message and not a search for the words it expects.
+    QStringList shown;
+    QTimer::singleShot(0, qApp, [&shown] {
+        QDialog *dialog = waitForGuardDialog();
         QVERIFY(dialog);
 
-        informative = dialog->informativeText();
-
-        const QList<QAbstractButton *> buttons = dialog->buttons();
-        for (QAbstractButton *button : buttons) {
-            if (dialog->buttonRole(button) == QMessageBox::RejectRole) {
-                button->click();
-                return;
+        const QList<QLabel *> labels = dialog->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (!label->text().isEmpty()) {
+                shown.append(label->text());
             }
         }
+
+        QAbstractButton *cancel = dialogButton(dialog, QStringLiteral("Abbrechen"));
+        QVERIFY(cancel);
+        cancel->click();
     });
 
     QTest::keyClick(editorOf(window), Qt::Key_Escape);
 
-    QCOMPARE(informative, expected);
+    QVERIFY2(shown.contains(expected), qPrintable(shown.join(QStringLiteral(" ⏎ "))));
 }
 
 void LibraryTest::saysWhyTheSearchFieldRestsWhileEditing()
@@ -2730,20 +2881,21 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
     // Three ways out of the edit state and three answers to each — the matrix
     // of wireframe 2a, state C. Leaving one column out would leave one way of
     // losing a correction unwatched.
+    //
+    // The answers are named by their label, not by the button role behind them
+    // (issue #66). What the wireframe fixes is their *meaning* — „Speichern“
+    // writes and carries the act out, „Verwerfen“ carries it out without
+    // writing, „Abbrechen“ stays in the editor — while roles and order belong
+    // to the platform. A matrix that both clicks and expects by role would
+    // survive two answers swapping their labels.
     QTest::addColumn<QString>("trigger");
-    QTest::addColumn<int>("answer");
-
-    const QList<QPair<QString, int>> answers = {
-        {QStringLiteral("speichern"), QMessageBox::AcceptRole},
-        {QStringLiteral("verwerfen"), QMessageBox::DestructiveRole},
-        {QStringLiteral("abbrechen"), QMessageBox::RejectRole},
-    };
+    QTest::addColumn<QString>("answer");
 
     for (const QString &trigger :
          {QStringLiteral("auswahlwechsel"), QStringLiteral("fensterschliessen"), QStringLiteral("esc")}) {
-        for (const auto &answer : answers) {
-            QTest::newRow(qPrintable(trigger + QLatin1Char('-') + answer.first))
-                << trigger << answer.second;
+        for (const QString &answer :
+             {QStringLiteral("Speichern"), QStringLiteral("Verwerfen"), QStringLiteral("Abbrechen")}) {
+            QTest::newRow(qPrintable(trigger + QLatin1Char('-') + answer.toLower())) << trigger << answer;
         }
     }
 }
@@ -2751,7 +2903,7 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
 void LibraryTest::asksBeforeUnsavedChangesAreLost()
 {
     QFETCH(QString, trigger);
-    QFETCH(int, answer);
+    QFETCH(QString, answer);
 
     const qint64 edited = storedNote(QStringLiteral("erste Notiz"));
     storedNote(QStringLiteral("zweite Notiz"));
@@ -2765,7 +2917,7 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost()
     actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("erste Notiz, berichtigt"));
 
-    answerNextDialog(static_cast<QMessageBox::ButtonRole>(answer));
+    answerNextDialog(answer);
 
     if (trigger == QStringLiteral("auswahlwechsel")) {
         list->setCurrentIndex(noteRow(list, 1));
@@ -2777,7 +2929,7 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost()
 
     // „Speichern“ writes, „Verwerfen“ and „Abbrechen“ leave the note alone.
     const QString stored = m_store->note(edited)->content;
-    if (answer == QMessageBox::AcceptRole) {
+    if (answer == QStringLiteral("Speichern")) {
         QCOMPARE(stored, QStringLiteral("erste Notiz, berichtigt"));
     } else {
         QCOMPARE(stored, QStringLiteral("erste Notiz"));
@@ -2785,7 +2937,7 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost()
 
     // „Speichern“ and „Verwerfen“ carry the triggering act out, „Abbrechen“
     // stays in the edit state and takes the act back.
-    const bool carriedOut = answer != QMessageBox::RejectRole;
+    const bool carriedOut = answer != QStringLiteral("Abbrechen");
 
     if (trigger == QStringLiteral("auswahlwechsel")) {
         QCOMPARE(list->currentIndex(), noteRow(list, carriedOut ? 1 : 0));

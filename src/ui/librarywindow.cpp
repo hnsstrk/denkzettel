@@ -7,7 +7,9 @@
 #include "ui/timestampformat.h"
 
 #include <KConfigGroup>
+#include <KGuiItem>
 #include <KLocalizedString>
+#include <KMessageDialog>
 #include <KMessageWidget>
 #include <KSharedConfig>
 #include <KStandardGuiItem>
@@ -21,11 +23,11 @@
 #include <QDialogButtonBox>
 #include <QFontDatabase>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QLocale>
-#include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSplitter>
@@ -60,6 +62,44 @@ QString missingValue()
 KConfigGroup windowGroup()
 {
     return KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("Bibliothek"));
+}
+
+/**
+ * Puts Return on the primary action of a message dialog.
+ *
+ * Two calls, because one of them alone does not hold (measured 02.08.2026,
+ * issue #66): among buttons that are auto-default — and dialog buttons are —
+ * **the default follows the focus**. The KDE build hands the focus to the
+ * cancel button the moment the dialog reaches the screen, and the default
+ * travels with it; a setDefault() on its own was still in force one turn of
+ * the event loop later and gone by the time anyone could see the dialog.
+ *
+ * Setting the focus is also the honest half of the pair: the button Return
+ * triggers is the button that wears the focus ring. Switching the other two
+ * out of auto-default would keep the default as well, but would leave the ring
+ * on one answer and Return on another.
+ *
+ * That it really ends up there is not taken on trust — it is read back off the
+ * dialog on screen by `namesTheThreeAnswersOfTheGuardDialog`.
+ */
+void putReturnOnThePrimaryAction(KMessageDialog *dialog)
+{
+    auto *buttons = dialog->findChild<QDialogButtonBox *>();
+    if (!buttons) {
+        return;
+    }
+
+    const QList<QAbstractButton *> answers = buttons->buttons();
+    for (QAbstractButton *answer : answers) {
+        if (buttons->buttonRole(answer) != QDialogButtonBox::YesRole) {
+            continue;
+        }
+        if (auto *push = qobject_cast<QPushButton *>(answer)) {
+            push->setDefault(true);
+            push->setFocus();
+        }
+        return;
+    }
 }
 
 /** Small label in the regular text colour — the values of the meta row. */
@@ -122,7 +162,11 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_model(new NoteListModel(this))
     , m_deletion(new PendingDeletion(store, PendingDeletion::DefaultGracePeriodSeconds, this))
     , m_deleteAction(new QAction(i18n("Löschen"), this))
-    , m_undoAction(new QAction(i18n("Rückgängig"), this))
+    // The fourth labelled control of the library and the only one outside the
+    // detail pane: KMessageWidget draws its actions as buttons with the symbol
+    // beside the text, so the symbol belongs on the action (wireframe 2b,
+    // issue #67).
+    , m_undoAction(new QAction(QIcon::fromTheme(QStringLiteral("edit-undo")), i18n("Rückgängig"), this))
     , m_editAction(new QAction(i18n("Bearbeiten"), this))
     , m_saveAction(new QAction(i18n("Speichern"), this))
     , m_cancelEditAction(new QAction(i18n("Abbrechen"), this))
@@ -298,10 +342,20 @@ QWidget *LibraryWindow::buildDetail()
     // underneath it (issue #54).
     m_editingBadge->setForegroundRole(QPalette::Link);
 
-    m_editButton = new QPushButton(i18n("Bearbeiten"), detail);
+    // Symbols from the icon theme (wireframe 2a, table „Symbole an den
+    // Schaltflächen“; issue #67). What that table lays down is the *name* —
+    // the graphic comes from the theme and changes with it, as in the tray
+    // menu (#60). The symbol steps beside the label and never in its place:
+    // the KDE HIG have symbols explain a label rather than replace it, and a
+    // symbol-only button appears nowhere in this window.
+    m_editButton = new QPushButton(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Bearbeiten"), detail);
     connect(m_editButton, &QPushButton::clicked, m_editAction, &QAction::trigger);
 
-    m_deleteButton = new QPushButton(i18n("Löschen"), detail);
+    // „Löschen“ takes its symbol from KStandardGuiItem::del(), so it is the one
+    // every other KDE window deletes with — the icon only, the wording stays
+    // under this application's own i18n() and must not depend on which KF6
+    // catalogue happens to be installed.
+    m_deleteButton = new QPushButton(KStandardGuiItem::del().icon(), i18n("Löschen"), detail);
     connect(m_deleteButton, &QPushButton::clicked, m_deleteAction, &QAction::trigger);
 
     auto *reading = new QWidget(detail);
@@ -372,10 +426,12 @@ QWidget *LibraryWindow::buildDetail()
     meta->addWidget(m_tags);
     meta->addStretch();
 
-    m_saveButton = new QPushButton(i18n("Speichern"), detail);
+    // The same two symbols the guard dialog gives the same two answers — the
+    // window says the same thing in both places (issue #67).
+    m_saveButton = new QPushButton(KStandardGuiItem::save().icon(), i18n("Speichern"), detail);
     connect(m_saveButton, &QPushButton::clicked, m_saveAction, &QAction::trigger);
 
-    auto *cancelButton = new QPushButton(i18n("Abbrechen"), detail);
+    auto *cancelButton = new QPushButton(KStandardGuiItem::cancel().icon(), i18n("Abbrechen"), detail);
     connect(cancelButton, &QPushButton::clicked, m_cancelEditAction, &QAction::trigger);
 
     // The order of the two is the platform's, not this window's.
@@ -839,26 +895,34 @@ void LibraryWindow::stopEditing()
 
 LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
 {
-    QMessageBox dialog(this);
-    dialog.setIcon(QMessageBox::Warning);
-    dialog.setWindowTitle(i18nc("@title:window", "Ungespeicherte Änderungen"));
-    dialog.setText(i18n("Änderungen speichern?"));
+    // KMessageDialog, not QMessageBox: under the KDE platform integration a
+    // built QMessageBox is not the dialog the user gets. The integration
+    // answers with a message box of its own — a second object with buttons of
+    // its own —, and it takes over labels, roles and order but nothing that is
+    // set on our buttons afterwards: symbols, default button, escape button.
+    // Measured on 02.08.2026 for issue #66: activeModalWidget() was a
+    // QMessageBox, but not this one, and its three buttons carried no symbol
+    // name at all. That is what the customer photographed (SPEC 9).
+    //
+    // A KMessageDialog is a plain QDialog and stays ours, symbols included.
+    //
     // The timestamp stands in brackets, not in the middle of the sentence: it
     // comes in the form its group gives it — „Heute 11:05“, „Di, 28.07.“,
     // „19.07.2026“ — and no single German sentence carries all three as an
     // object („Die Notiz von Heute 11:05 wurde geändert“, UI review of
     // 02.08.2026, finding 3). The brackets take the grammar out of the
     // format's hands.
-    dialog.setInformativeText(
-        i18n("Die bearbeitete Notiz (%1) hat ungespeicherte Änderungen. Ohne Speichern gehen sie verloren.",
-             library::relativeTimestamp(m_editedNote.createdAt, referenceTime(), QLocale())));
-
-    // The roles order the buttons, this window does not: QMessageBox lays them
-    // out through a QDialogButtonBox and inherits the platform convention
+    //
+    // Both sentences stand in one text because KMessageDialog has no
+    // informative text beside the main one. The blank line keeps the question
+    // in front and the explanation behind it, as the drawing has it
     // (wireframe 2a, state C).
-    QPushButton *save = dialog.addButton(i18n("Speichern"), QMessageBox::AcceptRole);
-    QPushButton *discard = dialog.addButton(i18n("Verwerfen"), QMessageBox::DestructiveRole);
-    QPushButton *cancel = dialog.addButton(i18n("Abbrechen"), QMessageBox::RejectRole);
+    KMessageDialog dialog(KMessageDialog::WarningTwoActionsCancel,
+                          i18n("Änderungen speichern?\n\nDie bearbeitete Notiz (%1) hat ungespeicherte "
+                               "Änderungen. Ohne Speichern gehen sie verloren.",
+                               library::relativeTimestamp(m_editedNote.createdAt, referenceTime(), QLocale())),
+                          this);
+    dialog.setCaption(i18nc("@title:window", "Ungespeicherte Änderungen"));
 
     // Symbols from the system theme; three similarly long German words side by
     // side are told apart fastest by their picture, and „Verwerfen“ gets the
@@ -866,24 +930,46 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     // finding 5). Taken from KStandardGuiItem, so they are the ones every
     // other KDE dialog uses — the icons only: the texts stay under this
     // application's own i18n() and must not depend on which KF6 catalogue
-    // happens to be installed.
-    save->setIcon(KStandardGuiItem::save().icon());
-    discard->setIcon(KStandardGuiItem::discard().icon());
-    cancel->setIcon(KStandardGuiItem::cancel().icon());
+    // happens to be installed (wireframe 2a, table „Symbole an den
+    // Schaltflächen“).
+    //
+    // The order the three appear in is the platform's, as before. What this
+    // window fixes is which answer means what: primary saves, secondary
+    // discards, cancel stays.
+    dialog.setButtons(KGuiItem(i18n("Speichern"), KStandardGuiItem::save().icon()),
+                      KGuiItem(i18n("Verwerfen"), KStandardGuiItem::discard().icon()),
+                      KGuiItem(i18n("Abbrechen"), KStandardGuiItem::cancel().icon()));
 
-    dialog.setDefaultButton(save);
-    // Esc over the dialog is the harmless answer: back into the edit state.
-    dialog.setEscapeButton(cancel);
+    // „Speichern“ is the default answer, because Return then does what someone
+    // who has just been typing most likely means, and it is the one answer
+    // that loses nothing (PO decision F3 of 02.08.2026; both readings are
+    // HIG-conform). It has to be said out loud: the KDE build puts the default
+    // on the cancel button.
+    //
+    // Hence the three lines instead of a plain exec(), each of them measured
+    // on 02.08.2026:
+    //  * a default set before show() is overwritten while showing, so it has
+    //    to be set afterwards;
+    //  * showing by hand costs the modality exec() would have set, because
+    //    exec() no longer makes a dialog modal once it is visible — the guard
+    //    then stands open with no way for anyone to answer it;
+    //  * so the modality is set by hand as well.
+    dialog.setWindowModality(Qt::ApplicationModal);
+    dialog.show();
+    putReturnOnThePrimaryAction(&dialog);
 
-    dialog.exec();
-
-    if (dialog.clickedButton() == save) {
+    // Esc is answered by the dialog itself and comes back as Cancel — the
+    // harmless answer, back into the edit state (measured 02.08.2026).
+    switch (dialog.exec()) {
+    case KMessageDialog::PrimaryAction:
         return UnsavedAnswer::Save;
-    }
-    if (dialog.clickedButton() == discard) {
+    case KMessageDialog::SecondaryAction:
         return UnsavedAnswer::Discard;
+    default:
+        // Cancel, Esc and a dialog closed from outside all end in the state
+        // that loses nothing.
+        return UnsavedAnswer::Cancel;
     }
-    return UnsavedAnswer::Cancel;
 }
 
 void LibraryWindow::updateEditState()
