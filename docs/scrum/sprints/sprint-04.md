@@ -798,3 +798,18 @@ mussten regelwidrig außerhalb ihrer Dateimenge schreiben, um ihren Beleg- und
 Prüfmittelpflichten nachzukommen (`docs/scrum/reviews/<story>/`, Bildläufer,
 CMake-Verdrahtung); ohne Ergänzung der Vorlage ist künftig jede Story mit
 Bildpflicht formal im Verstoß (karpathy 3.1, Vorschlag 4).
+
+## 16. Kundenabnahme (PO-Vermerk, 02.08.2026, 15:04)
+
+Der Kunde hat die fünf Handgriffe der Abnahme-Checkliste (§15.10) am
+installierten Stand ausgeführt und abgenommen: **„Sieht gut aus."**
+Nachgereicht werden auf PO-Bitte: die zwei Panel-Fotos (O1, zugleich
+Foto-AK von #60 und Schließung von M3) und die Antwort auf O3
+(Symbole der drei Wächterdialog-Knöpfe — entscheidet die
+`KMessageBox`-Frage aus S8-Befund 5). M1 und M2 waren zur Abnahme
+bereits geschlossen (`d46265c`, #12-Kommentar).
+
+Damit beginnt Takt 2; erster Einsatz des Verwalters (Kundenentscheidung
+vom Vormittag): Issues #11 und #12 schließen als Vollzug dieser Abnahme,
+Zweige und Worktrees räumen, Changelog-Rohliste. #60 schließt, sobald
+die Fotos vorliegen.
