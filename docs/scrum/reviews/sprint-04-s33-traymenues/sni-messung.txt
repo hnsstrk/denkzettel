@@ -1,0 +1,58 @@
+Messlauf 2026-08-02 12:56 · Sitzung: wayland/KDE
+	Geometry: 0,0 2400x1350
+	Scale: 1.6
+Activate-Position (logisch): (2050,1324)
+
+=== Variante popup · Dienst :1.956 ===
+ItemIsMenu laut Host: false
+Probe laeuft. ItemIsMenu=0 · Variante=popup · Eintraege=6
+activateRequested: active=1 pos=(2050,1324) Variante=popup
+  [   10 ms] vorher       geometry=(0,0) 640x480 · frame=(0,0) 640x480 · sizeHint=254x158 · sichtbar=0
+  vorher       Fenster: keins
+  [   11 ms] Ereignis auf QMenu: PlatformSurface
+  [   11 ms] Ereignis auf QMenu: Show
+  [   13 ms] sofort       geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=1
+  sofort       Fenster: (2050,1192) 254x158 · sichtbar=1 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [   13 ms] Ereignis auf QMenu: Close
+  [   13 ms] Ereignis auf QMenu: Hide
+  [   13 ms] Ereignis auf QMenu: PlatformSurface
+  [   63 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [  113 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [  213 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [  413 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [ 1014 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [ 2114 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+  [ 4215 ms] spaeter      geometry=(2050,1192) 254x158 · frame=(2050,1192) 254x158 · sizeHint=254x158 · sichtbar=0
+  spaeter      Fenster: (2050,1192) 254x158 · sichtbar=0 · Typ=0x9 · Elternfenster=(nil) · Bildschirm=DP-1
+
+=== Variante fenster · Dienst :1.961 ===
+ItemIsMenu laut Host: false
+Probe laeuft. ItemIsMenu=0 · Variante=fenster · Eintraege=6
+activateRequested: active=1 pos=(2050,1324) Variante=fenster
+  [   10 ms] vorher       geometry=(0,0) 640x480 · frame=(0,0) 640x480 · sizeHint=254x158 · sichtbar=0
+  vorher       Fenster: keins
+  [   11 ms] Ereignis auf QMenu: PlatformSurface
+  [   11 ms] Ereignis auf QMenu: Show
+  [   11 ms] sofort       geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  sofort       Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [   14 ms] Ereignis auf QMenu: WindowActivate
+  [   62 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [  112 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [  211 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [  411 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [ 1012 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [ 2112 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
+  [ 4200 ms] spaeter      geometry=(0,0) 254x158 · frame=(0,0) 254x158 · sizeHint=254x158 · sichtbar=1
+  spaeter      Fenster: (0,0) 254x158 · sichtbar=1 · Typ=0x1 · Elternfenster=(nil) · Bildschirm=DP-1
