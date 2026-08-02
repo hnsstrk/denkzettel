@@ -9,7 +9,7 @@ am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
 
 ## [Unveröffentlicht]
 
-Stand aus Sprint 4, abgenommen am 02.08.2026 (Kundenabnahme; die
+Stand aus den Sprints 4 und 5, abgenommen am 02.08.2026 (Kundenabnahme; die
 Versionsnummer folgt mit #61).
 
 ### Hinzugefügt
@@ -22,12 +22,25 @@ Versionsnummer folgt mit #61).
 - **Tray-Menü überarbeitet:** Alle Einträge auf Deutsch („Notiz
   erfassen" statt „Capture öffnen") und mit Symbolen; „Beenden" steht
   abgesetzt am Ende, getrennt von den Arbeitswegen (#60)
+- **Symbole in der Bibliothek:** „Bearbeiten", „Löschen", „Speichern",
+  „Abbrechen" und „Rückgängig" tragen jetzt Symbole aus dem Systemthema;
+  die Nachfrage vor ungespeicherten Änderungen ebenso, samt Warnsymbol
+  (#66, #67)
 
 ### Geändert
 
 - Der Menüeintrag zeigt das Tastenkürzel Meta+N an; die Umbenennung gilt
   überall, auch in den Systemeinstellungen (Kurzbefehle) und im
   Startermenü (#60)
+- Der Wächterdialog ist auf die KDE-Bauart umgestellt; „Speichern" bleibt
+  die vorausgewählte Antwort (#66)
+
+### Behoben
+
+- Der Klick auf eine sichtbare Notiz einer anderen Tagesgruppe lässt die
+  Liste nicht mehr springen (#57)
+- Zeitstempel und Hinweise der Bibliothek folgen einem Wechsel des
+  Farbschemas jetzt ohne Neustart (#58)
 
 ## [0.1.0] — 2026-08-02
 
