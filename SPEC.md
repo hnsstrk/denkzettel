@@ -594,7 +594,8 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
 - Qt 6: Widgets, Sql, Network, Multimedia, **DBus**. KF6: KGlobalAccel,
   KConfig, KNotifications, KStatusNotifierItem, KWallet (Framework: KWallet),
   **KDBusAddons** (KDBusService/Einzelinstanz), **KWidgetsAddons**
-  (KMessageWidget — Meldungen im Fenster, Abschnitt 9), **KWindowSystem**
+  (KMessageWidget — Meldungen im Fenster; KMessageDialog samt
+  KStandardGuiItem — Wächterdialog, Abschnitt 9), **KWindowSystem**
   (KWindowConfig — Fenstergröße über Sitzungen; die Position setzt ein
   Wayland-Client nicht selbst, siehe Abschnitt 3), KI18n (App-Sprache Deutsch;
   `i18n()`-Aufrufe sind KDE-Standardpraxis für alle sichtbaren Strings —
