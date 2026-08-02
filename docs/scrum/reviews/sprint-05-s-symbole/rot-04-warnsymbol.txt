@@ -1714,7 +1714,8 @@ QWARN  : LibraryTest::showsTheWarningSymbolInTheGuardDialog() kf.i18n: KLocalize
 QWARN  : LibraryTest::showsTheWarningSymbolInTheGuardDialog() kf.i18n: KLocalizedString: Domain is not set for this string, translation will not work. Please see https://api.kde.org/frameworks/ki18n/html/prg_guide.html msgid: "Speichern" msgid_plural: "" msgctxt: ""
 QWARN  : LibraryTest::showsTheWarningSymbolInTheGuardDialog() This plugin does not support propagateSizeHints()
 QWARN  : LibraryTest::showsTheWarningSymbolInTheGuardDialog() This plugin does not support propagateSizeHints()
-PASS   : LibraryTest::showsTheWarningSymbolInTheGuardDialog()
+FAIL!  : LibraryTest::showsTheWarningSymbolInTheGuardDialog() '!symbol.isEmpty()' returned FALSE. (Der Wächterdialog zeigt kein Warnsymbol — kein sichtbares Etikett trägt ein Bild)
+   Loc: [/home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a5d2e9dfe1801c1ae/tests/librarytest.cpp(2720)]
 QWARN  : LibraryTest::namesTheSymbolsOfTheDetailButtons() kf.i18n: KLocalizedString: Domain is not set for this string, translation will not work. Please see https://api.kde.org/frameworks/ki18n/html/prg_guide.html msgid: "L\xC3\xB6schen" msgid_plural: "" msgctxt: ""
 QWARN  : LibraryTest::namesTheSymbolsOfTheDetailButtons() kf.i18n: KLocalizedString: Domain is not set for this string, translation will not work. Please see https://api.kde.org/frameworks/ki18n/html/prg_guide.html msgid: "R\xC3\xBC""ckg\xC3\xA4ngig" msgid_plural: "" msgctxt: ""
 QWARN  : LibraryTest::namesTheSymbolsOfTheDetailButtons() kf.i18n: KLocalizedString: Domain is not set for this string, translation will not work. Please see https://api.kde.org/frameworks/ki18n/html/prg_guide.html msgid: "Bearbeiten" msgid_plural: "" msgctxt: ""
@@ -2107,5 +2108,5 @@ PASS   : LibraryTest::keepsTheMeasuresOfTheEditState(900x600)
 PASS   : LibraryTest::keepsTheMeasuresOfTheEditState(1200x800)
 PASS   : LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
 PASS   : LibraryTest::cleanupTestCase()
-Totals: 105 passed, 0 failed, 0 skipped, 0 blacklisted, 5602ms
+Totals: 104 passed, 1 failed, 0 skipped, 0 blacklisted, 5700ms
 ********* Finished testing of LibraryTest *********

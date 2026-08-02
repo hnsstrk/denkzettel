@@ -124,11 +124,11 @@ bleibt im Editor. Neun Fälle, drei Auslöser × drei Antworten.
 
 | Lauf | Ergebnis | Beleg |
 |---|---|---|
-| `librarytest` **mit** `QT_QPA_PLATFORMTHEME=kde` | **104 passed, 0 failed** | `gruen-mit-plattformthema.txt` |
-| `librarytest` **ohne** Plattformthema | **104 passed, 0 failed** | `gruen-ohne-plattformthema.txt` |
+| `librarytest` **mit** `QT_QPA_PLATFORMTHEME=kde` | **105 passed, 0 failed** | `gruen-mit-plattformthema.txt` |
+| `librarytest` **ohne** Plattformthema | **105 passed, 0 failed** | `gruen-ohne-plattformthema.txt` |
 | `ctest` vollständig | **7/7 passed** | `gruen-ctest.txt` |
 
-Vorher 102 Tests, jetzt 104 (zwei neue für #67). `lint-clazy` und `lint-tidy`
+Vorher 102 Tests, jetzt 105 (zwei neue für #67, einer für das Warnsymbol). `lint-clazy` und `lint-tidy`
 melden auf `src/ui/librarywindow.cpp` **nichts Neues**; die drei von mir
 eingeführten clazy-Befunde und vier tidy-Befunde sind behoben. Was stehen
 bleibt, steht unter 7.
@@ -209,15 +209,8 @@ Kein Befund: Auf dem privaten Bus gibt es weder Kurzbefehl-Dienst noch Tray.
    Abnahmebild ist nach #66 AK 3 ausdrücklich Kundensache. **Das ist die eine
    Grenze der Prüfbarkeit dieses Strangs**; sie ist nicht offen gelassen,
    sondern liegt bei PO und Kunde — Sprint-Abschluss Takt 1, Punkt 1.
-2. **Der Wächterdialog hat kein Warnsymbol mehr.** Der Ersatzdialog der
-   Plattform zeichnete ein großes oranges Ausrufezeichen
-   (`sprint-04-kundenabnahme/waechterdialog-ohne-symbole.png`), der
-   `KMessageDialog` zeichnet keines: Gemessen setzt er **nur ein ausdrücklich
-   übergebenes** Symbol, obwohl sein Stil ein Warnsymbol hätte (32×32
-   vorhanden). **Zeichnung 2a Zustand C zeichnet ebenfalls keines** — der Bau
-   folgt also der Zeichnung, weicht aber vom abgenommenen Sprint-4-Bild ab. Ich
-   habe **nichts hinzugefügt**: Ein Symbol wäre eine Änderung gegen die
-   Zeichnung und über den Auftrag hinaus. **Entscheidung für UX/PO.**
+2. ~~**Der Wächterdialog hat kein Warnsymbol mehr.**~~ **Entschieden und
+   erledigt** — siehe Nachtrag, Abschnitt 9.
 3. **SPEC 15** nennt bei KWidgetsAddons nur „KMessageWidget"; jetzt kommt
    `KMessageDialog` aus demselben Framework dazu. Abhängigkeit unverändert, die
    Klammer unvollständig. Außerhalb meiner Dateimenge — **nicht geändert.**
@@ -255,3 +248,72 @@ Arbeitsbaum trug also die Fassung davor. Gegen die **neue** Fassung geprüft:
 | `SPEC.md` | 9 (Bauart und ihre Bedingungen), 16 (Testumgebungs-Bedingung) |
 
 `src/ui/librarywindow.h` blieb unberührt.
+
+## 9. Nachtrag 02.08.2026 — das Warnsymbol wird gesetzt (PO-Entscheidung)
+
+Der PO hat meinen Punkt 1 entschieden: **Das Warnsymbol kommt zurück.** Die
+Zeichnung hatte es aus Versäumnis nicht, ein Datenverlust-Dialog ist der
+Kernfall des Symbols, und die Story, die fehlende Symbole heilt, darf nicht das
+größte entfernen. Zeichnung 2a Zustand C ist auf `main` nachgezogen (`8a8c652`).
+
+### 9.1 Wegwahl — `KMessageDialog` behalten, nicht `KMessageBox`
+
+Der PO stellte zwei belegte Wege frei. **Entschieden für `setIcon()` am
+bestehenden `KMessageDialog`**, aus einem Grund, der nicht Geschmack ist:
+
+`KMessageBox::warningTwoActionsCancel()` **baut den Dialog und ruft `exec()`
+selbst auf**. Es gibt keinen Griff auf die Knöpfe zwischen Anzeigen und
+Ereignisschleife — genau dort aber muss F3 zugreifen, denn die Vorgabe folgt
+dem Fokus und wird beim Sichtbarwerden an „Abbrechen" gegeben (Abschnitt 2.3).
+Über `KMessageBox` wäre F3 nur mit einem Zeitgeber auf `activeModalWidget()` zu
+halten — eine Wache auf den eigenen Dialog. Der direkte Weg kostet **eine
+Zeile** und lässt Modalität, Rückgabewert-Zuordnung und F3 unangetastet.
+
+### 9.2 Rot-Nachweis
+
+```
+FAIL!  : showsTheWarningSymbolInTheGuardDialog() '!symbol.isEmpty()' returned FALSE.
+         (Der Wächterdialog zeigt kein Warnsymbol — kein sichtbares Etikett trägt ein Bild)
+Totals: 104 passed, 1 failed
+```
+
+Beleg: `rot-04-warnsymbol.txt`. Danach: **105 passed, 0 failed**, mit und ohne
+Plattformthema; `ctest` 7/7.
+
+Gemessen wird das **Bildetikett**, nicht ein Name: Das Symbol sitzt in einem
+`QLabel`, und ein Pixmap hat keinen Namen, den man erfragen könnte. Mit
+`setIcon()` wird aus dem verborgenen, leeren Etikett ein sichtbares mit
+64×64 — die Zahl, die auch die UX gemessen hat.
+
+### 9.3 Der Beinahe-Fehler, der hier hingehört
+
+Nach der Heilung war der Test grün — **und das Bild zeigte weiter kein
+Symbol.** Beides zugleich kann nicht stimmen, und die Auflösung ist eine, die
+jeden Bildbeleg dieses Projekts betrifft:
+
+**`editshots` ist `EXCLUDE_FROM_ALL`. Ein `cmake --build build` baut es nicht.**
+Der Bildläufer lief als 22 Minuten altes Programm gegen die alte Bibliothek und
+schrieb ein Bild des Standes von vorher — mit frischem Zeitstempel und ohne jede
+Fehlermeldung.
+
+```
+2026-08-02 17:31:01  src/ui/librarywindow.cpp
+2026-08-02 17:31:10  build/bin/librarytest      ← neu gebaut
+2026-08-02 17:08:58  build/bin/editshots        ← 22 Minuten alt
+```
+
+Erst `cmake --build build --target editshots` und ein neuer Lauf zeigten das
+Symbol. **Ein Bild trägt seinen Programmstand nicht im Gesicht** — es sieht
+richtig aus und ist es nicht. Betrifft `editshots`, `libraryshots` und
+`searchshots` gleichermaßen; wer Bilder als Beleg abgibt, baut den Läufer
+vorher ausdrücklich. Alle fünf Bilder der Übergabe stammen aus **einem** Lauf
+des Standes von 17:33.
+
+### 9.4 Was sich geändert hat
+
+| | |
+|---|---|
+| `src/ui/librarywindow.cpp` | `dialog.setIcon(QIcon::fromTheme("dialog-warning"))` |
+| `tests/librarytest.cpp` | neuer Test `showsTheWarningSymbolInTheGuardDialog` |
+| `SPEC.md` | die Zeile „trägt kein Warnsymbol" ist ins Gegenteil berichtigt |
+| `bilder/*.png` | alle fünf neu aus dem aktuellen Programmstand |

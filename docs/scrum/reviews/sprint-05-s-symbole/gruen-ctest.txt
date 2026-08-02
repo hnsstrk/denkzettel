@@ -6,7 +6,7 @@ Test project /home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a5d2e9dfe
     Start 3: capturetest
 3/7 Test #3: capturetest ......................   Passed    0.03 sec
     Start 4: librarytest
-4/7 Test #4: librarytest ......................   Passed    5.70 sec
+4/7 Test #4: librarytest ......................   Passed    5.76 sec
     Start 5: shelltest
 5/7 Test #5: shelltest ........................   Passed    0.07 sec
     Start 6: firstruntest
@@ -16,4 +16,4 @@ Test project /home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-a5d2e9dfe
 
 100% tests passed out of 7
 
-Total Test time (real) =   5.86 sec
+Total Test time (real) =   5.92 sec
