@@ -1,44 +1,52 @@
 # Denkzettel
 
-**Ein flüchtiger Notizblock für KDE Plasma — ein Tastendruck hin, ein Tastendruck weg.**
+Ein Notizzettel für KDE Plasma, der aufgeht, wenn man ihn braucht, und
+verschwindet, wenn man fertig ist.
 
 ![Das Erfassungsfenster: ein Textfeld, darunter der Hinweis „Esc verwirft · Strg+Enter speichert"](docs/bilder/erfassungsfenster.png)
 
-Ein durchgehender Puffer statt vieler Dateien: kein Dateiname, kein
-Speichern-Dialog, keine Ablage-Entscheidung. Gedanken beim Arbeiten und Testen
-festhalten; was wichtig wird, wandert später ins Hauptbuch — bei mir ein
-Obsidian-Vault.
+`Meta+N` drücken, tippen, `Strg+Enter`. Die Notiz ist gespeichert, das Fenster
+ist weg. Kein Dateiname, kein Speichern-Dialog, keine Frage, wohin damit.
 
-`Meta+N` öffnet das Fenster, `Strg+Enter` speichert, `Esc` verwirft. Mehr
-Bedienung gibt es auf diesem Weg nicht, und das ist Absicht.
+Ich habe Denkzettel gebaut, weil mir beim Arbeiten ständig Sachen einfallen,
+die woanders hingehören: eine Idee, eine offene Frage, ein Kommandozeilen-Fund.
+Wenn ich dafür erst eine Datei anlegen muss, ist der Gedanke weg. Was sich
+lohnt, wandert später in den Obsidian-Vault.
 
-## Was gebaut ist
+## Was es kann
 
-- **Erfassen ohne Zeremonie** — globales Kürzel, sofortiger Fokus, das Fenster
-  wächst mit dem Text und verschwindet nach dem Speichern
-- **Bibliothek** mit Volltextsuche und einer Notizliste, die nach Tagen
-  gegliedert ist wie ein Posteingang: Heute · Gestern · Diese Woche ·
-  Letzte Woche · Älter
-- **Suche, die verzeiht** — findet bei fehlenden Umlauten und mitten im Wort:
-  „bucher" findet „Bücher", „grafieren" findet „fotografieren"
-- **Bearbeiten mit Netz** — ungespeicherte Änderungen gehen nie ohne Nachfrage
-  verloren
-- **Fügt sich ein** — Symbole und deutsche Beschriftungen aus dem
-  Systemthema; ein Wechsel des Farbschemas wird ohne Neustart übernommen
-- **Läuft im Hintergrund** — Tray-Symbol, Autostart mit der Plasma-Sitzung,
-  D-Bus-Schnittstelle für Skripte
+Das Erfassungsfenster ist der halbe Punkt. Die andere Hälfte ist die
+Bibliothek: alle Notizen nach Tagen gruppiert, wie ein Posteingang.
 
 ![Die Bibliothek: links die nach Tagen gegliederte Notizliste, rechts der Lesebereich](docs/bilder/bibliothek.png)
 
-**Geplant** (siehe [Issues](https://github.com/hnsstrk/denkzettel/issues)):
-Sprachnotizen mit Transkription, KI-gestützte Ordnung und Vorschläge, Export
-nach Obsidian und Taskwarrior, abgerundete Fensterecken aus dem Desktop-Theme.
+Die Suche ist nachsichtig. „bucher" findet „Bücher", „grafieren" findet
+„fotografieren" — Umlaute und Wortanfänge muss man nicht treffen.
+
+Notizen lassen sich bearbeiten. Wer den Editor verlässt, ohne zu speichern,
+wird gefragt.
+
+Denkzettel läuft im Hintergrund, sitzt im Systemabschnitt der Kontrollleiste
+und startet mit der Sitzung. Für Skripte gibt es eine D-Bus-Schnittstelle:
+
+```
+qdbus6 org.denkzettel.Daemon /Daemon AddNote "Text der Notiz"
+```
+
+Symbole und Beschriftungen kommen aus dem System, ein Wechsel des Farbschemas
+wird sofort übernommen.
+
+Auf der Liste stehen noch: Sprachnotizen mit Transkription, eine KI, die
+sortiert und Vorschläge macht, Export nach Obsidian und Taskwarrior, runde
+Fensterecken. Was gerade ansteht, steht in den
+[Issues](https://github.com/hnsstrk/denkzettel/issues).
 
 ## Bauen
 
-Voraussetzungen: **CMake ≥ 3.20**, **Qt 6.7** (DBus, Widgets, Sql), **KF6**
-(Config, DBusAddons, GlobalAccel, I18n, Notifications, StatusNotifierItem,
-WidgetsAddons, WindowSystem) und **ECM**. Auf Arch/CachyOS:
+Gebraucht werden CMake ab 3.20, Qt 6.7 (DBus, Widgets, Sql), die KDE
+Frameworks 6 (Config, DBusAddons, GlobalAccel, I18n, Notifications,
+StatusNotifierItem, WidgetsAddons, WindowSystem) und ECM. Auf Arch und
+CachyOS:
 
 ```
 sudo pacman -S cmake extra-cmake-modules qt6-base kconfig kdbusaddons \
@@ -51,8 +59,7 @@ cmake --build build
 ctest --test-dir build
 ```
 
-Installieren nach `/usr` (die Desktop-Datei muss systemweit liegen, sonst
-findet der Kürzel-Dienst die Aktion nicht):
+Zum Installieren:
 
 ```
 cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr
@@ -60,59 +67,53 @@ cmake --build build
 sudo cmake --install build
 ```
 
-Danach `denkzetteld` starten oder ab- und anmelden — der Autostart-Eintrag
-übernimmt es künftig.
+Das Präfix `/usr` ist nicht kosmetisch: Der Kürzeldienst von Plasma findet die
+Aktion nur, wenn die Desktop-Datei systemweit liegt. Danach `denkzetteld`
+starten oder einmal neu anmelden.
 
 ## Wo die Notizen liegen
 
-`~/.local/share/denkzettel/denkzettel.db` — eine SQLite-Datei, nichts
-verlässt den Rechner. Ein Update, das das Schema ändert, wandelt den Bestand
-beim ersten Start um; die Änderungen stehen im
-[Changelog](CHANGELOG.md).
+In `~/.local/share/denkzettel/denkzettel.db`, einer SQLite-Datei. Nichts
+verlässt den Rechner. Ändert ein Update das Schema, wird der Bestand beim
+ersten Start umgewandelt; was sich ändert, steht im [Changelog](CHANGELOG.md).
 
-## Mitwirken und Prüfen
+## Entwicklung
 
-Zwei Linter-Targets prüfen den Quellcode auf Anforderung; der normale Build
-enthält keine Analyse:
+Zwei Linter laufen auf Anforderung, nicht beim normalen Bauen:
 
 ```
-cmake --build build --target lint-tidy    # clang-tidy: bugprone-*, performance-*, misc-const-correctness
-cmake --build build --target lint-clazy   # clazy: Qt-Semantik, Stufen level0 und level1
+cmake --build build --target lint-tidy    # clang-tidy
+cmake --build build --target lint-clazy   # clazy, Qt-Semantik
 ```
 
-Beide lesen die Compile-Datenbank des Build-Verzeichnisses und sehen nur
-`src/` und `tests/`. Beide melden nur und ändern nichts — clazys
-Fixit-Automatik bleibt bewusst aus. Bekannter blinder Fleck: clazy kennt nur
-`tr()`-Checks und prüft unsere `i18n()`-Aufrufe nicht.
+Beide sehen nur `src/` und `tests/` und melden bloß, sie ändern nichts.
+Bekannte Lücke: clazy prüft `tr()`, wir benutzen aber `i18n()`.
 
-Wie in diesem Projekt gearbeitet wird — Rollen, Definition of Done,
-Sprint-Protokolle, Prüfberichte samt Bildern — steht unter
-[`docs/scrum/`](docs/scrum/); die bindende Spezifikation in
-[`SPEC.md`](SPEC.md).
+Wie hier gearbeitet wird — Rollen, Definition of Done, Sprint-Protokolle und
+Prüfberichte mit Bildern — steht unter [`docs/scrum/`](docs/scrum/). Die
+Spezifikation ist [`SPEC.md`](SPEC.md).
 
-## Wie dieses Projekt schätzt
+## Wie hier geschätzt wird
 
 ![Schätzkegel: Revisionsfaktor (Endwert ÷ Erstwert) über dem Abstand in Sprints zwischen Erstschätzung und Umsetzung; 9 Punkte, Stand Sprint 5](docs/scrum/diagramme/kegel.svg)
 
-Denkzettel entsteht in Sprints mit geschätzten Stories. Der Kegel zeigt, wie
-stark Schätzungen später revidiert wurden, aufgetragen über den Abstand
-zwischen Schätzung und Umsetzung. Die gemessene Hüllkurve ist bisher
-nicht-fallend, aber **nicht durchgängig weiter werdend** — die Vorbehalte
-stehen unter dem Bild, samt der dünnen Belegdichte von neun Punkten. Der
-Faktor misst **nicht** den Abstand zum tatsächlichen Aufwand; der wird im
-Projekt nicht erhoben. Datenreihe und Generator liegen unter
-[`docs/scrum/diagramme/`](docs/scrum/diagramme/), die Werte stammen aus den
-Sprint-Protokollen.
+Denkzettel entsteht in Sprints mit geschätzten Stories. Das Bild zeigt, wie
+stark einzelne Schätzungen später korrigiert wurden, aufgetragen über den
+Abstand zwischen Schätzung und Umsetzung. Bisher wird die Kurve nach rechts
+nicht enger, aber auch nicht durchgehend weiter; bei neun Punkten ist das
+wenig Beleg, und die Einschränkungen stehen unter dem Bild. Gemessen wird die
+Korrektur der Schätzung, nicht der Abstand zum tatsächlichen Aufwand — den
+erheben wir gar nicht. Daten und Generator liegen in
+[`docs/scrum/diagramme/`](docs/scrum/diagramme/).
 
 ## Name
 
-Ein Denkzettel ist eine Gedächtnisstütze — und wer einen verpasst bekommt,
-vergisst die Sache nicht so schnell. Der Name wurde am 31.07.2026 gegen ein
-Inventar von rund 400 existierenden Notiz-Apps sowie AUR, crates.io, PyPI,
-Flathub und GitHub geprüft: frei.
+Ein Denkzettel ist eine Gedächtnisstütze, und wer einen verpasst bekommt,
+vergisst die Sache so schnell nicht. Am 31.07.2026 gegen rund 400 bestehende
+Notiz-Apps sowie AUR, crates.io, PyPI, Flathub und GitHub geprüft: frei.
 
 ## Lizenz
 
-Noch nicht festgelegt. Bis dahin gilt: alle Rechte vorbehalten — das
-Repository ist öffentlich einsehbar, aber ohne Lizenz erlaubt es weder
-Weitergabe noch abgeleitete Werke.
+Steht noch aus. Bis dahin sind alle Rechte vorbehalten: Der Code ist
+öffentlich lesbar, aber ohne Lizenz darf ihn niemand weitergeben oder darauf
+aufbauen.
