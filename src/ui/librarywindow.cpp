@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QTextBrowser>
@@ -240,6 +241,12 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
 
     connect(m_list->selectionModel(), &QItemSelectionModel::currentChanged, this, &LibraryWindow::showNote);
 
+    // Pointing is not typing (issue #57), and the difference has to be known
+    // before the view moves: the press goes to the viewport, the key to the
+    // list itself.
+    m_list->viewport()->installEventFilter(this);
+    m_list->installEventFilter(this);
+
     connect(m_deletion, &PendingDeletion::remainingChanged, this, [this](int seconds) {
         m_message->setText(i18n("Notiz gelöscht — noch %1 s", seconds));
         m_undoAction->setEnabled(true);
@@ -451,6 +458,27 @@ QDateTime LibraryWindow::referenceTime() const
     return m_referenceTime.isValid() ? m_referenceTime : QDateTime::currentDateTime();
 }
 
+bool LibraryWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    // Only the mark is set here; the press itself takes its ordinary road. The
+    // filter runs before the view handles it, which is what makes the mark
+    // available to the currentChanged that the press is about to cause —
+    // QListView::pressed arrives after it and would be of no use (issue #57).
+    if (watched == m_list->viewport() && event->type() == QEvent::MouseButtonPress) {
+        m_selectionFollowsAPress = true;
+    }
+
+    // A press that selected nothing leaves its mark lying around: group heads
+    // cannot be picked (wireframe 3b), and neither can the empty space below
+    // the list. The next key drops it, or it would make the keyboard behave
+    // like a mouse.
+    if (watched == m_list && event->type() == QEvent::KeyPress) {
+        m_selectionFollowsAPress = false;
+    }
+
+    return QWidget::eventFilter(watched, event);
+}
+
 void LibraryWindow::changeEvent(QEvent *event)
 {
     // The grouping is worked out whenever the list is rebuilt and whenever the
@@ -599,10 +627,19 @@ QModelIndex LibraryWindow::groupHeadOf(const QModelIndex &note) const
 void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previous)
 {
     // The way back out of a cancelled switch runs through here as well, and it
-    // must not raise the same question a second time.
+    // must not raise the same question a second time. The mark of the press
+    // stays where it is: it belongs to the switch this one is putting back, and
+    // that switch is still being handled.
     if (m_restoringSelection) {
         return;
     }
+
+    // The mark is consumed by the call it belongs to, whichever way that call
+    // leaves — and there are four ways out of this one. A reset posted to the
+    // event loop instead would be carried out inside the guard dialog, which
+    // runs a loop of its own: the mark would be gone before the answer came
+    // back (issue #57).
+    const QScopeGuard pressConsumed = qScopeGuard([this] { m_selectionFollowsAPress = false; });
 
     // A rebuilt list can move the note under the editor into another row —
     // that is no change of note and no reason to ask anything (SPEC 9).
@@ -650,8 +687,16 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
     }
 
     if (index.isValid()) {
-        // Three conditions have to hold before the list is moved for a head,
+        // Four conditions have to hold before the list is moved for a head,
         // and each of them keeps out a way of moving it against the user.
+        //
+        // The selection was made with a key, not with the mouse. Pressing an
+        // arrow key, the user moves through a list and expects it to move with
+        // him; clicking, he points at a place and expects that place to stay —
+        // and the place he pointed at moved by up to 387 px, out from under his
+        // cursor (issue #57, UI review of 01.08.2026, scenes n11a/n11b). What
+        // the head would have told him stands in the reading pane anyway: its
+        // timestamp names the day in full, „Gestern" and the time.
         //
         // It crosses a group boundary — that is what AK 7 and wireframe 3b,
         // case 4 ask for, and what the first selection after opening or
@@ -672,7 +717,7 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
         const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
 
-        if (head.isValid() && crossesAGroupBoundary) {
+        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
             const QRect heading = m_list->visualRect(head);
             const QRect selected = m_list->visualRect(index);
             if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {

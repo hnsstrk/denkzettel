@@ -59,6 +59,14 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void changeEvent(QEvent *event) override;
 
+    /**
+     * Tells a selection made with the mouse from one made with a key (#57).
+     *
+     * QListView::pressed would come too late — it is emitted after
+     * currentChanged, and by then the list has already been moved.
+     */
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     /** What a reload does with the note the list has selected. */
     enum class Selection {
@@ -215,6 +223,17 @@ private:
 
     /** True while a cancelled switch puts the selection back; stops the loop. */
     bool m_restoringSelection = false;
+
+    /**
+     * True while the selection change being handled goes back to a mouse press
+     * in the list — the mark showNote() reads to leave the picture alone (#57).
+     *
+     * Set before the view sees the press, consumed by the showNote() call the
+     * press causes, and dropped again at the next key: a press that selected
+     * nothing (a group head, the empty space below the list) must not be read
+     * into the keystroke after it.
+     */
+    bool m_selectionFollowsAPress = false;
 
     /**
      * Where the pending deletion took its note from, counted in notes rather
