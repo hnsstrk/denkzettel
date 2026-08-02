@@ -1,0 +1,33 @@
+Farbmessung zu #58 — Zeitstempel und Hinweise am Schemawechsel
+Stand: Zweig story/57-58-verhalten, 02.08.2026.
+
+Gemessen an den Bildern der Strecke 10 (tests/libraryshots.cpp, ein Lauf, ein
+Fenster, kein Neuaufbau zwischen den Bildern). Verfahren wie beim Nachweis zu
+#54: Hintergrund = haeufigste Farbe des Streifens, Textfarbe = der Bildpunkt
+mit dem groessten Abstand davon (Kern der Glyphe).
+
+Streifen 1: Fusszeile „Esc bricht ab · Strg+Enter speichert" (313,562)-(600,580)
+Streifen 2: Zeitstempel des Lesebereichs „Gestern 21:48"     (313, 66)-(420, 84)
+
+  Lauf                                     Hintergrund   Text
+  ungeheilt, nach Wechsel auf dunkel        #202326      #707d89   (Streifen 1)
+  geheilt,   nach Wechsel auf dunkel        #202326      #a0a8b0   (Streifen 1)
+  ungeheilt, zurueck auf hell               #eff0f1      #717e8a   (Streifen 1)
+  geheilt,   zurueck auf hell               #eff0f1      #717e8a   (Streifen 1)
+  ungeheilt, Zeitstempel dunkel             #202326      #707d8a   (Streifen 2)
+  geheilt,   Zeitstempel dunkel             #202326      #a1a9b1   (Streifen 2)
+
+Kontrast (WCAG-Formel):
+  ungeheilt auf dunkel: #707d8a auf #202326 = 3,75:1
+  geheilt   auf dunkel: #a1a9b1 auf #202326 = 6,64:1
+  beide     auf hell  : #707d8a auf #eff0f1 = 3,69:1
+
+Lesart:
+Der ungeheilte Stand friert die Platzhalterfarbe des HELLEN Schemas ein
+(#707d8a) und behaelt sie auch, nachdem auf dunkel gewechselt wurde. Der
+geheilte Stand nimmt die des dunklen Schemas an (#a1a9b1). In der Gegenrichtung
+— zurueck auf hell — sind beide Staende gleich; genau dort ist der Fehler
+UNSICHTBAR, weil die eingefrorene Farbe zufaellig die richtige ist. Das ist der
+Grund, warum das Bildpaar allein nicht traegt und die Farbablesung dazugehoert:
+ein Bildpaar in der falschen Richtung wuerde einen ungeheilten Stand geheilt
+aussehen lassen.

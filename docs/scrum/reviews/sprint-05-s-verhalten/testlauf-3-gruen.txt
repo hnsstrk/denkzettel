@@ -1,0 +1,35 @@
+Testlauf nach der Heilung — Strang B, Stories #57 und #58
+Stand: Zweig story/57-58-verhalten, gebaut aus build/ (Debug), 02.08.2026.
+
+Beide Umgebungen sind zu fahren (Sprint-5-Planning 5.3.2): Strang A setzt die
+Zeile QT_QPA_PLATFORMTHEME=kde in tests/CMakeLists.txt, und Strang B darf
+nicht am Plattformthema haengen.
+
+=== QT_QPA_PLATFORM=offscreen ./build/bin/librarytest ===
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+WARNING: LibraryTest::asksBeforeUnsavedChangesAreLost(fensterschliessen-abbrechen) Maximum amount of warnings exceeded. Use -maxwarnings to override.
+Totals: 104 passed, 0 failed, 0 skipped, 0 blacklisted, 5053ms
+********* Finished testing of LibraryTest *********
+
+=== QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde ./build/bin/librarytest ===
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+FAIL!  : LibraryTest::namesTheThreeAnswersOfTheGuardDialog() '!icons.contains(QString())' returned FALSE. (||)
+   Loc: [/home/hnsstrk/Projekte/denkzettel/.claude/worktrees/agent-ac0c5f4ffb6b2191b/tests/librarytest.cpp(2741)]
+WARNING: LibraryTest::asksBeforeUnsavedChangesAreLost(fensterschliessen-abbrechen) Maximum amount of warnings exceeded. Use -maxwarnings to override.
+Totals: 103 passed, 1 failed, 0 skipped, 0 blacklisted, 5001ms
+********* Finished testing of LibraryTest *********
+
+Der eine rote Test gehoert Strang A und ist am Ausgangsstand ebenso rot
+(Sprint-5-Planning 3.3, gemessen 101/102): namesTheThreeAnswersOfTheGuardDialog
+faellt an der Symbolzusicherung des Waechterdialogs, nicht an einer Geometrie.
+Er ist Gegenstand von #66. Vorher 102/0 bzw. 101/1, nachher 104/0 bzw. 103/1 —
+die zwei neuen Zusicherungen sind in beiden Umgebungen gruen.
+
+=== ctest --test-dir build ===
+    Start 7: installtest
+7/7 Test #7: installtest ......................   Passed    0.02 sec
+
+100% tests passed out of 7
+
+Total Test time (real) =   5.12 sec

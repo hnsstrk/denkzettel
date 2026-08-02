@@ -1,0 +1,31 @@
+Rollwert-Messung zu #57 — was sich durch die Heilung aendert
+Stand: Zweig story/57-58-verhalten, 02.08.2026.
+
+Gefahren wurde das Szenenprogramm des UI-Reviewers selbst,
+docs/scrum/reviews/sprint-03-s5a-ak7-nachpruefung/ux-nachpruefung-ak7.cpp
+(nur gelesen, gegen die gebaute libdenkzettelui.a gebunden), einmal vor und
+einmal nach der Heilung. Umgebung wie beim Reviewer:
+QT_QPA_PLATFORM=offscreen, QT_QPA_PLATFORMTHEME=kde, -style breeze,
+Bezugszeitpunkt Fr 31.07.2026 16:00, Fenster 900x600.
+
+Gueltigkeit des Messaufbaus, geprueft statt behauptet:
+
+    diff docs/scrum/reviews/sprint-03-s5a-ak7-nachpruefung/nach-der-warn-heilung/messung.txt \
+         docs/scrum/reviews/sprint-05-s-verhalten/messung-szenen-vorher.txt
+    -> kein Unterschied
+
+Der Vorher-Lauf ist mit der Messung des Reviewers vom 01.08.2026 zeilengleich.
+Was danach abweicht, ist also die Heilung und nicht der Aufbau.
+
+    diff messung-szenen-vorher.txt messung-szenen-nachher.txt
+
+71c71
+<   Nach dem Klick: Auswahl Zeile 6, Rollwert 6 → 0, Kopf y=0
+---
+>   Nach dem Klick: Auswahl Zeile 6, Rollwert 6 → 6, Kopf y=-387
+
+Von zwoelf Szenen aendert sich genau eine Zeile: N11, der Mausklick. Alle
+Tastatur-Szenen (N1 bis N8, N10) und die Loesch-/Undo-Szene N12 sind
+unveraendert — die AK-7-Heilung bleibt unangetastet, und der zweite Datenpunkt
+des Issues (N2, Kopf bei y=-35 ausserhalb) steht unveraendert da. Die Regel
+verschiebt den Fehler also nicht, sie nimmt ihn an einer Stelle weg.

@@ -1,0 +1,94 @@
+
+=== N1 abwärts über die Gruppengrenze (grosse Gruppen) ===
+Viewport 279x552
+  Ab  : Zeile 1 → 2, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=99 h=72 → ganz sichtbar
+  Ab  : Zeile 2 → 3, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=171 h=72 → ganz sichtbar
+  Ab  : Zeile 3 → 4, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=243 h=72 → ganz sichtbar
+  Ab  : Zeile 4 → 5, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=315 h=72 → ganz sichtbar
+  Ab  : Zeile 5 → 6, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=387 h=72 → ganz sichtbar
+  Ab  : Zeile 6 → 7, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=459 h=72 → ganz sichtbar
+  Ab  : Zeile 7 → 8, Rollwert 0 → 2 (+2)
+      Kopf "Heute" y=-99 h=27 → draussen · Auswahl y=432 h=72 → ganz sichtbar
+  Ab (Grenze): Zeile 8 → 10, Rollwert 2 → 3 (+1)
+      Kopf "Gestern" y=432 h=35 → IM BILD · Auswahl y=467 h=72 → ganz sichtbar
+
+=== N2/N3 aufwärts in die grosse Gruppe ===
+  Auf : Zeile 17 → 16, Rollwert 11 → 11 (+0)
+      Kopf "Gestern" y=-107 h=35 → draussen · Auswahl y=360 h=72 → ganz sichtbar
+  Auf : Zeile 16 → 15, Rollwert 11 → 11 (+0)
+      Kopf "Gestern" y=-107 h=35 → draussen · Auswahl y=288 h=72 → ganz sichtbar
+  Auf : Zeile 15 → 14, Rollwert 11 → 11 (+0)
+      Kopf "Gestern" y=-107 h=35 → draussen · Auswahl y=216 h=72 → ganz sichtbar
+  Auf : Zeile 14 → 13, Rollwert 11 → 11 (+0)
+      Kopf "Gestern" y=-107 h=35 → draussen · Auswahl y=144 h=72 → ganz sichtbar
+  Auf : Zeile 13 → 12, Rollwert 11 → 11 (+0)
+      Kopf "Gestern" y=-107 h=35 → draussen · Auswahl y=72 h=72 → ganz sichtbar
+  Auf : Zeile 12 → 11, Rollwert 11 → 11 (+0)
+      Kopf "Gestern" y=-107 h=35 → draussen · Auswahl y=0 h=72 → ganz sichtbar
+  Auf : Zeile 11 → 10, Rollwert 11 → 10 (-1)
+      Kopf "Gestern" y=-35 h=35 → draussen · Auswahl y=0 h=72 → ganz sichtbar
+  -- ein Schritt weiter: letzte Notiz der grossen Gruppe (N3) --
+  Auf (Grenze): Zeile 10 → 8, Rollwert 10 → 8 (-2)
+      Kopf "Heute" y=-531 h=27 → draussen · Auswahl y=0 h=72 → ganz sichtbar
+
+=== N4 aufwärts in die kleine Gruppe (drei Notizen) ===
+  Auf : Zeile 15 → 14, Rollwert 8 → 8 (+0)
+      Kopf "Letzte Woche" y=216 h=35 → IM BILD · Auswahl y=395 h=72 → ganz sichtbar
+  Auf : Zeile 14 → 13, Rollwert 8 → 8 (+0)
+      Kopf "Letzte Woche" y=216 h=35 → IM BILD · Auswahl y=323 h=72 → ganz sichtbar
+  Auf : Zeile 13 → 12, Rollwert 8 → 8 (+0)
+      Kopf "Letzte Woche" y=216 h=35 → IM BILD · Auswahl y=251 h=72 → ganz sichtbar
+  Auf : Zeile 12 → 10, Rollwert 8 → 7 (-1)
+      Kopf "Gestern" y=0 h=35 → IM BILD · Auswahl y=179 h=72 → ganz sichtbar
+  -- weiter auf die mittlere Notiz der kleinen Gruppe (N5) --
+  Auf : Zeile 10 → 9, Rollwert 7 → 7 (+0)
+      Kopf "Gestern" y=0 h=35 → IM BILD · Auswahl y=107 h=72 → ganz sichtbar
+
+=== N6 Rad weggescrollt, dann Pfeil ab (innerhalb der Gruppe) ===
+  Ausgangslage: Rollwert 0, Kopf y=0
+  Nach dem Raddreh: Rollwert 2, Kopf y=-99 (Auswahl unverändert Zeile 5)
+  Ab  : Zeile 5 → 6, Rollwert 2 → 2 (+0)
+      Kopf "Heute" y=-99 h=27 → draussen · Auswahl y=288 h=72 → ganz sichtbar
+
+=== N8 Rad bis an die Grenze der Passt-Bedingung, dann Pfeil ab ===
+  Nach dem Raddreh: Rollwert 6, Kopf y=-387, Auswahl Zeile 6 y=0
+  Ab  : Zeile 6 → 7, Rollwert 6 → 6 (+0)
+      Kopf "Heute" y=-387 h=27 → draussen · Auswahl y=72 h=72 → ganz sichtbar
+
+=== N10 Grenzübertritt auf eine schon sichtbare Zeile ===
+  Zielzeile 10 vor dem Tastendruck: y=144 h=72 → SCHON GANZ SICHTBAR
+  Auf (Grenze): Zeile 12 → 10, Rollwert 8 → 7 (-1)
+      Kopf "Gestern" y=0 h=35 → IM BILD · Auswahl y=179 h=72 → ganz sichtbar
+
+=== N11 Mausklick in eine andere Gruppe (bewusst offen) ===
+  Klickziel Zeile 6 y=0 (sichtbar), Rollwert 6, Kopf y=-387
+  Nach dem Klick: Auswahl Zeile 6, Rollwert 6 → 6, Kopf y=-387
+
+=== N12 Löschen und Undo an der Gruppengrenze ===
+  Vor dem Löschen: Auswahl Zeile 6, Rollwert 0, Zeilen 12
+  Nach dem Löschen: Auswahl Zeile 6, Rollwert 1, Zeilen 10, Kopf "Letzte Woche" y=288
+  Nach dem Undo   : Auswahl Zeile 6, Rollwert 1, Zeilen 12, Kopf "Gestern" y=288
+
+=== N7 abwärts durch die grosse Gruppe, Rollwert je Schritt ===
+  Ab  : Zeile 1 → 2, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=99 h=72 → ganz sichtbar
+  Ab  : Zeile 2 → 3, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=171 h=72 → ganz sichtbar
+  Ab  : Zeile 3 → 4, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=243 h=72 → ganz sichtbar
+  Ab  : Zeile 4 → 5, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=315 h=72 → ganz sichtbar
+  Ab  : Zeile 5 → 6, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=387 h=72 → ganz sichtbar
+  Ab  : Zeile 6 → 7, Rollwert 0 → 0 (+0)
+      Kopf "Heute" y=0 h=27 → IM BILD · Auswahl y=459 h=72 → ganz sichtbar
+  Ab  : Zeile 7 → 8, Rollwert 0 → 2 (+2)
+      Kopf "Heute" y=-99 h=27 → draussen · Auswahl y=432 h=72 → ganz sichtbar
+  Ab  : Zeile 8 → 10, Rollwert 2 → 3 (+1)
+      Kopf "Gestern" y=432 h=35 → IM BILD · Auswahl y=467 h=72 → ganz sichtbar

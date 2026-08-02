@@ -1,0 +1,46 @@
+Selbststart des gebauten Dienstes (DoD 2 / B1) — Strang B, 02.08.2026
+
+Nach /usr wird nichts installiert: der PO taktet die Installation, und der
+installierte Dienst von 14:38 (PID 254981) lief waehrend dieser Arbeit in der
+Sitzung des Kunden weiter. Der Selbststart lief deshalb in einem eigenen
+Sitzungsbus (dbus-run-session) mit eigenem XDG_CONFIG_HOME, XDG_DATA_HOME und
+XDG_CACHE_HOME — dieselbe Bauart wie der Nachweis zu #54. Die Sitzung des
+Kunden wurde nicht angefasst.
+
+=== Ablauf ===
+Sandkasten: /tmp/tmp.SQSii03oKm
+--- Dienstprozess ---
+403740 <Projektpfad>/build/bin/denkzetteld
+--- ShowLibrary ueber D-Bus ---
+()
+--- ShowCapture ueber D-Bus ---
+()
+--- Quit ---
+()
+--- fertig ---
+
+=== Journal (journalctl --user, PID 403740) ===
+Aug 02 16:48:45 denkzetteld[403740]: KDE platform plugin is loaded but SNI unavailable
+Aug 02 16:48:45 denkzetteld[403740]: Couldn't start kglobalaccel from org.kde.kglobalaccel.service: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.kde.kglobalaccel was not provided by any .service files")
+Aug 02 16:48:45 denkzetteld[403740]: Meta+N ist beim Kurzbefehl-Dienst nicht angekommen — er hat die Registrierung nicht behalten. Die Kurzbefehle lassen sich in den Systemeinstellungen unter „Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst zurück. Das Erfassungsfenster bleibt über das Symbol im Systemabschnitt erreichbar.
+Aug 02 16:48:49 denkzetteld[403740]: This plugin does not support propagateSizeHints()
+Aug 02 16:48:49 denkzetteld[403740]: This plugin does not support raise()
+Aug 02 16:48:51 denkzetteld[403740]: Had queued notifications on destruction. Was the eventloop running?
+
+=== Lesart ===
+Der gebaute Dienst startet, oeffnet Bibliothek und Erfassung ueber D-Bus und
+beendet sich auf Quit. Die beiden Meldungen ueber SNI und kglobalaccel sind
+Eigenschaften des Sandkastens — in einem eigenen Sitzungsbus laeuft weder ein
+Systemabschnitt noch der Kurzbefehl-Dienst. Sie sind zugleich der Beleg, dass
+die Rueckleseregel greift: der Dienst behauptet die Registrierung nicht,
+sondern meldet ihr Ausbleiben im Klartext.
+
+=== Grenze der Pruefbarkeit, ausdruecklich benannt ===
+Der Hauptweg von #57 ist ein Mausklick auf eine gerollte Liste. Er ist hier
+nicht ueber D-Bus fahrbar; gefahren wurde er statt dessen am echten
+LibraryWindow mit echten QMouseEvent-Ereignissen — einmal ueber das
+Szenenprogramm des UI-Reviewers (messung-szenen-*.txt) und einmal ueber
+QTest::mouseClick in librarytest. Die Pruefung am installierten Stand mit
+echter Maus am laufenden Plasma ist der Takt des PO am Sprint-Ende (DoD 2,
+Praezisierung nach Sprint-3-Mangel M1); sie ist damit nicht offen, sondern
+verlegt.
