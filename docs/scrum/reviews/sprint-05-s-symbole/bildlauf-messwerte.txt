@@ -1,0 +1,20 @@
+geschrieben: 01-lesen.png
+Detailkopf: „Bearbeiten“ Symbol „document-edit“, 104 px breit (natürlich 104 px)
+Detailkopf: „Löschen“ Symbol „edit-delete“, 88 px breit (natürlich 88 px)
+geschrieben: 02-bearbeiten.png
+Bearbeiten-Fußzeile: „Speichern“ Symbol „document-save“, 98 px breit (natürlich 98 px)
+Bearbeiten-Fußzeile: „Abbrechen“ Symbol „dialog-cancel“, 104 px breit (natürlich 104 px)
+vor dem Speichern: „Fold“ 1 Treffer, „Vault“ 0 Treffer, needs_reembed=0
+nach dem Speichern: „Fold“ 0 Treffer, „Vault“ 1 Treffer, needs_reembed=1, Kategorie „Software-Ideen“, Tags „denkzettel · export · software-idee“, Zustand 2
+Text jetzt: Transkript: Idee für Denkzettel — den Bündel-Export erst vorschlagen, wenn mindestens fünf Notizen zum selben Thema da sind, sonst wird der Vault zugemüllt. Schwelle einstellbar machen.
+Suche „Vault“ in der Bibliothek: 2 Zeile(n) in der Liste
+geschrieben: 04-wiedergefunden.png
+Wächterdialog: „Abbrechen“ Symbol „dialog-cancel“
+Wächterdialog: „Speichern“ Symbol „document-save“ (Vorgabe)
+Wächterdialog: „Verwerfen“ Symbol „edit-delete“
+geschrieben: 03-waechterdialog.png
+Fenster nach „Abbrechen“ noch offen: ja
+Meldungszeile: „Schließen“ Symbol „dialog-close“
+Meldungszeile: „Rückgängig“ Symbol „edit-undo“
+geschrieben: 05-loeschmeldung.png
+Notizen nach „Rückgängig“: 3
