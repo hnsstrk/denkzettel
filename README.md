@@ -114,6 +114,10 @@ Notiz-Apps sowie AUR, crates.io, PyPI, Flathub und GitHub geprüft: frei.
 
 ## Lizenz
 
-Steht noch aus. Bis dahin sind alle Rechte vorbehalten: Der Code ist
-öffentlich lesbar, aber ohne Lizenz darf ihn niemand weitergeben oder darauf
-aufbauen.
+[MIT](LICENSE). Nehmt den Code, baut darauf auf, verkauft ihn meinetwegen —
+der Copyright-Hinweis muss nur mit.
+
+Zwei Dinge dazu: `third_party/spellfix/spellfix.c` kommt aus SQLite und ist
+Public Domain. Und wer Denkzettel als fertiges Programm weitergibt, muss die
+Bedingungen von Qt und den KDE Frameworks beachten, die dynamisch dazugelinkt
+werden — die stehen unter LGPL.
