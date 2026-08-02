@@ -88,6 +88,7 @@ Artefakt gelandet — und wird dieses Artefakt automatisch geladen?
 | Scrum Master | Agent `scrum-master` — DoD, Schätz-Moderation, Retro, Impediments |
 | Entwickler | Agent `denkzettel-dev` |
 | UI/UX | Agent `denkzettel-ux` |
+| Verwalter | Agent `denkzettel-verwalter` (Haiku) — führt Abschlussarbeit aus, entscheidet nicht |
 
 **Der PO schreibt keinen Produktivcode**, der Scrum Master ändert weder Code
 noch SPEC, und Agenten arbeiten nur in ihrer zugewiesenen Dateimenge.
@@ -100,4 +101,9 @@ noch SPEC, und Agenten arbeiten nur in ihrer zugewiesenen Dateimenge.
 - Installieren (braucht das Kundenpasswort, grafischer Dialog):
   `pkexec /usr/bin/cmake --install ~/Projekte/denkzettel/build`
 - Das Repository ist **öffentlich**. Was in Issues und Commits steht, ist
-  veröffentlicht.
+  veröffentlicht. Zugelassen sind Kundenzitate und Messwerte; nicht
+  zugelassen sind Systemdetails und personenbezogene Angaben
+  (Kundenentscheidung 02.08.2026).
+- **Gepusht wird nach jedem abgeschlossenen Arbeitsblock, ohne Rückfrage**
+  (Kundenentscheidung 02.08.2026). Das Sprint-Ende-Minimum regelt der
+  Sprint-Abschluss in `PROZESS.md`.
