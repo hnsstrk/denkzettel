@@ -431,7 +431,7 @@ fortschreiben. (5) Am Sprint-Ende: Sprint-Abschluss nach B11 in zwei Takten,
 Punkt 10 ausgesetzt bis #61; Bewertung des PR-Probelaufs gegen sein vorab
 festgelegtes Kriterium.
 
-## 13. Kundenfreigabe (PO-Vermerk, 02.08.2026, 12:42)
+## 13. Kundenfreigabe (PO-Vermerk, 02.08.2026, 12:40)
 
 Der Kunde hat im Anschluss an das vierte Design-Interview entschieden:
 **Weg A** — Sprint 4 startet mit den drei Strängen **#11 (5) · #60 (5) ·
