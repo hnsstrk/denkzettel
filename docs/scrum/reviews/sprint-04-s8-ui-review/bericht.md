@@ -340,3 +340,220 @@ die Auswahl zurücknehmen könnte“) ist die tatsächliche. **Verdikt: ok.**
 `ctest --test-dir build`: 7 von 7 bestanden (4,78 s). Die Bildprüfung ersetzt die
 Tests nicht und die Tests ersetzen sie nicht — Befund 1 ist genau der Fall, den
 kein Test bemerkt hat.
+
+---
+
+# Nachprüfung der Heilung
+
+**02.08.2026** · Prüfgegenstand: `story/11-bearbeiten`, Stand `a78920a`
+(Heilung `b25ba59`, Bilder `a78920a`) · `ctest`: 7 von 7 bestanden (5,00 s).
+
+Kein Vollreview — geprüft sind die fünf geheilten Stellen, die Wege, die die
+Heilung neu berührt, und die Zustände, die dabei sichtbar werden.
+
+## Prüfmittel
+
+Derselbe Bildläufer wie oben, um vier Messungen erweitert (Auswahlzeile
+**während** des Dialogs, Symbolzustand der Dialogknöpfe, Knopfbreite der
+Kopfzeile, die drei Antworten am Auswahlwechsel): `uxshots-nachpruefung.cpp`,
+gebaut aus derselben `CMakeLists.txt`. Für Stelle 5 kommt `iconprobe.cpp` dazu —
+ein kleines Programm, das nur die Symbolauflösung misst. Alle Messwerte roh in
+`n-messwerte.txt`. Aufruf unverändert, `QT_QPA_PLATFORM=offscreen`,
+`QT_QPA_PLATFORMTHEME=kde`.
+
+Die Bilder der Nachprüfung tragen das Präfix `n`; die Bilder des ersten Reviews
+bleiben unangetastet, damit der Vorher-Nachher-Vergleich möglich bleibt.
+
+| Bild | Zeigt |
+|---|---|
+| `n01-lesen.png` | Lesezustand nach der Heilung |
+| `n02-bearbeiten.png` | Bearbeiten-Zustand, für den Vergleich mit `n01` |
+| `n03-lesen-nach-abbrechen.png` | zurück im Lesezustand |
+| `n04-waechter-abbrechen.png` | Wächterdialog über den Abbrechen-Knopf, neuer Text |
+| `n05-waechter-auswahlwechsel.png` | Wächterdialog beim Auswahlwechsel — Stelle 2 |
+| `n06-nach-verwerfen.png` / `n07-nach-speichern.png` | die beiden anderen Antworten am Auswahlwechsel |
+| `n08-lesen-1400x900.png` | Lesezustand im großen Fenster — Beleg zu Befund 7 |
+| `n09-bearbeiten-1400x900.png` | Bearbeiten-Zustand im großen Fenster |
+
+## Verdikt je Stelle
+
+### Stelle 1 — Layoutsprung beim Zustandswechsel: **ok, geheilt**
+
+```
+Zustandswechsel: Textbereich oben 102 → 102 (Sprung 0 px), Höhe 486 → 417
+                 Knopfhöhe 34, Kennzeichenhöhe 34
+Zurück im Lesezustand: Textbereich oben 102, Höhe 486
+```
+
+Der Textbereich steht in beiden Zuständen bei y = 102 (vorher 102 → 83), und der
+Rückweg bringt ihn auf denselben Wert zurück. Das Kennzeichen ist jetzt so hoch
+wie die Knöpfe (34 px statt 15 px) — der `QStackedWidget` nimmt die Höhe seiner
+größten Seite und fragt sie bei jedem Layout neu, statt eine Zahl einzufrieren.
+Die 69 px, um die der Text kürzer wird, sind Merkmalszeile und Fußzeile, die
+unten dazukommen: die Kopfzeile gibt nichts mehr ab. `n01` und `n02`
+übereinandergelegt zeigen Zeitstempel, Kopfzeile und erste Textzeile auf
+derselben Höhe.
+
+### Stelle 2 — Auswahl vor dem Wächterdialog: **ok, geheilt**
+
+```
+Auswahl der Liste während des Dialogs: Zeile 2   (angeklickt war Zeile 1)
+Nach „Abbrechen“ beim Auswahlwechsel: Auswahl auf Zeile 2, Editor offen 1
+```
+
+`n05` zeigt die bearbeitete Notiz (11:05) hervorgehoben, während der Dialog nach
+ihr fragt — im ersten Review stand dort die angeklickte. Liste, Detailbereich und
+Dialogtext zeigen jetzt auf dieselbe Notiz.
+
+**Die Heilung greift in den Auswahlwechsel ein, also sind alle drei Antworten
+daran gehalten** — nicht nur die, die den Befund erzeugt hat:
+
+| Antwort | Auswahl danach | Editor | Speicher | Verdikt |
+|---|---|---|---|---|
+| Abbrechen | Zeile 2 (bearbeitete Notiz) | offen | unverändert | **ok** |
+| Verwerfen | Zeile 1 (angeklickte Notiz) | zu | ohne „Vault“ | **ok** (`n06`) |
+| Speichern | Zeile 1 (angeklickte Notiz) | zu | mit „Vault“ | **ok** (`n07`) |
+
+Der Wechsel wird nach Speichern und Verwerfen also wirklich ausgeführt und
+bleibt nicht auf halbem Weg stehen; `n06` und `n07` zeigen die angeklickte Notiz
+gelesen, mit zurückgekehrten Schaltflächen.
+
+### Stelle 3 — Wortlaut des Dialogs: **ok, geheilt**
+
+> Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte Änderungen. Ohne
+> Speichern gehen sie verloren.
+
+Der Zeitstempel steht in Klammern und bestimmt die Grammatik nicht mehr; der Satz
+trägt jede der drei Zeitformen („Heute 11:05“, „Di, 28. Juli“, „28.07.2025“),
+ohne falsch zu werden. Sichtbar in `n04` und `n05`.
+
+### Stelle 4 — Kurzhilfe am ruhenden Suchfeld: **ok, geheilt**
+
+```
+Suchfeld im Bearbeiten-Zustand: freigeschaltet 0,
+  Kurzhilfe „Während des Bearbeitens abgeschaltet — eine Suche würde die Liste
+             unter dem Editor neu aufbauen.“
+```
+
+Sie nennt den Zustand und den Grund in einem Satz. Im Lesezustand ist die
+Kurzhilfe wieder leer (Code: `editing ? … : QString()`), das Feld also nicht mit
+einem Hinweis behängt, der nicht mehr gilt.
+
+### Stelle 5 — Symbole an den Dialogknöpfen: **warn, offen — mit anderer Ursache als gemeldet**
+
+Ich habe die Stelle als Struktur geprüft, wie beauftragt, und dabei die
+angekündigte Grenze **nicht bestätigen können**. Gemessen im Bildlauf, in
+derselben Umgebung, in der die Bilder entstehen:
+
+```
+Thema „breeze-dark“ · Stil „breeze“ · SH_DialogButtonBox_ButtonsHaveIcons 1
+hasThemeIcon(document-save) 1 · fromTheme: null 0, Größen 7, Pixmap 22 leer 0
+KStandardGuiItem::save(): hasIcon 1, iconName „document-save“ · null 0, Größen 7
+```
+
+`QIcon::fromTheme()` löst also auf, und `KStandardGuiItem::save().icon()` trägt
+sieben Größen. Die Verdachtsursache — nicht auflösendes Symbolthema, fehlende
+`KF6::IconThemes`-Bindung — trifft auf dieser Maschine nicht zu.
+
+Der tatsächliche Grund ist ein anderer, und er ist mit `iconprobe.cpp` isoliert:
+
+```
+direkt nach setIcon:            Speichern null 0 (Symbol sitzt)
+über activeModalWidget:         Speichern null 1, Name „“, Vorgabeknopf „keiner“
+                                derselbe Dialog wie gebaut 0
+                                „Speichern“ ist derselbe Zeiger 0
+nach exec(), am eigenen Zeiger:  Speichern null 0, Name „document-save“
+```
+
+**Der Dialog, den man sieht, ist nicht der, den der Code baut.** Unter
+`QT_QPA_PLATFORMTHEME=kde` zeigt Qt statt des eigenen `QMessageBox` einen
+Ersatzdialog der KDE-Plattformintegration mit **eigenen Knopfobjekten**. Der
+übernimmt Beschriftungen, Rollen, Reihenfolge und Fokus — aber nicht das, was
+danach am `QPushButton` gesetzt wird: weder die Symbole noch Vorgabe- und
+Escape-Knopf. Deshalb tragen die Knöpfe in `n04`/`n05` kein Symbol.
+
+Drei Folgerungen, und zwar **Beobachtung getrennt von Schluss**:
+
+- **Beobachtet:** Der Testlauf setzt `QT_QPA_PLATFORMTHEME` nicht
+  (`tests/CMakeLists.txt` gibt nur `QT_QPA_PLATFORM=offscreen`). Dort erscheint
+  der eigene `QMessageBox`, und `namesTheThreeAnswersOfTheGuardDialog` misst
+  genau die Knöpfe, an denen der Code die Symbole gesetzt hat. Der Test ist
+  richtig und er ist grün — er misst nur nicht den Dialog, den ein
+  KDE-Sitzungsnutzer bekommt.
+- **Geschlossen, nicht gemessen:** Unter Plasma ist dieselbe
+  Plattformintegration aktiv; ob der Ersatzdialog seine Symbole von sich aus
+  setzt (`KMessageDialog` benutzt `KStandardGuiItem`), habe ich nicht geprüft —
+  das geht nur am installierten Stand in einer echten Sitzung, und dort taktet
+  der PO.
+- **Zu entscheiden bleibt** damit nicht „fehlt eine Abhängigkeit“, sondern:
+  Trägt der Ersatzdialog unter Plasma Symbole? Wenn ja, ist die Sache erledigt
+  und `setIcon()` nur wirkungslos, nicht falsch. Wenn nein, führt der Weg über
+  `KMessageDialog` bzw. `KMessageBox` statt über `QMessageBox` — dann ist der
+  Dialog derselbe, den die Plattform ohnehin zeigt.
+
+Verdikt **warn**, nicht fail: Die Zuweisung im Code ist richtig, die Rollen und
+der Wortlaut stimmen, und der Dialog ist in jedem gemessenen Punkt bedienbar. Was
+fehlt, ist die Wirkung — und wo sie hängen bleibt, ist jetzt benannt.
+
+**Richtigstellung zum ersten Bericht:** Dort steht in der Tabelle zu Zustand C,
+`defaultButton()` und `escapeButton()` meldeten „eine Qt-Eigenheit ohne
+Wirkung“. Das war derselbe Ersatzdialog, gemessen über denselben Weg — die
+Aussage stimmt im Ergebnis (Fokus und Esc verhalten sich richtig), die
+Begründung war falsch.
+
+## Neuer Befund aus der Heilung
+
+### Befund 7 · Die Kopfknöpfe wachsen jetzt mit dem Fenster — **warn**
+
+**Fundstelle:** `src/ui/librarywindow.cpp`, `buildDetail()`, der neue
+`m_headPages`-Stapel · Bilder `n08-lesen-1400x900.png` (Beleg) und `n01-lesen.png`.
+
+```
+Kopfzeile (Lesen, 900x600):   „Bearbeiten“ b=123 · „Löschen“ b=122 · Stapel b=251
+Kopfzeile (Lesen, 1400x900):  „Bearbeiten“ b=248 · „Löschen“ b=247 · Stapel b=501
+```
+
+Bei 1400 px Fensterbreite sind die beiden Knöpfe je **248 px** breit — zusammen
+rund die halbe Breite des Detailbereichs für zwei Wörter (`n08`). Die Ursache ist
+die Heilung von Befund 1: Die Bearbeiten-Seite des neuen Stapels trägt ein
+eigenes `addStretch()`, damit wird der Stapel horizontal expandierend, und die
+Knöpfe darin füllen den Platz aus, den er bekommt. Im Bearbeiten-Zustand fällt es
+nicht auf, weil dort nur das Kennzeichen darin steht (`n09`).
+
+Nach den KDE HIG trägt eine Schaltfläche die Breite ihrer Beschriftung; überbreite
+Knöpfe für kurze Wörter lesen sich als Fehler. Auch bei 900 px ist der Unterschied
+belegbar: an den Bildern `01-lesen.png` (erstes Review) und `n01-lesen.png`
+nachgemessen, Rahmenkante zu Rahmenkante in der Knopfzeile, **81 px vor der
+Heilung gegen 120 px danach** — die Widget-Messung des neuen Standes sagt 123 px
+einschließlich Rahmen.
+
+**Korrekturvorschlag:** Dem Stapel die waagerechte Ausdehnung nehmen —
+`m_headPages->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed)`. Dann
+bestimmt die breitere Seite (die Knöpfe) die Breite, das `addStretch()` im
+Kopf-Layout hält beides rechtsbündig, und das `addStretch()` auf der
+Bearbeiten-Seite schiebt das Kennzeichen weiter an den rechten Rand. Der Prüfsatz
+dazu gehört zu den Geometrie-Zusicherungen: die Breite der Kopfknöpfe ist bei
+900 und bei 1400 px Fensterbreite dieselbe.
+
+## Was die Heilung sonst nicht verschoben hat
+
+Gegengeprüft, weil die Heilung Kopfzeile, Auswahlwechsel und Dialog berührt:
+
+| Prüfpunkt | Messwert | Verdikt |
+|---|---|---|
+| K2 — Notiz bleibt in der Trefferliste | 2 Zeilen, Auswahl Zeile 1, Rollstand 0 → 0, Auswahlzeile y 27 → 27 | **ok** |
+| Cursor am Textende, nichts markiert | 184 von 184, Auswahl 0, Fokus im Editor | **ok** |
+| Kategorie/Tags als Anzeige, „—“ ohne Analyse | „Software-Ideen“ / „—“ | **ok** |
+| Leeres Feld sperrt „Speichern“ | freigeschaltet 0 | **ok** |
+| Speichern kehrt in den Lesezustand zurück, ohne Meldung | Editor sichtbar 0, `needs_reembed=1`, Kategorie/Tags/Zustand unverändert | **ok** |
+| Esc über dem Dialog bleibt die harmlose Antwort | Fenster offen, Editor offen, Änderung erhalten, Speicher unverändert | **ok** |
+| Raumaufteilung: Kopfzeile 48 px, Liste 300 px, beide Fenstergrößen | unverändert | **ok** |
+| Fußzeile: Kürzel-Hinweis links, Speichern · Abbrechen rechts | x=714 / x=804 | **ok** |
+
+## Stand nach der Nachprüfung
+
+Vier der fünf Stellen sind geheilt und am Bild oder Messwert belegt. Stelle 5
+bleibt offen, aber mit benannter Ursache statt mit einem Verdacht — zu
+entscheiden am installierten Stand unter Plasma. Dazu kommt Befund 7 als
+Nebenwirkung der Heilung von Befund 1; er ist eine Zeile Größenpolitik und
+sollte nicht in den Backlog wandern.

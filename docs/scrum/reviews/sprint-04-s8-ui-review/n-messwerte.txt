@@ -1,0 +1,86 @@
+geschrieben: 01-lesen.png (900x600)
+Kopfzeile (Lesen): Knopf „Bearbeiten“ b=123 bei x=637 · „Löschen“ b=122 · Stapel b=251, rechter Rand bei 888
+Raumaufteilung (Lesen): Fenster 900x600 · Kopfzeile h=48 · Liste b=300 h=552 · Leser sichtbar 1 (y=102 h=486) · Editor sichtbar 0 (y=102 h=30)
+geschrieben: 02-kopfzeile-lesen.png (900x48)
+Leseansicht: Bearbeiten sichtbar 1, Löschen sichtbar 1, Kennzeichen sichtbar 0, Merkmalszeile sichtbar 0, Fußzeile sichtbar 0
+Nach F2: Editor sichtbar 1, Fokus auf Editor 1, Cursor bei 184 von 184, Auswahl 0
+Merkmalszeile: Kategorie „Software-Ideen“, Tags „denkzettel · export · software-idee“
+Suchfeld im Bearbeiten-Zustand: freigeschaltet 0, Kurzhilfe „Während des Bearbeitens abgeschaltet — eine Suche würde die Liste unter dem Editor neu aufbauen.“, Platzhalter „Volltextsuche …“
+geschrieben: 03-bearbeiten-frisch.png (900x600)
+Kopfzeile (Bearbeiten): Knopf „Bearbeiten“ b=123 bei x=637 · „Löschen“ b=122 · Stapel b=251, rechter Rand bei 888
+Raumaufteilung (Bearbeiten): Fenster 900x600 · Kopfzeile h=48 · Liste b=300 h=552 · Leser sichtbar 0 (y=102 h=486) · Editor sichtbar 1 (y=102 h=417)
+geschrieben: 04-kopfzeile-bearbeiten.png (900x48)
+Fußzeile, Knöpfe: Speichern (x=714) · Abbrechen (x=804)
+geschrieben: 05-bearbeiten-geaendert.png (900x600)
+Leeres Feld: Speichern freigeschaltet 0
+geschrieben: 06-leeres-feld.png (900x600)
+Nach dem Speichern: Editor sichtbar 0, Fokus auf QListView, Text im Speicher „Transkript: Idee für Denkzettel — den Bündel-Export erst vor…“
+Nach dem Speichern: needs_reembed=1, Kategorie „Software-Ideen“, Tags „denkzettel · export · software-idee“, Zustand 2
+geschrieben: 07-lesen-nach-speichern.png (900x600)
+Notiz ohne Analyse: Kategorie „—“, Tags „—“
+geschrieben: 08-ohne-analyse.png (900x600)
+Dialog „09-waechter-abbrechen.png“: Titel „Ungespeicherte Änderungen“, Text „Änderungen speichern?“, Zusatz „Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte Änderungen. Ohne Speichern gehen sie verloren.“
+  Knöpfe in Fensterreihenfolge: Speichern (x=0, Rolle 0) · Abbrechen (x=180, Rolle 1) · Verwerfen (x=90, Rolle 2)
+  Auswahl der Liste während des Dialogs: Zeile 2
+  Symbol an „Speichern“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Abbrechen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Verwerfen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Im selben Prozess: Symbolthema „breeze-dark“ · fromTheme(document-save) null 0, Größen 7 · KStandardGuiItem::save().icon() null 0, Größen 7 · Stil „breeze“, ButtonsHaveIcons 1
+  Vorgabeknopf „keiner“ · Escape-Knopf „keiner“ · Fokus auf „Speichern“
+geschrieben: 09-waechter-abbrechen.png (900x600)
+Nach „Abbrechen“ im Dialog: Editor noch offen 1, Text noch geändert 1
+Dialog „10-waechter-auswahlwechsel.png“: Titel „Ungespeicherte Änderungen“, Text „Änderungen speichern?“, Zusatz „Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte Änderungen. Ohne Speichern gehen sie verloren.“
+  Knöpfe in Fensterreihenfolge: Speichern (x=0, Rolle 0) · Abbrechen (x=180, Rolle 1) · Verwerfen (x=90, Rolle 2)
+  Auswahl der Liste während des Dialogs: Zeile 2
+  Symbol an „Speichern“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Abbrechen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Verwerfen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Im selben Prozess: Symbolthema „breeze-dark“ · fromTheme(document-save) null 0, Größen 7 · KStandardGuiItem::save().icon() null 0, Größen 7 · Stil „breeze“, ButtonsHaveIcons 1
+  Vorgabeknopf „keiner“ · Escape-Knopf „keiner“ · Fokus auf „Speichern“
+geschrieben: 10-waechter-auswahlwechsel.png (900x600)
+Nach „Abbrechen“ beim Auswahlwechsel: Auswahl auf Zeile 2, Editor offen 1
+Suche „Fold“: 2 Zeile(n)
+geschrieben: 11-k2-treffer-vorher.png (900x600)
+K2 nach dem Speichern: 2 Zeile(n), Auswahl auf Zeile 1, Rollstand 0 → 0, Auswahlzeile y 27 → 27, Suchfeld „Fold“, Suchfeld frei 1
+K2: Treffer im Speicher für „Fold“ 0, für „Vault“ 1
+K2: Listentext der Notiz jetzt „Transkript: Idee für Denkzettel — den Bündel-Expor…“
+geschrieben: 12-k2-treffer-nachher.png (900x600)
+K2 nach Änderung des Suchbegriffs auf „Fol“: 0 Zeile(n)
+geschrieben: 13-k2-nach-suchwechsel.png (900x600)
+Kopfzeile (Lesen 1400x900): Knopf „Bearbeiten“ b=248 bei x=887 · „Löschen“ b=247 · Stapel b=501, rechter Rand bei 1388
+Raumaufteilung (Lesen 1400x900): Fenster 1400x900 · Kopfzeile h=48 · Liste b=300 h=852 · Leser sichtbar 1 (y=102 h=786) · Editor sichtbar 0 (y=102 h=30)
+geschrieben: 20-lesen-1400x900.png (1400x900)
+Kopfzeile (Bearbeiten 1400x900): Knopf „Bearbeiten“ b=248 bei x=887 · „Löschen“ b=247 · Stapel b=501, rechter Rand bei 1388
+Raumaufteilung (Bearbeiten 1400x900): Fenster 1400x900 · Kopfzeile h=48 · Liste b=300 h=852 · Leser sichtbar 0 (y=102 h=786) · Editor sichtbar 1 (y=102 h=717)
+geschrieben: 14-bearbeiten-1400x900.png (1400x900)
+Kopfzeile (kurze Textnotiz): Knopf „Bearbeiten“ b=123 bei x=637 · „Löschen“ b=122 · Stapel b=251, rechter Rand bei 888
+Raumaufteilung (kurze Textnotiz): Fenster 900x600 · Kopfzeile h=48 · Liste b=300 h=552 · Leser sichtbar 0 (y=102 h=486) · Editor sichtbar 1 (y=102 h=417)
+geschrieben: 15-kurze-textnotiz.png (900x600)
+Zustandswechsel: Textbereich oben 102 → 102 (Sprung 0 px), Höhe 486 → 417 · Knopfhöhe 34, Kennzeichenhöhe 34
+Kopfzeile des Detailbereichs: Höhe im Bearbeiten-Zustand 34 (Merkmalszeile + Fußzeile fangen den Höhenverlust unten auf: 69 px weniger Text)
+geschrieben: 16-sprung-bearbeiten.png (900x600)
+Zurück im Lesezustand: Textbereich oben 102, Höhe 486
+geschrieben: 17-sprung-lesen.png (900x600)
+Esc über dem Dialog (ausgelöst durchs Fensterschließen): Fenster offen 1, Editor offen 1, Änderung noch da 1, Text im Speicher unverändert 1
+Dialog „18-auswahlwechsel-verwerfen.png“: Titel „Ungespeicherte Änderungen“, Text „Änderungen speichern?“, Zusatz „Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte Änderungen. Ohne Speichern gehen sie verloren.“
+  Knöpfe in Fensterreihenfolge: Speichern (x=0, Rolle 0) · Abbrechen (x=180, Rolle 1) · Verwerfen (x=90, Rolle 2)
+  Auswahl der Liste während des Dialogs: Zeile 2
+  Symbol an „Speichern“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Abbrechen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Verwerfen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Im selben Prozess: Symbolthema „breeze-dark“ · fromTheme(document-save) null 0, Größen 7 · KStandardGuiItem::save().icon() null 0, Größen 7 · Stil „breeze“, ButtonsHaveIcons 1
+  Vorgabeknopf „keiner“ · Escape-Knopf „keiner“ · Fokus auf „Speichern“
+geschrieben: 18-auswahlwechsel-verwerfen.png (900x600)
+Auswahlwechsel mit Antwort „Verwerfen“: Auswahl auf Zeile 1 (angeklickt war 1), Editor offen 0, Notiz im Speicher enthält „Vault“ 0
+geschrieben: 19-nach-auswahlwechsel-verwerfen.png (900x600)
+Dialog „18-auswahlwechsel-speichern.png“: Titel „Ungespeicherte Änderungen“, Text „Änderungen speichern?“, Zusatz „Die bearbeitete Notiz (Heute 11:05) hat ungespeicherte Änderungen. Ohne Speichern gehen sie verloren.“
+  Knöpfe in Fensterreihenfolge: Speichern (x=0, Rolle 0) · Abbrechen (x=180, Rolle 1) · Verwerfen (x=90, Rolle 2)
+  Auswahl der Liste während des Dialogs: Zeile 2
+  Symbol an „Speichern“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Abbrechen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Symbol an „Verwerfen“: gesetzt 0, Name „“, verfügbare Größen 0
+  Im selben Prozess: Symbolthema „breeze-dark“ · fromTheme(document-save) null 0, Größen 7 · KStandardGuiItem::save().icon() null 0, Größen 7 · Stil „breeze“, ButtonsHaveIcons 1
+  Vorgabeknopf „keiner“ · Escape-Knopf „keiner“ · Fokus auf „Speichern“
+geschrieben: 18-auswahlwechsel-speichern.png (900x600)
+Auswahlwechsel mit Antwort „Speichern“: Auswahl auf Zeile 1 (angeklickt war 1), Editor offen 0, Notiz im Speicher enthält „Vault“ 1
+geschrieben: 19-nach-auswahlwechsel-speichern.png (900x600)
