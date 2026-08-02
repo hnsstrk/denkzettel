@@ -139,7 +139,8 @@ private Q_SLOTS:
     void leavesTheHeadOutsideWhereItCannotFitWithTheSelection();
     void staysPutWhileTheSelectionMovesWithinItsGroup();
     void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
-    void bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked();
+    void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
+    void keepsTheHeadFetchAfterAClickThatSelectedNothing();
     void bringsBackTheHeadWhenTheDeletionIsUndone();
     void regroupsWhenTheWindowIsActivated();
     void undoesTheDeletionByKeyboard();
@@ -163,6 +164,7 @@ private Q_SLOTS:
     void keepsTheMeasuresOfTheGroupedList();
     void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
+    void textsFollowAColourSchemeChange();
 
     void opensTheEditorWithTheButton();
     void opensTheEditorWithF2();
@@ -1476,15 +1478,29 @@ void LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready()
     QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
 }
 
-void LibraryTest::bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked()
+void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked()
 {
-    // The mouse takes the same road, and it is worth writing down because the
-    // trade was weighed twice: clicking a visible note of another group moves
-    // the list to fetch that group's head. The user loses the place he was
-    // looking at and gains the heading of what he picked — a trade rather than
-    // a loss, since the note he pointed at stays selected and in view (PO
-    // decision of 01.08.2026). Should it grate in daily use, this is the test
-    // that says where the decision was made.
+    // Pointing is not typing (issue #57). Until this story the assurance here
+    // read the other way round and was called
+    // `bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked`: the mouse
+    // took the same road as the arrow key, and clicking a visible note of
+    // another group moved the list to fetch that group's head. Its comment
+    // named the trade — "the user loses the place he was looking at and gains
+    // the heading of what he picked" — and ended: "Should it grate in daily
+    // use, this is the test that says where the decision was made." It grated,
+    // the customer reported it, and the measurement said why: the row he
+    // pointed at slid 387 px out from under the cursor (UI review of
+    // 01.08.2026, scenes n11a/n11b).
+    //
+    // What the two inputs mean is not the same. Pressing an arrow key, the user
+    // moves through a list and expects it to move with him; clicking, he points
+    // at a place and expects that place to stay. So the head is still fetched
+    // for the key — `bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready` holds
+    // that side — and no longer for the press.
+    //
+    // Measured is the roll value before and after the input, not the end state:
+    // the scrollTo(selection) that follows makes both look right in a picture,
+    // and only the movement between them tells them apart (issue #57, AK 3).
     for (int hour = 8; hour < 16; ++hour) {
         storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
                    QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
@@ -1518,13 +1534,91 @@ void LibraryTest::bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked()
     const QModelIndex target = noteRow(list, 10);
     QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
 
+    const int rolledTo = list->verticalScrollBar()->value();
+    const int targetBefore = list->visualRect(target).y();
+
     QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(target).center());
 
     QCOMPARE(list->currentIndex(), target);
+
+    // The picture has not moved: the roll value is the one the user had rolled
+    // to, and the row he pointed at is still under his finger.
+    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+    QCOMPARE(list->visualRect(target).y(), targetBefore);
+
+    // The head stays outside, and that is the price of it. The day is not lost
+    // with it: the reading pane carries the full timestamp of what was picked,
+    // so what the head would have said stands in the window anyway (UX note on
+    // issue #57).
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
+    QVERIFY(visibleLabels(window).contains(QStringLiteral("Gestern 09:00")));
+}
+
+void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
+{
+    // The press is remembered for the selection change it causes — and a press
+    // that causes none must not colour the next keystroke. A group head is the
+    // case at hand: it is a row of the list, the mouse cannot pick it
+    // (wireframe 3b), so clicking it changes nothing. If the mark from that
+    // click were still lying around, the arrow key afterwards would be taken
+    // for a mouse and the head of the group it enters would stay outside.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // The same starting point as the arrow-key case: selection in "Letzte
+    // Woche", the head of "Gestern" rolled out of the picture, the row the key
+    // is about to reach already in view.
+    list->setCurrentIndex(noteRow(list, 11));
+    const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+
+    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
+
+    const QModelIndex target = noteRow(list, 10);
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
+
+    // A head that stands in the picture, clicked.
+    QModelIndex visibleHead;
+    for (int row = 0; row < modelOf(list)->rowCount() && !visibleHead.isValid(); ++row) {
+        const QModelIndex candidate = modelOf(list)->index(row);
+        if (candidate.data(NoteListModel::GroupHeaderRole).toBool()
+            && list->viewport()->rect().contains(list->visualRect(candidate))) {
+            visibleHead = candidate;
+        }
+    }
+    QVERIFY2(visibleHead.isValid(), "Kein Gruppenkopf im Bild — der Fall tritt nicht ein");
+
+    const QModelIndex before = list->currentIndex();
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(visibleHead).center());
+    QCOMPARE(list->currentIndex(), before);
+
+    QTest::keyClick(list, Qt::Key_Up);
+
+    // The key crossed a group boundary, so the head is in the picture — the
+    // click before it changed nothing and counts for nothing.
+    QCOMPARE(list->currentIndex(), target);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
              qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
-    // What the user pointed at stays selected and in the picture, whole.
-    QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
 }
 
 void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()
@@ -2278,6 +2372,64 @@ void LibraryTest::keepsTheWindowSizeForTheNextSession()
     LibraryWindow reopened(m_store.get());
 
     QCOMPARE(reopened.size(), chosen);
+}
+
+void LibraryTest::textsFollowAColourSchemeChange()
+{
+    // The daemon builds this window at start and keeps it (SPEC 2.1, main.cpp),
+    // so a colour scheme changed underneath it reaches a window that is already
+    // standing — and stays there until the daemon is restarted. Every text has
+    // to follow it (issue #58, the second site of issue #54).
+    //
+    // Asked of every label rather than of the two known ones: the point of the
+    // fault is that it spreads by copying, and a check that names its sites
+    // cannot see the next copy.
+    storedNote(QStringLiteral("eine Notiz von gestern"), QStringLiteral("2026-07-30T11:00:00"));
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    const QPalette startPalette = qApp->palette();
+
+    QPalette switched = startPalette;
+    switched.setColor(QPalette::WindowText, QColor(0x23, 0x26, 0x29));
+    switched.setColor(QPalette::PlaceholderText, QColor(0x70, 0x7d, 0x8a));
+    switched.setColor(QPalette::Link, QColor(0x2d, 0x7d, 0x9a));
+    qApp->setPalette(switched);
+
+    // Qt hands the new palette to the widgets through a posted event; without a
+    // running event loop the test has to let it through itself. Without this the
+    // test stays red after the correction and looks like a failed fix
+    // (CaptureTest::textsFollowAColourSchemeChange, issue #54).
+    QCoreApplication::processEvents();
+
+    // The message band paints its own colours by message type — that is
+    // KMessageWidget's business, not this window's.
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    QVERIFY(!labels.isEmpty());
+
+    for (QLabel *label : labels) {
+        if (message->isAncestorOf(label)) {
+            continue;
+        }
+
+        // What the label paints with: its own palette, read through its role.
+        // A colour written into that palette once would still stand here.
+        QVERIFY2(label->palette().color(label->foregroundRole())
+                     == switched.color(label->foregroundRole()),
+                 qPrintable(QStringLiteral("„%1“ malt in %2, das Schema sagt %3")
+                                .arg(label->text(),
+                                     label->palette().color(label->foregroundRole()).name(),
+                                     switched.color(label->foregroundRole()).name())));
+    }
+
+    qApp->setPalette(startPalette);
 }
 
 void LibraryTest::opensTheEditorWithTheButton()

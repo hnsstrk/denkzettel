@@ -393,8 +393,14 @@ v1 aber nicht gebaut.
   Zeitstempel folgt der Gruppe: in Heute/Gestern die Uhrzeit, in den
   Wochengruppen Wochentag und Datum, in Älter das absolute Datum; im
   Detailbereich die volle Form. Die Gliederung ist fest — kein Umschalter,
-  keine einklappbaren Gruppen (Wireframes 3a/3b). Dazu Suchfeld
-  (Abschnitt 6) und Button „Vorschläge" mit Badge.
+  keine einklappbaren Gruppen (Wireframes 3a/3b).
+  Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
+  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick tut das
+  nicht**: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
+  Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
+  Der Tag geht dabei nicht verloren — der Detailbereich trägt den vollen
+  Zeitstempel.
+  Dazu Suchfeld (Abschnitt 6) und Button „Vorschläge" mit Badge.
 - Detailansicht: **Lese- und Bearbeiten-Ansicht** (Entscheidung drittes
   Interview — v. a. für fehlerhafte Transkripte). Bearbeiten behält
   Kategorie/Tags und `state`, setzt aber `needs_reembed = 1` — der nächste
