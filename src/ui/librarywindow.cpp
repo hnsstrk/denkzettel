@@ -359,10 +359,11 @@ QWidget *LibraryWindow::buildDetail()
     layout->setContentsMargins(12, 10, 12, 12);
     layout->setSpacing(10);
     layout->addLayout(head);
-    // The surplus height belongs to the note text. A QStackedWidget is only
-    // Preferred in both directions, so without the stretch factor the two
-    // rows below would take their share of it and the text field would keep
-    // its hint size — the mistake the window layout already made once.
+    // The surplus height belongs to the note text, said out loud rather than
+    // left to Qt's distribution rules. Measured on 02.08.2026: at both tested
+    // window sizes the layout holds without the factor as well, so this is a
+    // guard and not a repair — it becomes load-bearing as soon as one of the
+    // two rows below can grow, which the tag row does once M3 fills it.
     layout->addWidget(m_textPages, 1);
     layout->addWidget(m_metaRow);
     layout->addWidget(m_editFooter);

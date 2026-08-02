@@ -2818,10 +2818,10 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
                             .arg(bottom(meta))
                             .arg(top(footer))));
 
-    // The button row sits on the lower edge of the pane, the note text gets
-    // the surplus height. Without that the text field keeps its hint size and
-    // the pane ends in a field of empty space — the mistake the header row of
-    // the window already made once (customer finding of 01.08.2026).
+    // The button row sits on the lower edge of the pane and the note text gets
+    // the surplus height — otherwise the pane ends in a field of empty space,
+    // the mistake the header row of the window already made once (customer
+    // finding of 01.08.2026).
     QVERIFY2(detail->height() - bottom(footer) <= 12,
              qPrintable(QStringLiteral("Unter der Fußzeile bleiben %1 px").arg(detail->height() - bottom(footer))));
     QVERIFY2(stack->height() >= detail->height() / 2,
