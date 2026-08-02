@@ -1528,7 +1528,7 @@ Kunden, wo sie hingehört. Was fehlte, ist ausschließlich die Information, dass
 die Summe eine Schwelle passiert — genau das leistet B12. Eine Regel „ab X %
 ist es ein neuer Sprint" wäre eine Erfindung ohne Fall.
 
-**15.3 — flüchtige Kundenbelege.** Von acht Bildern der Abnahme überlebten
+**15.3 — flüchtige Kundenbelege.** Von acht Bildern der Abnahme überlebte
 sieben Minuten nur eines. B7 kennt nur die Belege, die Agenten selbst erzeugen.
 **Wohin die Regel gehört:** in `PROZESS.md` (Artefakte, als Ergänzung zu B7 —
 dort steht die Belegordnung) und als Auslöser in `CLAUDE.md`, weil der
@@ -1733,7 +1733,7 @@ Abschnitt „Die Regeln, die am häufigsten übergangen werden":**
 > auf.
 >
 > **Flüchtige Belege sofort sichern.** Kundenbilder liegen in temporären
-> Ordnern; von acht Bildern der Sprint-3-Abnahme überlebten sieben Minuten nur
+> Ordnern; von acht Bildern der Sprint-3-Abnahme überlebte sieben Minuten nur
 > eines.
 
 **Auftrag 2 — offene Punkte aus Takt 2 des Sprint-3-Abschlusses** (16.2), zu
@@ -1811,3 +1811,75 @@ aus 16.9; erst danach kommen Version, Tag und Changelog in den Abschnitt
 der ersten Zeile an geführt; erste Kandidaten sind #11 (S8) und #10 (S7) aus
 3.3, dazu die Aufträge aus der Abnahme (#60, #51, #52). (6) Nächste reguläre
 Retro nach Sprint 6; sie prüft als Erstes nach, ob Auftrag 1 ausgeführt wurde.
+
+### 16.12 Nachtrag: Review der Prozessänderung und Vollzug von Takt 2 (02.08.2026, 10:07)
+
+**Review-Ergebnis.** Der karpathy-Review über `5cefea0` nach dem Auftrag aus
+16.10 ist gelaufen: **`pass` in allen fünf Prüfpunkten, kein `fail`**, sieben
+Hinweise. Der Bericht liegt ungekürzt unter
+`docs/scrum/reviews/sprint-03-retro-karpathy.md`. Damit ist die Auflage aus
+`PROZESS.md` (Retrospektiven — Prozess-Artefakt-Änderungen durchlaufen den
+karpathy-reviewer) erfüllt.
+
+Der Prüfpunkt, auf den es ankam, war der dritte. Die Erklärung „kein Ort im
+Ablauf" (16.1.3) wurde gegen den **im Auftrag selbst benannten Gegen-Fall**
+geprüft — B1/B2/B3 hätten denselben fehlenden Ort und hielten trotzdem. Der
+Reviewer hat ihn abgeräumt, indem er für jeden der drei den Gegenstand benannte,
+an dem er hängt (Übergabebericht, Test, Review-Gate). Das ist die Prüfung, die
+12.2 verlangt: nicht die Plausibilität beurteilen, sondern den Fall suchen, der
+die Begründung kippen würde.
+
+**Bewertung der Hinweise, soweit sie die Dateimenge des Scrum Masters
+betreffen:**
+
+| Hinweis | Entscheidung | Begründung |
+|---|---|---|
+| **H3** — Belegform in Takt 1 Punkt 1 | **umgesetzt** | Der Hinweis trifft: „mit Beleg abgehakt" ohne Formangabe ist eine Behauptung. Punkt 1 nennt jetzt den Hauptweg (den Weg des Akzeptanzkriteriums) und übernimmt die drei Belegformen aus DoD 2 per Verweis statt sie zu kopieren. |
+| **H4** — Prüfweg für die Vollzähligkeit | **umgesetzt, mit ausdrücklicher Grenze** | Der Detektor stand in der Retro (16.1.2) und fehlte in der Regel — das ist genau die Lücke, die dieser Sprint dreimal hatte. Aufgenommen samt der Grenze, die er hat: Ein Lauf ohne Bericht *und* ohne Commit bleibt unsichtbar. Ein Prüfweg, dessen Reichweite nicht dabeisteht, erzeugt falsche Sicherheit. |
+| **H6** — Grammatik „überlebten" → „überlebte" | **umgesetzt, an drei statt zwei Stellen** | Der Reviewer nannte `PROZESS.md:61` und 16.10; dieselbe Wendung stand auch in 16.5. Der Fehler stammt aus der Vorlage des Scrum Masters — der PO hat sie auftragsgemäß wortgleich übernommen, die Korrektur gehört an die Quelle. |
+| **H7** — Lesepfad-Lücke an der DoD-Liste | **umgesetzt** | Er trifft den teuersten der neun Mängel-Mechanismen: Wer alle sechs DoD-Punkte in einem Zug prüft, bucht DoD 5 und 6 erneut als Mängel — das ist M2/M5 wörtlich. Ein Verweis von vier Zeilen unter der Liste kostet nichts und schließt den Weg. |
+| **H1** — Takt 1 Punkt 4 kodifiziert Praxis, statt einen Mangel zu heilen | keine Änderung | Der Reviewer nennt ihn selbst keinen Streichkandidaten. Punkt 4 ist der Ausgabekanal der Punkte 1–3; ohne ihn endet die Prüfung ohne Empfänger — 16.2 belegt genau diesen Fall an den Zweigen und Worktrees. |
+| **H2** — `CLAUDE.md` dupliziert die Sprint-Grenzen | keine Änderung durch den Scrum Master | `CLAUDE.md` liegt außerhalb seiner Dateimenge, und heute ist nichts falsch. Als Wartungsstelle in die next-Liste aufgenommen; die Retro nach Sprint 6 prüft sie. |
+| **H5** — B7 hat zwei Ursachen, nicht eine | keine Änderung | Die zweite Ursache (der Scrum Master hat DoD 3 gegen eine Meldung geprüft) steht bereits ausgeschrieben in 16.1.2, Punkt 3, und der Reviewer bestätigt, dass B11 Takt 1 Punkt 2 beide heilt. Sie in 16.1.3 zu wiederholen, verwässerte den Satz, ohne etwas hinzuzufügen. |
+
+**Nebenbefund des Reviewers (Push-Kadenz gegen Takt 2 Punkt 7): keine
+Regeländerung.** Punkt 7 setzt ein Minimum am Sprintschluss, die Kadenzfrage
+betrifft die laufende Arbeit und liegt beim Kunden (16.9, Punkt 6). Eine Regel,
+die eine offene Kundenentscheidung vorwegnimmt, wäre schlechter als der hier
+benannte Zusammenhang.
+
+**Vollzugsvermerk Takt 2 (B11, Punkt 9) — erste Anwendung der neuen Liste.**
+Gegen den Stand gemessen, nicht gegen die Meldung. Prüfstand `main` @ `5cefea0`,
+02.08.2026, 10:07.
+
+| # | Punkt | Zustand | Beleg (in dieser Sitzung gemessen) |
+|---|---|---|---|
+| 1 | Endstand installiert, Hauptweg ausgeführt | erfüllt | `stat -c %z /usr/bin/denkzetteld` → 02.08. 00:23:58; Merkmale im Binärstand (16.1.1); Kundenabnahme am installierten Stand (15) |
+| 2 | Bericht je Prüflauf, vor der DoD-Prüfung | für Sprint 3 nachträglich erfüllt | `47af87a`, `0b1a3a1`; der Retro-Review-Bericht liegt vor, ist aber noch untracked — Versionierung vom PO mit dem nächsten Commit angekündigt |
+| 3 | DoD 1–4 und Doku-Abgleich | erfüllt | 13.2–13.5, 13.8; `sed -n '7p' README.md` trägt keine Verfahrensangabe mehr |
+| 4 | Mängelliste an den PO | erfüllt | 13.12 (neun Mängel) |
+| 5 | Issues und Milestone geschlossen | erfüllt | `gh issue list --milestone "Sprint 3"` → 5/5 `CLOSED` |
+| 6 | Journal nachgeführt | erfüllt | Einträge 00:05, 00:34, 09:14 im Vault |
+| 7 | `main` gepusht | **offen** | `git rev-list --left-right --count origin/main...main` → `0 2` |
+| 8 | Zweige und Worktrees geräumt | erfüllt | `git worktree list` → nur der Hauptbaum; `git branch -a` → nur `main` und `origin/main`; `du -sh .claude/worktrees` → **0** |
+| 9 | Vollzugsvermerk | dieser Abschnitt | — |
+
+**Acht von neun Punkten sind vollzogen**; offen ist allein der Push, den der PO
+für diese Sitzung angekündigt hat. Der Rückstand, der heute früh in fünf Punkten
+offen stand (16.2), ist binnen einer Stunde nach der Retro geräumt worden.
+*Ob das an der Liste liegt oder an der Aufmerksamkeit dieser einen Sitzung, ist
+an einem Fall nicht zu entscheiden — die Probe ist der Abschluss von Sprint 4.*
+
+**done (Fortschreibung):** Vier Hinweise des Reviews aus der eigenen Dateimenge
+bewertet und umgesetzt (H3, H4 mit Grenzangabe, H6 an drei statt zwei Stellen,
+H7), drei begründet abgelehnt oder als nicht zuständig zurückgegeben (H1, H2,
+H5); Vollzug von Takt 2 gegen den gemessenen Stand geprüft und vermerkt — die
+Meldung des PO ist in allen acht als erfüllt gemeldeten Punkten bestätigt.
+
+**next (Fortschreibung):** (1) PO committet und pusht gesammelt; damit fällt
+Takt 2 Punkt 7, und der Review-Bericht wird versioniert (Takt 1 Punkt 2). Der
+Scrum Master schließt den Vermerk danach. (2) Unverändert offen: die sechs
+Kundenentscheidungen aus 16.9. (3) **Für die Retro nach Sprint 6 vorgemerkt
+(H2):** `CLAUDE.md` wiederholt die Sprint-Grenzen „2–4 Stories, ~13 SP" im
+Wortlaut. Ändert eine Retro sie in `PROZESS.md`, driftet `CLAUDE.md` — der
+B11-Absatz macht es richtig und verweist, statt zu kopieren.

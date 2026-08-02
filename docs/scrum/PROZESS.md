@@ -58,7 +58,7 @@ PO aus.
   **Flüchtige Belege werden beim Eintreffen gesichert, nicht am Ende des
   Arbeitsschritts** (Retro Sprint 3, B14): Kundenbilder liegen in temporären
   Ordnern, die weggeräumt werden, während man noch schreibt — von acht
-  Bildern der Sprint-3-Abnahme überlebten sieben Minuten nur eines
+  Bildern der Sprint-3-Abnahme überlebte sieben Minuten nur eines
   (Sprint 3, 15.3).
 - **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
   Entscheidungen), `wireframes/` (UI-Referenz; Spiegel im
@@ -148,6 +148,11 @@ Das Ergebnis steht in der DoD-Prüfung des Sprint-Protokolls, auch bei
 Befundfreiheit — sonst ist „geprüft, nichts gefunden" nicht von „vergessen"
 zu unterscheiden.
 
+**Prüfzeitpunkte: siehe „Sprint-Abschluss".** DoD 1–4 und der Doku-Abgleich
+gehören in Takt 1 (vor der Kundenabnahme), DoD 5 und DoD 6 in Takt 2 (nach
+ihr) — vor der Abnahme sind sie nicht erfüllbar. Wer alle sechs Punkte in einem
+Zug prüft, bucht sie erneut als Mängel (Sprint-3-Mängel M2 und M5).
+
 ## Sprint-Abschluss (Retro Sprint 3, B11)
 
 Acht der neun Mängel aus Sprint 3 waren Abschlussmängel (Sprint 3, 14.5).
@@ -159,12 +164,21 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
 **Takt 1 — vor der Kundenabnahme.** Ausführung PO/Dev, Prüfung Scrum Master:
 
 1. Der **Endstand ist einmal nach `/usr` installiert**, und der Hauptweg jeder
-   Story ist daran ausgeführt (DoD 2).
+   Story ist daran ausgeführt (DoD 2). Hauptweg ist der Weg, den das
+   Akzeptanzkriterium beschreibt; der Nachweis hat dieselbe Form wie in DoD 2 —
+   **Terminalausgabe, Journalauszug oder Bild**. Ohne Belegform ist „mit Beleg
+   abgehakt" eine Behauptung.
 2. **Jeder Prüflauf hat einen Bericht als Datei** unter
    `docs/scrum/reviews/` — UI-Review *und* karpathy-Review, Zwischenläufe
    eingeschlossen —, und er liegt vor, **bevor die DoD-Prüfung läuft**. Sonst
    prüft der Scrum Master DoD 3 gegen eine Meldung statt gegen ein Artefakt;
    genau dagegen ist B7 gefasst. Kürzungen werden als solche gekennzeichnet.
+   *Prüfweg für die Vollzähligkeit:* Commit-Botschaften, die Befunde eines
+   Prüflaufs nennen, gegen die abgelegten Berichte halten — so ist der erste
+   karpathy-Lauf des Sprints 3 aufgefallen (`e18630c` nannte drei Befunde, ein
+   Bericht dazu lag nicht im Repo; Sprint 3, 16.1.2). **Grenze des Prüfwegs:** Ein Lauf, der weder Bericht noch Commit
+   hinterlässt, bleibt unsichtbar — dagegen hilft nur, dass der PO den Aufruf
+   beauftragt und mitzählt.
 3. **DoD 1–4 je Story** geprüft, **Doku-Abgleich** nach B10 einschließlich der
    Statuszeile des README. Sie beschreibt den **gelieferten Stand**, nicht den
    Stand des Verfahrens: „Sprint N in der Kundenabnahme" wird durch Takt 2
