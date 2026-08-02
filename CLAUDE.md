@@ -67,6 +67,12 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
 - **Prüfe die Voraussetzung deiner eigenen Begründung.** Wer sich auf eine
   Zeichnung beruft, liest sie vorher.
 - Ein Testaufbau, in dem der Fehler gar nicht auftreten *kann*, ist kein Test.
+- **Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
+  Die Bildläufer (`editshots`, `libraryshots`, `searchshots`) sind
+  `EXCLUDE_FROM_ALL` — ein gewöhnlicher Build fasst sie nicht an. Ein
+  veralteter Läufer schreibt plausible Bilder eines **alten** Standes mit
+  frischem Zeitstempel (Vorfall Sprint 5: grüner Test und falsches Bild
+  zugleich). Vor jedem Bildbeleg: `cmake --build build --target <läufer>`.
 
 ## Retrospektiven
 
