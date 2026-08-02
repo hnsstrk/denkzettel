@@ -375,6 +375,28 @@ bleiben unangetastet, damit der Vorher-Nachher-Vergleich möglich bleibt.
 | `n08-lesen-1400x900.png` | Lesezustand im großen Fenster — Beleg zu Befund 7 |
 | `n09-bearbeiten-1400x900.png` | Bearbeiten-Zustand im großen Fenster |
 
+**Drei Bildpaare sind bytegleich, und das ist hier das Prüfergebnis, kein
+kopierter Beleg** (Prüfsummen nachgerechnet, Befund des karpathy-Sprint-Reviews):
+
+- `n04` = `n05` = **Dev-Bild `03-waechterdialog.png`** (`22a5730689…`): derselbe
+  Dialog über drei verschiedene Auswege — Abbrechen-Knopf (meiner),
+  Auswahlwechsel (meiner), Fensterschließen (der des Entwicklers). Vor der
+  Heilung unterschieden sich meine beiden noch, und zwar genau an der Auswahl in
+  der Liste (Befund 2); dass sie jetzt zusammenfallen, **ist** der Nachweis der
+  Heilung. Dass auch das Bild des Entwicklers dazugehört, ist der Nebenertrag
+  zweier unabhängig geschriebener Läufer auf demselben Prüfaufbau: gleiche
+  Bezugszeit, gleiche Prüfdaten, gleiche mittige Zusammensetzung.
+- `n01` = `n03` (`28798c927d…`): der Lesezustand vor dem Bearbeiten und der nach
+  dem Abbrechen. Pixelgleich heißt hier, dass der Rückweg aus dem Editor
+  wirklich im Ausgangszustand landet — der schärfste Beleg zu Stelle 1, schärfer
+  als die Messung y = 102.
+- `n06` = `n07` (`5cfef5cb83…`): der Lesezustand nach „Verwerfen“ und nach
+  „Speichern“ am Auswahlwechsel. Beide zeigen die angeklickte Notiz; die
+  bearbeitete steht nur als Listeneintrag da, und ihr Auszug bricht vor dem
+  geänderten Wort ab („… wenn min…“). Der Unterschied zwischen den beiden
+  Antworten liegt also im Speicher, nicht im Bild — gemessen ist er in der
+  Tabelle unter Stelle 2 (mit bzw. ohne „Vault“).
+
 ## Verdikt je Stelle
 
 ### Stelle 1 — Layoutsprung beim Zustandswechsel: **ok, geheilt**
