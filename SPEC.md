@@ -420,6 +420,16 @@ v1 aber nicht gebaut.
     Liste neu auf; die Notiz unter dem Editor kann dabei aus ihr
     herausfallen, und dann hat der Dialog keine Zeile mehr, auf die er die
     Auswahl zurücknehmen könnte.
+  - **Bedingung (entdeckt in Sprint 4, DoD 4/B9):** Unter der
+    KDE-Plattformintegration (`QT_QPA_PLATFORMTHEME=kde`) ersetzt das
+    System einen gebauten `QMessageBox` durch einen **eigenen Dialog mit
+    eigenen Knopfobjekten** — er übernimmt Beschriftung, Rollen und
+    Reihenfolge, aber nichts, was nachträglich am `QPushButton` gesetzt
+    wird (Symbole, Vorgabe-/Escape-Knopf). Jede Zusicherung über das
+    Aussehen dieses Dialogs gilt deshalb nur für die Umgebung, in der sie
+    gemessen wurde; ein Test ohne Plattform-Thema misst einen Dialog, den
+    kein KDE-Sitzungsnutzer sieht. Ob der Weg über `KMessageBox` führt,
+    entscheidet der PO nach dem Abnahme-Befund (S8-Befund 5).
 - Steckt die Notiz in einem **offenen Vorschlag**, verwirft Bearbeiten oder
   Löschen diesen Vorschlag (seine Vorschau wäre veraltet); der nächste
   Analyse-Lauf erzeugt ihn auf aktuellem Stand neu.
