@@ -243,3 +243,64 @@ bestanden — die Bewertung obliegt dem PO.
   Begründungen.
 - **`GetLayout` als zweites Prüfmittel**: nicht die eigenen QActions,
   sondern das, was wirklich über das Tray-Protokoll beim Host ankommt.
+
+---
+
+# Nachprüfung (02.08.2026, nach der Heilung)
+
+**Prüfgegenstand, eng gescopt:** `f1c7368` auf `story/11-bearbeiten` (drei
+Kommentarstellen) und `6848c44` auf `main` (Vermerk in `bericht.md`). Kein
+neues Vollreview.
+
+**Gesamt-Verdikt nach Heilung: `warn`, kein `fail` — DoD 3 aus Sicht dieses
+Reviews erfüllt.**
+
+## Befund 1.1 (fail) — geheilt
+
+`tests/librarytest.cpp:2963–2972` trägt jetzt die gemessene Fassung: Der
+Stapel selbst fordert die Breite an, tragend ist das waagerechte
+`QSizePolicy::Maximum`; die widerlegte addStretch-Lesart ist **ausdrücklich
+als widerlegt benannt** („although that was the reading the finding came
+with … taking the stretch out changes none of these numbers") statt still
+entfernt, mit Verweis auf `buildDetail()`. Deckungsgleich mit
+`librarywindow.cpp:336–339` und der Messung in der Botschaft von `60cae75`.
+Der Diff von `f1c7368` berührt ausschließlich Kommentar- und Markdown-Zeilen
+— „nur Text, kein Verhalten" stimmt.
+
+## Befund 1.2 (warn) — geheilt
+
+`LIESMICH.md` erklärt Befund 5 jetzt mit der gemessenen Ersatzdialog-Ursache
+(korrekt der Nachprüfung des UI-Reviews zugeschrieben), kennzeichnet die
+eigene erste Lesart als überholt und ersetzt den falschen Folge-Schritt durch
+den richtigen: Entscheidung QMessageBox/KMessageBox durch den PO am
+installierten Stand. Die dritte, selbst gefundene Stelle
+(`tests/editshots.cpp:182–196`) zieht dieselbe Korrektur konsistent nach —
+in der eigenen Dateimenge, im Commit benannt: das ist Prinzip 3 richtig
+angewandt (eigene Orphans aufräumen, nichts darüber hinaus).
+
+## Befund 4.2 (warn) — geheilt
+
+Der Vermerk in `bericht.md` (`6848c44`) benennt die Bytegleichheiten und
+deutet sie als Prüfergebnis. **Nachgerechnet statt geglaubt:**
+
+- Alle drei Gleichheiten bestätigt: `n01`=`n03`, `n04`=`n05`=Dev-`03`,
+  `n06`=`n07` (SHA-256 je Paar identisch).
+- Die drei zitierten Prüfsummen (`28798c927d…`, `22a5730689…`,
+  `5cfef5cb83…`) stimmen — es sind MD5-Summen; das Verfahren ist im Vermerk
+  nicht benannt (Randnotiz, kein Befund).
+- Die Elisions-Behauptung zu `n06`/`n07` **am Bild verifiziert**: Der
+  Listenauszug der bearbeiteten Notiz bricht bei „… wenn min…" ab, vor dem
+  geänderten Wort; der Detailbereich zeigt die angeklickte Notiz. Die
+  Bilddeckungsgleichheit ist damit vollständig erklärt, der
+  Speicher-Unterschied steht in der Messwert-Tabelle.
+- Das selbst gefundene dritte Paar (`n01`=`n03`) samt Deutung als
+  Rückweg-Beleg zu Stelle 1 ist konsistent: Pixelgleichheit ist dort
+  tatsächlich schärfer als die y-Messung.
+
+## Stand der übrigen warn-Befunde
+
+- **3.1 (B13-Dateimengen-Notation):** als Retro-Kandidat ins Protokoll
+  übernommen — Verankerung im Artefakt steht mit der Retro aus.
+- **4.1 (drei Loose Ends am installierten Stand):** planmäßig offen bis zum
+  Installationstakt (Takt-1-Liste); kein neuer Handlungsbedarf aus diesem
+  Review.
