@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 796" width="920" height="796" font-family="DejaVu Sans, Segoe UI, Helvetica, Arial, sans-serif">
+<title>Schätzkegel des Projekts Denkzettel — Revisionsfaktor über dem Abstand zwischen Erstschätzung und Umsetzung</title>
+<text x="48.00" y="44.00" font-size="21" fill="#757575" text-anchor="start" font-weight="bold">Schätzkegel — Revisionsfaktor über dem Abstand zur Umsetzung</text>
+<text x="48.00" y="68.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Denkzettel · Stand Sprint 5 · 9 Punkte in der Kurve, 13 erfasst und nicht gezeichnet · Quelle: Sprint-Protokoll §24</text>
+<line x1="104.00" y1="424.36" x2="690.00" y2="424.36" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="428.36" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">0,40</text>
+<line x1="104.00" y1="387.74" x2="690.00" y2="387.74" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="391.74" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">0,50</text>
+<line x1="104.00" y1="340.54" x2="690.00" y2="340.54" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="344.54" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">0,67</text>
+<line x1="104.00" y1="310.62" x2="690.00" y2="310.62" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="314.62" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">0,80</text>
+<line x1="104.00" y1="274.00" x2="690.00" y2="274.00" stroke="#757575" stroke-width="1.6" />
+<text x="92.00" y="278.00" font-size="12" fill="#757575" text-anchor="end" font-weight="bold">1,00</text>
+<line x1="104.00" y1="237.38" x2="690.00" y2="237.38" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="241.38" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">1,25</text>
+<line x1="104.00" y1="207.46" x2="690.00" y2="207.46" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="211.46" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">1,50</text>
+<line x1="104.00" y1="160.26" x2="690.00" y2="160.26" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="164.26" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">2,00</text>
+<line x1="104.00" y1="123.64" x2="690.00" y2="123.64" stroke="#909090" stroke-width="0.8" stroke-dasharray="2 4" />
+<text x="92.00" y="127.64" font-size="12" fill="#757575" text-anchor="end" font-weight="normal">2,50</text>
+<text x="170.00" y="265.00" font-size="11.5" fill="#757575" text-anchor="start" font-weight="normal">1,0 — nicht revidiert</text>
+<text transform="translate(34.00 274.00) rotate(-90)" font-size="13" fill="#757575" text-anchor="middle">Revisionsfaktor: Endwert ÷ Erstwert</text>
+<text transform="translate(52.00 274.00) rotate(-90)" font-size="11" fill="#757575" text-anchor="middle">logarithmisch — 0,60 und 1,67 stehen gleich weit von 1,0</text>
+<line x1="104.00" y1="440.00" x2="690.00" y2="440.00" stroke="#757575" stroke-width="1.2" />
+<line x1="156.00" y1="440.00" x2="156.00" y2="446.00" stroke="#757575" stroke-width="1.2" />
+<text x="156.00" y="464.00" font-size="13" fill="#757575" text-anchor="middle" font-weight="normal">0</text>
+<text x="156.00" y="482.00" font-size="11" fill="#757575" text-anchor="middle" font-weight="normal">kein Datenpunkt</text>
+<line x1="324.00" y1="440.00" x2="324.00" y2="446.00" stroke="#757575" stroke-width="1.2" />
+<text x="324.00" y="464.00" font-size="13" fill="#757575" text-anchor="middle" font-weight="normal">1</text>
+<line x1="492.00" y1="440.00" x2="492.00" y2="446.00" stroke="#757575" stroke-width="1.2" />
+<text x="492.00" y="464.00" font-size="13" fill="#757575" text-anchor="middle" font-weight="normal">2</text>
+<line x1="660.00" y1="440.00" x2="660.00" y2="446.00" stroke="#757575" stroke-width="1.2" />
+<text x="660.00" y="464.00" font-size="13" fill="#757575" text-anchor="middle" font-weight="normal">3</text>
+<text x="397.00" y="508.00" font-size="13" fill="#757575" text-anchor="middle" font-weight="normal">Abstand in Sprints zwischen Erstschätzung und Umsetzung</text>
+<polygon points="324.00,274.00 492.00,190.18 660.00,123.64 660.00,274.00 492.00,274.00 324.00,357.82" fill="#2F7FC4" fill-opacity="0.13" stroke="#757575" stroke-width="1.4" stroke-dasharray="7 5" />
+<line x1="313.00" y1="357.82" x2="335.00" y2="357.82" stroke="#757575" stroke-width="2.2" />
+<line x1="313.00" y1="274.00" x2="335.00" y2="274.00" stroke="#757575" stroke-width="2.2" />
+<line x1="481.00" y1="274.00" x2="503.00" y2="274.00" stroke="#757575" stroke-width="2.2" />
+<line x1="481.00" y1="190.18" x2="503.00" y2="190.18" stroke="#757575" stroke-width="2.2" />
+<line x1="649.00" y1="274.00" x2="671.00" y2="274.00" stroke="#757575" stroke-width="2.2" />
+<line x1="649.00" y1="123.64" x2="671.00" y2="123.64" stroke="#757575" stroke-width="2.2" />
+<circle cx="324.00" cy="357.82" r="6.2" fill="#2F7FC4" />
+<text x="324.00" y="344.82" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#5</text>
+<circle cx="310.50" cy="274.00" r="6.2" fill="none" stroke="#2F7FC4" stroke-width="2.2" />
+<text x="310.50" y="261.00" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#6</text>
+<circle cx="337.50" cy="274.00" r="6.2" fill="none" stroke="#2F7FC4" stroke-width="2.2" />
+<text x="337.50" y="261.00" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#7</text>
+<circle cx="478.50" cy="274.00" r="6.2" fill="none" stroke="#2F7FC4" stroke-width="2.2" />
+<text x="478.50" y="261.00" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#9</text>
+<circle cx="505.50" cy="274.00" r="6.2" fill="none" stroke="#2F7FC4" stroke-width="2.2" />
+<text x="505.50" y="261.00" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#58</text>
+<circle cx="492.00" cy="207.46" r="6.2" fill="#2F7FC4" />
+<text x="504.00" y="211.96" font-size="11.5" fill="#2F7FC4" text-anchor="start" font-weight="bold">#57</text>
+<circle cx="492.00" cy="190.18" r="6.2" fill="#2F7FC4" />
+<text x="492.00" y="177.18" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#8</text>
+<circle cx="660.00" cy="274.00" r="6.2" fill="none" stroke="#2F7FC4" stroke-width="2.2" />
+<text x="660.00" y="261.00" font-size="11.5" fill="#2F7FC4" text-anchor="middle" font-weight="bold">#12</text>
+<polygon points="660.00,115.64 668.00,123.64 660.00,131.64 652.00,123.64" fill="#B85C2E" stroke="#B85C2E" stroke-width="1.6" />
+<text x="660.00" y="110.64" font-size="11.5" fill="#B85C2E" text-anchor="middle" font-weight="bold">#11</text>
+<text x="716.00" y="114.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="bold">Anlass der Revision</text>
+<circle cx="724.00" cy="134.00" r="6.2" fill="none" stroke="#2F7FC4" stroke-width="2.2" />
+<text x="742.00" y="138.00" font-size="12" fill="#757575" text-anchor="start" font-weight="normal">keine — nicht revidiert</text>
+<circle cx="724.00" cy="160.00" r="6.2" fill="#2F7FC4" />
+<text x="742.00" y="164.00" font-size="12" fill="#757575" text-anchor="start" font-weight="normal">erkenntnis — Gegenstand</text>
+<text x="742.00" y="180.00" font-size="12" fill="#757575" text-anchor="start" font-weight="normal">blieb, Wert verschoben</text>
+<polygon points="724.00,194.00 732.00,202.00 724.00,210.00 716.00,202.00" fill="#B85C2E" />
+<text x="742.00" y="206.00" font-size="12" fill="#B85C2E" text-anchor="start" font-weight="normal">gegenstand-geändert —</text>
+<text x="742.00" y="222.00" font-size="12" fill="#B85C2E" text-anchor="start" font-weight="normal">keine Schätzabweichung</text>
+<text x="716.00" y="258.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="bold">Hüllkurve</text>
+<line x1="716.00" y1="278.00" x2="732.00" y2="278.00" stroke="#757575" stroke-width="2.2" />
+<text x="742.00" y="282.00" font-size="12" fill="#757575" text-anchor="start" font-weight="normal">Extremwert, gemessen</text>
+<line x1="716.00" y1="302.00" x2="732.00" y2="302.00" stroke="#757575" stroke-width="1.4" stroke-dasharray="7 5" />
+<text x="742.00" y="306.00" font-size="12" fill="#757575" text-anchor="start" font-weight="normal">Verbindung, nicht</text>
+<text x="742.00" y="322.00" font-size="12" fill="#757575" text-anchor="start" font-weight="normal">gemessen</text>
+<text x="48.00" y="548.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Der Faktor misst, wie stark eine Schätzung revidiert wurde — nicht, wie weit sie vom tatsächlichen Aufwand lag;</text>
+<text x="48.00" y="566.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">dieser wird im Projekt nicht erhoben. Eine Story, die niemand neu geschätzt hat, steht bei 1,0, auch wenn sie teurer</text>
+<text x="48.00" y="584.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">war.</text>
+<text x="48.00" y="620.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Belegdichte: 9 Punkte. Die Hüllkurve ist nicht-fallend, aber nicht streng wachsend — im Logarithmus messen die</text>
+<text x="48.00" y="638.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Abstände 0,51 · 0,51 · 0,92; die Weitung tritt erst bei Abstand 3 ein. Der obere Rand bei Abstand 3 ruht auf einem</text>
+<text x="48.00" y="656.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">einzigen Punkt, und #11 ist als „gegenstand-geändert“ gekennzeichnet: der größte Faktor der Reihe ist zugleich der,</text>
+<text x="48.00" y="674.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">der am wenigsten über Schätzgenauigkeit sagt. Ein Kegel im Sinne der Lehrbuchfigur wäre erst mit mehr Punkten je</text>
+<text x="48.00" y="692.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Abstand belegt.</text>
+<text x="48.00" y="728.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Nicht gezeichnet: 13 Stories, zwischen deren Erstschätzung und Umsetzung keine Gelegenheit zur Revision lag. Ihr</text>
+<text x="48.00" y="746.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">Faktor ist 1,0 von Konstruktion wegen und keine Messung; sie stehen in schaetzhistorie.json, damit die Auslassung</text>
+<text x="48.00" y="764.00" font-size="12.5" fill="#757575" text-anchor="start" font-weight="normal">sichtbar bleibt.</text>
+</svg>
