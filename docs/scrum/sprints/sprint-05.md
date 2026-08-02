@@ -1298,3 +1298,25 @@ er noch offen wäre: **M2 ist behoben.**
 (#57, #58) gleich schwer wiegen wie die der Schätzklausur. Das ist eine Frage an
 die Reihe, wenn sie länger ist — heute wäre jede Antwort darauf eine Erfindung.
 Die Spalte hält sie offen.
+
+### 24.4 Festlegung zu #11 in der Hüllkurve (PO, 02.08.2026, nach Rückfrage des Generator-Baus)
+
+Der Dev-Auftrag enthielt einen Widerspruch, den der Bau gefunden hat: Er
+verlangte die Hüllwerte aus 24.1 (0,51 · 0,51 · **0,92**) und zugleich,
+`gegenstand-geändert`-Punkte aus der Hülle zu halten. Die 0,92 **ist** #11 —
+ohne ihn kollabiert Abstand 3 auf [1,00; 1,00] und die Hülle fiele.
+
+**Festlegung: #11 bleibt in der Hüllkurve**, gezeichnet als eigene Form in
+eigener Farbe, und der Vorbehalt steht ausgeschrieben unter dem Bild. Gründe:
+
+1. **§24.1 ist die Datenquelle** und führt ihn in der Hülle („3 → [1,00; 2,50]").
+   Ein Bild, das der Quelle widerspricht, ist der Anfang der Drift.
+2. **Sachlich gehört er hinein.** Dass ein Gegenstand sich in drei Sprints
+   verschiebt, ist genau die Unsicherheit, die eine frühe Schätzung trägt —
+   der Kegel misst nicht Rechenfehler, sondern Abstand zum Wissen.
+3. **Die Markierung trägt die Einschränkung**, nicht die Auslassung: Das Bild
+   sagt selbst, dass der obere Rand bei Abstand 3 auf einem einzigen Punkt
+   ruht und dieser der ist, der am wenigsten über Schätzgenauigkeit sagt.
+
+Wer die andere Lesart will, ändert `envelope()` **und** 24.1 gemeinsam —
+Protokoll und Bild dürfen nicht auseinanderlaufen.

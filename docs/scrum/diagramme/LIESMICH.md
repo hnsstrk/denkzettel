@@ -31,7 +31,7 @@ Das ist keine Stilfrage. Mangel **M2** (`sprint-05.md` §21) hat gemessen, dass
 #66 und #67 **kein** `sp:`-Label tragen und #57 noch das veraltete `sp:2` — aus
 den Labeln ergäbe sich für Sprint 5 ein Umfang von 3 statt 11 Punkten. Wer die
 Reihe aus den Issues nachzieht, schreibt falsche Zahlen fort, und niemand
-merkt es, weil das Bild plausibel bleibt. Solange M2 offen ist, ist die Spalte
+merkt es, weil das Bild plausibel bleibt. M2 ist am 02.08.2026 behoben (Label nachgemessen, §24.3) — die Regel bleibt trotzdem: die Spalte
 „End" aus dem Protokoll zu ziehen und nicht aus dem Issue.
 
 Das **Anlass-Kennzeichen** (`gegenstand-geändert` · `erkenntnis` · `keine`)
