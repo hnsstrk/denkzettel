@@ -1,0 +1,14 @@
+Abfrage 2026-08-02 13:08
+Dienst: :1.1000 · Menüpfad: /MenuBar
+ItemIsMenu: true
+
+=== com.canonical.dbusmenu.GetLayout(0, -1, [label, icon-name, enabled, type, shortcut]) ===
+(uint32 9, (0, {'children-display': <'submenu'>},
+  [<(1, {'icon-name': <'document-edit'>, 'label': <'Notiz erfassen'>, 'shortcut': <[['Super', 'N']]>}, @av [])>,
+  <(2, {'enabled': <false>, 'icon-name': <'audio-input-microphone'>, 'label': <'Sprachnotiz aufnehmen'>}, @av [])>,
+  <(3, {'type': <'separator'>}, @av [])>,
+  <(4, {'icon-name': <'view-list-text'>, 'label': <'Bibliothek öffnen'>}, @av [])>,
+  <(5, {'enabled': <false>, 'icon-name': <'system-run'>, 'label': <'Jetzt analysieren'>}, @av [])>,
+  <(6, {'enabled': <false>, 'icon-name': <'tools-wizard'>, 'label': <'Vorschläge'>}, @av [])>,
+  <(7, {'type': <'separator'>}, @av [])>,
+  <(8, {'icon-name': <'application-exit'>, 'label': <'Beenden'>}, @av [])>]))
