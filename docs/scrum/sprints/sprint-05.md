@@ -1178,6 +1178,13 @@ Sprint-Abschluss Punkt 12).
   fiel, und dem Sprint der Umsetzung.
 - **Faktor** = Endwert ÷ Erstwert. Er kann **unter 1** liegen (#5), und die
   Achse muss das darstellen können.
+- **Endwert ist das `sp:`-Label des Issues** — das Backlog ist die einzige
+  Quelle der Wahrheit für Schätzungen (PROZESS.md, Artefakte). Damit hat die
+  Labelpflege ab hier einen **zweiten Abnehmer**: Sie ist nicht mehr nur eine
+  Frage der Rückverfolgbarkeit, sondern die Voraussetzung dieser Datenreihe.
+  In Sprint 5 hätten die Label vor ihrer Berichtigung 3 SP statt 11 ergeben
+  (24.3) — ein Diagramm, das damit gerechnet hätte, wäre nicht falsch
+  aussehend, sondern still falsch.
 - **Provenienz wird mitgeführt, nicht geglättet:** „Klausur/Planning (2
   unabhängige)" ist etwas anderes als „Label bei Anlage (1 Hand)". Wer die
   Reihe später gewichten will, braucht die Unterscheidung; wer sie einebnet,
@@ -1275,13 +1282,17 @@ Zuwachs macht die mittlere Spalte dichter, nicht breiter. Das ist der
 gewöhnliche Fall und der Grund, warum die Reihe Zeit braucht: Ein Kegel
 entsteht aus Belegdichte, nicht aus Einzelwerten.
 
-> **Achtung für den mechanischen Lauf:** Die Endwerte dieser vier Zeilen
-> stehen **hier**, nicht verlässlich am Backlog. Mangel **M2** (§21) hat
-> gemessen, dass #66 und #67 **kein** `sp:`-Label tragen und #57 noch das
-> veraltete `sp:2` — aus den Labeln ergäbe sich ein Sprint von 3 SP statt 11.
-> Solange M2 offen ist, ist die Spalte „End" aus dem Protokoll zu ziehen und
-> **nicht** aus dem Issue. Das ist kein Umweg um M2, sondern seine zweite
-> Begründung: Die Labelpflege hat ab jetzt einen zweiten Abnehmer.
+**Die Endwerte sind am Backlog gedeckt — nachgemessen, nicht angenommen.**
+`gh issue view` am 02.08.2026, 18:23: #66 `sp:5` · #67 `sp:2` · #57 `sp:3` ·
+#58 `sp:1`, deckungsgleich mit der Spalte „End". Die Provenienz-Regel
+„Endwert = `sp:`-Label" trägt für diesen Sprint.
+
+*Wie es dazu kam, weil die Reihe daran hängt:* Zum Zeitpunkt der DoD-Prüfung
+trugen #66 und #67 **kein** Label und #57 noch das veraltete `sp:2` — aus den
+Labeln hätte sich ein Sprint von 3 SP statt 11 ergeben (Mangel **M2**, §21).
+Der PO hat sie vor dem Erstlauf des Generators berichtigt. Der Vorgang steht
+hier, weil er die Voraussetzung der Datenreihe sichtbar macht und nicht, weil
+er noch offen wäre: **M2 ist behoben.**
 
 **Offen und bewusst nicht entschieden:** ob Zeilen mit Provenienz „1 Hand"
 (#57, #58) gleich schwer wiegen wie die der Schätzklausur. Das ist eine Frage an
