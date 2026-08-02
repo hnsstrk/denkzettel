@@ -813,3 +813,171 @@ Damit beginnt Takt 2; erster Einsatz des Verwalters (Kundenentscheidung
 vom Vormittag): Issues #11 und #12 schließen als Vollzug dieser Abnahme,
 Zweige und Worktrees räumen, Changelog-Rohliste. #60 schließt, sobald
 die Fotos vorliegen.
+
+## 17. Vollzug Takt 2 (Scrum Master, 02.08.2026, 15:15) — B11 Punkt 11
+
+Jeder Punkt am Stand `9845a6b` selbst geprüft, nicht aus der Meldung
+übernommen.
+
+### 17.1 Takt-2-Liste (B11, Punkte 5–10)
+
+| # | Punkt | Beleg | Stand |
+|---|---|---|---|
+| 5 | Issues mit AK-Haken, Abnahmekommentar und Commit-Verweis geschlossen | Haken nachgezählt: **#11 elf von elf**, **#60 sechs von sechs**, **#12 zwei von zwei**, keine offene Kastenzeile. Abnahmekommentare tragen je das Kundenzitat, den Verweis auf §16 und die Commit-Kette samt Merge (#11 → PR #65/`c6d6ba6`, #60 → PR #64/`81f1605`; #12 ohne Repo-Commit, richtig begründet) | **erfüllt** |
+| 5 | Milestone geschlossen | `gh api …/milestones?state=all`: „Sprint 4“ **state=closed**, open=0, closed=3 — und die drei sind genau die freigegebenen (#11, #12, #60), keiner mehr | **erfüllt** |
+| 6 | Journal bis zum letzten Commit nachgeführt | vom PO als in Arbeit angekündigt, Vollzugsmeldung steht aus | **offen (V1)** |
+| 7 | `main` gepusht | `git status --branch`: `## main...origin/main` ohne ahead/behind; letzter Commit `9845a6b` | **erfüllt** |
+| 8 | Story-Zweige und Worktrees entfernt, **auch auf `origin`** | `git branch -vv` → nur `main`; `git branch -r` → nur `origin/main` (+ `origin/HEAD`); `git worktree list` → nur der Hauptbaum. `story/11-bearbeiten` und `story/60-traymenues` sind lokal **und** remote weg — die Anforderung aus B11 Punkt 8, die mit dem PR-Probelauf dazukam, ist erfüllt | **erfüllt** |
+| 9 | Changelog fortgeschrieben | `9845a6b`: Abschnitt `[Unveröffentlicht]` mit *Hinzugefügt* (#11 Bearbeiten, #60 Tray-Menü) und *Geändert* (Kürzel-Hinweis und Umbenennung bis in Systemeinstellungen und Startermenü). Maßstab Nutzersicht eingehalten: **#12 bleibt zu Recht draußen** (ein geladenes Modell ist für den Nutzer heute unsichtbar) — dieselbe Linie wie #1 im ersten Changelog. **Schemazeile geprüft, nicht unterstellt:** `git diff sprint-04-basis..main -- src/store/` ist **leer**, der Sprint hat das Schema nicht berührt; es gibt also nichts zu nennen | **erfüllt** |
+| 10 | Version erhöht und getaggt | **ausgesetzt**, wie die Regel es bis #61 vorsieht. Nachgeprüft: `CMakeLists.txt:3` unverändert `VERSION 0.1.0`, kein `v0.2.0`-Tag angelegt (`git tag` → nur `sprint-03-abschluss` und `sprint-04-basis`). Die Einträge sammeln sich unter `[Unveröffentlicht]`, die Abnahme bekommt keine Version rückwirkend | **regelkonform ausgesetzt** |
+
+### 17.2 Die drei Mängel aus Takt 1
+
+**M1 — geschlossen.** Der `/api/chat`-Beleg steht im Kommentar an #12: Antwort
+`Paris` in `message.content`, `done_reason: stop`, Denkteil im eigenen Feld
+`message.thinking`. Der Kommentar zieht die Folgerung, die der Mangel verlangt
+hat, ausdrücklich nach: Die Leere-Antwort-Falle war an `/api/generate`
+gemessen und gilt für den Endpunkt, den die SPEC nicht vorsieht.
+
+**M2 — geschlossen.** `d46265c` fügt SPEC 9 die Bedingung als **entdeckt**
+hinzu (Fassung nach B9). Sie benennt beides: dass der Ersatzdialog nichts
+übernimmt, was nachträglich am `QPushButton` gesetzt wird, **und** die
+Testfolge — „ein Test ohne Plattform-Thema misst einen Dialog, den kein
+KDE-Sitzungsnutzer sieht“. Damit steht die Konsequenz, die ich für SPEC 16
+vorgeschlagen hatte, am selben Ort wie die Bedingung; ein zweiter Eintrag
+wäre Verdopplung.
+
+**M3 — geschlossen, aber an der falschen Stelle zugeschrieben.**
+Der Mangel lautete: Die eigenen Bilder der Prüferin zeigen den gelieferten
+Stand der **Kopfzeile im Lesezustand** nicht (`n01-lesen.png` bytegleich mit
+dem Entwicklerbild vor `60cae75`). Geschlossen wird er durch **Punkt 3 der
+Abnahme-Checkliste** — der Kunde hat die Kopfzeile am installierten Stand
+selbst angesehen und abgenommen (§16). Zugeschrieben wird er in zwei
+Artefakten aber den **Panel-Fotos**: in
+`docs/scrum/reviews/sprint-04-kundenabnahme/README.md` und im
+Abnahmekommentar von **#60**. Die Panel-Fotos zeigen das Tray-Menü; sie
+schließen den Foto-AK von #60 und den offenen Punkt O1 — mit der Kopfzeile
+der Bearbeiten-Ansicht haben sie nichts zu tun. Auch das gesicherte Bild 3
+kann M3 nicht schließen: Es zeigt den **Bearbeiten**-Zustand, in dem an
+Stelle der beiden Knöpfe das Kennzeichen „wird bearbeitet“ steht.
+*Melden, nicht heilen:* Der Kommentar an #60 ist veröffentlichte Beweislage
+und ordnet einen Mangel einem Beleg zu, der ihn nicht trägt — dieselbe
+Fehlerklasse wie der karpathy-Befund N3. Berichtigung ist PO-Sache; die
+Sachlage selbst ist in Ordnung, es ist die Zuordnung, die klemmt.
+
+*Was auch nach der Schließung gilt:* Vom gelieferten Kopfzeilen-Zustand
+existiert **kein versionierter Bildbeleg**. Getragen wird er von der
+Geometrie-Zusicherung bei zwei Fenstergrößen (§15.2) und vom Blick des
+Kunden. Das ist vertretbar — festgehalten, damit es nicht später für einen
+Bildbeleg gehalten wird.
+
+### 17.3 Belege der Kundenabnahme — zweiter B14-Riss des Tages
+
+Der Kunde hat drei Bilder vorgelegt; gesichert wurde **eines**
+(`waechterdialog-ohne-symbole.png`). Die Spectacle-Ordner der beiden
+Menü-Fotos waren nach wenigen Minuten geleert — ihr Inhalt ist im README des
+Belegordners dokumentiert und deckt sich mit dem `GetLayout`-Beleg, die
+Dateien selbst sind weg.
+
+Das ist der **zweite Riss von B14 an einem Tag**: In der Sprint-3-Abnahme
+überlebten von acht Bildern sieben Minuten lang nur eines; B14 wurde genau
+deshalb gefasst. Der Beschluss lautet „beim Eintreffen sichern, nicht am Ende
+des Arbeitsschritts“ — und ist trotzdem gerissen, weil „sofort“ eine
+Zeitangabe ist und keine Reihenfolge. **Retro-Kandidat für Sprint 6:** „sofort
+sichern“ muss heißen **„vor jeder anderen Handlung“** — kein Kommentar, kein
+Issue-Schluss, kein Protokollsatz zwischen dem Eintreffen eines Kundenbildes
+und seinem `cp` ins Repo.
+
+**Eigene Bildprüfung des gesicherten Belegs** (B3: bei Zuständen ist das Bild
+der Prüfgegenstand). Ich habe `waechterdialog-ohne-symbole.png` selbst
+angesehen und bestätige, was das README behauptet:
+
+- Die drei Knöpfe **Speichern · Verwerfen · Abbrechen** tragen **keine
+  Symbole**; „Speichern“ ist hervorgehoben, die Reihenfolge ist die
+  Plattformreihenfolge. Damit ist **O3 beantwortet** und die Grundlage von #66
+  gemessen, nicht vermutet.
+- Der Dialogtext steht in der geheilten Fassung („Die bearbeitete Notiz
+  (Heute 00:32) hat ungespeicherte Änderungen …“) — Befund 3 des UI-Reviews
+  hält auch unter echtem Plasma.
+- Kennzeichen „wird bearbeitet“ im Kopf, Kategorie/Tags „—“, Fußzeile „Esc
+  bricht ab · Strg+Enter speichert“: der Bearbeiten-Zustand aus Wireframe 2a,
+  am installierten Stand.
+
+Das Bild ist damit zugleich der erste versionierte Nachweis des
+**S8-Hauptwegs am installierten Stand** (offener Punkt O2 aus §15.10) — der
+Kunde steht im Editor einer echten Notiz, mit ungespeicherter Änderung und
+Wächterdialog. **O2 ist geschlossen.**
+
+### 17.4 Verwalter — erster Einsatz
+
+Der `denkzettel-verwalter` ist erstmals gelaufen (Kundenentscheidung
+02.08.2026). Am Ergebnis geprüft: Zweige und Worktrees sind lokal und auf
+`origin` sauber geräumt, `main` steht allein — die Arbeit ist korrekt.
+
+**Befund für die Retro:** Er hat **keinen Bericht geliefert**; der PO musste
+ihn nachfordern. Das trifft die Rolle an ihrer tragenden Stelle: Seine
+Zuständigkeit ruht darauf, dass sein Ergebnis *per Befehl prüfbar* ist
+(PROZESS.md, Modellzuordnung). Prüfbar heißt aber nicht geprüft — ohne
+Bericht weiß niemand, **was** er angefasst hat, und die Prüfung muss den
+Umfang erst erraten. Hier ging es gut aus, weil das Kriterium ein Exit-Code
+ist und ich es selbst nachfahren konnte. Bei einem Auftrag, der mehr umfasst
+als Zweige, wäre das nicht mehr so. Vorzumerken für Sprint 6: Berichtspflicht
+in die Agentendatei, mit der Angabe, welche Objekte angefasst wurden.
+
+### 17.5 Offene Punkte nach Takt 2
+
+- **V1 — Journal (DoD 6, B11 Punkt 6).** Vom PO angekündigt, Vollzug steht
+  aus. Erst damit ist Takt 2 vollständig; bis dahin ist dieser Vermerk
+  vollständig bis auf diesen einen Punkt.
+- **V2 — PR-Probelauf: Kundenentscheidung steht aus.** §15.8 hat ihn gegen
+  sein vorab festgelegtes Kriterium als **nicht bestanden** bewertet, mit dem
+  Vermerk, dass er nur zur Hälfte durchgeführt wurde (keine Dev-Berichte, keine
+  Review-Befunde an den PRs). Die Regel sieht ohne Gegenentscheidung das Ende
+  vor; die Wahl zwischen Einstellen und Verlängern mit vollständigem Verfahren
+  liegt beim Kunden. **Nicht als erledigt buchen** — und je nach Ausgang zieht
+  `PROZESS.md` nach (der Absatz „PR-Probelauf“ ist auf Sprint 4 befristet und
+  wird sonst zur toten Regel).
+- **V3 — Zuschreibung von M3 berichtigen** (17.2), in
+  `sprint-04-kundenabnahme/README.md` und im Abnahmekommentar von #60.
+
+### 17.6 Retro-Kandidaten für Sprint 6
+
+Gesammelt, damit die Retro nicht bei null anfängt — alle vier haben einen
+Vorfall dieses Sprints im Rücken, keiner ist eine Absichtserklärung:
+
+1. **B14 schärfen:** „sofort sichern“ → **„vor jeder anderen Handlung“**
+   (zweiter Riss desselben Beschlusses an einem Tag, 17.3).
+2. **B13-Dateimengen-Notation ergänzen** um die story-eigenen Beleg- und
+   Prüfmittelpfade (`docs/scrum/reviews/<story>/`, Bildläufer,
+   CMake-Verdrahtung) — sonst ist jede Story mit Bildpflicht formal im
+   Verstoß (karpathy 3.1).
+3. **Berichtspflicht des Verwalters** in seine Agentendatei (17.4).
+4. **Zeitstempel:** zum zweiten Mal an einem Tag ist ein Zeitstempel geschätzt
+   statt gemessen worden und musste berichtigt werden (`b67a348` im Planning,
+   `934ab73` im Abnahme-Vermerk). Zweimal dieselbe Ursache in zwölf Stunden
+   ist kein Ausrutscher, sondern eine fehlende Handgriffsregel: **kein
+   Zeitstempel ohne vorherigen `date`-Aufruf.** Dass beide Fälle von selbst
+   berichtigt wurden, ist die gute Hälfte des Befundes.
+
+### 17.7 done / next
+
+**done:** Takt 2 am Stand `9845a6b` nachgeprüft und vermerkt — AK-Haken
+nachgezählt (11/6/2, keine offene Kastenzeile), Abnahmekommentare mit
+Commit-Verweis und Milestone-Schluss belegt, Push-Stand, Zweig- und
+Worktree-Räumung **lokal und auf `origin`** nachgefahren, Changelog gegen die
+Nutzersicht **und** gegen einen leeren Store-Diff geprüft (keine Schemazeile
+fällig), Punkt 10 als regelkonform ausgesetzt bestätigt (Version 0.1.0, kein
+neuer Tag); M1 und M2 als geschlossen bestätigt, M3 als geschlossen **mit
+falscher Zuschreibung** in zwei Artefakten; das gesicherte Abnahmebild selbst
+angesehen — O3 beantwortet (keine Symbole, Grundlage von #66) und **O2
+geschlossen**, weil dasselbe Bild den S8-Hauptweg am installierten Stand
+zeigt; den zweiten B14-Riss des Tages und den Verwalter-Erstlauf ohne Bericht
+aufgenommen; vier Retro-Kandidaten für Sprint 6 gesammelt.
+
+**next:** (1) V1 Journal — der PO meldet den Vollzug, dann ist Takt 2 zu.
+(2) V2 Kundenentscheidung zum PR-Probelauf; danach `PROZESS.md` nachziehen,
+weil der befristete Absatz sonst als tote Regel stehen bleibt. (3) V3
+Zuschreibung von M3 in zwei Artefakten berichtigen. (4) Sprint-5-Planning:
+#66 (aus O3 entstanden), #62 (Spike, zweite Schätzung nachholen — K5 steht
+seit dem Sprint-4-Planning offen), #10, #57–#59, #13, #55. (5) Retro nach
+Sprint 6 mit den Kandidaten aus 17.6.

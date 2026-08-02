@@ -15,9 +15,18 @@ Menü**, deckungsgleich mit dem GetLayout-Beleg
 Trenner · Bibliothek öffnen (Listensymbol) · Jetzt analysieren (grau) ·
 Vorschläge (grau) · Trenner · **Beenden** (rotes Symbol) abgesetzt als
 letzter Eintrag. Alle Einträge deutsch, alle mit Symbol. Damit ist der
-Foto-AK von #60 erfüllt (Kundenfotos lagen vor) und DoD-Mangel M3
-geschlossen — die Prüferin hatte den geheilten Stand nie im eigenen
-Bild gesehen; der Kunde hat ihn jetzt am echten Panel gesehen.
+Foto-AK von #60 erfüllt (Kundenfotos lagen vor) und O1 geschlossen.
+
+**Richtigstellung (V3, Vollzugsvermerk §17):** Die erste Fassung dieses
+Absatzes schrieb auch die Schließung von DoD-Mangel M3 den Panel-Fotos
+zu — falsch. M3 betraf die **Kopfzeile der Bibliothek** (die Bilder der
+Prüferin zeigten den Stand vor `60cae75`); geschlossen hat ihn **Punkt 3
+der Abnahme-Checkliste** — der Kundenblick auf ruhige Kopfzeile und
+natürliche Knopfbreiten am installierten Stand. Die Panel-Fotos haben
+mit der Kopfzeile nichts zu tun. Vom gelieferten Kopfzeilen-Zustand
+existiert weiterhin kein versionierter Bildbeleg; er ruht auf der
+Geometrie-Zusicherung im Test und dem Kundenblick — das soll später
+niemand für einen Bildbeleg halten.
 
 ## Bild 3: `waechterdialog-ohne-symbole.png` (gesichert)
 
