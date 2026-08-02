@@ -151,6 +151,18 @@ void NoteListModel::insertNote(int noteIndex, const Note &note)
     endInsertRows();
 }
 
+void NoteListModel::replaceNote(int noteIndex, const Note &note)
+{
+    if (noteIndex < 0 || noteIndex >= m_notes.size()) {
+        return;
+    }
+
+    m_notes[noteIndex] = note;
+
+    const QModelIndex row = index(rowOfNote(noteIndex));
+    Q_EMIT dataChanged(row, row);
+}
+
 int NoteListModel::rowCount(const QModelIndex &parent) const
 {
     return parent.isValid() ? 0 : static_cast<int>(m_rows.size());

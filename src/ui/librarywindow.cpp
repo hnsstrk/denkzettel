@@ -17,12 +17,15 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDateTime>
+#include <QDialogButtonBox>
 #include <QFontDatabase>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QLocale>
+#include <QMessageBox>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSplitter>
 #include <QStackedWidget>
@@ -47,16 +50,30 @@ constexpr int MinimumListWidth = 220;
 /** Edge length of the icon above an empty-state text. */
 constexpr int PlaceholderIconSize = 48;
 
+/** Stands in for a category or a tag list no analysis run has filled in yet. */
+QString missingValue()
+{
+    return QStringLiteral("—");
+}
+
 KConfigGroup windowGroup()
 {
     return KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("Bibliothek"));
 }
 
-/** Small, dimmed label — timestamps and hints, as in the capture window. */
-QLabel *subtleLabel(const QString &text, QWidget *parent)
+/** Small label in the regular text colour — the values of the meta row. */
+QLabel *smallLabel(const QString &text, QWidget *parent)
 {
     auto *label = new QLabel(text, parent);
     label->setFont(QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont));
+
+    return label;
+}
+
+/** Small, dimmed label — timestamps and hints, as in the capture window. */
+QLabel *subtleLabel(const QString &text, QWidget *parent)
+{
+    QLabel *label = smallLabel(text, parent);
 
     QPalette palette = label->palette();
     palette.setColor(QPalette::WindowText, palette.color(QPalette::PlaceholderText));
@@ -105,6 +122,9 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_deletion(new PendingDeletion(store, PendingDeletion::DefaultGracePeriodSeconds, this))
     , m_deleteAction(new QAction(i18n("Löschen"), this))
     , m_undoAction(new QAction(i18n("Rückgängig"), this))
+    , m_editAction(new QAction(i18n("Bearbeiten"), this))
+    , m_saveAction(new QAction(i18n("Speichern"), this))
+    , m_cancelEditAction(new QAction(i18n("Abbrechen"), this))
     , m_splitter(new QSplitter(Qt::Horizontal, this))
     , m_list(new QListView(this))
     , m_message(new KMessageWidget(this))
@@ -187,6 +207,28 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     connect(m_undoAction, &QAction::triggered, m_deletion, &PendingDeletion::undo);
     addAction(m_undoAction);
 
+    // The keys of the edit state, each of them the accelerator of a button
+    // that is visible beside it (wireframe 2a): the library is a regular
+    // window, not the keyboard-only capture.
+    m_editAction->setShortcut(Qt::Key_F2);
+    m_editAction->setEnabled(false);
+    connect(m_editAction, &QAction::triggered, this, &LibraryWindow::startEditing);
+    addAction(m_editAction);
+
+    // Both Return keys, as in the capture window (SPEC 3).
+    m_saveAction->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Return), QKeySequence(Qt::CTRL | Qt::Key_Enter)});
+    m_saveAction->setEnabled(false);
+    connect(m_saveAction, &QAction::triggered, this, [this] {
+        saveEdit();
+        showNoteText(m_list->currentIndex());
+    });
+    addAction(m_saveAction);
+
+    m_cancelEditAction->setShortcut(Qt::Key_Escape);
+    m_cancelEditAction->setEnabled(false);
+    connect(m_cancelEditAction, &QAction::triggered, this, &LibraryWindow::cancelEdit);
+    addAction(m_cancelEditAction);
+
     auto *closeAction = new QAction(this);
     closeAction->setShortcuts(KStandardShortcut::close());
     connect(closeAction, &QAction::triggered, this, &LibraryWindow::close);
@@ -218,6 +260,7 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_splitter->restoreState(windowGroup().readEntry("SplitterState", QByteArray()));
 
     updatePages();
+    updateEditState();
 }
 
 QWidget *LibraryWindow::buildHeader()
@@ -246,22 +289,83 @@ QWidget *LibraryWindow::buildDetail()
 
     m_detailTimestamp = subtleLabel(QString(), detail);
 
-    auto *deleteButton = new QPushButton(i18n("Löschen"), detail);
-    connect(deleteButton, &QPushButton::clicked, m_deleteAction, &QAction::trigger);
+    // Wireframe 2a: while editing, the head says so where the two buttons
+    // stand while reading — one row for both states, so the pane keeps its
+    // height when the state changes.
+    m_editingBadge = smallLabel(i18n("wird bearbeitet"), detail);
+    // The role rather than a colour taken from the palette once: the window
+    // lives as long as the daemon and has to follow a colour scheme changed
+    // underneath it (issue #54).
+    m_editingBadge->setForegroundRole(QPalette::Link);
+
+    m_editButton = new QPushButton(i18n("Bearbeiten"), detail);
+    connect(m_editButton, &QPushButton::clicked, m_editAction, &QAction::trigger);
+
+    m_deleteButton = new QPushButton(i18n("Löschen"), detail);
+    connect(m_deleteButton, &QPushButton::clicked, m_deleteAction, &QAction::trigger);
 
     auto *head = new QHBoxLayout();
     head->addWidget(m_detailTimestamp);
     head->addStretch();
-    head->addWidget(deleteButton);
+    head->addWidget(m_editingBadge);
+    head->addWidget(m_editButton);
+    head->addWidget(m_deleteButton);
 
     m_detailText = new QTextBrowser(detail);
     m_detailText->setFrameShape(QFrame::NoFrame);
+
+    m_editor = new QPlainTextEdit(detail);
+    connect(m_editor, &QPlainTextEdit::textChanged, this, &LibraryWindow::updateEditState);
+
+    m_textPages = new QStackedWidget(detail);
+    m_textPages->addWidget(m_detailText);
+    m_textPages->addWidget(m_editor);
+
+    // Category and tags as plain display, deliberately not as greyed-out input
+    // fields: those would promise an editing that SPEC 9 does not grant — the
+    // analysis run keeps these two, not the editor.
+    m_category = smallLabel(QString(), detail);
+    m_tags = smallLabel(QString(), detail);
+
+    m_metaRow = new QWidget(detail);
+    auto *meta = new QHBoxLayout(m_metaRow);
+    meta->setContentsMargins(0, 0, 0, 0);
+    meta->addWidget(subtleLabel(i18n("Kategorie"), m_metaRow));
+    meta->addWidget(m_category);
+    meta->addSpacing(12);
+    meta->addWidget(subtleLabel(i18n("Tags"), m_metaRow));
+    meta->addWidget(m_tags);
+    meta->addStretch();
+
+    m_saveButton = new QPushButton(i18n("Speichern"), detail);
+    connect(m_saveButton, &QPushButton::clicked, m_saveAction, &QAction::trigger);
+
+    auto *cancelButton = new QPushButton(i18n("Abbrechen"), detail);
+    connect(cancelButton, &QPushButton::clicked, m_cancelEditAction, &QAction::trigger);
+
+    // The order of the two is the platform's, not this window's.
+    auto *buttons = new QDialogButtonBox(detail);
+    buttons->addButton(m_saveButton, QDialogButtonBox::AcceptRole);
+    buttons->addButton(cancelButton, QDialogButtonBox::RejectRole);
+
+    m_editFooter = new QWidget(detail);
+    auto *footer = new QHBoxLayout(m_editFooter);
+    footer->setContentsMargins(0, 0, 0, 0);
+    footer->addWidget(subtleLabel(i18n("Esc bricht ab · Strg+Enter speichert"), m_editFooter));
+    footer->addStretch();
+    footer->addWidget(buttons);
 
     auto *layout = new QVBoxLayout(detail);
     layout->setContentsMargins(12, 10, 12, 12);
     layout->setSpacing(10);
     layout->addLayout(head);
-    layout->addWidget(m_detailText);
+    // The surplus height belongs to the note text. A QStackedWidget is only
+    // Preferred in both directions, so without the stretch factor the two
+    // rows below would take their share of it and the text field would keep
+    // its hint size — the mistake the window layout already made once.
+    layout->addWidget(m_textPages, 1);
+    layout->addWidget(m_metaRow);
+    layout->addWidget(m_editFooter);
 
     return detail;
 }
@@ -323,6 +427,24 @@ void LibraryWindow::changeEvent(QEvent *event)
 
 void LibraryWindow::closeEvent(QCloseEvent *event)
 {
+    // The third way out of the edit state (wireframe 2a, state C). Unlike the
+    // deletion below, a change is never carried out by walking away: the note
+    // is already stored, and losing a correction to a stray click is what the
+    // dialog is there to stop.
+    if (isEditing()) {
+        switch (hasUnsavedChanges() ? askAboutUnsavedChanges() : UnsavedAnswer::Discard) {
+        case UnsavedAnswer::Save:
+            saveEdit();
+            break;
+        case UnsavedAnswer::Discard:
+            stopEditing();
+            break;
+        case UnsavedAnswer::Cancel:
+            event->ignore();
+            return;
+        }
+    }
+
     // SPEC 9: the grace period ends with the window — a deletion the user
     // walked away from is a deletion.
     m_deletion->flush();
@@ -437,7 +559,38 @@ QModelIndex LibraryWindow::groupHeadOf(const QModelIndex &note) const
 
 void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previous)
 {
-    m_deleteAction->setEnabled(index.isValid());
+    // The way back out of a cancelled switch runs through here as well, and it
+    // must not raise the same question a second time.
+    if (m_restoringSelection) {
+        return;
+    }
+
+    // A rebuilt list can move the note under the editor into another row —
+    // that is no change of note and no reason to ask anything (SPEC 9).
+    if (isEditing() && m_model->noteAt(index.row()).id != m_editedNote.id) {
+        // An untouched editor is left behind without a word; only a change
+        // that would be lost is worth a dialog (wireframe 2a, state C).
+        switch (hasUnsavedChanges() ? askAboutUnsavedChanges() : UnsavedAnswer::Discard) {
+        case UnsavedAnswer::Save:
+            saveEdit();
+            break;
+        case UnsavedAnswer::Discard:
+            stopEditing();
+            break;
+        case UnsavedAnswer::Cancel: {
+            // Back to the note under the editor, told by its id: the list may
+            // have been rebuilt since, and a row number would then point
+            // somewhere else.
+            const int row = m_model->rowOf(m_editedNote.id);
+            if (row >= 0) {
+                m_restoringSelection = true;
+                m_list->setCurrentIndex(m_model->index(row));
+                m_restoringSelection = false;
+            }
+            return;
+        }
+        }
+    }
 
     if (index.isValid()) {
         // Three conditions have to hold before the list is moved for a head,
@@ -471,17 +624,25 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         }
         m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
 
-        const Note note = m_model->noteAt(index.row());
-        // The detail pane stands under no head and keeps the full timestamp.
-        m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, referenceTime(), QLocale()));
-        // Setting the same text again would send the reader back to its first
-        // line; a reload of the open window leaves the reader where it was.
-        if (m_detailText->toPlainText() != note.content) {
-            m_detailText->setPlainText(note.content);
-        }
+        showNoteText(index);
     }
 
     updatePages();
+    updateEditState();
+}
+
+void LibraryWindow::showNoteText(const QModelIndex &index)
+{
+    const Note note = m_model->noteAt(index.row());
+
+    // The detail pane stands under no head and keeps the full timestamp.
+    m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, referenceTime(), QLocale()));
+
+    // Setting the same text again would send the reader back to its first
+    // line; a reload of the open window leaves the reader where it was.
+    if (m_detailText->toPlainText() != note.content) {
+        m_detailText->setPlainText(note.content);
+    }
 }
 
 void LibraryWindow::deleteCurrentNote()
@@ -521,4 +682,163 @@ void LibraryWindow::undoDeletion()
     m_undoAction->setEnabled(false);
     m_message->animatedHide();
     updatePages();
+}
+
+bool LibraryWindow::isEditing() const
+{
+    return m_editedNote.id >= 0;
+}
+
+bool LibraryWindow::hasUnsavedChanges() const
+{
+    return isEditing() && m_editor->toPlainText() != m_textBeforeEditing;
+}
+
+void LibraryWindow::startEditing()
+{
+    const Note note = m_model->noteAt(m_list->currentIndex().row());
+    // A group head carries no note, and the selection never lands on one
+    // (wireframe 3b) — F2 finds nothing to edit there.
+    if (isEditing() || note.id < 0) {
+        return;
+    }
+
+    m_editedNote = note;
+    m_textBeforeEditing = note.content;
+    m_editor->setPlainText(note.content);
+
+    // Wireframe 2a: the cursor stands at the end of the text and nothing is
+    // selected — a first keystroke must not be able to overwrite the note.
+    m_editor->moveCursor(QTextCursor::End);
+
+    m_category->setText(note.category.isEmpty() ? missingValue() : note.category);
+    const QStringList tags = m_store->tags(note.id);
+    m_tags->setText(tags.isEmpty() ? missingValue() : tags.join(QStringLiteral(" · ")));
+
+    updateEditState();
+    m_editor->setFocus();
+}
+
+void LibraryWindow::saveEdit()
+{
+    const QString content = m_editor->toPlainText().trimmed();
+    // An empty field is no state to save: deleting runs over the delete
+    // action, not over emptying the field (wireframe 2a).
+    if (!isEditing() || content.isEmpty()) {
+        return;
+    }
+
+    Note note = m_editedNote;
+    note.content = content;
+    // SPEC 9: editing keeps category, tags and state and sets needs_reembed —
+    // only the embedding ages with the text (7.2). The full-text index follows
+    // from the update trigger on `notes` (SPEC 5.1).
+    note.needsReembed = true;
+
+    if (!m_store->updateNote(note)) {
+        // Keep the editor and its text: a lost correction is worse than an
+        // editor that stays open, as in the capture window (SPEC 3).
+        qWarning("Speichern der Notiz fehlgeschlagen: %s", qPrintable(m_store->lastError()));
+        return;
+    }
+
+    // The list is not read from the store again. Nothing but this one text has
+    // changed, and a note whose new text drops it out of the running result
+    // list has to stay in sight until the search term changes (issue #11, K2).
+    m_model->replaceNote(m_model->noteIndexAt(m_model->rowOf(note.id)), note);
+
+    stopEditing();
+}
+
+void LibraryWindow::cancelEdit()
+{
+    if (!isEditing()) {
+        return;
+    }
+
+    if (hasUnsavedChanges()) {
+        switch (askAboutUnsavedChanges()) {
+        case UnsavedAnswer::Save:
+            saveEdit();
+            showNoteText(m_list->currentIndex());
+            return;
+        case UnsavedAnswer::Cancel:
+            return;
+        case UnsavedAnswer::Discard:
+            break;
+        }
+    }
+
+    // The reader still holds the stored text — it was never written over.
+    stopEditing();
+}
+
+void LibraryWindow::stopEditing()
+{
+    m_editedNote = Note();
+    m_textBeforeEditing.clear();
+    m_editor->clear();
+
+    updateEditState();
+    m_list->setFocus();
+}
+
+LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
+{
+    QMessageBox dialog(this);
+    dialog.setIcon(QMessageBox::Warning);
+    dialog.setWindowTitle(i18nc("@title:window", "Ungespeicherte Änderungen"));
+    dialog.setText(i18n("Änderungen speichern?"));
+    dialog.setInformativeText(
+        i18n("Die Notiz von %1 wurde geändert. Ohne Speichern gehen die Änderungen verloren.",
+             library::relativeTimestamp(m_editedNote.createdAt, referenceTime(), QLocale())));
+
+    // The roles order the buttons, this window does not: QMessageBox lays them
+    // out through a QDialogButtonBox and inherits the platform convention
+    // (wireframe 2a, state C).
+    QPushButton *save = dialog.addButton(i18n("Speichern"), QMessageBox::AcceptRole);
+    const QPushButton *discard = dialog.addButton(i18n("Verwerfen"), QMessageBox::DestructiveRole);
+    QPushButton *cancel = dialog.addButton(i18n("Abbrechen"), QMessageBox::RejectRole);
+
+    dialog.setDefaultButton(save);
+    // Esc over the dialog is the harmless answer: back into the edit state.
+    dialog.setEscapeButton(cancel);
+
+    dialog.exec();
+
+    if (dialog.clickedButton() == save) {
+        return UnsavedAnswer::Save;
+    }
+    if (dialog.clickedButton() == discard) {
+        return UnsavedAnswer::Discard;
+    }
+    return UnsavedAnswer::Cancel;
+}
+
+void LibraryWindow::updateEditState()
+{
+    const bool editing = isEditing();
+    const bool hasNote = m_list->currentIndex().isValid();
+
+    m_textPages->setCurrentWidget(editing ? static_cast<QWidget *>(m_editor) : m_detailText);
+    m_editingBadge->setVisible(editing);
+    m_editButton->setVisible(!editing);
+    m_deleteButton->setVisible(!editing);
+    m_metaRow->setVisible(editing);
+    m_editFooter->setVisible(editing);
+
+    // The note under the editor is not up for deletion — the button is gone,
+    // and so is the key behind it.
+    m_deleteAction->setEnabled(!editing && hasNote);
+    m_editAction->setEnabled(!editing && hasNote);
+    m_cancelEditAction->setEnabled(editing);
+
+    const bool savable = editing && !m_editor->toPlainText().trimmed().isEmpty();
+    m_saveAction->setEnabled(savable);
+    m_saveButton->setEnabled(savable);
+
+    // A search while the editor is open would rebuild the list under it, and a
+    // cancelled switch would then have no row left to return to. The field
+    // comes back the moment the edit state ends (discovered condition, SPEC 9).
+    m_search->setEnabled(!editing);
 }

@@ -68,6 +68,17 @@ public:
     /** Puts a note back where takeNote() removed it, with its head if needed. */
     void insertNote(int noteIndex, const Note &note);
 
+    /**
+     * Writes an edited note over the one in `noteIndex`, keeping row and
+     * grouping (SPEC 9).
+     *
+     * Editing leaves `created_at` alone, so no note can move to another group;
+     * and reading the store again is exactly what must not happen here — a
+     * note whose new text drops it out of the running result list stays in
+     * sight until the search term changes (issue #11, K2).
+     */
+    void replaceNote(int noteIndex, const Note &note);
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
