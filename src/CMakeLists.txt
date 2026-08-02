@@ -9,6 +9,35 @@ target_link_libraries(denkzettelstore PUBLIC
     Qt6::Sql
 )
 
+# Spike #62: spellfix1 mitkompilieren. Standardmäßig AUS — der Spike endet mit
+# einem Bericht, nicht mit einem Feature. Ist der Schalter aus, wird unterhalb
+# nichts konfiguriert, und der Build ist derselbe wie ohne diesen Block.
+option(DENKZETTEL_SPIKE_SPELLFIX "spellfix1-Prototyp des Spikes #62 mitbauen (Issue #62)" OFF)
+
+if(DENKZETTEL_SPIKE_SPELLFIX)
+    # Das Projekt ist als reines C++-Projekt deklariert; spellfix.c ist C. Die
+    # Sprache wird erst hier angeschaltet, damit der Normalbau ohne den Schalter
+    # keinen C-Compiler suchen muss.
+    enable_language(C)
+    find_package(SQLite3 REQUIRED)
+
+    target_sources(denkzettelstore PRIVATE ${CMAKE_SOURCE_DIR}/third_party/spellfix/spellfix.c)
+
+    set_source_files_properties(${CMAKE_SOURCE_DIR}/third_party/spellfix/spellfix.c PROPERTIES
+        # Ohne SQLITE_CORE übersetzt sich die Datei als ladbare Erweiterung: Jeder
+        # SQLite-Aufruf ginge dann über den Zeiger `sqlite3_api`, den nur
+        # sqlite3_load_extension() füllt. Mit SQLITE_CORE fallen diese Makros weg
+        # und die Datei ruft dieselbe libsqlite3 direkt, gegen die auch der
+        # Qt-Treiber gelinkt ist (siehe /usr/include/sqlite3ext.h, Zeile 727 ff.).
+        COMPILE_DEFINITIONS SQLITE_CORE=1
+        # Fremdcode, unverändert übernommen: Warnungen darin sind keine, die wir
+        # beheben dürften, ohne die Prüfsumme in HERKUNFT.md zu brechen.
+        COMPILE_OPTIONS -w
+    )
+
+    target_link_libraries(denkzettelstore PUBLIC SQLite3::SQLite3)
+endif()
+
 add_library(denkzettelcapture STATIC
     capture/capturewindow.cpp
     capture/textareaheight.cpp
