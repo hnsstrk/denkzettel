@@ -55,17 +55,25 @@ geändert gegenüber der ersten Fassung:
   `saysWhyTheSearchFieldRestsWhileEditing`.
 
 **Grenze dieser Bildstrecke (Befund 5):** Die Symbole der Dialogknöpfe sind
-gesetzt (`KStandardGuiItem`), **aber auf dieser Maschine nicht darstellbar**.
-Gemessen am 02.08.2026, offscreen wie auf der echten Wayland-Sitzung: Das
-Symbolthema löst sich dem Namen nach zu „breeze-dark“ auf, `QIcon::fromTheme()`
-liefert darunter trotzdem `null` — die Knöpfe in Bild 03 bleiben deshalb blank.
-Dass die Knöpfe Symbole **anfordern**, hält der Test
-`namesTheThreeAnswersOfTheGuardDialog`, der ein eigenes Symbolthema benennt und
-drei verschiedene, nicht leere Symbolnamen misst. Weder ein zusätzlicher
-Suchpfad noch ein erzwungener Themenname hat hier etwas geändert; ein
-erzwungener Name hätte nur ein Bild erzeugt, das mehr behauptet als diese
-Maschine zeigt. **Das gehört nachgeprüft, sobald jemand einen Bildlauf mit
-auflösendem Symbolthema fahren kann.**
+gesetzt (`KStandardGuiItem`), in Bild 03 aber nicht zu sehen.
+
+**Ursache, gemessen von der Nachprüfung des UI-Reviews am 02.08.2026:** Unter
+`QT_QPA_PLATFORMTHEME=kde` ersetzt die KDE-Plattformintegration den gebauten
+`QMessageBox` durch einen **eigenen Ersatzdialog**, und der übernimmt Symbole
+nicht, die nachträglich am `QPushButton` gesetzt wurden. Die Knöpfe im Bild
+sind also nicht die, denen dieser Zweig die Symbole gegeben hat.
+
+*Meine eigene erste Lesart — „`QIcon::fromTheme()` liefert unter „breeze-dark“
+null“ — ist damit überholt und hier ersetzt.* Sie erklärte dieselbe
+Beobachtung mit der falschen Ursache; nachgehalten, weil eine Begründung, die
+trägt und trotzdem das Falsche behauptet, beim nächsten Aufräumen zur
+Fehlentscheidung wird.
+
+Dass die Knöpfe Symbole **anfordern**, hält unverändert der Test
+`namesTheThreeAnswersOfTheGuardDialog` (drei verschiedene, nicht leere
+Symbolnamen). **Die Entscheidung, ob es bei `QMessageBox` bleibt oder
+`KMessageBox` einzieht, fällt der PO am installierten Stand unter Plasma** —
+nicht an dieser Bildstrecke.
 
 ## Was in M2 fehlt und kein Befund ist
 

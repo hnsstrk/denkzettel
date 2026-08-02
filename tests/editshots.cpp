@@ -180,14 +180,20 @@ int main(int argc, char **argv)
     QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
     // Note on the symbols of the guard dialog (finding 5 of the UI review):
-    // this bench cannot show them. Measured on 02.08.2026, offscreen and on a
-    // real Wayland session alike: the icon theme resolves by name to
-    // „breeze-dark“, and `QIcon::fromTheme()` still comes back null under it —
-    // so the dialog is drawn with bare buttons here. That the buttons ask for
-    // symbols is held by `namesTheThreeAnswersOfTheGuardDialog` in
-    // `librarytest`, which names an icon theme of its own. Neither a search
-    // path nor a forced theme name changed anything here; forcing one would
-    // only produce a picture that claims more than this machine shows.
+    // this bench cannot show them, and no setting here changes that.
+    //
+    // Measured by the second pass of the UI review on 02.08.2026: under
+    // QT_QPA_PLATFORMTHEME=kde the KDE platform integration replaces the
+    // QMessageBox this window builds with a substitute dialog of its own, and
+    // that one does not carry over icons set on the QPushButton afterwards.
+    // The buttons in the picture are not the buttons this branch gave symbols
+    // to. Naming an icon theme or a search path here was tried and changed
+    // nothing — which fits, since the buttons are not ours to begin with.
+    //
+    // That the buttons ask for symbols is held by
+    // `namesTheThreeAnswersOfTheGuardDialog` in `librarytest`. Whether
+    // QMessageBox stays or KMessageBox moves in is decided at the installed
+    // state under Plasma, not here.
     if (argc < 2) {
         qFatal("Aufruf: editshots <Zielverzeichnis>");
     }
