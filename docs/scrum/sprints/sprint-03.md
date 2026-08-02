@@ -1050,3 +1050,145 @@ Suchprobe. (3) Danach Issues schließen, Milestone schließen, Push (33 Commits)
 Retro vom 01.08. war eine vom Kunden angeordnete Vorziehung und ersetzt sie
 nicht. Vorbereitetes Material: Abschnitt 12 mit acht Beobachtungen, die neun
 Mängel dieser Prüfung, die beiden geschlossenen Impedimente.
+
+## 14. Retro-Agenda des Kunden (02.08.2026, 08:56)
+
+Der Kunde hat vier Themen für die Retrospektive gesetzt. Der PO hat den Ist-Stand
+dazu erhoben, damit die Sitzung an Zahlen und nicht an Eindrücken ansetzt.
+
+### 14.1 Git wird kaum genutzt
+
+> „Alles landet im Main Branch, keine Pull Requests usw."
+
+**Gemessener Stand (02.08.2026, 08:52):**
+
+| Größe | Wert |
+|---|---|
+| Pull Requests, jemals | **0** |
+| Remote-Branches | nur `origin/main` |
+| Lokale Branches | **9** (4 Story-/Fix-Zweige, 4 Worktree-Zweige, `main`) |
+| Tags | **0** |
+| Releases | **0** |
+
+Der Befund des Kunden trifft zu — mit einer Einschränkung, die zu seinen Gunsten
+zählt: In Sprint 3 hat jeder Strang auf einem **eigenen** Branch im eigenen
+Worktree gearbeitet (`story/46-posteingang`, `story/8-volltextsuche`,
+`fix/44-tray-linksklick`, `fix/54-theme-farben`). Die Zweige existieren also;
+was fehlt, ist alles, was danach kommt: kein Push der Zweige, kein PR, kein
+Review am Diff, kein Aufräumen. Gemerged wurde lokal durch den PO.
+
+Zu klären: Bringt ein PR-Verfahren hier Nutzen oder nur Zeremonie — bei einem
+Einzelentwickler-Repo, in dem der PO ohnehin jeden Diff sieht? Gegenargument:
+Der karpathy- und der UI-Review haben heute keinen festen Anknüpfungspunkt im
+Git-Verlauf; ein PR wäre genau dieser Ort. Und die acht Leichen im lokalen
+Branch-Bestand sind ein Ergebnis des fehlenden Abschlusses.
+
+### 14.2 Versionen und Release Notes
+
+> „Ab einem bestimmten Punkt müssen wir uns um Versionen und Release Notes
+> Gedanken machen."
+
+`CMakeLists.txt:3` trägt seit dem ersten Commit `VERSION 0.1.0`; drei Sprints
+haben daran nichts geändert. Es gibt keinen Tag, kein Release, keine Stelle, an
+der ein Außenstehender sähe, was in einem Stand steckt. Solange nur der Kunde
+installiert, kostet das nichts — mit #41 (S28: PKGBUILD + Installations-Doku)
+wird es zur Voraussetzung: Ein PKGBUILD braucht eine Versionsnummer, die sich
+bewegt.
+
+Zu klären: Wann beginnt die Zählung, nach welchem Schema, und was löst eine
+Erhöhung aus (Sprint-Ende? Milestone? Kundenabnahme?).
+
+### 14.3 Changelog
+
+> „Was ist eigentlich mit einem Changelog?"
+
+Existiert nicht. Der Stoff dafür ist vollständig vorhanden — er liegt nur an
+drei Orten, die kein Nutzer liest: Sprint-Protokolle, Issues, Commit-Verlauf.
+Der Aufwand ist deshalb Umschichtung, nicht Neuerhebung.
+
+Zu klären: Ein `CHANGELOG.md` nach *Keep a Changelog*, gepflegt zum Sprint-Ende
+— oder aus Tags erzeugte GitHub-Release-Notes? Beides doppelt zu führen wäre
+gegen Karpathy 2.
+
+### 14.4 Modellzuordnung — Sonnet und Haiku für Verwaltungsarbeit
+
+> „Es können auch Agenten mit Sonnet oder Haiku Modellen für einfache
+> Verwaltungsaufgaben eingesetzt werden."
+
+Der geltende Stand steht in PROZESS.md, „Modellzuordnung" (Kundenentscheidung
+31.07.2026): `scrum-master`, `denkzettel-dev`, `denkzettel-ux` auf Opus 5;
+`karpathy-reviewer` auf Fable; Spikes und Risiko-Stories stuft der PO je Spawn
+hoch. Dort steht ausdrücklich: „Revision dieser Zuordnung ist Retro-Thema."
+
+Der Vorschlag des Kunden zielt auf eine Lücke: Es gibt heute **keine** Rolle für
+Verwaltungsarbeit. AK-Haken setzen, Issues schließen, Milestones pflegen,
+Branches aufräumen, Changelog-Zeilen aus Commits ziehen — das macht heute der PO
+auf Opus, oder es bleibt liegen (M2 und M5 sind genau solche Fälle: seit dem
+Sprint-Ende offen, weil niemand zuständig war).
+
+Zu klären: neuer Agent oder Ausweitung des Scrum Masters — und welche
+Zuständigkeit, ohne die Regel „melden, nicht heilen" zu verletzen. Ein Agent,
+der Issues schließt, trifft keine Entscheidung; einer, der Mängel behebt, schon.
+Die Grenze gehört benannt.
+
+### 14.5 Was diese vier Themen gemeinsam haben
+
+Alle vier betreffen **das, was nach der Arbeit kommt** — Abschluss, Verpackung,
+Nachweis nach außen. Das Team ist gut darin, etwas zu bauen und zu prüfen; die
+neun Mängel aus 13.12 sind bis auf M1 sämtlich Abschlussmängel. Der Kunde legt
+den Finger auf dieselbe Stelle, an der die DoD-Prüfung am meisten fand. Das
+sollte die Retro nicht als vier Einzelthemen behandeln.
+
+## 15. Kundenabnahme (02.08.2026, 09:00–09:06)
+
+Der Kunde hat am installierten Stand geprüft — der dritte Teil des
+Sprint-Ziels (13.11) ist damit erbracht.
+
+### 15.1 Tray — abgenommen, vier Befunde am Menü
+
+> „Der Linksklick passt."
+
+**#44 ist abgenommen.** Am Menü selbst vier Befunde: „Beenden" gehört nicht
+in die Linksklick-Liste; den Einträgen fehlen Icons; „Capture öffnen" ist
+Englisch; der Rechtsklick soll ein eigenes Layout haben (Idee des Kunden:
+Einstellungen und Beenden). Als Referenz zeigte er vier Plasma-Applets
+(Benachrichtigungen, Kontakt, Wetterbericht, Energieverwaltung) mit
+Rechtsklick-Menüs: Icons je Eintrag, Muster „… einrichten". Die Befunde
+ändern die in #44 dokumentierte Entscheidung „dasselbe Menü für beide
+Klicks" — sie laufen als **#60** weiter, nicht als Mangel an #44.
+
+### 15.2 Suche — vier Proben des Kunden
+
+| Eingabe | Ergebnis | Einordnung |
+|---|---|---|
+| `prufen` | **Treffer** („Ganz dringend die DoD prüfen.") | beauftragter Umfang: u→ü über `remove_diacritics` |
+| `prüfen` | **Treffer** | exakt |
+| `pruefen` | keine Treffer | **#51** — Schreibvarianten (ue-Digraph); war im Backlog |
+| `prüfem` | keine Treffer | **#52** — Tippfehler-Toleranz (m statt n); war im Backlog |
+
+Kundenurteil: „Die Suche klappt noch nicht richtig." Die beiden Fehlfälle
+liegen außerhalb des in Sprint 3 beauftragten Umfangs und waren als #51/#52
+erfasst — das mindert den Befund nicht. Der Kunde hat die **Recherche
+beauftragt**: „Das Thema Fuzzy Search soll noch einmal recherchiert werden.
+Da gibt es doch bestimmt schon was Fertiges." #52 ist damit vom Klärungs-
+zum Rechercheauftrag aufgewertet (Vorgehen nach der Werkzeug-Regel: lesen,
+urteilen, fragen — keine Installation vor der Entscheidung); #51 ist um den
+ue/ü-Fall erweitert.
+
+### 15.3 Belegsicherung — nur ein Bild überlebte
+
+Die acht Kundenbilder lagen in flüchtigen Spectacle-Ordnern unter `/tmp`.
+Beim Sichern (09:11) existierte nur noch das letzte —
+Energieverwaltungs-Beispiel, jetzt unter
+`reviews/sprint-03-kundenabnahme/vorbild-tray-energieverwaltung.png`. Die
+übrigen sieben sind hier textlich festgehalten; die vier Suchproben sind am
+installierten Stand jederzeit reproduzierbar. **Lehre zu B7:** Flüchtige
+Kundenbelege sofort beim Eintreffen sichern, nicht am Ende des
+Arbeitsschritts — sieben Minuten waren zu langsam.
+
+### 15.4 Abschluss
+
+Fünf Issues mit AK-Haken, Abnahmekommentar und Commit-Verweisen geschlossen,
+Milestone „Sprint 3" geschlossen — **M2 und M5 damit behoben**. Sprint-Ziel
+in allen drei Teilen erreicht. Neu aus der Abnahme: #60 (Tray-Menüs),
+Rechercheauftrag Fuzzy-Suche (#52), Erweiterung #51.
