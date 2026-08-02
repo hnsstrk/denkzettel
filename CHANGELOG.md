@@ -9,6 +9,26 @@ am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
 
 ## [Unveröffentlicht]
 
+Stand aus Sprint 4, abgenommen am 02.08.2026 (Kundenabnahme; die
+Versionsnummer folgt mit #61).
+
+### Hinzugefügt
+
+- **Notizen bearbeiten:** In der Bibliothek öffnet „Bearbeiten" oder F2
+  den Editor; Speichern (Strg+Enter) und Abbrechen (Esc) mit Nachfrage
+  bei ungespeicherten Änderungen — nichts wird still verworfen oder
+  geschrieben. Die geänderte Notiz bleibt in der Trefferliste sichtbar,
+  auch wenn sie nicht mehr zum Suchbegriff passt (#11)
+- **Tray-Menü überarbeitet:** Alle Einträge auf Deutsch („Notiz
+  erfassen" statt „Capture öffnen") und mit Symbolen; „Beenden" steht
+  abgesetzt am Ende, getrennt von den Arbeitswegen (#60)
+
+### Geändert
+
+- Der Menüeintrag zeigt das Tastenkürzel Meta+N an; die Umbenennung gilt
+  überall, auch in den Systemeinstellungen (Kurzbefehle) und im
+  Startermenü (#60)
+
 ## [0.1.0] — 2026-08-02
 
 Erster abgenommener Gesamtstand, erarbeitet in den Sprints 1–3
