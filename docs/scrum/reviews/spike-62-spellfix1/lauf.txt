@@ -1,0 +1,53 @@
+Spike #62 — Messlauf des Prototyps
+Datum:   02.08.2026
+Rechner: Ganymed (CachyOS)
+SQLite:  3.53.4-1 (System), im Prozess gemeldet: 3.53.4
+Qt:      6.11.1
+Compiler: GCC 16.1.1
+
+Fremdcode, Prüfsumme (muss mit third_party/spellfix/HERKUNFT.md übereinstimmen):
+f679ae6f10181608be4119c35eedb4276612ef81890ca534e41810deb3e5dea2  third_party/spellfix/spellfix.c
+
+Nachvollziehen:
+  cmake -B build/spike62 -S . -DCMAKE_BUILD_TYPE=Debug -DDENKZETTEL_SPIKE_SPELLFIX=ON
+  cmake --build build/spike62 --target spellfixspike
+  ./build/spike62/bin/spellfixspike
+
+================================ Lauf ================================
+********* Start testing of SpellfixSpike *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+QINFO  : SpellfixSpike::initTestCase() Korpus: 20000 Notizen, 25 Wörter je Notiz, 17030 Wörter im Vokabular, 6259416 Zeichen Rohtext, gebaut in 0.7 s
+PASS   : SpellfixSpike::initTestCase()
+QINFO  : SpellfixSpike::registersAtTheQtDriverHandle() vor der Registrierung: no such function: editdist3
+QINFO  : SpellfixSpike::registersAtTheQtDriverHandle() nach der Registrierung: editdist3('prüfem', 'prüfen') = 150, SQLite im Prozess: 3.53.4
+PASS   : SpellfixSpike::registersAtTheQtDriverHandle()
+QINFO  : SpellfixSpike::correctsTheCustomerCases(#51 Schreibvariante pruefen) klein_sfx: „pruefen" → „prüfen" (Distanz 1)
+QINFO  : SpellfixSpike::correctsTheCustomerCases(#51 Schreibvariante pruefen) gross_sfx: „pruefen" → „prüfen" (Distanz 1)
+PASS   : SpellfixSpike::correctsTheCustomerCases(#51 Schreibvariante pruefen)
+QINFO  : SpellfixSpike::correctsTheCustomerCases(#52 Tippfehler prüfem) klein_sfx: „prüfem" → „prüfen" (Distanz 150)
+QINFO  : SpellfixSpike::correctsTheCustomerCases(#52 Tippfehler prüfem) gross_sfx: „prüfem" → „prüfen" (Distanz 150)
+PASS   : SpellfixSpike::correctsTheCustomerCases(#52 Tippfehler prüfem)
+QINFO  : SpellfixSpike::measuresBothVocabularySources()
+--- Größen am echten Schema (dbstat, 20000 Notizen) ---
+QINFO  : SpellfixSpike::measuresBothVocabularySources() notes (Rohtext)                 7.37 MiB
+QINFO  : SpellfixSpike::measuresBothVocabularySources() notes_fts (trigram, Bestand)    17.96 MiB
+QINFO  : SpellfixSpike::measuresBothVocabularySources() A: notes_words (unicode61)      2.13 MiB  — 17030 Wörter, 0.1 s Aufbau
+QINFO  : SpellfixSpike::measuresBothVocabularySources() B: spike_vocab (Trigger)        0.36 MiB  — 17030 Wörter, 0.5 s Aufbau
+QINFO  : SpellfixSpike::measuresBothVocabularySources() spellfix1-Tabelle (beide Wege)  0.93 MiB  — 0.1 s Aufbau
+QINFO  : SpellfixSpike::measuresBothVocabularySources() Bestand heute (notes+notes_fts) 25.33 MiB
+QINFO  : SpellfixSpike::measuresBothVocabularySources()   Aufschlag Weg A + spellfix1   3.06 MiB  (+12.1 %)
+QINFO  : SpellfixSpike::measuresBothVocabularySources()   Aufschlag Weg B + spellfix1   1.29 MiB  (+5.1 %)
+QINFO  : SpellfixSpike::measuresBothVocabularySources() Korrektur „pruefen" → „prüfen" in 0 ms
+QINFO  : SpellfixSpike::measuresBothVocabularySources()
+--- Wörter aus einer Notiz mit Satzzeichen ---
+QINFO  : SpellfixSpike::measuresBothVocabularySources() A (unicode61): 3 | 7 | 8 | dringend | e | mail | siehe | vom
+QINFO  : SpellfixSpike::measuresBothVocabularySources() B (Trigger):   (siehe | 3.8.) | 7 | e-mail | prüfen: | vom | — | „dringend"!
+PASS   : SpellfixSpike::measuresBothVocabularySources()
+PASS   : SpellfixSpike::cleanupTestCase()
+Totals: 6 passed, 0 failed, 0 skipped, 0 blacklisted, 1545ms
+********* Finished testing of SpellfixSpike *********
+
+================== Gegenprobe: Schalter aus ==================
+  cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug     (ohne -DDENKZETTEL_SPIKE_SPELLFIX)
+  cmake --build build && ctest --test-dir build
+→ siehe ctest.txt

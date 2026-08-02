@@ -7,6 +7,20 @@ target_link_libraries(storetest PRIVATE
 
 add_test(NAME storetest COMMAND storetest)
 
+# Prototyp zum Spike #62, nur mit -DDENKZETTEL_SPIKE_SPELLFIX=ON. Steht der
+# Schalter aus — der Normalfall —, existiert weder das Programm noch der Test,
+# und `ctest` läuft wie zuvor.
+if(DENKZETTEL_SPIKE_SPELLFIX)
+    add_executable(spellfixspike spellfixspike.cpp)
+
+    target_link_libraries(spellfixspike PRIVATE
+        denkzettelstore
+        Qt6::Test
+    )
+
+    add_test(NAME spellfixspike COMMAND spellfixspike)
+endif()
+
 add_executable(capturetest capturetest.cpp)
 
 target_link_libraries(capturetest PRIVATE

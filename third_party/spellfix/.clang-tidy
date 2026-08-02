@@ -1,0 +1,9 @@
+# Fremdcode aus dem SQLite-Quellbaum, unverändert übernommen (HERKUNFT.md).
+# Alle Prüfungen aus: Ein Befund hier wäre keiner, den wir beheben dürften —
+# die Datei bleibt Original, sonst stimmt ihre Prüfsumme nicht mehr.
+#
+# Die Lint-Ziele des Projekts sammeln ohnehin nur `src/*.cpp` und `tests/*.cpp`
+# ein (oberstes CMakeLists.txt). Diese Datei ist die zweite Sperre: Sie greift
+# auch, wenn jemand clang-tidy von Hand über die Compile-Datenbank laufen lässt,
+# in der spellfix.c bei eingeschaltetem Spike-Schalter steht.
+Checks: '-*'
