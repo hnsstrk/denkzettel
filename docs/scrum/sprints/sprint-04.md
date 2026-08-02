@@ -430,3 +430,16 @@ aufsetzen, PR je Strang. (4) Während des Sprints: Sprint-Konto bei jedem Zugang
 fortschreiben. (5) Am Sprint-Ende: Sprint-Abschluss nach B11 in zwei Takten,
 Punkt 10 ausgesetzt bis #61; Bewertung des PR-Probelaufs gegen sein vorab
 festgelegtes Kriterium.
+
+## 13. Kundenfreigabe (PO-Vermerk, 02.08.2026, 12:42)
+
+Der Kunde hat im Anschluss an das vierte Design-Interview entschieden:
+**Weg A** — Sprint 4 startet mit den drei Strängen **#11 (5) · #60 (5) ·
+#12 (1) = 11 SP / 3 Stories**; der Spike #62 läuft als eigener Lauf nach
+dem Sprint (Vermerk an #62). Sprint-Ziel wie in Abschnitt 5 vorgeschlagen.
+Die PO-Aufgaben aus Abschnitt 10 waren zum Zeitpunkt der Freigabe
+erledigt: #11 nachgeschärft (K1–K3, K7), Labels angeglichen (#11 sp:5,
+#60 sp:5, #62 sp:3), K4-Vorprüfung positiv (beide Spec-Defaults auf
+ollama.com erreichbar, HTTP 200), Wireframe 5a liegt vor (K6 erfüllt).
+
+**Sprint-Konto bei Freigabe: 11 von ~13 SP · 3 von 4 Stories.**
