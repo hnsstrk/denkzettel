@@ -981,3 +981,63 @@ Zuschreibung von M3 in zwei Artefakten berichtigen. (4) Sprint-5-Planning:
 #66 (aus O3 entstanden), #62 (Spike, zweite Schätzung nachholen — K5 steht
 seit dem Sprint-4-Planning offen), #10, #57–#59, #13, #55. (5) Retro nach
 Sprint 6 mit den Kandidaten aus 17.6.
+
+## 18. Schlusspunkt (Scrum Master, 02.08.2026, 15:20)
+
+**V1 — Journal (DoD 6): erfüllt.** Am Artefakt geprüft, nicht an der Meldung:
+Der Vault trägt unter `Journal/Daily/2026/2026-08-02.md` den Eintrag
+**„15:14 — Denkzettel: Sprint 4 komplett“** mit Zusammenfassung, acht
+Arbeitspunkten und Status. Er nennt beide Prozessrisse, den nicht bestandenen
+PR-Probelauf und den Verwalter-Erstlauf ohne Bericht. Der Eintrag **benennt
+seine eigene Grenze** („Commits bis `9845a6b`“, Status *In Arbeit*) — das ist
+die richtige Form für einen Eintrag, der vor dem letzten Commit geschrieben
+wird. *Ein Nachlauf bleibt:* `1266574` (V3-Richtigstellung und §17) und der
+Commit dieses Abschnitts liegen dahinter. Sie gehören in die Schlusszeile
+desselben Eintrags, wenn der PO den letzten Block committet; dann steht dort
+*Abgeschlossen* statt *In Arbeit*. Kein Mangel — eine Zeile.
+
+**V3 — Zuschreibung berichtigt: erledigt, und in der richtigen Form.** Beide
+Artefakte am Stand geprüft: Das Abnahme-README trägt die Richtigstellung als
+eigenen Absatz, der die **falsche Fassung ausdrücklich benennt**, statt sie
+still zu ersetzen; der Kommentar an #60 tut dasselbe im öffentlichen Issue und
+zieht die Grenze sauber („Die Panel-Fotos schließen den Foto-AK dieses Issues
+und O1 — mehr nicht“). Beide halten außerdem fest, dass der gelieferte
+Kopfzeilen-Zustand auf Geometrie-Zusicherung und Kundenblick ruht und nicht
+auf einem Bildbeleg. Damit steht die Beweislage öffentlich richtig — und die
+Korrektur folgt der Gattung, die dieses Projekt sich selbst gegeben hat
+(`646804a`, `95bcab6`): berichtigen und die überholte Fassung stehen lassen,
+damit die Berichtigung nachvollziehbar bleibt.
+
+**V2 — bleibt offen und liegt beim Kunden.** Vorgelegt sind Einstellen oder
+Verlängern mit CI. Bis zur Entscheidung ist der auf Sprint 4 befristete
+Absatz in `PROZESS.md` ohne Geltungsbereich; er wird so oder so nachgezogen.
+
+### Stand des Sprints
+
+**Sprint 4 ist abgeschlossen** — bis auf V2, und das ist eine Verfahrensfrage,
+keine Produktfrage.
+
+- **Sprint-Ziel erreicht, mit einer protokollierten Änderung.** Notizen lassen
+  sich in der Bibliothek ändern (#11), die KI-Modelle stehen bereit (#12), und
+  das Tray-Menü ist deutsch, bebildert und trennt die Arbeitswege von der
+  Verwaltung (#60) — **in einem Menü mit abgesetztem „Beenden“ statt in
+  zweien.** Die Trennung in zwei Menüs wurde als erster Story-Schritt gemessen,
+  trug unter Wayland nicht, die Rückfallregel griff, der Kunde entschied (§14).
+  Das ist der vorgesehene Weg und kein verfehltes Ziel — es ist aber eine
+  Änderung am Ziel, und sie steht hier, damit sie nicht später als „erreicht“
+  ohne Zusatz gelesen wird.
+- **Drei von drei Stories abgenommen**, alle AK gehakt, Issues und Milestone
+  geschlossen.
+- **Sprint-Konto: 3 von 4 Issues, 11 von ~13 SP — beide Grenzen gehalten**
+  (§15.7), kein Zugang nach der Freigabe.
+- **Drei Mängel aus der DoD-Prüfung, alle geschlossen** (M1 im Issue, M2 in
+  SPEC 9, M3 durch den Kundenblick — Zuschreibung berichtigt).
+- **Drei offene Punkte der Abnahme, alle geschlossen**: O1 durch die
+  Panel-Fotos, O2 und O3 durch das gesicherte Abnahmebild.
+- **Was der Sprint an den nächsten weitergibt:** #66 (Wächterdialog auf
+  KDE-Bauart, aus O3), #63 (Tag-Chips im Lesezustand, aus dem UI-Review), die
+  vier Retro-Kandidaten (17.6) und die Kundenentscheidung V2.
+
+Damit endet die Beteiligung des Scrum Masters an Sprint 4. Die nächste
+reguläre Retrospektive steht nach **Sprint 6**; der Kunde kann sie jederzeit
+vorziehen.
