@@ -1192,3 +1192,622 @@ Fünf Issues mit AK-Haken, Abnahmekommentar und Commit-Verweisen geschlossen,
 Milestone „Sprint 3" geschlossen — **M2 und M5 damit behoben**. Sprint-Ziel
 in allen drei Teilen erreicht. Neu aus der Abnahme: #60 (Tray-Menüs),
 Rechercheauftrag Fuzzy-Suche (#52), Erweiterung #51.
+
+## 16. Retrospektive (02.08.2026)
+
+**Datum:** 2026-08-02, 09:39–09:48 (Ganymed) · **Moderation:** Scrum Master
+**Anlass:** die **reguläre** Retro nach Sprint 3 gemäß Kadenz (PROZESS.md,
+Retrospektiven). Die Retro vom 01.08.2026 war eine vom Kunden angeordnete
+Vorziehung nach Sprint 2 und ersetzt diese nicht.
+**Prüfstand:** `main` @ `e73efff`. **Eingaben:** Sprint-3-Protokoll (8, 11, 12,
+13, 14, 15), `docs/scrum/sprints/sprint-02.md` 9.5 (B1–B10),
+`docs/scrum/retro/sprint-03/stellungnahme-dev.md`,
+`docs/scrum/reviews/sprint-03-karpathy.md`, `CLAUDE.md`, `PROZESS.md`,
+GitHub-Issues, Git-Historie, installierter Stand, Vault-Journal.
+
+**Belegregel dieser Sitzung:** Jede Aussage über den Sprint trägt ihre
+Fundstelle. Wo „gemessen" steht, ist der Befehl in dieser Sitzung selbst
+gelaufen; übernommene Werte sind als übernommen gekennzeichnet.
+
+### 16.1 Wirksamkeitsprüfung der Sprint-2-Beschlüsse B1–B10
+
+Geführt gegen den **Verlauf** von Sprint 3, nicht gegen die Prozess-Doku. Das
+ist die Nagelprobe der neuen zweistufigen Abschlussprüfung: verankert *und*
+gelesen?
+
+| # | Beschluss | Wirkung in Sprint 3 | Beleg |
+|---|---|---|---|
+| B1 | Selbst-Sichtprüfung vor der Übergabe | gewirkt — am falschen Prüfling | Sie haben stattgefunden (13.3: „liefen gegen die Build-Verzeichnisse der Worktrees"); D-Bus-Rücklese-Beleg zu `ItemIsMenu` als Kommentar an #44; `ea2337a` „Nachweis #54: vierter Lauf nativ unter Wayland". Dass sie den Build statt `/usr` prüften, ist B4, nicht B1 |
+| B2 | Geometrie-Zusicherungen, zwei Fenstergrößen | gewirkt | Heute nachgezählt: `keepsTheHeaderAtTheTopAndTheRestForTheNotes_data` (`librarytest.cpp:1795`) und `keepsTheMeasuresOfTheGroupedList_data` (`:1853`) je 900×600/1200×800, `bringsTheHeadOfTheNewGroupIntoView_data` (`:1015`) 900×600 und 900×150 |
+| B3 | UI-Review ist ohne eigenes Bild nicht geführt | gewirkt, entscheidend | Der einzige `fail` des Sprints (AK 7) kam aus der eigenen Bildprüfung des Reviewers, nicht aus Tests (13.4, 13.9) |
+| B4 | Geprüft wird der installierte Stand | **gerissen** | M1 (13.3) |
+| B5 | Registrierungen zurücklesen; benannte Prüfgrenze schließt die Story nicht | gewirkt | Die Grenze „Klick am Panel" wurde vorab benannt (5.1), als Kundensache geführt und am 02.08. 09:00 erbracht (15.1) — keine Fußnote |
+| B6 | Git-Regeln in der Agentendatei | gewirkt | I5 nach vorab festgelegtem Vier-Punkte-Kriterium geschlossen (13.9); heute nachgemessen: alle vier Story-Zweige vollständig in `main`, `git branch --no-merged main` leer |
+| B7 | Belege gehören ins Repo | **viermal gerissen** — zweimal als Mangel gemeldet, zweimal in dieser Retro neu gefunden | M3, M4 (13.4) und 16.1.2 unten |
+| B8 | Kadenz plus jederzeitige Kundenanordnung | trägt | Diese Sitzung nach Kadenz, die vom 01.08. auf Anordnung — ohne den Halbsatz stünden beide im Widerspruch zueinander |
+| B9 | DoD 4 erfasst entdeckte Bedingungen | gewirkt, stärkster Punkt | SPEC 5.1 (Trigger müssen FTS5 den **alten** Text mitgeben — weder Fehler noch `integrity-check` zeigen es an) und SPEC 6 (13.5) |
+| B10 | Doku-Abgleich am Sprint-Ende | gewirkt, schlug sofort an — **und ist heute wieder offen** | M8 (13.8); erneut: `README.md:7` sagt „(Sprint 3 in der Kundenabnahme)", der Kunde hat um 09:06 abgenommen (15) |
+
+#### 16.1.1 B4 — die Regel wurde ausgesetzt, der Ersatz stand nirgends
+
+M1 ist nicht durch Nachlässigkeit entstanden. Der PO **musste** die Regel für
+die Stränge aussetzen — es gibt ein `/usr` und vier Stränge, das Planning hat
+es als Risiko 6.4 vorhergesehen. Was fehlte, war der Ersatz: *am Sprint-Ende
+den Endstand einmal installieren.* Er stand in keinem Artefakt, also geschah er
+nicht, und vier von fünf Issues wurden am falschen Prüfling geprüft.
+
+**Heilung gemessen, nicht übernommen:** `stat /usr/bin/denkzetteld` →
+`ctime = 2026-08-02 00:23:58`, also 24 Minuten nach der DoD-Prüfung. Der
+installierte Stand trägt heute alle Merkmale, deren Fehlen den Mangel belegt
+hatte (`grep -a` auf die Binärdatei: „Keine Treffer", „trigram", „Diese
+Woche", „Letzte Woche", „Älter" — je vorhanden). Die Regel selbst trägt
+den Ersatz seit dem 02.08. in `PROZESS.md` (DoD 2) und `CLAUDE.md`.
+
+#### 16.1.2 B7 — viermal zu kurz, zweimal davon unbemerkt
+
+M3 (unversionierter Abschlusslauf) ist mit `47af87a` um 00:04 geheilt, M4
+(fehlender karpathy-Bericht) mit `0b1a3a1` um 00:05. Drei Befunde kommen hinzu,
+ein vierter entstand während dieser Sitzung:
+
+1. **Der erste karpathy-Lauf hat überhaupt keinen Bericht.** `e18630c` (01.08.,
+   22:33) heilt „drei Befunde des Prinzipien-Reviews" an #46; ein Bericht dazu
+   existiert nirgends — `grep -rl karpathy docs/scrum/reviews/` liefert genau
+   eine Datei, und die deckt den Sprint-Ende-Lauf ab. Die drei Befunde leben in
+   einer Commit-Nachricht.
+2. **Der abgelegte Bericht ist eine Fremdfassung.** Er sagt es selbst
+   (`sprint-03-karpathy.md:6`): „Abgelegt vom PO … gekürzt um Wiederholungen."
+   Ehrlich gekennzeichnet — aber der Beleg hat die Hand dessen passiert, dessen
+   Arbeit er beurteilt. Das ist die milde Form des Sprint-2-Musters, gegen das
+   B7 gefasst wurde.
+3. **Und die eigene Rolle:** Die DoD-Prüfung (23:59) hat DoD 3 als erfüllt
+   gebucht, obwohl der Bericht erst um 00:05 entstand. Sie hat die Lücke als M4
+   gemeldet und den Punkt trotzdem passieren lassen. Nachprüfbar war die
+   Aussage über Commits (`e18630c`, `7787339`) und über #59 — aber die Verdikte
+   `warn`/kein `fail` standen zum Prüfzeitpunkt in keinem Artefakt. **Der Scrum
+   Master hat gegen eine Meldung geprüft.**
+
+**Nachtrag, in dieser Sitzung um 09:48 gemessen — B7 reißt gerade jetzt zum
+vierten Mal.** `git status --porcelain docs/scrum/retro/` meldet
+`?? docs/scrum/retro/sprint-03/stellungnahme-dev.md`. Die technische
+Stellungnahme, auf der Abschnitt 16.3 vollständig ruht, ist **nicht
+committet**; die Sprint-2-Akte daneben ist es (neun Dateien unter
+`docs/scrum/retro/sprint-02/`, `git ls-files`). Ein Beleg, der eine Retro trägt
+und mit der Sitzung verschwinden kann, ist genau der Fall, für den B7 gefasst
+wurde — und er tritt in der Retro über B7 auf. **Melden, nicht heilen:** Der
+Scrum Master committet nichts, der Punkt steht in Auftrag 2 (16.10).
+
+#### 16.1.3 Der gemeinsame Nenner der beiden gerissenen Beschlüsse
+
+B1, B2, B3, B5, B6 und B9 hängen je an einem **Gegenstand** — einem Test, einem
+Bild, einer Zeile Code, einer SPEC-Zeile. Sie wurden mit ihm zusammen erledigt
+und konnten gar nicht vergessen werden.
+
+B4 und B7 verlangen eine **Handlung zu einem Zeitpunkt, den kein Artefakt
+benennt**: „installieren, bevor geprüft wird", „ablegen, bevor es weg ist".
+B10 hat einen Zeitpunkt — das Sprint-Ende —, aber den falschen: Er liegt vor
+der Abnahme, und die Statuszeile wird erst durch die Abnahme falsch.
+
+**Schluss: Nicht die Regeln haben gefehlt, sondern ihr Ort im Ablauf.** Daraus
+folgt B11.
+
+### 16.2 Das Muster hinter den Mängeln: der Sprint hat kein Ende
+
+14.5 hat es benannt: Acht der neun Mängel sind Abschlussmängel. Die Probe
+darauf ist der Ist-Zustand **heute**, knapp zehn Stunden nach dem letzten
+Produktivcode-Commit (`47a1774`, 01.08. 23:50) — alle Zeilen in dieser Sitzung
+gemessen:
+
+| Abschlussarbeit | Zustand 02.08., 09:39 | Beleg |
+|---|---|---|
+| Endstand installiert | erledigt, 02.08. 00:23:58 | `stat -c %z /usr/bin/denkzetteld` |
+| Prüfbelege versioniert | **teilweise offen** | `47af87a`, `0b1a3a1` erledigt; erster karpathy-Lauf ohne Bericht, `docs/scrum/retro/sprint-03/` untracked (16.1.2) |
+| Issues + Milestone geschlossen | erledigt | `gh issue list --milestone "Sprint 3"` → 5/5 `CLOSED` |
+| Journal | erledigt | Einträge 00:05, 00:34, 09:14 im Vault |
+| README-Statuszeile | **offen** | `README.md:7`: „(Sprint 3 in der Kundenabnahme)" |
+| Push | **offen** | `git rev-list --left-right --count origin/main...main` → `0 1` |
+| Story-Zweige geräumt | **offen** | 8 lokale Zweige, alle vollständig in `main` (`git merge-base --is-ancestor` je Exit 0) |
+| Worktrees geräumt | **offen** | `git worktree list` → 4 ausgecheckt; `du -sh .claude/worktrees` → **296 MB** |
+| Vollzugsvermerk | existiert nicht | — |
+
+**Der unbequeme Teil daran:** Der Entwickler hat die acht Zweige und die 296 MB
+in seiner Stellungnahme (Abschnitt 1) einzeln geprüft, als gefahrlos löschbar
+belegt und ausdrücklich **nichts** gelöscht — „melden, nicht heilen", exakt
+regelkonform. Der Befund liegt seit heute früh vor und hat trotzdem keinen
+Adressaten gefunden. **Melden ohne einen Ort, an dem das Gemeldete abgearbeitet
+wird, endet als Ablage.** Das ist dieselbe Lücke wie bei B4 und B7, nur eine
+Stufe später.
+
+**Wo der Abschluss stehen muss, damit er gelesen wird.** Die Liste selbst
+gehört in `PROZESS.md` — dort steht der Ablauf, und der Scrum Master liest die
+Datei von Amts wegen. Der **Auslöser** gehört in `CLAUDE.md`: Sie ist die
+einzige Datei, die jede Sitzung ohne Zutun aufschlägt, und der Ausführende von
+Takt 2 ist der PO, nicht der Scrum Master. Und damit die Liste nicht wieder nur
+Text ist, wird sie am Sprint-Ende ins Protokoll übernommen und mit Beleg
+abgehakt — 12.7 gilt für Abschlusspunkte so gut wie für Story-Grenzen: *Eine
+Regel, die in keiner laufenden Liste steht, ist keine Regel.*
+
+### 16.3 Die vier Kundenthemen
+
+Grundlage ist die technische Stellungnahme des Entwicklers
+(`docs/scrum/retro/sprint-03/stellungnahme-dev.md`, alle Zahlen dort mit
+Befehl). Sie ist in der Sache gut belegt; wo der Scrum Master widerspricht oder
+schärft, steht es dabei. **Nichts davon ist entschieden** — alle vier Punkte
+sind Kundenentscheidungen und stehen als solche in 16.9.
+
+#### 16.3.1 PR-Verfahren
+
+**Empfehlung des Devs:** ein PR je Story-Strang, geöffnet bei der Übergabe,
+Dev-Bericht und Review-Befunde als Kommentare, Merge durch den PO;
+Prozess- und Doku-Commits weiter direkt auf `main`; `--no-ff` statt Squash
+(gemessen: 90 von 91 Commits haben einen Body); Rückwärts-Merges künftig durch
+Rebase ersetzen.
+
+**Zustimmung, wo es trägt.** Das Anker-Argument ist echt und heute nachprüfbar:
+DoD 3 lässt die Reviews über „den Sprint-Diff" laufen, und dieser Bereich wird
+jedes Mal von Hand konstruiert (`59d0d3f..HEAD`). Die Befunde hängen an keiner
+Diff-Zeile. Auch die Merge-Strategie teilt der Scrum Master: Squash presste
+Festlegungen wie die in `19ca42b` (drei gemessene Werte im Commit-Body) in eine
+Zeile — dieses Projekt schreibt seine Begründungen in die Commits, das ist eine
+Quelle, keine Zeremonie.
+
+**Widerspruch: Der Dev vergleicht den PR mit „nichts" statt mit der billigeren
+Alternative.** Für den Zweck „stabiler Diff-Bereich am Sprint-Ende" genügt ein
+**Sprint-Basis-Tag** (`sprint-3-base` auf dem Ausgangsstand). Er kostet einen
+Befehl, veröffentlicht keinen Zwischenstand und macht `git diff
+sprint-N-base..main` reproduzierbar. Was ein PR **zusätzlich** böte, ist ein
+Ort für zeilengebundene Kommentare und für einen automatischen Testlauf. Beides
+hat heute keinen Nutzer: Die Reviewer sind Agenten, die ihre Befunde als
+Bericht abliefern, und eine CI existiert nicht (`ls .github` → nicht
+vorhanden). **Ein PR ohne CI und ohne Zeilenkommentare ist genau die Zeremonie,
+vor der der Dev selbst warnt.**
+
+**Zweiter Punkt, der dem Kunden gehört:** Branch-Push ist bei einem öffentlichen
+Repo Veröffentlichung. Heute ist nur das kuratierte `main` sichtbar; mit
+PR-Pflicht wäre jeder Zwischenstand publiziert. Das ist keine technische, das
+ist seine Entscheidung.
+
+**Empfehlung des Scrum Masters:** Sprint-Basis-Tag sofort (kostenlos, unabhängig
+von allem anderen); PR-Verfahren als **Probelauf über Sprint 4** mit einem
+**vorab festgelegten Kriterium** — dieselbe Methode, mit der I5 belastbar
+geschlossen wurde. Kriterium: Am Ende von Sprint 4 hängt mindestens ein Befund
+an einer Diff-Zeile, der ohne PR nicht auffindbar gewesen wäre, **oder** der PR
+hat einen automatischen Testlauf getragen. Sonst wird das Verfahren wieder
+eingestellt und der Tag bleibt.
+
+#### 16.3.2 Versionierung
+
+**Empfehlung des Devs:** `CMakeLists.txt:3` als einzige Quelle, Tag als Siegel,
+0.x-SemVer, MINOR je **Kundenabnahme** (nicht je Sprint-Ende), PATCH für
+außerplanmäßige Behebungen, 1.0.0 auf Erklärung des Kunden, jede Schemamigration
+erzwingt mindestens einen MINOR-Sprung; sichtbar über
+`app.setApplicationVersion()` und `--version`; ein `KAboutData`-Dialog steht
+nicht in der SPEC und bräuchte eine eigene Story.
+
+**Zustimmung in allen Punkten.** Der Kernbefund ist gemessen und erklärt drei
+Sprints Stillstand: Die Version ist **inert** — `grep -rn
+"PROJECT_VERSION\|KAboutData\|setApplicationVersion" src desktop CMakeLists.txt`
+findet nichts. Eine Erhöhung hätte nichts verändert, was jemand hätte sehen
+können. Besonders gut begründet ist die Kopplung an die **Abnahme**: Ein
+Sprintschluss ist ein Ereignis des Teams, ein Release eines für den Kunden — und
+ein Sprint ohne Abnahme erzeugt dann eben keine Version. Ebenso die
+Migrationsregel: Wer echten Bestand hat, muss an der Zahl sehen, dass ein Stand
+seine Datenbank anfasst.
+
+**Eine Ergänzung aus Prozesssicht:** Die Umsetzung ist Produktivcode
+(`--version`, Compile-Definition) und **braucht eine eigene Story mit
+SPEC-Eintrag** — die SPEC kennt heute weder Programmversion noch „Über"-Dialog
+(`grep -in version SPEC.md` → nur Schemaversionen). Ohne Story liefe die
+Änderung an DoD 4 vorbei; genau davor warnt der Dev selbst („ich schlage ihn
+vor, ich erfinde ihn nicht"). #41 (PKGBUILD) hängt daran.
+
+#### 16.3.3 Changelog
+
+**Empfehlung des Devs:** `CHANGELOG.md` nach *Keep a Changelog*, gespeist aus
+den geschlossenen Issues je Milestone (`gh issue list --state closed
+--milestone …` — ein Befehl), Release-Notes daraus beim Taggen, nie umgekehrt;
+drei Auflagen, weil das Repo öffentlich ist (kein Innenregister, keine
+Story-Kürzel, keine Kundenzitate).
+
+**Zustimmung zur Quelle und zur Richtung.** Der Nachweis ist stark: 92 %
+Issue-Deckung bei Produktivcode-Commits, aber **null** Conventional-Präfixe —
+also ist das Commit-Log als Generator-Quelle tot, die Issues sind es nicht. Und
+„Datei im Repo, Release-Seite daraus" ist richtig herum: Wer klont oder ein
+Paket baut, sieht die Release-Seite nie.
+
+**Widerspruch, belegt: Die Labels sind *nicht* „exakt die
+Keep-a-Changelog-Kategorien".** Gemessen an Sprint 3 (`gh issue list
+--milestone "Sprint 3" --json labels`): `typ:story` ×2, `typ:bug` ×2,
+`typ:tech` ×1. Die ersten beiden bilden Added/Fixed ab — `typ:tech` bildet
+nichts ab: #9 ist ein Migrationstest, für einen Nutzer unsichtbar. Und
+umgekehrt fehlt der Eintrag, der einem Nutzer von allen am meisten sagt — *beim
+ersten Start wird die Datenbank umgeschrieben* —, in **jedem** Issue-Titel; die
+Migration steckt als Nebenwirkung in #8. Der Dev fordert diesen Eintrag selbst,
+leitet ihn aber aus einer Quelle her, die ihn nicht enthält.
+
+**Daraus folgt eine Verschärfung, keine Ablehnung:** Der Entwurf ist mechanisch,
+der Changelog ist es nicht. Er braucht (a) eine Filterregel — `typ:tech`
+erscheint nur, wenn es nach außen wirkt —, und (b) einen **Pflichtpunkt
+„Datenbank"**: Ändert sich die Schemaversion, steht ein Hinweis im Changelog,
+unabhängig davon, welche Issues geschlossen wurden. Ohne diese beiden Zusätze
+erzeugt der Vorschlag ein Register geschlossener Tickets, keine Release-Note.
+
+#### 16.3.4 Verwaltungsrolle auf kleinem Modell
+
+**Empfehlung des Devs:** ein einziger Agent `denkzettel-verwalter` (Haiku),
+Werkzeuge auf `Read` und `Bash(git …|gh …)` beschränkt, kein Schreibrecht auf
+`SPEC.md`, `src/` und Issue-Rümpfe; Standardausgabe ist ein Bericht, umkehrbare
+Handlungen nur auf ausdrücklichen Auftrag. Trennlinie: **ausführen ja,
+entscheiden nein** — und nur, wo das Ergebnis per Befehl prüfbar und die
+Handlung umkehrbar ist. Ausdrücklich **nicht** an ein kleines Modell:
+AK-Haken setzen (das ist die Abnahmeentscheidung selbst), über das Schließen
+entscheiden, Mängel beheben, Versionssprünge bestimmen, Changelog-Texte
+formulieren.
+
+**Vollständige Zustimmung zur Trennlinie.** Sie ist der Kern und sie ist richtig
+begründet: Der Haken ist nicht umkehrbar, er wird zur Beweislage — und dieses
+Projekt hat an einem Abend vier grüne Tests verloren, die nichts prüften.
+
+**Eine Einschränkung und eine Reihenfolge.** Die Aufgaben, um die es geht — Issues
+schließen, Zweige räumen, Abgleichsberichte — sind zusammen vielleicht zehn
+Minuten Arbeit je Sprint. Karpathy 2 spräche dagegen, dafür einen Agenten zu
+bauen. **Das Argument, das trotzdem trägt, ist nicht Aufwand, sondern
+Zuständigkeit:** Diese zehn Minuten haben nicht stattgefunden — M2 und M5
+standen offen, weil niemand zuständig war, und acht Zweige samt 296 MB stehen
+es bis jetzt (16.2). Ein Agent gibt der Arbeit einen Inhaber.
+
+Daraus folgt die Reihenfolge, in der der Scrum Master vom Dev abweicht: Der Dev
+setzt den Verwalter hinter die drei Git-Themen. **Die eigentliche Vorbedingung
+ist die Abschlussliste (B11)** — ohne sie hat der Verwalter keine Liste, die er
+abarbeiten könnte, und mit ihr ist er schon nützlich, bevor PR, Version und
+Changelog entschieden sind.
+
+### 16.4 Revision der Modellzuordnung
+
+In `PROZESS.md` ausdrücklich als Retro-Thema vorgemerkt. Geprüft am
+Sprint-Verlauf, nicht am Eindruck.
+
+**Opus 5 für `denkzettel-dev`, `denkzettel-ux`, `scrum-master`: bewährt.**
+
+- Der Sprint lieferte 33 Commits über vier Stränge, Neubau mit **null
+  Warnungen**, `ctest` 7/7, `tests/librarytest.cpp` von 983 auf 2040 Zeilen und
+  67 Testfunktionen (13.2).
+- `denkzettel-ux` hat den einzigen `fail` des Sprints aus **eigenen Bildern**
+  gefunden, nicht aus Tests, und nach der Heilung einen zusätzlichen `warn`
+  (13.4).
+- `denkzettel-dev` hat in der zweiten Runde denselben Fehlertyp **selbst**
+  gefunden, und zwar durch Messung des Rollwerts statt durch Vergleich von
+  Endbildern (12.1).
+- Der `scrum-master` hat in der DoD-Prüfung neun Mängel benannt, darunter den
+  schweren M1, den niemand gemeldet hatte — gefunden durch Vergleich des
+  Binärinhalts von `/usr` gegen einen frischen Build (13.3).
+
+**Der Fall, der gegen eine Abstufung des Sicherheitsnetzes spricht.** Die
+tautologische Zusicherung in `tests/librarytest.cpp` wurde von einer Opus-Rolle
+geschrieben (`4746358`, #46), lief in deren eigener Suite grün — sie *konnte*
+nicht rot werden — und erreichte `main`. Gefunden hat sie der
+`karpathy-reviewer` auf **Fable**; entfernt wurde sie erst mit `7787339`
+(23:49). Ein Test, der nicht fehlschlagen kann, ist die teuerste Fehlerart
+dieses Projekts. **Der `karpathy-reviewer` bleibt auf Fable.**
+
+**Kein Modellbefund ist M1.** Der falsche Prüfling entstand daraus, dass eine
+Regel ohne Ersatz ausgesetzt wurde (16.1.1) — das ist eine Prozessfrage und
+wäre auf jedem Modell passiert.
+
+**Zum Kundenvorschlag „Sonnet/Haiku für Verwaltung":** fachlich richtig
+platziert, siehe 16.3.4. Er füllt eine Lücke, keine Ersetzung: Es gibt heute
+**keine** Rolle für Verwaltungsarbeit, und die Rollentabelle in `PROZESS.md`
+bekommt erst nach der Kundenentscheidung eine Zeile dafür.
+
+*Ergebnis (in `PROZESS.md`, Modellzuordnung, eingetragen): Zuordnung bestätigt,
+nächste Revision Retro nach Sprint 6.*
+
+### 16.5 Retro-Stoff aus der DoD-Prüfung
+
+**M4 — kein karpathy-Bericht als versionierter Beleg.** Behandelt in 16.1.2; er
+ist kein Einzelfall, sondern hat einen unentdeckten Bruder (der erste Lauf zu
+#46 ganz ohne Bericht) und einen Konstruktionsfehler (Ablage durch den
+Geprüften). Antwort: B11, Takt 1, Punkt 2 — jeder Prüflauf hinterlässt eine
+Datei, **bevor** die DoD-Prüfung läuft.
+
+**M9 — fünf Issues gegen „2–4 Stories": Regel anpassen oder Verhalten?**
+Entschieden: **Verhalten, nicht Regel.** Begründung am Fall: Das Planning hat
+die Grenze korrekt angewandt, als es sie kommen sah — 3.3 legt #50 wörtlich als
+Kundenentscheidung vor, weil es das fünfte Issue wäre. Die Grenze hat also
+funktioniert, solange jemand sie prüfte. Gerissen ist sie bei #54, und zwar
+nicht, weil sie zu eng war, sondern weil bei jedem Zugang die Punktzahl
+mitgezählt wurde und die Zahl der Issues nicht (12.7). Eine Erweiterung auf
+„2–5" nähme die einzige Schwelle weg, die einen Zugang überhaupt zur
+Kundenfrage macht — und der Kunde hat #54 ja freigegeben; ihm wurde nur nicht
+gesagt, dass er damit zugleich über eine Grenze entschied. Antwort: B12
+(Sprint-Konto mit beiden Zahlen und Vorlagepflicht bei Grenzberührung).
+
+**12.3 — 30 % Sprintwachstum nach der Freigabe.** Drei Zugänge, jeder einzeln
+begründet und einzeln vom Kunden freigegeben. Der Scrum Master sieht hier
+**keine** zusätzliche Regel als nötig an: Die Entscheidung lag jedes Mal beim
+Kunden, wo sie hingehört. Was fehlte, ist ausschließlich die Information, dass
+die Summe eine Schwelle passiert — genau das leistet B12. Eine Regel „ab X %
+ist es ein neuer Sprint" wäre eine Erfindung ohne Fall.
+
+**15.3 — flüchtige Kundenbelege.** Von acht Bildern der Abnahme überlebten
+sieben Minuten nur eines. B7 kennt nur die Belege, die Agenten selbst erzeugen.
+**Wohin die Regel gehört:** in `PROZESS.md` (Artefakte, als Ergänzung zu B7 —
+dort steht die Belegordnung) und als Auslöser in `CLAUDE.md`, weil der
+Empfänger von Kundenbildern immer der PO ist und keine andere Datei ihn von
+selbst erreicht. Beschluss B14.
+
+**12.6 — das Repository ist öffentlich.** Der Prozess kennt bis heute keine
+Regel dafür, was hineingeschrieben wird; wörtliche Kundenzitate, Messwerte vom
+Rechner des Kunden und interne Fehleranalysen stehen bereits darin — auch in
+diesem Protokoll. Das ist **keine Prozessfrage**, sondern die Entscheidung des
+Eigentümers über seinen eigenen Namen. Sie steht als Punkt 5 in 16.9; der
+Scrum Master beschließt dazu nichts.
+
+### 16.6 Was gut lief — mit Beleg
+
+- **Zwei Impedimente sind nach vorab festgelegten Kriterien geschlossen
+  worden.** I5 gegen ein Vier-Punkte-Kriterium, das **vor** dem Sprint im
+  Planning stand (8) und damit nicht nachträglich passend gemacht werden
+  konnte; I4 gegen die Bedingung aus Sprint-02, 9.7 (13.9). Das ist der
+  Unterschied zwischen „wir hatten kein Problem" und „wir haben nach einem
+  Maßstab gesucht, der vorher feststand".
+- **Vier Stränge, vier Worktrees, 33 Commits, acht Merges, keine Kollision.**
+  Heute nachgemessen: alle vier Story-Zweige vollständig in `main`,
+  `git branch --no-merged main` leer, kein `git add -A`-Fund im Sprint-Diff
+  (13.9).
+- **Die Prüfhaltung hat drei Fehlentscheidungen gekippt, alle drei durch
+  Messung.** Zwei beim PO (12.2: eine Berufung auf einen Wireframe, der das
+  Gegenteil zeigt; eine Vereinfachung, die den eine Stunde zuvor geheilten
+  Fall wiederhergestellt hätte) und eine beim Reviewer, der seine **eigene**
+  Empfehlung nach dem Nachmessen zurücknahm. Keine der drei wäre durch
+  Nachdenken aufgefallen — jede Begründung trug.
+- **DoD 4 über das Geforderte hinaus** (13.5): SPEC 5.1 hält eine Bedingung
+  fest, deren Verletzung weder einen Fehler noch einen `integrity-check`
+  auslöst. Das ist der Fall, für den B9 gefasst wurde, und er ist von selbst
+  gefunden worden.
+- **B10 hat bei seiner ersten Anwendung sofort angeschlagen** (M8). Eine
+  Prüfung, die beim ersten Lauf etwas findet, war fällig.
+- **Der karpathy-Reviewer hat gezielt nach weiteren wertlosen Tests gesucht**
+  und zusätzlich gegengeprüft, dass `capturetest::textsFollowAColourSchemeChange`
+  gegen den alten Code rot würde — eine Mutationsprobe statt einer Zusicherung
+  („keine weiteren gefunden" ist erst dann eine Aussage).
+
+### 16.7 Beschlüsse
+
+Fortlaufend ab **B11** (die Sprint-2-Retro endete bei B10). Jeder Beschluss ist
+eine Änderung an einem benannten Artefakt, keine Absichtserklärung.
+
+**B11 — Verbindlicher Sprint-Abschluss in zwei Takten.**
+Neuer Abschnitt „Sprint-Abschluss" in `PROZESS.md` mit neun Punkten: Takt 1 vor
+der Kundenabnahme (Endstand installiert, jeder Prüflauf als Bericht abgelegt
+*vor* der DoD-Prüfung, DoD 1–4 und Doku-Abgleich, Mängelliste an den PO),
+Takt 2 nach der Abnahme (Issues und Milestone, Journal, Push, Zweige und
+Worktrees geräumt, Vollzugsvermerk durch den Scrum Master). Der Scrum Master
+übernimmt die Liste am Sprint-Ende ins Protokoll und hakt sie mit Beleg ab.
+*Begründung:* Acht der neun Mängel sind Abschlussmängel (14.5); die beiden
+gerissenen Sprint-2-Beschlüsse verlangen Handlungen ohne Ort im Ablauf
+(16.1.3); Takt 2 steht knapp zehn Stunden nach Sprintende in fünf Punkten offen
+(16.2). Zwei Takte, weil DoD 5 und DoD 6 vor der Abnahme nicht erfüllbar sind
+und der Doku-Abgleich vor ihr am Ziel vorbeigeht.
+*Geändert:* `docs/scrum/PROZESS.md` (neuer Abschnitt „Sprint-Abschluss").
+*Offen — Auftrag an den PO:* Auslöser-Absatz in `CLAUDE.md` (16.10, Auftrag 1).
+
+**B12 — Sprint-Konto: beide Grenzen werden laufend geführt.**
+`PROZESS.md`, Sprint-Mechanik: Das Sprint-Protokoll führt Issue-Zahl *und*
+Story Points mit Ausgangs- und neuem Stand; jeder Zugang nach der Freigabe wird
+gebucht; berührt er eine Grenze, legt der PO ihn dem Kunden **als
+Grenzüberschreitung** vor.
+*Begründung:* M9 und 12.7 — die Punktzahl wurde bei jedem Zugang mitgezählt,
+die Zahl der Issues nicht; das Planning hatte die Schranke für #50 wörtlich
+aufgestellt, und bei #54 hat sie niemand wiedererkannt. Die Regel bleibt
+unverändert, das Verhalten wird mechanisiert (16.5).
+*Geändert:* `docs/scrum/PROZESS.md` (Sprint-Mechanik).
+*Offen — Auftrag an den PO:* zwei Zeilen in `CLAUDE.md` (16.10, Auftrag 1).
+
+**B13 — Die Arbeitsweise der Parallelstränge steht in der Prozessdatei, nicht
+im Auftragstext.**
+`PROZESS.md`, Sprint-Mechanik: je Strang ein Worktree und ein Zweig
+(`story/NN-…`, `fix/NN-…`), Ausgangsstand ist gepushtes `main`, Merge nur durch
+den PO, ein Strang der `main` braucht rebased statt rückwärts zu mergen, die
+Installation nach `/usr` ist ein exklusiver, vom PO getakteter Abschnitt.
+*Begründung:* Das Verfahren hat getragen (I5 geschlossen), lebte aber
+ausschließlich in den Spawn-Aufträgen — dieselbe Bauart, gegen die B6 gefasst
+wurde. Der Rückwärts-Merge `c3e4daf` ist der eine Beleg dafür, dass eine nicht
+aufgeschriebene Konvention driftet.
+*Ausdrücklich nicht geändert:* `.claude/agents/denkzettel-dev.md`. Die im
+Planning (8) gestellte Frage, ob die Worktree-Regel in die Agentendatei gehört,
+wird mit **nein** beantwortet: Der Entwickler legt keinen Worktree an, er wird
+in einen hineingesetzt — die vier Zweige `worktree-agent-*` zeigen es, sie
+stehen sämtlich unberührt auf `59d0d3f`. Die Regel adressiert den PO.
+*Geändert:* `docs/scrum/PROZESS.md` (Sprint-Mechanik).
+
+**B14 — Flüchtige Belege werden beim Eintreffen gesichert.**
+Ergänzung zu B7 in `PROZESS.md` (Artefakte): Kundenbilder und andere Belege aus
+temporären Ordnern werden sofort ins Repo gesichert, nicht am Ende des
+Arbeitsschritts.
+*Begründung:* 15.3 — sieben von acht Bildern der Abnahme waren nach sieben
+Minuten weg; B7 kennt nur die Belege, die Agenten selbst erzeugen.
+*Geändert:* `docs/scrum/PROZESS.md` (Artefakte).
+*Offen — Auftrag an den PO:* eine Zeile in `CLAUDE.md` (16.10, Auftrag 1), weil
+der Empfänger von Kundenbelegen immer der PO ist.
+
+**B15 — Modellzuordnung geprüft und bestätigt, Revisionsvermerk
+fortgeschrieben.**
+`PROZESS.md`, Modellzuordnung: Der Satz „Revision dieser Zuordnung ist
+Retro-Thema" wird durch das Ergebnis dieser Prüfung ersetzt, mit dem Beleg für
+das Fable-Sicherheitsnetz und dem nächsten Revisionstermin (Retro nach
+Sprint 6).
+*Begründung:* 16.4. Ein offener Vermerk ohne Ergebnis ist nach drei Sprints
+kein Vermerk mehr, sondern ein Rückstand.
+*Geändert:* `docs/scrum/PROZESS.md` (Modellzuordnung).
+
+**Nicht beschlossen — und warum nicht.** PR-Verfahren, Versionsschema,
+Changelog und der Verwaltungsagent sind **nicht** beschlossen und stehen in
+keiner Prozessdatei. Alle vier berühren Kosten, Veröffentlichung oder die
+Rollenverteilung und gehören dem Kunden (16.9). Der Abschnitt „Sprint-Abschluss"
+sagt das ausdrücklich, damit die Auslassung als Absicht erkennbar bleibt und
+nicht als Lücke nachgetragen wird.
+
+### 16.8 Abschlussprüfung — zwei Fragen je Beschluss, schriftlich
+
+| Beschluss | (1) In welchem Artefakt gelandet? | (2) Wird es automatisch gelesen? |
+|---|---|---|
+| B11 | `PROZESS.md`, Abschnitt „Sprint-Abschluss" | **Teilweise.** Der Scrum Master liest `PROZESS.md` als verbindliche Grundlage (Agentendatei). Der Ausführende von Takt 2 ist der PO — für ihn wirkt sie erst mit dem `CLAUDE.md`-Absatz aus Auftrag 1. **Bis dahin unvollständig verankert.** |
+| B12 | `PROZESS.md`, Sprint-Mechanik | **Teilweise**, aus demselben Grund: Der Scrum Master liest sie beim Planning, gebucht wird vom PO. Vollständig mit Auftrag 1. |
+| B13 | `PROZESS.md`, Sprint-Mechanik | **Ja.** Adressaten sind Scrum Master (Sprint-Schnitt) und PO (Spawn-Aufträge); der Scrum Master liest die Datei ohnehin, und `CLAUDE.md` verweist auf sie als vor jeder Arbeit zu lesende Vereinbarung. |
+| B14 | `PROZESS.md`, Artefakte | **Teilweise.** Der Adressat ist der PO im laufenden Kundengespräch — das ist der Moment, in dem niemand eine Prozessdatei aufschlägt. Wirkt erst mit Auftrag 1. |
+| B15 | `PROZESS.md`, Modellzuordnung | **Ja.** Er richtet sich an Scrum Master und PO beim Spawn; beide lesen die Datei bzw. den Verweis aus `CLAUDE.md`. |
+
+**Ehrliche Bilanz dieser Prüfung: Drei von fünf Beschlüssen sind heute nur zur
+Hälfte verankert.** Sie stehen im richtigen Artefakt, aber ihr Adressat ist der
+PO, und der einzige Ort, den eine PO-Sitzung ohne Zutun liest, ist `CLAUDE.md` —
+eine Datei außerhalb der Dateimenge des Scrum Masters. **Genau das ist die
+Lücke, die die Sprint-2-Retro zehnmal hatte** (alle Beschlüsse korrekt in
+`PROZESS.md`, nur las die niemand von selbst). Sie ist deshalb hier nicht
+weggeschrieben, sondern als Auftrag 1 mit fertigem Wortlaut übergeben — und die
+nächste Retro prüft nach, ob er ausgeführt wurde.
+
+### 16.9 Was dem Kunden zur Entscheidung vorliegt
+
+1. **Pull Requests.** Vorschlag: ein PR je Story-Strang, ab Sprint 4, als
+   Probelauf über **einen** Sprint mit vorab festgelegtem Kriterium (am Ende
+   hängt entweder ein Befund an einer Diff-Zeile, der sonst nicht auffindbar
+   gewesen wäre, oder ein automatischer Testlauf lief darauf — sonst wird das
+   Verfahren eingestellt). Unabhängig davon und sofort: ein Sprint-Basis-Tag,
+   der den Prüf-Diff stabil macht, ohne Zwischenstände zu veröffentlichen.
+   **Zu wissen:** Bei einem öffentlichen Repo ist jeder gepushte Zweig eine
+   Veröffentlichung; heute ist nur `main` sichtbar. *Empfehlung: Tag ja,
+   PR als befristeter Probelauf.*
+2. **Versionierung.** Vorschlag: `CMakeLists.txt` bleibt die einzige Quelle,
+   der Tag `vX.Y.Z` ist das Siegel; 0.x-SemVer; MINOR bei **jeder
+   Kundenabnahme**, PATCH für außerplanmäßige Behebungen, 1.0.0, wenn Sie
+   sagen, dass das Werkzeug Ihren Alltag trägt; jede Schemamigration erzwingt
+   mindestens einen MINOR-Sprung. Die Zahl wird über `--version` sichtbar —
+   das ist Produktivcode und braucht eine eigene kleine Story mit SPEC-Eintrag.
+   *Empfehlung: annehmen; #41 (PKGBUILD) hängt daran.*
+3. **Changelog.** Vorschlag: `CHANGELOG.md` im Repo nach *Keep a Changelog*,
+   gespeist aus den geschlossenen Issues des Milestones, Release-Notes daraus
+   erzeugt — nicht umgekehrt. Zwei Zusätze des Scrum Masters: rein technische
+   Einträge bleiben draußen, und **jede Schemaänderung bekommt einen
+   Pflichteintrag** (dass ein Update die Datenbank umschreibt, steht heute nur
+   in einem Test). *Empfehlung: annehmen.*
+4. **Verwaltungsagent auf kleinem Modell.** Vorschlag: ein Agent
+   `denkzettel-verwalter` (Haiku), der ausführt und nicht entscheidet — Zweige
+   räumen, Abgleichsberichte, Changelog-Entwürfe, Issues **als Vollzug** einer
+   protokollierten Abnahme schließen; ausdrücklich nicht: AK-Haken setzen,
+   Mängel beheben, Versionssprünge bestimmen, Changelog-Texte formulieren.
+   *Empfehlung: annehmen, aber erst nach B11* — vorher gibt es keine Liste,
+   die er abarbeiten könnte. Er bekommt dann auch eine Zeile in der
+   Rollentabelle.
+5. **Was in das öffentliche Repository geschrieben werden darf.** Heute stehen
+   dort wörtliche Kundenzitate, Messwerte von Ihrem Rechner und interne
+   Fehleranalysen — vertretbar, aber nie entschieden (12.6). *Empfehlung:
+   Zitate und Messwerte weiter zulassen, aber keine Systemdetails und keine
+   personenbezogenen Angaben; wenn Ihnen das zu weit geht, sagen Sie es, dann
+   wird umformuliert statt gelöscht.*
+6. **Push-Kadenz.** Offen seit dem 02.08.: Soll der PO vor jedem Push Bescheid
+   sagen, oder nach jedem abgeschlossenen Arbeitsblock pushen? *Empfehlung:
+   nach jedem Arbeitsblock ohne Rückfrage* — der Push war in drei Sprints
+   zweimal der letzte offene Punkt (33 Commits am Sprint-3-Ende, aktuell einer),
+   und die Sichtbarkeit ändert sich dadurch nicht, weil `main` ohnehin
+   veröffentlicht wird.
+
+### 16.10 Umsetzungsaufträge an den Product Owner
+
+Der Scrum Master ändert weder Code noch SPEC noch Agentendateien noch
+`CLAUDE.md` noch Memory. Was dort hingehört, steht hier mit fertigem Wortlaut.
+
+**Auftrag 1 (verankert B11, B12, B14) — drei Absätze in `CLAUDE.md`,
+Abschnitt „Die Regeln, die am häufigsten übergangen werden":**
+
+> **Ein Sprint endet nicht mit dem letzten Commit.** Der Abschluss steht als
+> Liste in `docs/scrum/PROZESS.md`, Abschnitt „Sprint-Abschluss", und wird
+> Punkt für Punkt im Sprint-Protokoll abgehakt: vor der Kundenabnahme
+> installieren, Belege ablegen, prüfen — nach ihr Issues schließen, Journal,
+> Push, Zweige und Worktrees räumen. Acht der neun Mängel aus Sprint 3 waren
+> Abschlussmängel.
+>
+> **Jeder Zugang nach der Sprint-Freigabe wird gebucht** — Issues *und* Punkte.
+> Berührt er eine der beiden Grenzen (2–4 Stories, ~13 SP), legt der PO ihn dem
+> Kunden als Grenzüberschreitung vor. In Sprint 3 wurde bei jedem Zugang die
+> Punktzahl mitgezählt, die Zahl der Issues nicht — die Grenze fiel niemandem
+> auf.
+>
+> **Flüchtige Belege sofort sichern.** Kundenbilder liegen in temporären
+> Ordnern; von acht Bildern der Sprint-3-Abnahme überlebten sieben Minuten nur
+> eines.
+
+**Auftrag 2 — offene Punkte aus Takt 2 des Sprint-3-Abschlusses** (16.2), zu
+erledigen bevor Sprint 4 startet: die Verfahrensangabe „(Sprint 3 in der
+Kundenabnahme)" aus `README.md:7` entfernen — die Statuszeile beschreibt den
+gelieferten Stand, nicht den Stand der Abnahme (`PROZESS.md`,
+Sprint-Abschluss, Takt 1 Punkt 3); **`docs/scrum/retro/sprint-03/` committen —
+die Stellungnahme des Entwicklers ist untracked (16.1.2, Nachtrag)**; `main`
+pushen (dann zwei Commits); die vier Worktrees entfernen und die acht
+vollständig gemergten Zweige löschen (`git worktree remove`, dann
+`git branch -d`; 296 MB). Danach meldet der PO den Vollzug, und der Scrum
+Master trägt ihn nach.
+
+**Auftrag 3 — karpathy-Review der Prozessänderung.** Fällig nach der globalen
+Regel (Regel-/Prozess-Artefakt geändert) und nach `PROZESS.md`,
+Retrospektiven. Entwurf des Auftrags:
+
+> **Was geändert wurde:** `docs/scrum/PROZESS.md` — neuer Abschnitt
+> „Sprint-Abschluss" (neun Punkte in zwei Takten), zwei neue Punkte in der
+> Sprint-Mechanik (Sprint-Konto, Parallelarbeit), eine Ergänzung bei den
+> Belegen (flüchtige Belege), das Ergebnis der Modellrevision. Dazu Abschnitt
+> 16 in `docs/scrum/sprints/sprint-03.md` (Retro-Protokoll).
+>
+> **Worauf zu schauen ist:**
+> 1. **Prinzip 2:** Erzeugt die Abschlussliste Bürokratie, die niemand füllt?
+>    Jeder ihrer neun Punkte muss auf einen Mangel aus 13.12 oder auf eine
+>    heute gemessene offene Stelle (16.2) zurückführbar sein. Punkte ohne
+>    solchen Beleg gehören gestrichen.
+> 2. **Prüfbarkeit:** Ist jeder Punkt gegen einen Befehl oder ein Artefakt
+>    entscheidbar, oder hängt er am Ermessen? Der Sprint-2-Befund zu DoD 4
+>    („was zählt als Bedingung?") ist die Fehlerbauart, um die es geht.
+> 3. **Prinzip 1:** Die Retro behauptet, B4 und B7 seien gerissen, weil sie
+>    „keinen Ort im Ablauf" haben (16.1.3). Trägt diese Erklärung, oder ist sie
+>    eine plausible Begründung, die den falschen Schluss stützt? Der
+>    Gegen-Fall wäre: B1/B2/B3 haben denselben fehlenden Ort und hielten
+>    trotzdem.
+> 4. **Prinzip 3:** Sind die `PROZESS.md`-Änderungen chirurgisch, oder ist
+>    angrenzender Text mitverändert worden?
+> 5. **Widerspruchsfreiheit:** Kollidiert der neue Abschnitt mit DoD 2, DoD 5,
+>    DoD 6 oder dem Doku-Abgleich unter der DoD-Liste — insbesondere die
+>    Aufteilung in zwei Takte?
+>
+> **Ergebnisformat:** `pass`/`fail`/`Hinweis` je Befund mit Fundstelle;
+> Bericht als Datei unter `docs/scrum/reviews/` (B7, und neu: B11 Takt 1
+> Punkt 2), ungekürzt.
+
+### 16.11 done / next
+
+**done:** Reguläre Retro nach Sprint 3 moderiert. Die zehn Beschlüsse der
+Sprint-2-Retro gegen den **Verlauf** von Sprint 3 geprüft statt gegen die Doku
+— acht haben nachweislich gewirkt, B4 ist gerissen (M1) und B7 dreifach
+(M3, M4 und der bis heute unbemerkte erste karpathy-Lauf ohne Bericht);
+Gemeinsamkeit der gerissenen belegt: Sie verlangen Handlungen ohne Ort im
+Ablauf. Der Ist-Zustand des Abschlusses knapp zehn Stunden nach Sprintende
+nachgemessen (fünf Punkte offen, darunter 8 Zweige, 296 MB Worktrees und —
+während der Retro über B7 gefunden — die untrackte Stellungnahme, auf der
+Abschnitt 16.3 ruht). Die
+vier Kundenthemen mit der Dev-Stellungnahme durchgearbeitet, ihr in zwei
+Punkten belegt widersprochen (die Labels sind **nicht** deckungsgleich mit den
+Keep-a-Changelog-Kategorien; der PR wird gegen „nichts" statt gegen den
+billigeren Sprint-Basis-Tag verglichen) und je einen entscheidbaren Vorschlag
+samt Empfehlung formuliert. Modellzuordnung revidiert und bestätigt, mit dem
+einen Fund als Beleg, den nur das Fable-Sicherheitsnetz gefunden hat. Fünf
+Beschlüsse **B11–B15** gefasst und noch in dieser Sitzung in `PROZESS.md`
+umgesetzt; die Abschlussprüfung offen ausgewiesen, dass drei davon bis zur
+Ausführung von Auftrag 1 nur halb verankert sind.
+
+**next:** (1) PO führt Auftrag 1 aus (drei Absätze in `CLAUDE.md`) — ohne ihn
+wirken B11, B12 und B14 nur für den Scrum Master. (2) PO erledigt Auftrag 2
+(README, Push, Zweige und Worktrees) und meldet den Vollzug; der Scrum Master
+trägt ihn nach. (3) PO ruft den karpathy-Review nach Auftrag 3 auf; Bericht
+ungekürzt unter `docs/scrum/reviews/`. (4) Kunde entscheidet die sechs Punkte
+aus 16.9; erst danach kommen Version, Tag und Changelog in den Abschnitt
+„Sprint-Abschluss". (5) Sprint-4-Planning: Das Sprint-Konto nach B12 wird von
+der ersten Zeile an geführt; erste Kandidaten sind #11 (S8) und #10 (S7) aus
+3.3, dazu die Aufträge aus der Abnahme (#60, #51, #52). (6) Nächste reguläre
+Retro nach Sprint 6; sie prüft als Erstes nach, ob Auftrag 1 ausgeführt wurde.

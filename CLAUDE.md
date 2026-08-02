@@ -37,6 +37,23 @@ meldet ihn dem PO. Das gilt auch, wenn die Heilung eine Zeile wäre.
 nicht nur geänderte Festlegungen. Wenn beim Bauen herauskommt, dass etwas nur
 unter einer Bedingung gilt, gehört die Bedingung in die SPEC.
 
+**Ein Sprint endet nicht mit dem letzten Commit.** Der Abschluss steht als
+Liste in `docs/scrum/PROZESS.md`, Abschnitt „Sprint-Abschluss", und wird
+Punkt für Punkt im Sprint-Protokoll abgehakt: vor der Kundenabnahme
+installieren, Belege ablegen, prüfen — nach ihr Issues schließen, Journal,
+Push, Zweige und Worktrees räumen. Acht der neun Mängel aus Sprint 3 waren
+Abschlussmängel.
+
+**Jeder Zugang nach der Sprint-Freigabe wird gebucht** — Issues *und* Punkte.
+Berührt er eine der beiden Grenzen (2–4 Stories, ~13 SP), legt der PO ihn dem
+Kunden als Grenzüberschreitung vor. In Sprint 3 wurde bei jedem Zugang die
+Punktzahl mitgezählt, die Zahl der Issues nicht — die Grenze fiel niemandem
+auf.
+
+**Flüchtige Belege sofort sichern.** Kundenbilder liegen in temporären
+Ordnern; von acht Bildern der Sprint-3-Abnahme überlebten sieben Minuten nur
+eines.
+
 ## Prüfhaltung
 
 Dieses Projekt hat an einem einzigen Abend **vier grüne Tests entlarvt, die

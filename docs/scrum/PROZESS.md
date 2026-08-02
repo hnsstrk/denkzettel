@@ -1,6 +1,6 @@
 # Denkzettel — Scrum-Arbeitsvereinbarung
 
-Stand: 2026-08-01. Diese Vereinbarung regelt, wie das Agenten-Team an
+Stand: 2026-08-02. Diese Vereinbarung regelt, wie das Agenten-Team an
 Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven.
 
 ## Rollen
@@ -31,7 +31,13 @@ PO aus.
   `model`-Parameter auf Fable hoch.
 - `karpathy-reviewer` bleibt auf **Fable** (Session-Modell) — das
   Sicherheitsnetz wird nicht abgestuft.
-- Revision dieser Zuordnung ist Retro-Thema.
+- **Revision in der Sprint-3-Retro (02.08.2026): bestätigt** (Belege im
+  Sprint-3-Protokoll, 16.4). Der eine Fund des Sprints, den eine Opus-Rolle
+  geschrieben und keine andere Opus-Rolle gefunden hat — die tautologische
+  Zusicherung in `librarytest.cpp`, eingeführt mit `4746358`, entfernt erst
+  mit `7787339` —, kam vom `karpathy-reviewer` auf Fable. Das ist der Beleg
+  dafür, das Sicherheitsnetz nicht abzustufen. Nächste Revision: Retro nach
+  Sprint 6.
 
 ## Artefakte und Werkzeuge
 
@@ -49,6 +55,11 @@ PO aus.
   `docs/scrum/reviews/`, Retro-Stellungnahmen und Messbelege unter
   `docs/scrum/retro/sprint-NN/`. Sitzungs-Scratchpads sind flüchtig; was ein
   Protokoll behauptet, liegt im Repo (Retro Sprint 2, B7).
+  **Flüchtige Belege werden beim Eintreffen gesichert, nicht am Ende des
+  Arbeitsschritts** (Retro Sprint 3, B14): Kundenbilder liegen in temporären
+  Ordnern, die weggeräumt werden, während man noch schreibt — von acht
+  Bildern der Sprint-3-Abnahme überlebten sieben Minuten nur eines
+  (Sprint 3, 15.3).
 - **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
   Entscheidungen), `wireframes/` (UI-Referenz; Spiegel im
   Claude-Design-Projekt „Denkzettel" auf claude.ai/design, Sync durch den
@@ -64,13 +75,31 @@ PO aus.
   vorgelegt).
 - **Ablauf**: Planning (SM schlägt Schnitt vor; bei UI-Stories berät
   `denkzettel-ux`; PO bestätigt, Kunde gibt frei) → Umsetzung (Dev-Agenten;
-  bei paralleler Arbeit Worktree-Isolation) → Review (PO nimmt gegen
-  Akzeptanzkriterien ab; karpathy-reviewer und bei UI-Stories
+  bei paralleler Arbeit Worktree-Isolation, siehe „Parallelarbeit") → Review
+  (PO nimmt gegen Akzeptanzkriterien ab; karpathy-reviewer und bei UI-Stories
   `denkzettel-ux` gemäß DoD) → Protokoll → ggf. Retro.
 - **Schätzung**: Story Points, Fibonacci (1, 2, 3, 5, 8, 13). Zwei
   unabhängige Schätzer je Story; weichen sie um mehr als eine Stufe ab,
   konsolidiert der Scrum Master mit Begründung. 13er-Stories werden vor dem
   Ziehen geteilt.
+- **Sprint-Konto (Retro Sprint 3, B12)**: Das Sprint-Protokoll führt **beide**
+  Grenzen laufend mit — Zahl der Issues *und* Story Points, je mit Ausgangs-
+  und neuem Stand. Jeder Zugang nach der Freigabe wird dort gebucht; berührt
+  er eine der beiden Grenzen, legt der PO ihn dem Kunden **als
+  Grenzüberschreitung** vor, nicht nur als Story. *Grund:* In Sprint 3 wurde
+  bei jedem Zugang die Punktzahl mitgezählt, die Zahl der Issues nicht — der
+  Sprint endete bei fünf Issues, und dass damit eine Grenze fiel, ist dem
+  Kunden nie vorgelegt worden (Sprint 3, 12.7 und 13.10). Wer 13 im Blick
+  hat, sieht die 13 einhalten und übersieht die 5.
+- **Parallelarbeit (Retro Sprint 3, B13)**: je Strang ein eigener Worktree und
+  ein eigener Zweig (`story/NN-…`, `fix/NN-…`); gemeinsamer Ausgangsstand ist
+  gepushtes `main`; gemerged wird ausschließlich durch den PO; ein Strang, der
+  `main` braucht, rebased, statt rückwärts zu mergen. Die Installation nach
+  `/usr` ist ein exklusiver Abschnitt, den der PO taktet (DoD 2). *Grund:* In
+  Sprint 3 hat dieses Verfahren getragen — vier Stränge, 33 Commits, acht
+  Merges, kein Vorfall (13.9) —, stand aber nur in den Spawn-Aufträgen und
+  hing daran, dass der PO es jedes Mal erneut hinschreibt. Genau diese Bauart
+  war der Anlass für B6.
 
 ## Definition of Done (je Story)
 
@@ -118,6 +147,48 @@ als Mangel; die Korrektur ist Sache von PO oder Dev (melden, nicht heilen).
 Das Ergebnis steht in der DoD-Prüfung des Sprint-Protokolls, auch bei
 Befundfreiheit — sonst ist „geprüft, nichts gefunden" nicht von „vergessen"
 zu unterscheiden.
+
+## Sprint-Abschluss (Retro Sprint 3, B11)
+
+Acht der neun Mängel aus Sprint 3 waren Abschlussmängel (Sprint 3, 14.5).
+Diese Liste ist die Antwort darauf. Der Scrum Master übernimmt sie am
+Sprint-Ende in das Sprint-Protokoll und hakt jeden Punkt **mit Beleg** ab:
+Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
+(Sprint 3, 12.7).
+
+**Takt 1 — vor der Kundenabnahme.** Ausführung PO/Dev, Prüfung Scrum Master:
+
+1. Der **Endstand ist einmal nach `/usr` installiert**, und der Hauptweg jeder
+   Story ist daran ausgeführt (DoD 2).
+2. **Jeder Prüflauf hat einen Bericht als Datei** unter
+   `docs/scrum/reviews/` — UI-Review *und* karpathy-Review, Zwischenläufe
+   eingeschlossen —, und er liegt vor, **bevor die DoD-Prüfung läuft**. Sonst
+   prüft der Scrum Master DoD 3 gegen eine Meldung statt gegen ein Artefakt;
+   genau dagegen ist B7 gefasst. Kürzungen werden als solche gekennzeichnet.
+3. **DoD 1–4 je Story** geprüft, **Doku-Abgleich** nach B10 einschließlich der
+   Statuszeile des README. Sie beschreibt den **gelieferten Stand**, nicht den
+   Stand des Verfahrens: „Sprint N in der Kundenabnahme" wird durch Takt 2
+   falsch und gehört gar nicht erst hinein.
+4. **Mängelliste an den PO** — melden, nicht heilen.
+
+**Takt 2 — nach der Kundenabnahme.** Ausführung PO:
+
+5. Issues mit AK-Haken, Abnahmekommentar und Commit-Verweis geschlossen,
+   Milestone geschlossen (DoD 5).
+6. Journal bis zum letzten Commit nachgeführt (DoD 6).
+7. `main` gepusht.
+8. Story-Zweige und Worktrees entfernt. Das Kriterium ist ein Exit-Code, kein
+   Ermessen: `git merge-base --is-ancestor <zweig> main` → 0 heißt löschbar.
+   Erst `git worktree remove`, dann `git branch -d`.
+9. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
+
+Zwei Takte, weil DoD 5 und DoD 6 vor der Abnahme gar nicht erfüllbar sind: In
+Sprint 3 wurden sie zum Prüfzeitpunkt trotzdem als Mängel geführt (M2, M5),
+und der Doku-Abgleich lief vor der Abnahme — deshalb ging er an der
+Statuszeile vorbei, die erst durch die Abnahme falsch wurde.
+
+Version, Tag und Changelog stehen bewusst **nicht** in dieser Liste. Sie sind
+Kundenentscheidung (Sprint 3, 16.9) und werden erst nach ihr aufgenommen.
 
 ## Retrospektiven
 
