@@ -17,7 +17,8 @@
   },
   "_hinweis_dito": "In §24.2 steht in mehreren Zeilen der Spalte 'Grund der Auslassung' das Wort 'dito'. Es ist hier auf den Text der Bezugszeile (#1) aufgelöst; ein Rückverweis wäre in einer Datei ohne Tabellenkontext sinnlos. Aufgelöst wurde nur der Verweis, kein Wert.",
   "_hinweis_24_3": "In §24.3 tragen #66 und #67 den Vermerk '24.2-Fall'. Er ist hier auf den zugehörigen Grund aus §24.2 aufgelöst (Erstschätzung und Umsetzung im selben Planning); §24.3 weist für beide Abstand 0 aus.",
-  "_stand": "Sprint 5 abgeschlossen. 9 Punkte in der Kurve, 13 erfasst und nicht gezeichnet.",
+  "_stand_hinweis": "Feld 'stand' ist kein Kommentar, sondern Bilddatum: Es erscheint als Standangabe unter dem Titel und wird beim Fortschreiben mitgezogen. Die Zahl der Punkte steht bewusst NICHT hier — sie rechnet der Generator aus, damit sie nicht stehenbleiben kann.",
+  "stand": "Sprint 5",
 
   "stories": [
     {

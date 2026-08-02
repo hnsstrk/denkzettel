@@ -287,7 +287,7 @@ def turned(x, y, content, size=13):
     )
 
 
-def draw(drawn, left_out, hull):
+def draw(stand, drawn, left_out, hull):
     lines = caption(drawn, left_out, hull)
     caption_top = PLOT_B + 108
     height = caption_top + len(lines) * LINE_H + 14
@@ -306,11 +306,13 @@ def draw(drawn, left_out, hull):
     parts.append(text(MARGIN, 44, "Schätzkegel — Revisionsfaktor über dem "
                                   "Abstand zur Umsetzung", size=21,
                       weight="bold"))
+    # Stand comes from the series, the counts are computed: neither may be
+    # typed here, or the subtitle keeps claiming Sprint 5 forever.
     parts.append(text(
         MARGIN, 68,
-        f"Denkzettel · Stand Sprint 5 · {len(drawn)} Punkte in der Kurve, "
+        f"Denkzettel · Stand {stand} · {len(drawn)} Punkte in der Kurve, "
         f"{len(left_out)} erfasst und nicht gezeichnet · "
-        f"Quelle: sprint-05.md §24", size=12.5))
+        f"Quelle: Sprint-Protokoll §24", size=12.5))
 
     # --- grid and y axis
     for tick in Y_TICKS:
@@ -466,9 +468,10 @@ def draw(drawn, left_out, hull):
 def main():
     raw, drawn, left_out = load()
     hull = envelope(drawn)
-    OUT.write_text(draw(drawn, left_out, hull), encoding="utf-8")
+    OUT.write_text(draw(raw["stand"], drawn, left_out, hull), encoding="utf-8")
 
     print(f"Quelle     : {DATA.name} — {raw['_quelle']}")
+    print(f"Stand      : {raw['stand']}")
     print(f"Geschrieben: {OUT}")
     print()
     print(f"Punkte in der Kurve      : {len(drawn)}")
