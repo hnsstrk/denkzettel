@@ -1311,3 +1311,69 @@ Das steht hier, damit die Prüfung nicht später als übersprungen gilt.
 Wer die Stories aufzählt, beschreibt seine Absicht; der Diff beschreibt, was
 tatsächlich zur Prüfung ansteht. Die beiden fallen auseinander, sobald an einem
 Tag auch außerhalb des Sprints gearbeitet wird — und das ist der Normalfall.
+
+---
+
+## 18. Abnahme-Checkliste für den Kunden
+
+Was hier steht, kann kein Test dieses Projekts prüfen. Jeder Punkt hat einen
+benannten Grund, warum er am Auge hängt — keiner ist Bequemlichkeit.
+
+**Voraussetzung:** Der Endstand ist nach `/usr` installiert (DoD 2). Danach den
+Dienst einmal neu starten, sonst läuft der alte weiter.
+
+### #55 — die Fensterhülle
+
+**1. Der erste Eindruck.** `Meta+N` drücken. Sieht das Fenster jetzt aus, als
+gehörte es zu KDE? Das ist der Befund vom 01.08.2026 im Wortlaut: *„Sieht nicht
+aus als ob es zu KDE gehören würde … Farben, Schriften, abgerundete Ecken"* —
+und die Frage, die diese Story beantworten sollte.
+
+**2. Der Schatten.** Liegt einer unter dem Fenster?
+
+*Warum das am Auge hängt:* Gemessen ist, dass der Compositor die Kacheln
+**annimmt** (`create() == wahr`, Kacheln 32×16 und 16×16). Nicht gemessen ist,
+ob er gut aussieht. Genau diese Lücke hat den Strang einen echten Fehler
+gekostet — sein erster Bau übergab acht Mal dasselbe Bild statt acht Kacheln,
+und `create()` meldete auch dafür wahr.
+
+**3. Der Schatten beim zweiten Mal.** Fenster schließen, `Meta+N` erneut
+drücken — liegt der Schatten noch darunter?
+
+*Warum:* `showCapture()` zerstört die Fensterfläche bei jedem Anzeigen, der
+Schatten muss also jedes Mal neu gebunden werden. Am Standbild ist das nicht zu
+sehen, und ein Unit-Test erreicht es nicht. Der Strang hat es am laufenden
+Compositor gemessen und beide Male „ja" bekommen; dies ist die Gegenprobe mit
+dem Auge.
+
+**4. Der Theme-Wechsel im Betrieb.** Desktop-Theme in den Systemeinstellungen
+umstellen, **ohne** den Dienst neu zu starten — wechselt die Hülle mit?
+
+*Warum:* Belegt sind die drei Teilstücke einzeln — die Hülle folgt einem neuen
+Namen am stehenden Fenster, sie liest ihn aus `plasmarc`, und eine Änderung
+dieser Datei erreicht die Wache. **Der Zusammenbau ist nicht end-to-end
+geprüft.** Das ist die Fehlerklasse aus #54, eine Ebene höher.
+
+### #59 — die ruhige Liste
+
+**5. Alt-Tab mit der Hand.** Bibliothek öffnen, eine Notiz weit unten
+auswählen, ganz nach oben rollen, in ein anderes Fenster wechseln und
+zurückkommen. Bleibt die Liste stehen?
+
+*Warum:* Der Strang hat den Weg über das Schließen des davorliegenden Fensters
+gemessen — beides läuft über dasselbe Compositor-Ereignis, aber **den
+Tastendruck kann ein Agent unter Wayland nicht auslösen**: Ein Prozess kann
+sich den Fokus nicht selbst zuteilen. Vorher waren es 459 px Rücksprung bei
+552 px Sichthöhe.
+
+### Was ausdrücklich **nicht** auf dieser Liste steht
+
+**#56 ist am Kundenblick nicht prüfbar.** Plasma reicht Qt-Widgets-Anwendungen
+Schriftänderungen nicht nach (Befund B6 vom 01.08.2026, kein Fehler unseres
+Codes — eine nackte Qt-Anwendung verhält sich genauso). Wer die Systemschrift
+umstellt, sieht am Erfassungsfenster nichts, weder vorher noch nachher. Der
+Nachweis ist Test und Bild, und das ist keine Auslassung, sondern die Lage.
+
+Die Story wurde trotzdem gebaut, und zwar **vor** #68: Sobald jemand die
+Schriftzustellung nachrüstet, tritt der Fehler sofort zutage. Wer es
+andersherum macht, baut eine Verbesserung und liefert die Verschlechterung mit.
