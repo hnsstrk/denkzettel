@@ -1,0 +1,6 @@
+Plattform: offscreen  Locale: C
+LANG=C LC_ALL=C
+Kürzeltext hier: Entf="Del" Undo="Ctrl+Z"
+-------------------------------------------------------------
+A) QToolButton + setDefaultAction — woher kommt der angezeigte Text?
+  Vorgabe (Aktion ohne eigenen Tooltip): "Bearbeiten (F2)"

@@ -1,0 +1,20 @@
+== HEAD ==
+6acc87e
+== install_manifest ==
+-rw-r--r-- 1 hnsstrk hnsstrk 246  4. Aug 16:02 build/install_manifest.txt
+/usr/bin/denkzetteld
+/usr/share/applications/org.denkzettel.Denkzettel.desktop
+/etc/xdg/autostart/org.denkzettel.Denkzettel.desktop
+/usr/share/icons/hicolor/scalable/apps/denkzettel.svg
+/usr/share/icons/hicolor/scalable/status/denkzettel-tray.svg
+== ctest -N ==
+Test project /home/hnsstrk/Projekte/denkzettel/build
+  Test #1: appstreamtest
+  Test #2: storetest
+  Test #3: capturetest
+  Test #4: librarytest
+  Test #5: shelltest
+  Test #6: firstruntest
+  Test #7: installtest
+
+Total Tests: 7

@@ -1,0 +1,9 @@
+### A — gesunder Lauf, frisch gebaut
+  lint-clazy rc=0  warnings=3  errors=0
+  lint-tidy  rc=0  warnings=140  errors=0
+
+### B — zwei .moc-Dateien entfernt, danach ein gewoehnlicher Bau
+  Bau rc=2  — .moc wieder da? 0 von 2
+  lint-clazy rc=2  warnings=0  errors=2
+  lint-tidy  rc=2  warnings=140  errors=2
+  davon in librarytest.cpp: 42

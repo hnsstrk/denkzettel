@@ -1,0 +1,15 @@
+Bau rc=0
+lint-tidy rc=0  Rohzeilen=130  eindeutig=73
+  roh:      64 [performance-enum-size]
+  roh:      55 [misc-const-correctness]
+  roh:       8 [bugprone-easily-swappable-parameters]
+  roh:       1 [performance-no-automatic-move]
+  roh:       1 [bugprone-unused-return-value]
+  roh:       1 [bugprone-implicit-widening-of-multiplication-result]
+  eind.:      55 [misc-const-correctness]
+  eind.:       8 [bugprone-easily-swappable-parameters]
+  eind.:       7 [performance-enum-size]
+  eind.:       1 [performance-no-automatic-move]
+  eind.:       1 [bugprone-unused-return-value]
+  eind.:       1 [bugprone-implicit-widening-of-multiplication-result]
+lint-clazy rc=0  warnings=3

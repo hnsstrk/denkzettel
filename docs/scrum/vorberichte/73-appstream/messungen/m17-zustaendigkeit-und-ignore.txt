@@ -1,0 +1,40 @@
+== .gitignore ==
+build/
+compile_commands.json
+.cache/
+
+# Zweiter Bauplatz für die Installation am Sprint-Ende (DoD 2). Er existiert,
+# weil "build/" während des Sprints den Agenten gehört: Ein Neukonfigurieren
+# mit -DCMAKE_INSTALL_PREFIX=/usr risse einem laufenden Strang oder Review den
+# Bau weg. Angelegt am 04.08.2026, als der UX-Review noch lief.
+build-install/
+
+# Arbeitsbäume paralleler Agenten (Sprint 3: vier Stück).
+# Ihr Kompilat deckt "build/" oben bereits ab; ungeschützt waren die
+# Projektkopien darin — vervierfachte Quelldateien, kein Datenberg.
+.claude/worktrees/
+
+# Lokale Werkzeugkonfiguration von Claude Code. Enthält heute nur ein leeres
+# enabledPlugins-Objekt; das semgrep-Plugin hat der Kunde am 01.08.2026
+# deaktiviert (Sprint-2-Retro, 9.6). Lokale Einstellungen gehören nicht ins
+# Projekt -- eine geteilte Konfiguration nähme man bewusst auf.
+.claude/settings.json
+
+== git status im Vorberichtsordner ==
+?? docs/scrum/vorberichte/73-appstream/
+
+== Dateimenge scrum-master vs dev: wer pflegt PROZESS.md? ==
+8:  Retro-Moderation und Pflege der Prozess-Doku unter docs/scrum/. NICHT
+20:- `docs/scrum/PROZESS.md` — die Arbeitsvereinbarung (Rollen, DoD,
+28:   (`docs/scrum/vorberichte/NN-<kurzname>.md`, sechs Felder — siehe
+29:   PROZESS.md, Sprint-Mechanik). Du misst **unabhängig** von Bearbeiter A
+44:   DoD-Punkte aus PROZESS.md. Du führst die Prüfung gegen den Code/die
+56:6. **Protokolle führen**: `docs/scrum/sprints/sprint-NN.md` — Planning,
+---dev---
+19:- **Der Vorprüfbericht der Story** (`docs/scrum/vorberichte/NN-<kurzname>.md`,
+20:  NN = Issue-Nummer). Dort steht deine **Dateimenge** — was du anfassen darfst
+24:- `docs/scrum/PROZESS.md` — **ganz**, nicht nur die Definition of Done. Was
+70:   Sprint-6-Strang einen echten Fehler gekostet (`docs/scrum/sprints/sprint-06.md`,
+77:   (`docs/scrum/sprints/sprint-06.md`, §16.1, M-B1). Tragfähig ist der
+85:   `docs/scrum/reviews/2026-08-04-abnahme-befunde/messungen/`,
+93:(DoD 2 in `docs/scrum/PROZESS.md`): gebauten Stand starten, den Hauptweg der

@@ -1,0 +1,1696 @@
+Diagnostics:
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1676
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp
+    Message: constness of 'application' prevents automatic move
+    Replacements: []
+  DiagnosticName: performance-no-automatic-move
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 3654
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp
+    Message: the value returned by this function should not be disregarded; neglecting
+      it may lead to errors
+    Ranges:
+    - FileOffset: 3654
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp
+      Length: 58
+    Replacements: []
+  DiagnosticName: bugprone-unused-return-value
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 161
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.h
+    Message: 'enum ''ShortcutRegistration'' uses a larger base type (''int'', size:
+      4 bytes) than necessary for its value set, consider using ''std::uint8_t'' (1
+      byte) as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 161
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.h
+    Message: 'enum ''ShortcutRegistration'' uses a larger base type (''int'', size:
+      4 bytes) than necessary for its value set, consider using ''std::uint8_t'' (1
+      byte) as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 4182
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: variable 'requested' of type 'QSignalSpy' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 4193
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 11147
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: variable 'icon' of type 'TrayIcon' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 11156
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 12907
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: variable 'icon' of type 'TrayIcon' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 12916
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 13153
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: pointee of variable 'action' of type 'QAction *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 13161
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 14057
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: variable 'icon' of type 'TrayIcon' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 14066
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 14882
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: variable 'icon' of type 'TrayIcon' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 14891
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 14901
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+    Message: pointee of variable 'capture' of type 'QAction *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+      Length: 0
+      Offset: 14909
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1604
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+    Message: variable 'service' of type 'KDBusService' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+      Length: 0
+      Offset: 1617
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2278
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+    Message: variable 'library' of type 'LibraryWindow' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+      Length: 0
+      Offset: 2292
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2314
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+    Message: variable 'tray' of type 'TrayIcon' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+      Length: 0
+      Offset: 2323
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1044
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+    Message: 2 adjacent parameters of 'desktopFileDeclaresAction' of similar type
+      ('const QString &') are easily swapped by mistake
+    Ranges:
+    - FileOffset: 1044
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+      Length: 55
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 1059
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+    Message: the first parameter in the range is 'desktopFilePath'
+    Ranges:
+    - FileOffset: 1059
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+      Length: 15
+    Replacements: []
+  - FileOffset: 1091
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+    Message: the last parameter in the range is 'actionId'
+    Ranges:
+    - FileOffset: 1091
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+      Length: 8
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1351
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+    Message: variable 'file' of type 'KDesktopFile' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+      Length: 0
+      Offset: 1364
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 161
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.h
+    Message: 'enum ''ShortcutRegistration'' uses a larger base type (''int'', size:
+      4 bytes) than necessary for its value set, consider using ''std::uint8_t'' (1
+      byte) as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 864
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+    Message: 2 adjacent parameters of 'noteAt' of similar type ('const QString &')
+      are easily swapped by mistake
+    Ranges:
+    - FileOffset: 864
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+      Length: 50
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 879
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+    Message: the first parameter in the range is 'content'
+    Ranges:
+    - FileOffset: 879
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+      Length: 7
+    Replacements: []
+  - FileOffset: 903
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+    Message: the last parameter in the range is 'isoDateTime'
+    Ranges:
+    - FileOffset: 903
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+      Length: 11
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1061
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h
+    Message: 'enum ''Role'' uses a larger base type (''unsigned int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint16_t'' (2 bytes)
+      as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 1061
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h
+    Message: 'enum ''Role'' uses a larger base type (''unsigned int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint16_t'' (2 bytes)
+      as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 17963
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: performing an implicit widening conversion to type 'qint64' (aka 'long
+      long') of a multiplication performed in type 'int'
+    Replacements: []
+  DiagnosticName: bugprone-implicit-widening-of-multiplication-result
+  Level: Warning
+  Notes:
+  - FileOffset: 17963
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: make conversion explicit to silence this warning
+    Ranges:
+    - FileOffset: 17963
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 17
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 800
+      ReplacementText: '#include <cstddef>
+
+        '
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 17963
+      ReplacementText: static_cast<qint64>(
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 17980
+      ReplacementText: )
+  - FileOffset: 17963
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: perform multiplication in a wider type
+    Ranges:
+    - FileOffset: 17963
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 5
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 17963
+      ReplacementText: static_cast<qint64>(
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 17968
+      ReplacementText: )
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 21689
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: 2 adjacent parameters of 'noteWith' of similar type ('const QString &')
+      are easily swapped by mistake
+    Ranges:
+    - FileOffset: 21689
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 50
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 21704
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: the first parameter in the range is 'content'
+    Ranges:
+    - FileOffset: 21704
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 7
+    Replacements: []
+  - FileOffset: 21728
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: the last parameter in the range is 'isoDateTime'
+    Ranges:
+    - FileOffset: 21728
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 11
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 22402
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'model' of type 'NoteListModel *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 22416
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 38140
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'button' of type 'QAbstractButton *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 38156
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 40434
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'committed' of type 'QSignalSpy' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 40445
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 42391
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'committed' of type 'QSignalSpy' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 42402
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 51466
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'windowSize' of type 'QSize' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 82313
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'search' of type 'QLineEdit *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 82323
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 83262
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'list' of type 'QListView *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 83272
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 84749
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'model' of type 'NoteListModel *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 84763
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 87153
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'list' of type 'QListView *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 87163
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 91323
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'window' of type 'LibraryWindow' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 91337
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 92075
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'windowSize' of type 'QSize' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 92360
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'header' of type 'QWidget *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 92368
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 94637
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'windowSize' of type 'QSize' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 95205
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'list' of type 'QListView *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 95215
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 95243
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'model' of type 'NoteListModel *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 95257
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 98567
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'header' of type 'QWidget *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 98575
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 99662
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'text' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 99669
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 99842
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'undo' of type 'QToolButton *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 99854
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 100880
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'reopened' of type 'LibraryWindow' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 100894
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 102867
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'label' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 102874
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 105207
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'reader' of type 'QTextBrowser *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 105220
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 108409
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'edit' of type 'QPushButton *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 108421
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 108484
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'remove' of type 'QPushButton *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 108496
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 122036
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'label' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 122043
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 123163
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'edit' of type 'QPushButton *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 123175
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 123238
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'remove' of type 'QPushButton *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 123250
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 123971
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'save' of type 'QPushButton *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 123983
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 124045
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'cancel' of type 'QPushButton *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 124057
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 125264
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'undo' of type 'QToolButton *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 125276
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 128502
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'written' of type 'QString' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 128532
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'expected' of type 'QString' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 129383
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'label' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 129390
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 132219
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'trigger' of type 'QString' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 132249
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'answer' of type 'QString' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 135451
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'watch' of type 'DialogWatch' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 135463
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 136960
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'watch' of type 'DialogWatch' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 136972
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 139874
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: variable 'windowSize' of type 'QSize' can be declared 'const'
+    Replacements: []
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 140332
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'detail' of type 'QWidget *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 140340
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 141345
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'edit' of type 'QPushButton *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 141357
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 141420
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+    Message: pointee of variable 'remove' of type 'QPushButton *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+      Length: 0
+      Offset: 141432
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 1249
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+    Message: 2 adjacent parameters of 'addNote' of similar type ('const QString &')
+      are easily swapped by mistake
+    Ranges:
+    - FileOffset: 1249
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+      Length: 50
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 1264
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+    Message: the first parameter in the range is 'content'
+    Ranges:
+    - FileOffset: 1264
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+      Length: 7
+    Replacements: []
+  - FileOffset: 1288
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+    Message: the last parameter in the range is 'isoDateTime'
+    Ranges:
+    - FileOffset: 1288
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+      Length: 11
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 1662
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+    Message: 2 adjacent parameters of 'addNote' of similar type ('const QString &')
+      are easily swapped by mistake
+    Ranges:
+    - FileOffset: 1662
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+      Length: 50
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 1677
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+    Message: the first parameter in the range is 'content'
+    Ranges:
+    - FileOffset: 1677
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+      Length: 7
+    Replacements: []
+  - FileOffset: 1701
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+    Message: the last parameter in the range is 'isoDateTime'
+    Ranges:
+    - FileOffset: 1701
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+      Length: 11
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 5176
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+    Message: 2 adjacent parameters of 'correct' of similar type ('const QString &')
+      are easily swapped by mistake
+    Ranges:
+    - FileOffset: 5176
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+      Length: 45
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 5191
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+    Message: the first parameter in the range is 'misheard'
+    Ranges:
+    - FileOffset: 5191
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+      Length: 8
+    Replacements: []
+  - FileOffset: 5216
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+    Message: the last parameter in the range is 'meant'
+    Ranges:
+    - FileOffset: 5216
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+      Length: 5
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 1865
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+    Message: 2 adjacent parameters of 'addNote' of similar type ('const QString &')
+      are easily swapped by mistake
+    Ranges:
+    - FileOffset: 1865
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+      Length: 50
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 1880
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+    Message: the first parameter in the range is 'content'
+    Ranges:
+    - FileOffset: 1880
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+      Length: 7
+    Replacements: []
+  - FileOffset: 1904
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+    Message: the last parameter in the range is 'isoDateTime'
+    Ranges:
+    - FileOffset: 1904
+      FilePath: /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+      Length: 11
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 3663
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/notelistdelegate.cpp
+    Message: pointee of variable 'style' of type 'QStyle *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/notelistdelegate.cpp
+      Length: 0
+      Offset: 3670
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1061
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h
+    Message: 'enum ''Role'' uses a larger base type (''unsigned int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint16_t'' (2 bytes)
+      as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 10174
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+    Message: pointee of variable 'label' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+      Length: 0
+      Offset: 10181
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 15472
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+    Message: pointee of variable 'text' of type 'QPlainTextEdit *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+      Length: 0
+      Offset: 15487
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 16464
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+    Message: pointee of variable 'text' of type 'QPlainTextEdit *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+      Length: 0
+      Offset: 16479
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 18004
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+    Message: pointee of variable 'appName' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+      Length: 0
+      Offset: 18011
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 18095
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+    Message: pointee of variable 'footer' of type 'QLabel *' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+      Length: 0
+      Offset: 18102
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 4170
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+    Message: 2 adjacent parameters of 'placeholderPage' of similar type ('const QString
+      &') are easily swapped by mistake
+    Ranges:
+    - FileOffset: 4170
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+      Length: 41
+    Replacements: []
+  DiagnosticName: bugprone-easily-swappable-parameters
+  Level: Warning
+  Notes:
+  - FileOffset: 4185
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+    Message: the first parameter in the range is 'title'
+    Ranges:
+    - FileOffset: 4185
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+      Length: 5
+    Replacements: []
+  - FileOffset: 4207
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+    Message: the last parameter in the range is 'hint'
+    Ranges:
+    - FileOffset: 4207
+      FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+      Length: 4
+    Replacements: []
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2073
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''Selection'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2361
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h
+    Message: 'enum ''UnsavedAnswer'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 1061
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h
+    Message: 'enum ''Role'' uses a larger base type (''unsigned int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint16_t'' (2 bytes)
+      as the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 407
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h
+    Message: 'enum ''NoteGroup'' uses a larger base type (''int'', size: 4 bytes)
+      than necessary for its value set, consider using ''std::uint8_t'' (1 byte) as
+      the base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2278
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp
+    Message: narrowing conversion from 'qreal' (aka 'double') to 'float'
+    Replacements: []
+  DiagnosticName: bugprone-narrowing-conversions
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2356
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp
+    Message: narrowing conversion from 'qreal' (aka 'double') to 'float'
+    Replacements: []
+  DiagnosticName: bugprone-narrowing-conversions
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 2440
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp
+    Message: narrowing conversion from 'qreal' (aka 'double') to 'float'
+    Replacements: []
+  DiagnosticName: bugprone-narrowing-conversions
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 3625
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp
+    Message: pointee of variable 'libraryAction' of type 'QAction *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp
+      Length: 0
+      Offset: 3633
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 4250
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp
+    Message: pointee of variable 'quitAction' of type 'QAction *' can be declared
+      'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp
+      Length: 0
+      Offset: 4258
+      ReplacementText: ' const'
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/src
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 325
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''Type'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 384
+    FilePath: /home/hnsstrk/Projekte/denkzettel/src/store/note.h
+    Message: 'enum ''State'' uses a larger base type (''int'', size: 4 bytes) than
+      necessary for its value set, consider using ''std::uint8_t'' (1 byte) as the
+      base type to reduce its size'
+    Replacements: []
+  DiagnosticName: performance-enum-size
+  Level: Warning
+- BuildDirectory: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build/tests
+  DiagnosticMessage:
+    FileOffset: 6334
+    FilePath: /home/hnsstrk/Projekte/denkzettel/tests/captureshots.cpp
+    Message: variable 'app' of type 'QApplication' can be declared 'const'
+    Replacements:
+    - FilePath: /home/hnsstrk/Projekte/denkzettel/tests/captureshots.cpp
+      Length: 0
+      Offset: 6347
+      ReplacementText: 'const '
+  DiagnosticName: misc-const-correctness
+  Level: Warning
+MainSourceFile: ''

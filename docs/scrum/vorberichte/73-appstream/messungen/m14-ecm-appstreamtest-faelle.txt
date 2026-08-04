@@ -1,0 +1,27 @@
+--- Fall 1: Manifest fehlt ganz (Lage im CI) ---
+Not installed yet, skipping
+rc=0
+--- Fall 2: Manifest ohne Metainfo (Lage heute) ---
+rc=0
+--- Fall 3: Manifest nennt eine Metainfo, die dort nicht liegt ---
+CMake Warning at /usr/share/ECM/kde-modules/appstreamtest.cmake:21 (message):
+  Could not find /usr/share/metainfo/org.denkzettel.Denkzettel.metainfo.xml
+
+
+rc=0
+--- Fall 4: Manifest nennt eine vorhandene, gueltige Metainfo ---
+-- 
+✔ Validierung war erfolgreich: Pedantisch: 1
+
+rc=0
+--- Fall 5: dieselbe Datei, beschaedigt ---
+CMake Error at /usr/share/ECM/kde-modules/appstreamtest.cmake:38 (message):
+  E: org.denkzettel.Denkzettel:~: metadata-license-missing
+
+
+
+  ✘ Validierung fehlgeschlagen: Fehler: 1, Pedantisch: 1
+
+
+
+rc=1

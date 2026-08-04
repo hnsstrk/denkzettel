@@ -1,0 +1,23 @@
+dbus-daemon[690292]: [session uid=1000 pid=690292 pidfd=5] Connection :1.0 (uid=1000 pid=690294 comm="dbus-monitor --session type=method_call,destinatio") became a monitor.
+dbus-daemon[690292]: [session uid=1000 pid=690292 pidfd=5] Activating service name='org.freedesktop.Notifications' requested by ':1.1' (uid=1000 pid=690295 comm="/home/hnsstrk/Projekte/denkzettel/docs/scrum/vorbe")
+Prozess A (der laufende Dienst) läuft: PID 690295
+Auf dem Bus angemeldet:
+:1.1                                        690295 denkzetteld     hnsstrk :1.1          user@1000.service - -
+:1.2                                        690295 denkzetteld     hnsstrk :1.2          user@1000.service - -
+org.denkzettel.Daemon                       690295 denkzetteld     hnsstrk :1.1          user@1000.service - -
+
+===== Prozess B: denkzetteld --version =====
+Rückgabe B: 0   (124 wäre Zeitüberschreitung)
+Dauer B:    .021107900 s
+--- Ausgabe von B ---
+--- Ende Ausgabe B ---
+dbus-daemon[690292]: [session uid=1000 pid=690292 pidfd=5] Monitoring connection :1.0 closed.
+
+===== Methodenaufrufe an org.denkzettel.Daemon auf dem Bus =====
+      1   method call time=1785868637.192483 sender=:1.5 -> destination=org.denkzettel.Daemon serial=6 path=/org/denkzettel/Daemon; interface=org.kde.KDBusService; member=CommandLine
+      1   signal time=1785868635.175190 sender=org.freedesktop.DBus -> destination=:1.0 serial=2 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=NameAcquired
+      1   signal time=1785868635.175201 sender=org.freedesktop.DBus -> destination=:1.0 serial=4 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=NameLost
+
+===== Zum Vergleich: was die Anwendung selbst über sich weiß =====
+QCoreApplication::applicationVersion() wird in src/main.cpp nicht gesetzt;
+der Vorgabewert ist die leere Zeichenkette.

@@ -1,0 +1,34 @@
+--- unversehrt ---
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+--- ohne metadata_license ---
+E: org.denkzettel.Denkzettel:~: metadata-license-missing
+
+✘ Validierung fehlgeschlagen: Fehler: 1, Pedantisch: 1
+rc=3
+--- ohne content_rating ---
+I: org.denkzettel.Denkzettel:~: content-rating-missing
+
+✔ Validierung war erfolgreich: Informationen: 1, Pedantisch: 1
+rc=0
+--- ohne categories (ganzer Block) ---
+0
+0 Zeilen mit 'categor' — Block ist raus
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0
+--- ohne developer (ganzer Block) ---
+I: org.denkzettel.Denkzettel:~: developer-info-missing
+
+✔ Validierung war erfolgreich: Informationen: 1, Pedantisch: 1
+rc=0
+--- Id ohne rDNS-Form (erzeugt eine Warnung) ---
+W: Denkzettel:3: cid-desktopapp-is-not-rdns Denkzettel
+
+✘ Validierung fehlgeschlagen: Warnungen: 1, Pedantisch: 1
+rc=3
+--- pedantische Meldungen des unversehrten Entwurfs ---
+P: org.denkzettel.Denkzettel:3: cid-contains-uppercase-letter org.denkzettel.Denkzettel
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0

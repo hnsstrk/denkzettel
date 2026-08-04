@@ -1,0 +1,60 @@
+# Messung B zu #71/#72 — Bestandsaufnahme, 2026-08-04 20:38 CEST, Stand 6acc87e
+
+== #71: scrollTo-Stellen in src/ui/ ==
+src/ui/librarywindow.cpp:789:                m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
+src/ui/librarywindow.cpp:792:        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+
+== #71: der Block :780-795 in librarywindow.cpp ==
+        const QModelIndex head = groupHeadOf(index);
+        const std::optional<library::NoteGroup> group = groupOf(index);
+        const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
+        const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
+
+        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
+            const QRect heading = m_list->visualRect(head);
+            const QRect selected = m_list->visualRect(index);
+            if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
+                m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
+            }
+        }
+        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+
+        showNoteText(index);
+    }
+
+== #71: vorhandener Klick-Pruefweg in librarytest.cpp ==
+tests/librarytest.cpp:1541:    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(target).center());
+tests/librarytest.cpp:1613:    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(visibleHead).center());
+
+== #71: bestehende Zusicherungen auf dieser Flaeche ==
+tests/librarytest.cpp:138:    void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
+tests/librarytest.cpp:141:    void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
+tests/librarytest.cpp:142:    void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
+tests/librarytest.cpp:143:    void keepsTheHeadFetchAfterAClickThatSelectedNothing();
+tests/librarytest.cpp:1425:void LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready()
+tests/librarytest.cpp:1482:void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked()
+tests/librarytest.cpp:1486:    // `bringsTheHeadAlongWhenAVisibleNoteOfAnotherGroupIsClicked`: the mouse
+tests/librarytest.cpp:1499:    // for the key — `bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready` holds
+tests/librarytest.cpp:1559:void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
+tests/librarytest.cpp:1625:void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()
+
+== #72: die drei Flaechen und ihre Kuerzel ==
+src/ui/librarywindow.cpp:234:    m_message->addAction(m_undoAction);
+src/ui/librarywindow.cpp:249:    m_deleteAction->setShortcut(QKeySequence::Delete);
+src/ui/librarywindow.cpp:254:    m_undoAction->setShortcuts(KStandardShortcut::undo());
+src/ui/librarywindow.cpp:262:    m_editAction->setShortcut(Qt::Key_F2);
+src/ui/librarywindow.cpp:361:    m_editButton = new QPushButton(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Bearbeiten"), detail);
+src/ui/librarywindow.cpp:368:    m_deleteButton = new QPushButton(KStandardGuiItem::del().icon(), i18n("Löschen"), detail);
+
+== #72: vorhandener toolTip-Pruefweg ==
+tests/librarytest.cpp:1985:        QVERIFY2(!widget->toolTip().contains(QStringLiteral("steht noch nicht zur Verfügung")),
+tests/librarytest.cpp:1986:                 qPrintable(widget->toolTip()));
+tests/librarytest.cpp:3109:    QVERIFY(searchOf(window)->toolTip().isEmpty());
+tests/librarytest.cpp:3117:    QVERIFY2(!searchOf(window)->toolTip().isEmpty(), "Das ruhende Suchfeld sagt nicht, warum");
+tests/librarytest.cpp:3124:    QVERIFY2(searchOf(window)->toolTip().isEmpty(), "Die Kurzhilfe bleibt am wieder freien Feld stehen");
+
+== #72: SPEC-Sprachregel ==
+  keine Übersetzungs-Roadmap, nur Konvention). UI-Fließtexte (Platzhalter,
+  Hinweise, Dialoge) sprechen den Nutzer in unpersönlicher Infinitivform an
+  („Zum Lesen links eine Notiz auswählen.") — einmal app-weit festgelegt
+  statt je Fenster (PO-Entscheidung 31.07.2026, Gestaltungsauftrag S8).

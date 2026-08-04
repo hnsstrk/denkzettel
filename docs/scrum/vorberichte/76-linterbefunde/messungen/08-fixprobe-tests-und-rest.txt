@@ -1,0 +1,17 @@
+ctest rc=0
+    Start 7: installtest
+7/7 Test #7: installtest ......................   Passed    0.02 sec
+
+100% tests passed out of 7
+
+Total Test time (real) =   5.83 sec
+=== lint-tidy nach den Fixes ===
+Rohzeilen: 91
+     66 [performance-enum-size]
+     11 [misc-const-correctness]
+      8 [bugprone-easily-swappable-parameters]
+      3 [bugprone-narrowing-conversions]
+      1 [performance-no-automatic-move]
+      1 [bugprone-unused-return-value]
+      1 [bugprone-misplaced-widening-cast]
+eindeutig: 32

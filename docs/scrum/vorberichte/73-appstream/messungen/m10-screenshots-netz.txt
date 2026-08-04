@@ -1,0 +1,17 @@
+https://raw.githubusercontent.com/hnsstrk/denkzettel/main/docs/bilder/erfassungsfenster.png -> 200
+https://raw.githubusercontent.com/hnsstrk/denkzettel/main/docs/bilder/bibliothek.png -> 200
+--- Entwurf mit den echten Bild-URLs, OHNE --no-net ---
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0
+--- mit erfundener Bild-URL, OHNE --no-net ---
+W: org.denkzettel.Denkzettel:35: screenshot-image-not-found
+     https://raw.githubusercontent.com/hnsstrk/denkzettel/main/docs/bilder/gibtsnicht.png -
+     URL wurde auf dem Server nicht gefunden.
+
+✘ Validierung fehlgeschlagen: Warnungen: 1, Pedantisch: 1
+rc=3
+--- dieselbe Datei MIT --no-net ---
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0

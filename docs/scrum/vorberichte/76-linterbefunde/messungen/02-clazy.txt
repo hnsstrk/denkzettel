@@ -1,0 +1,43 @@
+[ 50%] Compile-Datenbank für die Linter aufbereiten
+[ 50%] Built target lint-database
+[100%] clazy über src/ und tests/
+[1/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp.
+[2/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/capture/textareaheight.cpp.
+[3/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/main.cpp.
+[4/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/daemonservice.cpp.
+[5/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/firstrun.cpp.
+[6/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp.
+[7/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutconflict.cpp.
+[8/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp.
+[9/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp.
+[10/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/store/store.cpp.
+[11/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/elidedlines.cpp.
+[12/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp.
+[13/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/notelistdelegate.cpp.
+[14/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.cpp.
+[15/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/pendingdeletion.cpp.
+[16/27] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.cpp.
+[17/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/captureshots.cpp.
+[18/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp.
+[19/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp.
+[20/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/firstruntest.cpp.
+[21/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp.
+[22/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp.
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2387:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+ 2387 |     for (QLabel *label : message->findChildren<QLabel *>()) {
+      |     ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2393:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+ 2393 |     for (QToolButton *button : message->findChildren<QToolButton *>()) {
+      |     ^
+2 warnings generated.
+[23/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp.
+[24/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp.
+[25/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp.
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:361:24: warning: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]
+  361 |     QAction *capture = icon.item()->contextMenu()->actions().first();
+      |                        ^                                     ~~~~~
+      |                                                              constFirst
+1 warning generated.
+[26/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/storetest.cpp.
+[27/27] Processing file /home/hnsstrk/Projekte/denkzettel/tests/testsilence.cpp.
+[100%] Built target lint-clazy

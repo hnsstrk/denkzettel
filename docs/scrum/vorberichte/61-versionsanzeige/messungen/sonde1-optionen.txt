@@ -1,0 +1,23 @@
+Binärdatei: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/build/bin/denkzetteld
+Stand:      6acc87e
+
+===== Aufruf: denkzetteld --version =====
+Rückgabe: 124   (124 = Zeitüberschreitung, der Dienst lief also weiter)
+--- Ausgabe ---
+dbus-daemon[690008]: [session uid=1000 pid=690008 pidfd=5] Activating service name='org.freedesktop.Notifications' requested by ':1.0' (uid=1000 pid=690009 comm="/home/hnsstrk/Projekte/denkzettel/docs/scrum/vorbe")
+
+===== Aufruf: denkzetteld -v =====
+Rückgabe: 124   (124 = Zeitüberschreitung, der Dienst lief also weiter)
+--- Ausgabe ---
+dbus-daemon[690086]: [session uid=1000 pid=690086 pidfd=5] Activating service name='org.freedesktop.Notifications' requested by ':1.0' (uid=1000 pid=690087 comm="/home/hnsstrk/Projekte/denkzettel/docs/scrum/vorbe")
+
+===== Aufruf: denkzetteld --help =====
+Rückgabe: 124   (124 = Zeitüberschreitung, der Dienst lief also weiter)
+--- Ausgabe ---
+dbus-daemon[690210]: [session uid=1000 pid=690210 pidfd=5] Activating service name='org.freedesktop.Notifications' requested by ':1.0' (uid=1000 pid=690211 comm="/home/hnsstrk/Projekte/denkzettel/docs/scrum/vorbe")
+
+===== Aufruf: denkzetteld <ohne Argument> =====
+Rückgabe: 124   (124 = Zeitüberschreitung, der Dienst lief also weiter)
+--- Ausgabe ---
+dbus-daemon[690236]: [session uid=1000 pid=690236 pidfd=5] Activating service name='org.freedesktop.Notifications' requested by ':1.0' (uid=1000 pid=690237 comm="/home/hnsstrk/Projekte/denkzettel/docs/scrum/vorbe")
+

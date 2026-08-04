@@ -1,0 +1,23 @@
+# Messung B zu #61 — Bestandsaufnahme, 2026-08-04 20:36 CEST, Stand 6acc87e
+
+== git grep -n "KAboutData|setApplicationVersion|PROJECT_VERSION|--version|QCommandLineParser|addVersionOption|version.h" -- src/ tests/ CMakeLists.txt src/CMakeLists.txt tests/CMakeLists.txt ==
+(Trefferzahl: 0)
+
+== Versionsquelle ==
+3:project(denkzettel VERSION 0.1.0 LANGUAGES CXX)
+
+== Menue / Ueber-Dialog in der Bibliothek ==
+(keine Treffer)
+
+== KAboutApplicationDialog gehoert zu ==
+/usr/include/KF6/KXmlGui/KAboutApplicationDialog ist in kxmlgui 6.28.0-1.1 enthalten
+
+== kxmlgui in der CI-Paketliste? ==
+0
+(0 = fehlt)
+
+== XmlGui in den CMakeLists? ==
+(keine Treffer)
+
+== Ueber-Dialog im Wireframe? ==
+(keine Treffer)

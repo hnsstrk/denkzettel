@@ -1,0 +1,124 @@
+[  0%] Built target denkzettelstore_autogen_timestamp_deps
+[  0%] Built target testsilence_autogen_timestamp_deps
+[  1%] Automatic MOC for target denkzettelstore
+[  2%] Automatic MOC for target testsilence
+[  2%] Built target denkzettelstore_autogen
+[  2%] Built target testsilence_autogen
+[  3%] Building CXX object src/CMakeFiles/denkzettelstore.dir/denkzettelstore_autogen/mocs_compilation.cpp.o
+[  5%] Building CXX object src/CMakeFiles/denkzettelstore.dir/store/store.cpp.o
+[  6%] Building CXX object tests/CMakeFiles/testsilence.dir/testsilence_autogen/mocs_compilation.cpp.o
+[  7%] Building CXX object tests/CMakeFiles/testsilence.dir/testsilence.cpp.o
+[  7%] Built target testsilence
+[  9%] Linking CXX static library ../lib/libdenkzettelstore.a
+[  9%] Built target denkzettelstore
+[  9%] Built target denkzettelshell_autogen_timestamp_deps
+[  9%] Built target denkzettelui_autogen_timestamp_deps
+[  9%] Built target storetest_autogen_timestamp_deps
+[  9%] Built target denkzettelcapture_autogen_timestamp_deps
+[ 10%] Automatic MOC for target denkzettelui
+[ 11%] Automatic MOC for target denkzettelshell
+[ 13%] Automatic MOC for target storetest
+[ 14%] Automatic MOC for target denkzettelcapture
+[ 14%] Built target denkzettelshell_autogen
+[ 14%] Built target denkzettelcapture_autogen
+[ 17%] Building CXX object src/CMakeFiles/denkzettelshell.dir/shell/daemonservice.cpp.o
+[ 17%] Building CXX object src/CMakeFiles/denkzettelshell.dir/denkzettelshell_autogen/mocs_compilation.cpp.o
+[ 18%] Building CXX object src/CMakeFiles/denkzettelshell.dir/shell/globalshortcuts.cpp.o
+[ 23%] Building CXX object src/CMakeFiles/denkzettelshell.dir/shell/shortcutconflict.cpp.o
+[ 23%] Building CXX object src/CMakeFiles/denkzettelshell.dir/shell/trayicon.cpp.o
+[ 23%] Building CXX object src/CMakeFiles/denkzettelshell.dir/shell/firstrun.cpp.o
+[ 23%] Building CXX object src/CMakeFiles/denkzettelshell.dir/shell/shortcutregistration.cpp.o
+[ 23%] Built target storetest_autogen
+[ 25%] Building CXX object src/CMakeFiles/denkzettelcapture.dir/capture/capturewindow.cpp.o
+[ 26%] Building CXX object src/CMakeFiles/denkzettelcapture.dir/denkzettelcapture_autogen/mocs_compilation.cpp.o
+[ 27%] Building CXX object src/CMakeFiles/denkzettelcapture.dir/capture/textareaheight.cpp.o
+[ 28%] Building CXX object tests/CMakeFiles/storetest.dir/storetest_autogen/mocs_compilation.cpp.o
+[ 30%] Building CXX object tests/CMakeFiles/storetest.dir/storetest.cpp.o
+[ 30%] Built target denkzettelui_autogen
+[ 31%] Building CXX object src/CMakeFiles/denkzettelui.dir/denkzettelui_autogen/mocs_compilation.cpp.o
+[ 32%] Building CXX object src/CMakeFiles/denkzettelui.dir/ui/elidedlines.cpp.o
+[ 34%] Building CXX object src/CMakeFiles/denkzettelui.dir/ui/librarywindow.cpp.o
+[ 35%] Building CXX object src/CMakeFiles/denkzettelui.dir/ui/notelistdelegate.cpp.o
+[ 36%] Building CXX object src/CMakeFiles/denkzettelui.dir/ui/notelistmodel.cpp.o
+[ 38%] Building CXX object src/CMakeFiles/denkzettelui.dir/ui/pendingdeletion.cpp.o
+[ 39%] Building CXX object src/CMakeFiles/denkzettelui.dir/ui/timestampformat.cpp.o
+[ 40%] Linking CXX static library ../lib/libdenkzettelshell.a
+[ 40%] Built target denkzettelshell
+[ 40%] Built target shelltest_autogen_timestamp_deps
+[ 40%] Built target firstruntest_autogen_timestamp_deps
+[ 43%] Automatic MOC for target firstruntest
+[ 43%] Automatic MOC for target shelltest
+[ 44%] Linking CXX static library ../lib/libdenkzettelcapture.a
+[ 44%] Built target denkzettelcapture
+[ 44%] Built target captureshots_autogen_timestamp_deps
+[ 44%] Built target capturetest_autogen_timestamp_deps
+[ 46%] Automatic MOC for target captureshots
+[ 47%] Automatic MOC for target capturetest
+[ 47%] Built target captureshots_autogen
+[ 48%] Building CXX object tests/CMakeFiles/captureshots.dir/captureshots.cpp.o
+[ 50%] Building CXX object tests/CMakeFiles/captureshots.dir/captureshots_autogen/mocs_compilation.cpp.o
+[ 51%] Linking CXX executable ../bin/storetest
+[ 51%] Built target shelltest_autogen
+[ 53%] Building CXX object tests/CMakeFiles/shelltest.dir/shelltest.cpp.o
+[ 53%] Building CXX object tests/CMakeFiles/shelltest.dir/shelltest_autogen/mocs_compilation.cpp.o
+[ 53%] Built target firstruntest_autogen
+[ 56%] Building CXX object tests/CMakeFiles/firstruntest.dir/firstruntest.cpp.o
+[ 56%] Building CXX object tests/CMakeFiles/firstruntest.dir/firstruntest_autogen/mocs_compilation.cpp.o
+[ 56%] Built target storetest
+[ 56%] Built target capturetest_autogen
+[ 59%] Building CXX object tests/CMakeFiles/capturetest.dir/capturetest_autogen/mocs_compilation.cpp.o
+[ 59%] Building CXX object tests/CMakeFiles/capturetest.dir/capturetest.cpp.o
+[ 60%] Linking CXX static library ../lib/libdenkzettelui.a
+[ 60%] Built target denkzettelui
+[ 60%] Built target librarytest_autogen_timestamp_deps
+[ 60%] Built target denkzetteld_autogen_timestamp_deps
+[ 60%] Built target searchshots_autogen_timestamp_deps
+[ 60%] Built target readmeshots_autogen_timestamp_deps
+[ 60%] Built target libraryshots_autogen_timestamp_deps
+[ 60%] Built target editshots_autogen_timestamp_deps
+[ 63%] Automatic MOC for target denkzetteld
+[ 63%] Automatic MOC for target readmeshots
+[ 64%] Automatic MOC for target editshots
+[ 67%] Automatic MOC for target libraryshots
+[ 68%] Automatic MOC for target librarytest
+[ 68%] Automatic MOC for target searchshots
+[ 68%] Built target readmeshots_autogen
+[ 68%] Built target denkzetteld_autogen
+[ 68%] Built target libraryshots_autogen
+[ 68%] Built target searchshots_autogen
+[ 68%] Built target editshots_autogen
+[ 69%] Automatic RCC for resources.qrc
+[ 72%] Building CXX object tests/CMakeFiles/libraryshots.dir/libraryshots.cpp.o
+[ 72%] Building CXX object tests/CMakeFiles/libraryshots.dir/libraryshots_autogen/mocs_compilation.cpp.o
+[ 73%] Building CXX object tests/CMakeFiles/editshots.dir/editshots_autogen/mocs_compilation.cpp.o
+[ 75%] Building CXX object tests/CMakeFiles/readmeshots.dir/readmeshots.cpp.o
+[ 76%] Building CXX object tests/CMakeFiles/readmeshots.dir/readmeshots_autogen/mocs_compilation.cpp.o
+[ 77%] Building CXX object tests/CMakeFiles/searchshots.dir/searchshots_autogen/mocs_compilation.cpp.o
+[ 78%] Building CXX object tests/CMakeFiles/editshots.dir/editshots.cpp.o
+[ 81%] Building CXX object tests/CMakeFiles/searchshots.dir/searchshots.cpp.o
+[ 81%] Building CXX object src/CMakeFiles/denkzetteld.dir/main.cpp.o
+[ 82%] Building CXX object src/CMakeFiles/denkzetteld.dir/denkzetteld_autogen/mocs_compilation.cpp.o
+[ 84%] Building CXX object src/CMakeFiles/denkzetteld.dir/denkzetteld_autogen/EWIEGA46WW/qrc_resources.cpp.o
+[ 84%] Built target librarytest_autogen
+[ 85%] Building CXX object tests/CMakeFiles/librarytest.dir/librarytest.cpp.o
+[ 86%] Building CXX object tests/CMakeFiles/librarytest.dir/librarytest_autogen/mocs_compilation.cpp.o
+[ 88%] Linking CXX executable ../bin/firstruntest
+[ 89%] Linking CXX executable ../bin/captureshots
+[ 89%] Built target firstruntest
+[ 90%] Linking CXX executable ../bin/shelltest
+[ 90%] Built target captureshots
+[ 90%] Built target shelltest
+[ 92%] Linking CXX executable ../bin/denkzetteld
+[ 93%] Linking CXX executable ../bin/capturetest
+[ 93%] Built target denkzetteld
+[ 94%] Linking CXX executable ../bin/searchshots
+[ 94%] Built target capturetest
+[ 96%] Linking CXX executable ../bin/libraryshots
+[ 97%] Linking CXX executable ../bin/readmeshots
+[ 97%] Built target searchshots
+[ 97%] Built target libraryshots
+[ 98%] Linking CXX executable ../bin/editshots
+[ 98%] Built target readmeshots
+[ 98%] Built target editshots
+[100%] Linking CXX executable ../bin/librarytest
+[100%] Built target librarytest

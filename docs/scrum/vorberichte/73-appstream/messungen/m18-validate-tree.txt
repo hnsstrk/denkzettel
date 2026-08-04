@@ -1,0 +1,17 @@
+== Baumkopie: installtest-Staging + Metainfo (nur gelesen/kopiert) ==
+<baum>/usr/bin/denkzetteld
+<baum>/etc/xdg/autostart/org.denkzettel.Denkzettel.desktop
+<baum>/usr/share/metainfo/org.denkzettel.Denkzettel.metainfo.xml
+<baum>/usr/share/applications/org.denkzettel.Denkzettel.desktop
+<baum>/usr/share/icons/hicolor/scalable/status/denkzettel-tray.svg
+<baum>/usr/share/icons/hicolor/scalable/apps/denkzettel.svg
+
+== appstreamcli validate-tree --no-net <baum> ==
+org.denkzettel.Denkzettel.metainfo.xml
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0
+
+== validate-tree ohne Metainfo (Lage heute) ==
+✔ Validierung war erfolgreich.
+rc=0

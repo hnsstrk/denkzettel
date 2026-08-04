@@ -1,0 +1,18 @@
+Plattform: offscreen  Locale: de_DE
+LANG=de_DE.UTF-8 LC_ALL=
+Kürzeltext hier: Entf="Entf" Undo="Strg+Z"
+-------------------------------------------------------------
+A) QToolButton + setDefaultAction — woher kommt der angezeigte Text?
+  Vorgabe (Aktion ohne eigenen Tooltip): "Bearbeiten (F2)"
+  Aktion mit eigenem Tooltip:            "Notiz zum Bearbeiten öffnen (F2)"
+  danach Tooltip am Knopf gesetzt:       "Notiz zum Bearbeiten öffnen (F2)"
+  Knopftext, Aktion ohne Tooltip:        "Bearbeiten (F2)"
+-------------------------------------------------------------
+B) QPushButton — greift der Helfer?
+  QPushButton, eigener Tooltip:          "Notiz bearbeiten"
+  QPushButton nach addAction(F2):        "Notiz bearbeiten"
+-------------------------------------------------------------
+C) Abgeschaltete Schaltfläche — wird sie überhaupt getroffen?
+  widgetAt über dem abgeschalteten Knopf: QPushButton  (= der Knopf selbst)
+  Tooltip bei direkter Zustellung:       "Bearbeiten (F2)"
+-------------------------------------------------------------

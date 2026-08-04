@@ -1,0 +1,10 @@
+### A — gesunder Lauf (Baum gebaut, alle .moc vorhanden)
+rc=2  warning-Zeilen=0  error-Zeilen=2
+
+### B — derselbe Baum, zwei .moc-Dateien entfernt
+rc=2  warning-Zeilen=0  error-Zeilen=2
+  tests/librarytest.cpp:3491:10: fatal error: 'librarytest.moc' file not found
+  tests/shelltest.cpp:369:10: fatal error: 'shelltest.moc' file not found
+
+### Dasselbe für lint-tidy
+rc=2  warning-Zeilen=140  error-Zeilen=2

@@ -1,0 +1,42 @@
+# Auswertung des B-Laufs, 2026-08-04 20:3x CEST, Stand 6acc87e
+# Lauf: run-clang-tidy -p <gefilterte compile_commands> -quiet <src/**.cpp + tests/*.cpp ohne spellfixspike>
+
+Rohzeilen mit 'warning:': 140
+eindeutige Befundzeilen:  81
+Fehler (error:):          0
+
+== nach Pruefung ==
+     66 [performance-enum-size]
+     60 [misc-const-correctness]
+      8 [bugprone-easily-swappable-parameters]
+      3 [bugprone-narrowing-conversions]
+      1 [performance-no-automatic-move]
+      1 [bugprone-unused-return-value]
+      1 [bugprone-implicit-widening-of-multiplication-result]
+
+== nach Datei (eindeutig) ==
+     42 tests/librarytest.cpp
+     36 src/store/note.h
+     14 src/ui/librarywindow.h
+      9 src/ui/timestampformat.h
+      7 tests/shelltest.cpp
+      5 tests/capturetest.cpp
+      4 src/ui/notelistmodel.h
+      3 src/shell/shortcutregistration.h
+      3 src/main.cpp
+      3 src/capture/capturewindow.cpp
+      2 tests/editshots.cpp
+      2 src/shell/trayicon.cpp
+      2 src/shell/shortcutregistration.cpp
+      2 src/shell/globalshortcuts.cpp
+      1 tests/searchshots.cpp
+      1 tests/readmeshots.cpp
+      1 tests/libraryshots.cpp
+      1 tests/captureshots.cpp
+      1 src/ui/notelistdelegate.cpp
+      1 src/ui/librarywindow.cpp
+
+== clazy level0,level1 ==
+tests/librarytest.cpp:2387:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/librarytest.cpp:2393:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/shelltest.cpp:361:24: warning: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]

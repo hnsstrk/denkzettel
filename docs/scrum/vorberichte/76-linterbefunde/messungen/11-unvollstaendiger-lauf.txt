@@ -1,0 +1,25 @@
+configure rc=0
+lint-tidy rc=2
+warning-Zeilen: 140
+error-Zeilen:   5
+/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/tests/storetest.cpp:568:10: error: 'storetest.moc' file not found [clang-diagnostic-error]
+/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/tests/firstruntest.cpp:97:10: error: 'firstruntest.moc' file not found [clang-diagnostic-error]
+/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/tests/shelltest.cpp:369:10: error: 'shelltest.moc' file not found [clang-diagnostic-error]
+--- clazy auf demselben unbebauten Stand ---
+lint-clazy rc=2
+warning-Zeilen: 27
+error-Zeilen:   5
+     27 [-Wmissing-include-dirs]
+--- Beispielzeilen ---
+warning: no such include directory: '/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/build/src/denkzettelcapture_autogen/include' [-Wmissing-include-dirs]
+warning: no such include directory: '/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/build/src/denkzettelcapture_autogen/include' [-Wmissing-include-dirs]
+warning: no such include directory: '/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/build/src/denkzetteld_autogen/include' [-Wmissing-include-dirs]
+warning: no such include directory: '/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/build/src/denkzettelshell_autogen/include' [-Wmissing-include-dirs]
+warning: no such include directory: '/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/build/src/denkzettelshell_autogen/include' [-Wmissing-include-dirs]
+warning: no such include directory: '/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/leerprobe/build/src/denkzettelshell_autogen/include' [-Wmissing-include-dirs]
+--- errors ---
+tests/capturetest.cpp:669:10: fatal error: 'capturetest.moc' file not found
+tests/firstruntest.cpp:97:10: fatal error: 'firstruntest.moc' file not found
+tests/librarytest.cpp:3491:10: fatal error: 'librarytest.moc' file not found
+tests/shelltest.cpp:369:10: fatal error: 'shelltest.moc' file not found
+tests/storetest.cpp:568:10: fatal error: 'storetest.moc' file not found

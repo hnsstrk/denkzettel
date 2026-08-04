@@ -1,0 +1,136 @@
+== ci.yml ==
+# Automatischer Bau- und Testlauf (Kundenentscheidung 04.08.2026).
+#
+# Er ist die Hälfte des PR-Abbruchkriteriums aus Sprint 4, die ohne menschliche
+# Disziplin trägt; die andere Hälfte — Berichte und Befunde am Pull Request —
+# ist genau an dieser Disziplin gerissen (PROZESS.md, „PR-Probelauf").
+#
+# WAS DIESER LAUF NICHT ERSETZT, ausdrücklich:
+#   DoD 1 verlangt die Tests auf Ganymed — der Container ist ein zweites Netz,
+#   keine Verlegung des Prüfstands.
+#   DoD 2 (installierter Stand unter /usr) und DoD 3 (Bildprüfung) erreicht er
+#   gar nicht: kein Compositor und kein /usr dieses Projekts. Die fünf
+#   Bildläufer (editshots, libraryshots, searchshots, readmeshots,
+#   captureshots) baut er seit dem 04.08.2026 mit — gestartet werden sie hier
+#   nicht, und ohne Compositor entstünde ohnehin kein prüfbares Bild.
+# Wer die grüne Marke für eine erfüllte DoD hält, hat drei ihrer sechs Punkte
+# übersprungen.
+#
+# Warum ein Arch-Container: derselbe rollende Paketstrom wie die
+# Entwicklungsmaschine (CachyOS). Ein Fund hier ist auf Ganymed reproduzierbar.
+# Das heißt umgekehrt, dass ein Upstream-Sprung den Lauf rot färben kann, ohne
+# dass jemand etwas geändert hat — das ist beabsichtigt und die Frühwarnung,
+# die ein festgepinntes Abbild nicht gäbe.
+
+name: Bau und Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  # Diese drei Zeilen sind tragend, nicht Geschmack: GitHub startet `shell: bash`
+  # als `bash --noprofile --norc -e -o pipefail`. Ohne sie liefe der Vorgabe-Shell
+  # ohne pipefail, und der Bau unten — durch `tee` geleitet — meldete den
+  # Rückgabewert von tee statt den des Compilers. Ein Baufehler liefe grün durch.
+  run:
+    shell: bash
+
+jobs:
+  bau-und-tests:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+
+    env:
+      # Kein Compositor im Container. capturetest, librarytest und shelltest
+      # setzen denselben Wert zusätzlich je Test (tests/CMakeLists.txt); die
+      # Zeile hier deckt die übrigen ab und widerspricht ihnen nicht.
+      QT_QPA_PLATFORM: offscreen
+
+    steps:
+      - name: Bauabhängigkeiten
+        # plasma-integration liefert das kde-Plattformthema, breeze-icons die
+        # Symbole dazu. Ohne beide läse QIcon::fromTheme() leere Namen —
+        # librarytest und shelltest wären dann grün und wertlos (#60, #66, #67).
+        # git wird vor dem Auschecken gebraucht, sonst fällt actions/checkout
+        # auf einen Abzug ohne Historie zurück.
+        #
+        # ksvg und kcoreaddons kommen mit der Fensterhülle (#55): KSvg zeichnet
+        # `dialogs/background` des Desktop-Themes, KDirWatch bewacht den
+        # Themenamen in `plasmarc`. libplasma liefert die Themes selbst —
+        # `default` und `breeze-*` liegen darin. Ohne libplasma fände KSvg hier
+        # überhaupt kein Theme, und capturetest prüfte den Randfall statt der
+        # Sache.
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel cmake git gettext \
+            extra-cmake-modules qt6-base \
+            kconfig kcoreaddons kdbusaddons kglobalaccel ki18n knotifications \
+            kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem libplasma \
+            plasma-integration breeze-icons appstream clazy
+
+      - uses: actions/checkout@v4
+
+      - name: Werkzeugstand festhalten
+        # Ohne diese Zeilen ist ein roter Lauf nach einem Upstream-Sprung nicht
+        # von einem roten Lauf nach einer Codeänderung zu unterscheiden.
+        run: |
+          cmake --version | head -1
+          gcc --version | head -1
+          pacman -Q qt6-base kconfig plasma-integration breeze-icons
+
+      - name: Konfigurieren
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Bauen
+        # `set -o pipefail` steht hier ein zweites Mal, obwohl `defaults.run.shell`
+        # es oben schon setzt. Absicht: Wer diesen Schritt herauskopiert oder die
+        # defaults-Zeilen entfernt, nimmt sonst still die Wache mit — die Pipe
+        # meldete dann den Rückgabewert von tee statt den des Compilers.
+        run: |
+          set -o pipefail
+          cmake --build build -j "$(nproc)" 2>&1 | tee bau.log
+
+      - name: Warnungen zählen
+        # Die Schwelle steht auf null, weil sie am 04.08.2026 an einem Neubau
+        # gemessen null war — auf Ganymed und in diesem Container. Eine Schranke
+        # oberhalb des gemessenen Standes wäre keine.
+        # `|| true` fängt grep ab: ohne Treffer liefert es 1, und unter `set -e`
+        # bräche der Schritt ausgerechnet im Gutfall ab.
+        run: |
+          anzahl=$(grep -c 'warning:' bau.log || true)
+          echo "Compiler-Warnungen: ${anzahl}"
+          if [ "${anzahl}" -ne 0 ]; then
+            grep 'warning:' bau.log
+            echo "::error::${anzahl} Compiler-Warnung(en) — DoD 1 verlangt einen warnungsarmen Bau."
+            exit 1
+          fi
+
+      - name: Tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: clazy
+        # Kundenentscheidung 04.08.2026. Nur clazy, noch nicht clang-tidy: Der
+        # steht bei 72 Altbefunden, die als eigene Story geheilt werden; ein Tor
+        # unterhalb des gemessenen Standes wäre Dauerrot.
+        #
+        # Die Schwelle ist eine Zahl und kein `rc`, weil clazy-standalone auch
+        # mit Befunden **0** zurückgibt — der Rückgabewert allein wäre hier eine
+        # Wache, die nie anschlägt. Dieselbe Bauart wie bei den Compiler-Warnungen,
+        # nur mit einer Schwelle über null: die drei Altbefunde vom 04.08.2026
+        # (2× range-loop-detach, 1× detaching-temporary) sind echte Qt-Fallen und
+        # gehen in dieselbe Heilungs-Story. **Sinkt die Zahl, wird die Schwelle
+        # nachgezogen** — eine Schranke, die über dem Ist-Stand hängen bleibt,
+        # misst nichts mehr.
+        run: |
+          set -o pipefail
+          cmake --build build --target lint-clazy 2>&1 | tee clazy.log
+          anzahl=$(grep -c 'warning:' clazy.log || true)
+          echo "clazy-Befunde: ${anzahl} (Schwelle 3)"
+          if [ "${anzahl}" -gt 3 ]; then
+            grep 'warning:' clazy.log
+            echo "::error::${anzahl} clazy-Befunde, erlaubt sind 3 (Altbestand vom 04.08.2026)."
+            exit 1
+          fi

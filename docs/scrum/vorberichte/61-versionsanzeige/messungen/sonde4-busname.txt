@@ -1,0 +1,23 @@
+Stand: 6acc87e
+
+==============================================
+Modus: ohne
+  organizationDomain vor KDBusService: 'denkzettel.org'
+  desktopFileName    vor KDBusService: 'org.denkzettel.Denkzettel'
+  angemeldete Busnamen (gefiltert): org.denkzettel.Daemon 
+  SPEC 2.3 verlangt: org.denkzettel.Daemon
+
+==============================================
+Modus: mit
+  organizationDomain vor KDBusService: 'kde.org'
+  desktopFileName    vor KDBusService: 'org.kde.denkzettel'
+  angemeldete Busnamen (gefiltert): org.kde.Daemon 
+  SPEC 2.3 verlangt: org.denkzettel.Daemon
+
+==============================================
+Modus: heilung
+  organizationDomain vor KDBusService: 'denkzettel.org'
+  desktopFileName    vor KDBusService: 'org.denkzettel.Denkzettel'
+  angemeldete Busnamen (gefiltert): org.denkzettel.Daemon 
+  SPEC 2.3 verlangt: org.denkzettel.Daemon
+

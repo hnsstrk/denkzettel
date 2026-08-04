@@ -1,0 +1,7 @@
+Plattform: offscreen
+A) Zeigt QWidget::grab() des Fensters den Tooltip?
+   Fensterbild 160x32 — der Tooltip ist ein eigenes Fenster, er kann darin nicht liegen.
+B) Gibt es das Tooltip-Fenster als QWidget?
+   QTipLabel gefunden: ja
+   Bild 103x26 geschrieben: messungen/sonde5-tooltip-offscreen.png
+C) QToolTip::text() = "Bearbeiten (F2)", sichtbar=ja

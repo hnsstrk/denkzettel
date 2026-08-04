@@ -1,0 +1,26 @@
+--- Lauf 1: unversehrt ---
+    Start 1: metainfotest
+1/1 Test #1: metainfotest .....................   Passed    0.02 sec
+
+100% tests passed out of 1
+
+Total Test time (real) =   0.03 sec
+--- Mutation: metadata_license entfernt ---
+	  1 - metainfotest (Failed)
+Errors while running CTest
+Output from these tests are in: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/73-appstream/build/metainfotest/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+--- Mutation: XML-Wurzel unvollstaendig ---
+	  1 - metainfotest (Failed)
+Errors while running CTest
+Output from these tests are in: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/73-appstream/build/metainfotest/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+--- Mutation: Datei geloescht ---
+	  1 - metainfotest (Failed)
+Errors while running CTest
+Output from these tests are in: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/73-appstream/build/metainfotest/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+--- zurueckgesetzt ---
+100% tests passed out of 1
+
+Total Test time (real) =   0.02 sec

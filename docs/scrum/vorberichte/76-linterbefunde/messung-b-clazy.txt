@@ -1,0 +1,40 @@
+[1/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp.
+[2/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/capture/textareaheight.cpp.
+[3/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/main.cpp.
+[4/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/main.cpp.
+[5/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/daemonservice.cpp.
+[6/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/firstrun.cpp.
+[7/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp.
+[8/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutconflict.cpp.
+[9/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp.
+[10/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp.
+[11/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/store/store.cpp.
+[12/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/elidedlines.cpp.
+[13/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp.
+[14/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/notelistdelegate.cpp.
+[15/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.cpp.
+[16/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/pendingdeletion.cpp.
+[17/28] Processing file /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.cpp.
+[18/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/captureshots.cpp.
+[19/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp.
+[20/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp.
+[21/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/firstruntest.cpp.
+[22/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp.
+[23/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp.
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2387:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+ 2387 |     for (QLabel *label : message->findChildren<QLabel *>()) {
+      |     ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2393:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+ 2393 |     for (QToolButton *button : message->findChildren<QToolButton *>()) {
+      |     ^
+2 warnings generated.
+[24/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp.
+[25/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp.
+[26/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp.
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:361:24: warning: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]
+  361 |     QAction *capture = icon.item()->contextMenu()->actions().first();
+      |                        ^                                     ~~~~~
+      |                                                              constFirst
+1 warning generated.
+[27/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/storetest.cpp.
+[28/28] Processing file /home/hnsstrk/Projekte/denkzettel/tests/testsilence.cpp.

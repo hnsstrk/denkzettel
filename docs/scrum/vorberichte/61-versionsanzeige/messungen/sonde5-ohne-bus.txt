@@ -1,0 +1,11 @@
+== Ohne Sitzungsbus (wie im automatischen Testlauf) ==
+--- DZ_MODUS=kf6 --version ---
+setupCommandLine() = true
+bekannte Optionen: Aufruf: ./sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+denkzettel 0.1.0
+Rückgabe: 0
+--- DZ_MODUS=kf6lax --version ---
+parse() = true  Fehler: ''
+isSet(version) = true
+denkzettel 0.1.0
+Rückgabe: 0

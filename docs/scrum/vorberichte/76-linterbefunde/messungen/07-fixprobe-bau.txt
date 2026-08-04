@@ -1,0 +1,3 @@
+Bau2 rc=0
+Fehler: 0
+Warnungen: 0

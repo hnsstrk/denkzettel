@@ -1,0 +1,39 @@
+Plattform: offscreen
+-------------------------------------------------------------
+A) QAction-Vorgabetooltip (ohne setToolTip)
+  text="Bearbeiten"  toolTip()="Bearbeiten"  shortcut()="F2"
+  text="Löschen"  toolTip()="Löschen"  shortcut()="Entf"
+  text="Rückgängig"  toolTip()="Rückgängig"  shortcut()="Strg+Z"
+  undo hat 1 Kürzel: [Strg+Z]
+-------------------------------------------------------------
+B) QKeySequence::toString — Portable vs. NativeText, ohne Qt-Katalog
+  Portable="F2"  Native="F2"
+  Portable="Del"  Native="Entf"
+  Portable="Ctrl+Z"  Native="Strg+Z"
+  Qt-Übersetzungspfad: /usr/share/qt6/translations
+  qtbase_de geladen: ja
+  nach dem Laden:
+    Native="F2"
+    Native="Entf"
+    Native="Strg+Z"
+-------------------------------------------------------------
+C) KMessageWidget::addAction — welcher Knopf, welcher Tooltip?
+  QToolButton-Kinder: 2
+    text="Schließen"  defaultAction=gesetzt  toolTip()="Nachricht schließen"
+    text="Rückgängig"  defaultAction=gesetzt  toolTip()="PROBE-TOOLTIP"
+  nach setToolTip(QString()):
+    toolTip()="Nachricht schließen"
+    toolTip()="Rückgängig"
+-------------------------------------------------------------
+D) QPushButton, per connect an eine QAction gehängt (Bauart in librarywindow.cpp)
+  toolTip()="" (leer = kein Tooltip)
+  actions().size()=0
+  QPushButton::addAction -> actions().size()=1, toolTip()=""
+-------------------------------------------------------------
+E) KToolTipHelper (KF6::XmlGui)
+  QToolButton mit defaultAction: toolTip()="Bearbeiten"
+  QPushButton:                   toolTip()=""
+  nach QEvent::ToolTip an QPushButton: QToolTip::text()="Notiz bearbeiten" sichtbar=ja
+  nach QEvent::ToolTip an QToolButton: QToolTip::text()="Bearbeiten (F2)" sichtbar=ja
+-------------------------------------------------------------
+Fertig.

@@ -1,0 +1,10 @@
+== SPEC: AppStream/Metainfo erwaehnt? ==
+  keine Fundstelle
+
+== Sprint-Abschluss, Punkt 10 und Umgebung ==
+132:  *Warum ein eigener Ordner neben `reviews/`:* Der Sprint-Abschluss zählt dort
+153:  Issues des Sprint-Milestones; Pflege siehe „Sprint-Abschluss", Takt 2.
+256:    (Sprint-Abschluss, Punkt 11): Es fehlt nicht die Regel, es fehlt ihre
+389:  Räumen der Zweige **auch auf `origin`** (Sprint-Abschluss, Punkt 8) — sie
+505:**Prüfzeitpunkte: siehe „Sprint-Abschluss".** DoD 1–4 und der Doku-Abgleich
+510:## Sprint-Abschluss (Retro Sprint 3, B11)

@@ -1,0 +1,10 @@
+== validate --no-net ==
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0
+
+== validate --no-net --pedantic ==
+P: org.denkzettel.Denkzettel:3: cid-contains-uppercase-letter org.denkzettel.Denkzettel
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0

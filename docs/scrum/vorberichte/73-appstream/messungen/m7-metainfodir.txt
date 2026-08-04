@@ -1,0 +1,7 @@
+-- KDE_INSTALL_METAINFODIR      = share/metainfo
+-- KDE_INSTALL_FULL_METAINFODIR = /usr/share/metainfo
+-- KDE_INSTALL_FULL_APPDIR      = /usr/share/applications
+-- CMAKE_INSTALL_PREFIX         = /usr
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/73-appstream/build/dirs

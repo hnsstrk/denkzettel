@@ -1,0 +1,25 @@
+eindeutig nach Konvergenz: 29
+tests/librarytest.cpp:1311:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:2229:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:2288:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:3062:12: warning: variable 'written' of type 'QString' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:3063:12: warning: variable 'expected' of type 'QString' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:3154:12: warning: variable 'trigger' of type 'QString' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:3155:12: warning: variable 'answer' of type 'QString' can be declared 'const' [misc-const-correctness]
+tests/librarytest.cpp:3343:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+=== clazy auf der Kopie nach den Fixes ===
+rc=0
+3
+tests/librarytest.cpp:2388:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/librarytest.cpp:2394:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/shelltest.cpp:361:30: warning: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]
+=== Diff-Umfang gesamt ===
+4
+src/main.cpp: 3 geänderte Zeilen
+src/shell/shortcutregistration.cpp: 1 geänderte Zeilen
+src/shell/trayicon.cpp: 2 geänderte Zeilen
+src/ui/notelistdelegate.cpp: 1 geänderte Zeilen
+tests/librarytest.cpp: 37 geänderte Zeilen
+tests/capturetest.cpp: 5 geänderte Zeilen
+tests/shelltest.cpp: 7 geänderte Zeilen
+tests/captureshots.cpp: 1 geänderte Zeilen

@@ -1,0 +1,17 @@
+--- validate-tree mit gueltiger Metainfo ---
+org.denkzettel.Denkzettel.metainfo.xml
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0
+--- validate-tree OHNE jede Metainfo ---
+✔ Validierung war erfolgreich.
+rc=0
+--- falsche desktop-id: erst validate, dann validate-tree ---
+
+✔ Validierung war erfolgreich: Pedantisch: 1
+rc=0
+org.denkzettel.Denkzettel.metainfo.xml
+  W: org.denkzettel.Denkzettel:~: desktop-file-not-found
+
+✘ Validierung fehlgeschlagen: Warnungen: 1, Pedantisch: 1
+rc=3

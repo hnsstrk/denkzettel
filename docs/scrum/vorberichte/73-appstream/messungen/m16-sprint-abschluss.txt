@@ -1,0 +1,157 @@
+**Prüfzeitpunkte: siehe „Sprint-Abschluss".** DoD 1–4 und der Doku-Abgleich
+gehören in Takt 1 (vor der Kundenabnahme), DoD 5 und DoD 6 in Takt 2 (nach
+ihr) — vor der Abnahme sind sie nicht erfüllbar. Wer alle sechs Punkte in einem
+Zug prüft, bucht sie erneut als Mängel (Sprint-3-Mängel M2 und M5).
+
+## Sprint-Abschluss (Retro Sprint 3, B11)
+
+Acht der neun Mängel aus Sprint 3 waren Abschlussmängel (Sprint 3, 14.5).
+Diese Liste ist die Antwort darauf. Der Scrum Master übernimmt sie am
+Sprint-Ende in das Sprint-Protokoll und hakt jeden Punkt **mit Beleg** ab:
+Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
+(Sprint 3, 12.7).
+
+**Takt 1 — vor der Kundenabnahme.** Ausführung PO/Dev, Prüfung Scrum Master:
+
+1. Der **Endstand ist einmal nach `/usr` installiert**, und der Hauptweg jeder
+   Story ist daran ausgeführt (DoD 2). Hauptweg ist der Weg, den das
+   Akzeptanzkriterium beschreibt; der Nachweis hat dieselbe Form wie in DoD 2 —
+   **Terminalausgabe, Journalauszug oder Bild**. Ohne Belegform ist „mit Beleg
+   abgehakt" eine Behauptung.
+   **Installieren genügt nicht** (B16): Ein laufender Dienst hält nach
+   `cmake --install` die **gelöschte** alte Binärdatei weiter und zeigt das an
+   nichts. Vor der Prüfung wird deshalb belegt, dass der laufende Prozess der
+   installierte ist — `readlink /proc/$(pgrep -x denkzetteld)/exe` muss auf
+   `/usr/bin/denkzetteld` zeigen und **darf nicht** auf `(deleted)` enden. Ohne
+   diesen Beleg prüft die Abnahme den Stand des vorigen Sprints
+   (Sprint 6, §22.1).
+2. **Jeder Prüflauf hat einen Bericht als Datei** unter
+   `docs/scrum/reviews/` — UI-Review *und* karpathy-Review, Zwischenläufe
+   eingeschlossen —, und er liegt vor, **bevor die DoD-Prüfung läuft**. Sonst
+   prüft der Scrum Master DoD 3 gegen eine Meldung statt gegen ein Artefakt;
+   genau dagegen ist B7 gefasst. Kürzungen werden als solche gekennzeichnet.
+   *Prüfweg für die Vollzähligkeit:* Commit-Botschaften, die Befunde eines
+   Prüflaufs nennen, gegen die abgelegten Berichte halten — so ist der erste
+   karpathy-Lauf des Sprints 3 aufgefallen (`e18630c` nannte drei Befunde, ein
+   Bericht dazu lag nicht im Repo; Sprint 3, 16.1.2). **Grenze des Prüfwegs:** Ein Lauf, der weder Bericht noch Commit
+   hinterlässt, bleibt unsichtbar — dagegen hilft nur, dass der PO den Aufruf
+   beauftragt und mitzählt.
+   **Prüfsummen der Bildbelege (04.08.2026).**
+   `bash docs/scrum/bildbelege-pruefen.sh <Belegordner dieses Sprints>` meldet
+   Dateien mit verschiedenen Namen und identischen Bytes (Rückgabe 1 = Fund,
+   0 = kein Fund). **Verglichen wird nur innerhalb eines Ordners** — dass
+   dasselbe Bild in der Dev-Übergabe und im UX-Bericht liegt, ist normal;
+   ordnerübergreifend wären es 44 statt 23 Gruppen, und eine Wache, die immer
+   anschlägt, ist keine. **Das Skript findet, der Mensch urteilt:** Ein Zustand,
+   der nach einer Rückkehr wieder derselbe ist, darf zweimal gleich aussehen;
+   ein Mangel ist es, wo zwei **verschiedene** Zustände denselben Beleg tragen.
+   Wer die Rückgabe 1 ungeprüft als Mangel bucht, macht aus der Wache eine
+   Abhakübung. *Beleg:* Den Fall `bibliothek-installiert.png` =
+   `schema-dunkel-installiert.png` fand in Sprint 5 ein Mensch von Hand; der
+   erste Lauf fand ihn und 22 weitere
+   (`docs/scrum/reviews/2026-08-04-bildbelege-lauf.txt`).
+   **Stop-Bedingung:** Findet die Prüfung in drei aufeinanderfolgenden Sprints
+   keine neue Gruppe, wird sie zur Stichprobe herabgestuft.
+3. **DoD 1–4 je Story** geprüft, **Doku-Abgleich** nach B10 einschließlich der
+   Statuszeile des README. Sie beschreibt den **gelieferten Stand**, nicht den
+   Stand des Verfahrens: „Sprint N in der Kundenabnahme" wird durch Takt 2
+   falsch und gehört gar nicht erst hinein.
+4. **Mängelliste an den PO** — melden, nicht heilen.
+
+**Takt 2 — nach der Kundenabnahme.** Ausführung PO:
+
+5. Issues mit AK-Haken, Abnahmekommentar und Commit-Verweis geschlossen,
+   Milestone geschlossen (DoD 5). **Arbeitsteilung, weil dieser Punkt zugleich
+   Arbeitsliste des `denkzettel-verwalter` ist:** Die **AK-Haken setzt der PO**
+   — sie sind seine Abnahmeentscheidung, nicht umkehrbar und werden zur
+   Beweislage. Das **Schließen der abgenommenen Issues** mit Kommentar und
+   Commit-Verweis sowie das Schließen des Milestones ist Vollzug einer bereits
+   getroffenen Entscheidung und delegierbar. **Gegenstand der Delegation ist
+   die Abnahme, nicht der Milestone:** Der Auftrag zählt die Issues auf, die
+   der PO abgenommen hat. „Alle Issues des Milestones" ist kein Ersatz — ein
+   Issue kann am Milestone hängen, ohne abgenommen zu sein, und ein
+   Abnahmekommentar an einer nicht abgenommenen Story ist ein falscher Eintrag
+   in der Beweislage (karpathy-Nachprüfung, N3).
+6. Journal bis zum letzten Commit nachgeführt (DoD 6).
+7. `main` gepusht.
+8. Story-Zweige und Worktrees entfernt. Das Kriterium ist ein Exit-Code, kein
+   Ermessen: `git merge-base --is-ancestor <zweig> main` → 0 heißt löschbar
+   (gleichwertig: der Zweig steht in `git branch --merged main` und nicht in
+   `git branch --no-merged main`). Erst `git worktree remove`, dann
+   `git branch -d` — niemals `-D`. **Ab dem PR-Probelauf auch auf `origin`:**
+   `git push origin --delete <zweig>`. Sonst bleiben genau die
+   Zwischenstände dauerhaft öffentlich stehen, die der Basis-Tag vermeiden
+   sollte — das Repo ist öffentlich.
+9. **Changelog fortgeschrieben** (Kundenentscheidung 02.08.2026): ein Abschnitt
+   je Version in `CHANGELOG.md`, gezogen aus den geschlossenen Issues des
+   Milestones. **Maßstab ist die Nutzersicht, nicht das Label.** `typ:tech` ist
+   ein Anhaltspunkt, kein Filter — am ersten Changelog gemessen: **#6**
+   (Autostart) trägt `typ:tech` und steht zu Recht drin, weil ein Dienst, der
+   sich selbst startet, sichtbar ist; **#1** (Wayland-Spike) trägt dasselbe
+   Label und bleibt zu Recht draußen; **#9** (Migrationstest) erscheint nur
+   dort, wo er die Schemazeile belegt. **Jede Änderung am Datenbank-Schema
+   wird genannt**, auch wenn kein Issue sie im Titel trägt — sie steckt als
+   Nebenwirkung in einer Story und ist das, was einen Nutzer am meisten
+   angeht. Die
+   Repo-Grenzen (Artefakte) gelten. Der `denkzettel-verwalter` liefert je nach
+   Repo-Grenzen (Artefakte) gelten. Der `denkzettel-verwalter` liefert je nach
+   Auftrag die **Rohliste** oder einen **vorformulierten Entwurf**; in beiden
+   Fällen **verantwortet der PO Auswahl und Text**, und der Verwalter trägt
+   nichts selbst in `CHANGELOG.md` ein. Das Ziehen ist mechanisch, die
+   Aufnahme eines Eintrags ist ein Urteil — deshalb taugen die Labels hier
+   nicht als Filter (Sprint 3, 16.3.3).
+10. **Version erhöht und getaggt** (Kundenentscheidung 02.08.2026): 0.x-SemVer,
+    **MINOR bei jeder Kundenabnahme**, PATCH für außerplanmäßige Behebungen,
+    `1.0.0` erst auf Erklärung des Kunden; **jede Schemamigration erzwingt
+    mindestens einen MINOR-Sprung**. Einzige Quelle ist `CMakeLists.txt`, der
+    Tag `vX.Y.Z` ist das Siegel, nicht die Quelle. Auslöser ist die Abnahme,
+    nicht das Sprint-Ende: Der Sprintschluss ist ein Ereignis des Teams, ein
+    Release eines für den Kunden — ein Sprint ohne Abnahme erzeugt keine
+    Version. **Wirksam ab #61**; bis dahin erreicht die Zahl die Anwendung
+    nicht und wäre eine Behauptung ohne Sichtbarkeit. **Bis #61 umgesetzt ist,
+    führt der Vollzugsvermerk (Punkt 11) diesen Punkt als *ausgesetzt*, die
+    Einträge sammeln sich unter `[Unveröffentlicht]`, und Abnahmen davor
+    bekommen keine Version rückwirkend.** Ab #61 siegelt der `vX.Y.Z`-Tag den
+    Abschluss; ein zusätzlicher Abschluss-Tag entfällt dann. Der einmalige
+    `sprint-03-abschluss` ist eine Übergangsform aus der Zeit vor dieser Regel
+    (Sprint 3, 16.13) und kein drittes Tag-Schema.
+11. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
+    **Jeder Verwalter-Auftrag endet mit einer Datei (04.08.2026).** Der PO
+    schreibt den Ablageort in den Auftrag — `docs/scrum/reviews/sprint-NN-verwalter.md` —,
+    und der Scrum Master prüft ihn mit `git ls-files`. **Fehlt die Datei, gilt
+    der Auftrag als nicht ausgeführt**, gleichgültig ob die Arbeit getan ist.
+    *Grund:* Die Berichtspflicht steht seit `a484d49` in
+    `.claude/agents/denkzettel-verwalter.md` — dem bestmöglichen Ort, denn eine
+    Agentendatei wird garantiert gelesen — und ist trotzdem **zweimal**
+    folgenlos geblieben (Sprint 4 §17.6, Sprint 5 §V3). Es fehlt nicht die
+    Regel, es fehlt ihre Wirkung; sie wird deshalb an eine Existenzprüfung
+    gebunden statt ein drittes Mal ermahnt. Beide Male war die Arbeit richtig
+    und vom PO nachgemessen — der Schaden entsteht an dem Tag, an dem das
+    niemand tut, weil es zweimal gutgegangen ist.
+
+Zwei Takte, weil DoD 5 und DoD 6 vor der Abnahme gar nicht erfüllbar sind: In
+Sprint 3 wurden sie zum Prüfzeitpunkt trotzdem als Mängel geführt (M2, M5),
+und der Doku-Abgleich lief vor der Abnahme — deshalb ging er an der
+Statuszeile vorbei, die erst durch die Abnahme falsch wurde.
+
+Version, Tag und Changelog standen bis zum 02.08.2026 bewusst **nicht** in
+dieser Liste, weil sie Kundenentscheidung waren. Der Kunde hat sie am
+02.08.2026 wie vorgeschlagen entschieden (Sprint 3, 16.9); seitdem sind sie
+die Punkte 9 und 10.
+
+## Retrospektiven
+
+- **Kadenz**: nach Sprint 3 die erste Retro, danach jede dritte
+  (Sprint 6, 9, 12, …). Der Kunde kann jederzeit eine Retro anordnen; seine
+  Anweisung überstimmt die Kadenz (erstmals am 01.08.2026 nach Sprint 2).
+- **Moderation**: Scrum Master; Input: Sprint-Protokolle, Impediment-Liste,
+  Befunde des karpathy-reviewers, Kunden-Feedback.
+- **Ergebnisse sind Änderungen, keine Absichtserklärungen**: neue oder
+  geänderte Skills, Regeln (`~/.claude/rules/` bzw. `.claude/`), Agenten
+  (`.claude/agents/`), Memory-Einträge oder Prozess-Anpassungen an dieser
+  Datei. Jede Änderung wird im Retro-Protokoll
+  (`docs/scrum/sprints/sprint-NN.md`, Abschnitt Retro) mit Begründung
+  dokumentiert; Skill-/Regel-/Agenten-Änderungen durchlaufen den
+  karpathy-reviewer (globale Regel).
+- **Abschlussprüfung jeder Retro — zwei Fragen, beide schriftlich beantwortet**
+  (Anweisung des Kunden vom Projektbeginn, präzisiert am 02.08.2026):

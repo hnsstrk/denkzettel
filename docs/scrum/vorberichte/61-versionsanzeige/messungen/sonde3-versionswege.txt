@@ -1,0 +1,348 @@
+Sonde: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege
+Stand: 6acc87e
+PROJECT_VERSION der Wurzel: project(denkzettel VERSION 0.1.0 LANGUAGES CXX)
+
+===== DZ_MODUS=roh  Argument: --version =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--version
+Modus roh: keine Optionsauswertung. Der Dienst liefe jetzt weiter.
+
+===== DZ_MODUS=roh  Argument: -v =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|-v
+Modus roh: keine Optionsauswertung. Der Dienst liefe jetzt weiter.
+
+===== DZ_MODUS=roh  Argument: --help =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--help
+Modus roh: keine Optionsauswertung. Der Dienst liefe jetzt weiter.
+
+===== DZ_MODUS=roh  Argument: --unbekannt =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--unbekannt
+Modus roh: keine Optionsauswertung. Der Dienst liefe jetzt weiter.
+
+===== DZ_MODUS=roh  Argument: <keins> =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege
+Modus roh: keine Optionsauswertung. Der Dienst liefe jetzt weiter.
+
+===== DZ_MODUS=kf6  Argument: --version =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--version
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+denkzettel 0.1.0
+
+===== DZ_MODUS=kf6  Argument: -v =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|-v
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+denkzettel 0.1.0
+
+===== DZ_MODUS=kf6  Argument: --help =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--help
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]
+
+Optionen:
+  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an.
+  --help-all                 Zeigt Hilfe einschließlich der generischen
+                             Qt-Optionen an.
+  -v, --version              Zeigt Versionsinformation an.
+  --author                   Autor-Informationen anzeigen.
+  --license                  Lizenz-Informationen anzeigen.
+  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser
+                             Anwendung.
+
+===== DZ_MODUS=kf6  Argument: --unbekannt =====
+Rückgabe: 1
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--unbekannt
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+denkzettel: Unbekannte Option 'unbekannt'.
+
+===== DZ_MODUS=kf6  Argument: <keins> =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+  [nach process()]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+process() hat nicht beendet — es war weder --version noch --help.
+
+===== DZ_MODUS=kf6lax  Argument: --version =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--version
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+parse() = true  Fehler: ''
+isSet(version) = true
+denkzettel 0.1.0
+
+===== DZ_MODUS=kf6lax  Argument: -v =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|-v
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+parse() = true  Fehler: ''
+isSet(version) = true
+denkzettel 0.1.0
+
+===== DZ_MODUS=kf6lax  Argument: --help =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--help
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+parse() = true  Fehler: ''
+isSet(version) = false
+  [nach parse()]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+
+===== DZ_MODUS=kf6lax  Argument: --unbekannt =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--unbekannt
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+parse() = false  Fehler: 'Unbekannte Option 'unbekannt'.'
+isSet(version) = false
+  [nach parse()]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+
+===== DZ_MODUS=kf6lax  Argument: <keins> =====
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+parse() = true  Fehler: ''
+isSet(version) = false
+  [nach parse()]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+
+===== Qt-Option auf der Kommandozeile (nicht über die Umgebung) =====
+--- DZ_MODUS=kf6  ./versionswege -platform offscreen --version ---
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--version
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+denkzettel 0.1.0
+
+--- DZ_MODUS=kf6lax  ./versionswege -platform offscreen --version ---
+Rückgabe: 0
+  [nach den Zeilen aus main.cpp]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... ''
+    organizationDomain ... 'denkzettel.org'
+    applicationDisplayName 'denkzettel'
+    desktopFileName ...... 'org.denkzettel.Denkzettel'
+  [nach KAboutData::setApplicationData]
+    applicationName ...... 'denkzettel'
+    applicationVersion ... '0.1.0'
+    organizationDomain ... 'kde.org'
+    applicationDisplayName 'Denkzettel'
+    desktopFileName ...... 'org.kde.denkzettel'
+DENKZETTEL_VERSION (Präprozessor) = '0.1.0'
+QCoreApplication::arguments() = /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege|--version
+setupCommandLine() = true
+bekannte Optionen: Aufruf: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/61-versionsanzeige/messungen/../sonden/build/versionswege [Optionen]//Optionen:/  -h, --help                 Zeigt Hilfe zu den Kommandozeilenoptionen an./  --help-all                 Zeigt Hilfe einschließlich der generischen/                             Qt-Optionen an./  -v, --version              Zeigt Versionsinformation an./  --author                   Autor-Informationen anzeigen./  --license                  Lizenz-Informationen anzeigen./  --desktopfile <Dateiname>  Der Basis-Dateiname des Desktop-Eintrags dieser/                             Anwendung./
+parse() = true  Fehler: ''
+isSet(version) = true
+denkzettel 0.1.0
+

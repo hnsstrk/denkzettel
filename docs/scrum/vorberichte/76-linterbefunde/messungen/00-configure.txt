@@ -1,0 +1,84 @@
+-- The CXX compiler identification is GNU 16.1.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Installing in the same prefix as Qt, adopting their path scheme.
+-- Found Python3: /home/hnsstrk/.local/bin/python3.11 (found version "3.11.15") found components: Interpreter
+-- Looking for __GLIBC__
+-- Looking for __GLIBC__ - found
+-- Performing Test _OFFT_IS_64BIT
+-- Performing Test _OFFT_IS_64BIT - Success
+-- Performing Test HAVE_DATE_TIME
+-- Performing Test HAVE_DATE_TIME - Success
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /usr/lib/libOpenGL.so
+-- Found WrapOpenGL: TRUE
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Found KF6Config: /usr/lib/cmake/KF6Config/KF6ConfigConfig.cmake (found version "6.28.0")
+-- Found KF6CoreAddons: /usr/lib/cmake/KF6CoreAddons/KF6CoreAddonsConfig.cmake (found version "6.28.0")
+-- Found KF6DBusAddons: /usr/lib/cmake/KF6DBusAddons/KF6DBusAddonsConfig.cmake (found version "6.28.0")
+-- Found KF6GlobalAccel: /usr/lib/cmake/KF6GlobalAccel/KF6GlobalAccelConfig.cmake (found version "6.28.0")
+-- Found Gettext: /usr/bin/msgmerge (found version "1.0")
+-- Found KF6I18n: /usr/lib/cmake/KF6I18n/KF6I18nConfig.cmake (found version "6.28.0")
+-- Found KF6Notifications: /usr/lib/cmake/KF6Notifications/KF6NotificationsConfig.cmake (found version "6.28.0")
+-- Found KF6StatusNotifierItem: /usr/lib/cmake/KF6StatusNotifierItem/KF6StatusNotifierItemConfig.cmake (found version "6.28.0")
+-- Found KF6Svg: /usr/lib/cmake/KF6Svg/KF6SvgConfig.cmake (found version "6.28.0")
+-- Found KF6WidgetsAddons: /usr/lib/cmake/KF6WidgetsAddons/KF6WidgetsAddonsConfig.cmake (found version "6.28.0")
+-- Found X11: /usr/include
+-- Looking for XOpenDisplay in /usr/lib/libX11.so;/usr/lib/libXext.so
+-- Looking for XOpenDisplay in /usr/lib/libX11.so;/usr/lib/libXext.so - found
+-- Looking for gethostbyname
+-- Looking for gethostbyname - found
+-- Looking for connect
+-- Looking for connect - found
+-- Looking for remove
+-- Looking for remove - found
+-- Looking for shmat
+-- Looking for shmat - found
+-- Looking for IceConnectionNumber in ICE
+-- Looking for IceConnectionNumber in ICE - found
+-- Found KF6WindowSystem: /usr/lib/cmake/KF6WindowSystem/KF6WindowSystemConfig.cmake (found version "6.28.0")
+-- Found KF6: success (found suitable version "6.28.0", minimum required is "6.0.0") found components: Config CoreAddons DBusAddons GlobalAccel I18n Notifications StatusNotifierItem Svg WidgetsAddons WindowSystem
+-- The following OPTIONAL packages have been found:
+
+ * Python3
+ * OpenGL
+ * Qt6Sql (required version >= 6.7.0)
+ * Qt6QmlTools (required version >= 6.11.1)
+ * Qt6DBusTools (required version >= 6.11.1)
+ * Qt6DBus (required version >= 6.9.0)
+ * Qt6CoreTools (required version >= 6.11.1)
+ * Qt6GuiTools (required version >= 6.11.1)
+ * Qt6WidgetsTools (required version >= 6.11.1)
+ * Qt6Widgets (required version >= 6.9.0)
+ * Qt6Test (required version >= 6.7.0)
+
+-- The following REQUIRED packages have been found:
+
+ * ECM (required version >= 6.0.0)
+ * KF6Config (required version >= 6.0.0)
+ * KF6CoreAddons (required version >= 6.0.0)
+ * KF6DBusAddons (required version >= 6.0.0)
+ * KF6GlobalAccel (required version >= 6.0.0)
+ * Gettext
+ * KF6I18n (required version >= 6.0.0)
+ * KF6Notifications (required version >= 6.0.0)
+ * KF6StatusNotifierItem (required version >= 6.0.0)
+ * KF6Svg (required version >= 6.0.0)
+ * KF6WidgetsAddons (required version >= 6.0.0)
+ * KF6WindowSystem (required version >= 6.0.0)
+ * KF6 (required version >= 6.0.0)
+ * Qt6 (required version >= 6.7.0)
+
+-- The following OPTIONAL packages have not been found:
+
+ * WrapVulkanHeaders
+
+-- Configuring done (1.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/76-linterbefunde/build

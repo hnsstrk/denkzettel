@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.denkzettel.Denkzettel</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Denkzettel</name>
+  <name xml:lang="de">Denkzettel</name>
+  <summary>Capture a thought before it is gone</summary>
+  <summary xml:lang="de">Gedanken festhalten, bevor sie weg sind</summary>
+  <description>
+    <p>
+      Denkzettel opens a small window on a keystroke. Type, press Enter, the note is stored.
+    </p>
+    <p xml:lang="de">
+      Denkzettel öffnet auf einen Tastendruck ein kleines Fenster. Tippen, Enter, die Notiz liegt in der Ablage.
+    </p>
+  </description>
+  <launchable type="desktop-id">org.denkzettel.Denkzettel.desktop</launchable>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <developer id="de.hnsstrk">
+    <name>hnsstrk</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
+  <url type="homepage">https://github.com/hnsstrk/denkzettel</url>
+  <url type="bugtracker">https://github.com/hnsstrk/denkzettel/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/hnsstrk/denkzettel/main/docs/bilder/erfassungsfenster.png</image>
+      <caption>The capture window</caption>
+      <caption xml:lang="de">Das Erfassungsfenster</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/hnsstrk/denkzettel/main/docs/bilder/bibliothek.png</image>
+      <caption>The library</caption>
+      <caption xml:lang="de">Die Bibliothek</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.1.0" date="2026-08-02"/>
+  </releases>
+</component>

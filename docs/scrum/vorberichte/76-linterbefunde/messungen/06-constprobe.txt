@@ -1,0 +1,4 @@
+=== ohne const ===
+rc=0
+=== mit const (Vorschlag des Linters) ===
+rc=0

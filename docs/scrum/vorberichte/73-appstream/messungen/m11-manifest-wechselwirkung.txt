@@ -1,0 +1,16 @@
+== Zeitstempel im gemeinsamen build/ (nur gelesen, nichts angefasst) ==
+2026-08-04 16:02:39.798098109 +0200  build/install_manifest.txt
+2026-08-04 16:02:39.797781873 +0200  build/tests/installtest-root
+
+== Inhalt der Staging-Wurzel des installtest ==
+  build/tests/installtest-root/usr/bin/denkzetteld
+  build/tests/installtest-root/usr/share/applications/org.denkzettel.Denkzettel.desktop
+  build/tests/installtest-root/etc/xdg/autostart/org.denkzettel.Denkzettel.desktop
+  build/tests/installtest-root/usr/share/icons/hicolor/scalable/apps/denkzettel.svg
+  build/tests/installtest-root/usr/share/icons/hicolor/scalable/status/denkzettel-tray.svg
+
+== liegt eine Metainfo unter /usr/share/metainfo mit unserem Namen? ==
+  keine
+
+== git ls-files: gibt es heute irgendeine metainfo/appdata im Repo? ==
+  keine

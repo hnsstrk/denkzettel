@@ -1,0 +1,49 @@
+== KDECMakeSettings: appstream-Block ==
+168-endif()
+169-
+170-################ Testing setup ####################################
+171-
+172:find_program(APPSTREAMCLI appstreamcli)
+173:function(appstreamtest)
+174:    if(TEST appstreamtest)
+175-        # already configured
+176:    elseif(APPSTREAMCLI)
+177:        add_test(NAME appstreamtest COMMAND ${CMAKE_COMMAND} -DAPPSTREAMCLI=${APPSTREAMCLI} -DINSTALL_FILES=${CMAKE_BINARY_DIR}/install_manifest.txt -P ${CMAKE_CURRENT_LIST_DIR}/appstreamtest.cmake)
+178-    else()
+179:        message(STATUS "Could not set up the appstream test. appstreamcli is missing.")
+180-    endif()
+181-endfunction()
+182-
+183-if(NOT KDE_SKIP_TEST_SETTINGS)
+184-
+185-   # If there is a CTestConfig.cmake, include CTest.
+186-   # Otherwise, there will not be any useful settings, so just
+187-   # fake the functionality we care about from CTest.
+188-
+189-   if (EXISTS ${CMAKE_SOURCE_DIR}/CTestConfig.cmake)
+190-      include(CTest)
+191-   else()
+192-      option(BUILD_TESTING "Build the testing tree." ON)
+193-      if(BUILD_TESTING)
+194-         enable_testing()
+195:         appstreamtest()
+196-      endif ()
+197-   endif ()
+198-
+199-endif()
+200-
+201-
+202-
+203-################ Build-related settings ###########################
+204-
+205-if(NOT KDE_SKIP_BUILD_SETTINGS)
+206-
+207-   # Always include srcdir and builddir in include path
+208-   # This saves typing ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} in about every subdir
+209-   # since cmake 2.4.0
+210-   set(CMAKE_INCLUDE_CURRENT_DIR ON)
+211-
+212-   # put the include dirs which are in the source or build tree
+213-   # before all other include dirs, so the headers in the sources
+214-   # are preferred over the already installed ones
+215-   # since cmake 2.4.1

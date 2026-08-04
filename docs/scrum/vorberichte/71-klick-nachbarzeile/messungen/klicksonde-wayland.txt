@@ -1,0 +1,128 @@
+== Sonde #71 — Klick auf eine angeschnittene Zeile ==
+Plattform: wayland
+
+=== A Geometrie der Liste ===
+  Viewport: 279x552
+  Rollmodus senkrecht: ScrollPerItem
+  Rollbereich: 0..11, Einzelschritt 1
+  Zeile 0: h=27 (Kopf)
+  Zeile 1: h=72 (Notiz)
+  Zeile 2: h=72 (Notiz)
+  Zeile 3: h=72 (Notiz)
+
+=== B Unten angeschnitten, im LibraryWindow, Gruppengrenze wird überschritten ===
+  Rollwert 6, Zielzeile 14: y=539 h=72, sichtbar 13 px von 72
+    vor dem Druck     : Rollwert 6, aktuelle Zeile 1, markiert 1
+    nach dem Druck    : Rollwert 7, aktuelle Zeile 14, markiert 15
+    nach dem Loslassen: Rollwert 7, aktuelle Zeile 14, markiert 15
+    Zeile unter dem Zeiger: vorher 14, nachher 15
+    Zielzeile y: vorher 539, nachher 467 (Versatz -72 px)
+    ERGEBNIS: aktuelle Zeile 14, markiert 15 — GEHEN AUSEINANDER
+
+=== C Unten angeschnitten, im LibraryWindow, OHNE Gruppengrenze ===
+  (Vorauswahl liegt in derselben Gruppe wie das Ziel — der Kopf-Vorlauf
+   aus #57 käme hier auch ohne Mausdruck-Merker nicht in Frage.)
+  Rollwert 6, Vorauswahl 13, Zielzeile 14: y=539 h=72
+    vor dem Druck     : Rollwert 6, aktuelle Zeile 13, markiert 13
+    nach dem Druck    : Rollwert 7, aktuelle Zeile 14, markiert 15
+    nach dem Loslassen: Rollwert 7, aktuelle Zeile 14, markiert 15
+    Zeile unter dem Zeiger: vorher 14, nachher 15
+    Zielzeile y: vorher 539, nachher 467 (Versatz -72 px)
+    ERGEBNIS: aktuelle Zeile 14, markiert 15 — GEHEN AUSEINANDER
+
+=== D Gibt es überhaupt eine oben angeschnittene Zeile? ===
+  (Jeder Rollwert wird durchgegangen. ScrollPerItem setzt die Liste je
+   Zeile ab, also könnte der obere Rand immer bündig sein.)
+  ERGEBNIS: 0 von 12 Rollwerten zeigen eine oben angeschnittene Zeile
+
+=== I Streuung: jeder Rollwert einzeln geklickt (LibraryWindow) ===
+  Rollwert | Zielzeile | sichtbar | Versatz | aktuell | markiert | Befund
+         0 |         8 |     21 px |   -99 px |       8 |    keine | AUSEINANDER
+         1 |         8 |     48 px |   -72 px |       8 |    keine | AUSEINANDER
+         2 |        10 |     13 px |   -72 px |      10 |       11 | AUSEINANDER
+         3 |        11 |     13 px |   -72 px |      11 |       12 | AUSEINANDER
+         4 |        12 |     13 px |   -72 px |      12 |       13 | AUSEINANDER
+         5 |        13 |     13 px |   -72 px |      13 |       14 | AUSEINANDER
+         6 |        14 |     13 px |   -72 px |      14 |       15 | AUSEINANDER
+         7 |        15 |     13 px |   -72 px |      15 |       16 | AUSEINANDER
+         8 |        16 |     13 px |   -72 px |      16 |       17 | AUSEINANDER
+         9 |        17 |     13 px |  -107 px |      17 |    keine | AUSEINANDER
+        10 |        17 |     48 px |   -72 px |      17 |    keine | AUSEINANDER
+        11 | — keine angeschnittene Zeile
+  ERGEBNIS: 11 von 11 angeschnittenen Fällen gehen auseinander
+
+=== E Gegenprobe: blanker QListView, kein currentChanged-scrollTo ===
+  Rollwert 6, Zielzeile 14: y=539 h=72
+    vor dem Druck     : Rollwert 6, aktuelle Zeile 1, markiert keine
+    nach dem Druck    : Rollwert 6, aktuelle Zeile 14, markiert 14
+    nach dem Loslassen: Rollwert 6, aktuelle Zeile 14, markiert 14
+    Zeile unter dem Zeiger: vorher 14, nachher 14
+    Zielzeile y: vorher 539, nachher 539 (Versatz 0 px)
+    ERGEBNIS: aktuelle Zeile 14, markiert 14 — stimmen überein
+
+=== F Positive Kontrolle: derselbe blanke View MIT synchronem scrollTo ===
+  Rollwert 6, Zielzeile 14: y=539
+    vor dem Druck     : Rollwert 6, aktuelle Zeile 1, markiert keine
+    nach dem Druck    : Rollwert 7, aktuelle Zeile 14, markiert 15
+    nach dem Loslassen: Rollwert 7, aktuelle Zeile 14, markiert 15
+    Zeile unter dem Zeiger: vorher 14, nachher 15
+    Zielzeile y: vorher 539, nachher 467 (Versatz -72 px)
+    ERGEBNIS: aktuelle Zeile 14, markiert 15 — GEHEN AUSEINANDER
+
+=== G Lesart 1: scrollTo nachgereicht (QueuedConnection) ===
+  Rollwert 6, Zielzeile 14: y=539
+    vor dem Druck     : Rollwert 6, aktuelle Zeile 1, markiert keine
+    nach dem Druck    : Rollwert 7, aktuelle Zeile 14, markiert 14
+    nach dem Loslassen: Rollwert 7, aktuelle Zeile 14, markiert 14
+    Zeile unter dem Zeiger: vorher 14, nachher 15
+    Zielzeile y: vorher 539, nachher 467 (Versatz -72 px)
+    ERGEBNIS: aktuelle Zeile 14, markiert 14 — stimmen überein
+
+=== H Nebenfrage: ändert ScrollPerPixel etwas? (synchrones scrollTo) ===
+  Geklickt wird am oberen UND am unteren Rand des sichtbaren Streifens,
+   über einen Fächer von Rollwerten. Ein Aufbau, der nur eine Stelle
+   trifft, könnte den Fehler verfehlen statt ihn auszuschließen.
+  Rollwert | Zielzeile | sichtbar | Stelle | Versatz | aktuell | markiert | Befund
+        10 |         8 |     31 px | oben  |   -41 px |       8 |        8 | stimmt
+        10 |         8 |     31 px | unten |   -41 px |       8 |        8 | stimmt
+        47 |         8 |     68 px | oben  |    -4 px |       8 |        8 | stimmt
+        47 |         8 |     68 px | unten |    -4 px |       8 |        8 | stimmt
+       121 |        10 |     35 px | oben  |   -37 px |      10 |       10 | stimmt
+       121 |        10 |     35 px | unten |   -37 px |      10 |       10 | stimmt
+       195 |        11 |     37 px | oben  |   -35 px |      11 |       11 | stimmt
+       195 |        11 |     37 px | unten |   -35 px |      11 |       11 | stimmt
+       232 |        12 |      2 px | oben  |   -70 px |      12 |       12 | stimmt
+       232 |        12 |      2 px | unten |   -70 px |      12 |       12 | stimmt
+       269 |        12 |     39 px | oben  |   -33 px |      12 |       12 | stimmt
+       269 |        12 |     39 px | unten |   -33 px |      12 |       12 | stimmt
+       306 |        13 |      4 px | oben  |   -68 px |      13 |       13 | stimmt
+       306 |        13 |      4 px | unten |   -68 px |      13 |       13 | stimmt
+       343 |        13 |     41 px | oben  |   -31 px |      13 |       13 | stimmt
+       343 |        13 |     41 px | unten |   -31 px |      13 |       13 | stimmt
+       380 |        14 |      6 px | oben  |   -66 px |      14 |       14 | stimmt
+       380 |        14 |      6 px | unten |   -66 px |      14 |       14 | stimmt
+       417 |        14 |     43 px | oben  |   -29 px |      14 |       14 | stimmt
+       417 |        14 |     43 px | unten |   -29 px |      14 |       14 | stimmt
+       454 |        15 |      8 px | oben  |   -64 px |      15 |       15 | stimmt
+       454 |        15 |      8 px | unten |   -64 px |      15 |       15 | stimmt
+       491 |        15 |     45 px | oben  |   -27 px |      15 |       15 | stimmt
+       491 |        15 |     45 px | unten |   -27 px |      15 |       15 | stimmt
+       528 |        16 |     10 px | oben  |   -62 px |      16 |       16 | stimmt
+       528 |        16 |     10 px | unten |   -62 px |      16 |       16 | stimmt
+       565 |        16 |     47 px | oben  |   -25 px |      16 |       16 | stimmt
+       565 |        16 |     47 px | unten |   -25 px |      16 |       16 | stimmt
+       602 |        17 |     12 px | oben  |   -60 px |      17 |       17 | stimmt
+       602 |        17 |     12 px | unten |   -60 px |      17 |       17 | stimmt
+       639 |        17 |     49 px | oben  |   -23 px |      17 |       17 | stimmt
+       639 |        17 |     49 px | unten |   -23 px |      17 |       17 | stimmt
+  ERGEBNIS: 0 von 32 Fällen gehen auseinander
+
+=== J Was ein Wechsel des Rollmodus die Tests kostet ===
+  Vier Testaufbauten in tests/librarytest.cpp setzen den Rollwert auf eine
+   ZEILENNUMMER (:1406, :1459, :1532, :1595 — `setValue(noteRow(...).row())`).
+   Was dieselbe Zahl in beiden Rollmodi bedeutet, steht hier.
+  Prüfzeile 9 ist ein Gruppenkopf
+  ScrollPerItem : Rollbereich 0..11, nach setValue(8) steht Zeile 9 bei y=72 — IM BILD
+  ScrollPerPixel: Rollbereich 0..662, nach setValue(8) steht Zeile 9 bei y=595 — außerhalb
+
+== Ende der Sonde ==

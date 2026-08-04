@@ -1,0 +1,3 @@
+A  Aktion ohne objectName -> setGlobalShortcut() = false
+B  Rücklesen einer nie registrierten Aktion -> 0 Sequenz(en)
+C  Rücklesen von org.denkzettel.Denkzettel.desktop/show-capture -> 1 Sequenz(en) [Meta+N]

@@ -1,0 +1,22 @@
+== Werkzeugstand (B17) ==
+appstream 1.1.5-1.1
+extra-cmake-modules 6.28.0-1
+cmake 4.4.2-1.1
+cmake version 4.4.2
+AppStream-Version: 1.1.5
+
+== HEAD ==
+6acc87e
+6acc87e #83 ist ready, #85 nachgeschärft — und der Schnitt hatte genau eine Lücke
+
+== Kollisionsfläche: Dateien, die #73 braucht, gegen die Dateimenge von #83 ==
+CMakeLists.txt                                131 Zeilen
+tests/CMakeLists.txt                          184 Zeilen
+tests/installtest.cmake                       58 Zeilen
+desktop/org.denkzettel.Denkzettel.desktop     27 Zeilen
+CHANGELOG.md                                  79 Zeilen
+docs/scrum/PROZESS.md                         680 Zeilen
+src/capture/capturewindow.cpp                 471 Zeilen
+src/capture/capturewindow.h                   99 Zeilen
+tests/capturetest.cpp                         669 Zeilen
+tests/captureshots.cpp                        225 Zeilen

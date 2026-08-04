@@ -1,0 +1,12 @@
+== validate auf nicht vorhandene Datei ==
+Datei »/tmp/gibt-es-nicht.metainfo.xml« existiert nicht.
+✘ Validierung fehlgeschlagen: 
+rc=3
+
+== validate ohne jedes Argument ==
+Sie müssen mindestens eine Datei zur Überprüfung angeben!
+rc=1
+
+== validate auf leere Dateiliste per Shell-Expansion (leere Variable) ==
+Sie müssen mindestens eine Datei zur Überprüfung angeben!
+rc=1

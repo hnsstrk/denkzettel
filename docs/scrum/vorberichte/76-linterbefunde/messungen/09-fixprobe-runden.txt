@@ -1,0 +1,15 @@
+Runde 2: Bau rc=0, Baufehler=0, Rohzeilen=88, const=8
+Runde 3: Bau rc=0, Baufehler=0, Rohzeilen=88, const=8
+Runde 4: Bau rc=0, Baufehler=0, Rohzeilen=88, const=8
+=== Endstand je Prüfung ===
+     66 [performance-enum-size]
+      8 [misc-const-correctness]
+      8 [bugprone-easily-swappable-parameters]
+      3 [bugprone-narrowing-conversions]
+      1 [performance-no-automatic-move]
+      1 [bugprone-unused-return-value]
+      1 [bugprone-misplaced-widening-cast]
+ctest rc=0
+100% tests passed out of 7
+
+Total Test time (real) =   5.77 sec

@@ -1,0 +1,16 @@
+== konfigurieren ==
+-- Installing in the same prefix as Qt, adopting their path scheme.
+-- Found Python3: /home/hnsstrk/.local/bin/python3.11 (found version "3.11.15") found components: Interpreter
+-- Configuring done (0.4s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/73-appstream/build/metainfotest
+
+== Lauf 1: unversehrte Datei ==
+Test project /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/73-appstream/build/metainfotest
+    Start 1: metainfotest
+1/1 Test #1: metainfotest .....................   Passed    0.02 sec
+
+100% tests passed out of 1
+
+Total Test time (real) =   0.02 sec
+rc=0

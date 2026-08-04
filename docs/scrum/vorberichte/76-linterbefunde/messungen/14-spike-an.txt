@@ -1,0 +1,11 @@
+configure rc=0
+Bau rc=0  Compilerwarnungen=0
+lint-clazy rc=0  warnings=3  errors=0
+      1 [-Wclazy-detaching-temporary]
+      2 [-Wclazy-range-loop-detach]
+lint-tidy  rc=0  warnings=145  errors=0
+  eindeutig: 84
+  in spellfixspike/third_party: 3
+tests/spellfixspike.cpp:306:46: warning: 2 adjacent parameters of 'bestMatch' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+tests/spellfixspike.cpp:331:12: warning: variable 'typed' of type 'QString' can be declared 'const' [misc-const-correctness]
+tests/spellfixspike.cpp:332:12: warning: variable 'expected' of type 'QString' can be declared 'const' [misc-const-correctness]

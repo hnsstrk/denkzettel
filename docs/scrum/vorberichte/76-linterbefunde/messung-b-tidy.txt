@@ -1,0 +1,578 @@
+Running clang-tidy in 24 threads for 27 files out of 44 in compilation database ...
+[ 1/27][1.9s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutconflict.cpp
+[ 2/27][1.4s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/testsilence.cpp
+[ 3/27][3.4s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/shell/daemonservice.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+
+[ 4/27][3.5s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h:32:10: warning: enum 'Role' uses a larger base type ('unsigned int', size: 4 bytes) than necessary for its value set, consider using 'std::uint16_t' (2 bytes) as the base type to reduce its size [performance-enum-size]
+   32 |     enum Role {
+      |          ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+
+[ 5/27][3.5s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/shell/firstrun.cpp
+[ 6/27][3.5s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/ui/pendingdeletion.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+
+[ 7/27][0.2s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/capture/textareaheight.cpp
+[ 8/27][3.7s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp
+/home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp:90:5: warning: pointee of variable 'libraryAction' of type 'QAction *' can be declared 'const' [misc-const-correctness]
+   90 |     QAction *libraryAction =
+      |     ^
+      |              const
+/home/hnsstrk/Projekte/denkzettel/src/shell/trayicon.cpp:102:5: warning: pointee of variable 'quitAction' of type 'QAction *' can be declared 'const' [misc-const-correctness]
+  102 |     QAction *quitAction =
+      |     ^
+      |              const
+
+[ 9/27][3.7s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp:28:32: warning: 2 adjacent parameters of 'desktopFileDeclaresAction' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+   28 | bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &actionId)
+      |                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp:28:47: note: the first parameter in the range is 'desktopFilePath'
+   28 | bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &actionId)
+      |                                               ^~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp:28:79: note: the last parameter in the range is 'actionId'
+   28 | bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &actionId)
+      |                                                                               ^~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.cpp:36:5: warning: variable 'file' of type 'KDesktopFile' can be declared 'const' [misc-const-correctness]
+   36 |     KDesktopFile file(desktopFilePath);
+      |     ^
+      |                  const 
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.h:8:12: warning: enum 'ShortcutRegistration' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+    8 | enum class ShortcutRegistration {
+      |            ^
+
+[10/27][3.9s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp
+/home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp:50:16: warning: constness of 'application' prevents automatic move [performance-no-automatic-move]
+   50 |         return application;
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/shell/globalshortcuts.cpp:93:5: warning: the value returned by this function should not be disregarded; neglecting it may lead to errors [bugprone-unused-return-value]
+   93 |     KGlobalAccel::setGlobalShortcut(m_captureAction, sequence);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.h:8:12: warning: enum 'ShortcutRegistration' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+    8 | enum class ShortcutRegistration {
+      |            ^
+
+[11/27][3.9s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/ui/elidedlines.cpp
+[12/27][4.0s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/ui/notelistdelegate.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/notelistdelegate.cpp:125:5: warning: pointee of variable 'style' of type 'QStyle *' can be declared 'const' [misc-const-correctness]
+  125 |     QStyle *style = entry.widget ? entry.widget->style() : QApplication::style();
+      |     ^
+      |             const
+/home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h:32:10: warning: enum 'Role' uses a larger base type ('unsigned int', size: 4 bytes) than necessary for its value set, consider using 'std::uint16_t' (2 bytes) as the base type to reduce its size [performance-enum-size]
+   32 |     enum Role {
+      |          ^
+
+[13/27][4.0s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/store/store.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+
+[14/27][4.0s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/main.cpp
+/home/hnsstrk/Projekte/denkzettel/src/main.cpp:41:5: warning: variable 'service' of type 'KDBusService' can be declared 'const' [misc-const-correctness]
+   41 |     KDBusService service(KDBusService::Unique);
+      |     ^
+      |                  const 
+/home/hnsstrk/Projekte/denkzettel/src/main.cpp:59:5: warning: variable 'library' of type 'LibraryWindow' can be declared 'const' [misc-const-correctness]
+   59 |     LibraryWindow library(&store);
+      |     ^
+      |                   const 
+/home/hnsstrk/Projekte/denkzettel/src/main.cpp:61:5: warning: variable 'tray' of type 'TrayIcon' can be declared 'const' [misc-const-correctness]
+   61 |     TrayIcon tray;
+      |     ^
+      |              const 
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+
+[15/27][4.3s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp
+/home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp:71:29: warning: narrowing conversion from 'qreal' (aka 'double') to 'float' [bugprone-narrowing-conversions]
+   71 |     return QColor::fromRgbF(from.redF() + (to.redF() - from.redF()) * amount,
+      |                             ^
+/home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp:72:29: warning: narrowing conversion from 'qreal' (aka 'double') to 'float' [bugprone-narrowing-conversions]
+   72 |                             from.greenF() + (to.greenF() - from.greenF()) * amount,
+      |                             ^
+/home/hnsstrk/Projekte/denkzettel/src/capture/capturewindow.cpp:73:29: warning: narrowing conversion from 'qreal' (aka 'double') to 'float' [bugprone-narrowing-conversions]
+   73 |                             from.blueF() + (to.blueF() - from.blueF()) * amount);
+      |                             ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+
+[16/27][4.4s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/storetest.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+
+[17/27][4.4s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp:134:26: warning: 2 adjacent parameters of 'placeholderPage' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+  134 | QWidget *placeholderPage(const QString &title, const QString &hint, bool withIcon)
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp:134:41: note: the first parameter in the range is 'title'
+  134 | QWidget *placeholderPage(const QString &title, const QString &hint, bool withIcon)
+      |                                         ^~~~~
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.cpp:134:63: note: the last parameter in the range is 'hint'
+  134 | QWidget *placeholderPage(const QString &title, const QString &hint, bool withIcon)
+      |                                                               ^~~~
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h:32:10: warning: enum 'Role' uses a larger base type ('unsigned int', size: 4 bytes) than necessary for its value set, consider using 'std::uint16_t' (2 bytes) as the base type to reduce its size [performance-enum-size]
+   32 |     enum Role {
+      |          ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+
+[18/27][4.7s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/firstruntest.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+
+[19/27][4.7s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp:27:13: warning: 2 adjacent parameters of 'noteAt' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+   27 | Note noteAt(const QString &content, const QString &isoDateTime)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp:27:28: note: the first parameter in the range is 'content'
+   27 | Note noteAt(const QString &content, const QString &isoDateTime)
+      |                            ^~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/searchshots.cpp:27:52: note: the last parameter in the range is 'isoDateTime'
+   27 | Note noteAt(const QString &content, const QString &isoDateTime)
+      |                                                    ^~~~~~~~~~~
+
+[20/27][4.8s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp:52:28: warning: 2 adjacent parameters of 'addNote' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+   52 | void addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp:52:43: note: the first parameter in the range is 'content'
+   52 | void addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                                           ^~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/readmeshots.cpp:52:67: note: the last parameter in the range is 'isoDateTime'
+   52 | void addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                                                                   ^~~~~~~~~~~
+
+[21/27][4.9s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp
+/home/hnsstrk/Projekte/denkzettel/src/shell/shortcutregistration.h:8:12: warning: enum 'ShortcutRegistration' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+    8 | enum class ShortcutRegistration {
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:127:5: warning: variable 'requested' of type 'QSignalSpy' can be declared 'const' [misc-const-correctness]
+  127 |     QSignalSpy requested(m_service.get(), &DaemonService::libraryRequested);
+      |     ^
+      |                const 
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:278:5: warning: variable 'icon' of type 'TrayIcon' can be declared 'const' [misc-const-correctness]
+  278 |     TrayIcon icon;
+      |     ^
+      |              const 
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:316:5: warning: variable 'icon' of type 'TrayIcon' can be declared 'const' [misc-const-correctness]
+  316 |     TrayIcon icon;
+      |     ^
+      |              const 
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:322:9: warning: pointee of variable 'action' of type 'QAction *' can be declared 'const' [misc-const-correctness]
+  322 |         QAction *action = actions.at(i);
+      |         ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:343:5: warning: variable 'icon' of type 'TrayIcon' can be declared 'const' [misc-const-correctness]
+  343 |     TrayIcon icon;
+      |     ^
+      |              const 
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:360:5: warning: variable 'icon' of type 'TrayIcon' can be declared 'const' [misc-const-correctness]
+  360 |     TrayIcon icon;
+      |     ^
+      |              const 
+/home/hnsstrk/Projekte/denkzettel/tests/shelltest.cpp:361:5: warning: pointee of variable 'capture' of type 'QAction *' can be declared 'const' [misc-const-correctness]
+  361 |     QAction *capture = icon.item()->contextMenu()->actions().first();
+      |     ^
+      |              const
+
+[22/27][4.9s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp:42:28: warning: 2 adjacent parameters of 'addNote' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+   42 | void addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp:42:43: note: the first parameter in the range is 'content'
+   42 | void addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                                           ^~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/libraryshots.cpp:42:67: note: the last parameter in the range is 'isoDateTime'
+   42 | void addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                                                                   ^~~~~~~~~~~
+
+[23/27][5.0s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/captureshots.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/tests/captureshots.cpp:151:5: warning: variable 'app' of type 'QApplication' can be declared 'const' [misc-const-correctness]
+  151 |     QApplication app(argc, argv);
+      |     ^
+      |                  const 
+
+[24/27][5.0s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp:55:30: warning: 2 adjacent parameters of 'addNote' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+   55 | qint64 addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp:55:45: note: the first parameter in the range is 'content'
+   55 | qint64 addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                                             ^~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp:55:69: note: the last parameter in the range is 'isoDateTime'
+   55 | qint64 addNote(Store &store, const QString &content, const QString &isoDateTime)
+      |                                                                     ^~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp:172:38: warning: 2 adjacent parameters of 'correct' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+  172 | void correct(QPlainTextEdit *editor, const QString &misheard, const QString &meant)
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp:172:53: note: the first parameter in the range is 'misheard'
+  172 | void correct(QPlainTextEdit *editor, const QString &misheard, const QString &meant)
+      |                                                     ^~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/editshots.cpp:172:78: note: the last parameter in the range is 'meant'
+  172 | void correct(QPlainTextEdit *editor, const QString &misheard, const QString &meant)
+      |                                                                              ^~~~~
+
+[25/27][5.0s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp:297:10: warning: pointee of variable 'label' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+  297 |     for (QLabel *label : labels) {
+      |          ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp:419:5: warning: pointee of variable 'text' of type 'QPlainTextEdit *' can be declared 'const' [misc-const-correctness]
+  419 |     QPlainTextEdit *text = textArea();
+      |     ^
+      |                     const
+/home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp:441:5: warning: pointee of variable 'text' of type 'QPlainTextEdit *' can be declared 'const' [misc-const-correctness]
+  441 |     QPlainTextEdit *text = textArea();
+      |     ^
+      |                     const
+/home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp:479:5: warning: pointee of variable 'appName' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+  479 |     QLabel *appName = labels.at(0)->y() < labels.at(1)->y() ? labels.at(0) : labels.at(1);
+      |     ^
+      |             const
+/home/hnsstrk/Projekte/denkzettel/tests/capturetest.cpp:480:5: warning: pointee of variable 'footer' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+  480 |     QLabel *footer = appName == labels.at(0) ? labels.at(1) : labels.at(0);
+      |     ^
+      |             const
+
+[26/27][2.3s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.cpp
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+
+[27/27][6.2s] /usr/bin/clang-tidy -p=/tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/lintb -quiet /home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   15 |     enum class Type {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   20 |     enum class State {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   72 |     enum class Selection {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   80 |     enum class UnsavedAnswer {
+      |                ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/notelistmodel.h:32:10: warning: enum 'Role' uses a larger base type ('unsigned int', size: 4 bytes) than necessary for its value set, consider using 'std::uint16_t' (2 bytes) as the base type to reduce its size [performance-enum-size]
+   32 |     enum Role {
+      |          ^
+/home/hnsstrk/Projekte/denkzettel/src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+   18 | enum class NoteGroup {
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:443:47: warning: performing an implicit widening conversion to type 'qint64' (aka 'long long') of a multiplication performed in type 'int' [bugprone-implicit-widening-of-multiplication-result]
+  443 |             library::noteGroup(monday.addSecs(-3600 * hoursBack), monday, german());
+      |                                               ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:443:47: note: make conversion explicit to silence this warning
+   37 |             library::noteGroup(monday.addSecs(-3600 * hoursBack), monday, german());
+      |                                               ^~~~~~~~~~~~~~~~~
+      |                                               static_cast<qint64>( )
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:443:47: note: perform multiplication in a wider type
+  443 |             library::noteGroup(monday.addSecs(-3600 * hoursBack), monday, german());
+      |                                               ^~~~~
+      |                                               static_cast<qint64>( )
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:522:28: warning: 2 adjacent parameters of 'noteWith' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+  522 | Note LibraryTest::noteWith(const QString &content, const QString &isoDateTime)
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:522:43: note: the first parameter in the range is 'content'
+  522 | Note LibraryTest::noteWith(const QString &content, const QString &isoDateTime)
+      |                                           ^~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:522:67: note: the last parameter in the range is 'isoDateTime'
+  522 | Note LibraryTest::noteWith(const QString &content, const QString &isoDateTime)
+      |                                                                   ^~~~~~~~~~~
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:544:5: warning: pointee of variable 'model' of type 'NoteListModel *' can be declared 'const' [misc-const-correctness]
+  544 |     NoteListModel *model = modelOf(list);
+      |     ^
+      |                    const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:951:10: warning: pointee of variable 'button' of type 'QAbstractButton *' can be declared 'const' [misc-const-correctness]
+  951 |     for (QAbstractButton *button : buttons) {
+      |          ^
+      |                           const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:1016:5: warning: variable 'committed' of type 'QSignalSpy' can be declared 'const' [misc-const-correctness]
+ 1016 |     QSignalSpy committed(&deletion, &PendingDeletion::committed);
+      |     ^
+      |                const 
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:1070:5: warning: variable 'committed' of type 'QSignalSpy' can be declared 'const' [misc-const-correctness]
+ 1070 |     QSignalSpy committed(&deletion, &PendingDeletion::committed);
+      |     ^
+      |                const 
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:1310:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+ 1310 |     QFETCH(QSize, windowSize);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:1976:5: warning: pointee of variable 'search' of type 'QLineEdit *' can be declared 'const' [misc-const-correctness]
+ 1976 |     QLineEdit *search = searchOf(window);
+      |     ^
+      |                const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2000:5: warning: pointee of variable 'list' of type 'QListView *' can be declared 'const' [misc-const-correctness]
+ 2000 |     QListView *list = listOf(window);
+      |     ^
+      |                const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2031:5: warning: pointee of variable 'model' of type 'NoteListModel *' can be declared 'const' [misc-const-correctness]
+ 2031 |     NoteListModel *model = modelOf(listOf(window));
+      |     ^
+      |                    const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2087:5: warning: pointee of variable 'list' of type 'QListView *' can be declared 'const' [misc-const-correctness]
+ 2087 |     QListView *list = listOf(window);
+      |     ^
+      |                const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2206:5: warning: variable 'window' of type 'LibraryWindow' can be declared 'const' [misc-const-correctness]
+ 2206 |     LibraryWindow window(m_store.get());
+      |     ^
+      |                   const 
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2228:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+ 2228 |     QFETCH(QSize, windowSize);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2238:5: warning: pointee of variable 'header' of type 'QWidget *' can be declared 'const' [misc-const-correctness]
+ 2238 |     QWidget *header = searchOf(window)->parentWidget();
+      |     ^
+      |              const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2287:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+ 2287 |     QFETCH(QSize, windowSize);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2300:5: warning: pointee of variable 'list' of type 'QListView *' can be declared 'const' [misc-const-correctness]
+ 2300 |     QListView *list = listOf(window);
+      |     ^
+      |                const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2301:5: warning: pointee of variable 'model' of type 'NoteListModel *' can be declared 'const' [misc-const-correctness]
+ 2301 |     NoteListModel *model = modelOf(list);
+      |     ^
+      |                    const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2367:5: warning: pointee of variable 'header' of type 'QWidget *' can be declared 'const' [misc-const-correctness]
+ 2367 |     QWidget *header = searchOf(window)->parentWidget();
+      |     ^
+      |              const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2386:5: warning: pointee of variable 'text' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+ 2386 |     QLabel *text = nullptr;
+      |     ^
+      |             const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2392:5: warning: pointee of variable 'undo' of type 'QToolButton *' can be declared 'const' [misc-const-correctness]
+ 2392 |     QToolButton *undo = nullptr;
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2423:5: warning: variable 'reopened' of type 'LibraryWindow' can be declared 'const' [misc-const-correctness]
+ 2423 |     LibraryWindow reopened(m_store.get());
+      |     ^
+      |                   const 
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2468:10: warning: pointee of variable 'label' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+ 2468 |     for (QLabel *label : labels) {
+      |          ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2533:5: warning: pointee of variable 'reader' of type 'QTextBrowser *' can be declared 'const' [misc-const-correctness]
+ 2533 |     QTextBrowser *reader = readerOf(window);
+      |     ^
+      |                   const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2603:5: warning: pointee of variable 'edit' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 2603 |     QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2604:5: warning: pointee of variable 'remove' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 2604 |     QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2910:14: warning: pointee of variable 'label' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+ 2910 |         for (QLabel *label : labels) {
+      |              ^
+      |                      const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2940:5: warning: pointee of variable 'edit' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 2940 |     QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2941:5: warning: pointee of variable 'remove' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 2941 |     QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2956:5: warning: pointee of variable 'save' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 2956 |     QPushButton *save = buttonNamed(window, QStringLiteral("Speichern"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2957:5: warning: pointee of variable 'cancel' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 2957 |     QPushButton *cancel = buttonNamed(window, QStringLiteral("Abbrechen"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:2987:5: warning: pointee of variable 'undo' of type 'QToolButton *' can be declared 'const' [misc-const-correctness]
+ 2987 |     QToolButton *undo = nullptr;
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3061:12: warning: variable 'written' of type 'QString' can be declared 'const' [misc-const-correctness]
+ 3061 |     QFETCH(QString, written);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3062:12: warning: variable 'expected' of type 'QString' can be declared 'const' [misc-const-correctness]
+ 3062 |     QFETCH(QString, expected);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3083:14: warning: pointee of variable 'label' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+ 3083 |         for (QLabel *label : labels) {
+      |              ^
+      |                      const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3153:12: warning: variable 'trigger' of type 'QString' can be declared 'const' [misc-const-correctness]
+ 3153 |     QFETCH(QString, trigger);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3154:12: warning: variable 'answer' of type 'QString' can be declared 'const' [misc-const-correctness]
+ 3154 |     QFETCH(QString, answer);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3234:5: warning: variable 'watch' of type 'DialogWatch' can be declared 'const' [misc-const-correctness]
+ 3234 |     DialogWatch watch;
+      |     ^
+      |                 const 
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3268:5: warning: variable 'watch' of type 'DialogWatch' can be declared 'const' [misc-const-correctness]
+ 3268 |     DialogWatch watch;
+      |     ^
+      |                 const 
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3342:12: warning: variable 'windowSize' of type 'QSize' can be declared 'const' [misc-const-correctness]
+ 3342 |     QFETCH(QSize, windowSize);
+      |            ^
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3355:5: warning: pointee of variable 'detail' of type 'QWidget *' can be declared 'const' [misc-const-correctness]
+ 3355 |     QWidget *detail = detailOf(window);
+      |     ^
+      |              const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3373:5: warning: pointee of variable 'edit' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 3373 |     QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+      |     ^
+      |                  const
+/home/hnsstrk/Projekte/denkzettel/tests/librarytest.cpp:3374:5: warning: pointee of variable 'remove' of type 'QPushButton *' can be declared 'const' [misc-const-correctness]
+ 3374 |     QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+      |     ^
+      |                  const
+
