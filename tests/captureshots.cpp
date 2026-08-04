@@ -155,9 +155,9 @@ int main(int argc, char **argv)
     }
 
     QTextStream out(stdout);
-    // Die mitgelieferten Prüf-Themes gehören auf den Datenpfad, bevor das erste
-    // Theme aufgelöst wird — sie sind der Rückfall, wenn keine zwei
-    // installierten mit verschiedenem Rand da sind.
+    // The bundled test themes go on the data path before the first theme is
+    // resolved: they are the fallback for a machine that has no two installed
+    // themes with different borders.
     themes::addBundledThemesToDataPath();
 
     const auto [narrowTheme, wideTheme] = pickThemes(out);

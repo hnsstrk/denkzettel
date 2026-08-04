@@ -1,8 +1,8 @@
 {
     "KPlugin": {
         "Id": "denkzettel-test-breit",
-        "Name": "Denkzettel-Pruef-Theme (breit)",
-        "Description": "Pruef-Theme der Testsuite. Kein Gestaltungsvorschlag.",
+        "Name": "Denkzettel test theme (wide border)",
+        "Description": "Fixture of the test suite. Not a design proposal.",
         "License": "MIT",
         "Version": "1.0"
     },
