@@ -2,12 +2,21 @@
 #include "capture/textareaheight.h"
 #include "store/store.h"
 
+#include <KConfigGroup>
 #include <KLocalizedString>
+#include <KSharedConfig>
+#include <KSvg/FrameSvg>
+#include <KSvg/ImageSet>
+#include <KWindowShadow>
 
 #include <QApplication>
+#include <QDir>
 #include <QFont>
 #include <QLabel>
+#include <QLayout>
 #include <QPlainTextEdit>
+#include <QProcess>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextDocument>
@@ -40,18 +49,51 @@ private Q_SLOTS:
 
     void textsFollowAColourSchemeChange();
 
+    void hullFollowsTheDesktopTheme();
+    void readsTheDesktopThemeFromPlasmarc();
+    void paintsOneSurfaceInThePaletteColours();
+    void noteTextUsesTheWindowTextRole();
+    void footerHasMoreAirThanTheApplicationName();
+    void hullIsCompleteAtFiveAndEightLines();
+    void wearsNoDecoration();
+    void bindsAShadowFromTheThemeTiles();
+    void staysUsableWithoutADesktopTheme();
+
 private:
     QPlainTextEdit *textArea() const;
+    static QImage shot(QWidget &window);
+    /** How far into the top row of the picture the hull is still transparent. */
+    static int cornerRun(const QImage &picture);
+    static void writePlasmarc(const QString &theme);
 
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
     std::unique_ptr<CaptureWindow> m_window;
 };
 
+namespace
+{
+/**
+ * The two desktop themes of wireframe 4a: a 4 px border against an 8 px one.
+ * They stand here as names, not as numbers — the assertions below compare the
+ * one against the other and never against a measurement of their own. That is
+ * the point of AK 1: the values belong to the theme, and `marginSize()` hands
+ * out `7,99998` where a drawing would have written 8.
+ */
+const QString NarrowBorderTheme = QStringLiteral("breeze-dark");
+const QString WideBorderTheme = QStringLiteral("CachyOS-Nord-round");
+}
+
 void CaptureTest::initTestCase()
 {
     // Without the domain every i18n() call in the window warns.
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
+    // The window reads the desktop theme out of `plasmarc`, and one test
+    // writes that file. Test mode points QStandardPaths at a directory of the
+    // test's own, so the developer's desktop theme is never touched.
+    QStandardPaths::setTestModeEnabled(true);
+    QDir().mkpath(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation));
 }
 
 void CaptureTest::init()
@@ -236,6 +278,321 @@ void CaptureTest::textsFollowAColourSchemeChange()
     }
 
     qApp->setPalette(startPalette);
+}
+
+QImage CaptureTest::shot(QWidget &window)
+{
+    // Shown, then let through: a window that was never shown has no laid-out
+    // layout at all — every child sits at zero — and one that was only resized
+    // gets that resize as a posted event, so the picture would be one step
+    // behind the size: the hull of the previous height on the geometry of the
+    // current one. Both were measured on this window.
+    window.show();
+    QCoreApplication::processEvents();
+
+    return window.grab().toImage();
+}
+
+int CaptureTest::cornerRun(const QImage &picture)
+{
+    int x = 0;
+    while (x < picture.width() && qAlpha(picture.pixel(x, 0)) == 0) {
+        ++x;
+    }
+    return x;
+}
+
+void CaptureTest::writePlasmarc(const QString &theme)
+{
+    auto config = KSharedConfig::openConfig(QStringLiteral("plasmarc"));
+    KConfigGroup(config, QStringLiteral("Theme")).writeEntry("name", theme);
+    config->sync();
+}
+
+void CaptureTest::hullFollowsTheDesktopTheme()
+{
+    // AK 1 and AK 5 in one run, and deliberately on **one** window: the daemon
+    // builds it at start and keeps it (SPEC 2.1), so a theme change has to
+    // reach a window that is already standing.
+    //
+    // Nothing here compares against a number. Two themes with different borders
+    // are held against each other — that is the assertion wireframe 4b writes
+    // down, and the reason it writes it that way is that a drawing which fixes
+    // a radius would be wrong.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    const QMargins narrowMargins = m_window->layout()->contentsMargins();
+    const int narrowCorner = cornerRun(shot(*m_window));
+
+    m_window->reloadDesktopTheme(WideBorderTheme);
+    const QMargins wideMargins = m_window->layout()->contentsMargins();
+    const int wideCorner = cornerRun(shot(*m_window));
+
+    // The border of the theme is claimed on top of the inner spacing of 4b, so
+    // the wider theme pushes the content further in on every side.
+    QVERIFY2(wideMargins.left() > narrowMargins.left(),
+             qPrintable(QStringLiteral("%1 <= %2").arg(wideMargins.left()).arg(narrowMargins.left())));
+    QVERIFY(wideMargins.top() > narrowMargins.top());
+    QVERIFY(wideMargins.right() > narrowMargins.right());
+    QVERIFY(wideMargins.bottom() > narrowMargins.bottom());
+
+    // And the corner is a different corner — measured on the picture, because
+    // the same border can carry a different curve. Both must be corners at all:
+    // a square window would run to zero under either theme.
+    QVERIFY(narrowCorner > 0);
+    QVERIFY2(wideCorner > narrowCorner,
+             qPrintable(QStringLiteral("%1 <= %2").arg(wideCorner).arg(narrowCorner)));
+}
+
+void CaptureTest::readsTheDesktopThemeFromPlasmarc()
+{
+    // KSvg does not find the desktop theme by itself — it stands in `plasmarc`,
+    // and without being handed over KSvg stays on `default` whatever that file
+    // says. This is the road the watch on the file takes; that the watch fires
+    // at all is measured beside the test (measurement 2 of this story).
+    writePlasmarc(NarrowBorderTheme);
+    m_window->reloadDesktopTheme();
+    const QMargins narrowMargins = m_window->layout()->contentsMargins();
+
+    writePlasmarc(WideBorderTheme);
+    m_window->reloadDesktopTheme();
+
+    QVERIFY(m_window->layout()->contentsMargins().left() > narrowMargins.left());
+}
+
+void CaptureTest::paintsOneSurfaceInThePaletteColours()
+{
+    // One continuous surface, not a box inside a box (wireframe 4b): the ground
+    // behind the text area is the same ground as beside it. And it is the
+    // palette's, not the theme's — of the eight installed desktop themes only
+    // `default` adjusts its fill to the colour scheme.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    const QImage picture = shot(*m_window);
+    const QColor surface = m_window->palette().color(QPalette::Window);
+
+    // Inside the text area, in its lower right corner where no text stands.
+    const QColor behindTheText =
+        picture.pixelColor(text->x() + text->width() - 20, text->y() + text->height() - 6);
+    // Beside it, in the gap between application name and text area.
+    const QColor besideTheText = picture.pixelColor(m_window->width() / 2, text->y() - 4);
+
+    QCOMPARE(behindTheText, surface);
+    QCOMPARE(besideTheText, surface);
+}
+
+void CaptureTest::noteTextUsesTheWindowTextRole()
+{
+    // On the continuous surface the note text carries `WindowText` and not the
+    // role for entry fields — measured over 18 colour schemes at 4,74:1 against
+    // 4,22:1, above and below the minimum of 4,5:1 (wireframe 4b). Copied on
+    // every palette change, so it follows the scheme instead of freezing (#54).
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+    QCOMPARE(text->palette().color(QPalette::Text),
+             m_window->palette().color(QPalette::WindowText));
+
+    const QPalette startPalette = qApp->palette();
+    QPalette switched = startPalette;
+    switched.setColor(QPalette::WindowText, QColor(0xfc, 0xfc, 0xfc));
+    switched.setColor(QPalette::Text, QColor(0x11, 0x22, 0x33));
+    qApp->setPalette(switched);
+    QCoreApplication::processEvents();
+
+    QCOMPARE(text->palette().color(QPalette::Text), QColor(0xfc, 0xfc, 0xfc));
+
+    qApp->setPalette(startPalette);
+    QCoreApplication::processEvents();
+}
+
+void CaptureTest::footerHasMoreAirThanTheApplicationName()
+{
+    // Since the separator line was dropped this difference is the entire
+    // grouping of the window (wireframe 4b) — measured on the laid-out widgets,
+    // not on the spacing values that produced them.
+    //
+    // At both window sizes SPEC 3 knows, as DoD 1 asks: the window grows in the
+    // middle, and a spacing that only held at the resting height would pass a
+    // single-size check.
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    // Which label is which is read off the laid-out window, not off the order
+    // they were created in — before the window has been shown they all sit at
+    // zero, and the sorting below would then pick either one.
+    m_window->show();
+    QCoreApplication::processEvents();
+
+    const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+    QCOMPARE(labels.size(), 2);
+    QLabel *appName = labels.at(0)->y() < labels.at(1)->y() ? labels.at(0) : labels.at(1);
+    QLabel *footer = appName == labels.at(0) ? labels.at(1) : labels.at(0);
+
+    for (const QString &content :
+         {QString(), QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht")}) {
+        text->setPlainText(content);
+        QCoreApplication::processEvents();
+
+        const int belowTheName = text->y() - (appName->y() + appName->height());
+        const int aboveTheFooter = footer->y() - (text->y() + text->height());
+
+        QVERIFY2(belowTheName > 0 && aboveTheFooter > 0,
+                 qPrintable(QStringLiteral("%1 / %2").arg(belowTheName).arg(aboveTheFooter)));
+        QVERIFY2(aboveTheFooter > belowTheName,
+                 qPrintable(QStringLiteral("%1 <= %2").arg(aboveTheFooter).arg(belowTheName)));
+    }
+
+    text->clear();
+}
+
+void CaptureTest::hullIsCompleteAtFiveAndEightLines()
+{
+    // The window grows with every keystroke (AK 4), and the hull has to grow
+    // with it: same corner, closed everywhere, on both of the sizes SPEC 3
+    // names. Checked under both desktop themes — a hull that only survives the
+    // narrow border would pass a one-theme check.
+    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        // A window of its own per theme, and that is not tidiness. A window
+        // that has been shown does not shrink back below the minimum its layout
+        // took from the taller state — measured, and measured on the state
+        // before this story as well, so it is not this story's doing. Reusing
+        // one window here would carry the eight-line height into the next
+        // theme's resting picture.
+        CaptureWindow window(m_store.get());
+        window.reloadDesktopTheme(theme);
+
+        auto *text = window.findChild<QPlainTextEdit *>();
+        QVERIFY(text);
+
+        const QImage atFive = shot(window);
+        const int restingHeight = atFive.height();
+        // There has to be a hull at all before it is worth asking whether it is
+        // the same one at both sizes: without one every corner reads zero and
+        // the comparison below would hold on a square window.
+        QVERIFY(cornerRun(atFive) > 0);
+
+        text->setPlainText(QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht"));
+        const QImage atEight = shot(window);
+        QVERIFY(atEight.height() > restingHeight);
+
+        for (const QImage &picture : {atFive, atEight}) {
+            // The corner is the theme's, and it is the same one at either size:
+            // the corner pieces do not stretch, only the middle does.
+            QCOMPARE(cornerRun(picture), cornerRun(atFive));
+            // Closed: opaque along the middle of every edge, and in the middle.
+            QVERIFY(qAlpha(picture.pixel(picture.width() / 2, 0)) == 255);
+            QVERIFY(qAlpha(picture.pixel(picture.width() / 2, picture.height() - 1)) == 255);
+            QVERIFY(qAlpha(picture.pixel(0, picture.height() / 2)) == 255);
+            QVERIFY(qAlpha(picture.pixel(picture.width() - 1, picture.height() / 2)) == 255);
+            QVERIFY(qAlpha(picture.pixel(picture.width() / 2, picture.height() / 2)) == 255);
+        }
+    }
+}
+
+void CaptureTest::wearsNoDecoration()
+{
+    // SPEC 3 unchanged: the hull replaces nothing, it is what a window without
+    // a title bar wears instead of nothing (AK 6).
+    QVERIFY(m_window->windowFlags().testFlag(Qt::FramelessWindowHint));
+    QVERIFY(m_window->windowFlags().testFlag(Qt::Window));
+}
+
+void CaptureTest::bindsAShadowFromTheThemeTiles()
+{
+    // The named substitute for a picture (AK 7). `KWindowShadow::create()` is
+    // false offscreen — there is no compositor to hand the tiles to — and
+    // `grab()` would not show a shadow either, because it lies outside the
+    // widget. What can be shown is that a shadow object exists and that its
+    // tiles are the ones of the desktop theme, pixel for pixel.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    m_window->showCapture();
+
+    const KWindowShadow *shadow = m_window->shadow();
+    QVERIFY(shadow);
+    QVERIFY(shadow->topTile());
+    QVERIFY(!shadow->topTile()->image().isNull());
+
+    KSvg::ImageSet imageSet(NarrowBorderTheme, QStringLiteral("plasma/desktoptheme"));
+    KSvg::FrameSvg tiles;
+    tiles.setImageSet(&imageSet);
+    tiles.setImagePath(QStringLiteral("dialogs/background"));
+    tiles.setElementPrefix(QStringLiteral("shadow"));
+    QVERIFY(tiles.hasElementPrefix(QStringLiteral("shadow")));
+
+    // Each tile carries its **own** element, at its own size. The guard is not
+    // decoration: `Svg::pixmap(element)` ignores the element and returns the
+    // whole image, so a wrong implementation hands the compositor eight copies
+    // of the entire shadow — which it accepts without complaint, and which no
+    // picture of this project would show. That was the first implementation
+    // here, and the assertion it passed compared against the same wrong call.
+    QVERIFY(shadow->topTile()->image().size() != shadow->topLeftTile()->image().size());
+
+    for (const QString &element : {QStringLiteral("shadow-top"), QStringLiteral("shadow-topleft")}) {
+        const QSize size = tiles.elementSize(element).toSize();
+        QVERIFY(!size.isEmpty());
+
+        const KWindowShadowTile::Ptr tile =
+            element.endsWith(QStringLiteral("topleft")) ? shadow->topLeftTile() : shadow->topTile();
+        QCOMPARE(tile->image().size(), size);
+        QCOMPARE(tile->image(), tiles.image(size, element));
+    }
+}
+
+void CaptureTest::staysUsableWithoutADesktopTheme()
+{
+    // Outside a Plasma session `dialogs/background` is not there (AK 8), and
+    // the demand is the modest one the criterion makes: no crash, and a window
+    // one can still see and type into. Not transparent — which is what a
+    // hull-less window with a translucent background would otherwise be.
+    //
+    // The state cannot be produced inside this process, and that is measured:
+    // an unknown theme name does **not** leave KSvg empty-handed, it falls back
+    // to `default` and the hull renders as usual. A test that set one would be
+    // a test in which the fault cannot occur. What produces it is an
+    // environment with no theme files on the data path — hence a process of its
+    // own, which the branch below runs.
+    if (qEnvironmentVariableIsSet("DENKZETTEL_TEST_WITHOUT_DESKTOP_THEME")) {
+        QPlainTextEdit *text = textArea();
+        QVERIFY(text);
+
+        // Every road the standing window takes, not only the one it was built
+        // on: reading plasmarc, and being handed a name.
+        m_window->reloadDesktopTheme();
+        m_window->reloadDesktopTheme(NarrowBorderTheme);
+        m_window->showCapture();
+
+        const QImage picture = shot(*m_window);
+        QVERIFY(picture.width() > 0);
+        // No hull, so no corner is cut away — and no pixel is left transparent.
+        QCOMPARE(cornerRun(picture), 0);
+        QCOMPARE(picture.pixelColor(0, 0), m_window->palette().color(QPalette::Window));
+        QCOMPARE(picture.pixelColor(picture.width() / 2, picture.height() / 2),
+                 m_window->palette().color(QPalette::Window));
+
+        text->setPlainText(QStringLiteral("geht trotzdem"));
+        QCOMPARE(text->toPlainText(), QStringLiteral("geht trotzdem"));
+        return;
+    }
+
+    const QTemporaryDir empty;
+    QVERIFY(empty.isValid());
+
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("DENKZETTEL_TEST_WITHOUT_DESKTOP_THEME"), QStringLiteral("1"));
+    environment.insert(QStringLiteral("XDG_DATA_DIRS"), empty.path());
+    environment.insert(QStringLiteral("XDG_DATA_HOME"), empty.path());
+
+    QProcess child;
+    child.setProcessEnvironment(environment);
+    child.setProcessChannelMode(QProcess::MergedChannels);
+    child.start(QCoreApplication::applicationFilePath(),
+                {QStringLiteral("staysUsableWithoutADesktopTheme")});
+
+    QVERIFY(child.waitForFinished(60000));
+    QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
+             child.readAll().constData());
 }
 
 QTEST_MAIN(CaptureTest)
