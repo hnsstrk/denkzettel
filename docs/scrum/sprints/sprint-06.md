@@ -1279,3 +1279,35 @@ Test war nicht falsch, er stand nur an einer Stelle, an der nichts zu sehen
 war. Der neue sichert seine eigene Voraussetzung zu.
 
 Gemerged als `4d3978c`.
+
+---
+
+## 17. DoD-Prüfung Sprint 6
+
+### 17.1 Was der Sprint-Diff außer den drei Stories enthält (K4)
+
+`git diff sprint-06-basis..main` umfasst **73 Dateien, 6025 Zeilen**. Die drei
+Stories erklären davon nicht alles. Der karpathy-Review hat das als Befund K4
+gemeldet — nicht weil etwas fehlte, sondern weil mein Review-Auftrag nur die
+Stories nannte und die Deckung damit unausgesprochen blieb. Ein Diff, dessen
+Umfang niemand erklärt, wird später entweder als Lücke gelesen oder als stille
+Behauptung.
+
+Der Beifang stammt aus der PO-Arbeit desselben Tages, vor und neben dem Sprint:
+
+| Teil | Beleg |
+|---|---|
+| Klangfreiheit der Testläufe (`tests/testsilence.cpp`, `tests/CMakeLists.txt`, SPEC 9) | `2026-08-04-testklaenge.md`, `2026-08-04-klangfrei.md`, `2026-08-04-testklaenge-nachtrag.md` |
+| BM25 geprüft und verworfen (SPEC 6) | `2026-08-04-bm25/` |
+| CI eingerichtet und erweitert (`.github/workflows/ci.yml`) | `2026-08-04-ci/` |
+| KI-Transparenzhinweis (`README.md`) | Kundenentscheidung 04.08.2026 |
+| Schätzkegel-Rückbau, Bildläufer nicht mehr `EXCLUDE_FROM_ALL`, sp:-Label-Regel | `sprint-06-kegel-rueckbau.md`, `2026-08-04-v1-bildlaeufer.md`, `2026-08-04-v2-v4-label.md` |
+| `sprint-05-installationstakt.md`, Verwalter-Berichte | Sprint-5-Nachlauf |
+
+**Der Reviewer hat die codetragenden Teile davon mitgeprüft — ohne Befund.**
+Das steht hier, damit die Prüfung nicht später als übersprungen gilt.
+
+*Für den nächsten Sprint:* Der Review-Auftrag nennt den Diff, nicht die Stories.
+Wer die Stories aufzählt, beschreibt seine Absicht; der Diff beschreibt, was
+tatsächlich zur Prüfung ansteht. Die beiden fallen auseinander, sobald an einem
+Tag auch außerhalb des Sprints gearbeitet wird — und das ist der Normalfall.
