@@ -501,9 +501,9 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
     // with it: same corner, closed everywhere, on both of the sizes SPEC 3
     // names. Checked under both desktop themes — a hull that only survives the
     // narrow border would pass a one-theme check.
-    // Die mitgelieferten Themes immer, ein installiertes zusaetzlich, wo es
-    // eines gibt: Die Form soll an einem echten Plasma-Theme gehalten haben und
-    // nicht nur an unserem SVG.
+    // The bundled themes always, an installed one on top wherever there is one:
+    // the shape has to have held against a real Plasma theme, not merely
+    // against an SVG of ours.
     QStringList checked{NarrowBorderTheme, WideBorderTheme};
     if (const auto installed = themes::anyInstalledTheme()) {
         checked << *installed;
@@ -562,9 +562,9 @@ void CaptureTest::bindsAShadowFromTheThemeTiles()
     // `grab()` would not show a shadow either, because it lies outside the
     // widget. What can be shown is that a shadow object exists and that its
     // tiles are the ones of the desktop theme, pixel for pixel.
-    // Das mitgelieferte Theme immer, ein installiertes zusaetzlich, wo es eines
-    // gibt: Die Kacheln sollen von einem echten Plasma-Theme gekommen sein und
-    // nicht nur von unserem SVG.
+    // The bundled theme always, an installed one on top wherever there is one:
+    // the tiles have to have come from a real Plasma theme, not merely from an
+    // SVG of ours.
     QStringList checked{NarrowBorderTheme};
     if (const auto installed = themes::anyInstalledTheme()) {
         checked << *installed;

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Pruef-Theme der Denkzettel-Testsuite - KEIN Gestaltungsvorschlag.
+  Test theme of the Denkzettel test suite - NOT a design proposal.
 
-  Es existiert, weil die Zusicherung von #55 AK 1 zwei Desktop-Themes mit
-  verschiedenem Rand gegeneinander haelt, und weil es die auf einer beliebigen
-  Maschine nicht gibt: Alle offiziellen KDE-Themes (default, breeze-dark,
-  breeze-light) tragen 4/4/4/4; jedes 8-px-Theme der Entwicklungsmaschine
-  stammt aus einem CachyOS-Paket. Ein Auschecken auf Fedora, Debian oder
-  gewoehnlichem Arch faende kein Paar - und ein Bauplatz, der nur die
-  KF6-Teile dieses Projekts installiert, findet ueberhaupt kein Desktop-Theme,
-  denn ksvg haengt nicht an libplasma.
+  It exists because the assertion of #55 AK 1 holds two desktop themes with
+  different borders against each other, and because such a pair does not exist
+  on an arbitrary machine: every theme of the official KDE stack (default,
+  breeze-dark, breeze-light) carries 4/4/4/4, and every wider theme on the
+  development machine comes from a CachyOS package. A checkout on Fedora,
+  Debian or ordinary Arch would find no pair at all - and a build host that
+  installs only this project's KF6 parts finds no desktop theme whatsoever,
+  because ksvg does not depend on libplasma.
 
-  Rand 12 px, Eckradius 12 px, Schattenkacheln 10 px.
+  Border 12 px, corner radius 12 px, shadow tiles 10 px.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="76">
   <g fill="#000000">

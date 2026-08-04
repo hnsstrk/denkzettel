@@ -86,11 +86,19 @@ $ ctest --test-dir build
 Der Bau ist warnungsfrei (`cmake --build build` ohne `warning`), was seit dem
 04.08.2026 auch die CI verlangt.
 
-### 3.2 Die neun Zusicherungen sind gegen Mutation geprüft
+### 3.2 Alle elf neuen Zusicherungen sind gegen Mutation geprüft
 
 Dieses Projekt hat an einem Abend vier grüne Tests entlarvt, die nichts
-prüften. Ich habe deshalb jede tragende Zusicherung gegen eine Mutation des
-Produktivcodes gehalten — sie muss rot werden, wenn das Verhalten verschwindet:
+prüften. Ich habe deshalb jede neue Zusicherung gegen eine Mutation des
+Produktivcodes gehalten — sie muss rot werden, wenn das Verhalten verschwindet.
+
+**Die Tabelle unten deckte zunächst nur acht der elf**, und der Satz darüber
+behauptete trotzdem Vollständigkeit. Der karpathy-Review hat das als **K1**
+beanstandet; die drei fehlenden Mutationen stehen nachgefahren in **§11**, und
+die Überschrift nennt seither die Zahl, die die Tabellen tragen. *Der Befund
+war berechtigt und ist die unangenehmste Stelle dieses Berichts:* Er ist genau
+die Bauart — eine Behauptung breiter als ihr Beleg —, gegen die dieses Projekt
+seine Evidenzpflicht geschrieben hat.
 
 | Mutation | rot wird |
 |---|---|
@@ -101,6 +109,10 @@ Produktivcodes gehalten — sie muss rot werden, wenn das Verhalten verschwindet
 | Fußzeilenabstand = Abstand des App-Namens | `footerHasMoreAirThanTheApplicationName` |
 | Kacheln über `pixmap(id)` statt `image(elementSize, id)` | `bindsAShadowFromTheThemeTiles` |
 | `FontChange` im `eventFilter` entfernen | `heightFollowsAFontChange` |
+
+**Vollständig wird die Liste erst mit den drei Mutationen in §11.1** — bis
+dahin fehlten `paintsOneSurfaceInThePaletteColours` (AK 2, tragend),
+`wearsNoDecoration` (AK 6) und `staysUsableWithoutADesktopTheme` (AK 8).
 
 **Die zweite Zeile hat beim ersten Durchgang nur *einen* Test gerissen.**
 `hullIsCompleteAtFiveAndEightLines` blieb grün, obwohl gar keine Hülle mehr
@@ -463,3 +475,86 @@ Entscheidung; nötig ist es nicht.**
 
 `SPEC.md` 16 ist um die Bedingung ergänzt (DoD 4/B9): *Keine Zusicherung hängt
 an einem Namen, den nur diese Maschine kennt.*
+
+---
+
+## 11. Nachtrag 04.08.2026 — die karpathy-Befunde K1 bis K3
+
+Alle drei sind behoben. K1 durch **Messung**, nicht durch Einschränkung des
+Satzes: Die drei fehlenden Mutationen sind gefahren, alle drei greifen.
+
+### 11.1 K1 (`fail`) — die drei fehlenden Mutationen
+
+| Mutation | rot wird | Skips |
+|---|---|---|
+| **beide** Hälften der einen Fläche entfernt — `viewport()->setAutoFillBackground(false)` **und** `Base = transparent` | `paintsOneSurfaceInThePaletteColours`, dazu `staysUsableWithoutADesktopTheme` | 0 |
+| Ersatzfläche ohne Theme entfernt (`painter.fillRect(rect(), surface)`) | `staysUsableWithoutADesktopTheme` | 0 |
+| `Qt::FramelessWindowHint` aus dem Konstruktor entfernt | `wearsNoDecoration` | 0 |
+
+**Damit tragen alle elf neuen Zusicherungen eine Mutationszeile** — sieben aus
+§3.2/§10.3, drei hier, und `hullFollowsAnInstalledDesktopTheme` aus §10.3.
+
+**Zu `wearsNoDecoration`, mit der Einordnung, die der Reviewer vorgeschlagen
+hat:** Es ist eine **Bestandszusicherung, nicht tragend**. Die beiden Flags
+stehen seit Sprint 1 im Konstruktor und sind von dieser Story nicht angefasst
+worden; der Test hält AK 6 fest — *die Hülle ersetzt die Titelleiste nicht,
+sie ist, was ein Fenster ohne Titelleiste statt nichts trägt* — und schützt sie
+gegen eine spätere Regression. Ich habe die Mutation trotzdem gefahren statt
+sie nur zu kennzeichnen: Ein Beleg ist billiger als eine Einordnung, der man
+glauben muss.
+
+### 11.2 K2 (`warn`) — gefahren, und der fünfte Fall ist es **nicht**
+
+Der Reviewer hatte den Verdacht ausdrücklich als *unbelegt* gekennzeichnet. Er
+ist jetzt belegt, in drei Läufen:
+
+| Lauf | Ergebnis |
+|---|---|
+| nur `viewport()->setAutoFillBackground(false)` entfernt | **grün** — 21 passed |
+| nur `Base = Qt::transparent` entfernt | **grün** — 21 passed |
+| **beide** entfernt | **rot** — `paintsOneSurfaceInThePaletteColours` fällt |
+
+**K2 ist damit erledigt, und die Redundanz ist begründet.** Die beiden Hälften
+sprechen zwei verschiedene Zeichner an: `setAutoFillBackground(false)` hält das
+Sichtfenster-Widget davon ab, seine Hintergrundrolle zu füllen;
+`Base = transparent` hält `QPlainTextEdit::paintEvent` davon ab, mit dem
+Base-Pinsel zu füllen. Dass hier **jede allein genügt**, ist an dieser
+Plattform und diesem Widget-Stil gemessen — nicht allgemein.
+
+**Die unangenehme Hälfte, die zum Befund gehört und nicht verschwiegen wird:**
+Keine der beiden Zeilen ist **einzeln** testgedeckt. Wer eine davon streicht,
+bekommt eine grüne Suite. Ich habe trotzdem **keine entfernt**: Die Messung
+deckt eine Plattform, und beide Zeilen führen auf AK 2 zurück. Wer sie später
+zusammenstreichen will, hat mit dieser Tabelle die Messung, die dafür fehlt.
+
+### 11.3 K3 (`warn`) — Sprachbruch behoben, und mehr davon gefunden
+
+Die drei gemeldeten Kommentarblöcke sind **übersetzt**, nicht weggeworfen
+(`capturetest.cpp` zweimal, `captureshots.cpp` einmal).
+
+**Beim Nachsehen fielen weitere Ersatzschreibungen auf, die der Review nicht
+nennt** — in Dateien, die er offenbar nicht als Textquellen gelesen hat: die
+Kopfkommentare beider Prüf-Themes (`Pruef-Theme`, `gewoehnlichem`, `faende`,
+`ueberhaupt`, `haengt`) und die `Name`/`Description`-Felder ihrer
+`metadata.json`. Sie stammen aus derselben Nachlässigkeit — die Dateien sind
+über ein Skript entstanden, und dabei sind die Umlaute ASCII geworden.
+
+**Behoben, indem alles unter `tests/` auf Englisch gezogen wurde**, Prüf-Themes
+eingeschlossen. Das ist die Regel, die dort ohnehin gilt (*„Bezeichner und
+Code-Kommentare englisch"*), und sie nimmt der Digraphen-Frage die Grundlage,
+statt sie einzeln zu beantworten. Die `KPlugin.Id` beider Themes ist
+**unverändert** — sie steht im Test.
+
+*Nicht angefasst:* Die `pruefen`-Vorkommen in `tests/spellfixspike.cpp` sind
+kein Verstoß, sondern der Prüfgegenstand des Spikes — dort wird gerade
+zugesichert, dass jemand, der `pruefen` tippt, `prüfen` findet.
+
+### 11.4 Stand nach der Nachbesserung
+
+```
+Ganymed, beide Pflichtumgebungen        21 passed, 0 failed, 0 skipped
+nur offizielle KDE-Themes (simuliert)   20 passed, 0 failed, 1 skipped
+ctest                                   7/7
+```
+
+Bau warnungsfrei. **K4 ist nicht meine Sache** (PO).
