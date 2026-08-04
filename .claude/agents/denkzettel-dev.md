@@ -55,7 +55,12 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 Bei jeder Story mit sichtbarem oder systemweit registriertem Verhalten
 (DoD 2 in `docs/scrum/PROZESS.md`): gebauten Stand starten, den Hauptweg der
 Story einmal selbst ausführen, den Nachweis in den Bericht legen. Für
-Fenster genügt `QT_QPA_PLATFORM=offscreen` plus `QWidget::grab().save()`; bei
+Fenster `QT_QPA_PLATFORM=offscreen` plus `QWidget::grab().save()`, **dazu
+`QT_SCALE_FACTOR` auf der Skalierung des Kunden** — ein Bild bei Verhältnis 1
+belegt seinen Zustand nicht (DoD 3, B21). **Behauptet ein Akzeptanzkriterium
+etwas über Hülle, Rundung, Kontur, Schatten, Dekoration oder Durchsichtigkeit,
+kommt ein Bild aus der angemeldeten Sitzung dazu** — offscreen zeichnet weder
+Theme noch Compositor vollständig. Bei
 UI-Stories gehört je Wireframe-Zustand ein Bild zur Übergabe (Normalfall,
 Leerzustand, Meldungszustand). Nach dem Start des Daemons ins Journal sehen
 (`journalctl --user -t denkzetteld -n 20`) — stumme Fehlermeldungen fremder

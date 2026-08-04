@@ -2172,6 +2172,274 @@ Prüfläufer als CMake-Ziel (M-B2).
 
 ---
 
+### 23.7 Nachtrag: der Prüfweg der Bildbelege (B21)
+
+*Nachgereicht am 04.08.2026 auf Vorlage des PO. Der Befund stammt aus der
+Kundenabnahme und lag bei der Retro noch nicht vor; er steht als offene
+DoD-Frage in §25.3. **Zur Nummer:** 23.5 und 23.6 waren vergeben, deshalb 23.7
+statt der vorgeschlagenen 23.5.*
+
+#### 23.7.1 Zuerst ausgezählt
+
+Der PO hat verlangt, den Umfang zu **zählen** statt zu vermuten. Gemessen am
+Stand `main` @ `1de4c73`; alle fünf Läufer vorher frisch gebaut.
+
+**Achse A — der fehlende Alphakanal.** `tinted()` hat genau **zwei**
+Aufrufstellen, beide in `src/capture/capturewindow.cpp:326–327`. Der Weg ist nur
+erreichbar, wo ein `CaptureWindow` gezeichnet wird — also in den Läufern, die
+`denkzettelcapture` linken.
+
+| Läufer | linkt | Hülle im Bild | Achse A |
+|---|---|---|---|
+| `captureshots` | `denkzettelcapture`, `KF6::Svg` | ja | **betroffen** |
+| `readmeshots` | `denkzettelcapture`, `denkzettelui` | ja | **betroffen** |
+| `libraryshots` | `denkzettelui` | nein | nicht betroffen |
+| `editshots` | `denkzettelui` | nein | nicht betroffen |
+| `searchshots` | `denkzettelui` | nein | nicht betroffen |
+
+**Zwei von fünf** — und die zweite ist nicht erschlossen, sondern gemessen. Ein
+frischer `readmeshots`-Lauf zeigt am linken oberen Bogen dasselbe Loch wie
+`captureshots`:
+
+```
+cmake --build build --target readmeshots
+QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2 \
+    LANG=de_DE.UTF-8 build/bin/readmeshots <Zielordner>
+```
+
+Ecke oben links, 20 × 20 Bildpunkte. `K` = Konturfarbe `4c4e51` ± 12,
+`F` = Flächenfarbe `202326` ± 12, `.` = Alpha < 8:
+
+```
+............KKKKKKKK      Die Kontur läuft über die Gerade oben (K)
+............KKKKKKKK      und über die Gerade links (K, ab Zeile 12).
+..............FFFFFF      Auf dem Bogen dazwischen: kein einziges K —
+..............FFFFFF      die Fläche (F) stößt unmittelbar an das
+......FFFFFFFFFFFFFF      Durchsichtige (.), die Kontur fehlt.
+......FFFFFFFFFFFFFF
+....FFFFFFFFFFFFFFFF
+....FFFFFFFFFFFFFFFF
+....FFFFFFFFFFFFFFFF
+....FFFFFFFFFFFFFFFF
+....FFFFFFFFFFFFFFFF
+....FFFFFFFFFFFFFFFF
+KK..FFFFFFFFFFFFFFFF
+KK..FFFFFFFFFFFFFFFF
+KKFFFFFFFFFFFFFFFFFF
+KKFFFFFFFFFFFFFFFFFF
+KKFFFFFFFFFFFFFFFFFF
+KKFFFFFFFFFFFFFFFFFF
+KKFFFFFFFFFFFFFFFFFF
+KKFFFFFFFFFFFFFFFFFF
+```
+
+Die Ursache ist dieselbe wie bei `captureshots` und liegt in
+`b1-huellenring-offscreen.txt` vermessen vor: `tinted()` liefert offscreen
+Format 4 **ohne** Alphakanal, unter Wayland Format 6 **mit**.
+
+**Achse B — die Skalierung.** Kein Läufer fährt bei 1,6. Vier fahren bei 1,
+`readmeshots` bei 2 (`QT_SCALE_FACTOR=2`, für die Lesbarkeit im README). Ob
+darin etwas verborgen liegt, ist nachgemessen: `libraryshots`, `editshots` und
+`searchshots` je bei 1 und bei 1,6 gefahren, dann die sechs stärksten senkrechten
+Kanten des Helligkeitsprofils verglichen (Kante bei 1,6 geteilt durch 1,6):
+
+| Läufer / Bild | Kanten bei 1 | Kanten bei 1,6 ÷ 1,6 |
+|---|---|---|
+| `libraryshots` 01 | 278 · 279 · 285 · 293 · 299 · 300 | 278,1 · 279,4 · 285,6 · 293,1 · 299,4 · 300,6 |
+| `editshots` 02 | 12 · 299 · 300 · 312 · 686 · 887 | 12,5 · 299,4 · 300,6 · 312,5 · 686,2 · 887,5 |
+| `searchshots` 2 | 12 · 34 · 35 · 49 · 299 · 300 | 12,5 · 13,8 · 34,4 · 49,4 · 299,4 · 300,6 |
+
+Alle drei Fenster wachsen exakt (900 × 600 → 1440 × 960), und jede Kante fällt
+auf ihre Stelle bei 1 zurück, Abweichung ≤ 1,3 logische Pixel. **Das Bild bei
+1,6 ist bei diesen dreien das Bild bei 1, vergrößert.** Beim Capture-Fenster
+nicht: dort ist die Ecke bei 1,6 eine **andere** Zeichnung, weil `alphaMask()`
+bei DPR 1 bleibt (600 × 150) und hochskaliert wird
+(`b1-eckenraster-skala-*.txt`) — im Bild `04-rand-schmal-dunkel-leer.png`
+laufen die Zwischenwerte bei 1,6 über verdoppelte Zeilen
+(`767777 767777`, `cccbc8 cccbc8`), bei 1 über einzelne.
+
+**Ergebnis der Zählung.** Der Befund ist **nicht allgemein**. Er sitzt dort, wo
+das Bild von etwas abhängt, das **nicht unser Code zeichnet** — der vom
+Desktop-Theme gerenderten Hülle. Wo unser Code in unsere Palette zeichnet, trägt
+offscreen bei Verhältnis 1.
+
+#### 23.7.2 Wo der blinde Fleck geschrieben steht
+
+Drei Messungen treffen die Ursache genauer als „der Läufer fährt offscreen".
+
+1. **Das Akzeptanzkriterium hat die Belegform selbst zugeordnet — eine
+   Eigenschaft zu weit.** AK 7 von #55, wörtlich aus
+   `docs/scrum/reviews/sprint-06-s55-huelle/bericht.md`, Zeile 70: „Rundung und
+   Kontur offscreen im Bild …; Schatten als Bild am laufenden Plasma **oder**
+   benannte Zusicherung." Die Teilung zwischen offscreen und laufender Sitzung
+   war also **da** — sie verlief nur an der falschen Stelle. Der Läufer hat
+   getan, was das AK verlangte.
+2. **Der Entwickler hat die laufende Sitzung bereits benutzt — einmal.**
+   `15-schatten-am-plasma.png` misst 992 × 310; der Inhalt darin ist 960 × 278,
+   und das ist 600 × 174 bei Verhältnis 1,6. **Eines von 34 Belegbildern des
+   Sprints** (15 aus der Dev-Übergabe, 19 aus dem UX-Review) ist unter den
+   Bedingungen des Kunden entstanden — genau das zu der einen Eigenschaft, die
+   das AK der laufenden Sitzung zugeordnet hatte. Das Mittel existiert, ist
+   bezahlbar und war in diesem Sprint bereits im Einsatz.
+3. **Die Anweisung, offscreen zu fahren, steht in beiden Agentendateien:**
+   `.claude/agents/denkzettel-dev.md:58` („Für Fenster genügt
+   `QT_QPA_PLATFORM=offscreen` plus `QWidget::grab().save()`") und
+   `.claude/agents/denkzettel-ux.md:47` (dasselbe, „verbindlich nach DoD 3").
+   **Beide ohne ein Wort zur Skalierung.**
+
+Punkt 3 korrigiert die Vorlage des PO in einem Punkt. Die beiden Bildreihen sind
+**als Dateien** verschieden — stichprobenweise geprüft, drei Paare, keines
+bytegleich —, aber die **Vorschrift** war dieselbe, und sie stand in der Datei,
+die jeder der beiden Agenten garantiert liest. Zwei Agenten mit derselben
+schriftlichen Anweisung sind nicht zwei Beobachter; sie sind ein Beobachter,
+zweimal ausgeführt. Damit ist die zweite Retro-Frage hier vorweg beantwortet:
+Der Ort, der garantiert gelesen wird, ist in diesem Fall **nicht** `CLAUDE.md`,
+sondern die Agentendatei — dort steht der Satz, der den Befund erzeugt hat.
+
+#### 23.7.3 Der Beschluss
+
+---
+
+**B21 — Ein offscreen erzeugtes Bild belegt nicht, was Theme und Compositor
+zeichnen; und jeder Bildbeleg entsteht bei der Skalierung des Kunden.**
+
+*Anlass:* §25.3 und die Zählung in 23.7.1. Zwölf Belegbilder zu AK 1 und AK 7
+von #55 zeigen eine Ecke ohne Kontur; der Kunde sieht sie. Zwei von vier
+Abnahmebefunden bestehen bei Verhältnis 1 gar nicht.
+
+*Warum überhaupt ein Beschluss, wo Prinzip 2 gegen den einundzwanzigsten
+spricht:* Weil die Voraussetzung von B3 gerissen ist. B3 sagt „bei Zuständen ist
+das Bild der Prüfgegenstand, nicht die Zusicherung" — das setzt voraus, dass das
+Bild den Zustand des Kunden zeigt. Genau das hat nicht gehalten, und **beide**
+Bildreihen des Sprints haben es nicht bemerkt. Ein Vorbehalt allein reicht dabei
+nicht: AK 1 von #55 behauptet etwas über die Kontur auf dem Bogen, also über
+genau das, was offscreen nicht entsteht. Ohne Auslöser hätte unter denselben
+zwölf Bildern künftig „offscreen, Vorbehalt bekannt" gestanden, und der Sprint
+wäre gleich verlaufen.
+
+*Warum trotzdem keine allgemeine Pflicht zum Sitzungsbild:* Die Zählung zeigt,
+dass drei der fünf Läufer davon **nichts** gewinnen — bei ihnen ist das Bild bei
+1,6 das Bild bei 1, vergrößert, und ihre Pixel zeichnet unser Code. Eine Pflicht,
+die in drei von fünf Fällen nachweislich nichts findet, wird umgangen. Der
+Beschluss zerlegt den Befund deshalb in die Hälfte, die **umsonst** zu schließen
+ist (Skalierung: eine Umgebungsvariable), und die Hälfte, die **teuer** ist
+(Plattform: eine angemeldete Sitzung, nicht in der CI wiederholbar) — und
+verpflichtet nur die erste allgemein.
+
+*Geändert 1:* `docs/scrum/PROZESS.md`, DoD 3, hinter „Ein UI-Review ohne eigene
+Bildprüfung zählt für diesen Punkt nicht." — angehängt:
+
+> **Was ein offscreen erzeugtes Bild belegt, und was nicht.** Es belegt
+> Geometrie, Textsatz und Farbrollen — alles, was unser Code in unsere Palette
+> zeichnet. Es belegt **nicht**, was Desktop-Theme oder Compositor beisteuern:
+> Hülle, Rundung, Kontur, Schatten, Dekoration, Durchsichtigkeit. *Gemessen:*
+> `tinted()` füllt eine QPixmap deckend, woraufhin Qt offscreen ein Format ohne
+> Alphakanal wählt und die Kontur auf dem Eckbogen verschwindet; derselbe
+> Binärcode unter Wayland liefert ein Format mit Alphakanal und den
+> vollständigen Bogen
+> (`docs/scrum/reviews/2026-08-04-abnahme-befunde/messungen/b1-huellenring-offscreen.txt`
+> gegen `-live.txt`).
+> **Macht ein Akzeptanzkriterium eine Aussage über eine dieser Größen, gehört
+> ein Bild aus der angemeldeten Sitzung zum Beleg**; ohne es ist DoD 3 für diese
+> Story nicht geführt. Die Bildläufer bleiben offscreen — das Sitzungsbild tritt
+> daneben, nicht an ihre Stelle. Der Prüfweg dafür liegt fertig vor
+> (`docs/scrum/reviews/2026-08-04-abnahme-befunde/sonden/echtelage.cpp`); er
+> nimmt allein das Fenster auf, nicht den Bildschirm.
+> **Und jedes Bild, das als Beleg dient, entsteht bei der Skalierung, die der
+> Kunde fährt** (`QT_SCALE_FACTOR`). Die Zahl steht im Prüfbericht, nicht in
+> dieser Regel — am 04.08.2026 gemessen 1,6 —, sonst altert sie hier still.
+> README-Bilder sind hiervon ausgenommen: Sie belegen nichts, sie sollen lesbar
+> sein.
+> **Wer die Belegform in ein Akzeptanzkriterium schreibt, entscheidet damit
+> darüber.** AK 7 von #55 hat „Rundung und Kontur" der offscreen-Seite
+> zugeordnet und nur den Schatten der laufenden Sitzung — die Teilung war da,
+> eine Eigenschaft zu weit. Der Läufer hat getan, was dort stand.
+
+*Geändert 2:* `CLAUDE.md`, Block „Ein UI-Review ohne eigenes Bild ist nicht
+geführt", hinter dem Satz zu `QT_QPA_PLATFORMTHEME=kde` — angehängt:
+
+> **Ein offscreen erzeugtes Bild zeigt nicht, was der Kunde sieht.** Es belegt
+> Geometrie, Textsatz und Farbrollen; es belegt **nicht** Hülle, Rundung,
+> Kontur, Schatten oder Dekoration — die zeichnen Theme und Compositor, und
+> offscreen fehlt beiden die Grundlage (gemessen: `tinted()` verliert offscreen
+> den Alphakanal, unter Wayland nicht). Zweierlei folgt daraus: Ein Bild, das
+> als Beleg dient, läuft mit `QT_SCALE_FACTOR` auf der Skalierung des Kunden —
+> und wo ein Akzeptanzkriterium über Theme oder Compositor etwas behauptet,
+> gehört ein Bild aus der angemeldeten Sitzung dazu.
+
+*Geändert 3:* `.claude/agents/denkzettel-dev.md`, Abschnitt „Vor der Übergabe —
+Selbst-Sichtprüfung", Satz „Für Fenster genügt `QT_QPA_PLATFORM=offscreen` plus
+`QWidget::grab().save()`" — ersetzt durch:
+
+> Für Fenster `QT_QPA_PLATFORM=offscreen` plus `QWidget::grab().save()`,
+> **dazu `QT_SCALE_FACTOR` auf der Skalierung des Kunden** — ein Bild bei
+> Verhältnis 1 belegt seinen Zustand nicht (DoD 3). **Behauptet ein
+> Akzeptanzkriterium etwas über Hülle, Rundung, Kontur, Schatten, Dekoration
+> oder Durchsichtigkeit, kommt ein Bild aus der angemeldeten Sitzung dazu** —
+> offscreen zeichnet weder Theme noch Compositor vollständig.
+
+*Geändert 4:* `.claude/agents/denkzettel-ux.md`, Punkt 3 „UI-Review", derselbe
+Zusatz hinter `QT_QPA_PLATFORM=offscreen`, `QWidget::grab().save()`:
+
+> …, **`QT_SCALE_FACTOR` auf der Skalierung des Kunden**, und bei Aussagen über
+> Hülle, Rundung, Kontur, Schatten oder Dekoration zusätzlich ein Bild aus der
+> angemeldeten Sitzung (DoD 3).
+
+*Automatisch geladen?* `CLAUDE.md`: **ja**, von jeder Sitzung im Projekt.
+`PROZESS.md` DoD 3: **ja für den Scrum Master** (Prüfer) und für den
+Entwickler, dessen Agentendatei `PROZESS.md` **ganz** verlangt. Die
+Agentendateien: **ja, und hier ist das der Punkt** — die Anweisung, die den
+Befund erzeugt hat, steht genau dort; eine Regel anderswo hätte gegen sie
+verloren. Drei der vier Änderungen sitzen damit an Orten, die ohne Zutun gelesen
+werden.
+
+*Geprüft am Wortlaut:* Die Zusätze zu Geändert 3 und 4 sind gegen die heutigen
+Läufer gehalten — `QT_SCALE_FACTOR=1.6` ist an `libraryshots`, `editshots`,
+`searchshots` und `captureshots` gelaufen und liefert Bilder; die Regel
+verlangt nichts, was nicht heute schon geht.
+
+---
+
+#### 23.7.4 Was ausdrücklich **nicht** beschlossen wird
+
+- **Keine allgemeine Pflicht zum Sitzungsbild.** Sie ist teuer, in der CI nicht
+  wiederholbar, und die Zählung zeigt drei von fünf Läufern, bei denen sie
+  nachweislich nichts fände. Der Vorbehalt des PO trägt — er bekommt nur einen
+  Auslöser statt keinen.
+- **Keine Prüfung der Bildläufer gegen ein Sitzungsbild** (etwa als
+  automatischer Vergleich). Das wäre ein zweiter Prüfweg für dasselbe und
+  scheitert an derselben Nichtwiederholbarkeit.
+- **Keine Änderung an `readmeshots`' Skalierung.** Seine 2 dient der Lesbarkeit
+  im README, nicht der Beweisführung; er ist kein DoD-3-Beleg. Der Befund an
+  seinen Bildern ist ein Doku-Mangel, kein Prozessmangel — siehe 23.7.5.
+- **Keine Regel zur Testseite.** `capturetest` misst die Hülle über
+  `cornerRun()` und die Alphawerte der Kantenmitten — beides Größen, die
+  offscreen korrekt entstehen. Es behauptet nichts über die Konturfarbe auf dem
+  Bogen und ist daher nicht betroffen. (Dass niemand sie zusichert, ist eine
+  Frage an die Story, nicht an den Prozess.)
+
+#### 23.7.5 Zwei Meldungen an den PO (melden, nicht heilen)
+
+**N1 — Die beiden README-Bilder zeigen einen Stand vor #55.**
+`docs/bilder/erfassungsfenster.png` stammt aus `cead9f9`, und `cead9f9` liegt
+**vor** `38db754` (#55, Hülle). Gemessen: Die Datei im Repo ist 1200 × 324, ihre
+linke obere Ecke ist auf 14 × 14 Bildpunkten durchgehend `202326` bei Alpha 255
+— rechteckig, deckend, ohne Hülle. Ein Lauf des heutigen `readmeshots` liefert
+1200 × 348 mit gerundeter, durchsichtiger Ecke. Das öffentliche README zeigt
+damit ein Fenster, das `main` nicht mehr zeichnet. Ob es neu erzeugt wird, hängt
+an der Entscheidung über #55 und ist Sache des PO, nicht meine.
+
+**N2 — Der Prüfweg aus 23.7.1 ist nicht als Skript versioniert.**
+Die Zählung in 23.7.1 ist wiederholbar (alle Befehle stehen oben), aber die
+Auswertung der Eckkarte und der Kantenprofile lief über Wegwerf-Skripte im
+Sitzungsordner. Nach B7 ist das kein Beleg für die Zukunft, wohl aber für
+heute — die Zahlen stehen hier im versionierten Protokoll. Falls der Auslöser
+aus B21 öfter greift, wäre eine kleine Sonde neben
+`docs/scrum/reviews/2026-08-04-abnahme-befunde/sonden/` der Ort. **Kein Mangel,
+ein Hinweis** — und ausdrücklich kein Auftrag an mich.
+
+---
+
 ## 24. Kundenabnahme Sprint 6 — #55 nicht angenommen
 
 **Geführt am 04.08.2026 am installierten Stand** (`/usr/bin/denkzetteld`,
@@ -2329,3 +2597,54 @@ Kunde vor sich hat: Sie entsteht bei Verhältnis 1 und offscreen, und beides
 weicht vom Auslieferungszustand ab. **Das ist eine DoD-Frage für den Scrum
 Master, keine Story** — und der schwerere der beiden Prüfweg-Befunde dieses
 Sprints.
+
+---
+
+## 26. Vollzug B21 und die Antwort auf N1 (PO)
+
+**B21 ist in allen vier Artefakten eingebaut** — `CLAUDE.md`,
+`docs/scrum/PROZESS.md` (DoD 3), `.claude/agents/denkzettel-dev.md` und
+`.claude/agents/denkzettel-ux.md`.
+
+Die beiden Agentendateien sind der wirksame Ort, und das ist der Fund, der den
+Beschluss trägt: Der Satz „Für Fenster genügt `QT_QPA_PLATFORM=offscreen`"
+stand in **beiden**, ohne ein Wort zur Skalierung. **Zwei Agenten mit derselben
+schriftlichen Anweisung sind nicht zwei Beobachter, sondern ein Beobachter,
+zweimal ausgeführt.** Meine Vorlage hatte von „zwei unabhängigen Bildreihen"
+gesprochen — das war als Dateiaussage richtig und als Prüfaussage falsch.
+
+**Wo der Scrum Master mir widersprochen hat, hatte er recht.** Ich hatte einen
+bloßen *Vorbehalt* angeboten statt einer Pflicht. Sein Gegenargument: AK 1 von
+#55 behauptet etwas über die Kontur auf dem Bogen — also über genau das, was
+offscreen nicht entsteht. Unter denselben zwölf Bildern hätte künftig
+„offscreen, Vorbehalt bekannt" gestanden, und der Sprint wäre gleich verlaufen.
+
+**Was er ausdrücklich nicht beschlossen hat**, und ich halte das für den
+besseren Teil: keine allgemeine Sitzungsbild-Pflicht. Drei der fünf Läufer
+gewinnen davon nachweislich nichts — bei ihnen fällt bei 1,6 jede Kante nach
+Division auf ihre Stelle bei 1 zurück (≤ 1,3 logische Pixel). Eine Pflicht, die
+in drei von fünf Fällen nichts findet, wird umgangen.
+
+### 26.1 N1 — die README-Bilder zeigen einen Stand vor #55
+
+**Nachgemessen, nicht übernommen:** `docs/bilder/erfassungsfenster.png` ist
+1200 × 324, die linke obere Ecke durchgehend `202326` bei Alpha 255 —
+rechteckig, deckend, ohne Hülle. Herkunft `cead9f9`, das **vor** `38db754`
+liegt. Das öffentliche README zeigt ein Fenster, das `main` nicht mehr
+zeichnet.
+
+**Entscheidung des PO: nicht jetzt nachziehen.** Zwei Gründe, beide gemessen:
+
+1. **`readmeshots` ist einer der zwei betroffenen Läufer** (23.7.1). Ein
+   frischer Lauf erzeugt heute ein Bild mit der Lücke auf dem Eckbogen — ich
+   ersetzte ein veraltetes Bild durch ein fehlerhaftes.
+2. **#55 ist abgelehnt und wird mit #83 neu gebaut.** Das Aussehen ändert sich
+   ohnehin, und mit ihm die Durchsichtigkeit.
+
+**Gebunden an #83:** Die README-Bilder werden mit dessen Abnahme erneuert, aus
+einem Läufer, dessen Alphakanal-Fehler dann behoben ist. Bis dahin steht der
+Befund hier — sichtbar, nicht geheilt.
+
+*Was daran nach B10 unbefriedigend bleibt und benannt gehört:* Die README
+beschreibt bis dahin nicht den gelieferten Stand. Das ist ein bewusst
+getragener Mangel, kein übersehener.

@@ -301,6 +301,31 @@ PO aus.
    Leerzustand, Meldungszustand), `denkzettel-ux` erzeugt zusätzlich eigene
    Bilder aus dem Sprint-Stand und prüft sie gegen den Wireframe. Ein
    UI-Review ohne eigene Bildprüfung zählt für diesen Punkt nicht.
+   **Was ein offscreen erzeugtes Bild belegt, und was nicht** (B21): Es belegt
+   Geometrie, Textsatz und Farbrollen — alles, was unser Code in unsere Palette
+   zeichnet. Es belegt **nicht**, was Desktop-Theme oder Compositor beisteuern:
+   Hülle, Rundung, Kontur, Schatten, Dekoration, Durchsichtigkeit. *Gemessen:*
+   `tinted()` füllt eine QPixmap deckend, woraufhin Qt offscreen ein Format ohne
+   Alphakanal wählt und die Kontur auf dem Eckbogen verschwindet; derselbe
+   Binärcode unter Wayland liefert ein Format mit Alphakanal und den
+   vollständigen Bogen
+   (`docs/scrum/reviews/2026-08-04-abnahme-befunde/messungen/b1-huellenring-offscreen.txt`
+   gegen `-live.txt`).
+   **Macht ein Akzeptanzkriterium eine Aussage über eine dieser Größen, gehört
+   ein Bild aus der angemeldeten Sitzung zum Beleg**; ohne es ist DoD 3 für
+   diese Story nicht geführt. Die Bildläufer bleiben offscreen — das
+   Sitzungsbild tritt daneben, nicht an ihre Stelle. Der Prüfweg dafür liegt
+   fertig vor (`docs/scrum/reviews/2026-08-04-abnahme-befunde/sonden/echtelage.cpp`);
+   er nimmt allein das Fenster auf, nicht den Bildschirm.
+   **Und jedes Bild, das als Beleg dient, entsteht bei der Skalierung, die der
+   Kunde fährt** (`QT_SCALE_FACTOR`). Die Zahl steht im Prüfbericht, nicht in
+   dieser Regel — am 04.08.2026 gemessen 1,6 —, sonst altert sie hier still.
+   README-Bilder sind hiervon ausgenommen: Sie belegen nichts, sie sollen
+   lesbar sein.
+   **Wer die Belegform in ein Akzeptanzkriterium schreibt, entscheidet damit
+   darüber.** AK 7 von #55 hat „Rundung und Kontur" der offscreen-Seite
+   zugeordnet und nur den Schatten der laufenden Sitzung — die Teilung war da,
+   eine Eigenschaft zu weit. Der Läufer hat getan, was dort stand.
 4. SPEC.md/KONZEPT.md nachgezogen, falls die Umsetzung eine Festlegung
    ändert **oder eine Bedingung entdeckt, ohne die eine Festlegung nicht
    gilt** (Bauart: fehlende Build-Abhängigkeit, Installations-Präfix —

@@ -45,8 +45,11 @@ Der Auftrag nennt den Modus. Nenne ihn auch in deinem Bericht.
    Beschriftungen, Tastaturwege, Zustände) **und an eigenen Bildern des
    gebauten Stands**: out-of-source bauen, Helferprogramm gegen
    `denkzettelui` linken, `QT_QPA_PLATFORM=offscreen`,
-   `QWidget::grab().save()` (verbindlich nach DoD 3 in
-   `docs/scrum/PROZESS.md`). Die Bilder des Entwicklers ersetzen deine
+   `QWidget::grab().save()`, **`QT_SCALE_FACTOR` auf der Skalierung des
+   Kunden**, und bei Aussagen über Hülle, Rundung, Kontur, Schatten oder
+   Dekoration zusätzlich ein Bild aus der angemeldeten Sitzung (verbindlich
+   nach DoD 3 in `docs/scrum/PROZESS.md`, B21).
+   Die Bilder des Entwicklers ersetzen deine
    nicht. Deine Prüfpunkte leitest du aus dem Wireframe ab, nicht aus dem
    Gedächtnis: jeder gezeichnete Bereich erzeugt genau eine Prüffrage, die
    Raumaufteilung eingeschlossen. Je Befund ein Verdikt **ok / warn / fail**
