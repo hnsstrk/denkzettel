@@ -50,6 +50,10 @@ ist kein Ersatz für eigene Bilder, aber es sagt etwas: Der Läufer ist
 reproduzierbar, und die Bilder des Strangs zeigen den Stand, den sie zu zeigen
 behaupten.
 
+> **Anker (Nachtrag 04.08.2026):** Dieser Satz gilt für den Prüfstand
+> `2ef495f`. Seit `c0c623d` weichen die beiden Reihen ab — **beabsichtigt, nicht
+> veraltet.** Siehe 7.
+
 Eigene Messungen am gebauten Fenster (nicht nur am Bild) liegen als
 `masse.txt`, `ecke.txt`, `schriftwechsel.txt`, `rollbalken.txt`,
 `wiederoeffnen.txt` und `bildauswertung.txt` daneben; die Sonden dazu in
@@ -275,6 +279,11 @@ ich habe ihn nicht angefasst.
 damit **nicht** gesagt und wäre am laufenden Compositor zu klären. Was belegt
 ist: In den Belegbildern steht er, und im ruhenden Fenster steht er nicht.
 
+> **Anker (Nachtrag 04.08.2026):** Dieser Befund samt der Aussage „byteweise
+> gleich" gilt für den Prüfstand `2ef495f`. Behoben mit `c0c623d`; die Reihe des
+> Strangs zeigt den Balken nicht mehr, meine weiterhin — sie ist der Beleg zum
+> geprüften Stand. Siehe 7.
+
 ---
 
 ## 4. Was ich nicht prüfen konnte
@@ -319,6 +328,10 @@ ist: In den Belegbildern steht er, und im ruhenden Fenster steht er nicht.
    das Fenster wieder auf fünf Zeilen?"* und *„Auf hellem Hintergrund: laufen
    die Ecken des Fensters sauber um, oder endet die Linie vor der Rundung?"*
 
+> **Anker (Nachtrag 04.08.2026):** Dieser Abschnitt ist eine Empfehlung an den
+> PO zum Prüfstand `2ef495f`. Was er daraus gemacht hat — drei Issues, eine
+> Heilung, zwei Sätze in der Abnahme-Checkliste — steht in 7.
+
 ---
 
 ## 6. Dateien dieses Reviews
@@ -339,3 +352,44 @@ docs/scrum/reviews/sprint-06-ux-review/
 
 Ein unversionierter Beleg ist kein Beleg (B7) — deshalb liegen die Sonden hier
 und nicht im Scratchpad.
+
+---
+
+## 7. Belegnachtrag 04.08.2026 — was seit dem Prüfstand geschehen ist
+
+**Der Bericht oben bleibt unverändert.** Er beschreibt den Stand `2ef495f`, und
+das soll er weiter tun: Ein Beleg, den man passend macht, ist keiner. Was hier
+folgt, ist der Anker — nicht die Glättung.
+
+**Die beiden Bildreihen sind seit `c0c623d` nicht mehr gleich.** Der Strang hat
+U4 in `shoot()` selbst geheilt — `show()` und der Durchlauf der Ereignisschleife
+stehen jetzt beide dort, statt an den vierzehn Aufrufstellen — und seine Reihe
+neu erzeugt. **Nachgemessen am 04.08.2026:** Alle vierzehn Bilder weichen jetzt
+ab, nicht nur die vier aus U4.
+
+```
+für jedes Bild:  cmp  bilder/<name>  ../sprint-06-s55-huelle/bilder/<name>
+    -> 14 von 14 abweichend
+```
+
+Dass **alle** abweichen und nicht nur die vier, ist erwartbar: Ein Bild nach dem
+ersten Ereignisdurchlauf zeigt auch den Textcursor und den eingeschwungenen
+Rollbalkengriff. Der Strang zählt die drei Unterschiede in seinem Bericht aus.
+
+**Meine Reihe bleibt, wie sie ist.** Sie ist der Beleg zum geprüften Stand, und
+ein Bild, das man dem geheilten Stand nachzieht, belegt nichts mehr. Wer die
+beiden Reihen nebeneinanderlegt, sieht den Unterschied, den U4 benannt hat —
+das ist ein Gewinn, kein Mangel.
+
+**Stand der vier Befunde** (vom PO gebucht, nicht von mir):
+
+| Befund | Stand |
+|---|---|
+| **U1** Kontur an der Rundung | Issue **#80** |
+| **U2** Öffnungshöhe und Schriftverkleinerung | in Issue **#79** aufgenommen |
+| **U3** Textkante des Notiztexts | Issue **#81** |
+| **U4** Rollbalken in den Belegbildern | **behoben**, `c0c623d` — damit ist auch die Empfehlung 5.4 erledigt |
+
+**Nicht nachgezogen wird:** kein Urteil, kein Befundtext, keine Prüffrage. Was
+im Präsens steht, steht im Präsens des Prüfstands `2ef495f` — so, wie es der
+Kopf dieses Berichts ansagt.
