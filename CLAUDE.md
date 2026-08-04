@@ -17,6 +17,14 @@ einer den Stand des anderen — deshalb taktet der PO die Installation, und **am
 Sprint-Ende wird der Endstand einmal installiert und geprüft**. Ohne diesen
 Schritt ist die Sprint-Abnahme unvollständig (Sprint-3-Mangel M1).
 
+**Installieren heißt nicht laufen** (B16). Nach `cmake --install` hält ein
+laufender Dienst die gelöschte alte Datei weiter; umgekehrt reicht
+`KDBusService::Unique` den Start eines Debug-Builds an den laufenden Dienst
+weiter. Beide Male prüft man unbemerkt den falschen Stand. Vor jeder Prüfung am
+installierten Stand: Dienst beenden, neu starten, dann
+`readlink /proc/$(pgrep -x denkzetteld)/exe` — ohne `(deleted)`. Wer den
+**Debug**-Stand prüfen will, beendet vorher den installierten Dienst.
+
 **Ein UI-Review ohne eigenes Bild ist nicht geführt** (DoD 3, Beschluss B3).
 Tests ersetzen die Bildprüfung nicht, und Bilder ersetzen die Tests nicht:
 
@@ -79,6 +87,15 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   Fälle gehalten wurde.**
 - **Prüfe die Voraussetzung deiner eigenen Begründung.** Wer sich auf eine
   Zeichnung beruft, liest sie vorher.
+- **Eine Aussage gilt für einen Stand** (B17). Wer eine Bau- oder
+  Werkzeugeigenschaft ändert, sucht im selben Zug nach den Aussagen darüber:
+  `git grep -n <Eigenschaft> -- CLAUDE.md README.md docs/ .github/`; beim
+  Erweitern einer Aufzählung nach dem Namen eines **Geschwisters** statt nach
+  dem neuen (`readmeshots` findet jede Liste, die `captureshots` noch nicht
+  kennt). Gemessen: Der Griff hätte alle drei Fundstellen von Sprint-6-Mangel
+  M4 gezeigt, bei fünf Zeilen Ausgabe. Wer den Zustand ändert und die Aussage
+  stehenlässt, macht aus einer Begründung eine Falle — die Pflicht gilt dann
+  weiter, nur aus einem anderen Grund.
 - Ein Testaufbau, in dem der Fehler gar nicht auftreten *kann*, ist kein Test.
 - **Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
   Es gibt fünf: `editshots`, `libraryshots`, `searchshots`, `readmeshots`,
@@ -133,5 +150,9 @@ noch SPEC, und Agenten arbeiten nur in ihrer zugewiesenen Dateimenge.
   **Seit dem 04.08.2026 löst jeder Push auf `main` einen öffentlichen Bau- und
   Testlauf aus** (`.github/workflows/ci.yml`). Er schlägt bei jeder Warnung und
   jedem roten Test fehl, und seine Marke steht am öffentlichen Repository.
-  Wer pusht, sieht nach: `gh run list --limit 1`. Umgekehrt ist die grüne Marke
+  Wer pusht, sieht nach — **am Lauf des eigenen Commits**, nicht am obersten
+  der Liste (B18):
+  `gh run list --commit $(git rev-parse HEAD) --json status,conclusion --jq '.[]|[.status,.conclusion]|@tsv'`
+  Erst `completed` **und** `success` ist ein Nachschlag. `in_progress` heißt:
+  noch einmal — nicht „nichts Rotes gesehen". Umgekehrt ist die grüne Marke
   **kein** DoD-Nachweis — der Lauf erreicht DoD 2 und DoD 3 gar nicht.
