@@ -999,7 +999,7 @@ Dateiprüfung mit Exit-Code, wie das Zweig-Räumen an `git merge-base`.
 *Was die Retro daran zu prüfen hat:* Liegt nach dem dritten Lauf eine Datei vor?
 Wenn nein, ist nicht die Regel zu schärfen, sondern die Rolle zu streichen.
 
-### 13.4 **Nicht** entschieden — der Schätzkegel (P4, Kundenfrage)
+### 13.4 Entschieden — der Schätzkegel wird entfernt (P4, Kundenentscheidung)
 
 Der Kegel kostet 840 Zeilen Werkzeug und Datenreihe, einen eigenen
 Abschluss-Punkt (12), einen DoD-Prüfsatz und eine Übertragungsregel für den
@@ -1013,19 +1013,38 @@ wurde**. Eine Story, die niemand angefasst hat, steht bei 1,0 — auch wenn sie
 das Doppelte gekostet hat. Er kann per Konstruktion nie belegen, dass eine
 Schätzung falsch war.
 
-**Drei Wege, und die Wahl gehört dem Kunden**, weil der Kegel sein Auftrag vom
-02.08.2026 ist:
+**Drei Wege lagen dem Kunden vor**, weil der Kegel sein Auftrag vom 02.08.2026
+ist:
 
 1. **Aufwandserhebung nachrüsten** — dann misst er Schätzgüte. Kostet je Story
    eine gemessene Zahl, die es heute nicht gibt.
 2. **Streichen** — spart 840 Zeilen und drei Prozessregeln.
 3. **Lassen, aber als das benennen, was er ist** — ein Bild der Revisionsunruhe,
-   nicht der Schätzgüte. Das ist der heutige Stand, und er ist der teuerste der
-   drei.
+   nicht der Schätzgüte. Das war der bisherige Stand, und er war der teuerste
+   der drei.
 
 *Empfehlung des PO:* Weg 1, falls das Projekt Schätzgüte wirklich wissen will —
-sonst Weg 2. Der jetzige Mittelweg trägt die vollen Kosten für die halbe
-Aussage.
+sonst Weg 2. Der Mittelweg trägt die vollen Kosten für die halbe Aussage.
+
+**Entscheidung des Kunden vom 04.08.2026: Weg 2 — entfernen.** Zurückgebaut
+wurde am selben Tag:
+
+- **`docs/scrum/diagramme/`** vollständig gelöscht (`LIESMICH.md`, `kegel.py`,
+  `kegel.svg`, `schaetzhistorie.json`).
+- **`PROZESS.md`**: Sprint-Abschluss **Punkt 12** ersatzlos gestrichen — die
+  Liste endet bei 11; der Schätzhistorie-Absatz der DoD-Sektion samt der
+  Begründung für Abstand- und Faktor-Spalte entfernt; in den Pflichtteilen der
+  Protokolle steht die DoD-Prüfung nun ohne den Zusatz „samt Schätzhistorie".
+  An die Stelle trat ein datierter Vermerk in der Sprint-Mechanik, der
+  festhält, **dass** es den Kegel gab und **warum** er wegfiel — sonst schlägt
+  ihn in sechs Monaten jemand ohne die Begründung erneut vor.
+- **`.claude/agents/denkzettel-verwalter.md`**: der Auftragspunkt
+  „Schätzhistorie fortschreiben und Diagramm erzeugen" entfernt.
+
+**Die Sprint-Protokolle bleiben unangetastet** — §9 dieses Protokolls,
+`sprint-05.md` §24 und alle weiteren Kegel-Stellen sind historische Berichte
+über das, was damals galt. Wer sie nachträglich glättet, zerstört die
+Beweislage, auf der dieses Projekt seine Prüfungen führt.
 
 ### 13.5 Befund am Rande, gefunden beim Einrichten der CI
 

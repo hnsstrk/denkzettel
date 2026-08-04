@@ -80,6 +80,17 @@ target_link_libraries(editshots PRIVATE
     Qt6::Test
 )
 
+# The two pictures of the README — capture window and library, with invented
+# notes. Same rules as the benches above; it needs the capture window as well,
+# so it links both libraries.
+add_executable(readmeshots EXCLUDE_FROM_ALL readmeshots.cpp)
+
+target_link_libraries(readmeshots PRIVATE
+    denkzettelcapture
+    denkzettelui
+    Qt6::Test
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE

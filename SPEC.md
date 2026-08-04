@@ -91,6 +91,20 @@ stattdessen `ShowCapture()` (Einzelinstanz).
   (Buchstaben, Ziffern, Bindestrich — kein Unterstrich; `desktop-file-validate`
   weist ihn sonst zurück). Die `Exec`-Zeile startet `denkzetteld`; die
   Einzelinstanz-Weiche aus 2.3 macht daraus den Aufruf des Fensters.
+- **Rücklesen der Registrierung (entdeckte Bedingung, Befund 01.08.2026;
+  Retro-Beschluss B5):** `KGlobalAccel::setGlobalShortcut()` kann einen
+  Fehlschlag des Dienstes nicht melden — der Aufruf setzt seine D-Bus-Nachricht
+  ab, ohne die Antwort zu lesen, und liefert auch dann `true`, wenn
+  kglobalacceld nichts behalten hat. Deshalb fragt Denkzettel nach jeder
+  Registrierung beim Dienst nach, welche Sequenz er für die Aktion hält, und
+  prüft zugleich, ob die Desktop-Datei die zugehörige Gruppe deklariert. Bleibt
+  eines von beiden aus, meldet Denkzettel das sichtbar — **bei jedem Start, nicht
+  nur beim ersten**: Anders als ein Konflikt lässt dieser Fehlschlag gar kein
+  wirkendes Kürzel zurück. Die Meldung nennt das betroffene Kürzel und einen
+  ausführbaren Schritt. **Das gilt je Kürzel:** `Meta+Umschalt+N` durchläuft
+  dieselbe Prüfung wie `Meta+N` — ohne sie wiederholt es dessen Fehlschlag, und
+  „in den Systemeinstellungen sichtbar“ ist gerade der Zustand, den ein still
+  gescheitertes Kürzel erzeugt.
 
 ### 2.5 Autostart und Erststart (Ergänzung aus der Schätzklausur)
 

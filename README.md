@@ -102,6 +102,23 @@ Bilder für einen Prüfbericht erzeugt, baut den passenden Bildläufer
 ausdrücklich (`cmake --build build --target editshots`) — sie hängen nicht am
 normalen Build und liefern sonst Bilder eines veralteten Standes.
 
+Die beiden Bilder oben in dieser Datei stammen aus einem eigenen Läufer und
+sind mit einem Befehl neu zu erzeugen:
+
+```
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --target readmeshots
+QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2 \
+    LANG=de_DE.UTF-8 build/bin/readmeshots docs/bilder
+```
+
+Der Konfigurationslauf steht hier noch einmal, weil ein Ziel, das der
+Arbeitsbaum noch nicht kennt, sonst mit „keine Regel" abbricht. Der Läufer
+arbeitet deterministisch: Zwei Läufe hintereinander liefern bytegleiche
+Dateien. Die darin gezeigten Notizen sind erfunden. Das Plattformthema muss
+gesetzt sein, sonst tritt eine Ersatzschrift an die Stelle der echten und
+stellt die Größenverhältnisse falsch dar.
+
 ### Linter
 
 Zwei Targets, die auf Anforderung laufen und nichts verändern:
@@ -121,17 +138,12 @@ einer Definition of Done. Sprint-Protokolle, Prüfberichte samt Bildern und die
 Arbeitsvereinbarung liegen offen unter [`docs/scrum/`](docs/scrum/); die
 bindende Spezifikation ist [`SPEC.md`](SPEC.md).
 
-Zur Arbeitsweise gehört, Schätzungen im Nachhinein anzusehen. Das Bild zeigt,
-wie stark einzelne Schätzungen später korrigiert wurden, aufgetragen über den
-Abstand zwischen Schätzung und Umsetzung:
-
-![Schätzkegel: Revisionsfaktor (Endwert ÷ Erstwert) über dem Abstand in Sprints zwischen Erstschätzung und Umsetzung; 9 Punkte, Stand Sprint 5](docs/scrum/diagramme/kegel.svg)
-
-Bisher wird die Kurve nach rechts nicht enger, aber auch nicht durchgehend
-weiter; bei neun Punkten ist das wenig Beleg, und die Einschränkungen stehen
-unter dem Bild. Gemessen wird die Korrektur der Schätzung, nicht der Abstand
-zum tatsächlichen Aufwand — den erheben wir gar nicht. Daten und Generator
-liegen in [`docs/scrum/diagramme/`](docs/scrum/diagramme/).
+Jeder Push auf `main` und jeder Pull Request lösen einen Bau- und Testlauf aus
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Er läuft in einem
+Arch-Container und schlägt bei jedem Baufehler, jeder Compiler-Warnung und
+jedem roten Test fehl. Was er **nicht** prüft, steht im Kopf der Datei: Der
+Lauf hat keine grafische Sitzung, installiert nichts und erzeugt keine Bilder —
+die Prüfung am installierten Stand und die Bildprüfung bleiben Handarbeit.
 
 ### Verzeichnisse
 
