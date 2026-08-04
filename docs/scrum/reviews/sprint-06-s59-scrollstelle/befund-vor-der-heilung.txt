@@ -1,0 +1,14 @@
+# Nachmessung VOR der Heilung — Issue #59, 04.08.2026
+# ./build/bin/librarytest staysPutWhenTheWindowIsActivatedWithoutADayChange regroupsWhenTheWindowIsActivated
+
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+FAIL!  : LibraryTest::staysPutWhenTheWindowIsActivatedWithoutADayChange() Compared values are not the same
+   Actual   (list->verticalScrollBar()->value()): 7
+   Expected (rolledTo)                          : 0
+   Loc: [/home/hnsstrk/Projekte/denkzettel-s6b/tests/librarytest.cpp(1881)]
+PASS   : LibraryTest::regroupsWhenTheWindowIsActivated()
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 3 passed, 1 failed, 0 skipped, 0 blacklisted, 33ms
+********* Finished testing of LibraryTest *********
