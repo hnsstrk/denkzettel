@@ -223,6 +223,12 @@ PO aus.
      nicht prüfen kann**. Muster: Unter Wayland kann ein Agent kein Alt-Tab
      auslösen, weil ein Prozess sich den Fokus nicht selbst zuteilt
      (Sprint 6 §16.1, M-B1).
+     **Wer eine Story schneidet, schneidet auch Feld 4.** Ein Kriterium, das
+     erst beim Schnitt entsteht, hat keine Zeile im Prüfmittelfeld des Berichts
+     und ist damit ungeprüft ziehbar. *Gemessen am Schnitt von #83
+     (04.08.2026):* Von 19 Kriterien beider Teile war genau eines neu, und
+     genau dieses eine war ohne Prüfmittel, ohne benannten Prüfgrund und ohne
+     B21-Belegform.
   5. **Größenklasse** — `size:s|m|l|xl`, siehe unten.
   6. **Offene Fragen** an Kunde oder PO.
 

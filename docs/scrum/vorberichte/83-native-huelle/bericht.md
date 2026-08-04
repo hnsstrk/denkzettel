@@ -908,9 +908,45 @@ Beurteilung ausdrücklich der Kundenabnahme zugewiesen an AK 12. Dazu der
 Klammerzusatz `QPalette::PlaceholderText` in #85 AK 4, der einem Strang die
 Suche nach einem Bezeichner erspart, den es im Code nicht gibt.
 
+### Das Ready-Urteil auf die geschnittene Fassung — 04.08.2026, 20:17
+
+Gefällt vom Scrum Master, nachgemessen statt nachgelesen.
+
+**#83 — ready = ja**, `size:l` bestätigt. Die vier Befunde sind behoben, alle
+fünf Auflagen sind eingearbeitet, neu eingebaute Fehler wurden keine gefunden.
+Die `xl`-Wertung trug den Mechanismus, den es nach dem Schnitt hier nicht mehr
+gibt; was bleibt, liegt am oberen Rand von `l`.
+
+**#85 — ready = nein**, drei Gründe, alle klein und inzwischen behoben:
+AK 2 fehlte Belegform, Prüfgrund und die Werkzeugfalle; ein Kriterium zum
+Theme-Wechsel der Textfarbe fehlte ganz; und #85 hat keinen eigenen
+Vorprüfbericht. **Das dritte bleibt offen und ist richtig so:** #85s Boden ist
+der Code *nach* #83, den es noch nicht gibt. Seine Vorprüfung gehört in den
+Sprint, in dem es Kandidat wird — mit zwei Bearbeitern wie jede andere. Das
+Label `size:m` ist bis dahin eine Fortschreibung, kein geprüftes Urteil.
+
+**Was der Schnitt zerrissen hat, und es sitzt genau dort, wo es vermutet
+wurde:** Von 19 Kriterien beider Teile war eines neu — #85 AK 2 —, und genau
+dieses eine hatte keine Zeile im Prüfmittelfeld. Daraus ist ein Verfahrenssatz
+in `PROZESS.md` geworden (Sprint-Mechanik, Feld 4). Zweiter Befund: Der
+Theme-Wechsel der Textfarbe fiel zwischen beide Issues — er stand auch vorher
+in keinem Kriterium, der Schnitt hat ihn freigelegt und zugleich schwerer
+auffindbar gemacht.
+
+**Vollzogen nach dieser Prüfung:** der Ermittlungs-Freiheitssatz an #83 AK 7
+(die Globalenliste ist von außen erhoben worden, einen KF6-Aufruf dafür gibt es
+nicht — das Kriterium schreibt den Weg deshalb nicht vor), der Klammerzusatz zu
+SPEC 15/16 an AK 2, die neue Belegform an #85 AK 2, das neue #85 AK 5, und zwei
+Textstellen in #84 (falscher Verweis auf #83 statt #85 AK 4; die Reihenfolge
+#85 vor #84).
+
 ### Offen
 
-**Das Ready-Urteil auf die geschnittene Fassung steht aus.** Es fällt der Scrum
-Master, nicht der PO — die Befunde sind abgearbeitet, die Bestätigung fehlt.
-Ebenfalls offen: der Bestandsbefund zur Schattenpolsterung (`bindShadow()` ohne
-Nachzug bei `resizeHull()`), noch nicht gebucht.
+**Der Bestandsbefund zur Schattenpolsterung** (`bindShadow()` ohne Nachzug bei
+`resizeHull()`) ist noch nicht gebucht.
+
+**Für den Schnitt von Sprint 7:** Neben `size:l` steht nur `size:s`, und es gibt
+heute **kein einziges** offenes Issue mit `size:s` — Labels entstehen erst mit
+einem Vorprüfbericht. Ein Sprint mit #83 braucht also vorher eine zweite
+Vorprüfung. Kandidaten ohne Kollision zu `capturewindow.cpp`: #73, #76. #79 und
+#81 fallen nach Feld 1.1 aus.
