@@ -9,8 +9,8 @@
 #   keine Verlegung des Prüfstands.
 #   DoD 2 (installierter Stand unter /usr) und DoD 3 (Bildprüfung) erreicht er
 #   gar nicht: kein Compositor, kein /usr dieses Projekts, und die Bildläufer
-#   (editshots, libraryshots, searchshots) sind EXCLUDE_FROM_ALL und werden hier
-#   nicht gebaut.
+#   (editshots, libraryshots, searchshots, readmeshots) sind EXCLUDE_FROM_ALL
+#   und werden hier nicht gebaut.
 # Wer die grüne Marke für eine erfüllte DoD hält, hat drei ihrer sechs Punkte
 # übersprungen.
 #

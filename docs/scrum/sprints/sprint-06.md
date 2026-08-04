@@ -953,8 +953,10 @@ unverändert offen seit Sprint 5 §2.4. (7) **Retro nach diesem Sprint**
 **Anlass.** Der Kunde hat gefragt, was die Arbeit dieses Teams der
 Entwicklung bringt und ob sie zu behalten, zu optimieren oder aufzugeben sei.
 Die Antwort ist am Bestand geführt worden, nicht am Eindruck; die Messung steht
-unten. Drei der vier Punkte sind **heute umgesetzt**, einer liegt dem Kunden
-vor. Sie ergänzen die Kandidaten aus 10, Punkt 9 und ersetzen sie nicht.
+unten. **Alle vier Punkte sind am 04.08.2026 entschieden** — drei vom PO
+umgesetzt, der vierte (Schätzkegel) vom Kunden entschieden und am selben Tag
+zurückgebaut (13.4). Sie ergänzen die Kandidaten aus 10, Punkt 9 und ersetzen
+sie nicht.
 
 **Die Messung, die den Anlass trägt** (04.08.2026, selbst gezählt):
 

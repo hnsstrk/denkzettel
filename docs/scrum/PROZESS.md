@@ -1,7 +1,15 @@
 # Denkzettel — Scrum-Arbeitsvereinbarung
 
-Stand: 2026-08-02. Diese Vereinbarung regelt, wie das Agenten-Team an
-Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven.
+Stand: 2026-08-04. Diese Vereinbarung regelt, wie das Agenten-Team an
+Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven **oder aus
+einer Kundenentscheidung** — die Änderungen vom 04.08.2026 (automatische
+Testläufe, Verwalter-Bericht als Existenzprüfung, Pflicht-/Kürteil der
+Protokolle, Rückbau des Schätzkegels) sind auf dem zweiten Weg entstanden.
+
+**Das Standdatum wird bei jeder Änderung mitgeführt.** Ein Datum, das niemand
+fortschreibt, ist nach der ersten Änderung **still falsch** — die Datei sieht
+richtig aus und datiert sich selbst zurück. Diese Fehlerklasse hat das Projekt
+am eigenen `stand`-Feld beschrieben, bevor sie hier zuschlug.
 
 ## Rollen
 
