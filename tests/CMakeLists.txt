@@ -1,3 +1,22 @@
+# Silence, and it applies to every executable created BELOW this line.
+#
+# The KDE guard dialog plays a system sound on every show — fourteen per
+# librarytest run, in the room the customer sits in
+# (docs/scrum/reviews/2026-08-04-testklaenge.md, W1). testsilence.cpp points
+# libcanberra at its null driver before main() begins; link_libraries() puts
+# its object into every target this directory creates from here on, tests and
+# benches alike, so nobody has to remember it. A ctest property could not do
+# that: the benches are started by hand and no property reaches them.
+#
+# That is why this stands at the top and everything else below: a fifth bench
+# appended at the end of this file inherits the silence, a target added above
+# this line would not — so nothing goes above it.
+add_library(testsilence OBJECT testsilence.cpp)
+
+target_link_libraries(testsilence PRIVATE Qt6::Core)
+
+link_libraries(testsilence)
+
 add_executable(storetest storetest.cpp)
 
 target_link_libraries(storetest PRIVATE

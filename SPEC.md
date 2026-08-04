@@ -476,6 +476,18 @@ v1 aber nicht gebaut.
       gar kein Bildetikett. Ein Dialog über drohenden Datenverlust ist der
       Kernfall des Warnsymbols (PO-Entscheidung 02.08.2026; Zeichnung 2a,
       Zustand C nachgezogen).
+    - **Die Bauart klingt** (entdeckt am 04.08.2026): `showEvent()` meldet bei
+      jedem Anzeigen das KNotification-Ereignis `messageWarning`, dem
+      `plasma_workspace.notifyrc` den Systemklang `dialog-warning` zuordnet —
+      abgespielt im eigenen Prozess über libcanberra. Das ist
+      KDE-Plattformstandard und **bleibt so**: Lautstärke und Stummschaltung
+      regelt der Nutzer im System. `KMessageDialog::setNotifyEnabled(false)`
+      würde den Klang abschalten; **genau das ist bewusst unterlassen**
+      (Kundenentscheidung 04.08.2026), damit ihn niemand später für ein
+      Versehen hält und wegmacht. Still sind allein die Test- und Bildläufer:
+      sie lenken libcanberra vor `main()` auf den Null-Treiber
+      (`tests/testsilence.cpp`) — oberhalb des Audiogeräts bleibt alles
+      unverändert, und kein Test misst Klang.
 - Steckt die Notiz in einem **offenen Vorschlag**, verwirft Bearbeiten oder
   Löschen diesen Vorschlag (seine Vorschau wäre veraltet); der nächste
   Analyse-Lauf erzeugt ihn auf aktuellem Stand neu.
