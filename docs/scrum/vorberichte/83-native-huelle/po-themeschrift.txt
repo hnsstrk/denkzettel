@@ -1,0 +1,14 @@
+Theme                    colors?  Textfarbe        gegen Theme-Flaeche  Schemaschrift 
+----------------------------------------------------------------------------------------
+default                  nein     —                —                      7.93:1
+CachyOS-Nord-round       nein     —                —                      7.93:1
+breeze-dark              ja       (252, 252, 252)   15.39:1               7.94:1
+breeze-light             ja       (35, 38, 41)      13.35:1               1.75:1
+Iridescent-round         nein     —                —                     10.56:1
+cachyos-emerald          nein     —                —                     10.56:1
+cachyos-emerald-color    ja       (0, 199, 144)      9.57:1              10.56:1
+cachyos-emerald-light    ja       (35, 38, 41)       1.38:1              10.56:1
+
+Textfarbe = ForegroundNormal aus [Colors:Window] der Theme-eigenen colors-Datei
+Schemaschrift = WindowText des Kundenschemas (102, 194, 242) auf derselben Flaeche
+Flaechenfarbe deckend gerechnet; die Deckung steht in messung-b-themefarbe.txt
