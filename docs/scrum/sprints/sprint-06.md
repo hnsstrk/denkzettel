@@ -2169,3 +2169,87 @@ Regel-/Agentenänderungen). (2) Standdatum in `PROZESS.md` mitführen. (3) Sprin
 Zeilenzahl des Protokolls messen (P2) und den Takt-2-Verwalter-Bericht auf
 Existenz prüfen (P3, dritter Lauf). (4) Offen an den PO, nicht beschlossen:
 Prüfläufer als CMake-Ziel (M-B2).
+
+---
+
+## 24. Kundenabnahme Sprint 6 — #55 nicht angenommen
+
+**Geführt am 04.08.2026 am installierten Stand** (`/usr/bin/denkzetteld`,
+Stand `977e804`, Dienst 16:19 gestartet). Bilder versioniert unter
+`docs/scrum/reviews/2026-08-04-abnahme-befunde/kundenbilder/`.
+
+### 24.1 Ergebnis je Story
+
+| Story | Ergebnis |
+|---|---|
+| **#59** — ruhige Liste | **offen.** Der Kunde hat `Tab` geprüft (Fokuswechsel innerhalb des Fensters, Bildlaufleiste stand still) statt `Alt+Tab` (Fensterwechsel). Der geprüfte Fall ist damit nicht der Fall der Story; Nachprüfung erbeten |
+| **#56** — Feldhöhe folgt der Schrift | **offen.** Am Kundenblick nicht prüfbar (§18), keine Rückmeldung nötig; wird mit #55 zusammen abgenommen |
+| **#55** — Fensterhülle | **nicht angenommen** |
+
+### 24.2 Die vier Befunde des Kunden
+
+**K-A1 — Die Ecke ist eine Treppe, kein Bogen.** *„Sie ist nicht wirklich rund.
+Der weiße Hintergrund ragt über den Rahmen hinaus. […] Bei Denkzettel sieht
+man, dass das Fenster nachgebaut ist und kein natives Anwendungsfenster."* Am
+Vergleichsbild bestätigt: drei bis vier sichtbare Stufen gegen einen glatten
+kantengeglätteten Bogen.
+
+**K-A2 — Der Schatten passt nicht.** *„Ja, ein Schatten ist da, aber auch hier
+habe ich die Vermutung, dass dieser nicht aus dem KDE-Theme kommt."* Nachgereicht:
+*„Der Schatten passt auch nicht zu dem Schatten, den andere Fenster werfen."*
+Damit Sichtbefund am Vergleich, nicht Vermutung.
+
+**K-A3 — Die Schriftfarben des Themes werden nicht übernommen.** Zwei Bilder,
+eines unter seinem Theme, eines unter einem Win11-Dark-Theme (*„scheint es zu
+passen"*).
+
+**K-A4 — Die Grundsatzfrage**, und sie trägt die anderen drei:
+
+> *„Die Frage ist doch, wie kann es sein, dass das völlig anders aussieht als
+> alle anderen Fenster. Das sollte KDE nativ sein."*
+
+### 24.3 Die Antwort darauf — und warum sie eine Entscheidung nach sich zog
+
+**Native Fenster zeichnen ihre Hülle nicht selbst.** Rundung, Kontur und
+Schatten kommen von KWins Fensterdekoration
+(`org.kde.kdecoration3/org.kde.breeze.so`); die Anwendung füllt nur ihre
+Innenfläche. Deshalb sehen alle gleich aus — es zeichnet sie alle derselbe.
+
+**Denkzettel ist ausdrücklich rahmenlos** (`capturewindow.cpp:139`,
+`Qt::Window | Qt::FramelessWindowHint`, SPEC 3 seit Sprint 1). Die Folge davon
+hat bis heute niemand ausgesprochen: **Rahmenlos heißt, dass KWin nichts
+zeichnet.** Was zu sehen ist, hat sich das Fenster selbst gemalt — und zwar aus
+`dialogs/background` des Desktop-Themes, der Grafikfamilie der Plasma-
+**Überlagerungen** (KRunner, Aufklapper, Sperr-OSD), nicht der der
+Anwendungsfenster.
+
+**Daraus folgt: Das Fenster sähe auch bei fehlerfreier Umsetzung anders aus als
+Dolphin — es sähe aus wie KRunner.** Der Befund des Kunden zerfällt damit in
+einen Fehler (die Treppe) und eine **Kategorienfrage, die ihm nie vorgelegt
+worden war**: Zu welcher Familie soll das Erfassungsfenster gehören?
+
+### 24.4 Kundenentscheidung 04.08.2026
+
+> **„Dann eine native Plasma-Überlagerung ohne Anpassungen"**
+
+**Tragend ist „ohne Anpassungen": kein Nachbau.** Die Hülle wird von
+`KSvg::FrameSvg` **in einem Stück** gezeichnet, wie Plasmas eigene
+Überlagerungen es tun — kein selbst zusammengesetzter Ring aus zwei Rahmen,
+keine selbst gezogene Kontur, keine eigene Rundung. Was die Grafik des Themes
+hergibt, ist das Bild.
+
+**Kein Widerspruch zur Farbzusage, sondern ihr Mechanismus:** `KSvg::Svg` trägt
+eine `colorSet`-Eigenschaft (`/usr/include/KF6/KSvg/ksvg/svg.h:86`); die Grafik
+wird vom Farbschema eingefärbt. Das ist der native Weg, auf dem Plasma seine
+Überlagerungen an das Schema anpasst — **und ein Kandidat für die Ursache von
+K-A3**: Wer die Fläche selbst mit der Palette malt, umgeht genau diesen
+Mechanismus.
+
+**Was dadurch wackelt und dem Kunden vorgelegt wird, sobald die Messung liegt:**
+AK 2 von #55 (Fläche `Window`, Notiztext `WindowText`, begründet mit einer
+Kontrastmessung 4,74:1 über 18 Schemata) und die Kontur-Zusage
+(`frameContrast` 0,20 — unsere eigene Konstruktion, die das Theme unter dem
+nativen Weg selbst zeichnet).
+
+**Untersuchung läuft** (`docs/scrum/reviews/2026-08-04-abnahme-befunde/`). Der
+Umbau wird als Story geschnitten, wenn die Messung liegt — nicht vorher.
