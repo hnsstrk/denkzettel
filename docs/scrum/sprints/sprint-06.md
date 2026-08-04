@@ -1366,6 +1366,30 @@ Tastendruck kann ein Agent unter Wayland nicht auslösen**: Ein Prozess kann
 sich den Fokus nicht selbst zuteilen. Vorher waren es 459 px Rücksprung bei
 552 px Sichthöhe.
 
+### Zwei Punkte aus dem UI-Review
+
+**6. Das zweite Öffnen.** Eine lange Notiz tippen, mit `Esc` verwerfen, Kürzel
+erneut drücken — steht das Fenster wieder auf fünf Zeilen?
+
+*Warum:* Es steht nicht. Gemessen: 228 px leeres Fenster statt 174. Ab der
+ersten längeren Notiz öffnet sich das Fenster für den Rest der Sitzung in der
+Höhe der längsten je getippten Notiz. Der Befund ist **vorbestehend** und als
+[#79](https://github.com/hnsstrk/denkzettel/issues/79) gebucht — er steht hier,
+weil das UI-Review ihn für den einzigen Befund dieses Sprints hält, **den der
+Kunde in der Abnahme von selbst finden wird.** Besser, er steht auf der Liste,
+als dass er als Überraschung kommt.
+
+**7. Die Ecken auf hellem Hintergrund.** Laufen die Ecken des Fensters sauber
+um, oder endet die Linie vor der Rundung?
+
+*Warum:* Sie endet. Auf allen vier geraden Kanten sitzt die Konturfarbe exakt;
+auf den Eckbögen kommt sie **nirgends** vor — beim schmalen Theme beginnt die
+Kontur erst 6 px nach der Ecke, beim breiten erst 10. Im dunklen Schema
+kaschiert der Alphaverlauf das, im hellen endet der Umriss sichtbar im Nichts.
+Gebucht als [#80](https://github.com/hnsstrk/denkzettel/issues/80). Der Befund
+ist 1 px breit und blockiert die Abnahme nicht — aber Du sollst wissen, worauf
+Du schaust.
+
 ### Was ausdrücklich **nicht** auf dieser Liste steht
 
 **#56 ist am Kundenblick nicht prüfbar.** Plasma reicht Qt-Widgets-Anwendungen
