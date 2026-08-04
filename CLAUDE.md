@@ -34,6 +34,15 @@ Tests ersetzen die Bildprüfung nicht, und Bilder ersetzen die Tests nicht:
 Für Bildläufe **muss `QT_QPA_PLATFORMTHEME=kde` gesetzt sein** — sonst
 verfälscht eine Ersatzschrift die Größenverhältnisse.
 
+**Ein offscreen erzeugtes Bild zeigt nicht, was der Kunde sieht** (B21). Es
+belegt Geometrie, Textsatz und Farbrollen; es belegt **nicht** Hülle, Rundung,
+Kontur, Schatten oder Dekoration — die zeichnen Theme und Compositor, und
+offscreen fehlt beiden die Grundlage (gemessen: `tinted()` verliert offscreen
+den Alphakanal, unter Wayland nicht). Zweierlei folgt daraus: Ein Bild, das als
+Beleg dient, läuft mit `QT_SCALE_FACTOR` auf der Skalierung des Kunden — und wo
+ein Akzeptanzkriterium über Theme oder Compositor etwas behauptet, gehört ein
+Bild aus der angemeldeten Sitzung dazu.
+
 **Ein unversionierter Beleg ist kein Beleg** (B7). Prüfberichte und Bilder
 gehören nach `docs/scrum/reviews/`, nicht ins Scratchpad und nicht in einen
 Arbeitsbaum, der mit dem Agenten verschwindet.
