@@ -4,8 +4,9 @@ Stand: 2026-08-04. Diese Vereinbarung regelt, wie das Agenten-Team an
 Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven **oder aus
 einer Kundenentscheidung** — die Änderungen vom 04.08.2026 (automatische
 Testläufe, Verwalter-Bericht als Existenzprüfung, Pflicht-/Kürteil der
-Protokolle, Rückbau des Schätzkegels, Prüfsummen der Bildbelege, `sp:`-Label
-erst mit der zweiten Schätzung) sind auf dem zweiten Weg entstanden.
+Protokolle, Rückbau des Schätzkegels, Prüfsummen der Bildbelege, Label erst mit
+der zweiten Prüfung, **Ende der Story-Point-Schätzung zugunsten des
+Vorprüfberichts**) sind auf dem zweiten Weg entstanden.
 
 **Das Standdatum wird bei jeder Änderung mitgeführt.** Ein Datum, das niemand
 fortschreibt, ist nach der ersten Änderung **still falsch** — die Datei sieht
@@ -18,7 +19,7 @@ am eigenen `stand`-Feld beschrieben, bevor sie hier zuschlug.
 |---|---|---|
 | **Kunde** | hnsstrk | Ziele, Prioritätswünsche, Sprint-Freigaben, Abnahme des Produkts |
 | **Product Owner** | Claude (Haupt-Session) | Backlog-Inhalt und -Priorisierung, Story-Schnitt, Akzeptanzkriterien, Abnahme der Stories, Kundenkontakt |
-| **Scrum Master** | Agent `scrum-master` | Prozesshüter: moderiert Schätzung, schlägt Sprint-Schnitt vor, wacht über Definition of Done, moderiert Retrospektiven, pflegt Prozess-Doku, meldet Impediments |
+| **Scrum Master** | Agent `scrum-master` | Prozesshüter: zweiter Bearbeiter der Vorprüfung und Träger des Ready-Urteils, schlägt Sprint-Schnitt vor, wacht über Definition of Done, moderiert Retrospektiven, pflegt Prozess-Doku, meldet Impediments |
 | **Entwickler** | Agenten `denkzettel-dev` (je Sprint gespawnt) | Umsetzung der Stories nach Spec, Tests, technische Entscheidungen im Story-Rahmen |
 | **UI/UX** | Agent `denkzettel-ux` | Planning-Beratung zu UI-Stories, Gestaltung von Wireframes und Mockups (`wireframes/`), UI-Review gegen Wireframes, SPEC und KDE HIG (Teil der DoD für UI-Stories) |
 | **QA / Review** | Agent `karpathy-reviewer` | Prüfung gegen die vier Karpathy-Prinzipien am Sprint-Ende und bei Prozess-Artefakt-Änderungen (Teil der DoD) |
@@ -70,47 +71,59 @@ PO aus.
 ## Artefakte und Werkzeuge
 
 - **Product Backlog**: GitHub Issues im Repo `hnsstrk/denkzettel` — die
-  **einzige Quelle der Wahrheit** für Stories, Akzeptanzkriterien, Schätzung
+  **einzige Quelle der Wahrheit** für Stories, Akzeptanzkriterien, Größenklasse
   und Status. Kein Backlog-Spiegel im Repo (Kundenentscheidung 31.07.2026).
-  Labels: `epic:M1`…`epic:M7`, `sp:1|2|3|5|8`, `typ:story|bug|tech`.
-  **Das `sp:`-Label wird im selben Zug gesetzt wie die zweite unabhängige
-  Schätzung — vorher gar nicht** (04.08.2026). *Grund:* Ein Label sieht gleich
-  aus, ob es eine moderierte Schätzung trägt oder eine beim Anlegen
-  hingeschriebene Zahl — und beides ist vorgekommen: #57 trug `sp:2` aus der
-  Anlage, zwei unabhängige Schätzer hoben auf 3 (Sprint 5 §2.1); #68 trug
-  `sp:5` aus einer Hand (Sprint 6 §2.4). Das Sprint-6-Planning brauchte deshalb
-  eine eigene Spalte „Schätzregel erfüllt?", um Label von Schätzung zu trennen.
-  In der *einzigen Quelle der Wahrheit* ist ein doppeldeutiges Feld teurer als
+  Labels: `epic:M1`…`epic:M7`, `size:s|m|l|xl`, `typ:story|bug|tech`.
+  **Das Größenklassen-Label wird im selben Zug gesetzt wie der Vorprüfbericht —
+  vorher gar nicht** (04.08.2026; bis dahin galt derselbe Satz für das
+  `sp:`-Label und die zweite Schätzung). *Grund:* Ein Label sieht gleich aus, ob
+  ein geprüftes Urteil dahintersteht oder eine beim Anlegen hingeschriebene
+  Zahl — und beides ist vorgekommen: #57 trug `sp:2` aus der Anlage, zwei
+  unabhängige Schätzer hoben auf 3 (Sprint 5 §2.1); #68 trug `sp:5` aus einer
+  Hand (Sprint 6 §2.4). Das Sprint-6-Planning brauchte deshalb eine eigene
+  Spalte „Schätzregel erfüllt?", um Label von Schätzung zu trennen. In der
+  *einzigen Quelle der Wahrheit* ist ein doppeldeutiges Feld teurer als
   anderswo. Eine grobe Hausnummer darf bleiben, aber als **Freitextsatz im
-  Issue, der nicht wie eine Schätzung aussieht**. Damit ist zugleich der
-  zweimal gerissene Punkt verankert statt ein drittes Mal nachgefordert
-  (fehlendes Label: M2 in Sprint 5, K1 in Sprint 6).
-  **Altbestand — Feststellung, kein Auftrag** (gemessen 04.08.2026,
+  Issue, der nicht wie ein Prüfergebnis aussieht**. Damit bleibt der zweimal
+  gerissene Punkt verankert statt ein drittes Mal nachgefordert (fehlendes
+  Label: M2 in Sprint 5, K1 in Sprint 6) — er wandert mit dem Verfahren mit,
+  statt mit ihm zu verschwinden.
+  **`sp:`-Altbestand — Feststellung, kein Auftrag** (gemessen 04.08.2026,
   `docs/scrum/reviews/2026-08-04-splabel-nachmessung.txt`): Einen Berg
-  unbelegter Label gibt es nicht. Die Schätzklausur in `sprint-01.md` deckt den
+  unbelegter Label gab es nicht. Die Schätzklausur in `sprint-01.md` deckte den
   Bestand ab — 41 Positionen, davon **34 mit zwei Schätzern**. Die übrigen
-  **sieben** (`T1`–`T7`) ruhen auf einer konsolidierten Zahl **aus einer Hand**,
-  in §4 desselben Protokolls je einzeln begründet: kein Vorwurf, aber auch
-  keine Zweitschätzung. Von ihnen waren am 04.08.2026 noch **drei offen und
-  trugen ein Label** (#17, #19, #25).
-  **Erledigt am 04.08.2026 (Kundenentscheidung):** Die drei Label sind
-  **entfernt**; der Wert steht als Freitextsatz im Issue, ausdrücklich als
-  *Aufwandshinweis, keine Schätzung*, mit Verweis auf die Klausurzeile und der
-  Auflage, vor dem Ziehen zweit zu schätzen. Das ist die Bauart, in der der
-  Altbestand künftig behandelt wird, falls noch einmal ein Label ohne
-  Zweitschätzung auftaucht: **Label weg, Zahl bleibt lesbar, aber nicht mehr
-  als Schätzung verkleidet.**
-  **Wer den Altbestand prüft, sucht nicht nach der Issue-Nummer:** Die
-  Klausurtabelle führt **Story-IDs** (`S22`, `T5`), der Backlog führt
-  **Nummern**; `sprint-01.md` enthält keine einzige Issue-Nummer, und allein
-  der Issue-Titel verbindet beides. Eine Suche nach der Nummer meldet deshalb
-  zwei Drittel der Label als unbelegt — sie kann nicht finden, wonach sie
-  sucht, und das Ergebnis sieht trotzdem aus wie ein Befund. Genau daran sind
-  am 04.08.2026 zwei Berichte zum selben Bestand entgegengesetzt ausgefallen.
+  **sieben** (`T1`–`T7`) ruhten auf einer konsolidierten Zahl **aus einer
+  Hand**, in §4 desselben Protokolls je einzeln begründet: kein Vorwurf, aber
+  auch keine Zweitschätzung. Von ihnen waren am 04.08.2026 noch **drei offen und
+  trugen ein Label** (#17, #19, #25); sie wurden am selben Tag auf
+  Kundenentscheidung entlabelt, der Wert blieb als Freitextsatz im Issue stehen
+  — ausdrücklich als *Aufwandshinweis, keine Schätzung*, mit Verweis auf die
+  Klausurzeile. **Das ist die Bauart, in der ein Label ohne Prüfgrundlage
+  behandelt wird: Label weg, Zahl bleibt lesbar, ohne sich als Prüfergebnis
+  auszugeben.**
+  **Wer in den Protokollen der Frühzeit nachschlägt, sucht nicht nach der
+  Issue-Nummer:** Die Klausurtabelle führt **Story-IDs** (`S22`, `T5`), der
+  Backlog führt **Nummern**; `sprint-01.md` enthält keine einzige Issue-Nummer,
+  und allein der Issue-Titel verbindet beides. Eine Suche nach der Nummer meldet
+  deshalb zwei Drittel der Positionen als unbelegt — sie kann nicht finden,
+  wonach sie sucht, und das Ergebnis sieht trotzdem aus wie ein Befund. Genau
+  daran sind am 04.08.2026 zwei Berichte zum selben Bestand entgegengesetzt
+  ausgefallen.
 - **Priorisierung**: Epic-Reihenfolge M1→M7 als Grundlinie; die
   Feinreihenfolge legt der PO beim Sprint-Planning über die
   Milestone-Zuordnung fest.
 - **Sprint**: GitHub Milestone `Sprint N` mit den gezogenen Issues.
+- **Vorprüfberichte**: `docs/scrum/vorberichte/NN-<kurzname>.md`, NN ist die
+  **Issue-Nummer**; der Kurzname folgt dem Zweignamen der Story
+  (`story/55-fensterhuelle` → `55-fensterhuelle.md`), damit Bericht und Zweig
+  zusammenfinden. Je Story eine Datei, angelegt bevor
+  die Story gezogen werden darf; Felder und Verfahren siehe Sprint-Mechanik.
+  *Warum ein eigener Ordner neben `reviews/`:* Der Sprint-Abschluss zählt dort
+  in Takt 1, Punkt 2 die **Berichte gelaufener Prüfungen** und hält sie gegen
+  die Commit-Botschaften. Ein Bericht, zu dem es keinen Lauf gibt, verwässert
+  genau diese Zählung. *Warum dieser Ordnername:* `vorpruefung` wäre ein
+  ue-Ersatz für „Vorprüfung" und damit ein Verstoß gegen die
+  Encoding-Regel; „Vorbericht" trifft die Sache und braucht keinen Umlaut.
 - **Protokolle**: `docs/scrum/sprints/sprint-NN.md` (Planning, Review,
   ggf. Retro) — je Sprint eine Datei, angelegt beim Planning.
   **Pflichtteil und Kürteil (04.08.2026).** Pflicht sind vier Abschnitte:
@@ -167,20 +180,123 @@ PO aus.
 
 ## Sprint-Mechanik
 
-- **Sprint-Umfang**: 2–4 Stories, zusammen max. ~13 Story Points, mit einem
-  benennbaren Sprint-Ziel. Sprints sind Arbeitspakete, keine Zeiträume.
+- **Sprint-Umfang**: 2–4 Stories mit einem benennbaren Sprint-Ziel. Dazu die
+  Klassenregel: **kein `size:xl`** (die Story wird vor dem Ziehen geteilt),
+  **höchstens eine `size:l`**, und **neben einer `size:l` steht nur `size:s`**.
+  Sprints sind Arbeitspakete, keine Zeiträume.
 - **Freigabemodell (Kundenentscheidung 31.07.2026)**: Jeder Sprint startet
   erst nach Freigabe durch den Kunden (Sprint-Ziel + gezogene Stories werden
   vorgelegt).
-- **Ablauf**: Planning (SM schlägt Schnitt vor; bei UI-Stories berät
+- **Ablauf**: Vorprüfung je Kandidat (zwei Bearbeiter, Bericht, Ready-Urteil)
+  → Planning (SM schlägt Schnitt vor; bei UI-Stories berät
   `denkzettel-ux`; PO bestätigt, Kunde gibt frei) → Umsetzung (Dev-Agenten;
   bei paralleler Arbeit Worktree-Isolation, siehe „Parallelarbeit") → Review
   (PO nimmt gegen Akzeptanzkriterien ab; karpathy-reviewer und bei UI-Stories
   `denkzettel-ux` gemäß DoD) → Protokoll → ggf. Retro.
-- **Schätzung**: Story Points, Fibonacci (1, 2, 3, 5, 8, 13). Zwei
-  unabhängige Schätzer je Story; weichen sie um mehr als eine Stufe ab,
-  konsolidiert der Scrum Master mit Begründung. 13er-Stories werden vor dem
-  Ziehen geteilt.
+- **Vorprüfbericht (Kundenentscheidung 04.08.2026, an die Stelle der
+  Schätzung)**: Bevor eine Story gezogen werden darf, liegt zu ihr ein
+  Vorprüfbericht unter `docs/scrum/vorberichte/` (Artefakte). Er trägt sechs
+  Felder:
+  1. **Dateimenge** — was ein Strang für diese Story anfassen darf, **am Code
+     vermessen**, in der Notation von B13. Muster: Sprint 6 §5.2 mit den fünf
+     Zeilen *Quellen und Tests · Build · Belege und Prüfmittel · fachliche
+     Quellen · **ausdrücklich nicht***.
+  2. **Gemessene Fallen** — die Zeilen, die in den Spawn-Auftrag wandern, je
+     mit Messbeleg. Muster: die sechs Punkte in Sprint 6 §10.6, „die je einen
+     Fehlversuch ersparen".
+  3. **AK-Urteil: ready ja/nein** — siehe „Definition of Ready" unten.
+  4. **Prüfmittel** — womit der Nachweis geführt wird, und **was der Agent
+     nicht prüfen kann**. Muster: Unter Wayland kann ein Agent kein Alt-Tab
+     auslösen, weil ein Prozess sich den Fokus nicht selbst zuteilt
+     (Sprint 6 §16.1, M-B1).
+  5. **Größenklasse** — `size:s|m|l|xl`, siehe unten.
+  6. **Offene Fragen** an Kunde oder PO.
+
+  **Zwei unabhängige Bearbeiter je Story.** Diese Anforderung stammt aus der
+  Schätzregel und bleibt; sie gilt jetzt dem Bericht. **Bearbeiter A** ist ein
+  `denkzettel-dev` — bei UI-Stories `denkzettel-ux` — und misst am Code.
+  **Bearbeiter B** ist der Scrum Master und misst unabhängig, ohne das Ergebnis
+  von A zu kennen. Weichen die Größenklassen um eine Stufe ab, gilt die höhere; bei
+  größerer Abweichung entscheidet der Scrum Master begründet, und die Begründung
+  steht im Bericht. **Das Ready-Urteil (Feld 3) fällt der Scrum Master** nach
+  beiden Messungen; ein „nein" behebt der PO (melden, nicht heilen).
+- **Definition of Ready (04.08.2026)**: Eine Story ist ziehbar, wenn ihr
+  Vorprüfbericht vorliegt und Feld 3 **ready ja** trägt — die
+  Akzeptanzkriterien sind vollständig und einzeln prüfbar, und zu jedem ist in
+  Feld 4 ein Prüfmittel benannt oder die Grenze der Prüfbarkeit ausgesprochen.
+  *Warum das ausdrücklich hier steht:* Dieses Gate hat gewirkt, ohne benannt zu
+  sein — getragen hat es die alte Schätzregel. Im Sprint-6-Planning hat sie
+  vier von acht Kandidaten aussortiert (#70 mit offenen AK; #71, #72, #61
+  ungeschätzt), in Sprint 4 zusätzlich #62 (§2.3). Mit dem Ende der Schätzung
+  wäre es ersatzlos weggefallen. Es ist der Teil des alten Verfahrens, dessen
+  Wirkung sich an Fällen zeigen lässt.
+- **Größenklassen (04.08.2026, an die Stelle der Fibonacci-Punkte)**: vier
+  Klassen, gesetzt als Label am Issue.
+
+  | Label | Bedeutung |
+  |---|---|
+  | `size:s` | läuft nebenher — wenige Dateien, kein neuer Prüfweg |
+  | `size:m` | trägt einen Strang aus |
+  | `size:l` | füllt den Sprint — daneben passt nur `size:s` |
+  | `size:xl` | muss geteilt werden — nicht ziehbar |
+
+  **Rückgeprüft gegen die Sprints 1–6** (04.08.2026, Zahlen aus den
+  Protokollen; die SP-Spalte dient nur der Rückprüfung und wird nicht
+  fortgeführt). Jeder tatsächlich gezogene Sprint bleibt unter der neuen Regel
+  zulässig:
+
+  | Sprint | gezogen (alt: SP) | Klassenprofil | Regel |
+  |---|---|---|---|
+  | 1 | 2 · 3 · 3 · 5 = 13 | s m m m | hält |
+  | 2 | 3 · 2 · 5 = 10 | m s m | hält |
+  | 3 (bei Freigabe) | 5 · 3 · 1 · 1 = 10 | m m s s | hält |
+  | 4 | 5 · 5 · 1 = 11 | m m s | hält |
+  | 5 | 5 · 2 · 3 · 1 = 11 | m s m s | hält |
+  | 6 | 8 · 1 · 2 = 11 | l s s | hält — neben der `l` nur `s` |
+
+  **Drei Klassen genügen nicht, und das ist gemessen.** Zählt eine 5er-Story
+  als „füllt den Sprint", wird Sprint 4 (5 · 5 · 1) unzulässig — ein Sprint, der
+  gezogen, geliefert und abgenommen wurde. Zählt sie als „läuft nebenher",
+  umfasst die untere Klasse alles von 1 bis 5, und die einzige Zurückweisung, die je an
+  der Größe allein hing, lässt sich nicht mehr beschreiben: #55 + #56 + #68
+  (8 · 1 · 5) fiel in Sprint 6 heraus; mit `s` und `l` allein hielte diese
+  Kombination. Die vierte Klasse trennt beide Fälle, und die Zeile „neben einer
+  `size:l` steht nur `size:s`" wirft die Sprint-6-Kombination heraus, wie
+  gemessen.
+  **Was die Klassen nicht können, ausdrücklich:** Das Kandidatenfeld von
+  Sprint 4 (5 · 5 · 3 · 1) wurde mit 14 Punkten zurückgewiesen, Sprint 1 mit 13
+  angenommen — beide tragen dasselbe Profil `m m m s`. Keine grobe Einteilung
+  trennt 13 von 14; das könnte allein die Zahl, und die fällt aus den unten
+  genannten Gründen weg. Diese Last trägt jetzt Feld 1 des Vorprüfberichts: Der
+  Sprint-6-Zuschnitt ist am Code vermessen worden — „Der kleinste Abstand ist
+  null: Beide schreiben in dieselbe 157-Zeilen-Datei" (§5.1) — und nicht aus
+  Punkten abgeleitet. **Offene Flanke, benannt statt zugedeckt:** Vier `size:m`
+  sind nach dieser Regel zulässig und lägen über allem, was je gezogen wurde
+  (der größte Sprint war 13 Punkte). Der Fall ist in sechs Sprints nicht
+  eingetreten; tritt er ein, gehört er dem Kunden vorgelegt, und erst dann ist
+  eine engere Regel begründet statt geraten.
+- **Story Points: eingeführt in Sprint 1, beendet am 04.08.2026.** Das Verfahren
+  (Fibonacci 1–13, zwei unabhängige Schätzer je Story, Konsolidierung durch den
+  Scrum Master, Umfangsgrenze ~13 SP) ist auf Kundenentscheidung eingestellt.
+  **Vier gemessene Gründe:**
+  1. **Die Zahl erreichte den bauenden Agenten nie.** In
+     `.claude/agents/denkzettel-dev.md` kommt keine Punktzahl vor; einziger
+     SP-Treffer über alle sechs Agentendateien war der Sprint-Zuschnitt in
+     `scrum-master.md`.
+  2. **Die Kontextgrenze eines Strangs leistet die Dateimenge.** Der
+     Sprint-6-Zuschnitt wurde am Code vermessen (§5.1), nicht aus Punkten
+     abgeleitet.
+  3. **In sechs Sprints hat die Punktgrenze genau einmal allein den Ausschlag
+     gegeben** (Sprint 6: #68 draußen, weil 14 > 13; die Story-Grenze hätte drei
+     Stories durchgelassen). Die ~13 stammt aus Sprint 1 und ist nie gegen eine
+     gemessene Kapazität geprüft worden. In Sprint 3 hat sie geschadet: Alle
+     sahen auf die Punkte, und dass die Story-Grenze bei fünf Issues fiel,
+     bemerkte niemand (B12).
+  4. **Der tatsächliche Aufwand wird in diesem Projekt nicht erhoben** —
+     derselbe Befund, an dem am selben Tag der Schätzkegel gescheitert ist.
+  **Wer Story Points erneut vorschlägt, braucht zuerst die gemessene
+  Aufwandszahl je Story.** Ohne sie kehrt dieselbe Lücke wieder: eine Skala, die
+  niemand gegen die Wirklichkeit halten kann.
 - **Schätzkegel: eingeführt am 02.08.2026, entfernt am 04.08.2026.** Ein
   Diagramm samt Datenreihe (`docs/scrum/diagramme/`) trug den
   **Revisionsfaktor** (Endwert ÷ Erstwert) über dem Sprint-Abstand zwischen
@@ -193,15 +309,18 @@ PO aus.
   unverändert lassen); er hat am **04.08.2026** das Entfernen gewählt. **Wer
   dieses Werkzeug erneut vorschlägt, braucht zuerst die gemessene
   Aufwandszahl je Story** — ohne sie kehrt dieselbe Lücke wieder.
-- **Sprint-Konto (Retro Sprint 3, B12)**: Das Sprint-Protokoll führt **beide**
-  Grenzen laufend mit — Zahl der Issues *und* Story Points, je mit Ausgangs-
-  und neuem Stand. Jeder Zugang nach der Freigabe wird dort gebucht; berührt
-  er eine der beiden Grenzen, legt der PO ihn dem Kunden **als
+- **Sprint-Konto (Retro Sprint 3, B12; Buchungsgröße angepasst 04.08.2026)**:
+  Das Sprint-Protokoll führt **beide** Grenzen laufend mit — Zahl der Issues
+  *und* Klassenverteilung, je mit Ausgangs- und neuem Stand. Bauart einer
+  Buchungszeile: `3 Issues · 1×l, 2×s`. Jeder Zugang nach der Freigabe wird dort
+  gebucht; berührt er eine der beiden Grenzen, legt der PO ihn dem Kunden **als
   Grenzüberschreitung** vor, nicht nur als Story. *Grund:* In Sprint 3 wurde
   bei jedem Zugang die Punktzahl mitgezählt, die Zahl der Issues nicht — der
   Sprint endete bei fünf Issues, und dass damit eine Grenze fiel, ist dem
   Kunden nie vorgelegt worden (Sprint 3, 12.7 und 13.10). Wer 13 im Blick
-  hat, sieht die 13 einhalten und übersieht die 5.
+  hatte, sah die 13 einhalten und übersah die 5. **Es bleiben zwei Grenzen,
+  auch ohne Punkte** — B12 ist gegen die Blindstelle gefasst, dass eine Grenze
+  die andere verdeckt, und die Blindstelle hängt nicht an der Maßeinheit.
 - **Parallelarbeit (Retro Sprint 3, B13)**: je Strang ein eigener Worktree und
   ein eigener Zweig (`story/NN-…`, `fix/NN-…`); gemeinsamer Ausgangsstand ist
   gepushtes `main`; gemerged wird ausschließlich durch den PO; ein Strang, der
@@ -516,7 +635,8 @@ die Punkte 9 und 10.
 ## Loop-Disziplin (gemäß ~/.claude/rules/loop-conventions.md)
 
 - **goal met**: Sprint-Ziel erreicht und DoD erfüllt → Sprint endet.
-- **budget spent**: Umfangsgrenze (~13 SP) und je Story max. 2 Anläufe.
+- **budget spent**: Umfangsgrenze (2–4 Stories und die Klassenregel) und je
+  Story max. 2 Anläufe.
 - **stalled**: gleicher Fehler zweimal ohne neue Evidenz → Stopp, Impediment
   an PO/Kunden — nicht weiterprobieren.
 - **needs a human**: Scope-Änderungen, Zielkonflikte, Kosten — Kundensache.
