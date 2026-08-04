@@ -90,6 +90,17 @@ void CaptureWindow::showCapture()
 
 bool CaptureWindow::eventFilter(QObject *watched, QEvent *event)
 {
+    // The height rests on the line spacing, and that changes with the font —
+    // but the document does not, so documentSizeChanged stays silent and the
+    // field keeps the height it was built with (issue #56). The filter is the
+    // place for this and an overridden changeEvent() of the window is not: a
+    // font set on the text area alone never reaches the window, and that is
+    // the road the test takes (measurement 3 of the sprint 6 estimate).
+    if (watched == m_text && event->type() == QEvent::FontChange) {
+        adjustHeight();
+        return QWidget::eventFilter(watched, event);
+    }
+
     if (watched == m_text && event->type() == QEvent::KeyPress) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         const bool isReturn = keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter;

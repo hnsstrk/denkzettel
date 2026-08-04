@@ -5,10 +5,12 @@
 #include <KLocalizedString>
 
 #include <QApplication>
+#include <QFont>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTextDocument>
 
 #include <memory>
 
@@ -30,6 +32,7 @@ private Q_SLOTS:
     void growsWithTheText();
     void stopsAtEightLines();
     void windowFollowsTheTextHeight();
+    void heightFollowsAFontChange();
 
     void savesTextOnControlReturn();
     void keepsBlankTextOutOfTheStore();
@@ -121,6 +124,40 @@ void CaptureTest::windowFollowsTheTextHeight()
 
     text->clear();
     QCOMPARE(m_window->height(), resting);
+}
+
+void CaptureTest::heightFollowsAFontChange()
+{
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    // The font is set on the widget itself, as issue #56 prescribes: Plasma
+    // does not hand a font change to a standing Qt Widgets application at all
+    // (B6 of the theme report), so waiting for that road would mean waiting
+    // for a road that does not exist. The widget sees the change on every
+    // road, this one included.
+    //
+    // Two clearly different sizes, and the assertion is relative — the height
+    // is read against the line spacing of the font in force, not against a
+    // pixel count.
+    for (const int pointSize : {9, 24}) {
+        QFont font = text->font();
+        font.setPointSize(pointSize);
+        text->setFont(font);
+
+        const int lineSpacing = text->fontMetrics().lineSpacing();
+        // What the widget needs beyond the text itself; the same two sources
+        // adjustHeight() reads.
+        const int chrome = 2 * qRound(text->document()->documentMargin()) + 2 * text->frameWidth();
+
+        QCOMPARE(text->height() - chrome, capture::MinTextLines * lineSpacing);
+
+        // And it still grows with the text under the new font, up to eight.
+        text->setPlainText(QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht"));
+        QCOMPARE(text->height() - chrome, capture::MaxTextLines * lineSpacing);
+
+        text->clear();
+    }
 }
 
 void CaptureTest::savesTextOnControlReturn()
