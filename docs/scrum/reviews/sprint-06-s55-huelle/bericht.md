@@ -558,3 +558,91 @@ ctest                                   7/7
 ```
 
 Bau warnungsfrei. **K4 ist nicht meine Sache** (PO).
+
+---
+
+## 12. Nachtrag 04.08.2026 — U4 aus dem UI-Review
+
+**Der Befund war richtig, und ich habe ihn selbst nachgesehen**, bevor ich ihn
+geheilt habe: In Bild 02 lag über der Fußzeile ein waagerechter Rollbalken über
+die volle Breite, mit einer Linie darüber. Zeichnung 4b kennt ihn nicht, und das
+Feld bricht Zeilen um — zu rollen gibt es nichts.
+
+### 12.1 Was war und was ist
+
+Der Läufer griff das Bild **unmittelbar** nach `show()`. Der Balken lebt genau
+zwischen `show()` und dem ersten Durchlauf der Ereignisschleife; der Läufer hielt
+damit einen Zustand fest, den das ruhende Fenster nicht hat.
+
+Geheilt in `shoot()` selbst, nicht an den Aufrufstellen: `show()` **und** der
+Durchlauf der Ereignisschleife stehen jetzt beide dort. Ein Bild, das später
+ergänzt wird, kann die zweite Hälfte damit nicht mehr vergessen — genau das war
+der Fehler, denn `capturetest::shot()` machte es seit dem ersten Tag richtig und
+der Läufer nicht.
+
+**Es ist kein Produktbefund.** Ob der Balken im laufenden Betrieb je ein Bild
+lang aufblitzt, ist damit **nicht** gesagt; belegt ist nur, dass er in den
+Belegbildern stand und im ruhenden Fenster nicht steht.
+
+### 12.2 Neu erzeugt wurden alle vierzehn Bilder, nicht vier — mit drei Unterschieden
+
+Der Läufer ist frisch gebaut und über `pruefen.sh` gefahren. Dass sich **alle**
+Bilder geändert haben, gehört erklärt; ich habe die Unterschiede gegen den alten
+Stand ausgezählt statt sie zu überfliegen:
+
+| Bild | geänderte Pixel | was sich unterscheidet |
+|---|---|---|
+| 01 (leer) | 18 | nur der Textcursor |
+| 02 (getippt) | 5.078 | Rollbalken weg, dazu der Textcursor |
+| 03 (acht Zeilen) | 694 | Textcursor und der Griff des senkrechten Balkens |
+| 13 (Schrift 9 pt) | 16 | nur der Textcursor |
+
+1. **Der waagerechte Rollbalken ist fort** — 02, 05, 08, 11. Der Befund selbst.
+2. **Der Textcursor wird jetzt gezeichnet.** Das Feld hat den Tastaturfokus
+   (`setFocusProxy`), und ein eingeschwungenes Fenster zeichnet seinen Cursor.
+   Zeichnung 4a zeichnet ihn ebenfalls — die Bilder sind damit **näher** an der
+   Vorlage als vorher, nicht weiter weg.
+3. **Der Griff des senkrechten Balkens** ist in den Achtzeilenbildern von Grau
+   `(203, 205, 205)` auf ein helles Blau `(177, 217, 239)` gewechselt.
+
+**Zu Punkt 3, weil er wie eine Verschlechterung aussieht und keine ist:** Ich
+habe geprüft, ob es eine noch laufende Animation ist — bei 400 ms zusätzlicher
+Wartezeit steht dieselbe Farbe. Es ist der **eingeschwungene** Zustand: Vorher
+war der Balken noch nicht durchgestylt, und das alte Grau war derselbe
+Zwischenzustand, aus dem auch der waagerechte Balken stammte. Die Farbe kommt
+aus der **synthetischen Prüf-Palette** des Läufers, die sieben Rollen setzt;
+Breeze leitet den Griff daraus ab. Der senkrechte Balken selbst ist richtig —
+er gehört zum Zustand „acht Zeilen mit Scrollbalken" und steht weiter da.
+
+**Die Palette habe ich nicht erweitert.** Das wäre eine Änderung ohne AK: 4b
+nimmt Auswahl, Cursor und Scrollbalken ausdrücklich aus („unverändert aus der
+Palette und dem Widget-Stil"), das UI-Review hat die Farbrollenfragen bereits
+mit `pass` beantwortet, und es würde erneut alle vierzehn Bilder verändern. Wer
+die echten Farben sehen will, hat Bild **15** aus der laufenden Sitzung.
+
+### 12.3 Was ich nicht angefasst habe
+
+- **Die Bilder des UI-Reviews** (`sprint-06-ux-review/`) — sie dokumentieren den
+  geprüften Stand. Dass meine Reihe seit dieser Korrektur davon abweicht, ist
+  richtig so: Bild 20 des Reviews zeigt die Szene bereits ohne Balken.
+- **U1** (Kontur läuft nicht um die Rundung), **U2** (Fenster bleibt ab dem
+  zweiten Öffnen zu groß), **U3** (Notiztext 4 px weiter rechts als der
+  App-Name) — außerhalb der Akzeptanzkriterien beider Stories, vom PO als Issues
+  gebucht. **Nicht geheilt.**
+
+**Zu U2, als Schärfung meiner eigenen Meldung B1** (§8): Das Review hat
+gemessen, dass eine Schriftverkleinerung am **gezeigten** Fenster das Feld
+richtig auf fünf Zeilen schrumpfen lässt, während das Fenster auf 299 px stehen
+bleibt. AK 1 von #56 ist damit wörtlich erfüllt — es spricht vom **Textfeld** —,
+aber der Fall liegt näher an #56, als meine Meldung sagte. B1 und U2 sind
+dieselbe Ursache: Die Mindesthöhe, die das Layout beim Auslegen setzt, deckelt
+das `resize()`, und danach löst nichts ein erneutes Anpassen aus.
+
+### 12.4 Stand
+
+```
+Ganymed, beide Pflichtumgebungen   21 passed, 0 failed, 0 skipped
+ctest                              7/7
+Bilder                             14 neu erzeugt aus frisch gebautem Läufer,
+                                   Bild 15 (laufende Sitzung) unberührt
+```

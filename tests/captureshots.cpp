@@ -98,6 +98,17 @@ void shoot(QWidget &window, const QString &directory, const QString &name)
     constexpr int Frame = 24;
     constexpr int HatchStep = 8;
 
+    // Shown and then let through, and the second half is not a formality: a
+    // window grabbed straight after `show()` still carries a horizontal
+    // scrollbar across the foot of the text area, over an empty scroll range.
+    // It lives between `show()` and the first pass of the event loop and is
+    // gone afterwards — but the picture kept it, and wireframe 4b knows no such
+    // element (UI review of 04.08.2026, finding U4). Showing and settling
+    // belong here rather than at the call sites: a picture added later cannot
+    // then forget the second half.
+    window.show();
+    QCoreApplication::processEvents();
+
     const QPixmap grabbed = window.grab();
 
     QImage picture(grabbed.size() + QSize(2 * Frame, 2 * Frame), QImage::Format_ARGB32);
@@ -179,7 +190,6 @@ int main(int argc, char **argv)
                 CaptureWindow window(&store);
                 window.reloadDesktopTheme(themeList.at(theme));
                 typeState(window.findChild<QPlainTextEdit *>(), state);
-                window.show();
 
                 shoot(window,
                       directory,
@@ -205,7 +215,6 @@ int main(int argc, char **argv)
         QFont font = text->font();
         font.setPointSize(pointSize);
         text->setFont(font);
-        window.show();
 
         shoot(window,
               directory,

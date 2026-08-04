@@ -1,7 +1,7 @@
 Messung 2 — Zustellwege eines Desktop-Theme-Wechsels (#55, AK 5)
 ================================================================
 
-Beobachtete Datei: /home/hnsstrk/Projekte/denkzettel-s6a/docs/scrum/reviews/sprint-06-s55-huelle/build/sandkasten/plasmarc
+Beobachtete Datei: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-06-s55-huelle/build/sandkasten/plasmarc
 
 A) Fremder Schreiber OHNE KConfig::Notify  ->  breeze-dark
    KDirWatch meldet: created
