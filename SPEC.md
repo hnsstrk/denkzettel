@@ -434,6 +434,14 @@ v1 aber nicht gebaut.
   Wochengruppen Wochentag und Datum, in Älter das absolute Datum; im
   Detailbereich die volle Form. Die Gliederung ist fest — kein Umschalter,
   keine einklappbaren Gruppen (Wireframes 3a/3b).
+  Die Gruppen werden beim Aufbau der Liste und bei jeder Fensteraktivierung
+  nachgerechnet — es gibt keinen Mitternachtszeitgeber (Wireframe 3b).
+  **Neu gruppiert wird dabei nur, wenn der Kalendertag ein anderer ist als
+  beim letzten Aufbau** (entdeckt bei der Umsetzung, DoD 4): Neugruppieren
+  setzt das Modell zurück und stellt die Auswahl wieder her, was die Liste zu
+  ihr scrollt — ohne Tageswechsel warf ein Alt-Tab den Leser um 459 px auf
+  seine Auswahl zurück (Issue #59, gemessen 04.08.2026). Der Kalendertag
+  genügt als Bedingung, weil alle vier Gruppengrenzen Tagesgrenzen sind.
   Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
   Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick tut das
   nicht**: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
