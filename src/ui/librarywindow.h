@@ -245,4 +245,14 @@ private:
 
     /** Fixed reference time of the grouping; invalid means "ask the clock". */
     QDateTime m_referenceTime;
+
+    /**
+     * The calendar day the list was last grouped for; invalid before the first
+     * build.
+     *
+     * All four group boundaries are day boundaries (SPEC 9), so this one date
+     * tells whether the grouping on screen is still the right one — and an
+     * activation that finds it unchanged leaves the list alone (issue #59).
+     */
+    QDate m_groupedOn;
 };
