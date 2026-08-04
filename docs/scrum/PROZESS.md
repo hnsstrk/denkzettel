@@ -79,8 +79,15 @@ PO aus.
   Bestand ab — 41 Positionen, davon **34 mit zwei Schätzern**. Die übrigen
   **sieben** (`T1`–`T7`) ruhen auf einer konsolidierten Zahl **aus einer Hand**,
   in §4 desselben Protokolls je einzeln begründet: kein Vorwurf, aber auch
-  keine Zweitschätzung. Von ihnen sind heute noch **drei offen und tragen ein
-  Label** (#17, #19, #25). Ob daraus etwas folgt, entscheidet der PO.
+  keine Zweitschätzung. Von ihnen waren am 04.08.2026 noch **drei offen und
+  trugen ein Label** (#17, #19, #25).
+  **Erledigt am 04.08.2026 (Kundenentscheidung):** Die drei Label sind
+  **entfernt**; der Wert steht als Freitextsatz im Issue, ausdrücklich als
+  *Aufwandshinweis, keine Schätzung*, mit Verweis auf die Klausurzeile und der
+  Auflage, vor dem Ziehen zweit zu schätzen. Das ist die Bauart, in der der
+  Altbestand künftig behandelt wird, falls noch einmal ein Label ohne
+  Zweitschätzung auftaucht: **Label weg, Zahl bleibt lesbar, aber nicht mehr
+  als Schätzung verkleidet.**
   **Wer den Altbestand prüft, sucht nicht nach der Issue-Nummer:** Die
   Klausurtabelle führt **Story-IDs** (`S22`, `T5`), der Backlog führt
   **Nummern**; `sprint-01.md` enthält keine einzige Issue-Nummer, und allein
