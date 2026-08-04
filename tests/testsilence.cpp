@@ -20,10 +20,10 @@
  * decision of 04.08.2026, SPEC 9).
  *
  * Nobody includes this file. Its object is linked into every executable under
- * tests/ by the link_libraries() line in tests/CMakeLists.txt, and the static
- * object below runs before main() — so a bench or test written next month is
- * silent without its author ever learning that this file exists, and it is
- * silent even when started by hand without ctest.
+ * tests/ by the link_libraries() line in tests/CMakeLists.txt, and the call
+ * below runs before main() — so a bench or test written next month is silent
+ * without its author ever learning that this file exists, and it is silent
+ * even when started by hand without ctest.
  */
 
 #include <QByteArray>
@@ -31,13 +31,17 @@
 namespace
 {
 
-struct SilentAudio {
-    SilentAudio()
-    {
-        qputenv("CANBERRA_DRIVER", "null");
-    }
-};
+int silenceAudio()
+{
+    qputenv("CANBERRA_DRIVER", "null");
+    return 0;
+}
 
-const SilentAudio silentAudio;
+// Only the initialisation matters; the value is never read. An int and not an
+// object with a constructor on purpose: a non-POD global static brings an
+// unclear initialisation order and a destructor run at exit, neither of which
+// is wanted for setting one environment variable — and clazy says so
+// (non-pod-global-static, the finding that turned the CI red on 04.08.2026).
+const int silenceApplied = silenceAudio();
 
 }
