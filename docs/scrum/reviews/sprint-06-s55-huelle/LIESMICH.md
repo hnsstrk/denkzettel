@@ -55,7 +55,11 @@ Zusicherung grün, weil sie gegen denselben falschen Aufruf verglich.
 ## Die Bilder
 
 `bilder/01` bis `bilder/14` entstehen offscreen aus `tests/captureshots.cpp`,
-unter `QT_QPA_PLATFORMTHEME=kde`:
+unter `QT_QPA_PLATFORMTHEME=kde`. **Welche zwei Desktop-Themes eine Reihe
+zeigt, steht in `bilder/themes.txt`** — der Läufer sucht sie zur Laufzeit und
+nimmt bevorzugt installierte; nur wo keine zwei mit verschiedenem Rand liegen,
+weicht er auf die Prüf-Themes der Testsuite aus und sagt es. Am Bild ist das
+nicht abzulesen, deshalb steht es daneben.
 
 - **01–12** — drei Zustände (leer · getippt · acht Zeilen mit Scrollbalken) ×
   zwei Farbschemata (hell · dunkel) × zwei Desktop-Themes (`schmal` = 4 px

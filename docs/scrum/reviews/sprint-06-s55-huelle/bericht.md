@@ -23,9 +23,10 @@ aufgefallen sind und beide grün aussahen, stehen in Abschnitt 5.
 
 **Berührte Dateien** — alle innerhalb der zugewiesenen Menge:
 `src/capture/capturewindow.{h,cpp}` · `tests/capturetest.cpp` ·
-**neu** `tests/captureshots.cpp` · `tests/CMakeLists.txt` (nur der
-`capturetest`-Block und ein neuer `captureshots`-Block) · `src/CMakeLists.txt`
-(nur der `denkzettelcapture`-Block) · `CMakeLists.txt` (nur die
+**neu** `tests/captureshots.cpp`, `tests/desktopthemes.h`, `tests/themes/` ·
+`tests/CMakeLists.txt` (nur der `capturetest`-Block und ein neuer
+`captureshots`-Block) · `src/CMakeLists.txt` (nur der
+`denkzettelcapture`-Block) · `CMakeLists.txt` (nur die
 `find_package(KF6 …)`-Liste) · `SPEC.md` (3, 15, 16) ·
 `docs/scrum/reviews/sprint-06-s55-huelle/`.
 `src/capture/textareaheight.{h,cpp}` ist **nicht** angefasst worden — die
@@ -336,3 +337,129 @@ Fällt beim Journal-Blick auf; berührt weder #55 noch #56.
    auf der Maschine vorhanden; kein Beschaffungsrisiko.
 5. **B1 gehört als Issue angelegt** — vorbestehend, mit einem grünen Test
    darüber.
+
+---
+
+## 10. Nachtrag 04.08.2026 — der blockierende PO-Befund ist behoben
+
+**Der Befund war richtig.** `tests/capturetest.cpp` nannte zwei Desktop-Themes
+beim Namen, und `CachyOS-Nord-round` kommt aus `cachyos-nord-kde-theme-git`.
+Damit hing die tragende Zusicherung von #55 an der Distribution dieser
+Maschine.
+
+### 10.1 Nachgemessen — und der Befund ist größer als gemeldet
+
+| Theme | Paket | Rand | Eckform |
+|---|---|---|---|
+| `default` | `kdeplasma-addons`, `libplasma` | 4 | 6 |
+| `breeze-dark`, `breeze-light` | `libplasma` | 4 | 6 |
+| `CachyOS-Nord-round` | `cachyos-nord-kde-theme-git` | 8 | 7 |
+| `Iridescent-round` | `cachyos-iridescent-kde` | 8 | 7 |
+| `cachyos-emerald{,-color,-light}` | `cachyos-emerald-kde-theme-git` | 8 | 7 |
+
+Der gemeldete Teil trifft zu: **Der gesamte offizielle KDE-Bestand trägt 4 px**,
+jedes breitere Theme stammt aus einem CachyOS-Paket. Ein anderes Namenspaar
+hätte das nicht gelöst.
+
+**Dazu ein Teil, der in der Meldung fehlte und den Zuschnitt ändert:**
+`ksvg` hängt **nicht** an `libplasma` (`pactree -d3 ksvg` findet es nicht).
+Ein Bauplatz, der nur die KF6-Teile dieses Projekts installiert, hat deshalb
+**gar kein Desktop-Theme** — auch kein `default`. Dort wäre nicht nur der
+Vergleich schmal/breit gefallen, sondern **jede** Zusicherung, die eine Hülle
+braucht: `narrowCorner > 0`, die Flächenprüfung, die Schattenkacheln. Die
+CI-Paketliste allein hätte den Befund also nur halb geheilt.
+
+**Ein Nebenbefund, der eine Zusicherung korrigiert hat:** Die Eckform folgt dem
+Randmaß **nicht** — `default` paart 4 px Rand mit Eckform 6, `CachyOS-Nord-round`
+8 px mit 7. Die alte Zusicherung lautete `wideCorner > narrowCorner` und leitete
+damit genau das ab, was Zeichnung 4b ausdrücklich verbietet („Nicht aus dem
+Randmaß ableiten"). Sie lautet jetzt **`wideCorner != narrowCorner`**. Das ist
+keine Abschwächung, sondern die Aussage, die das AK trifft.
+
+### 10.2 Gewählter Weg: A **und** B, nicht A oder B
+
+Beide Vorschläge des PO, in der Aufteilung, die er selbst als Bedingung genannt
+hat („nicht als Ersatz für den Lauf gegen echte Themes, sondern neben ihm"):
+
+- **`tests/themes/`** — zwei eigene Prüf-Themes (Rand 4 gegen 12, Eckform 3
+  gegen 11, eigene Schattenkacheln), eingehängt über `XDG_DATA_DIRS`. Sie
+  tragen die Zusicherung auf **jeder** Maschine, auch auf einer ohne jedes
+  Plasma-Theme. Was sie **nicht** belegen: dass der Code ein echtes
+  Plasma-Theme liest — nur, dass er ein SVG von uns liest.
+- **`themes::installedThemePair()`** — sucht zur Laufzeit zwei **installierte**
+  Themes mit verschiedenem Rand, **gemessen statt benannt**. Das ist der Lauf,
+  der das Echte belegt, und er ist der, den es nicht überall gibt.
+
+Der neue Test `hullFollowsAnInstalledDesktopTheme()` trägt den zweiten Teil und
+überspringt mit benanntem Grund, wenn kein Paar da ist. `hullFollowsTheDesktopTheme()`
+trägt den ersten und läuft immer. Die Vollständigkeits- und
+Schattenzusicherungen laufen über die mitgelieferten Themes **und**
+zusätzlich über ein installiertes, wo eines liegt.
+
+*Das Einhängen per `qputenv` mitten im Prozess ist gemessen, nicht angenommen:*
+QStandardPaths liest `XDG_DATA_DIRS` bei jedem Zugriff neu, ein Kindprozess ist
+dafür nicht nötig. Der Lauf „ohne Desktop-Theme" (AK 8) hängt sie
+folgerichtig **nicht** ein — dort ist der leere Datenpfad der Prüfgegenstand.
+
+### 10.3 Die beiden Bedingungen des PO — nachgewiesen
+
+**Bedingung 1: Die Zusicherung bleibt relativ.** Es steht keine Zahl im Test,
+auch keine Schwelle. Verglichen wird Theme gegen Theme: Ränder größer,
+Eckformen verschieden. Die Namen der Prüf-Themes stehen im Test, ihre Maße
+nicht.
+
+**Bedingung 2: Die Mutationsprobe greift weiter, und der Lauf gegen echte
+Themes läuft auf Ganymed** — er skippt nicht. Sieben Mutationen, alle auf
+Ganymed gefahren:
+
+| Mutation | rot | Skips |
+|---|---|---|
+| Theme-Rand nicht auf die Innenabstände rechnen | `hullFollowsTheDesktopTheme`, **`hullFollowsAnInstalledDesktopTheme`**, `readsTheDesktopThemeFromPlasmarc` | **0** |
+| Hülle gar nicht zeichnen | `hullFollowsTheDesktopTheme`, **`hullFollowsAnInstalledDesktopTheme`**, `hullIsCompleteAtFiveAndEightLines` | **0** |
+| Notiztext auf der Feldrolle | `noteTextUsesTheWindowTextRole` | 0 |
+| Schatten nicht binden | `bindsAShadowFromTheThemeTiles` | 0 |
+| Fußzeilenabstand = Abstand des App-Namens | `footerHasMoreAirThanTheApplicationName` | 0 |
+| Kacheln über `pixmap(id)` | `bindsAShadowFromTheThemeTiles` | 0 |
+| `FontChange`-Zweig entfernt (#56) | `heightFollowsAFontChange` | 0 |
+
+Die beiden ersten Zeilen sind der geforderte Nachweis: Der Test gegen
+installierte Themes **wird rot**, also läuft er.
+
+### 10.4 Gegenprobe in zwei fremden Umgebungen
+
+Simuliert über `XDG_DATA_DIRS`, ohne etwas zu installieren:
+
+```
+A) nur offizielle KDE-Themes (default, breeze-dark, breeze-light)
+   SKIP : hullFollowsAnInstalledDesktopTheme() — Kein Paar installierter
+          Desktop-Themes mit verschiedenem Rand gefunden …
+   Totals: 20 passed, 0 failed, 1 skipped
+
+B) gar kein Desktop-Theme (Bauplatz mit nur den KF6-Teilen)
+   SKIP : hullFollowsAnInstalledDesktopTheme() — dieselbe Meldung
+   Totals: 20 passed, 0 failed, 1 skipped
+```
+
+Auf Ganymed: **21 passed, 0 failed, 0 skipped**, in beiden Pflichtumgebungen.
+
+### 10.5 Die Bilder
+
+Der Läufer sucht das Paar jetzt ebenfalls zur Laufzeit und nimmt **bevorzugt
+installierte** Themes — die Bilder sollen Plasmas eigene Hüllen zeigen, nicht
+unser SVG. Auf Ganymed wählt er `breeze-dark` und `CachyOS-Nord-round`; die 14
+Bilder sind deshalb **byteweise unverändert**. Wo kein Paar liegt, weicht er auf
+die Prüf-Themes aus und sagt es laut. **Welche Themes eine Reihe zeigt, steht
+jetzt in `bilder/themes.txt`** — am Bild ist es nicht abzulesen, und ohne diese
+Datei wäre die Herkunft der Bilder ab jetzt maschinenabhängig und unvermerkt.
+
+### 10.6 Was der PO noch wissen muss
+
+**Die CI-Paketliste allein reicht nicht** (10.1): Ohne Desktop-Theme fiele mehr
+als der Vergleich. Mit den mitgelieferten Prüf-Themes ist die Suite auch ohne
+jedes Theme-Paket grün — das Paket in der CI macht aus dem einen Skip einen
+Lauf und ist damit ein Gewinn, aber keine Voraussetzung mehr. **Ob es die Mühe
+wert ist, ein CachyOS-Paket in einen Arch-Container zu holen, ist deine
+Entscheidung; nötig ist es nicht.**
+
+`SPEC.md` 16 ist um die Bedingung ergänzt (DoD 4/B9): *Keine Zusicherung hängt
+an einem Namen, den nur diese Maschine kennt.*

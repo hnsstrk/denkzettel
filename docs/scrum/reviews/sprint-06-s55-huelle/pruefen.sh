@@ -90,7 +90,10 @@ cmake --build "$WORK/projekt" --target captureshots -j"$(nproc)" > /dev/null
 # Nur die Offscreen-Reihe 01-14; Bild 15 stammt aus der laufenden Sitzung
 # (Messung 5) und wird von diesem Skript nicht erzeugt.
 rm -f "$HERE"/bilder/0*.png "$HERE"/bilder/1[0-4]-*.png
-"$WORK/projekt/bin/captureshots" "$HERE/bilder"
+# Der Läufer nennt, welche Desktop-Themes die Reihe zeigt. Das gehört neben die
+# Bilder: Ob sie Plasmas eigene Hüllen zeigen oder die Prüf-Themes der Testsuite,
+# ist am Bild nicht abzulesen.
+"$WORK/projekt/bin/captureshots" "$HERE/bilder" | tee "$HERE/bilder/themes.txt"
 
 echo
 echo "Fertig. Fünf Protokolle und $(ls "$HERE"/bilder/*.png | wc -l) Bilder liegen in $HERE."
