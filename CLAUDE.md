@@ -113,3 +113,8 @@ noch SPEC, und Agenten arbeiten nur in ihrer zugewiesenen Dateimenge.
 - **Gepusht wird nach jedem abgeschlossenen Arbeitsblock, ohne Rückfrage**
   (Kundenentscheidung 02.08.2026). Das Sprint-Ende-Minimum regelt der
   Sprint-Abschluss in `PROZESS.md`.
+  **Seit dem 04.08.2026 löst jeder Push auf `main` einen öffentlichen Bau- und
+  Testlauf aus** (`.github/workflows/ci.yml`). Er schlägt bei jeder Warnung und
+  jedem roten Test fehl, und seine Marke steht am öffentlichen Repository.
+  Wer pusht, sieht nach: `gh run list --limit 1`. Umgekehrt ist die grüne Marke
+  **kein** DoD-Nachweis — der Lauf erreicht DoD 2 und DoD 3 gar nicht.

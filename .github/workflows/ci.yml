@@ -1,0 +1,97 @@
+# Automatischer Bau- und Testlauf (Kundenentscheidung 04.08.2026).
+#
+# Er ist die Hälfte des PR-Abbruchkriteriums aus Sprint 4, die ohne menschliche
+# Disziplin trägt; die andere Hälfte — Berichte und Befunde am Pull Request —
+# ist genau an dieser Disziplin gerissen (PROZESS.md, „PR-Probelauf").
+#
+# WAS DIESER LAUF NICHT ERSETZT, ausdrücklich:
+#   DoD 1 verlangt die Tests auf dem Entwicklungsrechner — der Container ist ein zweites Netz,
+#   keine Verlegung des Prüfstands.
+#   DoD 2 (installierter Stand unter /usr) und DoD 3 (Bildprüfung) erreicht er
+#   gar nicht: kein Compositor, kein /usr dieses Projekts, und die Bildläufer
+#   (editshots, libraryshots, searchshots) sind EXCLUDE_FROM_ALL und werden hier
+#   nicht gebaut.
+# Wer die grüne Marke für eine erfüllte DoD hält, hat drei ihrer sechs Punkte
+# übersprungen.
+#
+# Warum ein Arch-Container: derselbe rollende Paketstrom wie die
+# Entwicklungsmaschine (CachyOS). Ein Fund hier ist auf dem Entwicklungsrechner reproduzierbar.
+# Das heißt umgekehrt, dass ein Upstream-Sprung den Lauf rot färben kann, ohne
+# dass jemand etwas geändert hat — das ist beabsichtigt und die Frühwarnung,
+# die ein festgepinntes Abbild nicht gäbe.
+
+name: Bau und Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  bau-und-tests:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+
+    env:
+      # Kein Compositor im Container. capturetest, librarytest und shelltest
+      # setzen denselben Wert zusätzlich je Test (tests/CMakeLists.txt); die
+      # Zeile hier deckt die übrigen ab und widerspricht ihnen nicht.
+      QT_QPA_PLATFORM: offscreen
+
+    steps:
+      - name: Bauabhängigkeiten
+        # plasma-integration liefert das kde-Plattformthema, breeze-icons die
+        # Symbole dazu. Ohne beide läse QIcon::fromTheme() leere Namen —
+        # librarytest und shelltest wären dann grün und wertlos (#60, #66, #67).
+        # git wird vor dem Auschecken gebraucht, sonst fällt actions/checkout
+        # auf einen Abzug ohne Historie zurück.
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel cmake git gettext \
+            extra-cmake-modules qt6-base \
+            kconfig kdbusaddons kglobalaccel ki18n knotifications \
+            kstatusnotifieritem kwidgetsaddons kwindowsystem \
+            plasma-integration breeze-icons appstream
+
+      - uses: actions/checkout@v4
+
+      - name: Werkzeugstand festhalten
+        # Ohne diese Zeilen ist ein roter Lauf nach einem Upstream-Sprung nicht
+        # von einem roten Lauf nach einer Codeänderung zu unterscheiden.
+        run: |
+          cmake --version | head -1
+          gcc --version | head -1
+          pacman -Q qt6-base kconfig plasma-integration breeze-icons
+
+      - name: Konfigurieren
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Bauen
+        # pipefail ist Pflicht, nicht Geschmack: ohne ihn liefert die Pipe den
+        # Rückgabewert von tee — immer 0 — und ein Baufehler liefe grün durch.
+        run: |
+          set -o pipefail
+          cmake --build build -j "$(nproc)" 2>&1 | tee bau.log
+
+      - name: Warnungen zählen
+        # Die Schwelle steht auf null, weil sie am 04.08.2026 an einem Neubau
+        # gemessen null war — auf dem Entwicklungsrechner und in diesem Container. Eine Schranke
+        # oberhalb des gemessenen Standes wäre keine.
+        # `|| true` fängt grep ab: ohne Treffer liefert es 1, und unter `set -e`
+        # bräche der Schritt ausgerechnet im Gutfall ab.
+        run: |
+          anzahl=$(grep -c 'warning:' bau.log || true)
+          echo "Compiler-Warnungen: ${anzahl}"
+          if [ "${anzahl}" -ne 0 ]; then
+            grep 'warning:' bau.log
+            echo "::error::${anzahl} Compiler-Warnung(en) — DoD 1 verlangt einen warnungsarmen Bau."
+            exit 1
+          fi
+
+      - name: Tests
+        run: ctest --test-dir build --output-on-failure
