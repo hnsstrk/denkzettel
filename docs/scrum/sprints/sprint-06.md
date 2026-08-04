@@ -1132,3 +1132,74 @@ in dem von acht Kandidaten nur zwei regelkonform geschätzt waren.
   KI-Tags — vor M3 gäbe es nichts anzuzeigen; die Einordnung ist richtig.
 - **Die Epic-Reihenfolge M1→M7** bleibt Grundlinie. Sie ist heute nicht
   angetastet worden; verschoben wurden drei Issues **innerhalb** dieser Linie.
+
+---
+
+## 15. Sprint-Start (PO, 04.08.2026)
+
+Zwei Festlegungen, die das Planning nicht treffen konnte: **#59 kam erst mit
+der Freigabe in den Sprint** (§1), der Strang-Zuschnitt in §5 ist für #55 und
+#56 geschrieben.
+
+### 15.1 Zweiter Strang für #59 — dieselbe Prüfung, umgekehrtes Ergebnis
+
+§5.1 hat die Zahl der Dev-Agenten aus dem Abstand der Flächen abgeleitet, nicht
+aus der Erlaubnis. Dieselbe Rechnung für #59:
+
+| Datei | Länge | Strang A (#55, #56) | Strang B (#59) |
+|---|---|---|---|
+| `src/capture/capturewindow.{h,cpp}` | 157 + 38 | ganz | — |
+| `src/ui/librarywindow.cpp` | 1064 | — | `:311–322`, `:472`, `:604` |
+| `tests/capturetest.cpp` | 206 | ganz | — |
+| `tests/librarytest.cpp` | 3440 | — | ein neuer Test |
+| `tests/CMakeLists.txt` | 156 | `capturetest`-Block, neuer `captureshots`-Block | — |
+| `src/CMakeLists.txt`, `CMakeLists.txt` | | `denkzettelcapture`, `find_package` | — |
+
+**Die Schnittmenge ist leer.** #59 braucht keine der drei `CMakeLists.txt`: Der
+Test kommt in ein bestehendes Ziel, es entsteht kein neues. Damit liegt der
+Fall so, wie Sprint 4 lag (`src/ui/` gegen `src/shell/`) — und nicht wie der
+Fall in §5.1, wo #55 und #56 in dieselbe 157-Zeilen-Datei schreiben.
+
+**Zwei Stränge, drei Stories.** #55 und #56 bleiben bei einem Agenten, weil ihr
+Abstand null ist; #59 bekommt einen eigenen, weil ihr Abstand vollständig ist.
+
+| Strang | Issues | SP | Zweig | Worktree |
+|---|---|---|---|---|
+| **A** | #56, dann #55 | 9 | `story/55-fensterhuelle` | `../denkzettel-s6a` |
+| **B** | #59 | 2 | `fix/59-scrollstelle` | `../denkzettel-s6b` |
+
+Ausgangsstand beider Zweige ist gepushtes `main` (`0a229d2`), nicht der
+Basis-Tag: B13 schreibt den gepushten Stand vor, und zwischen `sprint-06-basis`
+und heute liegen CI-Ergänzung und README-Arbeit. Der Prüf-Diff des Sprint-Endes
+läuft weiter über `sprint-06-basis..main` und enthält beides — das ist richtig
+so, es ist in diesem Sprint geschehen.
+
+**Reihenfolge in Strang A: #56 vor #55.** #56 hängt sich an den bestehenden
+`eventFilter` (§5.3.3), #55 baut den Konstruktor um. Andersherum stünde die
+kleine Heilung im Schatten der großen und wäre im Diff nicht mehr zu trennen.
+
+### 15.2 #59 ist keine UI-Story im Sinne von DoD 3
+
+§6 stuft #55 und #56 ein; für #59 fehlt die Einstufung, und sie ist dem PO
+vorbehalten (Kundenentscheidung 31.07.2026).
+
+**Einstufung: keine Bildpflicht.** Prüfgegenstand ist eine Bewegung, und B3
+sagt dazu: *„Bei Bewegungen ist der Weg der Prüfgegenstand, nicht das Ziel."*
+AK 1 des Issues verlangt aus demselben Grund die Messung **am Rollwert, nicht
+am Endbild**. Ein Standbild könnte hier nur zeigen, wo die Liste steht — die
+Frage ist aber, ob sie sich bewegt hat.
+
+Das ist die Gegenrichtung zu #55, wo dieselbe Regel volle Bildpflicht erzeugt:
+Dort ist der Prüfgegenstand ein Zustand.
+
+Der karpathy-Review über den Sprint-Diff (DoD 3, erster Halbsatz) gilt für #59
+unverändert.
+
+### 15.3 Was die Stränge nicht dürfen
+
+Beiden ausdrücklich untersagt: Installation nach `/usr` (DoD 2 taktet der PO,
+es gibt nur ein `/usr` und zwei Stränge), Merge nach `main`, Push, und jede
+Änderung außerhalb der eigenen Dateimenge. Strang B ist zusätzlich auf die
+Nachbarschaft zu #57 und #70 hingewiesen worden, einschließlich des in Sprint 3
+geprüften und **vom Reviewer selbst zurückgenommenen** Schwellwert-Wegs — er
+ist der naheliegende Griff an dieser Stelle und der falsche.
