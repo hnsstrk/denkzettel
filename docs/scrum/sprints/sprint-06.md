@@ -1823,3 +1823,349 @@ Abnahme-Checkliste in §18. Ihre sieben Punkte sind der Hauptweg, aufgeteilt in
 das, was ein Auge sehen muss.
 
 **Sprint 6 steht damit an der Kundenabnahme.**
+
+---
+
+## 23. Retrospektive Sprint 6
+
+**Datum:** 2026-08-04, 16:28 (Ganymed) · **Moderation:** Scrum Master ·
+**Prüfstand:** `main` @ `977e804`, CI-Lauf 30918437478 **completed/success**
+(selbst abgefragt, nicht dem Auftrag entnommen — der nannte `2c69944`; seither
+liegt ein Commit darüber, und sein Lauf war zur Beauftragung noch
+`in_progress`. Das ist beiläufig und trotzdem der Gegenstand von B18).
+
+**Zeitpunkt:** Takt 1 vollständig, Kundenabnahme offen. Diese Retro betrifft das
+Verfahren, nicht das Produkt.
+
+**Fortlaufend ab B16** (die Sprint-3-Retro endete bei B15).
+
+### 23.1 Der Zusammenhang — er trägt, aber anders als vermutet
+
+Die Vermutung des PO: Die Befunde M1 (falscher CI-Lauf gelesen), M4 (Regel über
+die Bildläufer nach der Änderung stehengelassen) und die überholten
+Präsens-Sätze im UI-Bericht sind **dieselbe Klasse**. Sie trägt: In allen drei
+Fällen fällt eine **Aussage** von dem **Stand** ab, für den sie gilt.
+
+Sie hat aber zwei Richtungen, und die Heilung ist je eine andere:
+
+| | Fall | Was auseinanderfällt | Was hilft |
+|---|---|---|---|
+| **Schreibseite** | M4, UI-Bericht | Der Stand ändert sich, die Aussage bleibt stehen | Beim Ändern nach den Aussagen **suchen**; überholte Belege **ankern** |
+| **Leseseite** | M1 | Die gelesene Aussage gehört zu einem **anderen** Stand als dem gemeinten | Den Gegenstand **benennen** (Commit-Kennung statt Listenkopf) |
+
+**Eine gemeinsame Prüfung wäre der falsche Schluss** — und zwar aus einem Grund,
+der am Material steht: **Die Prüfung gibt es bereits, und sie hat 3 von 3
+gefunden.** Alle drei Fälle stammen aus derselben Quelle, dem Doku-Abgleich und
+der DoD-Prüfung des Sprint-Endes (§19.4, §19.8 M1, §19.8 M4), geführt von einer
+Rolle in frischem Kontext. **Keiner** ist von dem gefunden worden, der den
+Zustand geändert hat.
+
+Damit ist die Lücke nicht die fehlende Prüfung, sondern ihr **Zeitpunkt**: Sie
+greift am Sprint-Ende, einen halben Tag nachdem `CLAUDE.md` eine Prüfpflicht
+falsch begründete. Was fehlt, ist ein **Griff für den Verursacher im Moment der
+Änderung** — und der muss so billig sein, dass er nicht zur Disziplinfrage wird.
+Er ist es: siehe B17, ein `git grep`, gemessen fünf Zeilen Ausgabe.
+
+**Eine Berichtigung zum Material:** Die Anker im UI-Bericht hat der Reviewer
+**nicht** von selbst gesetzt. Gefunden hat den Befund der Scrum Master um 15:53
+(§19.4, mit Vorschlag an den PO); die Anker stehen seit `98d9455` (16:02) — und
+dort hat der Reviewer dann **drei** statt der einen vorgeschlagenen Zeile
+gesetzt und zusätzlich #82 gebucht. Das ändert nichts am Wert des Vorgehens,
+aber es ändert die Bilanz: **Dreimal derselbe Fund, dreimal derselbe Finder.**
+
+### 23.2 Beschlüsse
+
+Jeder Beschluss ist eine Änderung an einem benannten Artefakt. Der Einbau ist
+Sache des PO — der Scrum Master ändert `CLAUDE.md`, `PROZESS.md` und die
+globalen Regeln nicht selbst.
+
+---
+
+**B16 — Installieren heißt nicht laufen: welcher Stand läuft, wird belegt.**
+
+*Anlass:* §22.1 — nach `cmake --install` hielt der Dienst die **gelöschte** alte
+Binärdatei weiter (`/proc/4569/exe -> /usr/bin/denkzetteld (deleted)`). Eine
+Abnahme zu diesem Zeitpunkt hätte den Stand vom 02.08.2026 geprüft, ohne jedes
+Anzeichen. M-B2 aus Strang B ist derselbe Mechanismus von der anderen Seite:
+`KDBusService::Unique` reicht den Start des Debug-Builds an den laufenden Dienst
+weiter. Beide Male prüft man unbemerkt den falschen Stand — das ist
+Sprint-3-Mangel M1 in seiner ursprünglichen Form.
+
+*Warum eine Regel und nicht ein Vermerk:* Von allen sieben Befunden ist dies der
+einzige, der eine **Kundenabnahme still entwertet** hätte. B13 taktet die
+Installation gegen die Kollision zweier Stränge — gegen den laufenden Dienst
+schützt sie nicht.
+
+*Geändert 1:* `docs/scrum/PROZESS.md`, Sprint-Abschluss, Takt 1, **Punkt 1** —
+angehängt:
+
+> Installieren genügt nicht: Ein laufender Dienst hält nach `cmake --install`
+> die **gelöschte** alte Binärdatei weiter und zeigt das an nichts. Vor der
+> Prüfung wird deshalb belegt, dass der laufende Prozess der installierte ist —
+> `readlink /proc/$(pgrep -x denkzetteld)/exe` muss auf `/usr/bin/denkzetteld`
+> zeigen und **darf nicht** auf `(deleted)` enden. Ohne diesen Beleg prüft die
+> Abnahme den Stand des vorigen Sprints (Sprint 6, §22.1).
+
+*Geändert 2:* `CLAUDE.md`, Absatz „Geprüft wird am installierten Stand" —
+angehängt:
+
+> **Installieren heißt nicht laufen.** Nach `cmake --install` hält ein laufender
+> Dienst die gelöschte alte Datei weiter; umgekehrt reicht `KDBusService::Unique`
+> den Start eines Debug-Builds an den laufenden Dienst weiter. Beide Male prüft
+> man unbemerkt den falschen Stand. Vor jeder Prüfung am installierten Stand:
+> Dienst beenden, neu starten, dann `readlink /proc/$(pgrep -x denkzetteld)/exe`
+> — ohne `(deleted)`. Wer den **Debug**-Stand prüfen will, beendet vorher den
+> installierten Dienst.
+
+*Automatisch geladen?* `CLAUDE.md`: **ja**, von jeder Sitzung im Projekt.
+`PROZESS.md`, Sprint-Abschluss: **ja im Wirkmoment** — die Liste wird in Takt 1
+Punkt für Punkt abgearbeitet, das ist kein zufälliges Lesen.
+*Geprüft:* Der Befehl ist am 04.08.2026, 16:28 gelaufen und liefert
+`/usr/bin/denkzetteld`, Rückgabe 0.
+
+---
+
+**B17 — Eine Aussage gilt für einen Stand: beim Ändern suchen, beim Überholen
+ankern.**
+
+*Anlass:* M4 (drei Dateien beschrieben die Bildläufer falsch, die schwerste in
+`CLAUDE.md`, wo eine Prüfpflicht daran hängt) und die überholten Präsens-Sätze
+des UI-Berichts. Schreibseite der Klasse aus §23.1.
+
+*Der Griff ist gemessen, nicht ausgedacht.* Am Stand vor der Heilung:
+
+```
+git grep -n EXCLUDE_FROM_ALL c3759f0^ -- CLAUDE.md README.md docs/ .github/
+    -> 3 Treffer: ci.yml:12, CLAUDE.md:85, tests/CMakeLists.txt:93
+git grep -n readmeshots      c3759f0^ -- CLAUDE.md README.md docs/ .github/
+    -> 5 Treffer, darunter alle drei Fundstellen von M4
+```
+
+Der zweite Griff ist der wichtigere und der unauffälligere: Wer eine
+**Aufzählung erweitert** (`captureshots` als fünfter Läufer), findet die
+veralteten Listen nicht über den neuen Namen — den kennen sie ja gerade nicht —,
+sondern über den Namen eines **Geschwisters**.
+
+*Geändert 1:* `CLAUDE.md`, Abschnitt „Prüfhaltung" — neuer Punkt:
+
+> - **Eine Aussage gilt für einen Stand.** Wer eine Bau- oder
+>   Werkzeugeigenschaft ändert, sucht im selben Zug nach den Aussagen darüber:
+>   `git grep -n <Eigenschaft> -- CLAUDE.md README.md docs/ .github/`; beim
+>   Erweitern einer Aufzählung nach dem Namen eines **Geschwisters** statt nach
+>   dem neuen (`readmeshots` findet jede Liste, die `captureshots` noch nicht
+>   kennt). Gemessen: Der Griff hätte alle drei Fundstellen von Sprint-6-Mangel
+>   M4 gezeigt, bei fünf Zeilen Ausgabe. Wer den Zustand ändert und die Aussage
+>   stehenlässt, macht aus einer Begründung eine Falle — die Pflicht gilt dann
+>   weiter, nur aus einem anderen Grund.
+
+*Geändert 2:* `docs/scrum/PROZESS.md`, Abschnitt „Definition of Done", Absatz
+zum Doku-Abgleich — Umfang erweitert:
+
+> Zur Sprint-Ende-Prüfung des Scrum Masters gehört der **Doku-Abgleich**:
+> Beschreiben README, `docs/`, **`CLAUDE.md` und die Kommentarköpfe von
+> `.github/workflows/ci.yml` und den `CMakeLists.txt`** den gelieferten Stand?
+
+> *Grund für den Zusatz:* In Sprint 6 standen alle drei falschen Aussagen über
+> die Bildläufer genau dort, und die schwerste in `CLAUDE.md` — außerhalb des
+> bis dahin genannten Umfangs (M4). Gefunden hat der Scrum Master sie trotzdem;
+> die Regel soll ihm das nicht als Kür überlassen.
+
+*Geändert 3:* `docs/scrum/PROZESS.md`, Abschnitt „Artefakte", bei **Belege** —
+angehängt:
+
+> **Ein überholter Beleg wird geankert, nicht geglättet.** Der Berichtstext
+> bleibt, wie er war; angehängt wird eine datierte Zeile, die den Prüfstand
+> nennt und den Commit, seit dem der Satz nicht mehr gilt (`346a4c0`, `98d9455`
+> sind die Bauart). Ein Bericht ist Beweislage seines Standes — wer ihn
+> nachzieht, zerstört genau das, wofür B7 ihn ins Repo gestellt hat. **Sätze im
+> Präsens ohne genannten Prüfstand sind die Stelle, an der das auffällt**
+> (Sprint 6, §19.4).
+
+*Automatisch geladen?* `CLAUDE.md`: **ja**. `PROZESS.md`: **ja für den Scrum
+Master** (Agentendatei), der beide Stellen als Prüfer anwendet — und er ist bei
+beiden der Adressat. Der Griff aus Änderung 1 adressiert **jeden**, deshalb
+steht er in `CLAUDE.md` und nicht in `PROZESS.md`.
+
+---
+
+**B18 — Der Nachschlag gilt dem Lauf des eigenen Commits.**
+
+*Anlass:* M1 (§21.1). `CLAUDE.md` sagt „Wer pusht, sieht nach." Der PO hat
+nachgesehen und den grünen Lauf **davor** für seinen gehalten. **Die Regel nennt
+die Handlung, nicht ihren Gegenstand** — und `--limit 1` liefert den obersten
+Lauf, nicht den eigenen. Leseseite der Klasse aus §23.1.
+
+*Geändert:* `CLAUDE.md`, Abschnitt „Technisches", letzter Absatz — der Satz
+„Wer pusht, sieht nach: `gh run list --limit 1`." wird ersetzt durch:
+
+> Wer pusht, sieht nach — **am Lauf des eigenen Commits**, nicht am obersten der
+> Liste:
+> `gh run list --commit $(git rev-parse HEAD) --json status,conclusion --jq '.[]|[.status,.conclusion]|@tsv'`
+> Erst `completed` **und** `success` ist ein Nachschlag. `in_progress` heißt:
+> noch einmal — nicht „nichts Rotes gesehen".
+
+*Automatisch geladen?* **Ja**, `CLAUDE.md`.
+*Geprüft:* Der Befehl ist am 04.08.2026 gegen `2c69944` und gegen `HEAD`
+gelaufen; die volle Kennung ist nötig (`git rev-parse`), die Kurzform liefert
+leer. Der `in_progress`-Fall ist **in dieser Retro eingetreten** (§23, Kopf) —
+er ist kein gedachter.
+
+---
+
+**B19 — Der Review-Auftrag benennt den Diff, nicht die Stories.**
+
+*Anlass:* K4. Der Auftrag nannte drei Stories, der Diff umfasste **73 Dateien,
+6025 Zeilen**. Der Reviewer hat die codetragenden Teile mitgeprüft und den
+Auftrag zugleich als Befund gemeldet — ohne diese Selbstauskunft wäre der
+Beifang später entweder als ungeprüft gelesen worden oder stillschweigend als
+geprüft.
+
+*Geändert:* `docs/scrum/PROZESS.md`, **DoD 3**, nach dem ersten Satz eingefügt:
+
+> **Der Review-Auftrag benennt den Diff, nicht die Stories**: Bereich
+> (`sprint-NN-basis..main`), Zahl der Dateien und die Teile, die *nicht* aus den
+> Stories stammen. Wer die Stories aufzählt, beschreibt seine Absicht; der Diff
+> beschreibt, was zur Prüfung ansteht. Beide fallen auseinander, sobald an einem
+> Tag auch außerhalb des Sprints gearbeitet wird — und das ist der Normalfall
+> (Sprint 6, K4).
+
+*Automatisch geladen?* **Ja für den Scrum Master**, der den Auftrag laut
+Rollentabelle formuliert. **Verbleibendes Risiko, offen benannt:** In Sprint 6
+hat den Auftrag der **PO** geschrieben (§17.1: „mein Review-Auftrag"). Für ihn
+wirkt DoD 3 nur, weil er sie am Sprint-Ende als Liste abarbeitet. Ich schlage
+**keine** zusätzliche `CLAUDE.md`-Zeile vor: Die Datei trägt die Regeln, die
+*wiederholt* übergangen wurden, und K4 ist der erste Fall. Tritt er ein zweites
+Mal ein, gehört er dorthin.
+
+---
+
+**B20 — Modellzuordnung revidiert (fällig aus B15), bestätigt.**
+
+B15 hat als nächsten Revisionstermin „Retro nach Sprint 6" gesetzt. Hier ist er.
+
+*Beleg aus Sprint 6:* **K1** — der Übergabebericht von Strang A behauptete,
+„jede tragende Zusicherung" sei gegen eine Mutation des Produktivcodes gehalten
+worden; gedeckt waren **8 von 11**. Geschrieben von einer Opus-Rolle, gefunden
+vom `karpathy-reviewer` auf **Fable**, und zwar durch **Nachzählen**, nicht
+durch Nachdenken — in dem Sprint, dessen Review-Auftrag ausdrücklich nach der
+Vollständigkeit dieser Liste fragte.
+
+*Ehrliche Einschränkung, damit der Beleg nicht stärker aussieht als er ist:* Der
+Reviewer war der **erste fremde Leser** des Berichts. Anders als in Sprint 3
+(wo eine tautologische Zusicherung mehrere Opus-Durchgänge überlebte) ist damit
+nicht belegt, dass eine Opus-Rolle sie übersehen **hätte**. Der Sprint-3-Beleg
+bleibt der tragende; dieser stützt ihn.
+
+*Verwalter auf Haiku:* zwei Aufträge in Sprint 6 (Kegel-Rückbau, `sp:`-Label),
+beide mit abgelegter Datei, beide vom PO nachgemessen. Die drei Bedingungen der
+Delegation halten.
+
+*Geändert:* `docs/scrum/PROZESS.md`, Modellzuordnung — der letzte Aufzählpunkt
+(„Revision in der Sprint-3-Retro … Nächste Revision: Retro nach Sprint 6")
+bekommt einen zweiten Absatz:
+
+> **Revision in der Sprint-6-Retro (04.08.2026): bestätigt.** Der eine Befund
+> des Sprints, den eine Opus-Rolle geschrieben und der Reviewer auf Fable durch
+> Nachzählen gefunden hat, ist K1 (`sprint-06-karpathy.md`): „jede tragende
+> Zusicherung gegen eine Mutation gehalten" deckte 8 von 11. Kein Anlass, das
+> Sicherheitsnetz abzustufen. Der `denkzettel-verwalter` auf Haiku hat zwei
+> Aufträge mit abgelegter Datei und nachgemessenem Ergebnis ausgeführt. **Nächste
+> Revision: Retro nach Sprint 9.**
+
+*Automatisch geladen?* **Ja für den Scrum Master und den PO beim Spawn** —
+dieselbe Lage wie bei B15, dort mit „Ja" beantwortet und seither gehalten.
+
+### 23.3 Gegenrechnung — was zu keinem Beschluss führt, und warum
+
+Prinzip 2 gilt auch für Prozess. Dieses Projekt hat 15 Beschlüsse, elf
+Abschlusspunkte, sechs DoD-Punkte und eine `CLAUDE.md` mit acht Merksätzen. Jede
+Regel, die nicht trägt, verdünnt die, die tragen.
+
+| Befund | Beschluss | Warum nicht |
+|---|---|---|
+| **M-B2** — Debug-Build startet nicht neben dem Dienst | **nein**, als Wissen in B16 aufgenommen | Derselbe Mechanismus wie §22.1; **zwei Regeln für einen Mechanismus sind eine zu viel** |
+| **M-B2**, offene Frage: Prüfläufer als CMake-Ziel? | **nein — an den PO** | Eine Werkzeug-Entscheidung mit Bauzeit-Kosten gehört in eine Story, nicht in eine Retro. Bisher **ein** Anwendungsfall (`probe59.cpp`); ein zweiter macht sie zur Story |
+| **M-B3** — clazy-Bestandswarnungen | **nein** | Der auffälligste Befund ist gegenstandslos, am Code nachgewiesen (§16.1). Eine Regel „Bestand abarbeiten" würde genau die Stelle anfassen, die B5 schützt |
+| **UI-Bericht, Präsens ohne Anker** | **kein eigener** — dritte Änderung in B17 | Es ist die Schreibseite derselben Klasse. Ein eigener Beschluss daneben wäre die dritte Fassung desselben Satzes |
+| **`sp:`-Label** (§1: „gehört in die Retro") | **nein — bereits erledigt** | Am 04.08.2026 als Kundenentscheidung in `CLAUDE.md` **und** `PROZESS.md` verankert, samt Altbestand und der Story-ID-Falle. Nachgeprüft, steht dort. Ein Retro-Beschluss wäre eine Wiederholung |
+| **Linterlauf in den Dev-Auftrag** (aus `1006d33`: „die fünf Nachweise enthielten keinen Linterlauf") | **nein** | Genau das ist die Hälfte, die an Disziplin hängt — und die CI ist ihre Mechanisierung. Beide Male hat sie gegriffen. Die Regel nachzuziehen hieße, dieselbe Prüfung zweimal zu bezahlen |
+
+### 23.4 Nachprüfung: haben die früheren Beschlüsse in Sprint 6 gewirkt?
+
+Am Material geprüft, nicht an der Erinnerung.
+
+| Beschluss | Wirkung in Sprint 6 | Beleg |
+|---|---|---|
+| **B3** — UI-Review ohne Bild nicht geführt | **getragen, und mehr als das:** Der Satz „Bei Bewegungen ist der Weg der Prüfgegenstand" war die **Entscheidungsregel**, mit der der PO #59 als Nicht-UI-Story einstufte | §15.2; UI-Review mit 19 eigenen Bildern und eigenen Sonden |
+| **B5** — Registrierungen zurücklesen | **getragen** | §22.2: nicht die Zusicherung der Anwendung, sondern die Antwort des Dienstes. Zugleich das Argument, mit dem M-B3 abgewehrt wurde |
+| **B7** — unversionierter Beleg ist kein Beleg | **getragen** | `probe59.cpp` im Belegordner, UX-Sonden versioniert, §19.3 vollzählig — kein Commit nennt einen Prüflauf ohne abgelegten Bericht |
+| **B9** — DoD 4 erfasst entdeckte Bedingungen | **getragen, stärkster Fall bisher** | SPEC 3.2 mit **fünf** entdeckten Bedingungen, SPEC 9 mit einer, SPEC 15 der wörtliche B9-Beispielfall (§19.5, am SPEC-Diff gelesen) |
+| **B10** — Doku-Abgleich | **getragen, Umfang zu eng** | Fand M2 **und** M4 (§19.7) — M4 aber in `CLAUDE.md`, das die Regel gar nicht nennt. Deshalb B17, Änderung 2 |
+| **B11** — zwei Takte | **getragen** | §19.10 hat DoD 5/6 **ausdrücklich nicht** gebucht. Genau die Sprint-3-Mängel M2/M5, die nicht wiederkehrten |
+| **B12** — Sprint-Konto, beide Grenzen | **getragen** | §1 bucht den Zugang #59 bei der Freigabe mit beiden Zahlen (3 von 2–4 · 11 von ~13); §19.6 misst am Milestone nach: kein Zugang danach |
+| **B13** — Parallelarbeit in der Prozessdatei | **getragen** | Zwei Stränge, Dateimengen aus gemessenem Abstand abgeleitet (§15.1), Installation den Strängen untersagt (§15.3), Merges nur durch den PO. **Grenze:** Die Installations-Taktung schützt gegen zwei Stränge, nicht gegen den laufenden Dienst → B16 |
+| **B14** — flüchtige Belege sofort sichern | **nicht prüfbar** | In Takt 1 sind keine Kundenbilder angefallen. Prüfbar erst in der Abnahme |
+| **B15** — Modellzuordnung | **fällig und erledigt** | → B20 |
+
+**Die vier Punkte der Prozessökonomie (§13), zu deren Prüfung die Retro
+beauftragt war:**
+
+- **P1 — automatische Testläufe: Wache, nicht Zierde.** Zwei rote Läufe in
+  Sprint 6, beide echte Rückschritte, beide sonst unsichtbar: `d30f5d0` (vierter
+  clazy-Befund aus `testsilence.cpp`, geheilt `1006d33`) und `2ef495f`
+  (16 clazy-Befunde bei Schwelle 3, geheilt `bb1dcd2`). Bau grün,
+  `ctest` grün, Compiler-Warnungen null — beide Male war der Lauf der Einzige,
+  der es sah. **Kein Rückbau.** *Genau benannt:* Sein bisheriger Wert liegt
+  vollständig im **Linter**; das ist die Prüfung, die in den Aufträgen fehlte.
+- **P2 — Pflicht-/Kürteil: noch nicht beurteilbar.** `sprint-06.md` hat vor
+  dieser Retro **1825 Zeilen** gegen ein Mittel von **1614** aus den Sprints 3–5
+  (2137 · 1043 · 1663; die im Nachtrag genannten „rund 1.300" sind zu niedrig).
+  Die Regel entstand jedoch **mitten im Sprint** (§13.2), die Zeilen 1–966
+  stammen von davor. **Messpunkt: Sprint 7**, der erste vollständig unter der
+  Regel geführte. **B7 ist nicht verletzt** — in der Differenz steckt kein
+  Beleg. Die vier Pflichtteile sind vorhanden bis auf das done/next des
+  Sprint-Endes, das in Takt 2 entsteht (§19.9).
+- **P3 — Verwalter-Bericht als Existenzprüfung: offen.** Sprint 6 hatte zwei
+  Verwalter-Aufträge, beide mit abgelegter Datei
+  (`sprint-06-verwalter-kegel.md`, `-splabel.md`). Der beauftragte **dritte
+  Lauf** ist der Takt-2-Auftrag dieses Sprints und steht noch aus.
+  *Klarstellung, die ich vorschlage, aber nicht als Beschluss führe:* Punkt 11
+  nennt **einen** festen Dateinamen je Sprint; die Praxis führt **eine Datei je
+  Auftrag**. Solange nur Takt 2 gemeint ist, kollidiert nichts — bei zwei
+  Takt-2-Aufträgen überschriebe der zweite den ersten. Ein Wort im Auftrag
+  genügt.
+- **P4 — Schätzkegel: zurückgebaut, nachgemessen.** `docs/scrum/diagramme/` ist
+  fort, die Abschlussliste endet bei 11, der datierte Vermerk in der
+  Sprint-Mechanik steht. Kein Rückstand.
+
+### 23.5 Abschlussprüfung — die zwei Fragen, je Beschluss
+
+| Beschluss | (1) In welchem Artefakt? | (2) Wird es automatisch geladen? |
+|---|---|---|
+| **B16** | `CLAUDE.md` (installierter Stand) · `PROZESS.md` Takt 1 Punkt 1 | **Ja** · **Ja im Wirkmoment** — die Abschlussliste wird Punkt für Punkt abgearbeitet |
+| **B17** | `CLAUDE.md` Prüfhaltung · `PROZESS.md` Doku-Abgleich · `PROZESS.md` Belege | **Ja** · **Ja** (Adressat ist bei beiden `PROZESS.md`-Stellen der Scrum Master, der die Datei als Grundlage liest) |
+| **B18** | `CLAUDE.md` Technisches | **Ja** |
+| **B19** | `PROZESS.md` DoD 3 | **Ja für den Scrum Master**; für den PO nur als abgearbeitete Liste am Sprint-Ende. **Verbleibendes Risiko benannt**, bewusst keine `CLAUDE.md`-Zeile beim ersten Vorkommen |
+| **B20** | `PROZESS.md` Modellzuordnung | **Ja** |
+
+**Bilanz, ohne Beschönigung:** Vier der fünf Beschlüsse landen ganz oder
+teilweise in `CLAUDE.md` — der Datei, die jede Sitzung ohne Zutun liest. Das ist
+die Antwort auf die Lücke, die die Sprint-2-Retro zehnmal und die Sprint-3-Retro
+dreimal hatte. **B19 ist die eine Ausnahme, und sie ist eine Entscheidung, keine
+Auslassung:** `CLAUDE.md` trägt die Regeln, die *wiederholt* gerissen sind. Wer
+dort jeden Erstfall einträgt, macht aus der Datei, die jeder liest, eine, die
+keiner mehr liest.
+
+### 23.6 done / next (Retro)
+
+**done:** Sieben Befunde ausgewertet · fünf Beschlüsse mit Wortlaut und
+Zielartefakt · sechs Befunde ausdrücklich **ohne** Beschluss, je mit Grund · zehn
+frühere Beschlüsse und vier Prozessökonomie-Punkte am Material nachgeprüft · die
+fällige Modellrevision aus B15 erledigt.
+
+**next:** (1) PO baut B16–B20 ein — vier Stellen in `CLAUDE.md`, fünf in
+`PROZESS.md`; danach karpathy-Review über den Prozess-Diff (globale Regel für
+Regel-/Agentenänderungen). (2) Standdatum in `PROZESS.md` mitführen. (3) Sprint 7:
+Zeilenzahl des Protokolls messen (P2) und den Takt-2-Verwalter-Bericht auf
+Existenz prüfen (P3, dritter Lauf). (4) Offen an den PO, nicht beschlossen:
+Prüfläufer als CMake-Ziel (M-B2).

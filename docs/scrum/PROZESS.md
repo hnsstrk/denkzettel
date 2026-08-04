@@ -55,6 +55,18 @@ PO aus.
   dafür, das Sicherheitsnetz nicht abzustufen. Nächste Revision: Retro nach
   Sprint 6.
 
+  **Revision in der Sprint-6-Retro (04.08.2026): bestätigt** (B20). Der eine
+  Befund des Sprints, den eine Opus-Rolle geschrieben und der Reviewer auf
+  Fable durch **Nachzählen** gefunden hat, ist K1
+  (`docs/scrum/reviews/sprint-06-karpathy.md`): „jede tragende Zusicherung
+  gegen eine Mutation gehalten" deckte 8 von 11. *Einschränkung, damit der
+  Beleg nicht stärker aussieht, als er ist:* Der Reviewer war der erste fremde
+  Leser des Berichts — dass eine Opus-Rolle den Fund übersehen **hätte**, ist
+  damit nicht belegt; der Sprint-3-Beleg bleibt der tragende. Kein Anlass, das
+  Sicherheitsnetz abzustufen. Der `denkzettel-verwalter` auf Haiku hat zwei
+  Aufträge mit abgelegter Datei und nachgemessenem Ergebnis ausgeführt.
+  **Nächste Revision: Retro nach Sprint 9.**
+
 ## Artefakte und Werkzeuge
 
 - **Product Backlog**: GitHub Issues im Repo `hnsstrk/denkzettel` — die
@@ -140,6 +152,13 @@ PO aus.
   Ordnern, die weggeräumt werden, während man noch schreibt — von acht
   Bildern der Sprint-3-Abnahme überlebte sieben Minuten nur eines
   (Sprint 3, 15.3).
+  **Ein überholter Beleg wird geankert, nicht geglättet** (B17): Der
+  Berichtstext bleibt, wie er war; angehängt wird eine datierte Zeile, die den
+  Prüfstand nennt und den Commit, seit dem der Satz nicht mehr gilt (`346a4c0`,
+  `98d9455` sind die Bauart). Ein Bericht ist Beweislage seines Standes — wer
+  ihn nachzieht, zerstört genau das, wofür B7 ihn ins Repo gestellt hat.
+  **Sätze im Präsens ohne genannten Prüfstand sind die Stelle, an der das
+  auffällt** (Sprint 6, §19.4).
 - **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
   Entscheidungen), `wireframes/` (UI-Referenz; Spiegel im
   Claude-Design-Projekt „Denkzettel" auf claude.ai/design, Sync durch den
@@ -267,7 +286,14 @@ PO aus.
    schützen — genau das ist in Sprint 3 geschehen.
 3. karpathy-reviewer-Durchgang ohne offene `fail`-Befunde
    (Sprint-Ende-Review über den Sprint-Diff genügt, Einzel-Review bei
-   riskanten Stories). UI-Stories zusätzlich: UI-Review durch
+   riskanten Stories).
+   **Der Review-Auftrag benennt den Diff, nicht die Stories** (B19): Bereich
+   (`sprint-NN-basis..main`), Zahl der Dateien und die Teile, die *nicht* aus
+   den Stories stammen. Wer die Stories aufzählt, beschreibt seine Absicht; der
+   Diff beschreibt, was zur Prüfung ansteht. Beide fallen auseinander, sobald
+   an einem Tag auch außerhalb des Sprints gearbeitet wird — und das ist der
+   Normalfall (Sprint 6, K4).
+   UI-Stories zusätzlich: UI-Review durch
    `denkzettel-ux` ohne offene `fail`-Befunde — welche Stories UI-Stories
    sind, legt der PO beim Planning fest (Kundenentscheidung 31.07.2026).
    **Der UI-Review ist ohne Bild nicht geführt**: Der Entwickler legt je
@@ -284,7 +310,12 @@ PO aus.
 6. Journal-Eintrag der Session gemäß globaler Protokollpflicht.
 
 Zur Sprint-Ende-Prüfung des Scrum Masters gehört der **Doku-Abgleich**:
-Beschreiben README und `docs/` den gelieferten Stand? Abweichungen meldet er
+Beschreiben README, `docs/`, **`CLAUDE.md` und die Kommentarköpfe von
+`.github/workflows/ci.yml` und den `CMakeLists.txt`** den gelieferten Stand?
+*Grund für den Zusatz (B17):* In Sprint 6 standen alle drei falschen Aussagen
+über die Bildläufer genau dort, und die schwerste in `CLAUDE.md` — außerhalb
+des bis dahin genannten Umfangs (M4). Gefunden hat der Scrum Master sie
+trotzdem; die Regel soll ihm das nicht als Kür überlassen. Abweichungen meldet er
 als Mangel; die Korrektur ist Sache von PO oder Dev (melden, nicht heilen).
 Das Ergebnis steht in der DoD-Prüfung des Sprint-Protokolls, auch bei
 Befundfreiheit — sonst ist „geprüft, nichts gefunden" nicht von „vergessen"
@@ -310,6 +341,13 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
    Akzeptanzkriterium beschreibt; der Nachweis hat dieselbe Form wie in DoD 2 —
    **Terminalausgabe, Journalauszug oder Bild**. Ohne Belegform ist „mit Beleg
    abgehakt" eine Behauptung.
+   **Installieren genügt nicht** (B16): Ein laufender Dienst hält nach
+   `cmake --install` die **gelöschte** alte Binärdatei weiter und zeigt das an
+   nichts. Vor der Prüfung wird deshalb belegt, dass der laufende Prozess der
+   installierte ist — `readlink /proc/$(pgrep -x denkzetteld)/exe` muss auf
+   `/usr/bin/denkzetteld` zeigen und **darf nicht** auf `(deleted)` enden. Ohne
+   diesen Beleg prüft die Abnahme den Stand des vorigen Sprints
+   (Sprint 6, §22.1).
 2. **Jeder Prüflauf hat einen Bericht als Datei** unter
    `docs/scrum/reviews/` — UI-Review *und* karpathy-Review, Zwischenläufe
    eingeschlossen —, und er liegt vor, **bevor die DoD-Prüfung läuft**. Sonst
