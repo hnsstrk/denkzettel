@@ -783,6 +783,19 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   dabei auf `default` zurück, und der Test prüfte einen Fall, der gar nicht
   eintreten kann. `capturetest` startet sich für diese Zusicherung mit
   beschnittenem `XDG_DATA_DIRS` selbst neu.
+- **Keine Zusicherung hängt an einem Namen, den nur diese Maschine kennt**
+  (entdeckt zu #55, DoD 4/B9). Der Prüfsatz zur Hülle hält zwei Desktop-Themes
+  mit verschiedenem Rand gegeneinander — und **ein solches Paar gibt es nicht
+  überall**: Die drei Themes des offiziellen KDE-Bestands (`default`,
+  `breeze-dark`, `breeze-light`) tragen sämtlich 4 px; jedes breitere Theme auf
+  der Entwicklungsmaschine stammt aus einem CachyOS-Paket. Ein Bauplatz, der
+  nur die KF6-Teile dieses Projekts installiert, hat **gar kein**
+  Desktop-Theme — `ksvg` hängt nicht an `libplasma`. Daraus zwei Quellen mit
+  verschiedener Aufgabe, und keine ersetzt die andere:
+  **`tests/themes/`** liefert zwei eigene Themes, damit die Zusicherung überall
+  läuft; sie belegen aber nur, dass der Code *unser* SVG liest. Der Lauf gegen
+  **installierte** Themes belegt das Echte, wird zur Laufzeit **gemessen statt
+  benannt** und übersprungen, wenn kein Paar da ist — mit benanntem Grund.
 - KI-Qualität (Klassifikation/Clustering) wird nicht automatisiert getestet —
   der Vorschlags-Review ist die menschliche Kontrollinstanz.
 

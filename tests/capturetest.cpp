@@ -1,5 +1,6 @@
 #include "capture/capturewindow.h"
 #include "capture/textareaheight.h"
+#include "desktopthemes.h"
 #include "store/store.h"
 
 #include <KConfigGroup>
@@ -50,6 +51,7 @@ private Q_SLOTS:
     void textsFollowAColourSchemeChange();
 
     void hullFollowsTheDesktopTheme();
+    void hullFollowsAnInstalledDesktopTheme();
     void readsTheDesktopThemeFromPlasmarc();
     void paintsOneSurfaceInThePaletteColours();
     void noteTextUsesTheWindowTextRole();
@@ -65,6 +67,7 @@ private:
     /** How far into the top row of the picture the hull is still transparent. */
     static int cornerRun(const QImage &picture);
     static void writePlasmarc(const QString &theme);
+    void checkHullDiffersBetween(const QString &narrow, const QString &wide);
 
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
@@ -74,14 +77,20 @@ private:
 namespace
 {
 /**
- * The two desktop themes of wireframe 4a: a 4 px border against an 8 px one.
- * They stand here as names, not as numbers — the assertions below compare the
- * one against the other and never against a measurement of their own. That is
- * the point of AK 1: the values belong to the theme, and `marginSize()` hands
- * out `7,99998` where a drawing would have written 8.
+ * No desktop theme is named here, and that is the point.
+ *
+ * A fixed pair of names ties the assertion to the distribution the test was
+ * written on: of the eight themes installed on that machine only CachyOS
+ * packages carry a border other than 4 px, so anywhere else the pair collapses
+ * and the comparison silently compares 4 against 4. Where the themes come from
+ * and why there are two sources stands in `tests/desktopthemes.h`.
+ *
+ * The assertions below stay **relative** either way — theme against theme,
+ * never against a number. `marginSize()` hands out `7,99998` where a drawing
+ * would have written 8.
  */
-const QString NarrowBorderTheme = QStringLiteral("breeze-dark");
-const QString WideBorderTheme = QStringLiteral("CachyOS-Nord-round");
+const QString NarrowBorderTheme = themes::bundledNarrow();
+const QString WideBorderTheme = themes::bundledWide();
 }
 
 void CaptureTest::initTestCase()
@@ -94,6 +103,18 @@ void CaptureTest::initTestCase()
     // test's own, so the developer's desktop theme is never touched.
     QStandardPaths::setTestModeEnabled(true);
     QDir().mkpath(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation));
+
+    // Before the first theme is resolved: the two themes of the test itself go
+    // on the data path, next to the installed ones rather than instead of them.
+    //
+    // Except in the one run that is *about* having no theme at all — there the
+    // whole point is an empty data path, and mounting ours would hand it the
+    // very thing it must do without.
+    if (!qEnvironmentVariableIsSet("DENKZETTEL_TEST_WITHOUT_DESKTOP_THEME")) {
+        themes::addBundledThemesToDataPath();
+        QVERIFY2(themes::borderOf(NarrowBorderTheme) > 0 && themes::borderOf(WideBorderTheme) > 0,
+                 "Die mitgelieferten Prüf-Themes lösen nicht auf — steht tests/themes/ am Platz?");
+    }
 }
 
 void CaptureTest::init()
@@ -311,6 +332,29 @@ void CaptureTest::writePlasmarc(const QString &theme)
 
 void CaptureTest::hullFollowsTheDesktopTheme()
 {
+    // Against the two themes the tests bring themselves, so that this holds on
+    // every machine — including one with no desktop theme installed at all.
+    checkHullDiffersBetween(NarrowBorderTheme, WideBorderTheme);
+}
+
+void CaptureTest::hullFollowsAnInstalledDesktopTheme()
+{
+    // The same assertion against **real** Plasma themes, discovered by
+    // measurement rather than named. This is the one that shows the code reads
+    // a desktop theme and not merely an SVG of ours — and the one that cannot
+    // always run: a machine whose themes all carry the same border has no pair
+    // to compare (see tests/desktopthemes.h).
+    const auto pair = themes::installedThemePair();
+    if (!pair) {
+        QSKIP("Kein Paar installierter Desktop-Themes mit verschiedenem Rand gefunden — "
+              "die mitgelieferten Prüf-Themes tragen die Zusicherung.");
+    }
+
+    checkHullDiffersBetween(pair->first, pair->second);
+}
+
+void CaptureTest::checkHullDiffersBetween(const QString &narrow, const QString &wide)
+{
     // AK 1 and AK 5 in one run, and deliberately on **one** window: the daemon
     // builds it at start and keeps it (SPEC 2.1), so a theme change has to
     // reach a window that is already standing.
@@ -319,11 +363,11 @@ void CaptureTest::hullFollowsTheDesktopTheme()
     // are held against each other — that is the assertion wireframe 4b writes
     // down, and the reason it writes it that way is that a drawing which fixes
     // a radius would be wrong.
-    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    m_window->reloadDesktopTheme(narrow);
     const QMargins narrowMargins = m_window->layout()->contentsMargins();
     const int narrowCorner = cornerRun(shot(*m_window));
 
-    m_window->reloadDesktopTheme(WideBorderTheme);
+    m_window->reloadDesktopTheme(wide);
     const QMargins wideMargins = m_window->layout()->contentsMargins();
     const int wideCorner = cornerRun(shot(*m_window));
 
@@ -335,12 +379,16 @@ void CaptureTest::hullFollowsTheDesktopTheme()
     QVERIFY(wideMargins.right() > narrowMargins.right());
     QVERIFY(wideMargins.bottom() > narrowMargins.bottom());
 
-    // And the corner is a different corner — measured on the picture, because
-    // the same border can carry a different curve. Both must be corners at all:
-    // a square window would run to zero under either theme.
+    // And the corner is a different corner. Measured on the picture, and the
+    // assertion is that the two **differ** — not that the wider border carries
+    // the rounder corner. Deriving the one from the other is what wireframe 4b
+    // forbids in so many words, and the installed themes show why: here `default`
+    // pairs a 4 px border with a corner run of 6, `CachyOS-Nord-round` an 8 px
+    // border with 7. Both must be corners at all — a square window runs to zero.
     QVERIFY(narrowCorner > 0);
-    QVERIFY2(wideCorner > narrowCorner,
-             qPrintable(QStringLiteral("%1 <= %2").arg(wideCorner).arg(narrowCorner)));
+    QVERIFY(wideCorner > 0);
+    QVERIFY2(wideCorner != narrowCorner,
+             qPrintable(QStringLiteral("beide %1").arg(wideCorner)));
 }
 
 void CaptureTest::readsTheDesktopThemeFromPlasmarc()
@@ -453,7 +501,15 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
     // with it: same corner, closed everywhere, on both of the sizes SPEC 3
     // names. Checked under both desktop themes — a hull that only survives the
     // narrow border would pass a one-theme check.
-    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+    // Die mitgelieferten Themes immer, ein installiertes zusaetzlich, wo es
+    // eines gibt: Die Form soll an einem echten Plasma-Theme gehalten haben und
+    // nicht nur an unserem SVG.
+    QStringList checked{NarrowBorderTheme, WideBorderTheme};
+    if (const auto installed = themes::anyInstalledTheme()) {
+        checked << *installed;
+    }
+
+    for (const QString &theme : checked) {
         // A window of its own per theme, and that is not tidiness. A window
         // that has been shown does not shrink back below the minimum its layout
         // took from the taller state — measured, and measured on the state
@@ -506,37 +562,49 @@ void CaptureTest::bindsAShadowFromTheThemeTiles()
     // `grab()` would not show a shadow either, because it lies outside the
     // widget. What can be shown is that a shadow object exists and that its
     // tiles are the ones of the desktop theme, pixel for pixel.
-    m_window->reloadDesktopTheme(NarrowBorderTheme);
-    m_window->showCapture();
+    // Das mitgelieferte Theme immer, ein installiertes zusaetzlich, wo es eines
+    // gibt: Die Kacheln sollen von einem echten Plasma-Theme gekommen sein und
+    // nicht nur von unserem SVG.
+    QStringList checked{NarrowBorderTheme};
+    if (const auto installed = themes::anyInstalledTheme()) {
+        checked << *installed;
+    }
 
-    const KWindowShadow *shadow = m_window->shadow();
-    QVERIFY(shadow);
-    QVERIFY(shadow->topTile());
-    QVERIFY(!shadow->topTile()->image().isNull());
+    for (const QString &theme : checked) {
+        m_window->reloadDesktopTheme(theme);
+        m_window->showCapture();
 
-    KSvg::ImageSet imageSet(NarrowBorderTheme, QStringLiteral("plasma/desktoptheme"));
-    KSvg::FrameSvg tiles;
-    tiles.setImageSet(&imageSet);
-    tiles.setImagePath(QStringLiteral("dialogs/background"));
-    tiles.setElementPrefix(QStringLiteral("shadow"));
-    QVERIFY(tiles.hasElementPrefix(QStringLiteral("shadow")));
+        const KWindowShadow *shadow = m_window->shadow();
+        QVERIFY2(shadow, qPrintable(theme));
+        QVERIFY(shadow->topTile());
+        QVERIFY(!shadow->topTile()->image().isNull());
 
-    // Each tile carries its **own** element, at its own size. The guard is not
-    // decoration: `Svg::pixmap(element)` ignores the element and returns the
-    // whole image, so a wrong implementation hands the compositor eight copies
-    // of the entire shadow — which it accepts without complaint, and which no
-    // picture of this project would show. That was the first implementation
-    // here, and the assertion it passed compared against the same wrong call.
-    QVERIFY(shadow->topTile()->image().size() != shadow->topLeftTile()->image().size());
+        KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
+        KSvg::FrameSvg tiles;
+        tiles.setImageSet(&imageSet);
+        tiles.setImagePath(QStringLiteral("dialogs/background"));
+        tiles.setElementPrefix(QStringLiteral("shadow"));
+        QVERIFY2(tiles.hasElementPrefix(QStringLiteral("shadow")), qPrintable(theme));
 
-    for (const QString &element : {QStringLiteral("shadow-top"), QStringLiteral("shadow-topleft")}) {
-        const QSize size = tiles.elementSize(element).toSize();
-        QVERIFY(!size.isEmpty());
+        // Each tile carries its **own** element, at its own size. The guard is
+        // not decoration: `Svg::pixmap(element)` ignores the element and returns
+        // the whole image, so a wrong implementation hands the compositor eight
+        // copies of the entire shadow — which it accepts without complaint, and
+        // which no picture of this project would show. That was the first
+        // implementation here, and the assertion it passed compared against the
+        // same wrong call.
+        QVERIFY2(shadow->topTile()->image().size() != shadow->topLeftTile()->image().size(),
+                 qPrintable(theme));
 
-        const KWindowShadowTile::Ptr tile =
-            element.endsWith(QStringLiteral("topleft")) ? shadow->topLeftTile() : shadow->topTile();
-        QCOMPARE(tile->image().size(), size);
-        QCOMPARE(tile->image(), tiles.image(size, element));
+        for (const QString &element : {QStringLiteral("shadow-top"), QStringLiteral("shadow-topleft")}) {
+            const QSize size = tiles.elementSize(element).toSize();
+            QVERIFY(!size.isEmpty());
+
+            const KWindowShadowTile::Ptr tile =
+                element.endsWith(QStringLiteral("topleft")) ? shadow->topLeftTile() : shadow->topTile();
+            QCOMPARE(tile->image().size(), size);
+            QCOMPARE(tile->image(), tiles.image(size, element));
+        }
     }
 }
 
@@ -558,7 +626,7 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
         QVERIFY(text);
 
         // Every road the standing window takes, not only the one it was built
-        // on: reading plasmarc, and being handed a name.
+        // on: reading plasmarc, and being handed a name that nothing answers to.
         m_window->reloadDesktopTheme();
         m_window->reloadDesktopTheme(NarrowBorderTheme);
         m_window->showCapture();

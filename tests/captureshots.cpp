@@ -1,4 +1,5 @@
 #include "capture/capturewindow.h"
+#include "desktopthemes.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
@@ -9,6 +10,7 @@
 #include <QPlainTextEdit>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTextStream>
 
 /**
  * Writes the picture series of the capture window's hull for the handover
@@ -35,13 +37,29 @@
 namespace
 {
 /**
- * The two desktop themes of wireframe 4a: a 4 px border against an 8 px one.
- * `breeze-dark` brings no `dialogs/background` of its own and inherits the one
- * of `default` — which is the Breeze hull, and the reason the drawing calls it
- * that.
+ * The two desktop themes of wireframe 4a: a narrow border against a wide one.
+ *
+ * Not named but found, and preferably **real**: the pictures are what the
+ * customer and the UI review look at, so they should show Plasma's own hulls
+ * and not an SVG of the test suite. Where no such pair is installed — every
+ * theme of the official KDE stack carries 4 px, so anywhere without CachyOS
+ * packages there is none — the bundled pair steps in, and the runner says so
+ * rather than producing two identical series in silence.
  */
-const QString NarrowBorderTheme = QStringLiteral("breeze-dark");
-const QString WideBorderTheme = QStringLiteral("CachyOS-Nord-round");
+std::pair<QString, QString> pickThemes(QTextStream &out)
+{
+    if (const auto installed = themes::installedThemePair()) {
+        out << "Desktop-Themes dieser Bildreihe (installiert): schmal=" << installed->first
+            << "  breit=" << installed->second << "\n";
+        return *installed;
+    }
+
+    out << "Desktop-Themes dieser Bildreihe (MITGELIEFERT — kein installiertes Paar mit\n"
+           "verschiedenem Rand gefunden; die Bilder zeigen die Prüf-Themes der Testsuite,\n"
+           "nicht Plasmas eigene Hüllen): schmal="
+        << themes::bundledNarrow() << "  breit=" << themes::bundledWide() << "\n";
+    return {themes::bundledNarrow(), themes::bundledWide()};
+}
 
 /**
  * The two colour schemes, with the measured colours of Breeze Light and Breeze
@@ -136,7 +154,14 @@ int main(int argc, char **argv)
         qFatal("Store ließ sich nicht öffnen: %s", qPrintable(store.lastError()));
     }
 
-    const QStringList themes{NarrowBorderTheme, WideBorderTheme};
+    QTextStream out(stdout);
+    // Die mitgelieferten Prüf-Themes gehören auf den Datenpfad, bevor das erste
+    // Theme aufgelöst wird — sie sind der Rückfall, wenn keine zwei
+    // installierten mit verschiedenem Rand da sind.
+    themes::addBundledThemesToDataPath();
+
+    const auto [narrowTheme, wideTheme] = pickThemes(out);
+    const QStringList themeList{narrowTheme, wideTheme};
     const QStringList themeNames{QStringLiteral("schmal"), QStringLiteral("breit")};
     const QStringList stateNames{QStringLiteral("leer"),
                                  QStringLiteral("getippt"),
@@ -146,13 +171,13 @@ int main(int argc, char **argv)
     // each of the three states (#55, AK 7). One window per picture: the hull
     // has to be right when the window is built, not only after a change.
     int number = 0;
-    for (int theme = 0; theme < themes.size(); ++theme) {
+    for (int theme = 0; theme < themeList.size(); ++theme) {
         for (const bool dark : {false, true}) {
             for (int state = 0; state < stateNames.size(); ++state) {
                 app.setPalette(breezePalette(dark));
 
                 CaptureWindow window(&store);
-                window.reloadDesktopTheme(themes.at(theme));
+                window.reloadDesktopTheme(themeList.at(theme));
                 typeState(window.findChild<QPlainTextEdit *>(), state);
                 window.show();
 
@@ -174,7 +199,7 @@ int main(int argc, char **argv)
     app.setPalette(breezePalette(false));
     for (const int pointSize : {9, 24}) {
         CaptureWindow window(&store);
-        window.reloadDesktopTheme(NarrowBorderTheme);
+        window.reloadDesktopTheme(narrowTheme);
 
         auto *text = window.findChild<QPlainTextEdit *>();
         QFont font = text->font();
