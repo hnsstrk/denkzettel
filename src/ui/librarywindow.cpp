@@ -541,7 +541,14 @@ void LibraryWindow::changeEvent(QEvent *event)
     // window is activated — there is no midnight timer (wireframe 3b). A
     // window left standing over night sorts itself anew at the next look, not
     // on its own.
-    if (event->type() == QEvent::ActivationChange && isActiveWindow()) {
+    //
+    // But only then. Regrouping resets the model, and putting the selection
+    // back afterwards scrolls the list to it: an Alt-Tab within the same day
+    // threw the reader 459 px — 7 rows of a 552 px picture — back onto his
+    // selection, although nothing about the grouping had changed (issue #59,
+    // measured on 04.08.2026).
+    if (event->type() == QEvent::ActivationChange && isActiveWindow()
+        && referenceTime().date() != m_groupedOn) {
         regroupList();
     }
 
@@ -592,6 +599,7 @@ void LibraryWindow::reload(Selection selection)
     // full list and a result list are the same code path — and clearing the
     // field needs no case of its own (SPEC 6).
     m_model->setNotes(m_store->search(m_search->text()), referenceTime());
+    m_groupedOn = referenceTime().date();
 
     // Saying the empty selection explicitly also stops QAbstractItemView from
     // picking the first entry on its own the moment the list takes the focus.
@@ -606,6 +614,7 @@ void LibraryWindow::regroupList()
     const qint64 selected = m_model->noteAt(m_list->currentIndex().row()).id;
 
     m_model->regroup(referenceTime());
+    m_groupedOn = referenceTime().date();
 
     const int row = m_model->rowOf(selected);
     m_list->setCurrentIndex(row >= 0 ? m_model->index(row) : QModelIndex());

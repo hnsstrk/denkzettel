@@ -1,0 +1,22 @@
+# Voller Testlauf nach der Heilung — Issue #59, 04.08.2026
+# ctest --test-dir build
+
+Test project /home/hnsstrk/Projekte/denkzettel-s6b/build
+    Start 1: appstreamtest
+1/7 Test #1: appstreamtest ....................   Passed    0.01 sec
+    Start 2: storetest
+2/7 Test #2: storetest ........................   Passed    0.02 sec
+    Start 3: capturetest
+3/7 Test #3: capturetest ......................   Passed    0.03 sec
+    Start 4: librarytest
+4/7 Test #4: librarytest ......................   Passed    5.42 sec
+    Start 5: shelltest
+5/7 Test #5: shelltest ........................   Passed    0.07 sec
+    Start 6: firstruntest
+6/7 Test #6: firstruntest .....................   Passed    0.01 sec
+    Start 7: installtest
+7/7 Test #7: installtest ......................   Passed    0.02 sec
+
+100% tests passed out of 7
+
+Total Test time (real) =   5.58 sec

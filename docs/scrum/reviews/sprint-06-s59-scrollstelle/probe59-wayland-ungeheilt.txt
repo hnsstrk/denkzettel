@@ -1,0 +1,9 @@
+# Sichtprüfung unter Wayland, Stand OHNE Heilung — Issue #59, 04.08.2026
+# Läufer: docs/scrum/reviews/sprint-06-s59-scrollstelle/probe59.cpp
+
+Auswahl in Zeile 14, Rollwert nach dem Zurückrollen: 0
+Auswahl im Bild: nein
+Fenster verlassen: ja, zurückgekommen: ja
+Rollwert nach der Rückkehr: 7
+Auswahl unverändert: ja
+ERGEBNIS: Stelle verloren oder Aktivierung nicht angekommen
