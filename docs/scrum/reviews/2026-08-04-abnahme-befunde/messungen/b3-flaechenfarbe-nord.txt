@@ -1,0 +1,23 @@
+=== Flächenfarbe ===
+XDG_CONFIG_HOME  : /tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/cfg-nord
+Plattform-Thema  : kde
+
+Palette der Anwendung
+  Window          : 30,34,51
+  WindowText      : 102,194,242
+  PlaceholderText : 102,106,115
+  Base            : 22,25,37
+  Text            : 71,173,218
+
+Gemessen am gezeichneten Fenster (600x174 Gerätepixel, DPR 1)
+  Fläche (rechts oben, textfrei)                
+      gezeichnet 30,34,51       Palette 30,34,51       GLEICH
+  Anwendungsname „Denkzettel" (PlaceholderText) 
+      gezeichnet 102,106,115    Palette 102,106,115    GLEICH
+  Notiztext (WindowText)                        
+      Palette 102,194,242    im Textbereich 12-mal getroffen   VORHANDEN
+      Schreibmarke im selben Bereich: 225,221,204   (Umkehrung der Fläche 225,221,204)
+  Fußzeile (PlaceholderText)                    
+      gezeichnet 102,106,115    Palette 102,106,115    GLEICH
+
+Bild: flaechenfarbe.png

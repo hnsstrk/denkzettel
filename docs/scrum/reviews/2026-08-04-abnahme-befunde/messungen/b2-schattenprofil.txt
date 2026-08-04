@@ -1,0 +1,46 @@
+=== Schattenprofil an der linken Kante ===
+Skalierung des Bildschirms: 1,6 (kscreen-doctor) — die Zahlen sind Gerätepixel.
+
+--- Denkzettel (Schatten des Desktop-Themes)
+    03-ecke-denkzettel.png  31x32, Zeile 26, Kante bei x=8
+    Hellster Grund im Ausschnitt (x=0): 244.0
+    x   Abstand von der Kante   Helligkeit   Verdunkelung gegen x=0
+      0        8 px             244.0        +0.0
+      1        7 px             243.0        -1.0
+      2        6 px             240.0        -4.0
+      3        5 px             236.0        -8.0
+      4        4 px             231.0       -13.0
+      5        3 px             227.0       -17.0
+      6        2 px             222.0       -22.0
+      7        1 px             219.0       -25.0
+    Verdunkelung unmittelbar an der Kante: -25.0 von 244.0  =  10 %
+    Im Ausschnitt sichtbare Länge des Verlaufs: 8 Gerätepixel  (= 5 logische) — UNTERGRENZE, der Ausschnitt endet hier.
+
+--- natives Fenster (Schatten der Dekoration)
+    04-ecke-nativ.png  49x37, Zeile 30, Kante bei x=21
+    Hellster Grund im Ausschnitt (x=0): 223.7
+    x   Abstand von der Kante   Helligkeit   Verdunkelung gegen x=0
+      0       21 px             223.7        +0.0
+      1       20 px             222.0        -1.7
+      2       19 px             221.0        -2.7
+      3       18 px             220.7        -3.0
+      4       17 px             220.0        -3.7
+      5       16 px             218.0        -5.7
+      6       15 px             217.0        -6.7
+      7       14 px             216.0        -7.7
+      8       13 px             215.7        -8.0
+      9       12 px             215.0        -8.7
+     10       11 px             213.0       -10.7
+     11       10 px             212.0       -11.7
+     12        9 px             211.0       -12.7
+     13        8 px             209.7       -14.0
+     14        7 px             208.0       -15.7
+     15        6 px             206.7       -17.0
+     16        5 px             205.0       -18.7
+     17        4 px             204.0       -19.7
+     18        3 px             203.0       -20.7
+     19        2 px             201.7       -22.0
+     20        1 px             200.0       -23.7
+    Verdunkelung unmittelbar an der Kante: -23.7 von 223.7  =  11 %
+    Im Ausschnitt sichtbare Länge des Verlaufs: 21 Gerätepixel  (= 13 logische) — UNTERGRENZE, der Ausschnitt endet hier.
+

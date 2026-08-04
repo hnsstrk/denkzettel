@@ -1,0 +1,10 @@
+{
+    "KPlugin": {
+        "Id": "denkzettel-pruef-eckig",
+        "Name": "Denkzettel Prüf-Theme (eckige Ecken)",
+        "Description": "Messmittel zu Kundenbefund B1. Kein Gestaltungsvorschlag.",
+        "License": "MIT",
+        "Version": "1.0"
+    },
+    "X-Plasma-API": "5.0"
+}
