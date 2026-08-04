@@ -2253,3 +2253,73 @@ nativen Weg selbst zeichnet).
 
 **Untersuchung läuft** (`docs/scrum/reviews/2026-08-04-abnahme-befunde/`). Der
 Umbau wird als Story geschnitten, wenn die Messung liegt — nicht vorher.
+
+---
+
+## 25. Sprint-Bilanz
+
+**Der Sprint endet mit einer abgelehnten Story.** Das ist ein Ergebnis, kein
+Unfall, und es gehört so gebucht.
+
+| Story | SP | Ausgang |
+|---|---|---|
+| **#59** — ruhige Liste bei Fensteraktivierung | 2 | **wartet auf einen Satz des Kunden.** Alle drei AK sind belegt, der Test ist rot vor der Heilung (7/0) und mutationsgeprüft; die Nachprüfung am Kundenblick ist eine benannte Grenze (§22.3, ein Agent kann unter Wayland kein Kürzel auslösen). Der Kunde hat zuerst `Tab` statt `Alt+Tab` geprüft |
+| **#56** — Feldhöhe folgt der Schrift | 1 | **abgenommen und geschlossen.** Am Kundenblick nicht prüfbar (benannte Grenze), Nachweis Test und Bild |
+| **#55** — Fensterhülle | 8 | **nicht angenommen.** Bleibt offen, geht in den Backlog, wird mit #83 zusammen abgenommen |
+
+**Geliefert: 1 von 3 Stories, 1 von 11 Punkten** — mit #59 wären es 2 und 3.
+Der Milestone bleibt offen, solange #55 und #59 es sind.
+
+### 25.1 Warum die Ablehnung der wertvollste Teil dieses Sprints ist
+
+#55 war die größte Story, die dieses Projekt gezogen hat. Sie ist durch beide
+Reviews gegangen — karpathy mit Verdict `ok`, UI-Review mit 22 von 26 `pass`
+und keinem `fail` —, durch eine DoD-Prüfung mit fünf Mängeln, durch eine
+CI mit null Warnungen. **Und sie war trotzdem falsch.**
+
+Nicht handwerklich falsch. Die Farbzusagen halten, unter dem Schema des Kunden
+nachgemessen; die Maße treffen die Zeichnung; die Rundung kommt nachweislich
+aus dem Theme und nicht aus dem Code. **Falsch war die Kategorie**, und die hat
+niemand je entschieden: Das Fenster ist rahmenlos (SPEC 3, Sprint 1), also
+dekoriert KWin es nicht, also malt es sich die Hülle selbst — und sähe damit
+auch fehlerfrei aus wie eine Plasma-Überlagerung, nicht wie ein
+Anwendungsfenster.
+
+**Das hat kein Prüfmittel dieses Projekts gefunden, und keines hätte es
+gefunden.** Reviews prüfen gegen Akzeptanzkriterien und Zeichnungen; die
+Zeichnung zeigte eine Hülle, die AK verlangten sie aus dem Theme, beides war
+erfüllt. Gefehlt hat die Frage, zu welcher Familie das Fenster gehört — und die
+stellt nur, wer das Fenster **neben andere Fenster stellt und hinsieht**.
+
+Das ist die Rechtfertigung der Kundenabnahme in einem Satz, und sie ist an
+diesem Sprint teuer bezahlt worden.
+
+### 25.2 Zwei Befunde, die der PO zurückgenommen hat
+
+**#80 war kein Produktfehler.** Ich habe dem Kunden auf seiner
+Abnahme-Checkliste geschrieben, die Konturlinie ende vor der Rundung. Sie tut
+es nicht — er sieht sie. Was sie nicht zeigt, sind **unsere eigenen
+Bildbelege**: Offscreen wählt Qt ein Format ohne Alphakanal und löscht die
+Linie. Der Befund stammte aus einem Bild, das schlechter ist als das Programm.
+
+**#82 hatte die falsche Ursache.** Der Verdacht lautete, `OutlineWidth` werde
+als logisches Pixel geführt und zweimal als Pixelmaß benutzt. Tatsächlich war
+es die **Auflösung der Maske**. Beide Issues sind mit Messung geschlossen.
+
+**Der gemeinsame Nenner mit M1 und M4 (§21.1):** Auch hier fiel eine Aussage
+von ihrem Gegenstand ab — nur diesmal in die andere Richtung. Nicht der Zustand
+änderte sich unter der Aussage, sondern die Aussage stammte aus einem
+**anderen Zustand** als dem, über den sie sprach: aus dem Bild statt aus dem
+Programm.
+
+### 25.3 Die Bedingung, die alles ordnete und nirgends stand
+
+**Der Kunde fährt Skalierung 1,6.** 600 × 174 logische Pixel sind bei ihm
+960 × 278 tatsächliche. **Zwei der vier Abnahmebefunde bestehen bei Verhältnis
+1 gar nicht** — deshalb hat sie in drei Sprints niemand gesehen.
+
+Damit sagt die Bildreihe zu AK 1 und AK 7 von #55 nichts über das, was der
+Kunde vor sich hat: Sie entsteht bei Verhältnis 1 und offscreen, und beides
+weicht vom Auslieferungszustand ab. **Das ist eine DoD-Frage für den Scrum
+Master, keine Story** — und der schwerere der beiden Prüfweg-Befunde dieses
+Sprints.
