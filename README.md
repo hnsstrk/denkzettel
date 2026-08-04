@@ -13,9 +13,10 @@ die woanders hingehören: eine Idee, eine offene Frage, ein Kommandozeilen-Fund.
 Wenn ich dafür erst eine Datei anlegen muss, ist der Gedanke weg. Was sich
 lohnt, wandert später in den Obsidian-Vault.
 
-Gebaut heißt hier nicht getippt: **den Code schreiben Claude-Code-Agenten**, ich
-bin der Kunde des Teams. Wie das abläuft und was dabei schiefging, steht offen
-im Repository — [Wie hier gearbeitet wird](#wie-hier-gearbeitet-wird).
+Den Code schreibe ich nicht selbst: **Denkzettel wird von Claude-Code-Agenten
+entwickelt**, ich bin der Kunde des Teams. Wie das abläuft und was dabei
+schiefging, steht offen im Repository —
+[Wie hier gearbeitet wird](#wie-hier-gearbeitet-wird).
 
 - [Funktionen](#funktionen)
 - [Installation](#installation)
@@ -141,15 +142,12 @@ Entwicklung, UI/UX, Scrum Master, Verwaltung. Bei mir liegen Ziele,
 Prioritäten, Freigaben und die Abnahme. Die meisten Commits tragen deshalb
 einen `Co-Authored-By: Claude`-Vermerk.
 
-Das ist kein Kleingedrucktes, sondern der halbe Gegenstand dieses
-Repositories. Denkzettel entsteht in Sprints mit geschätzten Stories, festen
-Rollen und einer Definition of Done. Sprint-Protokolle, Prüfberichte samt
-Bildern und die Arbeitsvereinbarung liegen offen unter
-[`docs/scrum/`](docs/scrum/); die bindende Spezifikation ist
+Denkzettel entsteht in Sprints mit geschätzten Stories und einer Definition of
+Done. Sprint-Protokolle, Prüfberichte samt Bildern und die Arbeitsvereinbarung
+liegen offen unter [`docs/scrum/`](docs/scrum/); die bindende Spezifikation ist
 [`SPEC.md`](SPEC.md). Dort stehen auch die Fehlgriffe: grüne Tests, die nichts
-prüften, Bildbelege eines veralteten Standes, gut begründete
-Fehlentscheidungen. Wer wissen will, wie belastbar von Agenten gebaute Software
-ist, findet die Antwort eher in den Prüfberichten als in dieser Zeile.
+prüften, Bildbelege eines veralteten Standes, Entscheidungen, die gut begründet
+waren und sich beim Nachmessen als falsch herausstellten.
 
 Jeder Push auf `main` und jeder Pull Request lösen einen Bau- und Testlauf aus
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Er läuft in einem
