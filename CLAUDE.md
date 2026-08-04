@@ -61,28 +61,30 @@ installieren, Belege ablegen, prüfen — nach ihr Issues schließen, Journal,
 Push, Zweige und Worktrees räumen. Acht der neun Mängel aus Sprint 3 waren
 Abschlussmängel.
 
-**Jeder Zugang nach der Sprint-Freigabe wird gebucht** — Issues *und* Punkte.
-Berührt er eine der beiden Grenzen (2–4 Stories, ~13 SP), legt der PO ihn dem
-Kunden als Grenzüberschreitung vor. In Sprint 3 wurde bei jedem Zugang die
-Punktzahl mitgezählt, die Zahl der Issues nicht — die Grenze fiel niemandem
-auf.
+**Jeder Zugang nach der Sprint-Freigabe wird gebucht** — Issues *und*
+Größenklassen. Berührt er eine der beiden Grenzen (2–4 Stories; kein
+`size:xl`, höchstens eine `size:l`, daneben nur `size:s`), legt der PO ihn
+dem Kunden als Grenzüberschreitung vor. In Sprint 3 wurde bei jedem Zugang
+die Punktzahl mitgezählt, die Zahl der Issues nicht — die Grenze fiel
+niemandem auf.
 
 **Flüchtige Belege sofort sichern.** Kundenbilder liegen in temporären
 Ordnern; von acht Bildern der Sprint-3-Abnahme überlebte sieben Minuten nur
 eines.
 
-**Das `sp:`-Label wird im selben Zug gesetzt wie die zweite unabhängige
-Schätzung — vorher gar nicht** (04.08.2026). Der PO legt die Issues an, also
-entsteht die Zweideutigkeit hier: Ein Label sieht gleich aus, ob es eine
-moderierte Schätzung trägt oder eine beim Anlegen hingeschriebene Zahl — #57
-trug `sp:2` aus der Anlage und wurde von zwei Schätzern auf 3 gehoben, #68 trug
-`sp:5` aus einer Hand. In der *einzigen Quelle der Wahrheit* ist ein
-doppeldeutiges Feld teurer als anderswo. Eine grobe Hausnummer gehört als
-Freitextsatz ins Issue, der nicht wie eine Schätzung aussieht. Damit ist der
-zweimal gerissene Punkt (M2 in Sprint 5, K1 in Sprint 6) verankert; der
-Altbestand und die Falle beim Nachprüfen — die Schätzung steht unter der
-**Story-ID**, nicht unter der Issue-Nummer — stehen in `PROZESS.md`,
-Abschnitt Artefakte.
+**Das `size:`-Label wird im selben Zug gesetzt wie der Vorprüfbericht —
+vorher gar nicht** (04.08.2026). Der PO legt die Issues an, also entsteht die
+Zweideutigkeit hier: Ein Label sieht gleich aus, ob ein Urteil aus zwei
+unabhängigen Messungen dahintersteht oder eine beim Anlegen hingeschriebene
+Zahl. Beides ist unter dem alten `sp:`-Label vorgekommen — #57 trug `sp:2`
+aus der Anlage und wurde von zwei Schätzern auf 3 gehoben, #68 trug `sp:5`
+aus einer Hand. In der *einzigen Quelle der Wahrheit* ist ein doppeldeutiges
+Feld teurer als anderswo. Eine grobe Hausnummer gehört als Freitextsatz ins
+Issue, der nicht wie ein Urteil aussieht. Damit ist der zweimal gerissene
+Punkt (M2 in Sprint 5, K1 in Sprint 6) verankert; die Story-Point-Skala
+selbst ist am 04.08.2026 beendet worden — Gründe, Größenklassen und die
+Falle beim Nachprüfen des Altbestands (die alte Schätzung steht unter der
+**Story-ID**, nicht unter der Issue-Nummer) stehen in `PROZESS.md`.
 
 ## Prüfhaltung
 
@@ -116,6 +118,14 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   gewöhnlicher Build fasst sie an. Das entschärft die Falle, hebt sie aber
   nicht auf: Wer den Läufer startet, ohne vorher zu bauen, bekommt weiter das
   alte Bild. Die Regel gilt unverändert, nur ihr Grund ist ein anderer.
+- **Kein Agent kann sich unter Wayland den Fokus zurückholen** (Sprint 6,
+  §16.1 M-B1). `activateWindow()` tut es nicht, ein Alt-Tab lässt sich nicht
+  auslösen — dazu bräuchte es ein xdg-activation-Token. Wer eine Prüfung mit
+  Fensterwechsel baut, nimmt den compositor-getriebenen Weg: das obenauf
+  liegende Fenster **schließen**, dann gibt der Compositor den Fokus von
+  selbst zurück. Der erste Sichtlauf, der es anders versuchte, maß nichts und
+  sah dabei aus wie ein Beleg. Weitere Fälle dieser Art führt
+  `.claude/agents/denkzettel-dev.md`.
 
 ## Retrospektiven
 
