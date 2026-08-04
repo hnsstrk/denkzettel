@@ -23,11 +23,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS DBus Widgets Sql)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     Config
+    CoreAddons
     DBusAddons
     GlobalAccel
     I18n
     Notifications
     StatusNotifierItem
+    Svg
     WidgetsAddons
     WindowSystem
 )

@@ -1,0 +1,23 @@
+Messung 6 — Welcher Aufruf schneidet eine Schattenkachel? (#55, AK 7)
+=====================================================================
+
+default  —  Svg::size() = 157x64
+   Element              elementSize   pixmap(id)   image(elementSize, id)
+   ---------------------------------------------------------------------
+   shadow-topleft       16x16         157x64       16x16
+   shadow-top           32x16         157x64       32x16
+   shadow-left          16x32         157x64       16x32
+   shadow-bottomright   16x16         157x64       16x16
+
+CachyOS-Nord-round  —  Svg::size() = 173x56
+   Element              elementSize   pixmap(id)   image(elementSize, id)
+   ---------------------------------------------------------------------
+   shadow-topleft       24x24         173x56       24x24
+   shadow-top           20x24         173x56       20x24
+   shadow-left          24x20         173x56       24x20
+   shadow-bottomright   24x24         173x56       24x24
+
+Befund: `pixmap(id)` liefert für **jedes** Element dieselbe Größe — das
+ganze Bild. `image(elementSize(id), id)` liefert das Element. Ein Bau auf
+dem ersten Weg übergibt dem Compositor achtmal den kompletten Schatten;
+`KWindowShadow::create()` nimmt das an und meldet wahr.

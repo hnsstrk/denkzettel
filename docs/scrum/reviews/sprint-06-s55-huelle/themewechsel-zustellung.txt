@@ -1,0 +1,19 @@
+Messung 2 — Zustellwege eines Desktop-Theme-Wechsels (#55, AK 5)
+================================================================
+
+Beobachtete Datei: /home/hnsstrk/Projekte/denkzettel-s6a/docs/scrum/reviews/sprint-06-s55-huelle/build/sandkasten/plasmarc
+
+A) Fremder Schreiber OHNE KConfig::Notify  ->  breeze-dark
+   KDirWatch meldet: created
+   Ergebnis A: KConfigWatcher=0   KDirWatch=1
+
+B) Fremder Schreiber MIT KConfig::Notify   ->  CachyOS-Nord-round
+   KConfigWatcher meldet: Gruppe=Theme Schlüssel=name
+   KDirWatch meldet: created
+   Ergebnis B: KConfigWatcher=1   KDirWatch=1
+
+Befund: KDirWatch sieht beide Schreibarten, KConfigWatcher nur die zweite.
+Die Hülle hängt deshalb an KDirWatch — sonst hinge ihre Zusicherung an der
+Schreibdisziplin eines fremden Programms. Dass KConfig die Datei ersetzt
+statt sie zu überschreiben, ist an der Meldung `created` abzulesen; ein
+QFileSystemWatcher verlöre dabei seine Beobachtung.

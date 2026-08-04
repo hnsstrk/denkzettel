@@ -1,0 +1,10 @@
+{
+    "KPlugin": {
+        "Id": "denkzettel-test-breit",
+        "Name": "Denkzettel-Pruef-Theme (breit)",
+        "Description": "Pruef-Theme der Testsuite. Kein Gestaltungsvorschlag.",
+        "License": "MIT",
+        "Version": "1.0"
+    },
+    "X-Plasma-API": "5.0"
+}
