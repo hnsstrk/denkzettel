@@ -53,14 +53,18 @@ Fensterecken. Was gerade ansteht, steht in den
 
 Fertige Pakete gibt es noch nicht — Denkzettel wird bis auf Weiteres aus dem
 Quelltext gebaut. Gebraucht werden CMake ab 3.20, Qt 6.7 (DBus, Widgets, Sql),
-die KDE Frameworks 6 (Config, DBusAddons, GlobalAccel, I18n, Notifications,
-StatusNotifierItem, WidgetsAddons, WindowSystem) und ECM. Auf Arch und
-CachyOS:
+die KDE Frameworks 6 (Config, CoreAddons, DBusAddons, GlobalAccel, I18n,
+Notifications, StatusNotifierItem, Svg, WidgetsAddons, WindowSystem) und ECM.
+Auf Arch und CachyOS:
 
 ```
-sudo pacman -S cmake extra-cmake-modules qt6-base kconfig kdbusaddons \
-    kglobalaccel ki18n knotifications kstatusnotifieritem kwidgetsaddons kwindowsystem
+sudo pacman -S cmake extra-cmake-modules qt6-base kconfig kcoreaddons kdbusaddons \
+    kglobalaccel ki18n knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem
 ```
+
+Das Erfassungsfenster holt seine Hülle aus dem Desktop-Theme. Wo keins
+installiert ist, zeichnet es eine schlichte Fläche und bleibt benutzbar —
+für das Theme sorgt auf Arch `libplasma`.
 
 ```
 cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr
