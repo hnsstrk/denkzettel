@@ -268,3 +268,40 @@ auftragsgemäß **noch nicht** ausgeführt.
   laufenden Sitzung nicht durchgespielt; die Theme-Hüllen wurden gerendert, nicht
   im Betrieb gewechselt.
 - Der Skalierungsfall zu B7 ist eine begründete Vermutung, keine Messung.
+
+---
+
+## Nachtrag vom 04.08.2026 — 23 Dateinamen tragen 6 Aufnahmen
+
+Aufgefallen bei der Erstanwendung des Prüfskripts `docs/scrum/bildbelege-pruefen.sh`
+(Beschluss V2 vom 04.08.2026), das prüfsummengleiche Bilder innerhalb eines
+Belegordners meldet. Bewertung: `docs/scrum/reviews/2026-08-04-bildbelege-bewertung.md`,
+Mängel M-A und M-B.
+
+**Die Aussage dieses Berichts bleibt richtig, die Zahl der Belege nicht.**
+Oben heißt es: *„Die gerenderten Hüllen unterscheiden sich sichtbar in Radius,
+Deckkraft und Farbe."* Das trifft zu — sechs verschiedene Hüllen unterscheiden
+sich tatsächlich. Die **23 `achse3-huelle-*`-Dateien tragen aber nur sechs
+Aufnahmen**, und die Dateiliste überzeichnet damit die Zahl der Messungen.
+
+Zwei Einzelheiten, die erst dadurch sichtbar wurden:
+
+1. **Das Farbschema ändert die Hülle nicht.** Je Desktop-Theme sind die
+   Aufnahmen unter `BreezeDark`, `BreezeLight` und `CachyOSNord` bytegleich.
+   Das ist ein **Ergebnis dieser Messreihe**, das oben nicht ausgesprochen ist:
+   Die Hülle folgt dem Desktop-Theme, nicht dem Farbschema. Es stützt die
+   Aussage „Die Theme-Hülle geht mit" — sie stand nur nie als Befund da.
+2. **`cachyos-emerald`, `-color` und `-light` liefern eine einzige Hülle**
+   (sieben Dateien, eine Aufnahme). Für dieses Tripel trägt der Satz
+   „unterscheiden sich sichtbar" **nicht**.
+
+**Ein Dateiname stammt aus einem Skriptfehler.** Zwei Dateien heißen
+`achse3-huelle-default breeze-light breeze-dark cachyos-emerald
+cachyos-emerald-color cachyos-emerald-light CachyOS-Nord-round
+Iridescent-round-<Schema>.png` — eine nicht in Anführungszeichen gesetzte
+Schleifenvariable hat sämtliche Theme-Namen in **einen** Namen geschrieben. Sie
+sind bytegleich mit den `-default-`-Aufnahmen und tragen keine eigene Messung.
+
+**Nichts wird gelöscht.** Dieser Bericht ist Beweislage; ein nachträglich
+geglätteter Beleg ist keiner mehr. Der Nachtrag steht hier, damit niemand die
+Dateizahl für die Messzahl hält.

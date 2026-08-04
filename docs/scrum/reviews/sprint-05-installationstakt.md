@@ -57,3 +57,24 @@ Schemawechsels zeigten das Terminalfenster statt der Bibliothek
 gültigen Aufnahmen aktivieren das Fenster je Bild vorher per
 `ShowLibrary`. Merksatz für den nächsten Takt: Ein Bild belegt nur,
 was darauf zu sehen ist — das gehört angesehen, nicht angenommen.
+
+---
+
+## Nachtrag vom 04.08.2026 — zwei Belege, eine Aufnahme
+
+`bibliothek-installiert.png` und `schema-dunkel-installiert.png` sind **dieselbe
+Aufnahme** (prüfsummengleich). Der Befund stammt aus Sprint 5 selbst (dortiger
+Nachtrag V2: *„Zwei Belege sind erst zwei, wenn sie zwei Aufnahmen sind"*); der
+angekündigte Nachtrag ist bis heute ausgeblieben und wird hiermit geführt.
+
+Er ist am 04.08.2026 von `docs/scrum/bildbelege-pruefen.sh` erneut gefunden
+worden — diesmal zusammen mit 22 weiteren Gruppen, von denen die Bewertung
+(`docs/scrum/reviews/2026-08-04-bildbelege-bewertung.md`) 18 als berechtigt
+einstuft. Dieser hier gehört nicht dazu: Der installierte Bibliotheksstand und
+der Schemawechsel im dunklen Farbschema sind **zwei verschiedene Zustände** und
+brauchen zwei Aufnahmen.
+
+**Was das für die Aussage bedeutet:** Der Installationstakt selbst ist damit
+nicht widerlegt — das vorhandene Bild belegt, was darauf zu sehen ist. Es belegt
+nur **einen** der beiden Punkte, nicht zwei. Der fehlende Nachweis wird beim
+nächsten Installationstakt mit erhoben.
