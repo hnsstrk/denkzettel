@@ -18,6 +18,11 @@ Dateien und dem Berichtsordner nichts von diesem Strang.
 
 ## 2. Der Entwurf
 
+> **Nachtrag 04.08.2026:** Die Bauart innerhalb der Datei ist inzwischen eine
+> andere — das statische Objekt hat die CI rot gemacht. Der Entwurf im Großen
+> (Objektbibliothek, `link_libraries()` am Dateikopf) gilt unverändert.
+> Siehe Abschnitt 6.
+
 Eine Objektbibliothek `testsilence` mit einem statischen Objekt, dessen
 Konstruktor `qputenv("CANBERRA_DRIVER", "null")` ruft. Der Konstruktor läuft
 **vor `main()`**; libcanberra liest die Variable erst beim Öffnen seines
@@ -186,3 +191,176 @@ Schritt „Warnungen zählen", `-ne 0 → exit 1`) — unverändert und eingehal
   still, aber die Frage, ob es einen zweiten Auslöser gibt, ist damit nicht
   beantwortet, sondern nur überdeckt. Eine Wiederholungsmessung je Läufer
   wäre die saubere Klärung — sie stand nicht in meinem Auftrag.
+
+---
+
+# Nachtrag vom 04.08.2026: der erste rote CI-Lauf
+
+Auftrag des PO nach Commit `d30f5d0`. Geändert wurde allein
+`tests/testsilence.cpp`; `tests/CMakeLists.txt` blieb unberührt, weil der
+Entwurf im Großen trägt. Nicht committet.
+
+## 6. Der Befund und seine Behebung
+
+Die CI meldete an `d30f5d0`:
+
+```
+tests/testsilence.cpp:41:1: warning: non-POD static
+  (SilentAudio (anonymous namespace)::silentAudio) [-Wclazy-non-pod-global-static]
+```
+
+Damit standen 4 clazy-Befunde gegen die Schwelle 3, und der Lauf brach ab.
+Selbst nachgemessen, bevor ich etwas anfasste:
+
+```
+$ cmake --build build --target lint-clazy | grep -c 'warning:'
+4
+```
+
+**Behoben, ohne die Wirkung zu verlieren.** Gebraucht wird nur *eine
+Auswertung vor `main()`*, nicht ein Objekt, das den ganzen Lauf über steht:
+
+```cpp
+int silenceAudio()
+{
+    qputenv("CANBERRA_DRIVER", "null");
+    return 0;
+}
+
+const int silenceApplied = silenceAudio();
+```
+
+Ein `int` ist POD — kein Konstruktor, keine unklare Initialisierungsreihenfolge,
+kein Destruktorlauf beim Beenden, und damit auch nichts, was clazy zu Recht
+anmerkt. Die dynamische Initialisierung des Namensraum-Objekts läuft dennoch
+vor `main()`; sie hat eine Nebenwirkung und darf deshalb nicht wegoptimiert
+werden. Nachgemessen statt geglaubt: Der Initialisierer steht im gelinkten
+Programm.
+
+```
+$ nm -C build/bin/librarytest | grep -i silence
+... t _GLOBAL__sub_I_testsilence.cpp
+... t (anonymous namespace)::silenceAudio()
+... b (anonymous namespace)::silenceApplied
+```
+
+Ein `NOLINT` habe ich nicht vorgelegt: Der Befund ist nicht falsch, und die
+POD-Fassung ist die einfachere Sache — sie schafft ab, worüber der Linter
+klagt, statt es zuzudecken. Der Kommentarkopf der Datei ist mitgezogen
+(„der **Aufruf** unten läuft vor `main()`" statt „das statische Objekt"), und
+die neue Stelle trägt in zwei Zeilen den Grund, damit niemand sie in ein
+Objekt zurückverwandelt.
+
+## 7. Nachweise des Nachtrags
+
+Wieder alle Messungen mit **nicht gesetztem** `CANBERRA_DRIVER`
+(`env | grep -ci canberra` → `0`).
+
+### clazy: 3 Befunde, Schwelle gehalten
+
+```
+$ cmake --build build --target lint-clazy | grep 'warning:'
+tests/librarytest.cpp:2336:5: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/librarytest.cpp:2342:5: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/shelltest.cpp:361:24: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]
+```
+
+Genau die drei Altbefunde vom 04.08.2026, kein vierter.
+
+### clang-tidy: kein neuer Befund — und eine Abweichung, die ich melde
+
+```
+$ cmake --build build --target lint-tidy > tidy.log
+$ grep -c 'warning:' tidy.log            # so zählt die CI bei clazy
+130
+$ grep 'warning:' tidy.log | sort -u | wc -l
+73
+$ grep 'warning:' tidy.log | grep -c testsilence
+0
+```
+
+Keine Zeile nennt `testsilence.cpp`. Weil „keine Zeile nennt sie" ein
+Umkehrschluss ist, habe ich den Vergleich gefahren, statt ihn zu erschließen —
+derselbe Lauf ohne die Datei:
+
+```
+$ run-clang-tidy -p build/lint -quiet "^<repo>/src/.*\.cpp$" \
+      "^<repo>/tests/(?!testsilence|spellfixspike).*\.cpp$"
+Running clang-tidy ... for 25 files out of 42 in compilation database
+roh: 130   eindeutig: 73
+```
+
+**Identisch mit und ohne die Datei.** Der Beitrag dieser Änderung ist
+gemessen null.
+
+Zwei Dinge dazu, die nicht meine Fläche sind und deshalb als Meldung stehen
+bleiben, nicht als Änderung:
+
+1. **Der bekannte Stand ist 72, gemessen habe ich 73** (eindeutige Befunde).
+   Die Abweichung besteht mit und ohne meine Datei, kommt also nicht von ihr;
+   woher sie kommt, habe ich nicht ermittelt — das lag außerhalb des Auftrags.
+2. **Die Zählart entscheidet über die Zahl:** roh 130, eindeutig 73. Die
+   Differenz sind Befunde in Kopfdateien, die je einschließender
+   Übersetzungseinheit erneut ausgegeben werden. Käme clang-tidy je als Tor in
+   die CI, müsste die Zählart mit der Schwelle zusammen festgelegt werden —
+   sonst misst die Schranke etwas anderes als die Notiz, gegen die sie gesetzt
+   wurde. (Bei clazy stellt sich die Frage nicht: dort sind roh und eindeutig
+   beide 3.)
+
+Ein Nebenbefund aus meinem ersten Vergleichslauf, weil er dieselbe Falle
+zeigt: Ein Regex `src/.*\.cpp$` trifft auch `build/src/…/mocs_compilation.cpp`
+und förderte 21 zusätzliche Befunde in **generiertem** Code zutage. Das Ziel
+`lint-tidy` übergibt absolute Pfade und ist davon nicht betroffen; wer den
+Linter von Hand ruft, muss den Ausdruck verankern.
+
+### `ctest` weiterhin 7/7
+
+```
+$ ctest --test-dir build
+100% tests passed out of 7
+Total Test time (real) =   5.55 sec
+```
+
+### Die Stille wirkt weiter: 0 Audio-Streams
+
+| Schritt | `sink-input`-Ereignisse |
+|---|---|
+| Positivkontrolle 1 (`paplay --volume=0`) | **6** |
+| `ctest` (7/7) | 6 → **0 neu** |
+| `editshots`, frisch gebaut | 6 → **0 neu** |
+| Positivkontrolle 2 (`paplay --volume=0`) | 12 → **+6** |
+
+Log: `2026-08-04-klangfrei/pactl-messung-nachtrag.log`. Der Läufer hat dabei
+wieder seine fünf Bilder geschrieben, den Wächterdialog eingeschlossen.
+
+### Bau warnungsfrei
+
+Vollständiger Neubau in einem leeren Verzeichnis, gezählt wie die CI zählt:
+
+```
+$ LC_ALL=C cmake --build <neubau> -j 12 > bau.log
+$ grep -c 'warning:' bau.log
+0
+```
+
+## 8. Was der Vorgang zeigt
+
+**Der erste rote CI-Lauf dieses Projekts hat einen Befund gefunden, den fünf
+vorgegebene Prüfungen und zwei eigene Nachmessungen durchgelassen haben.**
+
+Die Prüfungen waren nicht nachlässig gefahren — sie waren auf die falsche
+Frage gerichtet. Sie fragten „wirkt die Änderung?" (Streams, Symbol, Bild)
+und „bricht sie etwas?" (`ctest`, Compiler-Warnungen). Keine fragte „hält sie
+die Regeln ein, auf die dieses Projekt sich festgelegt hat?" — und genau das
+prüfen die Linter. Ein Compiler-Warnungslauf ist dafür kein Ersatz: Der Bau
+war in beiden Fassungen bei null.
+
+Wirksam wurde das Tor überdies erst am selben Tag: Ohne den clazy-Schritt in
+`ci.yml` (Commit `4df6c63`) hätte der Befund den Weg in `main` genommen und
+wäre bei der nächsten Heilungs-Story als vierter „Altbefund" mitgezählt
+worden.
+
+Für die Retro nach Sprint 6 gehört beides zusammen: Das Tor hat gehalten —
+und die Prüfliste eines Auftrags ist selbst ein Prüfgegenstand. Wo eine
+Regelprüfung existiert, gehört sie in die Nachweise, sonst prüft der Auftrag
+nur die halbe Definition of Done.
