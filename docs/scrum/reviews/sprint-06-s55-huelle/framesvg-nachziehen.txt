@@ -1,0 +1,29 @@
+Messung 3 — Wie ein FrameSvg einem Theme-Wechsel folgt (#55, AK 5)
+==================================================================
+
+Erwartet: breeze-dark Rand 4, CachyOS-Nord-round Rand 8, dann wieder 4.
+
+A) ImageSet umbenennen (setImageSetName)
+   breeze-dark            gültig=1  Rand links=4
+   CachyOS-Nord-round     gültig=1  Rand links=4
+   breeze-dark            gültig=1  Rand links=4
+
+B) Umbenennen und den Bildpfad erneut setzen
+   breeze-dark            gültig=1  Rand links=4
+   CachyOS-Nord-round     gültig=1  Rand links=4
+   breeze-dark            gültig=1  Rand links=4
+
+C) Umbenennen und dasselbe ImageSet erneut zuweisen
+   breeze-dark            gültig=1  Rand links=4
+   CachyOS-Nord-round     gültig=1  Rand links=4
+   breeze-dark            gültig=1  Rand links=4
+
+D) Je Wechsel ein FRISCHES ImageSet zuweisen
+   breeze-dark            gültig=1  Rand links=4
+   CachyOS-Nord-round     gültig=1  Rand links=8
+   breeze-dark            gültig=1  Rand links=4
+
+Befund: Nur D folgt. Das Erfassungsfenster baut deshalb bei jedem
+Theme-Wechsel ein neues ImageSet und wirft das alte erst weg, wenn alle
+drei FrameSvg auf das neue zeigen. A bis C zeichnen eine Hülle, die
+richtig aussieht und zum falschen Theme gehört.

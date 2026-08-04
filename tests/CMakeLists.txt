@@ -49,8 +49,12 @@ target_link_libraries(capturetest PRIVATE
 
 add_test(NAME capturetest COMMAND capturetest)
 
-# The offscreen platform keeps the run independent of a running compositor.
-set_tests_properties(capturetest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+# The offscreen platform keeps the run independent of a running compositor. The
+# KDE platform theme comes on top since the hull of issue #55: the geometry
+# assertions of wireframe 4b measure spacings the font decides, and under a
+# substitute font they would be measuring something else (SPEC 16).
+set_tests_properties(capturetest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
 
 add_executable(librarytest librarytest.cpp)
 
@@ -95,6 +99,16 @@ add_executable(libraryshots libraryshots.cpp)
 
 target_link_libraries(libraryshots PRIVATE
     denkzettelui
+    Qt6::Test
+)
+
+# The hull of the capture window under two desktop themes and two colour
+# schemes (wireframes 4a/4b, issues #55 and #56). Same rules as the benches
+# above; it needs the capture window, not the library.
+add_executable(captureshots captureshots.cpp)
+
+target_link_libraries(captureshots PRIVATE
+    denkzettelcapture
     Qt6::Test
 )
 

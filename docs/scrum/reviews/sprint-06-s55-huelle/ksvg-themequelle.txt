@@ -1,0 +1,22 @@
+Messung 1 — Woher kennt KSvg das Desktop-Theme? (#55)
+====================================================
+
+Lauf A — plasmarc sagt 'default'
+   plasmarc [Theme] name = default
+   ImageSet::imageSetName() = default
+   aufgelöst auf = /usr/share/plasma/desktoptheme/default/dialogs/background.svgz
+
+   Gegenprobe, Name ausdrücklich mitgegeben:
+   ImageSet("CachyOS-Nord-round") -> gültig=1  Rand links=8
+Lauf B — plasmarc sagt 'CachyOS-Nord-round'
+   plasmarc [Theme] name = CachyOS-Nord-round
+   ImageSet::imageSetName() = default
+   aufgelöst auf = /usr/share/plasma/desktoptheme/default/dialogs/background.svgz
+
+   Gegenprobe, Name ausdrücklich mitgegeben:
+   ImageSet("CachyOS-Nord-round") -> gültig=1  Rand links=8
+
+Befund: Der gemeldete Name bleibt zwischen A und B derselbe. KSvg liest
+plasmarc nicht — `default` ist sein Rückfallwert, nicht der eingestellte
+Name. Das Erfassungsfenster muss den Namen deshalb selbst lesen und
+übergeben (KConfigCore in der Abhängigkeitsliste, SPEC 15).

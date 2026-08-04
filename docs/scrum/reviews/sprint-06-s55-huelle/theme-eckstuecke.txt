@@ -1,0 +1,27 @@
+Messung 4 — Eckstücke, Ränder und Schattenkacheln (#55, AK 1 · K6)
+==================================================================
+
+Gefunden: 8 Desktop-Themes in /usr/share/plasma/desktoptheme
+
+Theme                   gültig  Rand links/oben/rechts/unten      topleft  shadow-Präfix  Eckform  Maske
+--------------------------------------------------------------------------------------------------------
+CachyOS-Nord-round      1       8/7.99998/8.00002/8.00011         1        1              7        belegt
+Iridescent-round        1       8/7.99998/8.00002/8.00011         1        1              7        belegt
+breeze-dark             1       4/4/4/4                           1        1              6        belegt
+breeze-light            1       4/4/4/4                           1        1              6        belegt
+cachyos-emerald         1       8/7.99998/8.00002/8.00011         1        1              7        belegt
+cachyos-emerald-color   1       8/7.99998/8.00002/8.00011         1        1              7        belegt
+cachyos-emerald-light   1       8/7.99998/8.00002/8.00011         1        1              7        belegt
+default                 1       4/4/4/4                           1        1              6        belegt
+
+Zu lesen:
+  * `Rand` ist der Streifen, den die Hülle für sich beansprucht — nicht die
+    Strichstärke der Kontur. Er kommt als Fließkomma und ist nicht glatt:
+    ein 8-px-Theme liefert 7,99998. Eine absolute Zusicherung fiele daran.
+  * `Eckform` ist die Zahl, die den Prüfsatz von AK 1 trägt: wie weit die
+    oberste Zeile noch durchsichtig ist. Sie ist **nicht** aus dem Randmaß
+    abzuleiten — dass zwei Themes mit gleichem Rand verschieden gekrümmt
+    sein können, ist genau der Grund für diese Spalte.
+  * Themes ohne eigenes `dialogs/background` erben das von `default`; sie
+    stehen deshalb mit dessen Werten in der Tabelle und sind trotzdem echt
+    aufgelöst (Spalte `gültig`).

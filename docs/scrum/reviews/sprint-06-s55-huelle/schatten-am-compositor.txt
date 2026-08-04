@@ -1,0 +1,23 @@
+Messung 5 — Der Schatten am laufenden Compositor (#55, AK 1 und AK 7)
+=====================================================================
+
+Plattform: wayland
+
+A) Nach dem ERSTEN Zeigen
+   Schattenobjekt vorhanden : ja
+   vom Compositor angenommen: ja
+   Kachel oben              : 32x16 px
+   Kachel oben links        : 16x16 px
+
+   ... verstecken und erneut zeigen (Remap, SPEC 3) ...
+
+B) Nach dem ZWEITEN Zeigen
+   Schattenobjekt vorhanden : ja
+   vom Compositor angenommen: ja
+   Kachel oben              : 32x16 px
+   Kachel oben links        : 16x16 px
+
+Zu lesen: `angenommen = ja` ist der Rückgabewert von
+KWindowShadow::create(), also die Zusicherung 'Schatten angelegt' aus
+AK 7 — hier nicht als Ersatzform, sondern gemessen. Steht er in BEIDEN
+Abschnitten, ist zusätzlich die Remap-Grenze geschlossen.

@@ -1,0 +1,338 @@
+# Strang A, Sprint 6 — Übergabebericht
+
+**Datum:** 2026-08-04, Ganymed · **Zweig:** `story/55-fensterhuelle` ·
+**Ausgangsstand:** `main` @ `0a229d2` · **Stories:** #56 (1 SP), #55 (8 SP),
+in dieser Reihenfolge gebaut.
+
+**Kurz:** Beide Stories sind umgesetzt, alle Akzeptanzkriterien sind belegt,
+`ctest` ist grün (7/7) und `capturetest` in beiden geforderten Umgebungen
+(20/20). Zwei der drei Grenzen der Prüfbarkeit, die das Planning benannt hat,
+sind **geschlossen** statt nur benannt — der Schatten ist am laufenden
+Compositor gemessen, einschließlich des Remap-Falls. Was offen bleibt, steht in
+Abschnitt 6; **zwei Fehler in meiner eigenen Arbeit**, die durch Messung
+aufgefallen sind und beide grün aussahen, stehen in Abschnitt 5.
+
+---
+
+## 1. Was gebaut wurde
+
+| Commit | Story | Inhalt |
+|---|---|---|
+| `48d73e5` | **#56** | `adjustHeight()` läuft zusätzlich bei `QEvent::FontChange`, im bestehenden `eventFilter` auf `m_text`. |
+| *(dieser Commit)* | **#55** | Hülle aus dem Desktop-Theme: `KSvg::FrameSvg` über `dialogs/background`, eigenes `paintEvent`, Theme-Rand in den Innenabständen, Notiztext auf `WindowText`, `KWindowShadow` nach jedem Zeigen, Wache auf `plasmarc`, Randfall ohne Theme. Dazu der neue Bildläufer `tests/captureshots.cpp` und die Verkabelung von `KF6::Svg`, `KF6::WindowSystem`, `KF6::ConfigCore` und `KF6::CoreAddons`. |
+
+**Berührte Dateien** — alle innerhalb der zugewiesenen Menge:
+`src/capture/capturewindow.{h,cpp}` · `tests/capturetest.cpp` ·
+**neu** `tests/captureshots.cpp` · `tests/CMakeLists.txt` (nur der
+`capturetest`-Block und ein neuer `captureshots`-Block) · `src/CMakeLists.txt`
+(nur der `denkzettelcapture`-Block) · `CMakeLists.txt` (nur die
+`find_package(KF6 …)`-Liste) · `SPEC.md` (3, 15, 16) ·
+`docs/scrum/reviews/sprint-06-s55-huelle/`.
+`src/capture/textareaheight.{h,cpp}` ist **nicht** angefasst worden — die
+Vermutung des Plannings hat gehalten: Der Fehler von #56 saß im Auslöser, nicht
+in der Formel.
+
+**Die drei Festlegungen aus dem Planning sind eingehalten:** Die #56-Heilung
+sitzt im `eventFilter` (nicht in einem `changeEvent`); im Code steht **keine**
+Zahl für Rundung oder Rand, und keine Zusicherung vergleicht gegen eine — alle
+Aussagen zur Hülle sind relativ geführt; beide `capturetest`-Läufe sind grün.
+
+---
+
+## 2. Akzeptanzkriterien #56 — je mit Beleg
+
+| AK | Beleg |
+|---|---|
+| **1** — Höhe entspricht nach einer Schriftänderung wieder SPEC 3 (fünf ruhend, bis acht mitwachsend) | Test `heightFollowsAFontChange()`: prüft ruhend `Höhe − Chrom == 5 × Zeilenabstand` **und** nach acht Zeilen `== 8 × Zeilenabstand`. Vor der Heilung rot mit *Actual 85, Expected 215*. |
+| **2** — Prüfbar ohne Plasma-Schriftumstellung; der Test setzt die Schrift des Widgets direkt und misst gegen den Zeilenabstand | Derselbe Test setzt `text->setFont(...)` — Weg C der Schätzmessung. Genau deshalb sitzt die Heilung im `eventFilter`: Ein `changeEvent` am Fenster sieht diesen Weg nicht. |
+| **3** — Gilt bei mindestens zwei deutlich verschiedenen Schriftgrößen | Derselbe Test läuft über 9 pt und 24 pt. Bilder `13-schrift-9pt-fuenf-zeilen.png` und `14-schrift-24pt-fuenf-zeilen.png`. |
+
+**Die Zusicherung ist relativ, nicht absolut.** Gemessen wird gegen den
+Zeilenabstand der jeweils geltenden Schrift, nicht gegen eine Pixelzahl — sonst
+prüfte der Test die Schriftauswahl der Maschine mit.
+
+---
+
+## 3. Akzeptanzkriterien #55 — je mit Beleg
+
+Nummerierung nach der AK-Liste des Issues (A-Nummern der UX-Beratung in
+Klammern).
+
+| AK | Beleg |
+|---|---|
+| **1 (A4)** — Rundung, Kontur, Schatten aus dem Desktop-Theme, keine festen Werte; Prüfsatz: bei zwei Themes mit unterschiedlichem Rand unterscheiden sich **Randmaß und Eckform** | Test `hullFollowsTheDesktopTheme()`: alle vier Ränder unter dem 8-px-Theme größer als unter dem 4-px-Theme, **und** die Eckform am Bild gemessen (durchsichtiger Anlauf in der obersten Zeile) unterscheidet sich. Beide Aussagen **relativ**, keine Zahl im Test. Messung 4 (`theme-eckstuecke.txt`) über alle acht Themes: Eckform 6 gegen 7, Rand 4/4/4/4 gegen 8/7,99998/8,00002/8,00011. Bilder 01–12. |
+| **2 (A1)** — durchgehende Fläche nach 4b; Notiztext mit `WindowText`, nicht der Feldrolle | Tests `paintsOneSurfaceInThePaletteColours()` (Farbe hinter dem Textfeld = Farbe daneben = `Window`) und `noteTextUsesTheWindowTextRole()` (Textrolle folgt `WindowText`, auch nach einem Schemawechsel — kein eingefrorener Wert, #54). Bilder 01–12: kein Kasten im Kasten. |
+| **3 (A5)** — Innenabstände **zuzüglich** Theme-Rand; Abstand über der Fußzeile größer als unter dem App-Namen | Erste Hälfte: `hullFollowsTheDesktopTheme()` misst die Innenabstände des Layouts, die sich mit dem Theme ändern. Zweite Hälfte: `footerHasMoreAirThanTheApplicationName()`, gemessen an den **ausgelegten Widgets** und bei **beiden** Fenstergrößen (DoD 1). |
+| **4 (A6)** — Hülle bei 5 wie bei 8 Zeilen vollständig und unverzerrt | `hullIsCompleteAtFiveAndEightLines()`: gleiche Eckform bei beiden Größen, jede Kantenmitte und die Fensermitte deckend, unter **beiden** Desktop-Themes. Bilder 03/06/09/12 zeigen den Achtzeilenfall samt Scrollbalken. |
+| **5 (A7)** — nach einem Theme-Wechsel **bei laufendem Dienst** folgt die Hülle | `hullFollowsTheDesktopTheme()` wechselt das Theme an **einem stehenden Fenster**; `readsTheDesktopThemeFromPlasmarc()` prüft denselben Weg über die Datei. Dass eine Änderung dieser Datei zugestellt wird, ist in Messung 2 gemessen. |
+| **6** — keine Titelleiste, kein Dekorationsrahmen | `wearsNoDecoration()`. Bild 15 aus der laufenden Sitzung zeigt es am echten Compositor. |
+| **7 (A8)** — Belegformen getrennt: Rundung und Kontur offscreen im Bild (3 Zustände × 2 Schemata × 2 Themes, mit `QT_QPA_PLATFORMTHEME=kde`); Schatten als Bild am laufenden Plasma **oder** benannte Zusicherung | **Zwölf Bilder** 01–12 aus `tests/captureshots.cpp`, Läufer vor jedem Lauf frisch gebaut. **Schatten: mehr als die Zusicherung** — `bindsAShadowFromTheThemeTiles()` belegt Objekt und **Kachelquelle**, und Messung 5 belegt am laufenden Plasma `KWindowShadow::create() == wahr`. Siehe 4. |
+| **8 (A9)** — `KF6::Svg` verkabelt; SPEC 3 und 15 nachgezogen; Randfall ohne `dialogs/background` ohne Absturz | Verkabelung in `CMakeLists.txt` und `src/CMakeLists.txt` (vier Bibliotheken, nicht eine — siehe 5.1). SPEC-Nachzug in Abschnitt 7. Randfall: `staysUsableWithoutADesktopTheme()`, **in einem eigenen Prozess** mit beschnittenem `XDG_DATA_DIRS` — im laufenden Prozess ist der Zustand nicht herstellbar (5.3). |
+
+### 3.1 Terminalausgabe der beiden Pflichtläufe
+
+```
+$ QT_QPA_PLATFORM=offscreen ./build/bin/capturetest
+Totals: 20 passed, 0 failed, 0 skipped, 0 blacklisted, 133ms
+
+$ QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde ./build/bin/capturetest
+Totals: 20 passed, 0 failed, 0 skipped, 0 blacklisted, 144ms
+
+$ ctest --test-dir build
+100% tests passed out of 7
+```
+
+Der Bau ist warnungsfrei (`cmake --build build` ohne `warning`), was seit dem
+04.08.2026 auch die CI verlangt.
+
+### 3.2 Die neun Zusicherungen sind gegen Mutation geprüft
+
+Dieses Projekt hat an einem Abend vier grüne Tests entlarvt, die nichts
+prüften. Ich habe deshalb jede tragende Zusicherung gegen eine Mutation des
+Produktivcodes gehalten — sie muss rot werden, wenn das Verhalten verschwindet:
+
+| Mutation | rot wird |
+|---|---|
+| Theme-Rand nicht auf die Innenabstände rechnen | `hullFollowsTheDesktopTheme`, `readsTheDesktopThemeFromPlasmarc` |
+| Hülle gar nicht zeichnen (immer die Ersatzfläche) | `hullFollowsTheDesktopTheme`, `hullIsCompleteAtFiveAndEightLines` |
+| Notiztext auf der Feldrolle lassen | `noteTextUsesTheWindowTextRole` |
+| Schatten nicht binden | `bindsAShadowFromTheThemeTiles` |
+| Fußzeilenabstand = Abstand des App-Namens | `footerHasMoreAirThanTheApplicationName` |
+| Kacheln über `pixmap(id)` statt `image(elementSize, id)` | `bindsAShadowFromTheThemeTiles` |
+| `FontChange` im `eventFilter` entfernen | `heightFollowsAFontChange` |
+
+**Die zweite Zeile hat beim ersten Durchgang nur *einen* Test gerissen.**
+`hullIsCompleteAtFiveAndEightLines` blieb grün, obwohl gar keine Hülle mehr
+gezeichnet wurde: Ohne Hülle ist jede Eckform null, und „bei beiden Größen
+gleich" gilt dann auch. Der Test prüfte Vollständigkeit, aber nicht Existenz.
+Eine Zeile ergänzt (`QVERIFY(cornerRun(atFive) > 0)`), Mutation wiederholt,
+jetzt rot. **Die letzte Zeile ist die Mutation, die einen echten Fehler in
+meinem Code gefunden hat** — siehe 5.2.
+
+---
+
+## 4. Der Schatten: die benannte Grenze ist geschlossen, nicht nur benannt
+
+Das Planning (K4, §6.2) sah für den Schatten einen **benannten Ersatz** statt
+eines Bildes vor, weil `KWindowShadow::create()` offscreen falsch liefert und
+`grab()` den Schatten nie zeigt. Beides trifft zu und ist unabhängig bestätigt.
+Der Auftrag verlangte, das ausdrücklich in den Bericht zu schreiben — hier steht
+mehr, weil sich mehr messen ließ.
+
+**Was jetzt belegt ist** (`schatten-am-compositor.txt`, Messung 5, am laufenden
+Plasma, Plattform `wayland`):
+
+```
+A) Nach dem ERSTEN Zeigen          B) Nach dem ZWEITEN Zeigen
+   Schattenobjekt vorhanden : ja      Schattenobjekt vorhanden : ja
+   vom Compositor angenommen: ja      vom Compositor angenommen: ja
+   Kachel oben              : 32x16   Kachel oben              : 32x16
+   Kachel oben links        : 16x16   Kachel oben links        : 16x16
+```
+
+Damit sind **beide** Punkte erledigt, die der Auftrag wörtlich als Grenze
+aufführte:
+
+1. **„Schatten angelegt"** ist keine Zusicherung mehr, sondern ein
+   Rückgabewert — `create() == wahr` am echten Compositor. Die Kachelquelle ist
+   zusätzlich im Test festgehalten (`bindsAShadowFromTheThemeTiles`).
+2. **„Der Schatten wird nach jedem Remap neu gebunden"** ist Abschnitt B
+   derselben Messung: Das Programm versteckt das Fenster und zeigt es erneut —
+   `showCapture()` zerstört dabei die Wayland-Surface (SPEC 3) — und liest
+   danach erneut ab. Der Schatten liegt beim zweiten Mal wieder darunter.
+
+**Was das *nicht* sagt, und das gehört dazu:** `create() == wahr` heißt, der
+Compositor hat die Kacheln **angenommen**. Es heißt nicht, dass der Schatten
+gut aussieht. Genau diese Lücke hat mich einen echten Fehler gekostet — der
+erste Bau übergab acht Mal das gesamte Schattenbild statt acht Kacheln, und
+`create()` meldete auch dafür wahr (5.2). Der **Augenschein** bleibt deshalb
+Sache der Abnahme.
+
+**Warum kein Bild des Schattens im Repository liegt:** `spectacle -a` schneidet
+auf das Fensterrechteck, und der Schatten liegt außerhalb davon. Ein Bild, das
+ihn zeigte, bräuchte einen Bereichsausschnitt und nähme den Desktop des Kunden
+mit — dieses Repository ist öffentlich (Kundenentscheidung 02.08.2026). Bild 15
+belegt deshalb Hülle, Rundung und Farben am **echten** Compositor; für den
+Schatten selbst bleibt der Foto-Punkt der Abnahme.
+
+**Satz für die Abnahme-Checkliste**, wie beauftragt:
+
+> **Fenster schließen, Kürzel erneut drücken — liegt der Schatten beim zweiten
+> Mal noch darunter?**
+
+Er bleibt sinnvoll, obwohl der Rückgabewert ihn stützt: Der Wert sagt
+„angenommen", das Auge sagt „sichtbar und richtig geformt".
+
+---
+
+## 5. Was schiefging — drei Befunde in meiner eigenen Arbeit
+
+Alle drei sahen richtig aus. Alle drei fielen durch Messung, keiner durch
+Nachdenken.
+
+### 5.1 Die Hülle brauchte vier neue Abhängigkeiten, nicht eine
+
+Das Planning nannte `KF6::Svg` und `KF6::WindowSystem`. Dazu kamen
+`KF6::ConfigCore` und `KF6::CoreAddons`, und beide folgen aus einer Messung:
+**KSvg findet das Desktop-Theme nicht selbst.** Auf `plasma/desktoptheme`
+gezeigt bleibt ein `ImageSet` auf `default` — auch wenn in `plasmarc` etwas
+anderes steht (Messung 1, entschieden mit einem eigenen `XDG_CONFIG_HOME`).
+Der Name muss also gelesen (ConfigCore) und seine Änderung bewacht werden
+(CoreAddons). Warum `KDirWatch` und nicht `KConfigWatcher`, steht in Messung 2:
+Letzterer meldet **nur**, wenn der Schreiber `KConfig::Notify` benutzt hat —
+die Zusicherung von AK 5 hinge damit an der Disziplin eines fremden Programms.
+
+### 5.2 Der Schatten bestand aus acht Mal demselben Bild — und alles war grün
+
+Der erste Bau holte die Kacheln über `KSvg::Svg::pixmap(elementID)`. Der Aufruf
+nimmt eine Element-Kennung entgegen und **ignoriert sie**: Zurück kommt jedes
+Mal das ganze Bild (Messung 6). Aufgefallen ist es an einer Nebensache — in
+Messung 5 waren „Kachel oben" und „Kachel oben links" beide 157×64 groß.
+
+Warum nichts anschlug:
+
+- `KWindowShadow::create()` nahm die falschen Kacheln an und meldete **wahr**;
+- kein Bild dieses Projekts zeigt den Schatten, also war nichts zu sehen;
+- **die Zusicherung im Test verglich gegen denselben falschen Aufruf** und war
+  deshalb grün.
+
+Heilung: `image(elementSize(id), id)`. Die Zusicherung hält seither zusätzlich
+fest, dass die Eckkachel **nicht** so groß ist wie die obere — die Aussage, an
+der ein Rückfall scheitert (Mutation geprüft). Der Vorgang ist als Messung 6
+versioniert, weil er die Bauart genau trifft, gegen die `CLAUDE.md` seine
+Prüfhaltung fasst.
+
+### 5.3 Zwei Prüfaufbauten, in denen der Fehler nicht auftreten konnte
+
+- **Der Randfall ohne Desktop-Theme** (AK 8) lässt sich **nicht** durch einen
+  erfundenen Theme-Namen herstellen: KSvg fällt dabei auf `default` zurück und
+  zeichnet die Hülle wie immer. Mein erster Test tat genau das und war grün,
+  ohne irgendetwas zu prüfen. Der Zustand braucht ein beschnittenes
+  `XDG_DATA_DIRS`, also einen eigenen Prozess; `capturetest` startet sich dafür
+  selbst neu.
+- **Der Theme-Wechsel** wirkte zunächst gar nicht: Der Bildläufer schrieb unter
+  zwei verschiedenen Desktop-Themes **byteweise identische** Bilder. Grund:
+  Ein `FrameSvg` folgt seinem `ImageSet` nicht, wenn das Set umbenannt wird.
+  Pfad neu setzen wirkt nicht, dasselbe Set erneut zuweisen wirkt nicht — nur
+  ein **frisches** Set (Messung 3). Ohne den Bildbeleg wäre das nicht
+  aufgefallen: Der Code hätte eine Hülle gezeichnet, die richtig aussieht und
+  zum falschen Theme gehört.
+
+---
+
+## 6. Grenzen der Prüfbarkeit — was ich **nicht** belegen konnte
+
+Ausdrücklich, weil ein Bericht, der nur Erfolge nennt, in diesem Projekt schon
+zweimal aufgeflogen ist.
+
+1. **Kein Bild des Schattens.** Begründung in Abschnitt 4. Der Rückgabewert ist
+   gemessen, das Aussehen nicht. **Bleibt Foto-Punkt der Abnahme.**
+2. **Kein Nachweis am installierten Stand.** Untersagt (ein `/usr`, zweiter
+   Strang läuft) — der PO taktet die Installation. Geprüft ist der gebaute
+   Stand.
+3. **Der Dienst wurde nicht gestartet.** Der installierte `denkzetteld` des
+   Kunden läuft (PID 4569); ein zweiter hätte um den D-Bus-Namen und die
+   Kürzelregistrierung konkurriert. Statt seiner habe ich das **Fenster selbst**
+   auf der laufenden Sitzung gefahren (Messung 5, Bild 15) — der Hauptweg
+   beider Stories führt durch das Fenster, nicht durch den Dienst. Das Journal
+   trägt deshalb keinen Eintrag zu diesem Lauf.
+4. **Der letzte Meter des Theme-Wechsels ist nicht end-to-end geprüft.** Belegt
+   ist: die Hülle folgt einem neuen Namen am stehenden Fenster (Test), sie liest
+   ihn aus `plasmarc` (Test), und eine Änderung dieser Datei erreicht eine
+   `KDirWatch`-Wache (Messung 2). **Nicht** geprüft ist der Zusammenbau — dass
+   ein Wechsel über die Systemeinstellungen im laufenden Fenster ankommt. Dafür
+   müsste das Desktop-Theme des Kunden umgestellt werden. **Vorschlag für die
+   Abnahme-Checkliste:** *„Desktop-Theme umstellen, ohne den Dienst neu zu
+   starten — wechselt die Hülle mit?"*
+5. **#56 ist am Kundenblick nicht prüfbar** (Planning 4.1.1). Plasma reicht
+   Qt-Widgets-Anwendungen Schriftänderungen nicht nach; der Nachweis ist Test
+   und Bild. Das ist keine Auslassung, sondern die Lage.
+
+---
+
+## 7. SPEC-Nachzug (DoD 4)
+
+Nachgezogen wurde nicht nur, was sich geändert hat, sondern auch, was sich beim
+Bauen als **Bedingung** herausgestellt hat (DoD 4 in der Fassung nach B9).
+
+- **SPEC 3** — neuer Satz zur Höhenrechnung bei Schriftwechsel (#56).
+- **SPEC 3.1 (neu)** — die Hülle: Farbrollen, Maße, „Form vom Theme, Farbe aus
+  der Palette", `frameContrast` 0,20, und die ausdrückliche Feststellung, dass
+  **Rundung und Rand keine Zahlen dieser Spezifikation sind**.
+- **SPEC 3.2 (neu)** — fünf **entdeckte Bedingungen**, ohne die die Festlegung
+  nicht gilt: KSvg liest `plasmarc` nicht · ein `FrameSvg` folgt nur einem
+  frischen `ImageSet` · Zustellung über `KDirWatch`, nicht `KConfigWatcher` ·
+  ohne Theme keine Hülle, aber ein brauchbares Fenster (und ein unbekannter
+  Name erzeugt diesen Zustand *nicht*) · der Schatten wird nach jedem Neuzeigen
+  neu gebunden. Vier davon widersprechen dem, was der Aufbau nahelegt.
+- **SPEC 15** — `KSvg`, `KWindowShadow` und `KCoreAddons`/`KDirWatch` in die
+  Abhängigkeitsliste. Der wörtliche Beispielfall von DoD 4/B9.
+- **SPEC 16** — `capturetest` in den Bedingungssatz zum Plattformthema
+  aufgenommen; dazu zwei neue Absätze: was offscreen prinzipbedingt nicht zu
+  belegen ist (Schatten, mit den beiden Ersatzformen), und dass Zustände, die
+  im Prüfprozess nicht herstellbar sind, einen eigenen Prozess brauchen.
+
+---
+
+## 8. Außerhalb meiner Fläche aufgefallen — gemeldet, nicht geheilt
+
+**B1 · Ein gezeigtes Fenster schrumpft nicht zurück, und ein grüner Test
+verdeckt es.**
+
+Wird das Erfassungsfenster **gezeigt** und dann von acht Zeilen auf leer
+geräumt, bleibt es auf der Achtzeilenhöhe stehen. Ursache: Das Layout setzt beim
+Auslegen eine Mindesthöhe des Fensters; das `resize()` in `adjustHeight()` wird
+davon gedeckelt, und danach löst nichts ein erneutes Anpassen aus.
+
+*Gemessen, nicht vermutet, und ausdrücklich gegen den Ausgangsstand geprüft:*
+
+```
+Basisstand 0a229d2 (vor #55/#56)   verdeckt: ruhend=162 acht=216 nach clear=162  -> schrumpft
+                                   gezeigt : ruhend=162 acht=216 nach clear=216  -> SCHRUMPFT NICHT
+Stand dieses Strangs               verdeckt: ruhend=174 acht=228 nach clear=174  -> schrumpft
+                                   gezeigt : ruhend=174 acht=228 nach clear=228  -> SCHRUMPFT NICHT
+```
+
+**Der Befund ist vorbestehend** — er stammt nicht aus diesem Strang. Die
+unangenehme Hälfte ist die zweite: `windowFollowsTheTextHeight()` sichert
+`QCOMPARE(m_window->height(), resting)` nach dem Leeren zu und ist **grün, weil
+der Test das Fenster nie zeigt**. Unter einem gezeigten Fenster fiele diese
+Zusicherung. Das ist ein fünfter Fall für die Sammlung „grüner Test, der nichts
+prüft" — und er liegt in meiner Dateimenge, aber außerhalb der
+Akzeptanzkriterien beider Stories. Ich habe ihn deshalb **nicht** geheilt.
+*Empfehlung: eigenes Issue.*
+
+**B2 · Ein Fremdbibliotheks-Absturz, den der Produktweg nicht reproduziert.**
+
+Eine Wegwerf-Sonde, die `KSvg::ImageSet`-Objekte auf dem Stapel anlegt und
+sofort wieder zerstört, bricht bei fehlenden Theme-Dateien reproduzierbar mit
+Heap-Korruption ab (`malloc(): unaligned tcache chunk`, SIGABRT im Konstruktor
+von `KSvg::ImageSet`, fünf von fünf Läufen). **Der Produktweg reproduziert es
+nicht** — `captureshots` baut unter denselben Bedingungen vierzehn Fenster und
+endet mit Exit 0, und die AK-8-Zusicherung läuft grün. Ich führe es auf, weil
+ein Absturz in einer Bibliothek, die wir neu aufnehmen, nicht unerwähnt bleiben
+sollte; als Fehler unseres Codes ist er nicht belegt.
+
+**B3 · Journalmeldung des installierten Dienstes** (vorbestehend, nicht aus
+diesem Strang): `Failed to register with host portal QDBusError(…, "Connection
+already associated with an application ID")` beim Start von `denkzetteld`.
+Fällt beim Journal-Blick auf; berührt weder #55 noch #56.
+
+---
+
+## 9. Was der PO wissen muss
+
+1. **Zwei Grenzen der Prüfbarkeit sind geschlossen** (Schatten, Remap), eine
+   dritte bleibt (Aussehen des Schattens) und zwei Sätze gehören in die
+   Abnahme-Checkliste (Abschnitte 4 und 6, Punkt 4).
+2. **K6 ist erledigt**: `theme-eckstuecke.txt` liegt versioniert und
+   wiederholbar vor. Die Eckstück-Aussage der AK-1-Richtigstellung hängt nicht
+   mehr an einem Planning-Absatz — alle acht Themes tragen Eckstücke und
+   Schattenkacheln.
+3. **Die Bedingung aus Planning 2.3 hält**: Der Bildläufer ist auf #55 gebucht;
+   #56 benutzt ihn für zwei Bilder mit und zahlt ihn nicht. #56 bleibt bei 1 SP.
+4. **Zwei zusätzliche Bibliotheken** (`KF6::ConfigCore`, `KF6::CoreAddons`)
+   gegenüber der Planning-Annahme, aus einer Messung begründet (5.1). Beide sind
+   auf der Maschine vorhanden; kein Beschaffungsrisiko.
+5. **B1 gehört als Issue angelegt** — vorbestehend, mit einem grünen Test
+   darüber.
