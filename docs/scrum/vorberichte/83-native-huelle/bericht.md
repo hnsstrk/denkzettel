@@ -854,3 +854,63 @@ Alle versioniert (B7), sämtlich mit `git ls-files` geprüft:
 Wiederholbar:
 `bash docs/scrum/vorberichte/83-native-huelle/pruefen.sh` und
 `bash docs/scrum/vorberichte/83-native-huelle/ux-beratung/pruefen.sh`.
+
+---
+
+## Nachtrag: Vollzug durch den Product Owner, 04.08.2026
+
+Dieser Abschnitt hält fest, was aus den Befunden dieses Berichts geworden ist.
+Der Bericht selbst bleibt unverändert — er hat richtig protokolliert, was zum
+Zeitpunkt der Messung galt.
+
+### Die Kundenentscheidung zum Festlegungskonflikt (Feld 6, Vorlage 1)
+
+Vorgelegt am 04.08.2026 mit den drei Wegen. **Der Kunde hat den ausnahmslosen
+Weg gewählt:** Bringt das Desktop-Theme eine eigene `colors`-Datei mit, gilt
+ihre Textfarbe — immer. Damit ist der Konflikt entschieden, nicht aufgelöst:
+`cachyos-emerald-light` fällt von 10,56:1 auf 1,38:1, und das ist in Kauf
+genommen. Der Einwand dieses Berichts, die Zahl sei gegen eine Fiktion
+gerechnet, ist als eigenes Kriterium aufgenommen (#85 AK 2: am laufenden Stand
+nachmessen, nicht deckend rechnen).
+
+### Der Schnitt
+
+`size:xl` vollzogen entlang der im Bericht geprüften Naht:
+
+| | Titel | Klasse | Kriterien |
+|---|---|---|---|
+| **#83** | Hülle als native Plasma-Überlagerung — der native Vertrag | `size:l` | 14 |
+| **#85** | Lesbarkeit unter fremden Desktop-Themes | `size:m` | 5 |
+
+#83 behält die Nummer, weil sie in #55, #84 und in den Protokollen referenziert
+ist. Die Kehrseite, die dieser Bericht benannt hat, steht ausdrücklich in beiden
+Issues: **Nach #83 allein sind sechs von acht Themes schlechter als heute.**
+
+### Die vier Befunde
+
+- **AK 4** neu gefasst: Richtung *fallend* statt wachsend, Anstieg bis zum
+  **Randwert** statt bis zur Flächendeckung, und statt „höchstens ein Bildpunkt
+  je Zeile" die Zahl der Stufen (bei Verhältnis 1 keine von zwei oder mehr
+  Spalten, bei 1,6 höchstens eine). Der geometrische Einwand trägt: Ein
+  Kreisbogen kann die alte Fassung nie erfüllen.
+- **AK 7** neu gefasst: Die Bedingung hängt nicht mehr an
+  `isEffectAvailable(BlurBehind)`, sondern an der Globalenliste des Compositors.
+  Der Widerspruch zu AK 5 ist damit fort.
+- **AK 9 alt** ist mit der Kundenentscheidung nach #85 gewandert und trägt dort
+  die Folge als eigenes Kriterium statt als „benannte Grenze".
+
+### Die fünf Auflagen
+
+Alle eingearbeitet: `-- src/` an AK 1 · der 1,6-Beleg aus der angemeldeten
+Sitzung ohne `QT_SCALE_FACTOR` an AK 3 · der geordnete Fehlschlag für die
+Region an AK 5 · Pfade ab Repositoriumswurzel an AK 8 · KRunner benannt und die
+Beurteilung ausdrücklich der Kundenabnahme zugewiesen an AK 12. Dazu der
+Klammerzusatz `QPalette::PlaceholderText` in #85 AK 4, der einem Strang die
+Suche nach einem Bezeichner erspart, den es im Code nicht gibt.
+
+### Offen
+
+**Das Ready-Urteil auf die geschnittene Fassung steht aus.** Es fällt der Scrum
+Master, nicht der PO — die Befunde sind abgearbeitet, die Bestätigung fehlt.
+Ebenfalls offen: der Bestandsbefund zur Schattenpolsterung (`bindShadow()` ohne
+Nachzug bei `resizeHull()`), noch nicht gebucht.
