@@ -945,3 +945,103 @@ Sprint-7-Planning zu heilen: zweite Schätzungen für **#68, #59 ist gedeckt,
 #71, #72, #61**, dazu die drei Klärungen und die zweite Schätzung zu **#69**,
 unverändert offen seit Sprint 5 §2.4. (7) **Retro nach diesem Sprint**
 (Kadenz) — Kandidaten in 10, Punkt 9.
+
+---
+
+## 13. Nachtrag: Prozessökonomie — vier Punkte für die Retro (PO, 04.08.2026)
+
+**Anlass.** Der Kunde hat gefragt, was die Arbeit dieses Teams der
+Entwicklung bringt und ob sie zu behalten, zu optimieren oder aufzugeben sei.
+Die Antwort ist am Bestand geführt worden, nicht am Eindruck; die Messung steht
+unten. Drei der vier Punkte sind **heute umgesetzt**, einer liegt dem Kunden
+vor. Sie ergänzen die Kandidaten aus 10, Punkt 9 und ersetzen sie nicht.
+
+**Die Messung, die den Anlass trägt** (04.08.2026, selbst gezählt):
+
+| Gegenstand | Zeilen |
+|---|---|
+| Produktivcode (`src/`) | 3.894 |
+| Tests (`tests/`) | 6.158 |
+| Prozessdokumentation (`docs/scrum/`) | 13.659 |
+| Belegbilder (`docs/scrum/**/*.png`) | 258 Stück |
+
+Die Prozessdokumentation ist das Dreieinhalbfache des Produkts. Das ist
+vertretbar, **wenn** die Prüfarbeit selbst der Gegenstand ist — es ist nicht
+vertretbar als Nebenkosten eines Erfassungswerkzeugs. Diese Frage ist eine
+Kundenfrage und steht als Punkt 4 unten.
+
+### 13.1 Umgesetzt — automatische Testläufe (P1)
+
+`.github/workflows/ci.yml`, verankert in `PROZESS.md`, Sprint-Mechanik. Er war
+die Hälfte des PR-Abbruchkriteriums, die **keine Disziplin verlangt**, und lag
+seit dem 02.08.2026 als offene Kundenentscheidung herum (Sprint 4, §15.8).
+
+*Was die Retro daran zu prüfen hat:* Hat der Lauf in Sprint 6 **etwas gefunden**,
+das ohne ihn durchgegangen wäre? Findet er zwei Sprints lang nichts, ist zu
+entscheiden, ob er Wache oder Zierde ist — „Schweigen ist kein Erfolgsnachweis"
+gilt auch für ihn. Gegenprobe zur Wachsamkeit ist am 04.08.2026 geführt
+(Mutationsprobe, siehe Bericht des Tages).
+
+### 13.2 Umgesetzt — Pflichtteil und Kürteil der Protokolle (P2)
+
+`PROZESS.md`, Artefakte. Vier Abschnitte sind Pflicht, der Rest ist Kür.
+*Was die Retro daran zu prüfen hat:* Zeilenzahl des Sprint-6-Protokolls gegen
+den Durchschnitt der Sprints 3–5 (rund 1.300 Zeilen). **Kein Beleg darf in der
+Differenz stecken** — sinkt die Zahl, weil Bilder oder Messwerte fehlen, ist
+die Kürzung fehlgeschlagen und B7 verletzt.
+
+### 13.3 Umgesetzt — Verwalter-Bericht als Existenzprüfung (P3)
+
+`PROZESS.md`, Sprint-Abschluss, Punkt 11. Der Befund V3 aus Sprint 5 hatte es
+selbst benannt: *„Es fehlt nicht die Regel, es fehlt ihre Wirkung."* Eine dritte
+Ermahnung wäre die dritte gewesen; stattdessen hängt der Bericht jetzt an einer
+Dateiprüfung mit Exit-Code, wie das Zweig-Räumen an `git merge-base`.
+*Was die Retro daran zu prüfen hat:* Liegt nach dem dritten Lauf eine Datei vor?
+Wenn nein, ist nicht die Regel zu schärfen, sondern die Rolle zu streichen.
+
+### 13.4 **Nicht** entschieden — der Schätzkegel (P4, Kundenfrage)
+
+Der Kegel kostet 840 Zeilen Werkzeug und Datenreihe, einen eigenen
+Abschluss-Punkt (12), einen DoD-Prüfsatz und eine Übertragungsregel für den
+Verwalter. Was er misst, steht in `PROZESS.md` selbst:
+
+> Er misst den **Revisionsfaktor** (Endwert ÷ Erstwert), **nicht** den Abstand
+> zum tatsächlichen Aufwand; dieser wird im Projekt nicht erhoben.
+
+Damit zeigt er, **wie oft neu geschätzt wurde**, nicht **ob richtig geschätzt
+wurde**. Eine Story, die niemand angefasst hat, steht bei 1,0 — auch wenn sie
+das Doppelte gekostet hat. Er kann per Konstruktion nie belegen, dass eine
+Schätzung falsch war.
+
+**Drei Wege, und die Wahl gehört dem Kunden**, weil der Kegel sein Auftrag vom
+02.08.2026 ist:
+
+1. **Aufwandserhebung nachrüsten** — dann misst er Schätzgüte. Kostet je Story
+   eine gemessene Zahl, die es heute nicht gibt.
+2. **Streichen** — spart 840 Zeilen und drei Prozessregeln.
+3. **Lassen, aber als das benennen, was er ist** — ein Bild der Revisionsunruhe,
+   nicht der Schätzgüte. Das ist der heutige Stand, und er ist der teuerste der
+   drei.
+
+*Empfehlung des PO:* Weg 1, falls das Projekt Schätzgüte wirklich wissen will —
+sonst Weg 2. Der jetzige Mittelweg trägt die vollen Kosten für die halbe
+Aussage.
+
+### 13.5 Befund am Rande, gefunden beim Einrichten der CI
+
+`appstreamtest` läuft seit Sprint 1 in jedem `ctest` mit und zählt in jedes
+„7/7 grün" hinein — auch in die Belege unter
+`docs/scrum/reviews/sprint-05-s-symbole/gruen-ctest.txt` und
+`spike-62-spellfix1/ctest.txt`. Das Projekt hat **keine** `.metainfo.xml` und
+keine `.appdata.xml`; das ECM-Skript
+(`/usr/share/ECM/kde-modules/appstreamtest.cmake`) sammelt dann eine leere
+Dateiliste, überspringt die Validierung und endet grün. **Der Test kann per
+Konstruktion nicht rot werden** — dieselbe Klasse wie die tautologische
+Zusicherung aus Sprint 3, nur nicht selbst geschrieben, sondern von ECM
+geerbt.
+
+*Nicht geheilt, sondern gemeldet:* Eine `metainfo.xml` zu verfassen ist eine
+Produktentscheidung (Beschreibung, Kategorien, Bilder, Release-Historie am
+Changelog) und gehört in eine Story, nicht in einen Nebenweg. Als **#73**
+angelegt. Bis dahin gilt: **„7/7" heißt in diesem Projekt sechs Tests und eine
+Leerstelle.**

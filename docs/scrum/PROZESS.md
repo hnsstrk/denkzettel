@@ -58,6 +58,17 @@ PO aus.
 - **Sprint**: GitHub Milestone `Sprint N` mit den gezogenen Issues.
 - **Protokolle**: `docs/scrum/sprints/sprint-NN.md` (Planning, Review,
   ggf. Retro) — je Sprint eine Datei, angelegt beim Planning.
+  **Pflichtteil und Kürteil (04.08.2026).** Pflicht sind vier Abschnitte:
+  **Sprint-Konto** (B12), **DoD-Prüfung** samt Schätzhistorie, **Mängelliste**
+  und **done/next**; in Retro-Protokollen zusätzlich die **Beschlüsse** mit
+  ihrem Artefakt. Alles andere — Herleitungen, Risikolisten, nacherzählte
+  Messwege — ist Kür: erlaubt, nicht geschuldet, und nicht dreimal.
+  *Grund:* Am 04.08.2026 gemessen stehen **13.659 Zeilen** Prozessdokumentation
+  gegen **3.894 Zeilen** Produktivcode. Der Wert steckt nachweislich in den vier
+  Pflichtabschnitten — jeder belegte Fund dieses Projekts ist in einem von ihnen
+  festgehalten. **Gekürzt wird die Prosa, nie der Beleg:** Eine Herleitung
+  wegzulassen kostet Lesbarkeit, einen Beleg wegzulassen kostet die
+  Nachprüfbarkeit, und B7 steht dagegen.
 - **Changelog**: `CHANGELOG.md` nach *Keep a Changelog*, aus Nutzersicht
   geschrieben (Kundenentscheidung 02.08.2026). Quelle sind die geschlossenen
   Issues des Sprint-Milestones; Pflege siehe „Sprint-Abschluss", Takt 2.
@@ -153,7 +164,25 @@ PO aus.
   Review-Befund; getragen hat allein die Mechanik. Eine spätere Einführung
   automatischer Testläufe (CI) ist davon unberührt und wäre eine **neue
   Kundenentscheidung**; sie ist der einzige der beiden Kriteriumsteile, der
-  ohne menschliche Disziplin trägt.
+  ohne menschliche Disziplin trägt. **Diese Entscheidung ist am 04.08.2026
+  gefallen — siehe „Automatische Testläufe" unten.**
+- **Automatische Testläufe (Kundenentscheidung 04.08.2026)**: `.github/workflows/ci.yml`
+  baut und testet bei jedem Push auf `main`, bei jedem Pull Request und auf
+  Abruf. Er läuft in einem Arch-Container, also im selben rollenden
+  Paketstrom wie die Entwicklungsmaschine, und schlägt fehl bei **Baufehler,
+  bei jeder Compiler-Warnung und bei jedem roten Test**. Die Warnungsschwelle
+  steht auf null, weil sie am 04.08.2026 an einem Neubau gemessen null war —
+  eine Schranke oberhalb des gemessenen Standes wäre keine.
+  *Warum das der Punkt ist, an dem der PR-Probelauf scheiterte:* Von dessen
+  Abbruchkriterium war dies die Hälfte, die **keine Disziplin** verlangt. Die
+  andere Hälfte — Berichte und Befunde am PR — ist an genau der Disziplin
+  gerissen.
+  **Was der Lauf nicht ersetzt, ausdrücklich:** DoD 1 verlangt die Tests **auf
+  Ganymed**, und dabei bleibt es — der Container ist ein zweites Netz, keine
+  Verlegung des Prüfstands. DoD 2 (installierter Stand unter `/usr`) und DoD 3
+  (Bildprüfung) erreicht er gar nicht: Er hat keinen Compositor, kein `/usr`
+  dieses Projekts und baut die Bildläufer nicht. Wer die grüne Marke für eine
+  erfüllte DoD hält, hat drei ihrer sechs Punkte übersprungen.
 - **Push-Kadenz (Kundenentscheidung 02.08.2026)**: Der PO pusht nach jedem
   abgeschlossenen Arbeitsblock ohne Rückfrage. `main` ist ohnehin
   veröffentlicht — die Sichtbarkeit ändert sich dadurch nicht, das Liegenbleiben
@@ -325,6 +354,18 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
     `sprint-03-abschluss` ist eine Übergangsform aus der Zeit vor dieser Regel
     (Sprint 3, 16.13) und kein drittes Tag-Schema.
 11. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
+    **Jeder Verwalter-Auftrag endet mit einer Datei (04.08.2026).** Der PO
+    schreibt den Ablageort in den Auftrag — `docs/scrum/reviews/sprint-NN-verwalter.md` —,
+    und der Scrum Master prüft ihn mit `git ls-files`. **Fehlt die Datei, gilt
+    der Auftrag als nicht ausgeführt**, gleichgültig ob die Arbeit getan ist.
+    *Grund:* Die Berichtspflicht steht seit `a484d49` in
+    `.claude/agents/denkzettel-verwalter.md` — dem bestmöglichen Ort, denn eine
+    Agentendatei wird garantiert gelesen — und ist trotzdem **zweimal**
+    folgenlos geblieben (Sprint 4 §17.6, Sprint 5 §V3). Es fehlt nicht die
+    Regel, es fehlt ihre Wirkung; sie wird deshalb an eine Existenzprüfung
+    gebunden statt ein drittes Mal ermahnt. Beide Male war die Arbeit richtig
+    und vom PO nachgemessen — der Schaden entsteht an dem Tag, an dem das
+    niemand tut, weil es zweimal gutgegangen ist.
 12. **Schätzhistorie fortgeschrieben** (Kundenauftrag 02.08.2026): Die
     Datenreihe `docs/scrum/diagramme/schaetzhistorie.json` trägt die Stories
     des abgeschlossenen Sprints, und das Diagramm ist daraus neu erzeugt.

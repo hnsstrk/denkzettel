@@ -1,0 +1,8 @@
+Wache 1 — Warnungszähler
+  OK    sauberer Bau läuft durch — Rückgabe 0 (erwartet 0)
+  OK    eine Warnung färbt rot — Rückgabe 1 (erwartet 1)
+Wache 2 — pipefail
+  OK    OHNE pipefail bliebe ein Baufehler unsichtbar — Rückgabe 0 (erwartet 0)
+  OK    MIT pipefail schlägt der Baufehler durch — Rückgabe 1 (erwartet 1)
+
+Ergebnis: beide Wachen schlagen im Fehlerfall an.
