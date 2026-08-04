@@ -1203,3 +1203,69 @@ es gibt nur ein `/usr` und zwei Stränge), Merge nach `main`, Push, und jede
 Nachbarschaft zu #57 und #70 hingewiesen worden, einschließlich des in Sprint 3
 geprüften und **vom Reviewer selbst zurückgenommenen** Schwellwert-Wegs — er
 ist der naheliegende Griff an dieser Stelle und der falsche.
+
+---
+
+## 16. Meldungen aus den Strängen (melden, nicht heilen)
+
+Was die Stränge außerhalb ihrer Fläche gefunden haben. Der PO entscheidet, was
+davon wohin gehört; keiner der Punkte ist vom Finder geändert worden.
+
+### 16.1 Aus Strang B (#59)
+
+**M-B1 — `activateWindow()` holt unter Wayland den Fokus nicht zurück.**
+Ein Prozess kann sich den Fokus nicht selbst zuteilen; dazu bräuchte er ein
+xdg-activation-Token. Der erste Sichtlauf des Strangs meldete deshalb
+„zurückgekommen: nein" und maß nichts — ein Lauf, der ausgesehen hätte wie ein
+Beleg. Was funktioniert, ist der compositor-getriebene Weg: das obenauf
+liegende Fenster schließen, dann gibt der Compositor den Fokus von sich aus
+zurück, denselben Weg wie ein Alt-Tab.
+
+*Einordnung des PO:* Das ist eine Bedingung für **jede** künftige Sicht- oder
+Bildprüfung mit Fensterwechsel, nicht nur für #59. Es gehört damit in die
+Prüfhaltung von `CLAUDE.md` — die Datei, die jede Sitzung von selbst liest.
+**Retro-Kandidat**, Vorschlag: als Zeile bei den Bildbeleg-Regeln aufnehmen.
+Bis dahin steht es hier und im Bericht des Strangs.
+
+**M-B2 — der Debug-Build ist als Anwendung nicht startbar, solange der
+installierte Daemon läuft.** `KDBusService::Unique` gibt den Start an die
+laufende Instanz weiter. Wer den Debug-Stand prüfen will, prüft dann den
+installierten — die Falle aus Sprint-3-Mangel M1, hier auf einem zweiten Weg.
+Der Strang ist ihr ausgewichen, indem er einen eigenständigen Prüfläufer gegen
+`libdenkzettelui.a` und `libdenkzettelstore.a` gebaut hat
+(`probe59.cpp`, versioniert im Belegordner) — mit eigener temporärer Datenbank
+und eigenem `XDG_CONFIG_HOME`, damit die Notizen und die Fenstergeometrie des
+Kunden unberührt bleiben.
+
+*Einordnung des PO:* Der Ausweg trägt, ist aber von Hand zu übersetzen — die
+Befehlszeile steht im Bericht. **Retro-Kandidat**, offene Frage: Soll das
+Projekt einen solchen Prüfläufer als CMake-Ziel führen, wie es die Bildläufer
+sind? Dann wäre er wiederholbar statt rekonstruierbar.
+
+**M-B3 — clang-tidy-Bestandswarnungen** in `note.h`, `timestampformat.h`,
+`notelistmodel.h`, `trayicon.cpp`, `globalshortcuts.cpp`, `notelistdelegate.cpp`
+und `librarywindow.{h,cpp}`. Nicht von dieser Story verursacht, nicht
+angefasst. Der auffälligste: `globalshortcuts.cpp:93` —
+`bugprone-unused-return-value`. *Einordnung des PO:* `globalshortcuts.cpp:93`
+wird geprüft; die Stelle registriert globale Kürzel, und ein verworfener
+Rückgabewert ist dort die Bauart, die #73 und die Kürzel-Rückmeldung
+betrifft. Die übrigen sind Bestand.
+
+### 16.2 Abnahme von #59 durch den PO
+
+**Angenommen**, vorbehaltlich der Sprint-Ende-Prüfungen (DoD 2 Installation,
+DoD 3 karpathy-Review über den Sprint-Diff).
+
+Geprüft habe ich nicht den Bericht, sondern die Belege:
+
+| AK | Beleg, den ich gelesen habe |
+|---|---|
+| 1 — Rollwert unverändert | `QCOMPARE(list->verticalScrollBar()->value(), rolledTo)` in `librarytest.cpp:1881`; ohne die Heilung rot mit *Actual 7 / Expected 0* (`befund-vor-der-heilung.txt`) |
+| 2 — Tageswechsel gruppiert weiter | `regroupsWhenTheWindowIsActivated` unverändert und im **roten** Lauf grün — er misst also weiter seinen eigenen Fall |
+| 3 — Auswahl nicht in Zeile 0 | `QVERIFY(selected.row() > 0)` **und** `QVERIFY2(!viewport()->rect().intersects(visualRect(selected)), …)` — der zweite Satz schließt den Aufbau aus, in dem der Fehler gar nicht auftreten kann |
+
+Der dritte Punkt ist der, an dem diese Story hätte scheitern können: Der alte
+Test war nicht falsch, er stand nur an einer Stelle, an der nichts zu sehen
+war. Der neue sichert seine eigene Voraussetzung zu.
+
+Gemerged als `4d3978c`.
