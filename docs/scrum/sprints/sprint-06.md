@@ -1246,10 +1246,20 @@ sind? Dann wäre er wiederholbar statt rekonstruierbar.
 `notelistmodel.h`, `trayicon.cpp`, `globalshortcuts.cpp`, `notelistdelegate.cpp`
 und `librarywindow.{h,cpp}`. Nicht von dieser Story verursacht, nicht
 angefasst. Der auffälligste: `globalshortcuts.cpp:93` —
-`bugprone-unused-return-value`. *Einordnung des PO:* `globalshortcuts.cpp:93`
-wird geprüft; die Stelle registriert globale Kürzel, und ein verworfener
-Rückgabewert ist dort die Bauart, die #73 und die Kürzel-Rückmeldung
-betrifft. Die übrigen sind Bestand.
+`bugprone-unused-return-value`.
+
+*Einordnung des PO, nach Ansicht der Stelle:* **Die Warnung ist gegenstandslos,
+und der Code sagt das selbst.** `globalshortcuts.cpp:89–93` verwirft den
+Rückgabewert von `KGlobalAccel::setGlobalShortcut()` mit Begründung: Er *kann*
+kein Scheitern des Dienstes zeigen, weil `doRegister()` seinen D-Bus-Aufruf
+absetzt und die Antwort fallen lässt. Die Stelle prüft stattdessen zurück, was
+der Dienst tatsächlich hält (`:99–104`) — genau der Weg, den SPEC 2.4 nach
+Retro-Beschluss B5 vorschreibt, nachdem der Kunde beide stillen Fehler am
+01.08.2026 je einmal getroffen hat.
+
+Wer diese Warnung „behebt", indem er den Rückgabewert auswertet, ersetzt eine
+belastbare Rückfrage durch eine Zusicherung, die nichts weiß. **Nicht anfassen.**
+Die übrigen Befunde sind Bestand.
 
 ### 16.2 Abnahme von #59 durch den PO
 
