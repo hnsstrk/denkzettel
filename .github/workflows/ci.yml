@@ -60,7 +60,7 @@ jobs:
             extra-cmake-modules qt6-base \
             kconfig kdbusaddons kglobalaccel ki18n knotifications \
             kstatusnotifieritem kwidgetsaddons kwindowsystem \
-            plasma-integration breeze-icons appstream
+            plasma-integration breeze-icons appstream clazy
 
       - uses: actions/checkout@v4
 
@@ -101,3 +101,27 @@ jobs:
 
       - name: Tests
         run: ctest --test-dir build --output-on-failure
+
+      - name: clazy
+        # Kundenentscheidung 04.08.2026. Nur clazy, noch nicht clang-tidy: Der
+        # steht bei 72 Altbefunden, die als eigene Story geheilt werden; ein Tor
+        # unterhalb des gemessenen Standes wäre Dauerrot.
+        #
+        # Die Schwelle ist eine Zahl und kein `rc`, weil clazy-standalone auch
+        # mit Befunden **0** zurückgibt — der Rückgabewert allein wäre hier eine
+        # Wache, die nie anschlägt. Dieselbe Bauart wie bei den Compiler-Warnungen,
+        # nur mit einer Schwelle über null: die drei Altbefunde vom 04.08.2026
+        # (2× range-loop-detach, 1× detaching-temporary) sind echte Qt-Fallen und
+        # gehen in dieselbe Heilungs-Story. **Sinkt die Zahl, wird die Schwelle
+        # nachgezogen** — eine Schranke, die über dem Ist-Stand hängen bleibt,
+        # misst nichts mehr.
+        run: |
+          set -o pipefail
+          cmake --build build --target lint-clazy 2>&1 | tee clazy.log
+          anzahl=$(grep -c 'warning:' clazy.log || true)
+          echo "clazy-Befunde: ${anzahl} (Schwelle 3)"
+          if [ "${anzahl}" -gt 3 ]; then
+            grep 'warning:' clazy.log
+            echo "::error::${anzahl} clazy-Befunde, erlaubt sind 3 (Altbestand vom 04.08.2026)."
+            exit 1
+          fi

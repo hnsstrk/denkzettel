@@ -43,7 +43,23 @@ steht es dabei.
 | Nach Ausschluss des nicht Ziehbaren (#70 AK offen, #71/#72/#61 ungeschätzt) | 4 | 8 + 1 + 2 + *#68 offen* | Story-Grenze **gehalten, am Anschlag** |
 | Vorschlag des Scrum Masters, 19:40 (2, falls #68 ≤ 3: 3) | 2–3 | 9, mit #68 12 | beide gehalten |
 | **Festgeschriebener Schnitt, 20:03** (#68 mit 5 SP draußen) | **2** | **9** | **beide gehalten** — 2 Stories und 4 SP Luft |
-| *Freigabe-Stand* | *einzutragen nach der Kundenentscheidung* | | |
+| **Freigabe durch den Kunden, 04.08.2026** — **#59 zugezogen** | **3** | **11** | **beide gehalten** — 1 Story und 2 SP Luft |
+
+**Zur Freigabe (04.08.2026):** Der Kunde hat den festgeschriebenen Schnitt um
+**#59** (ruhige Liste bei Fensteraktivierung, `sp:2`) erweitert. Der Zugang ist
+hier gebucht (B12); **beide Grenzen halten** — 3 von 2–4 Stories, 11 von ~13
+Punkten. Er ist damit **keine Grenzüberschreitung** und musste dem Kunden nicht
+gesondert vorgelegt werden; er *ist* die Kundenentscheidung.
+
+**Zwei Folgen, die das Planning für genau diesen Fall benannt hat** (11, Punkt 3):
+Das Sprint-Ziel verliert seine Klammer — #59 gehört zur Bibliothek, nicht zur
+Fensterhülle —, und Sprint 7 verliert einen seiner vier Kandidaten. Beides war
+vorher aufgeschrieben und ist mit der Freigabe angenommen worden.
+
+**Die Luft schrumpft von 4 auf 2 Punkte.** Sie war als Vorsorge für
+Review-Auflagen an #55 gedacht, der größten Story dieses Projekts. Reißt der
+Sprint, ist dies die Stelle, an der es begann — festgehalten vor dem Ereignis,
+nicht danach.
 
 **Der erste Befund des Kontos war, dass es sich nicht führen ließ** — und er ist
 inzwischen zur Hälfte geheilt. Von acht Kandidaten trug am 19:40 genau **einer**
