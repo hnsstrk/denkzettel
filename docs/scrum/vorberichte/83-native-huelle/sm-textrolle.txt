@@ -1,0 +1,36 @@
+=== Welche Farbe nimmt QPalette::PlaceholderText an? ===
+Gemessen 04.08.2026, Ganymed, offscreen, QT_QPA_PLATFORMTHEME=kde
+Anlass: AK 10 von #83 nennt ForegroundInactive; der Code setzt PlaceholderText
+(src/capture/capturewindow.cpp:132, subtleLabel — App-Name und Fusszeile).
+
+########## CachyOSNordLightly ##########
+PlaceholderText        102,106,115
+WindowText             102,194,242
+Window                  30, 34, 51
+Text (disabled)         37, 73, 96
+WindowText(disabled)    53, 86,112
+--- aus der Schemadatei, Gruppe [Colors:Window] ---
+ForegroundInactive=102,106,115
+
+########## BreezeLight ##########
+PlaceholderText        112,125,138
+WindowText              35, 38, 41
+Window                 239,240,241
+Text (disabled)        170,171,172
+WindowText(disabled)   160,161,163
+--- aus der Schemadatei, Gruppe [Colors:Window] ---
+ForegroundInactive=112,125,138
+
+########## KritaNeutral ##########
+PlaceholderText         82, 82, 82
+WindowText              18, 18, 18
+Window                 128,128,128
+Text (disabled)        115,115,115
+WindowText(disabled)    85, 85, 85
+--- aus der Schemadatei, Gruppe [Colors:Window] ---
+ForegroundInactive=82,82,82
+
+Befund: PlaceholderText nimmt in allen drei Schemata genau
+ForegroundInactive der Gruppe [Colors:Window] an. Die Zahlen von AK 10
+stimmen damit; abweichend ist allein der Name — AK 10 nennt den
+Schemaschluessel, der Code die Qt-Rolle.

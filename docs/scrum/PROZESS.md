@@ -6,7 +6,9 @@ einer Kundenentscheidung** — die Änderungen vom 04.08.2026 (automatische
 Testläufe, Verwalter-Bericht als Existenzprüfung, Pflicht-/Kürteil der
 Protokolle, Rückbau des Schätzkegels, Prüfsummen der Bildbelege, Label erst mit
 der zweiten Prüfung, **Ende der Story-Point-Schätzung zugunsten des
-Vorprüfberichts**) sind auf dem zweiten Weg entstanden.
+Vorprüfberichts**) sind auf dem zweiten Weg entstanden. Die **Ablage der
+Vorprüfung als Ordner** und die **drei Zusätze zur Definition of Ready** kamen
+am selben Tag aus dem ersten Lauf des neuen Verfahrens hinzu.
 
 **Das Standdatum wird bei jeder Änderung mitgeführt.** Ein Datum, das niemand
 fortschreibt, ist nach der ersten Änderung **still falsch** — die Datei sieht
@@ -113,11 +115,20 @@ PO aus.
   Feinreihenfolge legt der PO beim Sprint-Planning über die
   Milestone-Zuordnung fest.
 - **Sprint**: GitHub Milestone `Sprint N` mit den gezogenen Issues.
-- **Vorprüfberichte**: `docs/scrum/vorberichte/NN-<kurzname>.md`, NN ist die
+- **Vorprüfberichte**: `docs/scrum/vorberichte/NN-<kurzname>/`, NN ist die
   **Issue-Nummer**; der Kurzname folgt dem Zweignamen der Story
-  (`story/55-fensterhuelle` → `55-fensterhuelle.md`), damit Bericht und Zweig
-  zusammenfinden. Je Story eine Datei, angelegt bevor
-  die Story gezogen werden darf; Felder und Verfahren siehe Sprint-Mechanik.
+  (`story/83-native-huelle` → `83-native-huelle/`), damit Bericht und Zweig
+  zusammenfinden. **Ein Ordner je Story** mit `messung-a.md`, `messung-b.md`,
+  dem konsolidierten `bericht.md` und den Messausgaben; der Bericht liegt vor,
+  bevor die Story gezogen werden darf. Felder und Verfahren siehe
+  Sprint-Mechanik.
+  *Warum ein Ordner und nicht eine Datei* (04.08.2026, erster Lauf des
+  Verfahrens): Zwei unabhängige Bearbeiter können nicht in dieselbe Datei
+  schreiben, ohne voneinander zu erfahren — und die Unabhängigkeit ist der
+  Zweck. Die Messausgaben brauchen ohnehin einen Ordner (B7). Die erste Fassung
+  sagte „je Story eine Datei" und ist beim ersten Anfassen gerissen; **beide
+  anderen Bearbeiter haben die Abweichung unabhängig gemeldet**
+  (`docs/scrum/vorberichte/83-native-huelle/bericht.md` §7.1).
   *Warum ein eigener Ordner neben `reviews/`:* Der Sprint-Abschluss zählt dort
   in Takt 1, Punkt 2 die **Berichte gelaufener Prüfungen** und hält sie gegen
   die Commit-Botschaften. Ein Bericht, zu dem es keinen Lauf gibt, verwässert
@@ -205,6 +216,9 @@ PO aus.
      mit Messbeleg. Muster: die sechs Punkte in Sprint 6 §10.6, „die je einen
      Fehlversuch ersparen".
   3. **AK-Urteil: ready ja/nein** — siehe „Definition of Ready" unten.
+     *In der Arbeit nach Feld 4 zu füllen:* Ob ein Kriterium prüfbar ist,
+     entscheidet sich am Prüfmittel. Die Nummer beschreibt den Bericht, nicht
+     den Arbeitsgang.
   4. **Prüfmittel** — womit der Nachweis geführt wird, und **was der Agent
      nicht prüfen kann**. Muster: Unter Wayland kann ein Agent kein Alt-Tab
      auslösen, weil ein Prozess sich den Fokus nicht selbst zuteilt
@@ -224,6 +238,23 @@ PO aus.
   Vorprüfbericht vorliegt und Feld 3 **ready ja** trägt — die
   Akzeptanzkriterien sind vollständig und einzeln prüfbar, und zu jedem ist in
   Feld 4 ein Prüfmittel benannt oder die Grenze der Prüfbarkeit ausgesprochen.
+  Dazu drei Sätze aus dem ersten Lauf des Verfahrens (04.08.2026, Belege in
+  `docs/scrum/vorberichte/83-native-huelle/bericht.md` §7):
+  - **Ein Issue mit selbstdeklarierten offenen Punkten ist nicht ready**,
+    unabhängig von seinen Kriterien. #83 führte drei Punkte „vor dem Ziehen zu
+    entscheiden"; das Urteil stimmte nur zufällig, weil auch die Kriterien nicht
+    trugen — die Regel hätte es nicht gefunden, wenn sie getragen hätten.
+  - **Ein Dateiname ist erst dann ein Prüfmittel, wenn `git ls-files` ihn
+    zeigt.** `native-farben.txt` erfüllte die DoR wörtlich und existiert nicht.
+    Dieselbe Bauart wie die Existenzprüfung des Verwalter-Berichts
+    (Sprint-Abschluss, Punkt 11): Es fehlt nicht die Regel, es fehlt ihre
+    Prüfbarkeit.
+  - **Behauptet ein Kriterium etwas über Hülle, Rundung, Kontur, Schatten,
+    Dekoration oder Durchsichtigkeit, nennt es das Sitzungsbild als Belegform**
+    (B21, DoD 3). In der ersten Fassung von #83 sprachen drei von acht
+    Kriterien über diese Größen, keines nannte ein Bild — das Issue entstand am
+    selben Tag wie der Beschluss. B21 muss die Stelle erreichen, an der
+    Kriterien **formuliert** werden, nicht erst die, an der sie geprüft werden.
   *Warum das ausdrücklich hier steht:* Dieses Gate hat gewirkt, ohne benannt zu
   sein — getragen hat es die alte Schätzregel. Im Sprint-6-Planning hat sie
   vier von acht Kandidaten aussortiert (#70 mit offenen AK; #71, #72, #61
