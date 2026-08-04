@@ -88,6 +88,22 @@ int main(int argc, char **argv)
         out << "\n";
     }
 
+    // Wie weit die Kachel ins Fensterrechteck hineinragt. `bindShadow()` setzt
+    // als Polsterung die Randmaße des `shadow`-Prefix (capturewindow.cpp:402-407);
+    // die Kacheln sind größer. Laut Kopfdatei von KWindowShadow gilt: „If the
+    // padding values are smaller than the sizes of the shadow tiles, then the
+    // shadow will overlap with the window() and will be rendered behind
+    // window()." Der Schatten reicht also **in** das Fenster hinein.
+    const QSizeF cornerSize = frame.elementSize(corner);
+    out << "\nPolsterung gegen Kachelmaß\n";
+    out << "  Polsterung (setPadding) : " << l << ", " << t << ", " << r << ", " << b << "\n";
+    out << "  Eckkachel               : " << cornerSize.width() << "x" << cornerSize.height() << "\n";
+    out << "  Überlappung ins Fenster : " << (cornerSize.width() - l) << " links, "
+        << (cornerSize.height() - t) << " oben\n";
+    out << "  Die Kachel hat dafür eine eigene Aussparung — in den Zeilen oben bricht ihr\n"
+           "  Verlauf entlang der Rundung auf 0 ab. Der Schatten meidet also genau die\n"
+           "  Fläche, die das Fenster deckt.\n";
+
     out << "\nFarbe der dunkelsten Stelle der Kachel: ";
     QColor darkest;
     int best = 1 << 20;

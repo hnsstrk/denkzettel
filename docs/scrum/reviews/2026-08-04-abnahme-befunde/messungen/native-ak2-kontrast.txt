@@ -1,0 +1,22 @@
+Farbschema                |Window     |gezeichnet |          |Alph| deckd| ungst|
+------------------------------------------------------------------------------------------
+BreezeClassic             |239,240,241|240,240,241|ABWEICHUNG| 216| 13.38|  9.40|
+BreezeDark                | 32, 35, 38| 32, 35, 38|gleich   | 216| 15.39|  9.42|
+BreezeLight               |239,240,241|240,240,241|ABWEICHUNG| 216| 13.35|  9.38|
+CachyOSNord               | 24, 27, 40| 24, 27, 40|gleich   | 216|  8.61|  5.36|
+CachyOSNordLightly        | 30, 34, 51| 30, 34, 51|gleich   | 216|  7.93|  4.88|
+Emerald                   |255,255,255|255,255,255|gleich   | 216| 20.87| 14.64|
+EmeraldDark               | 24, 27, 40| 24, 27, 40|gleich   | 216|  7.81|  4.86|
+EmeraldLight              |255,255,255|255,255,255|gleich   | 216| 20.87| 14.64|
+EmeraldSmooth             | 26, 28, 32| 26, 28, 32|gleich   | 216| 12.11|  7.50|
+IridescentLightly2        |  8,  4, 19|  8,  4, 19|gleich   | 216|  5.91|  4.08| UNTER 4,5:1
+IridescentLightly3        |  1, 11, 18|  1, 11, 18|gleich   | 216|  5.80|  3.91| UNTER 4,5:1
+IridescentLightly         |  8,  4, 19|  8,  4, 19|gleich   | 216|  5.91|  4.08| UNTER 4,5:1
+KritaBlender              | 48, 48, 48| 48, 48, 48|gleich   | 216| 11.07|  6.76|
+KritaBright               |212,212,212|213,213,213|ABWEICHUNG| 216|  9.78|  6.92|
+KritaDark                 | 71, 71, 71| 71, 71, 71|gleich   | 216|  5.55|  3.59| UNTER 4,5:1
+KritaDarker               | 50, 50, 50| 50, 50, 50|gleich   | 216| 10.75|  6.66|
+KritaDarkOrange           | 31, 31, 31| 31, 31, 31|gleich   | 216| 16.48| 10.21|
+KritaNeutral              |128,128,128|128,128,128|gleich   | 216|  4.74|  3.57| UNTER 4,5:1
+Ant-Dark                  | 30, 40, 44| 30, 40, 44|gleich   | 216|  8.90|  5.45|
+Win11OSDark               | 30, 30, 30| 30, 30, 30|gleich   | 216| 12.39|  7.71|

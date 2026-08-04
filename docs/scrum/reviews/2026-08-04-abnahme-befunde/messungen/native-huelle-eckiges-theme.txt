@@ -1,0 +1,193 @@
+=== Native Hülle: FrameSvg in einem Stück ===
+Plattform        : offscreen
+Theme            : denkzettel-pruef-eckig
+XDG_CONFIG_HOME  : /tmp/tmp.5fciN9v6ia/cfg-nord
+qApp DPR         : 1
+Fenstermaß       : 600x174 logisch
+
+
+########## A — die Ecke in einem Stück ##########
+
+--- Pixelverhältnis 1
+framePixmap      : 600x174 Bildpunkte, DPR 1
+
+Linke obere Ecke, r,g,b/Alpha  (600x174 Bildpunkte)
+                     0               1               2               3               4               5               6               7               8               9              10              11              12              13              14              15
+  0     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  1     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  2     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  3     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  4     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  5     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  6     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  7     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  8     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  9     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 10     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 11     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 12     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 13     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 14     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 15     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+
+Kantenlauf — framePixmap(), DPR 1
+  Zeile   0  Spalte    0  Sprung   0
+  Zeile   1  Spalte    0  Sprung   0
+  Zeile   2  Spalte    0  Sprung   0
+  Zeile   3  Spalte    0  Sprung   0
+  Zeile   4  Spalte    0  Sprung   0
+  Zeile   5  Spalte    0  Sprung   0
+  Zeile   6  Spalte    0  Sprung   0
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 0
+
+--- Pixelverhältnis 1.6
+framePixmap      : 960x279 Bildpunkte, DPR 1.6
+
+Linke obere Ecke, r,g,b/Alpha  (960x279 Bildpunkte)
+                     0               1               2               3               4               5               6               7               8               9              10              11              12              13              14              15
+  0     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  1     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  2     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  3     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  4     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  5     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  6     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  7     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  8     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+  9     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 10     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 11     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 12     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 13     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 14     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+ 15     0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255   0,  0,  0/255
+
+Kantenlauf — framePixmap(), DPR 1.6
+  Zeile   0  Spalte    0  Sprung   0
+  Zeile   1  Spalte    0  Sprung   0
+  Zeile   2  Spalte    0  Sprung   0
+  Zeile   3  Spalte    0  Sprung   0
+  Zeile   4  Spalte    0  Sprung   0
+  Zeile   5  Spalte    0  Sprung   0
+  Zeile   6  Spalte    0  Sprung   0
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 0
+
+
+########## E — Maske gegen Rahmen ##########
+
+Kantenlauf — alphaMask() — die mask-Elemente
+  Zeile   0  Spalte    0  Sprung   0
+  Zeile   1  Spalte    0  Sprung   0
+  Zeile   2  Spalte    0  Sprung   0
+  Zeile   3  Spalte    0  Sprung   0
+  Zeile   4  Spalte    0  Sprung   0
+  Zeile   5  Spalte    0  Sprung   0
+  Zeile   6  Spalte    0  Sprung   0
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 0
+
+Kantenlauf — framePixmap() — die Rahmenelemente
+  Zeile   0  Spalte    0  Sprung   0
+  Zeile   1  Spalte    0  Sprung   0
+  Zeile   2  Spalte    0  Sprung   0
+  Zeile   3  Spalte    0  Sprung   0
+  Zeile   4  Spalte    0  Sprung   0
+  Zeile   5  Spalte    0  Sprung   0
+  Zeile   6  Spalte    0  Sprung   0
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 0
+
+
+########## B/C — colorSet und Kontrast ##########
+Gemessen wird das Pixel in der Mitte der Fläche und, wo eine Linie da ist,
+das äußerste Pixel der Kante. Der Kontrast steht gegen die Textfarbe des
+Farbschemas, die Denkzettel dem Notiztext gibt (WindowText, AK 2).
+  View            Fläche   0,  0,  0  Alpha 255  (colorSet meldet 0)
+  Window          Fläche   0,  0,  0  Alpha 255  (colorSet meldet 1)
+  Button          Fläche   0,  0,  0  Alpha 255  (colorSet meldet 2)
+  Selection       Fläche   0,  0,  0  Alpha 255  (colorSet meldet 3)
+  Tooltip         Fläche   0,  0,  0  Alpha 255  (colorSet meldet 4)
+  Complementary   Fläche   0,  0,  0  Alpha 255  (colorSet meldet 5)
+  Header          Fläche   0,  0,  0  Alpha 255  (colorSet meldet 6)
+
+Zum Vergleich, aus dem Farbschema gelesen (KColorScheme):
+  View            BackgroundNormal  22, 25, 37   ForegroundNormal  71,173,218
+  Window          BackgroundNormal  30, 34, 51   ForegroundNormal 102,194,242
+  Button          BackgroundNormal  30, 34, 51   ForegroundNormal  49,181,235
+  Selection       BackgroundNormal  71,173,214   ForegroundNormal  10, 11, 12
+  Tooltip         BackgroundNormal  53, 57, 69   ForegroundNormal  49,181,235
+  Complementary   BackgroundNormal  30, 34, 51   ForegroundNormal  49,181,235
+  Header          BackgroundNormal  30, 34, 51   ForegroundNormal  49,181,235
+
+
+########## C — Kontrast bei durchscheinender Hülle (AK 2) ##########
+Notiztext (WindowText des Schemas): 102,194,242
+Hülle:   0,  0,  0 bei Alpha 255 = 100.0 %
+
+  schwarzer Grund       Fläche wirkt als   0,  0,  0  Kontrast zum Text 10.56 : 1
+  weiÃer Grund         Fläche wirkt als   0,  0,  0  Kontrast zum Text 10.56 : 1
+  mittelgrauer Grund    Fläche wirkt als   0,  0,  0  Kontrast zum Text 10.56 : 1
+
+AK 2 rechnet mit einer deckenden Fläche und nennt 4,74:1 als schlechtesten
+Wert über 18 Farbschemata. Deckend gerechnet ergibt dieses Schema 10.56:1.
+
+
+########## D — zeichnet die Grafik eine Kontur? ##########
+Waagerechter Schnitt durch Zeile 40, von außen nach innen. Eine Kontur wäre
+eine Linie, die sich von der Fläche unterscheidet.
+
+  x= 0    0,  0,  0 / Alpha 255
+  x= 1    0,  0,  0 / Alpha 255
+  x= 2    0,  0,  0 / Alpha 255
+  x= 3    0,  0,  0 / Alpha 255
+  x= 4    0,  0,  0 / Alpha 255
+  x= 5    0,  0,  0 / Alpha 255
+  x= 6    0,  0,  0 / Alpha 255
+  x= 7    0,  0,  0 / Alpha 255
+  x= 8    0,  0,  0 / Alpha 255
+  x= 9    0,  0,  0 / Alpha 255
+  x=10    0,  0,  0 / Alpha 255
+  x=11    0,  0,  0 / Alpha 255
+  Fläche in der Mitte derselben Zeile:   0,  0,  0 / Alpha 255
+
+Befund: Die Grafik zeichnet **keine Linie in anderer Farbe**. Kante und Fläche
+haben dieselbe Farbe (  0,  0,  0 gegen   0,  0,  0) und
+unterscheiden sich allein in der **Deckung**: 255 gegen 255 von 255.
+Der Rand des Themes ist also ein Deckungsrand, keine Konturfarbe. Sichtbar wird
+er nur, weil die Hülle durchscheint — auf deckendem Grund wäre er unsichtbar.
+Zum Vergleich: die heutige eigene Kontur (frameContrast 0,20) liegt laut
+Zeichnung 4b zwischen 1,24:1 und 1,91:1 Farbkontrast gegen die Fläche.

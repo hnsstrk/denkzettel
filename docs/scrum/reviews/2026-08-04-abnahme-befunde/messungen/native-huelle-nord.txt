@@ -1,0 +1,193 @@
+=== Native Hülle: FrameSvg in einem Stück ===
+Plattform        : offscreen
+Theme            : default
+XDG_CONFIG_HOME  : /tmp/tmp.5fciN9v6ia/cfg-nord
+qApp DPR         : 1
+Fenstermaß       : 600x174 logisch
+
+
+########## A — die Ecke in einem Stück ##########
+
+--- Pixelverhältnis 1
+framePixmap      : 600x174 Bildpunkte, DPR 1
+
+Linke obere Ecke, r,g,b/Alpha  (600x174 Bildpunkte)
+                     0               1               2               3               4               5               6               7               8               9              10              11              12              13              14              15
+  0       0,  0,  0/0     0,  0,  0/0   27, 33, 49/47  30, 35, 50/138  30, 34, 51/189  29, 34, 51/209  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235
+  1       0,  0,  0/0   29, 34, 50/97  30, 34, 51/215  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  2     27, 33, 49/47  30, 34, 51/215  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  3    30, 35, 50/138  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  4    30, 34, 51/189  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  5    29, 34, 51/209  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  6    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  7    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  8    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  9    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 10    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 11    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 12    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 13    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 14    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 15    30, 35, 51/235  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+
+Kantenlauf — framePixmap(), DPR 1
+  Zeile   0  Spalte    3  Sprung   0
+  Zeile   1  Spalte    2  Sprung   1
+  Zeile   2  Spalte    1  Sprung   1
+  Zeile   3  Spalte    0  Sprung   1
+  Zeile   4  Spalte    0  Sprung   0
+  Zeile   5  Spalte    0  Sprung   0
+  Zeile   6  Spalte    0  Sprung   0
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 0
+
+--- Pixelverhältnis 1.6
+framePixmap      : 960x279 Bildpunkte, DPR 1.6
+
+Linke obere Ecke, r,g,b/Alpha  (960x279 Bildpunkte)
+                     0               1               2               3               4               5               6               7               8               9              10              11              12              13              14              15
+  0       0,  0,  0/0     0,  0,  0/0     0,  0,  0/0     0,  0,  0/0     0,  0,  0/2   31, 35, 51/65  31, 35, 51/125  29, 34, 50/173  30, 34, 51/195  29, 34, 51/209  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235  30, 35, 51/235
+  1       0,  0,  0/0     0,  0,  0/0     0,  0,  0/0   29, 33, 50/61  29, 34, 51/185  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 33, 50/229  30, 33, 50/229  30, 33, 50/229  30, 33, 50/229  30, 33, 50/229  30, 33, 50/229
+  2       0,  0,  0/0     0,  0,  0/0   29, 34, 50/97  30, 34, 51/215  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  3       0,  0,  0/0   29, 33, 50/61  30, 34, 51/215  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  4       0,  0,  0/2  29, 34, 51/186  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  5     31, 35, 51/65  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  6    31, 35, 51/125  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  7    29, 34, 50/173  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  8    30, 34, 51/195  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+  9    29, 34, 51/209  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 10    30, 35, 51/235  30, 33, 50/229  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 11    30, 35, 51/235  30, 33, 50/229  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 12    30, 35, 51/235  30, 33, 50/229  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 13    30, 35, 51/235  30, 33, 50/229  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 14    30, 35, 51/235  30, 33, 50/229  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+ 15    30, 35, 51/235  30, 33, 50/229  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216  30, 34, 51/216
+
+Kantenlauf — framePixmap(), DPR 1.6
+  Zeile   0  Spalte    7  Sprung   0
+  Zeile   1  Spalte    4  Sprung   3   <== Stufe
+  Zeile   2  Spalte    3  Sprung   1
+  Zeile   3  Spalte    2  Sprung   1
+  Zeile   4  Spalte    1  Sprung   1
+  Zeile   5  Spalte    1  Sprung   0
+  Zeile   6  Spalte    1  Sprung   0
+  Zeile   7  Spalte    0  Sprung   1
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 1
+
+
+########## E — Maske gegen Rahmen ##########
+
+Kantenlauf — alphaMask() — die mask-Elemente
+  Zeile   0  Spalte    6  Sprung   0
+  Zeile   1  Spalte    3  Sprung   3   <== Stufe
+  Zeile   2  Spalte    2  Sprung   1
+  Zeile   3  Spalte    1  Sprung   1
+  Zeile   4  Spalte    1  Sprung   0
+  Zeile   5  Spalte    1  Sprung   0
+  Zeile   6  Spalte    0  Sprung   1
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 1
+
+Kantenlauf — framePixmap() — die Rahmenelemente
+  Zeile   0  Spalte    3  Sprung   0
+  Zeile   1  Spalte    2  Sprung   1
+  Zeile   2  Spalte    1  Sprung   1
+  Zeile   3  Spalte    0  Sprung   1
+  Zeile   4  Spalte    0  Sprung   0
+  Zeile   5  Spalte    0  Sprung   0
+  Zeile   6  Spalte    0  Sprung   0
+  Zeile   7  Spalte    0  Sprung   0
+  Zeile   8  Spalte    0  Sprung   0
+  Zeile   9  Spalte    0  Sprung   0
+  Zeile  10  Spalte    0  Sprung   0
+  Zeile  11  Spalte    0  Sprung   0
+  Zeile  12  Spalte    0  Sprung   0
+  Zeile  13  Spalte    0  Sprung   0
+  Zeile  14  Spalte    0  Sprung   0
+  Zeile  15  Spalte    0  Sprung   0
+  Stufen (Sprünge von zwei Spalten und mehr): 0
+
+
+########## B/C — colorSet und Kontrast ##########
+Gemessen wird das Pixel in der Mitte der Fläche und, wo eine Linie da ist,
+das äußerste Pixel der Kante. Der Kontrast steht gegen die Textfarbe des
+Farbschemas, die Denkzettel dem Notiztext gibt (WindowText, AK 2).
+  View            Fläche  30, 34, 51  Alpha 216  (colorSet meldet 0)
+  Window          Fläche  30, 34, 51  Alpha 216  (colorSet meldet 1)
+  Button          Fläche  30, 34, 51  Alpha 216  (colorSet meldet 2)
+  Selection       Fläche  30, 34, 51  Alpha 216  (colorSet meldet 3)
+  Tooltip         Fläche  30, 34, 51  Alpha 216  (colorSet meldet 4)
+  Complementary   Fläche  30, 34, 51  Alpha 216  (colorSet meldet 5)
+  Header          Fläche  30, 34, 51  Alpha 216  (colorSet meldet 6)
+
+Zum Vergleich, aus dem Farbschema gelesen (KColorScheme):
+  View            BackgroundNormal  22, 25, 37   ForegroundNormal  71,173,218
+  Window          BackgroundNormal  30, 34, 51   ForegroundNormal 102,194,242
+  Button          BackgroundNormal  30, 34, 51   ForegroundNormal  49,181,235
+  Selection       BackgroundNormal  71,173,214   ForegroundNormal  10, 11, 12
+  Tooltip         BackgroundNormal  53, 57, 69   ForegroundNormal  49,181,235
+  Complementary   BackgroundNormal  30, 34, 51   ForegroundNormal  49,181,235
+  Header          BackgroundNormal  30, 34, 51   ForegroundNormal  49,181,235
+
+
+########## C — Kontrast bei durchscheinender Hülle (AK 2) ##########
+Notiztext (WindowText des Schemas): 102,194,242
+Hülle:  30, 34, 51 bei Alpha 216 = 84.7 %
+
+  schwarzer Grund       Fläche wirkt als  25, 29, 43  Kontrast zum Text 8.44 : 1
+  weiÃer Grund         Fläche wirkt als  64, 68, 82  Kontrast zum Text 4.88 : 1
+  mittelgrauer Grund    Fläche wirkt als  45, 49, 63  Kontrast zum Text 6.55 : 1
+
+AK 2 rechnet mit einer deckenden Fläche und nennt 4,74:1 als schlechtesten
+Wert über 18 Farbschemata. Deckend gerechnet ergibt dieses Schema 7.93:1.
+
+
+########## D — zeichnet die Grafik eine Kontur? ##########
+Waagerechter Schnitt durch Zeile 40, von außen nach innen. Eine Kontur wäre
+eine Linie, die sich von der Fläche unterscheidet.
+
+  x= 0   30, 35, 51 / Alpha 235
+  x= 1   30, 34, 51 / Alpha 216
+  x= 2   30, 34, 51 / Alpha 216
+  x= 3   30, 34, 51 / Alpha 216
+  x= 4   30, 34, 51 / Alpha 216
+  x= 5   30, 34, 51 / Alpha 216
+  x= 6   30, 34, 51 / Alpha 216
+  x= 7   30, 34, 51 / Alpha 216
+  x= 8   30, 34, 51 / Alpha 216
+  x= 9   30, 34, 51 / Alpha 216
+  x=10   30, 34, 51 / Alpha 216
+  x=11   30, 34, 51 / Alpha 216
+  Fläche in der Mitte derselben Zeile:  30, 34, 51 / Alpha 216
+
+Befund: Die Grafik zeichnet **keine Linie in anderer Farbe**. Kante und Fläche
+haben dieselbe Farbe ( 30, 35, 51 gegen  30, 34, 51) und
+unterscheiden sich allein in der **Deckung**: 235 gegen 216 von 255.
+Der Rand des Themes ist also ein Deckungsrand, keine Konturfarbe. Sichtbar wird
+er nur, weil die Hülle durchscheint — auf deckendem Grund wäre er unsichtbar.
+Zum Vergleich: die heutige eigene Kontur (frameContrast 0,20) liegt laut
+Zeichnung 4b zwischen 1,24:1 und 1,91:1 Farbkontrast gegen die Fläche.

@@ -4,7 +4,7 @@
 (Produktivcode identisch mit dem installierten Stand `977e804`; dazwischen
 liegen nur Dokumente) · **Bericht:** `bericht.md`
 
-Hier liegen die Messungen, auf die sich `bericht.md` beruft: elf Protokolle,
+Hier liegen die Messungen, auf die sich `bericht.md` beruft: achtzehn Protokolle,
 die Sonden, die sie erzeugen, ein Prüf-Theme und ein Skript, das alles
 wiederholbar macht.
 
@@ -40,6 +40,22 @@ des Kunden kommt kein Bildpunkt mit. Ohne Wayland-Sitzung werden sie
 | `b2-schattenherkunft.txt` | **Die Schattenkacheln stammen aus `/usr/share/plasma/desktoptheme/default/dialogs/background.svgz`**, Ausmaß 10 logische Pixel, Höchstdeckung 28/255 ≈ 11 %. |
 | `b2-schattenprofil.txt` | **Gleiche Stärke an der Kante (10 % gegen 11 %), sehr verschiedene Reichweite**: Denkzettels Verlauf ist nach 8 Bildpunkten fertig, der native läuft über 21 hinaus. |
 | `b3-flaechenfarbe-nord.txt` | **Fläche, Anwendungsname und Fußzeile treffen die Palettenfarbe exakt**; der Notiztext trägt `WindowText`; die Schreibmarke ist die Umkehrung der Fläche. |
+
+## Nachtrag: der native Weg (Kundenentscheidung 04.08.2026)
+
+| Datei | Befund in einem Satz |
+|---|---|
+| `native-huelle-nord.txt`, `native-huelle-breeze.txt` | **`framePixmap()` hat null Stufen, `alphaMask()` eine** — die Rahmenelemente des Themes sind feiner als seine `mask-`Elemente. Und: die Hülle deckt nur zu **84,7 %**. |
+| `native-huelle-nord-wayland.txt` | **Derselbe Lauf unter Wayland liefert Zahl für Zahl dasselbe** — der native Weg ist plattformunabhängig, der heutige nicht. |
+| `native-huelle-eckiges-theme.txt` | **Eckiges Theme, eckige Hülle**, null Stufen bei Verhältnis 1 und 1,6. |
+| `native-ak2-kontrast.txt` | **17 von 20 Schemata treffen `Window` exakt**; deckend gerechnet 4,74:1 im schlechtesten Fall (die Zahl von AK 2), durchscheinend **3,57:1** — fünf Schemata unter 4,5:1. |
+| `b2-dekorationsquelle.txt` | **Die Fensterdekoration kennt das Desktop-Theme nicht** — keine der sechs Zeichenketten, weder KSvg noch libplasma gebunden. Zwei getrennte Schattenwege ohne gemeinsame Quelle. |
+| `b2-schattenherkunft.txt`, Abschnitt Polsterung | **Der Schatten ragt 6 Bildpunkte ins Fensterrechteck hinein** (Polsterung 10 gegen Kachel 16). Das widerlegt die erste Ursachenvermutung zu F3. |
+
+Bilder dazu in `bilder/native/` — `native-ecke-dpr-1.6.png` gegen
+`bilder/b1/echt/echte-ecke.png` (heutiger Stand am laufenden Fenster), und
+`native-huelle-dpr-1.png` auf der Schraffur der Zeichnung 4a, an der die
+Durchsichtigkeit abzulesen ist.
 
 ## Das Prüf-Theme
 

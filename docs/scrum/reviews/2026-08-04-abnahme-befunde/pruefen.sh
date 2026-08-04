@@ -89,5 +89,53 @@ XDG_CONFIG_HOME="$FLUECHTIG/cfg-nord" QT_QPA_PLATFORM=offscreen \
     "$BAU/sonden/flaechenfarbe" "$HIER/bilder/b3" \
     > "$HIER/messungen/b3-flaechenfarbe-nord.txt"
 
+echo "== B2: kommt der Schatten nativer Fenster aus denselben Kacheln? =="
+bash "$HIER/sonden/dekorationsquelle.sh" > "$HIER/messungen/b2-dekorationsquelle.txt"
+
+# ---------------------------------------------------------------------------
+# Der native Weg — Kundenentscheidung „native Plasma-Überlagerung ohne
+# Anpassungen" vom 04.08.2026.
+# ---------------------------------------------------------------------------
+
+echo "== Nativ: FrameSvg in einem Stück, unter zwei Farbschemata =="
+mkdir -p "$FLUECHTIG/cfg-breeze"
+cp /usr/share/color-schemes/BreezeLight.colors "$FLUECHTIG/cfg-breeze/kdeglobals"
+for schema in nord:cfg-nord breeze:cfg-breeze; do
+    name="${schema%%:*}"
+    XDG_CONFIG_HOME="$FLUECHTIG/${schema##*:}" QT_QPA_PLATFORM=offscreen \
+        "$BAU/sonden/nativehuelle" "$HIER/bilder/native/$name" default \
+        > "$HIER/messungen/native-huelle-$name.txt"
+done
+
+echo "== Nativ: derselbe Lauf unter Wayland (Plattformabhängigkeit prüfen) =="
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+    XDG_CONFIG_HOME="$FLUECHTIG/cfg-nord" \
+        "$BAU/sonden/nativehuelle" "$HIER/bilder/native/nord-live" default \
+        > "$HIER/messungen/native-huelle-nord-wayland.txt"
+else
+    echo "   (übersprungen — keine angemeldete Sitzung)"
+fi
+
+echo "== Nativ: das Prüf-Theme mit eckigen Ecken =="
+XDG_DATA_DIRS="$HIER/pruef-theme:/usr/share" XDG_CONFIG_HOME="$FLUECHTIG/cfg-nord" \
+    QT_QPA_PLATFORM=offscreen \
+    "$BAU/sonden/nativehuelle" "$HIER/bilder/native/eckig" denkzettel-pruef-eckig \
+    > "$HIER/messungen/native-huelle-eckiges-theme.txt"
+
+echo "== Nativ: AK 2 über alle installierten Farbschemata =="
+{
+    printf "%-26s|%-11s|%-11s|%-10s|%4s|%6s|%6s|\n" \
+        "Farbschema" "Window" "gezeichnet" "" "Alph" "deckd" "ungst"
+    printf '%.0s-' {1..90}; echo
+    for schema in /usr/share/color-schemes/*.colors "$HOME"/.local/share/color-schemes/*.colors; do
+        [ -e "$schema" ] || continue
+        name="$(basename "$schema" .colors)"
+        mkdir -p "$FLUECHTIG/sweep/$name"
+        cp "$schema" "$FLUECHTIG/sweep/$name/kdeglobals"
+        XDG_CONFIG_HOME="$FLUECHTIG/sweep/$name" QT_QPA_PLATFORM=offscreen \
+            "$BAU/sonden/nativekontrast" "$name" 2>/dev/null | tail -1
+    done
+} > "$HIER/messungen/native-ak2-kontrast.txt"
+
 echo
 echo "Fertig. Protokolle in messungen/, Bilder in bilder/."

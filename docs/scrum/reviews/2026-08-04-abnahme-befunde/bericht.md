@@ -106,6 +106,11 @@ oder des Prüfwegs ist. Das gehört geklärt, bevor jemand daran arbeitet.
 
 ### F3 · „Der weiße Hintergrund ragt über den Rahmen hinaus" · **fail**
 
+> **Nachtrag vom selben Tag, nach der Kundenentscheidung.** Die Ursachenvermutung
+> weiter unten — der Schatten reiche nicht in das Fensterrechteck hinein — ist
+> **gemessen widerlegt**. Was an ihre Stelle tritt, steht in **N6**.
+
+
 Der Satz des Kunden ist eine Zahlenaussage, und die Zahlen geben ihm recht.
 
 **Gemessen** (`b1-eckhelligkeit.txt`, an seiner eigenen Aufnahme): Quer durch
@@ -301,3 +306,219 @@ einzige, bei dem ich nicht weiß, ob eine Änderung an unserem Code ihn
    über das, was er sieht. Das ist eine DoD-Frage und gehört dem Scrum Master.
 4. **F7** ist eine Entscheidung des PO an Zeichnung 4b, kein Fehler.
 5. **B2** ist eine Produktentscheidung, keine Korrektur.
+
+---
+---
+
+# Nachtrag: der native Weg
+
+**Anlass:** Kundenentscheidung vom 04.08.2026 — *„Dann eine native
+Plasma-Überlagerung ohne Anpassungen"* — und die Verschärfung von B2:
+*„Der Schatten passt auch nicht zu dem Schatten, den andere Fenster werfen."*
+
+**Was ich gemessen habe:** die Hülle so gezeichnet, wie Plasma seine eigenen
+Überlagerungen zeichnet — `FrameSvg::framePixmap()` **in einem Stück**, ohne
+Ring, ohne eigene Kontur, ohne eigene Einfärbung. Sonde `nativehuelle.cpp`,
+Protokolle `native-huelle-*.txt`, `native-ak2-kontrast.txt`,
+`b2-dekorationsquelle.txt`.
+
+---
+
+## N1 · Die Treppe ist im nativen Weg nicht vorhanden · **ok**
+
+Das ist die Kernfrage, und die Antwort ist eindeutig.
+
+Derselbe Kantenlauf, dieselbe Grafik, dasselbe Fenstermaß, nur einmal über die
+`mask-`Elemente (der heutige Weg) und einmal über die Rahmenelemente (der
+native), beide bei Pixelverhältnis 1 (`native-huelle-nord.txt`, Abschnitt E):
+
+| | Kantenlauf über die ersten Zeilen | Stufen |
+|---|---|---|
+| `alphaMask()` — heute | 6 · 3 · 2 · 1 · 1 · 1 · 0 … | **1** |
+| `framePixmap()` — nativ | 3 · 2 · 1 · 0 · 0 · 0 · 0 … | **0** |
+
+Die `mask-`Elemente des Themes sind **gröber als seine Rahmenelemente**. Der
+heutige Weg nimmt ausgerechnet die gröberen — und skaliert sie dann auch noch
+hoch (F1). Der native Weg nimmt die feineren und lässt KSvg sie in
+Gerätebildpunkten rendern: bei Pixelverhältnis 1,6 liefert `framePixmap()`
+960×279 Bildpunkte mit einem kantengeglätteten Bogen (Zeile 0 der Ecke:
+Alpha 0 · 0 · 0 · 0 · 2 · 65 · 125 · 173 · 195 — ein Verlauf, keine Stufe).
+
+Damit ist auch Deine ursprüngliche Vermutung eingeordnet: Der Ring aus zwei
+Rahmen **ist** die Wurzel, nur nicht über die ganzzahligen Versätze, sondern
+darüber, dass er die Masken braucht. Nimmt man ihn weg, fällt beides weg.
+
+Bilder: `bilder/native/nord/native-ecke-dpr-1.6.png` (zwanzigfach, ungeglättet)
+gegen `bilder/b1/echt/echte-ecke.png` (der heutige Stand am laufenden Fenster).
+
+**Und er ist plattformunabhängig.** Derselbe Lauf unter `offscreen` und unter
+`wayland` liefert Zahl für Zahl dasselbe (`native-huelle-nord.txt` gegen
+`native-huelle-nord-wayland.txt`). Der Fehler aus F2 — Bilder, die einen anderen
+Stand zeigen als der Bildschirm — **kann auf diesem Weg nicht auftreten.**
+
+## N2 · Das eckige Prüf-Theme, noch einmal · **ok**
+
+Unter dem nativen Weg, bei Pixelverhältnis 1 und 1,6: Kontur ab Spalte 0 und
+Zeile 0, **null Stufen**, kein Zwischenwert (`native-huelle-eckiges-theme.txt`).
+Du hast recht, dass „kann nicht" eine Begründung und kein Beleg ist — jetzt ist
+es beides.
+
+## N3 · `colorSet` färbt, aber nicht so, wie der Name verspricht · **ok mit Vorbehalt**
+
+**Die gute Nachricht zuerst:** Die Grafik nimmt die Farbe des Schemas an. Unter
+dem Schema des Kunden wird aus `#eff0f1` der SVG-Vorlage **30,34,51** — auf den
+Punkt `Colors:Window/BackgroundNormal` von `CachyOSNordLightly` und damit
+dieselbe Farbe, die Denkzettel heute von Hand malt. **B3 verschlechtert sich
+durch den Umbau nicht.** Über alle zwanzig installierten Schemata gemessen
+(`native-ak2-kontrast.txt`): **17-mal exakt `Window`**, dreimal um genau einen
+Zählschritt daneben (239→240, 212→213) — ein Rundungsrest der Verlaufsgrafik,
+mit bloßem Auge nicht zu sehen.
+
+**Der Vorbehalt:** `setColorSet()` hat auf diese Grafik **keine Wirkung**. Alle
+sieben Farbsätze liefern dieselbe Fläche, obwohl `KColorScheme` für sie ganz
+verschiedene Hintergründe nennt (unter Nord: View 22,25,37 · Selection
+71,173,214 · Tooltip 53,57,69 gegen Window 30,34,51). Gemessen mit eigener
+`ImageSet`-Instanz je Satz, Farbsatz **vor** dem Bildpfad gesetzt und
+abgeschaltetem Zwischenspeicher — die drei Vorkehrungen gegen genau den Fehler,
+den Messung 3 aus Sprint 6 gefunden hat. Es bleibt dabei.
+
+**Ursache nicht ermittelt.** Praktisch trifft es sich gut: Was herauskommt, ist
+`Window`, und `Window` ist das, was AK 2 verlangt. Aber es heißt, dass der
+Farbsatz keine Stellschraube ist, auf die man später bauen darf.
+
+## N4 · Die Hülle des Themes **deckt nicht** — und das hat drei Folgen · **warn**
+
+Der Befund, mit dem ich nicht gerechnet hatte: Die Fläche der Theme-Grafik hat
+**Alpha 216 von 255, also 84,7 % Deckung** — in allen zwanzig Schemata gleich.
+Eine native Plasma-Überlagerung ist durchscheinend. Unser heutiges Fenster ist
+deckend.
+
+**Folge 1 — die Flächenfarbe hängt am Untergrund.** Auf der schraffierten
+Unterlage der Zeichnung 4a wird aus 30,34,51 sichtbar ein 62,66,80
+(`bilder/native/nord/native-huelle-dpr-1.png`). Der Kunde bekäme kein Fenster
+mit einer Farbe, sondern eines mit einer Farbe *plus dem, was dahinter liegt*.
+
+**Folge 2 — AK 2 wackelt, und ich kann sagen um wie viel.** Über alle zwanzig
+Schemata, Notiztext in `WindowText` (`native-ak2-kontrast.txt`):
+
+| gerechnet | schlechtester Wert | Schema |
+|---|---|---|
+| deckend, wie AK 2 heute rechnet | **4,74:1** | KritaNeutral |
+| durchscheinend, ungünstigster Grund | **3,57:1** | KritaNeutral |
+
+Die 4,74:1 sind auf den Hundertstel die Zahl, die AK 2 nennt — meine Messung
+reproduziert die Grundlage des AK, bevor sie sie angreift. Durchscheinend
+gerechnet fallen **fünf von zwanzig Schemata unter 4,5:1**: KritaNeutral 3,57 ·
+KritaDark 3,59 · IridescentLightly3 3,91 · IridescentLightly und
+IridescentLightly2 je 4,08. Unter dem Schema des Kunden bleibt es mit 4,88:1
+knapp darüber.
+
+*Wo diese Zahl endet:* Sie rechnet mit dem ungünstigsten denkbaren Untergrund
+(weiß bzw. schwarz, je nachdem, was näher an die Textfarbe rückt). Mit
+Weichzeichner dahinter ist der übliche Fall deutlich besser. Der schlechte Fall
+ist trotzdem erreichbar — ein weißes Dokumentfenster hinter der Einblendung
+genügt.
+
+**Folge 3 — der Weichzeichner gehört dazu.** Plasmas Überlagerungen sind
+durchscheinend, *weil* der Compositor hinter ihnen weichzeichnet. Dafür gibt es
+`KWindowEffects::enableBlurBehind(QWindow *, bool, const QRegion &)`
+(`b2-dekorationsquelle.txt`). Die Region ist die Maske — **dafür** sind die
+`mask-`Elemente des Themes da, nicht zum Zeichnen. „Ohne Anpassungen" heißt
+also nicht „weniger Code an dieser Stelle", sondern: Zeichnen wird einfacher,
+und die Anmeldung des Weichzeichners kommt dazu.
+
+## N5 · Die Kontur des Themes ist ein Deckungsrand, keine Farbe · **warn — AK fällt**
+
+Du hast gefragt, ob das Kontur-AK fällt. **Ja, und zwar gegenstandslos, nicht
+nur unerfüllt.**
+
+Gemessen quer durch Zeile 40 (`native-huelle-nord.txt`, Abschnitt D): Kante und
+Fläche haben **dieselbe Farbe** (30,35,51 gegen 30,34,51) und unterscheiden sich
+allein in der **Deckung — 235 gegen 216 von 255**. Die Grafik zeichnet keine
+Linie in anderer Farbe. Sichtbar wird ihr Rand nur, *weil* die Hülle
+durchscheint; auf deckendem Grund gäbe es ihn nicht.
+
+Damit ist `frameContrast` 0,20 nicht „anders gelöst", sondern **ohne
+Entsprechung**: Was heute als Farbkontrast zwischen 1,24:1 und 1,91:1 gebaut ist
+(Zeichnung 4b), ist im nativen Weg ein Deckungsunterschied von 7,5 %. Das AK
+dazu ist nicht mehr prüfbar und gehört gestrichen, nicht umformuliert. Zeichnung
+4b braucht an dieser Stelle eine neue Aussage.
+
+## N6 · B2 verschärft — und die Bauartfrage, die Du beantwortet haben wolltest · **fail**
+
+> **Zieht KWin für native Fenster überhaupt seine Schatten aus denselben
+> Kacheln, die wir übergeben?**
+
+**Nein.** Gemessen am Binärcode, ohne etwas zu installieren
+(`b2-dekorationsquelle.txt`):
+
+- Die Breeze-Fensterdekoration (`org.kde.kdecoration3/org.kde.breeze.so`)
+  enthält **keine** der Zeichenketten `desktoptheme`, `dialogs/background`,
+  `plasma/desktoptheme`, `KSvg`, `FrameSvg`, `shadow-topleft`.
+- Sie bindet **weder KSvg noch libplasma**.
+- Sie erzeugt ihren Schatten über `KDecoration3::DecorationShadow` —
+  `setShadow(QImage)`, `setPadding(QMarginsF)`, `setInnerShadowRect(QRectF)`:
+  ein **selbst gerechnetes Bild**, kein Kachelsatz. Ihre Stellschrauben heißen
+  `shadowSize`, `shadowStrength`, `shadowColor`.
+
+**Zwei getrennte Wege ohne gemeinsame Quelle.** Ein dekoriertes Fenster bekommt
+seinen Schatten von der Dekoration; ein undekorierter Client wie Denkzettel
+meldet ihn als Kachelsatz aus dem Desktop-Theme an. **„Derselbe Schatten wie
+native Fenster" ist über unseren Weg nicht einzustellen** — es gäbe ihn nur als
+Nachbau, und Nachbau hat der Kunde gerade abgewählt.
+
+Das ist ein Befund zur **Bauart**, wie Du vermutet hast. Er lässt zwei Wege:
+den Schatten der Überlagerungs-Familie behalten (er ist konsistent mit der
+Entscheidung des Kunden — es ist derselbe, den KRunner und Plasmas Aufklapper
+tragen) oder das Fenster dekorieren lassen und damit `Qt::FramelessWindowHint`
+aufgeben, was SPEC 3 seit Sprint 1 festlegt. **Beides ist eine Entscheidung des
+Kunden.** Ich empfehle nichts.
+
+### Und die Korrektur zu F3
+
+Meine Vermutung aus dem ersten Teil — *der Schatten des Compositors liege nur
+außerhalb des Fensterrechtecks, daher der helle Streifen* — ist **widerlegt**.
+Gemessen (`b2-schattenherkunft.txt`): `bindShadow()` setzt als Polsterung die
+Randmaße des `shadow`-Prefix, **10 Bildpunkte**, während die Eckkachel
+**16×16** groß ist. Die Kopfdatei von `KWindowShadow` sagt dazu: ist die
+Polsterung kleiner als die Kachel, überlappt der Schatten das Fenster und wird
+dahinter gezeichnet. Der Schatten ragt also **6 Bildpunkte in das
+Fensterrechteck hinein**, und die Eckkachel hat dafür eine eigene Aussparung
+entlang der Rundung (ihr Verlauf bricht in den Zeilen 11 bis 15 auf 0 ab).
+
+Was als Erklärung übrig bleibt und zu allen Zahlen passt: **Die Aussparung der
+Kachel und der gezeichnete Bogen laufen auseinander.** Die Kachel wird vom
+Compositor glatt skaliert, der Bogen heute in Stufen (F1) — zwei verschiedene
+Skalierungen derselben nominellen Rundung, dazwischen ein Streifen, den keine
+von beiden deckt. **Das ist prüfbar**, und zwar ohne Zusatzaufwand: Fällt F1,
+muss der Streifen kleiner werden oder verschwinden. Wenn nicht, ist die
+Erklärung falsch. Beweisen kann ich sie hier nicht.
+
+---
+
+## Was der native Weg zusammengefasst kostet und bringt
+
+| | heute | nativ |
+|---|---|---|
+| Treppe an der Ecke | ja, drei Stufen | **nein**, 0 Stufen |
+| Bild gleich Bildschirm | nein (F2) | **ja**, plattformunabhängig |
+| Fläche = `Window` des Schemas | ja | **ja**, 17 von 20 exakt |
+| Deckung | 100 % | **85 %** — Weichzeichner nötig |
+| schlechtester Kontrast (AK 2) | 4,74:1 | **3,57:1** ohne Weichzeichner |
+| Kontur | eigene Farbe, 1,24–1,91:1 | **Deckungsrand**, kein Farbkontrast |
+| Schatten wie dekorierte Fenster | nein | **nein — auf diesem Weg nicht erreichbar** |
+
+## Offene Punkte des Nachtrags
+
+6. **Für den Kunden:** Die native Überlagerung ist **durchscheinend**. Will er
+   das? Es ist der Preis von „ohne Anpassungen", und es ist sichtbar
+   (`bilder/native/nord/native-huelle-dpr-1.png`).
+7. **Für den Kunden:** Fünf von zwanzig Schemata unterschreiten dann 4,5:1
+   Textkontrast, wenn hinter dem Fenster ein ungünstiger Grund liegt. Das ist
+   eine Zugänglichkeitsentscheidung, keine technische.
+8. **Für den PO:** Das Kontur-AK ist gegenstandslos, nicht unerfüllt — Zeichnung
+   4b braucht an dieser Stelle eine neue Aussage.
+9. **Für den PO:** `KWindowEffects::enableBlurBehind` gehört zum nativen Weg
+   dazu und ist heute nirgends im Code. Das ist Umfang, den die Story tragen muss.
+10. **Für den Kunden:** Der Schatten. Überlagerungs-Familie behalten oder das
+    Fenster dekorieren lassen (und `Qt::FramelessWindowHint` aus SPEC 3 aufgeben).

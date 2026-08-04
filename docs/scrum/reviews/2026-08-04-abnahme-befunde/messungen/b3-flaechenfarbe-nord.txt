@@ -1,5 +1,5 @@
 === Flächenfarbe ===
-XDG_CONFIG_HOME  : /tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/cfg-nord
+XDG_CONFIG_HOME  : /tmp/tmp.5fciN9v6ia/cfg-nord
 Plattform-Thema  : kde
 
 Palette der Anwendung

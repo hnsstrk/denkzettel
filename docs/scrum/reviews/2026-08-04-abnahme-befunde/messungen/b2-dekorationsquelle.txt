@@ -1,0 +1,43 @@
+=== Woher nimmt die Fensterdekoration ihren Schatten? ===
+Geprüft: /usr/lib/qt6/plugins/org.kde.kdecoration3/org.kde.breeze.so
+
+--- Kennt sie das Desktop-Theme, aus dem wir unsere Kacheln nehmen?
+    desktoptheme             nicht enthalten
+    dialogs/background       nicht enthalten
+    plasma/desktoptheme      nicht enthalten
+    KSvg                     nicht enthalten
+    FrameSvg                 nicht enthalten
+    shadow-topleft           nicht enthalten
+
+--- Bindet sie die Bibliotheken, mit denen man es lesen würde?
+    weder KSvg noch libplasma
+
+--- Womit erzeugt sie ihren Schatten stattdessen?
+    KDecoration316DecorationShadow10setPaddingERK
+    KDecoration316DecorationShadow18setInnerShadowRectERK
+    KDecoration316DecorationShadow9setShadowERK
+    KDecoration316DecorationShadowC
+    KDecoration316DecorationShadowESaIvELN
+    (KDecoration3::DecorationShadow — setShadow(QImage), setPadding(QMarginsF),
+     setInnerShadowRect(QRectF): ein selbst gerechnetes Bild, kein Kachelsatz)
+
+--- Und welche Stellschrauben sie dafür anbietet:
+    shadowColor
+    shadowSize
+    shadowStrength
+
+Schluss: Zwei getrennte Wege. Ein dekoriertes Fenster bekommt seinen Schatten
+von der Dekoration, die ihn selbst rechnet; ein undekorierter Client wie
+Denkzettel meldet ihn über KWindowShadow als Kachelsatz aus dem Desktop-Theme
+an. Es gibt keine gemeinsame Quelle — „derselbe Schatten wie native Fenster"
+ist über unseren Weg nicht einzustellen, sondern nur nachzubauen.
+
+=== Was eine durchscheinende Überlagerung zusätzlich braucht ===
+KWindowEffects (KF6::WindowSystem) bietet:
+    55:KWINDOWSYSTEM_EXPORT bool isEffectAvailable(Effect effect);
+    78:KWINDOWSYSTEM_EXPORT void enableBlurBehind(QWindow *window, bool enable = true, const QRegion &region = QRegion());
+    106:enableBackgroundContrast(QWindow *window, bool enable = true, qreal contrast = 1, qreal intensity = 1, qreal saturation = 1, const QRegion &region = QRegion());
+    (Die Hülle des Themes deckt nur zu 85 % — ohne Weichzeichner hinter dem
+     Fenster schlägt der Untergrund auf die Flächenfarbe durch. Plasmas eigene
+     Überlagerungen melden dafür eine Region an; die Region ist die Maske,
+     also genau das, wofür die mask-Elemente des Themes da sind.)

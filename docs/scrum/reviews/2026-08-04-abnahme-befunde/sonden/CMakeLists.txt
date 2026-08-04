@@ -13,6 +13,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Gui Sql Widgets)
 find_package(KF6Config REQUIRED)
+find_package(KF6ColorScheme REQUIRED)
 find_package(KF6ConfigWidgets REQUIRED)
 find_package(KF6CoreAddons REQUIRED)
 find_package(KF6I18n REQUIRED)
@@ -55,3 +56,10 @@ target_link_libraries(huellenring PRIVATE Qt6::Gui KF6::Svg)
 
 # B1 — das echte Pixelverhältnis am laufenden Bildschirm.
 denkzettel_probe(echtelage)
+
+# Nativer Weg — FrameSvg in einem Stueck, colorSet, Kontrast.
+add_executable(nativehuelle nativehuelle.cpp)
+target_link_libraries(nativehuelle PRIVATE Qt6::Gui KF6::Svg KF6::ColorScheme KF6::ConfigCore)
+
+add_executable(nativekontrast nativekontrast.cpp)
+target_link_libraries(nativekontrast PRIVATE Qt6::Gui KF6::Svg KF6::ColorScheme KF6::ConfigCore)
