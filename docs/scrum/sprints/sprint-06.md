@@ -1082,3 +1082,53 @@ Produktentscheidung (Beschreibung, Kategorien, Bilder, Release-Historie am
 Changelog) und gehört in eine Story, nicht in einen Nebenweg. Als **#73**
 angelegt. Bis dahin gilt: **„7/7" heißt in diesem Projekt sechs Tests und eine
 Leerstelle.**
+
+---
+
+## 14. Backlog-Grooming (PO, 04.08.2026)
+
+**Anlass:** Kundenauftrag nach der BM25-Prüfung — Reihenfolge in diesem Zug neu
+zu bewerten. Stand: 49 offene Issues, 34 mit Schätzung.
+
+### 14.1 Was sich geändert hat
+
+| Issue | Von | Nach | Grund |
+|---|---|---|---|
+| #74 Seite „Kürzel" | M7 | **M2** | Die Kürzel existieren heute; `SPEC.md:77` verspricht Konflikterkennung *„bei Kürzel-Änderung"* und hat ohne diese Seite **keinen Auslöser** |
+| #75 Seite „Export" | M7 | **M5** | Gehört zu Obsidian-Export (#32) und Volllauf-Schutz (#34); in M7 stünde die Seite vor der Funktion, die sie einstellt |
+| #61 Versionsanzeige | M7, ruhend | **Kandidat Sprint 7/8** | Hält Abschluss-Punkt 10 ausgesetzt — Sprint 4 und 5 sind ohne Version abgenommen, Sprint 6 wird der dritte |
+
+**Die Regel dahinter, erstmals ausgesprochen:** *Einstellungsseiten reisen mit
+ihrer Funktion.* Das Projekt hat sie schon zweimal angewandt, ohne sie zu
+benennen — die Seite „Sprachnotizen" hängt in M4 an #27, „KI-Provider" und
+„Analyse" in M3 an #16. Die beiden heute angelegten Seiten waren die erste
+Abweichung.
+
+### 14.2 Neu angelegt
+
+- **#77** Trefferliste zeigt, warum ein Treffer einer ist (Ergebnis der
+  BM25-Prüfung, aus zwei Richtungen unabhängig empfohlen)
+- **#78** Trefferliste hat keine Obergrenze — `store.cpp:448` ohne `LIMIT`,
+  weder SPEC noch Zeichnung nennen eine. **Der erste Schritt ist eine Messung,
+  kein Umbau**; möglicherweise endet die Story mit einem Satz in der SPEC.
+
+### 14.3 Sprint-7-Bild
+
+**Kern #68** (Schrift folgt zur Laufzeit nicht, 5 SP). #56 aus Sprint 6 ist
+genau seine Voraussetzung — die vorgezogene Heilung des Fehlers, den #68
+sichtbar machen wird. Aufgefüllt wird aus **#71, #72, #77**; **#70** braucht
+zuvor eine Kundenentscheidung (K5, seit dem Sprint-6-Planning offen).
+
+**Alle vier Auffüll-Kandidaten sind ungeschätzt.** Vor dem Planning brauchen
+sie je zwei unabhängige Schätzungen — sonst wiederholt sich der Sprint-6-Fall,
+in dem von acht Kandidaten nur zwei regelkonform geschätzt waren.
+
+### 14.4 Was ich geprüft und **nicht** geändert habe
+
+- **Der Ideenspeicher** (#48 Zwischenablage-Zettel, #49 Wiedervorlage) bleibt
+  geparkt. Beide sind Kundenideen ohne Priorisierung; sie zu bewegen wäre eine
+  Entscheidung, die mir nicht zusteht.
+- **#63** (Tag-Chips im Lesezustand fehlen) bleibt in M3. Die Chips zeigen
+  KI-Tags — vor M3 gäbe es nichts anzuzeigen; die Einordnung ist richtig.
+- **Die Epic-Reihenfolge M1→M7** bleibt Grundlinie. Sie ist heute nicht
+  angetastet worden; verschoben wurden drei Issues **innerhalb** dieser Linie.
