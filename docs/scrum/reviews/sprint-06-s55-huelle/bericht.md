@@ -646,3 +646,71 @@ ctest                              7/7
 Bilder                             14 neu erzeugt aus frisch gebautem Läufer,
                                    Bild 15 (laufende Sitzung) unberührt
 ```
+
+---
+
+## 13. Nachtrag 04.08.2026 — M1: die zehn clazy-Befunde dieses Sprints
+
+**Selbst nachgezählt, nicht übernommen** — beide Zahlen des PO stimmen, und der
+Unterschied zwischen ihnen hat eine Ursache, die man kennen muss:
+
+```
+vorher:   16 Zeilen in der Zählweise der CI   (Schwelle 3)
+          13 verschiedene Stellen, davon 10 aus diesem Sprint
+nachher:   3 Zeilen  —  genau die drei Altbefunde, genau die Schwelle
+```
+
+**Warum 16 und nicht 13:** Die CI zählt `grep -c 'warning:'`, also **Zeilen**,
+nicht Stellen. `tests/desktopthemes.h` ist ein Header und wird über **zwei**
+Übersetzungseinheiten verarbeitet (`capturetest.cpp` und `captureshots.cpp`);
+seine drei Befunde zählen doppelt. 13 + 3 = 16. Wer künftig die Schwelle
+nachzieht, sollte das wissen: **Ein Befund in einem Header kostet so viele
+Zähler, wie er Übersetzungseinheiten hat.**
+
+### 13.1 Die drei Befundklassen
+
+**`non-pod-global-static`, `capturewindow.cpp:57–60`** — vier `const QString`
+im namenlosen Namensraum. Sie werden in unbestimmter Reihenfolge relativ zu
+anderen Übersetzungseinheiten gebaut und beim Beenden wieder abgeräumt.
+Geheilt als `constexpr QLatin1StringView`: derselbe Name, dieselbe Stelle, aber
+ein literaler Typ ohne Konstruktorlauf. Eine Anpassung war nötig —
+`KConfigGroup::readEntry` leitet seinen Typ aus dem Vorgabewert ab und kann
+keinen View lesen, dort steht jetzt `QString(DefaultDesktopTheme)`.
+
+**`range-loop-detach`, fünf Stellen** — drei in `desktopthemes.h`, zwei in
+`capturetest.cpp`. Die drei im Header liefen über **Zwischenwerte**
+(`QDir::entryList(...)`, `installedThemes()`); dort hilft `std::as_const`
+nicht, sondern eine benannte `const`-Variable. Die beiden im Test laufen über
+einen veränderlichen `QStringList` und sind mit `std::as_const` geheilt — dem
+Weg, den clazy selbst vorschlägt.
+
+**`connect-non-signal`, `capturewindow.cpp:192`** — dem Vorschlag des PO
+gefolgt, und ich sehe **keinen Grund**, die Schleife zu behalten: Zwei
+ausgeschriebene `connect`-Aufrufe mit einer benannten Lambda-Variablen sind
+kürzer als Schleife plus Unterdrückung, doppeln nichts, und clazy versteht sie.
+Der Befund war inhaltlich falsch — beide sind Signale mit gleicher Signatur —,
+aber ein Ausnahmekommentar wäre teurer als die Auflösung.
+
+### 13.2 Belege
+
+```
+Neubau in einem eigenen Bauplatz, wie ihn die CI fährt:
+   Compiler-Warnungen   0   (Schwelle 0)
+   clazy-Befunde        3   (Schwelle 3)  — librarytest 2×, shelltest 1×
+   ctest                7/7
+
+capturetest, beide Pflichtumgebungen:
+   QT_QPA_PLATFORM=offscreen                            21 passed, 0 failed, 0 skipped
+   QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde   21 passed, 0 failed, 0 skipped
+
+Bildläufer neu gebaut und gefahren: die 15 Bilder sind byteweise unverändert.
+```
+
+**Die Schwelle bleibt bei 3** und ist damit wieder das, was sie sein soll — der
+gemessene Altbestand, nicht eine Schranke darüber. Sie zu heben wäre der
+Fehler, den `ci.yml` in seinem eigenen Kommentar benennt.
+
+*Zur Redlichkeit:* Der Bau war die ganze Zeit warnungsfrei, DoD 1 war nicht
+gerissen. Gerissen war die CI-Kundenentscheidung vom 04.08.2026 — und zwar von
+meinem Code. Dass die rote Marke erst nach dem Merge auffiel, ändert nichts
+daran, wo die zehn Befunde herkommen.
