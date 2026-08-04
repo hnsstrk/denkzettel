@@ -1401,3 +1401,322 @@ Nachweis ist Test und Bild, und das ist keine Auslassung, sondern die Lage.
 Die Story wurde trotzdem gebaut, und zwar **vor** #68: Sobald jemand die
 Schriftzustellung nachrüstet, tritt der Fehler sofort zutage. Wer es
 andersherum macht, baut eine Verbesserung und liefert die Verschlechterung mit.
+
+---
+
+## 19. DoD-Prüfung Takt 1 (Scrum Master)
+
+**Datum:** 2026-08-04, 15:53 (Ganymed) · **Prüfer:** Scrum Master, frischer
+Kontext · **Prüfstand:** `main` @ `96cf51f` · **Prüfmittel:** eigener Bauplatz
+außerhalb des Repositoriums (`cmake -B <sandkasten> -S . -DCMAKE_BUILD_TYPE=Debug`),
+damit `build/` und `build-install/` unberührt bleiben.
+
+**Ergebnis in einem Satz:** DoD 1, 3 und 4 tragen und sind nachgemessen; **fünf
+Mängel** gehen an den PO, davon zwei mit Gewicht — die letzte öffentliche Marke
+von `main` ist **rot** (M1), und für #55 und #56 fehlt die dokumentierte
+PO-Abnahme (M3). Punkt 1 des Abschlusses ist **offen**, nicht mangelhaft.
+
+### 19.1 Abschluss-Punkt 1 — Installation nach `/usr`: **offen**
+
+Gebucht als offen, nicht als Mangel: Der PO hat ihn beauftragt, er hängt am
+Kundenpasswort.
+
+| Gegenstand | Befund |
+|---|---|
+| installierter Stand | `/usr/bin/denkzetteld` trägt **02.08.2026 17:39** — der Stand aus Sprint 5 |
+| Bau für die Installation | `build-install/CMakeCache.txt`: `CMAKE_INSTALL_PREFIX=/usr`, `CMAKE_BUILD_TYPE=Debug`; `bin/denkzetteld` gebaut **15:28** |
+| deckt der Bau den Endstand? | **ja** — die letzte Änderung unter `src/` ist `2ef495f` (15:11); `c0c623d` und `96cf51f` fassen nur `tests/captureshots.cpp`, Belege und README an |
+
+**Was mit Punkt 1 offen bleibt:** die Hauptwege der drei Stories am
+installierten Stand (DoD 2, Ersatzpflicht nach Sprint-3-Mangel M1) und damit
+der einzige Nachweis, der ausschließlich dort zu führen ist — der Schatten
+(§6.2). **#56 hat dort keinen Hauptweg**, das ist die benannte Grenze aus
+§4.1.1 und im Takt zu notieren, nicht stillschweigend auszulassen.
+
+### 19.2 Abschluss-Punkt 2 — Prüfsummen der Bildbelege: **kein Fund**
+
+```
+bash docs/scrum/bildbelege-pruefen.sh docs/scrum/reviews/sprint-06-s55-huelle   -> RC 0 (15 Bilder)
+bash docs/scrum/bildbelege-pruefen.sh docs/scrum/reviews/sprint-06-ux-review    -> RC 0 (19 Bilder)
+```
+
+Kein Urteil zu fällen: Das Skript hat nichts gefunden. **Erster Lauf der
+Stop-Bedingung — 1 von 3.**
+
+**Die Bilder sind darüber hinaus nachgefahren, nicht nur gezählt.** Der Läufer
+frisch gebaut, dann gegen die versionierte Reihe gehalten:
+
+```
+QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde <sandkasten>/bin/captureshots <ausgabe>
+-> 14 von 14 Bildern byteweise gleich mit sprint-06-s55-huelle/bilder/
+   ("Desktop-Themes dieser Bildreihe (installiert): schmal=breeze-dark  breit=CachyOS-Nord-round")
+```
+
+Damit ist die Regel aus `CLAUDE.md` („Ein Bildbeleg ist erst ein Beleg, wenn
+sein Läufer frisch gebaut ist") **am Ergebnis** geprüft und nicht an der Zusage
+der Berichte. Der Vorfall aus Sprint 5 — grüner Test und falsches Bild zugleich
+— ist hier ausgeschlossen.
+
+### 19.3 Abschluss-Punkt 2 — Vollzähligkeit der Prüfberichte: **vollzählig**
+
+Prüfweg nach PROZESS: Commit-Botschaften, die Befunde eines Prüflaufs nennen,
+gegen die abgelegten Berichte.
+
+| Prüflauf | Commit | Bericht als Datei |
+|---|---|---|
+| karpathy, Erstlauf (1 fail, 3 warn) | `ee47602` | `sprint-06-karpathy.md`, Abschnitt „Befunde" |
+| karpathy, **Nachprüfung** (Verdict ok) | `c85ffbe` | **dieselbe Datei**, Abschnitt „Wiedervorlage 04.08.2026" — beide Commits fassen sie an |
+| UI-Review (kein fail, 4 warn) | `63645a8` | `sprint-06-ux-review/bericht.md` samt 19 Bildern und `pruefen.sh` |
+| Übergabe Strang A / Strang B | `38db754` / `4ac9e83` | `sprint-06-s55-huelle/bericht.md` · `sprint-06-s59-scrollstelle/bericht.md` |
+| U4-Behebung | `c0c623d` | Nachtrag §12 im Strang-A-Bericht |
+| PO-Arbeit desselben Tages (karpathy-Tagesreview, Bildbelege, BM25, CI, Klangfreiheit, Kegel-Rückbau, `sp:`-Label) | `dfdb5be`…`0a229d2` | je eigene Datei unter `docs/scrum/reviews/` — alle vorhanden |
+
+**Kein Commit dieses Sprint-Diffs nennt einen Prüflauf ohne abgelegten
+Bericht.** Der Sprint-3-Fall (`e18630c`) wiederholt sich nicht. Die
+Prozessänderungen dieses Sprints (`PROZESS.md`, `denkzettel-verwalter.md`) sind
+durch `2026-08-04-karpathy.md` gedeckt — Verdict `warn`, kein `fail`.
+
+### 19.4 Die beiden Bildreihen — geprüft, kein Mangel, aber eine Stelle altert
+
+Der Strang hat seine zwölf Hüllenbilder nach U4 neu erzeugt (`c0c623d`); die
+Reihe des UI-Reviews dokumentiert den geprüften Stand und bleibt.
+
+- **Der Strang-Bericht sagt es**, §12.3: *„Die Bilder des UI-Reviews … sie
+  dokumentieren den geprüften Stand. Dass meine Reihe seit dieser Korrektur
+  davon abweicht, ist richtig so."* Dazu §12.2 mit ausgezählten
+  Pixel-Unterschieden.
+- **Der UX-Bericht sagt es nicht**, sondern trägt in §1 weiterhin: *„Meine 14
+  Läuferbilder sind byteweise identisch mit denen des Strangs."* Der Satz war
+  an seinem Prüfstand (`2ef495f`, im Kopf genannt) wahr und ist heute falsch.
+
+**Kein Mangel** — ein Bericht ist Beweislage seines Standes, und ein
+nachträglich geglätteter Beleg wäre keiner mehr (`346a4c0`). **Aber der Satz
+steht im Präsens und ohne Anker**, und aufgelöst wird der Widerspruch nur in
+der *anderen* Datei. *Vorschlag an den PO (nicht geheilt):* eine angehängte
+Zeile im UX-Bericht, die auf `c0c623d` verweist — dieselbe Bauart wie die
+Belegnachträge vom Vormittag.
+
+### 19.5 DoD 1–4 je Story
+
+Alle Läufe im eigenen Sandkasten, an `96cf51f`.
+
+| | **#56** (1 SP) | **#55** (8 SP) | **#59** (2 SP) |
+|---|---|---|---|
+| **DoD 1** Bau + Tests | ✓ | ✓ | ✓ |
+| **DoD 2** AK erfüllt · **PO-Abnahme** | Belege ✓ · **fehlt (M3)** | Belege ✓ · **fehlt (M3)** | ✓ §16.2, AK-Tabelle gegen Belege gelesen |
+| **DoD 3** karpathy · UI-Review | ok · kein fail (P25) | ok · kein fail (P1–P26) | ok · keine UI-Story (§15.2) |
+| **DoD 4** SPEC nachgezogen | SPEC 3 | SPEC 3.1, **3.2 (5 Bedingungen)**, 15, 16 | SPEC 9 (1 Bedingung) |
+
+**DoD 1, gemessen statt geglaubt:**
+
+```
+Neubau                                                0 Compiler-Warnungen
+ctest                                                 7/7 (appstreamtest ist die Leerstelle aus §13.5)
+capturetest  QT_QPA_PLATFORM=offscreen                21 passed, 0 failed, 0 skipped
+capturetest  … + QT_QPA_PLATFORMTHEME=kde             21 passed, 0 failed, 0 skipped
+librarytest  … + QT_QPA_PLATFORMTHEME=kde            108 passed, 0 failed, 0 skipped
+```
+
+Der zweite Halbsatz von DoD 1 — Raumaufteilung bei **zwei Fenstergrößen** — ist
+durch `hullIsCompleteAtFiveAndEightLines()` (`capturetest.cpp:498`, 174 gegen
+228 px) gedeckt, geprüft unter beiden Themes und beiden Schemata (UX P24).
+
+**DoD 4 in der B9-Fassung — die Behauptung trägt**, am Diff `sprint-06-basis..main`
+von SPEC.md gelesen, nicht am Bericht:
+
+- **SPEC 3.2 führt genau fünf entdeckte Bedingungen**: KSvg liest `plasmarc`
+  nicht selbst · ein `FrameSvg` folgt nur einem **frischen** `ImageSet` ·
+  Zustellung über `KDirWatch`, nicht `KConfigWatcher` · ohne Theme keine Hülle,
+  aber ein brauchbares Fenster (**und ein unbekannter Name erzeugt diesen
+  Zustand nicht**) · der Schatten wird nach jedem Neuzeigen neu gebunden.
+- **SPEC 9 führt die eine Bedingung zu #59**: neu gruppiert wird nur bei
+  **anderem Kalendertag**, mit dem gemessenen Wert (459 px) und der Begründung,
+  warum der Kalendertag als Bedingung genügt.
+- Dazu SPEC 3 (Höhe folgt der Schrift, #56), SPEC 15 (`KSvg`, `KWindowShadow`,
+  `KCoreAddons` — der wörtliche B9-Beispielfall) und **drei** neue Absätze in
+  SPEC 16 (Grenzen der Offscreen-Prüfbarkeit, Zustände mit eigenem Prozess,
+  keine Zusicherung an einem Maschinennamen).
+
+**Was an DoD 4 fehlt, siehe M5:** die Begründung **im Issue**.
+
+### 19.6 Schätzhistorie — die Bedingung an #56 hat gehalten
+
+| Story | Erstschätzung | Provenienz | Revision im Sprint | Label heute |
+|---|---|---|---|---|
+| #55 | 8 | Sprint-5-Planning, Dev 8 · UX 8 — 2 unabhängige | keine | `sp:8` |
+| #56 | 1 | Anlage (1 Hand), **bestätigt** 02.08. durch Zweitschätzung | keine | `sp:1` |
+| #59 | 2 | Sprint-5-Planning, Dev 2 · UX 2 | keine | `sp:2` |
+
+**Die Bedingung aus §2.3 ist am Commit geprüft, nicht am Bericht:**
+`tests/captureshots.cpp` ist mit **`38db754` (#55)** angelegt; der #56-Commit
+`48d73e5` fasst ausschließlich `src/capture/capturewindow.cpp` (+11) und
+`tests/capturetest.cpp` (+37) an. **#56 hat den Läufer nicht bezahlt** — die 1
+bleibt 1, der Prüfsatz aus §9 („kippt die Zuordnung, wird #56 zur 2") ist nicht
+ausgelöst.
+
+**#59 hat keine Zeile in §9.** Die Tabelle entstand beim Planning, bevor #59 mit
+der Freigabe hinzukam; seit dem Kegel-Rückbau (§13.4) ist die Historie kein
+Pflichtteil mehr. **Kein Mangel**, festgehalten zur Vollständigkeit.
+
+**Sprint-Konto geprüft:** Milestone „Sprint 6" trägt genau #55, #56, #59 — **3
+Issues, 11 SP**, beide Grenzen gehalten. Die drei im Sprint angelegten Issues
+**#79, #80, #81** hängen an **keinem** Milestone; es gab **keinen Zugang** nach
+der Freigabe.
+
+### 19.7 Doku-Abgleich (B10)
+
+Der Nachzug des PO in `96cf51f` ist nachgeprüft und trägt: `README.md:56–57`
+nennt `Svg`, `README.md:61–62` `ksvg` **und** `kcoreaddons`, dazu der Satz zum
+fehlenden Desktop-Theme (`:65–67`). **An derselben Datei bleiben zwei Stellen
+stehen — M4 und M2.** Die Statuszeile nach B10 existiert in dieser README nicht
+als eigene Zeile; ihre Funktion nimmt der Absatz „Auf der Liste stehen noch"
+wahr, und genau dort sitzt M2.
+
+---
+
+### 19.8 Mängelliste an den PO (melden, nicht heilen)
+
+**M1 · schwer — Die letzte öffentliche Marke von `main` ist rot, und kein
+Artefakt dieses Sprints nennt sie.**
+
+`gh run list`: Lauf **30912635307** auf `2ef495f` („Merge Strang A") —
+**failure**. Grund laut Lauf: *„16 clazy-Befunde, erlaubt sind 3 (Altbestand vom
+04.08.2026)."* Alle Läufe davor grün.
+
+Am Prüfstand nachgemessen (`cmake --build <sandkasten> --target lint-clazy`):
+**13 verschiedene Befunde**, die CI zählt 16, weil `desktopthemes.h` über
+`capturetest.cpp` und `captureshots.cpp` zweimal in den Lint geht. Davon sind
+**drei** der Altbestand, den die Schwelle 3 abbildet (`librarytest.cpp:2387,2393`,
+`shelltest.cpp:361`) — die übrigen **zehn stammen aus diesem Sprint**:
+
+```
+src/capture/capturewindow.cpp:57,58,59,60   non-pod-global-static
+src/capture/capturewindow.cpp:192           connect-non-signal
+tests/desktopthemes.h:91,112,135            range-loop-detach
+tests/capturetest.cpp:512,573               range-loop-detach
+```
+
+**Warum das mehr ist als eine Linterzeile:** `1006d33` in **diesem** Sprint hat
+denselben Fall behandelt und benannt — *„Bau grün, ctest grün,
+Compiler-Warnungen null … der Linter im automatischen Lauf war der Einzige, der
+es sah."* Beim zweiten Mal ist er stehengeblieben. `CLAUDE.md` verlangt: *„Wer
+pusht, sieht nach: `gh run list --limit 1`."* Der Nachschlag ist unterblieben
+oder folgenlos geblieben; weder Sprint-Protokoll noch Übergabebericht erwähnt
+den roten Lauf.
+
+*Zur Genauigkeit:* **DoD 1 ist davon nicht gerissen** — sie verlangt einen
+warnungsarmen Bau, und Compiler-Warnungen sind null. Gerissen ist die
+Kundenentscheidung vom 04.08.2026 über die automatischen Testläufe, deren
+Schwelle „sinkt die Zahl, wird die Schwelle nachgezogen" lautet — hier ist sie
+gestiegen.
+
+**M2 · mittel — `README.md:47–49` führt „runde Fensterecken" weiter unter dem,
+was noch aussteht.** Der Satz *„Auf der Liste stehen noch: … Export nach
+Obsidian und Taskwarrior, runde Fensterecken"* beschreibt einen Stand, den `main`
+seit `2ef495f` nicht mehr hat; die Funktionsliste (`:34–43`) nennt die Hülle
+gar nicht. Das ist die B10-Bauart an einer anderen Stelle: Die README beschreibt
+den **gelieferten** Stand. Spätestens mit der Kundenabnahme ist der Satz
+öffentlich falsch.
+
+**M3 · schwer — Für #55 und #56 ist die PO-Abnahme nirgends dokumentiert.**
+DoD 2 verlangt *„Akzeptanzkriterien des Issues erfüllt **und vom PO
+abgenommen**"*. Für **#59** steht sie in §16.2, mit AK-Tabelle und dem
+ausdrücklichen Satz, dass der PO die Belege gelesen hat und nicht den Bericht.
+Für #55 und #56 findet sich nichts: §17 enthält nur 17.1, und die letzten
+Issue-Kommentare stammen vom 01. und 02.08.2026, also aus der Zeit vor der
+Umsetzung. Die Berichte der Stränge sind Selbstauskunft und ersetzen die
+Abnahme nicht — sonst nimmt die Story sich selbst ab.
+
+**M4 · mittel — Drei Dateien beschreiben die Bildläufer falsch oder
+unvollständig; die wichtigste davon liest jede Sitzung von selbst.**
+
+| Ort | Aussage | Befund |
+|---|---|---|
+| `CLAUDE.md:84–85` | „Die Bildläufer (`editshots`, `libraryshots`, `searchshots`, `readmeshots`) sind `EXCLUDE_FROM_ALL` — ein gewöhnlicher Build fasst sie nicht an" | **zweifach überholt**: `tests/CMakeLists.txt:93` sagt *„They were EXCLUDE_FROM_ALL once"*, und **`captureshots` fehlt in der Liste** |
+| `README.md:110` | „Die vier Bildläufer …" | EXCLUDE-Aussage richtig, **`captureshots` fehlt** |
+| `.github/workflows/ci.yml:11–13` | „die Bildläufer … sind EXCLUDE_FROM_ALL und werden hier nicht gebaut" | **falsch** — sie werden gebaut |
+
+Die `CLAUDE.md`-Stelle wiegt am schwersten, weil sie dort eine **Prüfpflicht
+begründet** („Vor jedem Bildbeleg: `cmake --build build --target <läufer>`").
+Wer die Begründung als überholt erkennt, legt die Pflicht mit ab — und die
+Pflicht gilt weiter, nur aus einem anderen Grund.
+
+**M5 · leicht — DoD 4 verlangt die Begründung *im Issue*; an keiner der drei
+Stories steht sie.** Der SPEC-Nachzug selbst trägt (19.5). An #55 und #56 enden
+die Kommentare am 02.08.2026, **#59 hat überhaupt keinen Kommentar**.
+*Empfehlung:* mit dem Abnahmekommentar in Takt 2 erledigen — dann ist es ein
+Satz mehr und keine Nacharbeit.
+
+### 19.9 Zwei Feststellungen ohne Mangelcharakter
+
+1. **Acht Commits sind nicht gepusht** (`ee47602`…`96cf51f`; `origin/main` steht
+   auf `2ef495f`). Der Push ist **Takt 2, Punkt 7** — kein Takt-1-Mangel. Er
+   gehört trotzdem hierher, weil er an M1 hängt: Der öffentliche Stand ist
+   heute der **rote**, und ein Push ohne vorherige Behebung erzeugt eine zweite
+   rote Marke. **Reihenfolge: erst M1, dann pushen.**
+2. **Das done/next des Sprint-Endes fehlt.** §12 ist das done/next des
+   Plannings. Der Pflichtteil verlangt eines je Protokoll; es entsteht sinnvoll
+   erst mit Takt 2.
+
+### 19.10 Was ich ausdrücklich **nicht** geprüft habe
+
+- **Den Sprint-Diff auf seine Deckung** — in §17.1 aufgeschlüsselt und vom
+  karpathy-Reviewer bestätigt; auf Weisung des PO nicht erneut erhoben.
+- **DoD 5 und DoD 6** — Takt 2, vor der Abnahme nicht erfüllbar. Sie hier zu
+  buchen wäre die Wiederholung der Sprint-3-Mängel M2 und M5.
+- **Den installierten Stand** — Punkt 1 ist offen (19.1).
+- **Die vier `warn`-Befunde des UI-Reviews und die drei des Tagesreviews.** Kein
+  `fail`, damit ist DoD 3 erfüllt; U1/U2/U3 sind als #80, #79, #81 gebucht, U4
+  ist behoben.
+
+---
+
+## 20. Abnahme #55 und #56 durch den PO (M3)
+
+Nachgeholt auf Mangel M3 der DoD-Prüfung. Für #59 stand die Abnahme seit dem
+Merge in §16.2; für die beiden Stories aus Strang A gab es nur die
+Selbstauskunft des Strangs — und die ist keine Abnahme. Der Scrum Master hat
+recht: Ein Bericht sagt, was der Erbauer gemessen hat, nicht was der PO
+angenommen hat.
+
+Geprüft habe ich die Belege, nicht die Berichtssätze.
+
+### 20.1 #56 — Feldhöhe folgt einer Schriftänderung
+
+| AK | Beleg, den ich gelesen habe |
+|---|---|
+| 1 — Höhe entspricht nach einer Schriftänderung wieder SPEC 3 | `heightFollowsAFontChange()` prüft ruhend `Höhe − Chrom == 5 × Zeilenabstand` **und** nach acht Zeilen `== 8 × Zeilenabstand`; vor der Heilung rot mit *Actual 85, Expected 215* |
+| 2 — prüfbar ohne Plasma-Schriftumstellung, Test setzt die Schrift direkt | Derselbe Test setzt `text->setFont(...)` — Weg C der Schätzmessung. Die Heilung sitzt im `eventFilter`, nachgeprüft am Code (`capturewindow.cpp`), nicht am Bericht |
+| 3 — mindestens zwei deutlich verschiedene Schriftgrößen | 9 pt und 24 pt im selben Test; Bilder 13/14 |
+
+**Angenommen.** Die Zusicherung ist relativ geführt — gemessen wird gegen den
+Zeilenabstand der jeweiligen Schrift, nicht gegen eine Pixelzahl. Ein absoluter
+Vergleich hätte die Schriftauswahl der Maschine mitgeprüft.
+
+**Was die Annahme nicht deckt:** #56 ist am Kundenblick nicht prüfbar (§18).
+Das ist keine Auslassung, sondern die Lage — und der Grund, warum die Story
+**vor** #68 gebaut wurde.
+
+### 20.2 #55 — Capture-Fensterhülle
+
+| AK | Beleg, den ich gelesen habe |
+|---|---|
+| 1 — Rundung, Kontur, Schatten aus dem Theme; Randmaß **und** Eckform unterscheiden sich | `hullFollowsTheDesktopTheme()`; `theme-eckstuecke.txt` über alle acht Themes. Nach der Nachbesserung `wideCorner != narrowCorner` statt `>` — die Eckform folgt dem Rand nicht, und die alte Fassung leitete sie daraus ab |
+| 2 — durchgehende Fläche, Notiztext auf `WindowText` | `paintsOneSurfaceInThePaletteColours()`, `noteTextUsesTheWindowTextRole()`; unabhängig am Bild bestätigt (UI-Review P9: dieselbe Farbe links des Feldes, im Feld und rechts davon) |
+| 3 — Innenabstände zuzüglich Theme-Rand; Fußzeile luftiger als der App-Name | UI-Review P1/P3/P16/P17: 16/14/16/12 bei Rand 4, 20/18/20/16 bei Rand 8; 12 gegen 8 unter **beiden** Themes |
+| 4 — Hülle bei 5 wie bei 8 Zeilen vollständig | `hullIsCompleteAtFiveAndEightLines()`, nach Mutationsprobe um `QVERIFY(cornerRun > 0)` ergänzt — ohne diese Zeile blieb der Test grün, obwohl gar keine Hülle gezeichnet wurde |
+| 5 — Theme-Wechsel bei laufendem Dienst | `hullFollowsTheDesktopTheme()` am stehenden Fenster, `readsTheDesktopThemeFromPlasmarc()`; Zustellung über `KDirWatch` gemessen. **Der Zusammenbau ist nicht end-to-end geprüft** — benannte Grenze, Punkt 4 der Abnahme-Checkliste |
+| 6 — keine Titelleiste, kein Dekorationsrahmen | `wearsNoDecoration()`, Mutationsprobe nachgefahren; Bild 15 aus der laufenden Sitzung |
+| 7 — Belegformen getrennt | Zwölf Bilder aus frisch gebautem Läufer, nach U4 neu erzeugt. Schatten: `create() == wahr` am laufenden Compositor, Kacheln 32×16 und 16×16, auch nach dem zweiten Zeigen |
+| 8 — `KF6::Svg` verkabelt, SPEC nachgezogen, Randfall ohne Absturz | Vier Bibliotheken statt einer, aus Messung begründet; SPEC 3/3.1/3.2/15/16, vom Scrum Master am SPEC-Diff gegengelesen; `staysUsableWithoutADesktopTheme()` in eigenem Prozess |
+
+**Angenommen**, mit drei benannten Grenzen der Prüfbarkeit: das **Aussehen**
+des Schattens, der **Zusammenbau** des Theme-Wechsels und die **Skalierung > 1**
+(vom UI-Review nicht geprüft und dort als erster Nachsehpunkt zu #80 benannt).
+Alle drei stehen in der Abnahme-Checkliste oder als Issue — keine ist
+stillschweigend geblieben. Eine benannte Grenze schließt die Story nicht
+(DoD 2).
+
+**Nicht Teil der Abnahme, sondern gebucht:** #79 (Fenster schrumpft nicht
+zurück, vorbestehend), #80 (Kontur an der Rundung), #81 (Textkante). Keiner
+der drei berührt ein Akzeptanzkriterium dieser Story.

@@ -38,6 +38,8 @@ schiefging, steht offen im Repository —
 - Bearbeiten mit Rückfrage, bevor ungespeicherte Änderungen verlorengehen
 - Symbole und Beschriftungen aus dem System; ein Wechsel des Farbschemas wird
   sofort übernommen
+- Das Erfassungsfenster trägt die Hülle des Desktop-Themes — Rundung, Kontur
+  und Schatten kommen von dort, nicht aus fest eingebauten Werten
 - Läuft im Hintergrund, sitzt im Systemabschnitt der Kontrollleiste, startet
   mit der Sitzung
 - Alles bleibt lokal in einer SQLite-Datei
@@ -45,8 +47,8 @@ schiefging, steht offen im Repository —
 ![Die Bibliothek: links die nach Tagen gegliederte Notizliste, rechts der Lesebereich](docs/bilder/bibliothek.png)
 
 Auf der Liste stehen noch: Sprachnotizen mit Transkription, eine KI, die
-sortiert und Vorschläge macht, Export nach Obsidian und Taskwarrior, runde
-Fensterecken. Was gerade ansteht, steht in den
+sortiert und Vorschläge macht, Export nach Obsidian und Taskwarrior. Was
+gerade ansteht, steht in den
 [Issues](https://github.com/hnsstrk/denkzettel/issues).
 
 ## Installation
@@ -107,8 +109,8 @@ ctest --test-dir build
 ```
 
 Die Tests laufen offscreen und brauchen keine laufende Plasma-Sitzung. Die
-vier Bildläufer (`editshots`, `libraryshots`, `searchshots`, `readmeshots`)
-baut ein gewöhnlicher Build seit dem 04.08.2026 mit. Sie stehen weiterhin
+fünf Bildläufer (`editshots`, `libraryshots`, `searchshots`, `readmeshots`,
+`captureshots`) baut ein gewöhnlicher Build seit dem 04.08.2026 mit. Sie stehen weiterhin
 **nicht** in `ctest` — ein kaputter Bildschreiber soll die Suite nicht rot
 färben —, aber ein Läufer, den niemand neu baut, altert unbemerkt und schreibt
 plausible Bilder eines alten Standes.

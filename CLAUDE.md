@@ -81,11 +81,15 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   Zeichnung beruft, liest sie vorher.
 - Ein Testaufbau, in dem der Fehler gar nicht auftreten *kann*, ist kein Test.
 - **Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
-  Die Bildläufer (`editshots`, `libraryshots`, `searchshots`, `readmeshots`) sind
-  `EXCLUDE_FROM_ALL` — ein gewöhnlicher Build fasst sie nicht an. Ein
-  veralteter Läufer schreibt plausible Bilder eines **alten** Standes mit
-  frischem Zeitstempel (Vorfall Sprint 5: grüner Test und falsches Bild
-  zugleich). Vor jedem Bildbeleg: `cmake --build build --target <läufer>`.
+  Es gibt fünf: `editshots`, `libraryshots`, `searchshots`, `readmeshots`,
+  `captureshots`. Ein veralteter Läufer schreibt plausible Bilder eines
+  **alten** Standes mit frischem Zeitstempel (Vorfall Sprint 5: grüner Test
+  und falsches Bild zugleich). Vor jedem Bildbeleg:
+  `cmake --build build --target <läufer>`.
+  Seit dem 04.08.2026 sind sie **nicht mehr** `EXCLUDE_FROM_ALL` — ein
+  gewöhnlicher Build fasst sie an. Das entschärft die Falle, hebt sie aber
+  nicht auf: Wer den Läufer startet, ohne vorher zu bauen, bekommt weiter das
+  alte Bild. Die Regel gilt unverändert, nur ihr Grund ist ein anderer.
 
 ## Retrospektiven
 
