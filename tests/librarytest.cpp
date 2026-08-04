@@ -143,6 +143,7 @@ private Q_SLOTS:
     void keepsTheHeadFetchAfterAClickThatSelectedNothing();
     void bringsBackTheHeadWhenTheDeletionIsUndone();
     void regroupsWhenTheWindowIsActivated();
+    void staysPutWhenTheWindowIsActivatedWithoutADayChange();
     void undoesTheDeletionByKeyboard();
     void deletesWithTheDeleteKey();
     void showsTheRemainingTimeInTheMessage();
@@ -1829,6 +1830,56 @@ void LibraryTest::regroupsWhenTheWindowIsActivated()
     QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
     QCOMPARE(list->currentIndex(), noteRow(list, 0));
     QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("gestern Abend gedacht"));
+}
+
+void LibraryTest::staysPutWhenTheWindowIsActivatedWithoutADayChange()
+{
+    // The counterpart of the test above, and the blind spot it left open
+    // (issue #59): with the selection in row 0 the jump cannot show, because
+    // there is nothing above it to scroll. So the selection sits far down here
+    // and the list is rolled away from it before the window is looked at
+    // again.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // The selection is in "Gestern", well below row 0 …
+    const QModelIndex selected = noteRow(list, 12);
+    list->setCurrentIndex(selected);
+    QVERIFY(selected.row() > 0);
+
+    // … and the user has rolled the list back to the top, away from it.
+    list->verticalScrollBar()->setValue(0);
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(selected)),
+             "Der Fall verlangt die Auswahl außerhalb des Bildes");
+    const int rolledTo = list->verticalScrollBar()->value();
+
+    // Alt-Tab away and back, without a day passing in between.
+    QWidget elsewhere;
+    elsewhere.show();
+    elsewhere.activateWindow();
+    QTRY_VERIFY(!window.isActiveWindow());
+
+    window.activateWindow();
+    QTRY_VERIFY(window.isActiveWindow());
+
+    // Measured at the scroll value, not at the picture: nothing about the
+    // grouping has changed, so nothing may move.
+    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+    QCOMPARE(list->currentIndex(), selected);
 }
 
 void LibraryTest::deletesWithTheDeleteKey()
