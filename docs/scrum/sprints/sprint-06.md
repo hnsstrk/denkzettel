@@ -1756,3 +1756,70 @@ begründet.
 **Der gemeinsame Nenner:** Beide Male habe ich einen Zustand geändert und die
 Aussage über ihn nicht. Das ist dieselbe Klasse wie die überholten Präsens-Sätze
 im UI-Bericht — nur dort hat sie jemand gefunden, bevor sie schadete.
+
+---
+
+## 22. Abschluss-Punkt 1 — Installation und Prüfung am installierten Stand
+
+**Vollzogen am 04.08.2026, 16:19.** Der Endstand ist einmal nach `/usr`
+installiert (`pkexec cmake --install build-install`, Exit 0, `denkzetteld`
+ersetzt).
+
+### 22.1 Ein Befund beim Installieren, und er ist der teuerste des Sprints gewesen
+
+Nach der Installation lief der Dienst **weiter mit der alten Binärdatei**:
+
+```
+PID 4569, gestartet 07:45:41
+/proc/4569/exe -> /usr/bin/denkzetteld (deleted)
+```
+
+Die Datei war ersetzt, der Prozess hielt den gelöschten Inode. **Eine Abnahme
+zu diesem Zeitpunkt hätte den Stand vom 02.08.2026 geprüft** — und zwar ohne
+jedes Anzeichen: Das Fenster wäre erschienen, das Kürzel hätte funktioniert,
+nur die Hülle wäre nicht dagewesen, und niemand hätte gewusst warum.
+
+**Das ist Sprint-3-Mangel M1 in seiner ursprünglichen Form** — dort prüfte ein
+Strang den Stand eines anderen, hier hätte der Kunde den Stand von vorgestern
+geprüft. Strang B hat denselben Mechanismus von der anderen Seite gemeldet
+(M-B2: `KDBusService::Unique` reicht den Start des Debug-Builds an den
+laufenden Dienst weiter).
+
+**Geheilt:** Dienst beendet und neu gestartet. Neuer Stand:
+
+```
+PID 514464, gestartet 16:19:37
+/proc/514464/exe -> /usr/bin/denkzetteld     (ohne "deleted")
+```
+
+**Für die Retro:** Der Sprint-Abschluss sagt „der Endstand ist einmal nach
+`/usr` installiert". Installieren genügt nicht — der laufende Dienst muss
+danach der installierte sein. Vorschlag: Punkt 1 um die Rückfrage ergänzen,
+und zwar in der belegbaren Form (`/proc/<pid>/exe` ohne `(deleted)`), nicht als
+„Dienst neu gestartet".
+
+### 22.2 Was am installierten Stand geprüft ist
+
+| Prüfung | Ergebnis |
+|---|---|
+| Dienst läuft aus der installierten, nicht gelöschten Binärdatei | `/proc/514464/exe -> /usr/bin/denkzetteld` |
+| Globales Kürzel registriert, beim Dienst **zurückgefragt** | Komponente `org_denkzettel_Denkzettel_desktop`, Kürzel `show-capture`, Anzeigename „Notiz erfassen" |
+| Tastenkombination | `268435534` = `0x1000004E` = `Qt::META \| Qt::Key_N` = **Meta+N** |
+| Desktop-Datei, über die KGlobalAccel auflöst | `org.denkzettel.Denkzettel.desktop` |
+
+Das ist die Rückfrage aus SPEC 2.4 in der Fassung nach Retro-Beschluss B5 —
+nicht die Zusicherung der Anwendung, sich registriert zu haben, sondern die
+Antwort des Dienstes darauf, was er hält.
+
+### 22.3 Was am installierten Stand **nicht** geprüft ist
+
+**Der sichtbare Hauptweg jeder Story.** Ein Agent kann unter Wayland weder ein
+globales Kürzel auslösen noch sich den Fokus zuteilen (Meldung M-B1 aus Strang
+B, an diesem Sprint zum zweiten Mal aufgetreten). Damit ist der Weg „Meta+N
+drücken, tippen, Strg+Enter" von hier aus nicht ausführbar.
+
+**Das ist keine Auslassung, sondern die Zuständigkeit:** Genau dafür steht die
+Abnahme-Checkliste in §18. Ihre sieben Punkte sind der Hauptweg, aufgeteilt in
+das, was ein Auge sehen muss.
+
+**Sprint 6 steht damit an der Kundenabnahme.**
