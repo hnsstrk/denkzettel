@@ -54,12 +54,19 @@ jobs:
         # librarytest und shelltest wären dann grün und wertlos (#60, #66, #67).
         # git wird vor dem Auschecken gebraucht, sonst fällt actions/checkout
         # auf einen Abzug ohne Historie zurück.
+        #
+        # ksvg und kcoreaddons kommen mit der Fensterhülle (#55): KSvg zeichnet
+        # `dialogs/background` des Desktop-Themes, KDirWatch bewacht den
+        # Themenamen in `plasmarc`. libplasma liefert die Themes selbst —
+        # `default` und `breeze-*` liegen darin. Ohne libplasma fände KSvg hier
+        # überhaupt kein Theme, und capturetest prüfte den Randfall statt der
+        # Sache.
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel cmake git gettext \
             extra-cmake-modules qt6-base \
-            kconfig kdbusaddons kglobalaccel ki18n knotifications \
-            kstatusnotifieritem kwidgetsaddons kwindowsystem \
+            kconfig kcoreaddons kdbusaddons kglobalaccel ki18n knotifications \
+            kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem libplasma \
             plasma-integration breeze-icons appstream clazy
 
       - uses: actions/checkout@v4
