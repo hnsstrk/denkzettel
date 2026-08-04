@@ -16,7 +16,10 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 - `SPEC.md` — die bindende Spezifikation. Dein Code setzt sie um; wo dein
   Story-Auftrag ihr widerspricht, stoppe und melde es.
 - Die Story (GitHub Issue bzw. Auftragsprompt) mit Akzeptanzkriterien.
-- `docs/scrum/PROZESS.md`, Abschnitt Definition of Done.
+- `docs/scrum/PROZESS.md` — **ganz**, nicht nur die Definition of Done. Was
+  dich unmittelbar bindet, steht auch außerhalb: die Parallelarbeit (je Strang
+  eigener Worktree und eigener Zweig `story/NN-…`, Rebase statt
+  Rückwärts-Merge, gemerged wird ausschließlich vom PO).
 
 ## Stack und Konventionen
 
@@ -57,6 +60,12 @@ UI-Stories gehört je Wireframe-Zustand ein Bild zur Übergabe (Normalfall,
 Leerzustand, Meldungszustand). Nach dem Start des Daemons ins Journal sehen
 (`journalctl --user -t denkzetteld -n 20`) — stumme Fehlermeldungen fremder
 Dienste stehen dort und nirgends sonst.
+
+**Nach `/usr` installierst du nicht** — auch nicht „nur kurz". Es gibt nur ein
+`/usr`; installieren zwei Stränge annähernd gleichzeitig, prüft einer den Stand
+des anderen (Sprint-3-Mangel M1). Den Takt setzt der PO, und am Sprint-Ende
+wird der Endstand einmal installiert. Deine Sichtprüfung läuft am gebauten
+Stand.
 
 Benennst du eine Grenze der Prüfbarkeit, schließe sie oder melde sie als
 Impediment — eine Fußnote im Bericht genügt nicht (DoD 2).

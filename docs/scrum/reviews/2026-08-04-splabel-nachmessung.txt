@@ -1,0 +1,87 @@
+# Nachmessung der sp:-Label-Spuren
+# Zeitpunkt: 04.08.2026, 10:01 · Stand: 9d222d2 · Ganymed
+#
+# Anlass: Zwei Berichte desselben Tages widersprechen sich.
+#   A5 (2026-08-04-workflow-optimierungen.md): 24 von 36 Labeln ohne Protokollspur.
+#   sprint-06-verwalter-splabel.md:            36 von 36 belegt, 0 unbelegt.
+#
+# Befehle:
+#   gh issue list --state open --limit 200 --json number,title,labels
+#   grep -E "#<nr>" docs/scrum/sprints/*.md          -> Nummernspur
+#   grep -E "^\| <Story-ID> \|" docs/scrum/sprints/sprint-01.md -> Story-ID-Spur
+#
+# Die Story-ID ist das erste Wort des Issue-Titels. Die Sprint-1-Tabelle
+# fuehrt Story-IDs, der Backlog fuehrt Issue-Nummern — nur der Titel
+# verbindet beides. Deshalb findet ein grep auf die Nummer die Spur nicht.
+
+Issue  ID     Spur           Fundstelle bzw. Schaetzwerte
+---------------------------------------------------------------------------------
+#10    S7     Nummer         sprint-04.md
+#13    S9     Nummer         sprint-04.md
+#14    S10a   Story-ID       sprint-01.md:59 — A/B = (8) / (8)
+#15    S10b   Story-ID       sprint-01.md:60 — A/B = (8) / (8)
+#16    S11    Nummer         sprint-04.md
+#17    T5     OHNE 2. HAND   sprint-01.md:62 — A/B = – / – (»neu«)
+#18    S12    Story-ID       sprint-01.md:63 — A/B = 3 / 2
+#19    T6     OHNE 2. HAND   sprint-01.md:69 — A/B = – / – (»neu«)
+#20    S13a   Story-ID       sprint-01.md:70 — A/B = (8) / (8)
+#21    S13b   Story-ID       sprint-01.md:71 — A/B = (8) / (8)
+#22    S14a   Story-ID       sprint-01.md:72 — A/B = (8) / (13)
+#23    S14b   Story-ID       sprint-01.md:73 — A/B = (8) / (13)
+#24    S14c   Story-ID       sprint-01.md:74 — A/B = (8) / (13)
+#25    T7     OHNE 2. HAND   sprint-01.md:75 — A/B = – / – (»neu«)
+#26    S16    Nummer         sprint-04.md
+#27    S15    Story-ID       sprint-01.md:77 — A/B = 3 / 8
+#28    S17    Story-ID       sprint-01.md:83 — A/B = 5 / 5
+#29    S18a   Nummer         sprint-02.md
+#30    S20a   Story-ID       sprint-01.md:85 — A/B = (8) / (5)
+#31    S20b   Story-ID       sprint-01.md:86 — A/B = (8) / (5)
+#32    S21    Story-ID       sprint-01.md:87 — A/B = 5 / 5
+#33    S22    Story-ID       sprint-01.md:88 — A/B = 3 / 5
+#34    S23    Story-ID       sprint-01.md:89 — A/B = 3 / 3
+#35    S18b   Story-ID       sprint-01.md:90 — A/B = (8) / (8)
+#36    S24    Story-ID       sprint-01.md:91 — A/B = 3 / 2
+#37    S25a   Story-ID       sprint-01.md:98 — A/B = (5) / (8)
+#38    S25b   Story-ID       sprint-01.md:99 — A/B = (5) / (8)
+#39    S26    Story-ID       sprint-01.md:100 — A/B = 2 / 3
+#40    S27    Story-ID       sprint-01.md:106 — A/B = 5 / 5
+#41    S28    Nummer         sprint-03.md
+#47    S29    Nummer         sprint-03.md
+#50    T8     Nummer         sprint-04.md
+#55    S32    Nummer         sprint-06.md
+#56    Capture Nummer         sprint-06.md
+#59    Bibliothek Nummer         sprint-04.md
+#68    Schrift Nummer         sprint-06.md
+
+===============================================================================
+# Teil 2 — Nachmessung auf Anforderung des PO, 04.08.2026, 10:07
+#
+# Der PO hat dieselbe Fehlmessung unabhaengig gefunden und zwei Zahlen
+# genannt. Beide hier nachgemessen; sie beschreiben verschiedene Mengen.
+
+## 2a — Zeilen der Schaetzklausur in sprint-01.md
+$ awk -F'|' '/^\| [ST][0-9]+[a-z]? \|/ ...' docs/scrum/sprints/sprint-01.md
+Positionen gesamt: 41
+mit zwei Schaetzern: 34
+ohne zweite Hand:   7 -> T1  T2  T3  T4  T5  T6  T7 
+Deckt sich mit der Zaehlung des PO (41 / 34 / 7).
+
+## 2b — Welche der sieben tragen heute noch ein Label?
+$ gh issue list --state all --limit 300 --json number,title,state,labels
+1	CLOSED	sp:2	T1: Wayland-Fokus-Spike
+6	CLOSED	sp:2	T2: Autostart und Erststart
+9	CLOSED	sp:1	T3: Migrationstest Schemaversion 1→2
+12	CLOSED	sp:1	T4: Ollama-Modelle auf Ganymed bereitstellen
+45	CLOSED		T5: clazy und clang-tidy als Lint-Targets einführen
+17	OPEN	sp:2	T5: Werkzeug-Erkennung und Anzeige
+19	OPEN	sp:2	T6: whisper.cpp-Weg auf Ganymed klären
+25	OPEN	sp:1	T7: Aufräum-Kontrolle verwaister Audio-Dateien
+
+-> T1-T4 sind geschlossen. Offen mit sp:-Label: #17, #19, #25 (drei).
+   Die 7 gilt fuer die Klausurtabelle, die 3 fuer den heutigen Labelbestand.
+
+## 2c — Nebenbefund: die Story-ID T5 ist zweimal vergeben
+   #17 »T5: Werkzeug-Erkennung und Anzeige«        (offen, in der Klausur Zeile 62)
+   #45 »T5: clazy und clang-tidy als Lint-Targets« (geschlossen, spaeter angelegt)
+   Die Story-ID ist die einzige Bruecke zwischen Klausur und Backlog.
+   Sie ist damit nicht durchgaengig eindeutig. Gemeldet, nicht geheilt.

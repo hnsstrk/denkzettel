@@ -4,7 +4,8 @@ Stand: 2026-08-04. Diese Vereinbarung regelt, wie das Agenten-Team an
 Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven **oder aus
 einer Kundenentscheidung** — die Änderungen vom 04.08.2026 (automatische
 Testläufe, Verwalter-Bericht als Existenzprüfung, Pflicht-/Kürteil der
-Protokolle, Rückbau des Schätzkegels) sind auf dem zweiten Weg entstanden.
+Protokolle, Rückbau des Schätzkegels, Prüfsummen der Bildbelege, `sp:`-Label
+erst mit der zweiten Schätzung) sind auf dem zweiten Weg entstanden.
 
 **Das Standdatum wird bei jeder Änderung mitgeführt.** Ein Datum, das niemand
 fortschreibt, ist nach der ersten Änderung **still falsch** — die Datei sieht
@@ -60,6 +61,33 @@ PO aus.
   **einzige Quelle der Wahrheit** für Stories, Akzeptanzkriterien, Schätzung
   und Status. Kein Backlog-Spiegel im Repo (Kundenentscheidung 31.07.2026).
   Labels: `epic:M1`…`epic:M7`, `sp:1|2|3|5|8`, `typ:story|bug|tech`.
+  **Das `sp:`-Label wird im selben Zug gesetzt wie die zweite unabhängige
+  Schätzung — vorher gar nicht** (04.08.2026). *Grund:* Ein Label sieht gleich
+  aus, ob es eine moderierte Schätzung trägt oder eine beim Anlegen
+  hingeschriebene Zahl — und beides ist vorgekommen: #57 trug `sp:2` aus der
+  Anlage, zwei unabhängige Schätzer hoben auf 3 (Sprint 5 §2.1); #68 trug
+  `sp:5` aus einer Hand (Sprint 6 §2.4). Das Sprint-6-Planning brauchte deshalb
+  eine eigene Spalte „Schätzregel erfüllt?", um Label von Schätzung zu trennen.
+  In der *einzigen Quelle der Wahrheit* ist ein doppeldeutiges Feld teurer als
+  anderswo. Eine grobe Hausnummer darf bleiben, aber als **Freitextsatz im
+  Issue, der nicht wie eine Schätzung aussieht**. Damit ist zugleich der
+  zweimal gerissene Punkt verankert statt ein drittes Mal nachgefordert
+  (fehlendes Label: M2 in Sprint 5, K1 in Sprint 6).
+  **Altbestand — Feststellung, kein Auftrag** (gemessen 04.08.2026,
+  `docs/scrum/reviews/2026-08-04-splabel-nachmessung.txt`): Einen Berg
+  unbelegter Label gibt es nicht. Die Schätzklausur in `sprint-01.md` deckt den
+  Bestand ab — 41 Positionen, davon **34 mit zwei Schätzern**. Die übrigen
+  **sieben** (`T1`–`T7`) ruhen auf einer konsolidierten Zahl **aus einer Hand**,
+  in §4 desselben Protokolls je einzeln begründet: kein Vorwurf, aber auch
+  keine Zweitschätzung. Von ihnen sind heute noch **drei offen und tragen ein
+  Label** (#17, #19, #25). Ob daraus etwas folgt, entscheidet der PO.
+  **Wer den Altbestand prüft, sucht nicht nach der Issue-Nummer:** Die
+  Klausurtabelle führt **Story-IDs** (`S22`, `T5`), der Backlog führt
+  **Nummern**; `sprint-01.md` enthält keine einzige Issue-Nummer, und allein
+  der Issue-Titel verbindet beides. Eine Suche nach der Nummer meldet deshalb
+  zwei Drittel der Label als unbelegt — sie kann nicht finden, wonach sie
+  sucht, und das Ergebnis sieht trotzdem aus wie ein Befund. Genau daran sind
+  am 04.08.2026 zwei Berichte zum selben Bestand entgegengesetzt ausgefallen.
 - **Priorisierung**: Epic-Reihenfolge M1→M7 als Grundlinie; die
   Feinreihenfolge legt der PO beim Sprint-Planning über die
   Milestone-Zuordnung fest.
@@ -286,6 +314,22 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
    Bericht dazu lag nicht im Repo; Sprint 3, 16.1.2). **Grenze des Prüfwegs:** Ein Lauf, der weder Bericht noch Commit
    hinterlässt, bleibt unsichtbar — dagegen hilft nur, dass der PO den Aufruf
    beauftragt und mitzählt.
+   **Prüfsummen der Bildbelege (04.08.2026).**
+   `bash docs/scrum/bildbelege-pruefen.sh <Belegordner dieses Sprints>` meldet
+   Dateien mit verschiedenen Namen und identischen Bytes (Rückgabe 1 = Fund,
+   0 = kein Fund). **Verglichen wird nur innerhalb eines Ordners** — dass
+   dasselbe Bild in der Dev-Übergabe und im UX-Bericht liegt, ist normal;
+   ordnerübergreifend wären es 44 statt 23 Gruppen, und eine Wache, die immer
+   anschlägt, ist keine. **Das Skript findet, der Mensch urteilt:** Ein Zustand,
+   der nach einer Rückkehr wieder derselbe ist, darf zweimal gleich aussehen;
+   ein Mangel ist es, wo zwei **verschiedene** Zustände denselben Beleg tragen.
+   Wer die Rückgabe 1 ungeprüft als Mangel bucht, macht aus der Wache eine
+   Abhakübung. *Beleg:* Den Fall `bibliothek-installiert.png` =
+   `schema-dunkel-installiert.png` fand in Sprint 5 ein Mensch von Hand; der
+   erste Lauf fand ihn und 22 weitere
+   (`docs/scrum/reviews/2026-08-04-bildbelege-lauf.txt`).
+   **Stop-Bedingung:** Findet die Prüfung in drei aufeinanderfolgenden Sprints
+   keine neue Gruppe, wird sie zur Stichprobe herabgestuft.
 3. **DoD 1–4 je Story** geprüft, **Doku-Abgleich** nach B10 einschließlich der
    Statuszeile des README. Sie beschreibt den **gelieferten Stand**, nicht den
    Stand des Verfahrens: „Sprint N in der Kundenabnahme" wird durch Takt 2

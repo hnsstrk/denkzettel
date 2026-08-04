@@ -69,6 +69,15 @@ endif()
 file(GLOB_RECURSE DENKZETTEL_LINT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 if(BUILD_TESTING)
     file(GLOB DENKZETTEL_LINT_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    # The one file the glob must not hand on: tests/spellfixspike.cpp includes
+    # spellfixspike.moc, and moc only writes that file when the spike target is
+    # built. With the switch off — the normal case — there is no target, no moc
+    # run and no include, so clazy stops on a fatal error and lint-clazy ends on
+    # rc=2 whatever the code looks like. The file follows its own target.
+    if(NOT DENKZETTEL_SPIKE_SPELLFIX)
+        list(REMOVE_ITEM DENKZETTEL_LINT_TEST_SOURCES
+             ${CMAKE_CURRENT_SOURCE_DIR}/tests/spellfixspike.cpp)
+    endif()
     list(APPEND DENKZETTEL_LINT_SOURCES ${DENKZETTEL_LINT_TEST_SOURCES})
 endif()
 

@@ -1,0 +1,58 @@
+# Lauf von docs/scrum/bildbelege-pruefen.sh
+# Zeitpunkt: 04.08.2026, 10:04 · Stand: 9d222d2 · Ganymed
+
+$ bash docs/scrum/bildbelege-pruefen.sh
+Geprüft: 260 versionierte Bilder unter docs/scrum
+Verglichen wird ausschließlich innerhalb desselben Ordners.
+
+docs/scrum/reviews/2026-08-01-capture-theme
+    3x 6adf72ba: achse3-huelle-CachyOS-Nord-round-BreezeDark.png, achse3-huelle-CachyOS-Nord-round-BreezeLight.png, achse3-huelle-CachyOS-Nord-round-CachyOSNord.png
+    3x cff15924: achse3-huelle-Iridescent-round-BreezeDark.png, achse3-huelle-Iridescent-round-BreezeLight.png, achse3-huelle-Iridescent-round-CachyOSNord.png
+    4x 68439300: achse3-huelle-breeze-dark-BreezeDark.png, achse3-huelle-breeze-dark-BreezeLight.png, achse3-huelle-default breeze-light breeze-dark cachyos-emerald cachyos-emerald-color cachyos-emerald-light CachyOS-Nord-round Iridescent-round-BreezeDark.png, achse3-huelle-default-BreezeDark.png
+    5x ee970fb9: achse3-huelle-breeze-light-BreezeDark.png, achse3-huelle-breeze-light-BreezeLight.png, achse3-huelle-breeze-light-CachyOSNord.png, achse3-huelle-default breeze-light breeze-dark cachyos-emerald cachyos-emerald-color cachyos-emerald-light CachyOS-Nord-round Iridescent-round-BreezeLight.png, achse3-huelle-default-BreezeLight.png
+    7x e77de0c5: achse3-huelle-cachyos-emerald-BreezeDark.png, achse3-huelle-cachyos-emerald-BreezeLight.png, achse3-huelle-cachyos-emerald-CachyOSNord.png, achse3-huelle-cachyos-emerald-color-BreezeDark.png, achse3-huelle-cachyos-emerald-color-BreezeLight.png, achse3-huelle-cachyos-emerald-light-BreezeDark.png, achse3-huelle-cachyos-emerald-light-BreezeLight.png
+    2x 318fe5c8: capture-leer-BreezeDark.png, wechsel-1-vorher.png
+    2x 63ee09fd: capture-leer-BreezeLight.png, wechsel-3-neu-gebaut.png
+    2x 893c6d20: variante-A-ist.png, wechsel-2-nachher.png
+docs/scrum/reviews/s54-theme-treue
+    2x 4056a838: geheilt-getippt-1-start-dunkel.png, geheilt-getippt-3-zurueck-dunkel.png
+    2x e8a559e4: geheilt-leer-1-start-dunkel.png, geheilt-leer-3-zurueck-dunkel.png
+    2x 899e06bf: ungeheilt-1-start-dunkel.png, ungeheilt-3-zurueck-dunkel.png
+docs/scrum/reviews/s6-suche
+    2x 6f6ba193: 1-volle-liste.png, 6-feld-geleert-volle-liste.png
+docs/scrum/reviews/sprint-03-s5a-ak7-nachpruefung
+    2x a180b136: ak7-n10-grenze-auf-sichtbare-zeile.png, ak7-n4-kleine-gruppe-letzte-notiz.png
+docs/scrum/reviews/sprint-03-s5a-ak7-nachpruefung/nach-der-warn-heilung
+    2x a180b136: ak7-n10-grenze-auf-sichtbare-zeile.png, ak7-n4-kleine-gruppe-letzte-notiz.png
+docs/scrum/reviews/sprint-03-s6-trefferliste
+    2x 295372eb: s6-e0-volle-liste-900x600.png, s6-e7-feld-geleert-900x600.png
+docs/scrum/reviews/sprint-04-s8-ui-review
+    2x c63ce89c: 01-lesen.png, 17-sprung-lesen.png
+    2x bffc653a: 03-bearbeiten-frisch.png, 16-sprung-bearbeiten.png
+    2x 3665d992: n01-lesen.png, n03-lesen-nach-abbrechen.png
+    2x e534221d: n04-waechter-abbrechen.png, n05-waechter-auswahlwechsel.png
+    2x 80e5ad95: n06-nach-verwerfen.png, n07-nach-speichern.png
+docs/scrum/reviews/sprint-05-installationstakt
+    2x 2e6d53a3: bibliothek-installiert.png, schema-dunkel-installiert.png
+docs/scrum/reviews/sprint-05-ui-review/bilder
+    2x 288bf35c: s5-57-b1b-nach-dem-klick.png, s5-57-b6-nach-dem-loslassen.png
+    2x 29697163: s5-57-b3-taste-nach-klick.png, s5-57-b4-taste-nach-kopfklick.png
+
+23 Gruppen — 58 Dateien tragen 23 Aufnahmen.
+Jede Gruppe einzeln bewerten: gleicher Zustand ist erlaubt,
+zwei verschiedene Zustände mit demselben Bild sind ein Mangel.
+Rueckgabewert: 1
+
+$ bash docs/scrum/bildbelege-pruefen.sh docs/scrum/reviews/sprint-06-schaetzung docs/scrum/reviews/sprint-05-s-symbole
+Geprüft: 5 versionierte Bilder unter docs/scrum/reviews/sprint-06-schaetzung docs/scrum/reviews/sprint-05-s-symbole
+Verglichen wird ausschließlich innerhalb desselben Ordners.
+
+Keine prüfsummengleichen Dateien innerhalb eines Ordners.
+Rueckgabewert: 0
+
+$ bash docs/scrum/bildbelege-pruefen.sh docs/scrum/PROZESS.md
+Keine versionierten Bilder unter: docs/scrum/PROZESS.md
+Rueckgabewert: 2
+
+# Gegenprobe zur Abgrenzung — dieselbe Menge OHNE Ordnergrenze:
+44 Gruppen

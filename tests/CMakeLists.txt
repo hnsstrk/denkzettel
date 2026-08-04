@@ -55,7 +55,15 @@ set_tests_properties(librarytest PROPERTIES
 # Writes the picture series of the search states for the story handover. No
 # add_test(): it produces pictures for a human to look at, and a broken
 # screenshot writer must not colour the suite red.
-add_executable(searchshots EXCLUDE_FROM_ALL searchshots.cpp)
+#
+# This bench and the ones below are built by an ordinary build all the same.
+# They were EXCLUDE_FROM_ALL once, and a bench nobody rebuilds goes stale
+# silently: in sprint 5 a 22 minute old runner wrote plausible pictures of an
+# old state while the suite stayed green
+# (docs/scrum/reviews/sprint-05-s-symbole/, §9.3). Staying out of the suite and
+# staying out of the build are two different things — only the first one is
+# wanted here.
+add_executable(searchshots searchshots.cpp)
 
 target_link_libraries(searchshots PRIVATE
     denkzettelui
@@ -64,7 +72,7 @@ target_link_libraries(searchshots PRIVATE
 
 # The same for the grouped note list (wireframes 3a/3b). Run it with
 # QT_QPA_PLATFORMTHEME=kde, or the substitute font misstates the type sizes.
-add_executable(libraryshots EXCLUDE_FROM_ALL libraryshots.cpp)
+add_executable(libraryshots libraryshots.cpp)
 
 target_link_libraries(libraryshots PRIVATE
     denkzettelui
@@ -73,7 +81,7 @@ target_link_libraries(libraryshots PRIVATE
 
 # The reading, editing and guard-dialog states of wireframe 2a, plus the main
 # path of S8 (#11). Same rules: run it by hand with QT_QPA_PLATFORMTHEME=kde.
-add_executable(editshots EXCLUDE_FROM_ALL editshots.cpp)
+add_executable(editshots editshots.cpp)
 
 target_link_libraries(editshots PRIVATE
     denkzettelui
@@ -83,7 +91,7 @@ target_link_libraries(editshots PRIVATE
 # The two pictures of the README — capture window and library, with invented
 # notes. Same rules as the benches above; it needs the capture window as well,
 # so it links both libraries.
-add_executable(readmeshots EXCLUDE_FROM_ALL readmeshots.cpp)
+add_executable(readmeshots readmeshots.cpp)
 
 target_link_libraries(readmeshots PRIVATE
     denkzettelcapture
