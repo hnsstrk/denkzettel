@@ -2263,12 +2263,18 @@ Unfall, und es gehört so gebucht.
 
 | Story | SP | Ausgang |
 |---|---|---|
-| **#59** — ruhige Liste bei Fensteraktivierung | 2 | **wartet auf einen Satz des Kunden.** Alle drei AK sind belegt, der Test ist rot vor der Heilung (7/0) und mutationsgeprüft; die Nachprüfung am Kundenblick ist eine benannte Grenze (§22.3, ein Agent kann unter Wayland kein Kürzel auslösen). Der Kunde hat zuerst `Tab` statt `Alt+Tab` geprüft |
+| **#59** — ruhige Liste bei Fensteraktivierung | 2 | **abgenommen und geschlossen.** Kundenprüfung am installierten Stand: *„Die Auswahl ist noch oben."* Kein Rücksprung; vorher 459 px bei 552 px Sichthöhe |
 | **#56** — Feldhöhe folgt der Schrift | 1 | **abgenommen und geschlossen.** Am Kundenblick nicht prüfbar (benannte Grenze), Nachweis Test und Bild |
 | **#55** — Fensterhülle | 8 | **nicht angenommen.** Bleibt offen, geht in den Backlog, wird mit #83 zusammen abgenommen |
 
-**Geliefert: 1 von 3 Stories, 1 von 11 Punkten** — mit #59 wären es 2 und 3.
-Der Milestone bleibt offen, solange #55 und #59 es sind.
+**Geliefert: 2 von 3 Stories, 3 von 11 Punkten.**
+
+**Der Milestone ist geschlossen — mit #55 darin.** Das ist Absicht. Die Story
+wurde in diesen Sprint gezogen und ist in ihm gescheitert; sie aus dem
+Milestone zu nehmen, hätte die Bilanz auf „2 von 2" geschönt. Der Milestone
+liest sich dauerhaft als **1 offen, 2 geschlossen**, und das ist die Wahrheit
+über diesen Sprint. Weitergebaut wird an #55 zusammen mit #83, in einem
+Sprint, den der Kunde noch freigeben muss.
 
 ### 25.1 Warum die Ablehnung der wertvollste Teil dieses Sprints ist
 
