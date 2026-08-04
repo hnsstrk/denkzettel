@@ -142,7 +142,75 @@ stattdessen `ShowCapture()` (Einzelinstanz).
 - Strg+Enter: Notiz speichern (`store`), Fenster verstecken, Feld leeren.
   Esc: verwerfen, Fenster verstecken. Fokusverlust: Fenster bleibt (kein
   Datenverlust durch versehentlichen Klick daneben).
+- **Die Höhe wird auch dann neu gerechnet, wenn sich die Schrift ändert** —
+  nicht nur, wenn sich der Text ändert (Issue #56). Die Zeilenzahl bleibt bei
+  einem Schriftwechsel gleich, der Zeilenabstand nicht; ohne diese Regel fällt
+  ein stehendes Fenster von fünf auf drei Zeilen zurück, also auf genau den
+  Zustand, den die Sprint-1-Abnahme zurückgewiesen hat.
 - Kein Button, kein Menü, keine Formatierung.
+
+### 3.1 Hülle aus dem Desktop-Theme (Issue #55, Wireframe 4a/4b)
+
+Das rahmenlose Fenster trägt **Rundung, Kontur und Schatten seines
+Desktop-Themes**, gezeichnet aus `dialogs/background` — derselben Grafik, aus
+der Plasma seine Popups und KRunner baut. Bibliothek und Dialoge sind davon
+nicht berührt: Sie sind dekorierte Fenster und bekommen ihre Hülle von KWin.
+
+**Form kommt vom Theme, Farbe aus der Palette.** Von den acht auf der
+Kundenmaschine installierten Themes richtet nur `default` seine Füllfarbe am
+Farbschema aus; ein Fenster in Theme-Farben stünde bei sieben von acht dunkel
+auf dunkel (Messung 01.08.2026). Gezeichnet wird deshalb die *Alphamaske* des
+Themes, gefüllt mit Palettenfarben:
+
+- **Fläche** `Window`, **eine durchgehende** — kein Kasten im Kasten.
+- **Notiztext** `WindowText`, **nicht** die Rolle für Eingabefelder: über 18
+  Schemata schlechtestens 4,74:1 gegen 4,22:1, also über beziehungsweise unter
+  dem Mindestwert von 4,5:1. Das ist die Bedingung, unter der die durchgehende
+  Fläche überhaupt trägt.
+- **App-Name und Fußzeile** `PlaceholderText`, **Kontur** eine Mischung aus
+  `Window` und `WindowText` im Verhältnis `frameContrast`. In einer
+  Widgets-Anwendung ist das der konstante Faktor **0,20**, kein
+  KColorScheme-Aufruf.
+- **Innenabstände** (12 seitlich, 10 oben, 8 unten) gelten **zuzüglich** des
+  Randes, den das Theme für sich beansprucht — der Text beginnt bei Breeze
+  16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
+  mehr Luft (12) als unter dem App-Namen (8); seit dem Entfall der Trennlinie
+  ist dieser Unterschied die gesamte Gliederung.
+
+**Rundung und Rand sind keine Zahlen dieser Spezifikation.** Sie gehören dem
+Theme. Zugesichert wird **relativ**: Bei zwei Desktop-Themes mit
+unterschiedlichem Rand unterscheiden sich Randmaß und Eckform entsprechend.
+Die Eckform kommt aus den Eckstücken des Themes und ist **nicht** aus dem
+Randmaß abzuleiten — zwei Themes können bei gleichem Rand verschieden gekrümmt
+sein.
+
+### 3.2 Bedingungen der Hülle (entdeckt beim Bau, DoD 4/B9)
+
+Vier davon widersprechen dem, was der Aufbau nahelegt. Sie stehen hier, weil
+eine Umsetzung ohne sie eine Hülle zeichnet, die richtig aussieht und falsch
+ist — belegt in `docs/scrum/reviews/sprint-06-s55-huelle/` samt `pruefen.sh`.
+
+1. **KSvg findet das Desktop-Theme nicht selbst.** Der eingestellte Name steht
+   in `plasmarc` unter `[Theme] name`; ohne Übergabe bleibt `KSvg::ImageSet`
+   auf `default`, was die Datei auch sagt. Die Anwendung liest ihn selbst.
+2. **Ein `FrameSvg` folgt nur einem frischen `ImageSet`.** Das Set umzubenennen
+   wirkt nicht, den Bildpfad erneut zu setzen wirkt nicht, dasselbe Set erneut
+   zuzuweisen wirkt nicht. Bei jedem Theme-Wechsel entsteht ein neues Set; das
+   alte fällt erst weg, wenn alle Rahmen auf das neue zeigen.
+3. **Der Theme-Wechsel wird über `KDirWatch` auf `plasmarc` zugestellt, nicht
+   über `KConfigWatcher`.** Letzterer meldet nur, wenn der *Schreiber*
+   `KConfig::Notify` benutzt hat — die Zusicherung hinge damit an der
+   Disziplin eines fremden Programms. KConfig ersetzt die Datei beim Schreiben,
+   weshalb ein `QFileSystemWatcher` seine Beobachtung dabei verlöre.
+4. **Ohne Desktop-Theme keine Hülle, aber ein brauchbares Fenster.** Außerhalb
+   einer Plasma-Sitzung fehlt `dialogs/background`. Das Fenster bleibt dann
+   deckend und bedienbar — kein Absturz, keine durchsichtige Fläche. Ein
+   *unbekannter Theme-Name* erzeugt diesen Zustand **nicht**: KSvg fällt dabei
+   auf `default` zurück.
+5. **Der Schatten wird nach jedem Neuzeigen neu gebunden.** Vor jedem Zeigen
+   wird das Fenster neu gemappt (oben), und die Wayland-Surface verschwindet
+   dabei; ein einmal im Konstruktor gebundener Schatten wäre nach dem ersten
+   Verstecken weg. Die Bindung gehört deshalb hinter `show()`.
 
 ## 4. Aufnahmefenster (Sprachnotiz)
 
@@ -657,7 +725,12 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   (KMessageWidget — Meldungen im Fenster; KMessageDialog samt
   KStandardGuiItem — Wächterdialog, Abschnitt 9), **KWindowSystem**
   (KWindowConfig — Fenstergröße über Sitzungen; die Position setzt ein
-  Wayland-Client nicht selbst, siehe Abschnitt 3), KI18n (App-Sprache Deutsch;
+  Wayland-Client nicht selbst, siehe Abschnitt 3; **KWindowShadow** — der
+  Schatten des Erfassungsfensters, Abschnitt 3.1), **KSvg** (`FrameSvg` und
+  `ImageSet` — die Hülle aus `dialogs/background` des Desktop-Themes),
+  **KCoreAddons** (`KDirWatch` — die Wache auf `plasmarc`, über die ein
+  Theme-Wechsel ein stehendes Fenster erreicht; warum nicht `KConfigWatcher`,
+  steht in 3.2), KI18n (App-Sprache Deutsch;
   `i18n()`-Aufrufe sind KDE-Standardpraxis für alle sichtbaren Strings —
   keine Übersetzungs-Roadmap, nur Konvention). UI-Fließtexte (Platzhalter,
   Hinweise, Dialoge) sprechen den Nutzer in unpersönlicher Infinitivform an
@@ -695,8 +768,42 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   Symbol **ohne Namen** — die Zusicherung ist dann rot, ohne dass am Bau
   etwas fehlt —, und die Plattformintegration baut den Meldungsdialog nicht
   so, wie ein Sitzungsnutzer ihn sieht (Abschnitt 9). Das gilt derzeit für
-  `shelltest` und `librarytest`. **Es ersetzt keine Plasma-Sitzung:** Der
-  Bildnachweis am installierten Stand bleibt.
+  `shelltest`, `librarytest` und — seit der Hülle des Erfassungsfensters
+  (3.1) — `capturetest`: Dessen Geometriezusicherungen messen Abstände, über
+  die die Schrift entscheidet, und unter einer Ersatzschrift maßen sie etwas
+  anderes. **Es ersetzt keine Plasma-Sitzung:** Der Bildnachweis am
+  installierten Stand bleibt.
+- **Was offscreen prinzipbedingt nicht zu belegen ist** (gemessen zu #55,
+  nicht abgewogen): Der **Schatten** des Erfassungsfensters. Ohne Compositor
+  gibt es niemanden, dem `KWindowShadow::create()` die Kacheln übergäbe — der
+  Rückgabewert ist dort **immer** falsch, und das ist kein Fehler des Codes.
+  `QWidget::grab()` zeigt ihn ebenfalls nie, weil er außerhalb des Widgets
+  liegt. Ein offscreen entstandenes Bild ohne Schatten ist deshalb **kein
+  Prüfbefund**. An seine Stelle treten zwei benannte Ersatzformen: im Test die
+  Zusicherung, dass ein Schattenobjekt besteht und **seine Kacheln die des
+  Desktop-Themes sind**, und in der Abnahme ein Bild aus der Plasma-Sitzung.
+  Dass der Schatten nach **jedem** Neuzeigen wieder daliegt (3.2, Punkt 5),
+  ist von keiner der beiden Formen gedeckt und gehört in die manuelle
+  Checkliste.
+- **Zustände, die im Prüfprozess selbst nicht herstellbar sind, brauchen einen
+  eigenen Prozess** (entdeckt zu #55, AK 8): Das Fenster ohne Desktop-Theme
+  lässt sich nicht durch einen erfundenen Theme-Namen erzeugen — KSvg fällt
+  dabei auf `default` zurück, und der Test prüfte einen Fall, der gar nicht
+  eintreten kann. `capturetest` startet sich für diese Zusicherung mit
+  beschnittenem `XDG_DATA_DIRS` selbst neu.
+- **Keine Zusicherung hängt an einem Namen, den nur diese Maschine kennt**
+  (entdeckt zu #55, DoD 4/B9). Der Prüfsatz zur Hülle hält zwei Desktop-Themes
+  mit verschiedenem Rand gegeneinander — und **ein solches Paar gibt es nicht
+  überall**: Die drei Themes des offiziellen KDE-Bestands (`default`,
+  `breeze-dark`, `breeze-light`) tragen sämtlich 4 px; jedes breitere Theme auf
+  der Entwicklungsmaschine stammt aus einem CachyOS-Paket. Ein Bauplatz, der
+  nur die KF6-Teile dieses Projekts installiert, hat **gar kein**
+  Desktop-Theme — `ksvg` hängt nicht an `libplasma`. Daraus zwei Quellen mit
+  verschiedener Aufgabe, und keine ersetzt die andere:
+  **`tests/themes/`** liefert zwei eigene Themes, damit die Zusicherung überall
+  läuft; sie belegen aber nur, dass der Code *unser* SVG liest. Der Lauf gegen
+  **installierte** Themes belegt das Echte, wird zur Laufzeit **gemessen statt
+  benannt** und übersprungen, wenn kein Paar da ist — mit benanntem Grund.
 - KI-Qualität (Klassifikation/Clustering) wird nicht automatisiert getestet —
   der Vorschlags-Review ist die menschliche Kontrollinstanz.
 

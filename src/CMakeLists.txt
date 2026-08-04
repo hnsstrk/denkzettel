@@ -48,7 +48,16 @@ target_include_directories(denkzettelcapture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzettelcapture PUBLIC
     denkzettelstore
     Qt6::Widgets
+    # The hull of the capture window (issue #55, SPEC 3 and 15): KSvg renders
+    # `dialogs/background` of the desktop theme, KWindowShadow hands its shadow
+    # tiles to the compositor. The theme name is not KSvg's to find — it stands
+    # in `plasmarc` (KConfigCore), and KDirWatch (KCoreAddons) is what notices
+    # it changing under a standing window.
+    KF6::ConfigCore
+    KF6::CoreAddons
     KF6::I18n
+    KF6::Svg
+    KF6::WindowSystem
 )
 
 add_library(denkzettelui STATIC

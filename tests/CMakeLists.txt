@@ -44,13 +44,27 @@ add_executable(capturetest capturetest.cpp)
 
 target_link_libraries(capturetest PRIVATE
     denkzettelcapture
+    KF6::Svg
     Qt6::Test
 )
 
+# Two desktop themes of our own, so that the hull assertions of issue #55 do not
+# hang on the distribution the tests were written on: every theme with a border
+# other than 4 px on that machine comes from a CachyOS package, and a build host
+# that installs only this project's KF6 parts has no desktop theme at all —
+# `ksvg` does not depend on `libplasma`. tests/desktopthemes.h explains the
+# division of labour; the installed themes are still measured where they exist.
+target_compile_definitions(capturetest PRIVATE
+    DENKZETTEL_TEST_THEMES="${CMAKE_CURRENT_SOURCE_DIR}/themes")
+
 add_test(NAME capturetest COMMAND capturetest)
 
-# The offscreen platform keeps the run independent of a running compositor.
-set_tests_properties(capturetest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+# The offscreen platform keeps the run independent of a running compositor. The
+# KDE platform theme comes on top since the hull of issue #55: the geometry
+# assertions of wireframe 4b measure spacings the font decides, and under a
+# substitute font they would be measuring something else (SPEC 16).
+set_tests_properties(capturetest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
 
 add_executable(librarytest librarytest.cpp)
 
@@ -97,6 +111,20 @@ target_link_libraries(libraryshots PRIVATE
     denkzettelui
     Qt6::Test
 )
+
+# The hull of the capture window under two desktop themes and two colour
+# schemes (wireframes 4a/4b, issues #55 and #56). Same rules as the benches
+# above; it needs the capture window, not the library.
+add_executable(captureshots captureshots.cpp)
+
+target_link_libraries(captureshots PRIVATE
+    denkzettelcapture
+    KF6::Svg
+    Qt6::Test
+)
+
+target_compile_definitions(captureshots PRIVATE
+    DENKZETTEL_TEST_THEMES="${CMAKE_CURRENT_SOURCE_DIR}/themes")
 
 # The reading, editing and guard-dialog states of wireframe 2a, plus the main
 # path of S8 (#11). Same rules: run it by hand with QT_QPA_PLATFORMTHEME=kde.
