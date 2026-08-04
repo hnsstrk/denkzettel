@@ -1720,3 +1720,39 @@ stillschweigend geblieben. Eine benannte Grenze schließt die Story nicht
 **Nicht Teil der Abnahme, sondern gebucht:** #79 (Fenster schrumpft nicht
 zurück, vorbestehend), #80 (Kontur an der Rundung), #81 (Textkante). Keiner
 der drei berührt ein Akzeptanzkriterium dieser Story.
+
+---
+
+## 21. Vollzug der DoD-Mängel (PO)
+
+Die Mängelliste des Scrum Masters steht in §19.8. Hier der Vollzug, je mit dem
+Beleg, an dem ich ihn geprüft habe — nicht mit der Meldung, die ihn ankündigte.
+
+| Mangel | Vollzug | Beleg |
+|---|---|---|
+| **M1** — öffentliche Marke rot, 16 clazy-Zeilen bei Schwelle 3 | **behoben** | Zehn Befunde geheilt (`bb1dcd2`), von mir selbst nachgezählt: **3 Zeilen, 3 Stellen** — `librarytest.cpp:2387`, `:2393`, `shelltest.cpp:361`, genau der Altbestand. CI-Lauf **30917700346 = success** |
+| **M2** — README führt „runde Fensterecken" unter dem Ausstehenden | **behoben** | `c3759f0`: aus der Liste entfernt, dafür die Hülle in den Funktionen |
+| **M3** — PO-Abnahme für #55/#56 nirgends dokumentiert | **behoben** | §20, AK-Tabellen in der Form von §16.2, mit drei benannten Grenzen der Prüfbarkeit |
+| **M4** — drei Dateien beschreiben die Bildläufer falsch | **behoben** | `c3759f0`: `CLAUDE.md`, `README.md`, `ci.yml`; `captureshots` ergänzt, `EXCLUDE_FROM_ALL` richtiggestellt |
+| **M5** — DoD-4-Begründung fehlt im Issue | **Takt 2** | Der Abnahmekommentar trägt sie; vor der Kundenabnahme nicht schreibbar |
+
+### 21.1 Was an M1 und M4 hängenbleibt
+
+Beide sind **meine** Fehler, und sie haben dieselbe Bauart.
+
+Bei **M1** habe ich nach dem Merge `gh run list` gelesen und den grünen Lauf
+davor für meinen gehalten. `CLAUDE.md` sagt: *„Wer pusht, sieht nach."* Ich habe
+nachgesehen und trotzdem das Falsche gesehen — die Regel nennt die Handlung,
+nicht ihren Gegenstand. **Vorschlag für die Retro:** den Satz um den Gegenstand
+ergänzen — nachgesehen wird der Lauf **des eigenen Commits**, nicht der oberste
+der Liste.
+
+Bei **M4** habe ich am Vormittag die Bildläufer von `EXCLUDE_FROM_ALL` befreit
+und die Regel darüber stehen lassen, die sich darauf beruft. An genau diesem
+Satz hängt die Prüfpflicht für Bildbelege — die Regel, die nach dem
+Sprint-5-Vorfall geschrieben wurde. Sie war einen halben Tag lang falsch
+begründet.
+
+**Der gemeinsame Nenner:** Beide Male habe ich einen Zustand geändert und die
+Aussage über ihn nicht. Das ist dieselbe Klasse wie die überholten Präsens-Sätze
+im UI-Bericht — nur dort hat sie jemand gefunden, bevor sie schadete.
