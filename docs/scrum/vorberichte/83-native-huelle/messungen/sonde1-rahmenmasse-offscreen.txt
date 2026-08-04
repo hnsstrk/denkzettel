@@ -1,0 +1,54 @@
+=== Vorprüfung #83, Sonde 1: FrameSvg-Maße und Maskenregion ===
+Plattform   : offscreen
+Theme       : default
+qApp DPR    : 1
+Fenstermaß  : 600x174 logisch
+
+########## A — Voreinstellung ##########
+devicePixelRatio() ohne Zutun : 1
+framePixmap()                 : 600x174 Bildpunkte, DPR 1
+  -> Folgt die Grafik dem Bildschirm von selbst? NEIN — der Wert muss gesetzt werden
+
+########## B — Reihenfolge: DPR vor oder nach resizeFrame ##########
+  DPR vor  resizeFrame : 960x279 Bildpunkte, DPR 1.6, frameSize 600x174
+  DPR nach resizeFrame : 960x279 Bildpunkte, DPR 1.6, frameSize 600x174
+
+########## C — DPR-Wechsel am stehenden Rahmen ##########
+  vorher (DPR 1)                : 600x174, DPR 1
+  nur setDevicePixelRatio(1,6)  : 960x279, DPR 1.6
+  danach resizeFrame(gleich)    : 960x279, DPR 1.6
+
+########## D/E/F/G — Maske, Ränder, Alphalauf ##########
+
+--- Bildpunktverhältnis 1
+  framePixmap : 600x174 Bildpunkte, DPR 1, Format 6, Alphakanal ja
+  alphaMask   : 600x174 Bildpunkte, DPR 1
+  mask()      : 7 Rechteck(e), Hüllrechteck 0,0 600x174, leer=nein
+     -> Hüllrechteck gegen logisches Fenstermaß (600x174): gleich — logische Bildpunkte
+     -> Hüllrechteck gegen Gerätemaß (600x174): gleich — Gerätebildpunkte
+  getMargins  : 4 4 4 4
+  Mitte       : 240,240,241 / Alpha 216
+  Kantenmitte oben, Alpha : 235
+  oberste Zeile, Alpha    :   0   0  47 138 189 209 235 235 235 235 235 235 235 235 
+  Alphalauf (AK 3)        : Randwert 235, Anstieg über 6 Spalten, Rückschritte 0, Wiederholungen im Anstieg 0
+
+--- Bildpunktverhältnis 1.6
+  framePixmap : 960x279 Bildpunkte, DPR 1.6, Format 6, Alphakanal ja
+  alphaMask   : 960x279 Bildpunkte, DPR 1.6
+  mask()      : 7 Rechteck(e), Hüllrechteck 0,0 600x174, leer=nein
+     -> Hüllrechteck gegen logisches Fenstermaß (600x174): gleich — logische Bildpunkte
+     -> Hüllrechteck gegen Gerätemaß (960x279): abweichend
+  getMargins  : 4 4 4 4
+  Mitte       : 240,240,241 / Alpha 216
+  Kantenmitte oben, Alpha : 235
+  oberste Zeile, Alpha    :   0   0   0   0   2  65 125 173 195 209 235 235 235 235 
+  Alphalauf (AK 3)        : Randwert 235, Anstieg über 10 Spalten, Rückschritte 0, Wiederholungen im Anstieg 0
+
+########## E2 — mask() bei einer Hülle, die nicht deckt ##########
+mask() ist dokumentiert als „tightly contains the fully opaque areas". Die native
+Hülle deckt zu 84,7 %. Deshalb die ausdrückliche Gegenprobe, ob die Region
+überhaupt etwas enthält — sie ist die Region für enableBlurBehind.
+  mask()        : 7 Rechteck(e), Hüllrechteck 0,0 600x174, leer=nein
+  Fläche der Region : 104352 von 104400 logischen Bildpunkten
+  alphaMask() Mitte, Alpha : 255
+  alphaMask() Ecke (0,0), Alpha : 0

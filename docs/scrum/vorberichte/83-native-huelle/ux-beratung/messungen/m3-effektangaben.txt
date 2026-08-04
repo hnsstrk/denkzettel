@@ -1,0 +1,61 @@
+Welche Themes verlangen den Kontrasteffekt des Compositors?
+Quelle: metadata.desktop / metadata.json des jeweiligen Themes,
+gelesen von Plasma::Theme (/usr/include/Plasma/plasma/theme.h:192-262).
+
+breeze-dark              (keine Effektangaben)
+breeze-light             (keine Effektangaben)
+cachyos-emerald          [metadata.desktop: AdaptiveTransparency ContrastEffect ]
+cachyos-emerald-color    [metadata.desktop: AdaptiveTransparency ContrastEffect ]
+cachyos-emerald-light    [metadata.desktop: AdaptiveTransparency ]
+CachyOS-Nord-round       (keine Effektangaben)
+default                  (keine Effektangaben)
+Iridescent-round         [metadata.desktop: ContrastEffect ]
+
+--- die Werte selbst ---
+=== cachyos-emerald
+[AdaptiveTransparency]
+enabled=true
+
+[ContrastEffect]
+contrast=1.0
+enabled=true
+intensity=0.40
+saturation=1.4
+
+
+=== cachyos-emerald-color
+[AdaptiveTransparency]
+enabled=true
+
+[ContrastEffect]
+contrast=1.0
+enabled=true
+intensity=0.40
+saturation=3
+
+
+=== cachyos-emerald-light
+[AdaptiveTransparency]
+enabled=true
+
+[Desktop Entry]
+Comment=A dark and modern theme for Plasma 5
+Name=cachyos-emerald-light
+
+=== Iridescent-round
+[ContrastEffect]
+contrast=1.0
+enabled=true
+intensity=0.45
+saturation=1.4
+
+
+--- Varianten des Hüllenbildes je Theme (Auswahlpfade nach ImageSet::setSelectors) ---
+breeze-dark              
+breeze-light             
+cachyos-emerald          dialogs/background.svgz opaque/dialogs/background.svgz solid/dialogs/background.svgz translucent/dialogs/background.svgz 
+cachyos-emerald-color    dialogs/background.svgz opaque/dialogs/background.svgz solid/dialogs/background.svgz translucent/dialogs/background.svgz 
+cachyos-emerald-light    dialogs/background.svgz opaque/dialogs/background.svgz solid/dialogs/background.svgz translucent/dialogs/background.svgz 
+CachyOS-Nord-round       dialogs/background.svgz 
+default                  dialogs/background.svgz opaque/dialogs/background.svgz solid/dialogs/background.svgz translucent/dialogs/background.svgz 
+Iridescent-round         dialogs/background.svgz 

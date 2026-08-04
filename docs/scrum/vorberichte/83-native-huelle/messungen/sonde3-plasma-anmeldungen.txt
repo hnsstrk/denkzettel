@@ -1,0 +1,39 @@
+=== Vorpruefung #83, Sonde 3: Was melden Plasmas eigene Ueberlagerungen an? ===
+Gemessen an den installierten Binaerdateien (Muster: b2-dekorationsquelle.txt).
+
+-- /usr/lib/libPlasmaQuick.so.7
+   Aufrufe von KWindowEffects (undefinierte Symbole): 3
+                      U _ZN14KWindowEffects11slideWindowEP7QWindowNS_17SlideFromLocationEi
+                      U _ZN14KWindowEffects16enableBlurBehindEP7QWindowbRK7QRegion
+                      U _ZN14KWindowEffects24enableBackgroundContrastEP7QWindowbdddRK7QRegion
+-- /usr/lib/libPlasma.so.7
+   Aufrufe von KWindowEffects (undefinierte Symbole): 1
+                      U _ZN14KWindowEffects17isEffectAvailableENS_6EffectE
+
+-- Wayland-Plugin von KWindowSystem
+   /usr/lib/qt6/plugins/kf6/kwindowsystem/KF6WindowSystemKWaylandPlugin.so
+     11BlurManager
+     15ContrastManager
+     31QWaylandClientExtensionTemplateI11BlurManagerLDnEE
+     31QWaylandClientExtensionTemplateI15ContrastManagerLDnEE
+     4Blur
+     8Contrast
+     ext_background_effect_manager_v1
+     ext_background_effect_surface_v1
+     get_background_effect
+     N9QtWayland17org_kde_kwin_blurE
+     N9QtWayland21org_kde_kwin_contrastE
+     N9QtWayland25org_kde_kwin_blur_managerE
+     N9QtWayland29org_kde_kwin_contrast_managerE
+     N9QtWayland32ext_background_effect_manager_v1E
+     N9QtWayland32ext_background_effect_surface_v1E
+     org_kde_kwin_blur
+     org_kde_kwin_blur_manager
+     org_kde_kwin_contrast
+     org_kde_kwin_contrast_manager
+     QtWayland::ext_background_effect_manager_v1
+     set_blur_region
+     set_contrast
+   /usr/lib/qt6/plugins/kf6/kwindowsystem/KF6WindowSystemX11Plugin.so
+     _KDE_NET_WM_BACKGROUND_CONTRAST_REGION
+     _KDE_NET_WM_BLUR_BEHIND_REGION

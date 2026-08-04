@@ -1,0 +1,15 @@
+Getrennt geprüft: die Hülle allein gegen die Hülle mit Text.
+Beide Läufe bei Pixelverhältnis 1, damit nur die Plattform verschieden ist.
+
+breeze-light-dunkel.png            verschieden
+breeze-light-hell.png              verschieden
+breeze-light-nurhuelle.png         GLEICH
+cachyos-emerald-dunkel.png         verschieden
+cachyos-emerald-hell.png           verschieden
+cachyos-emerald-nurhuelle.png      GLEICH
+default-dunkel.png                 verschieden
+default-hell.png                   verschieden
+default-nurhuelle.png              GLEICH
+Iridescent-round-dunkel.png        verschieden
+Iridescent-round-hell.png          verschieden
+Iridescent-round-nurhuelle.png     GLEICH

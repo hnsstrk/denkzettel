@@ -1,0 +1,29 @@
+Am Binärcode gemessen, ohne etwas zu installieren.
+libPlasmaQuick ist die Bibliothek hinter Plasmas eigenen Überlagerungen.
+
+=== /usr/lib/libPlasmaQuick.so.6.7.3
+U KWindowEffects::enableBackgroundContrast(QWindow*, bool, double, double, double, QRegion const&)
+U KWindowEffects::enableBlurBehind(QWindow*, bool, QRegion const&)
+U KWindowEffects::slideWindow(QWindow*, KWindowEffects::SlideFromLocation, int)
+U KWindowShadow::create()
+U KWindowShadow::destroy()
+U KWindowShadow::isCreated() const
+U KWindowShadow::KWindowShadow(QObject*)
+U KWindowShadow::setBottomLeftTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setBottomRightTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setBottomTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setLeftTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setPadding(QMargins const&)
+U KWindowShadow::setRightTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setTopLeftTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setTopRightTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setTopTile(QSharedPointer<KWindowShadowTile>)
+U KWindowShadow::setWindow(QWindow*)
+U KWindowShadowTile::image() const
+U KWindowShadowTile::~KWindowShadowTile()
+U KWindowShadowTile::KWindowShadowTile()
+U KWindowShadowTile::setImage(QImage const&)
+
+=== /usr/lib/libKF6Svg.so.6
+(kein Treffer)
+

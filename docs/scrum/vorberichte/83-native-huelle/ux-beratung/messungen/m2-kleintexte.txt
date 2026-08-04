@@ -1,0 +1,30 @@
+Alpha der Hülle: 216/255 = 84.7 % (Desktop-Theme `default`, gemessen)
+
+Farbschema                 | WindowText        | ForegroundInactive
+                           |  deckend   ungst. |  deckend   ungst.
+--------------------------------------------------------------------
+BreezeClassic              |    13.36     9.41 |     3.05     2.15  Kleintext < 3:1
+BreezeDark                 |    15.39     9.45 |     6.64     4.07
+BreezeLight                |    13.33     9.39 |     3.69     2.60  Kleintext < 3:1
+CachyOSNord                |     8.61     5.36 |     3.16     1.97  Kleintext < 3:1
+CachyOSNordLightly         |     7.93     4.88 |     2.91     1.79  Kleintext < 3:1
+Emerald                    |    20.87    14.64 |     3.59     2.52  Kleintext < 3:1
+EmeraldDark                |     7.81     4.86 |     3.16     1.97  Kleintext < 3:1
+EmeraldLight               |    20.87    14.64 |     3.59     2.52  Kleintext < 3:1
+EmeraldSmooth              |    12.11     7.52 |     3.15     1.95  Kleintext < 3:1
+IridescentLightly          |     5.91     4.07 |     3.74     2.57  Kleintext < 3:1
+IridescentLightly2         |     5.91     4.07 |     3.74     2.57  Kleintext < 3:1
+IridescentLightly3         |     5.80     3.90 |     3.66     2.47  Kleintext < 3:1
+KritaBlender               |    11.07     6.80 |     7.49     4.60
+KritaBright                |     9.68     6.89 |     3.91     2.78  Kleintext < 3:1
+KritaDark                  |     5.55     3.58 |     3.62     2.34  Kleintext < 3:1
+KritaDarkOrange            |    16.48    10.17 |     9.26     5.71
+KritaDarker                |    10.75     6.62 |     2.87     1.76  Kleintext < 3:1
+KritaNeutral               |     4.74     3.59 |     1.98     1.50  Kleintext < 3:1
+Ant-Dark                   |     8.90     5.45 |    14.93     9.15
+
+Schemata gesamt: 19
+WindowText         unter 4,5:1 ungst. : 5
+ForegroundInactive unter 4,5:1 ungst. : 16
+ForegroundInactive unter 3,0:1 ungst. : 15
+ForegroundInactive unter 3,0:1 deckend: 3

@@ -1,0 +1,31 @@
+=== Vorprüfung #83, Sonde 4: Beleg der Weichzeichner-Anmeldung ===
+Plattform      : wayland
+Weichzeichner  : an
+Fenster-DPR    : 1.6
+isEffectAvailable(BlurBehind): false
+enableBlurBehind(Maskenregion) gerufen — Rückgabewert: keiner.
+
+-- spectacle -a (nur das Fenster)
+   beendet: ja, Rückgabe 0
+   Aufnahme 960x278, Mitte 240,240,241 / Alpha 216
+   Harte Sprünge auf der Mittellinie: 0
+   Befund: Alpha 216 heißt, die Aufnahme trägt die **eigene Fläche des Fensters**, nicht das
+   zusammengesetzte Bild. Was hinter der Hülle liegt, steht nicht darin — der
+   Weichzeichner ist auf diesem Weg so wenig zu sehen wie über QWidget::grab().
+
+-- spectacle -f (das zusammengesetzte Bild)
+   beendet: ja, Rückgabe 0
+   Aufnahme 3840x2160 Bildpunkte (sofort wieder gelöscht, gespeichert wird nur der Ausschnitt)
+   Zeile mit den meisten gemischten Bildpunkten: y=913 (240 von 1920 geprüften)
+   Feste Prüflinie y=913, x=1480 ff. (Graustufen):
+     203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 203 203 203 
+   Spannweite auf dieser Linie über 600 Bildpunkte: 203 bis 242
+   Hülle in dieser Zeile: x=1440 bis 2380 (941 Bildpunkte breit)
+
+   Harte Sprünge (Helligkeitssprung > 60 zwischen Nachbarn):
+     nur innerhalb der Hülle (y=913, x=1440..2380): 0
+     blankes Schachbrett darüber (y=613, ganze Breite): 199
+   Helligkeitswerte in der Hülle, 40 Bildpunkte ab x=1480:
+     203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 203 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 242 203 203 203 
+   Weniger Sprünge und ein glatter Verlauf heißen: hinter der Hülle ist das
+   Muster verwaschen. Der Vergleich der beiden Läufe (an gegen aus) ist der Beleg.

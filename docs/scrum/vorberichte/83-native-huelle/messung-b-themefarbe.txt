@@ -1,0 +1,46 @@
+Lauf: 2026-08-04 19:05:14 CEST
+Sonde: docs/scrum/vorberichte/83-native-huelle/themefarbe.cpp
+
+########## Schema des Kunden — CachyOSNordLightly ##########
+=== #83 AK 6 gegen SPEC 3.1: ein Schema, alle Themes ===
+Plattform : offscreen
+PLATFORMTHEME : kde
+XDG_CONFIG_HOME: /tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/cfg-nord
+Palette   : Window  30, 34, 51   WindowText 102,194,242
+
+Desktop-Theme         |Fläche gezeichnet |Alph/min|= Window? |dRGB |Text auf Fläche 
+------------------------------------------------------------------------------------------
+CachyOS-Nord-round    | 30, 34, 51       |255/255 |gleich    |0    |7.93:1          
+Iridescent-round      |  0,  0,  0       |51/51   |ABWEICHUNG|51   |10.56:1         
+breeze-dark           | 32, 35, 38       |216/216 |ABWEICHUNG|13   |7.92:1          
+breeze-light          |240,240,241       |216/216 |ABWEICHUNG|210  |1.74:1          
+cachyos-emerald       |  0,  0,  0       |7/7     |ABWEICHUNG|51   |10.56:1         
+cachyos-emerald-color |  0,  0,  0       |7/7     |ABWEICHUNG|51   |10.56:1         
+cachyos-emerald-light |  0,  0,  0       |7/7     |ABWEICHUNG|51   |10.56:1         
+default               | 30, 34, 51       |216/216 |gleich    |0    |7.93:1          
+
+Lesart: Spalte „= Window?" vergleicht die vom Theme gezeichnete Fläche mit
+der Schemafarbe `Window`. Nur wo sie gleich ist, trägt AK 6 von #83.
+Die letzte Spalte rechnet deckend (bester Fall); durchscheinend liegt sie tiefer.
+
+########## Gegenprobe helles Schema — BreezeLight ##########
+=== #83 AK 6 gegen SPEC 3.1: ein Schema, alle Themes ===
+Plattform : offscreen
+PLATFORMTHEME : kde
+XDG_CONFIG_HOME: /tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/cfg-breeze
+Palette   : Window 239,240,241   WindowText  35, 38, 41
+
+Desktop-Theme         |Fläche gezeichnet |Alph/min|= Window? |dRGB |Text auf Fläche 
+------------------------------------------------------------------------------------------
+CachyOS-Nord-round    | 30, 34, 51       |255/255 |ABWEICHUNG|209  |1.04:1          
+Iridescent-round      |  0,  0,  0       |51/51   |ABWEICHUNG|241  |1.38:1          
+breeze-dark           | 32, 35, 38       |216/216 |ABWEICHUNG|207  |1.03:1          
+breeze-light          |240,240,241       |216/216 |ABWEICHUNG|1    |13.32:1         
+cachyos-emerald       |  0,  0,  0       |7/7     |ABWEICHUNG|241  |1.38:1          
+cachyos-emerald-color |  0,  0,  0       |7/7     |ABWEICHUNG|241  |1.38:1          
+cachyos-emerald-light |  0,  0,  0       |7/7     |ABWEICHUNG|241  |1.38:1          
+default               |240,240,241       |216/216 |ABWEICHUNG|1    |13.32:1         
+
+Lesart: Spalte „= Window?" vergleicht die vom Theme gezeichnete Fläche mit
+der Schemafarbe `Window`. Nur wo sie gleich ist, trägt AK 6 von #83.
+Die letzte Spalte rechnet deckend (bester Fall); durchscheinend liegt sie tiefer.

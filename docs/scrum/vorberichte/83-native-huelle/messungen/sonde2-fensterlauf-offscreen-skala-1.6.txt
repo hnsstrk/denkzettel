@@ -1,0 +1,61 @@
+=== Vorprüfung #83, Sonde 2: das Fenster auf dem nativen Weg ===
+Plattform      : offscreen
+Theme          : default
+QT_SCALE_FACTOR: 1.6
+qApp DPR       : 1.6
+Fenster-DPR direkt nach show()      : 1.6
+Fenster-DPR nach 1,2 s Ereignislauf : 1.6
+Hülle bekam dabei zuletzt           : 1.6 (direkt nach show(): 1.6)
+Ereignisse nach dem ersten Zeigen   : Resize
+  -> Trägt die Hülle das Verhältnis des Fensters? ja
+
+########## A — das Bild (AK 4: offscreen gleich Wayland) ##########
+  grab()      : 960x278 Bildpunkte, DPR 1.6
+  Bildformat  : 6 (4 = RGB32 ohne Alpha, 6 = ARGB32_Premultiplied)
+  Alphakanal  : ja
+  Ecke (0,0)          :   0,  0,  0 / Alpha   0
+  Mitte               : 240,240,241 / Alpha 216
+  Kantenmitte oben    : 240,241,241 / Alpha 235
+  Kantenmitte links   : 240,241,241 / Alpha 235
+  Kantenmitte unten   : 239,241,241 / Alpha 229
+  cornerRun()         : 4
+  oberste Zeile, Alpha:   0   0   0   0   2  65 125 173 195 209 235 235 235 235 
+
+########## A2 — nach dem Nachziehen des Verhältnisses ##########
+  Hülle jetzt bei     : 1.6, Fenster bei 1.6
+  grab()              : 960x278 Bildpunkte
+  Mitte               : 240,240,241 / Alpha 216
+  cornerRun()         : 4
+  oberste Zeile, Alpha:   0   0   0   0   2  65 125 173 195 209 235 235 235 235 
+
+########## B — die heutigen Testzusicherungen an diesem Fenster ##########
+Die Zeilen stammen wörtlich aus tests/capturetest.cpp. Sie sind hier nicht
+ausgeführt, sondern nachgerechnet — ein Test darf in einer Vorprüfung nicht
+geändert werden.
+
+  hullIsCompleteAtFiveAndEightLines(): QVERIFY(qAlpha(Mitte) == 255)      -> FÄLLT (Alpha 216)
+  hullIsCompleteAtFiveAndEightLines(): QVERIFY(qAlpha(Kantenmitte) == 255) -> FÄLLT (Alpha 235)
+  paintsOneSurfaceInThePaletteColours(): QCOMPARE(Pixel, palette Window)   -> Pixel 240,240,241 / Alpha 216, palette Window 239,240,241 / Alpha 255
+  hullFollowsTheDesktopTheme(): QVERIFY(cornerRun > 0)                     -> hält
+
+########## C — Fensterbindung über hide()/show() ##########
+  vor  hide(): QWindow vorhanden, winId 1, handle vorhanden
+  nach hide(): QWindow vorhanden, handle vorhanden
+  nach show(): QWindow vorhanden, winId 1, handle vorhanden
+  -> selbes QWindow-Objekt? ja
+  -> selbe Fensterkennung? ja
+  Hinweis: dieselbe Kennung heißt unter Wayland nicht dieselbe Oberfläche.
+
+########## D — KWindowEffects ##########
+  isEffectAvailable(BlurBehind)      : false
+  isEffectAvailable(BackgroundContrast): false
+  Maskenregion: 7 Rechteck(e), Hüllrechteck 600x174
+  enableBlurBehind(windowHandle(), true, mask) …
+  … zurückgekehrt. Rückgabewert: keiner — die Funktion ist void.
+  isEffectAvailable(BlurBehind) DANACH: false
+  Erneuter Aufruf nach hide()/show():
+  … zurückgekehrt.
+
+########## E — enableBlurBehind(nullptr) ##########
+  Steht mit Absicht am Ende: stürzt der Aufruf, fehlt danach nur diese Zeile.
+  Kein Absturz — ein Fenster ohne QWindow ist verkraftet.

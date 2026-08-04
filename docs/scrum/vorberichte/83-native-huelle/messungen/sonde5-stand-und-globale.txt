@@ -1,0 +1,16 @@
+=== Vorpruefung #83, Sonde 5: Stand der Werkzeuge und Wayland-Globale ===
+Eine Aussage gilt fuer einen Stand (B17) — deshalb steht er hier.
+
+kwindowsystem 6.28.0-1.1
+kwin 6.7.3-1.1
+plasma-desktop 6.7.3-1.1
+qt6-base 6.11.1-1.1
+ksvg 6.28.0-1.1
+
+-- KWin-Effekt blur geladen?
+b true
+
+-- Wayland-Globale zu Weichzeichner, Kontrast und Schatten
+interface: 'org_kde_kwin_shadow_manager',                version:  2, name: 28
+interface: 'ext_background_effect_manager_v1',           version:  1, name: 58
+interface: 'org_kde_kwin_slide_manager',                 version:  1, name: 72

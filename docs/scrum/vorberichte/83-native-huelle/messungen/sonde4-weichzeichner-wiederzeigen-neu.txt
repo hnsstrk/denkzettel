@@ -1,0 +1,26 @@
+=== Vorprüfung #83, Sonde 4: Beleg der Weichzeichner-Anmeldung ===
+Plattform      : wayland
+Weichzeichner  : wiederzeigen-neu
+enableBlurBehind(leere Region) sofort nach show() gerufen.
+Nach hide()/show() sofort erneut angemeldet.
+Fenster-DPR    : 1.6
+isEffectAvailable(BlurBehind): true
+Kein weiterer Aufruf — es zählt allein, was oben angemeldet wurde.
+
+-- spectacle -a (nur das Fenster)
+   beendet: ja, Rückgabe 0
+   Aufnahme 960x278, Mitte 240,240,241 / Alpha 216
+   Harte Sprünge auf der Mittellinie: 0
+   Befund: Alpha 216 heißt, die Aufnahme trägt die **eigene Fläche des Fensters**, nicht das
+   zusammengesetzte Bild. Was hinter der Hülle liegt, steht nicht darin — der
+   Weichzeichner ist auf diesem Weg so wenig zu sehen wie über QWidget::grab().
+
+-- spectacle -f (das zusammengesetzte Bild)
+   beendet: ja, Rückgabe 0
+   Aufnahme 3840x2160 Bildpunkte (sofort wieder gelöscht, gespeichert wird nur der Ausschnitt)
+   Zeile mit den meisten gemischten Bildpunkten: y=2136 (87 von 1920 geprüften)
+   Feste Prüflinie y=913, x=1480 ff. (Graustufen):
+     222 222 222 222 222 222 222 222 222 222 222 222 222 222 222 222 223 223 223 223 222 222 222 222 222 222 222 222 223 222 222 222 222 222 222 223 222 222 222 222 
+   Spannweite auf dieser Linie über 600 Bildpunkte: 222 bis 223
+   Die scharfe Hülle war im Bild nicht zu finden — bei angemeldetem
+   Weichzeichner ist genau das der erwartete Ausgang.

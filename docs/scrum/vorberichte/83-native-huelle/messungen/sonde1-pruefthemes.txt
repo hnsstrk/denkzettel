@@ -1,0 +1,36 @@
+===== denkzettel-test-schmal
+########## D/E/F/G — Maske, Ränder, Alphalauf ##########
+  getMargins  : 4 4 4 4
+  Mitte       : 0,0,0 / Alpha 255
+  oberste Zeile, Alpha    :   0   0   0  26 255 255 255 255 255 255 255 255 255 255 
+  Alphalauf (AK 3)        : Randwert 255, Anstieg über 4 Spalten, Rückschritte 0, Wiederholungen im Anstieg 0
+  getMargins  : 4 4 4 4
+  Mitte       : 0,0,0 / Alpha 255
+  oberste Zeile, Alpha    :   0   0   0   0   0   0 255 255 255 255 255 255 255 255 
+===== denkzettel-test-breit
+########## D/E/F/G — Maske, Ränder, Alphalauf ##########
+  getMargins  : 12 12 12 12
+  Mitte       : 0,0,0 / Alpha 255
+  oberste Zeile, Alpha    :   0   0   0   0   0   0   0   0   0   0   0  14 255 255 
+  Alphalauf (AK 3)        : Randwert 255, Anstieg über 12 Spalten, Rückschritte 0, Wiederholungen im Anstieg 0
+  getMargins  : 12 12 12 12
+  Mitte       : 0,0,0 / Alpha 255
+  oberste Zeile, Alpha    :   0   0   0   0   0   0   0   0   0   0   0   0   0   0 
+===== denkzettel-pruef-eckig
+########## D/E/F/G — Maske, Ränder, Alphalauf ##########
+  getMargins  : 4 4 4 4
+  Mitte       : 0,0,0 / Alpha 255
+  oberste Zeile, Alpha    : 255 255 255 255 255 255 255 255 255 255 255 255 255 255 
+  Alphalauf (AK 3)        : Randwert 255, Anstieg über 0 Spalten, Rückschritte 0, Wiederholungen im Anstieg 0
+  getMargins  : 4 4 4 4
+  Mitte       : 0,0,0 / Alpha 255
+  oberste Zeile, Alpha    : 255 255 255 255 255 255 255 255 255 255 255 255 255 255 
+===== default
+########## D/E/F/G — Maske, Ränder, Alphalauf ##########
+  getMargins  : 4 4 4 4
+  Mitte       : 240,240,241 / Alpha 216
+  oberste Zeile, Alpha    :   0   0  47 138 189 209 235 235 235 235 235 235 235 235 
+  Alphalauf (AK 3)        : Randwert 235, Anstieg über 6 Spalten, Rückschritte 0, Wiederholungen im Anstieg 0
+  getMargins  : 4 4 4 4
+  Mitte       : 240,240,241 / Alpha 216
+  oberste Zeile, Alpha    :   0   0   0   0   2  65 125 173 195 209 235 235 235 235 

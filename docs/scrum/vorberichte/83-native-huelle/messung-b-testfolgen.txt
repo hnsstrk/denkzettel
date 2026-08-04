@@ -1,0 +1,43 @@
+Lauf: 2026-08-04 19:07:19 CEST
+Sonde: docs/scrum/vorberichte/83-native-huelle/testfolgen.cpp
+
+=== #83: was der native Weg an bestehenden Zusicherungen umwirft ===
+Plattform : offscreen
+Theme     : default
+Palette   : Window #1e2233
+
+########## heute — alphaMask() + tinted(), Ring aus zwei Rahmen
+  Z1 Alpha Randmitte oben : 255   (== 255, Z1 hält)
+  Z1 Alpha Fenstermitte   : 255   (== 255, Z1 hält)
+  Z2 Pixel Fenstermitte   : #ff1e2233   Window #ff1e2233   (gleich, Z2 hält)
+  Z3 cornerRun            : 6
+
+########## nativ — framePixmap() in einem Stück
+  Z1 Alpha Randmitte oben : 235   (!= 255, Z1 FÄLLT)
+  Z1 Alpha Fenstermitte   : 216   (!= 255, Z1 FÄLLT)
+  Z2 Pixel Fenstermitte   : #d81e2233   Window #ff1e2233   (verschieden, Z2 FÄLLT)
+  Z3 cornerRun            : 2
+
+Lesart: Z1/Z2/Z3 sind die Zusicherungen aus tests/capturetest.cpp.
+Ein „FÄLLT" heißt: Der Test wird durch #83 rot und muss neu gefasst werden —
+Umfang der Story, nicht Fehler des nativen Weges.
+=== #83: was der native Weg an bestehenden Zusicherungen umwirft ===
+Plattform : offscreen
+Theme     : CachyOS-Nord-round
+Palette   : Window #1e2233
+
+########## heute — alphaMask() + tinted(), Ring aus zwei Rahmen
+  Z1 Alpha Randmitte oben : 255   (== 255, Z1 hält)
+  Z1 Alpha Fenstermitte   : 255   (== 255, Z1 hält)
+  Z2 Pixel Fenstermitte   : #ff1e2233   Window #ff1e2233   (gleich, Z2 hält)
+  Z3 cornerRun            : 7
+
+########## nativ — framePixmap() in einem Stück
+  Z1 Alpha Randmitte oben : 255   (== 255, Z1 hält)
+  Z1 Alpha Fenstermitte   : 255   (== 255, Z1 hält)
+  Z2 Pixel Fenstermitte   : #ff1e2233   Window #ff1e2233   (gleich, Z2 hält)
+  Z3 cornerRun            : 6
+
+Lesart: Z1/Z2/Z3 sind die Zusicherungen aus tests/capturetest.cpp.
+Ein „FÄLLT" heißt: Der Test wird durch #83 rot und muss neu gefasst werden —
+Umfang der Story, nicht Fehler des nativen Weges.

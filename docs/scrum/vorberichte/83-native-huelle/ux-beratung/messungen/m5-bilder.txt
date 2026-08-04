@@ -1,0 +1,10 @@
+Plattform : offscreen
+WindowText: #66c2f2
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/default-hell.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/default-dunkel.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/breeze-light-hell.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/breeze-light-dunkel.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/cachyos-emerald-hell.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/cachyos-emerald-dunkel.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/Iridescent-round-hell.png
+geschrieben: /home/hnsstrk/Projekte/denkzettel/docs/scrum/vorberichte/83-native-huelle/ux-beratung/bilder/Iridescent-round-dunkel.png

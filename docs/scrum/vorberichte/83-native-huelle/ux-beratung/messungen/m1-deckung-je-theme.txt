@@ -1,0 +1,108 @@
+Die Sprint-6-Messung (native-ak2-kontrast.txt) hat 20 Farbschemata unter
+EINEM Desktop-Theme gefahren. Die Deckung gehört aber dem Desktop-Theme.
+Hier steht die andere Achse: acht Themes, vier Schemata.
+
+############ Farbschema BreezeLight
+=== Deckung der nativen Hülle je Desktop-Theme ===
+Plattform       : offscreen
+XDG_CONFIG_HOME : /tmp/tmp.22fa8m9qrP/cfg-BreezeLight
+Farbschema      : BreezeLight
+Window          : #eff0f1   WindowText: #232629
+
+Desktop-Theme          | Auswahl     | Alpha | Streu | RGB          | = Window?  | Deckung | ungünstigster Kontrast
+-----------------------+-------------+-------+-------+--------------+------------+---------+-----------------------
+CachyOS-Nord-round     | (keine)     |   255 |     0 |   30, 34, 51 | NEIN (209)  |  100.0 % |   1.04  UNTER 4,5:1
+CachyOS-Nord-round     | opaque      |   255 |     0 |   30, 34, 51 | NEIN (209)  |  100.0 % |   1.04  UNTER 4,5:1
+Iridescent-round       | (keine)     |    51 |     0 |    0,  0,  0 | NEIN (241)  |   20.0 % |   1.38  UNTER 4,5:1
+Iridescent-round       | opaque      |    51 |     0 |    0,  0,  0 | NEIN (241)  |   20.0 % |   1.38  UNTER 4,5:1
+breeze-dark            | (keine)     |   216 |     0 |   32, 35, 38 | NEIN (207)  |   84.7 % |   1.10  UNTER 4,5:1
+breeze-dark            | opaque      |   255 |     0 |   32, 35, 38 | NEIN (207)  |  100.0 % |   1.04  UNTER 4,5:1
+breeze-light           | (keine)     |   216 |     0 |  240,240,241 | NEIN (  1)  |   84.7 % |   9.38
+breeze-light           | opaque      |   255 |     0 |  239,240,241 |    ja       |  100.0 % |  13.33
+cachyos-emerald        | (keine)     |     7 |     0 |    0,  0,  0 | NEIN (241)  |    2.7 % |   1.38  UNTER 4,5:1
+cachyos-emerald        | opaque      |     9 |     0 |  227,227,255 | NEIN ( 14)  |    3.5 % |   1.32  UNTER 4,5:1
+cachyos-emerald-color  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN (241)  |    2.7 % |   1.38  UNTER 4,5:1
+cachyos-emerald-color  | opaque      |     9 |     0 |  227,227,255 | NEIN ( 14)  |    3.5 % |   1.32  UNTER 4,5:1
+cachyos-emerald-light  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN (241)  |    2.7 % |   1.38  UNTER 4,5:1
+cachyos-emerald-light  | opaque      |     9 |     0 |  227,227,255 | NEIN ( 14)  |    3.5 % |   1.32  UNTER 4,5:1
+default                | (keine)     |   216 |     0 |  240,240,241 | NEIN (  1)  |   84.7 % |   9.38
+default                | opaque      |   255 |     0 |  239,240,241 |    ja       |  100.0 % |  13.33
+
+############ Farbschema BreezeDark
+=== Deckung der nativen Hülle je Desktop-Theme ===
+Plattform       : offscreen
+XDG_CONFIG_HOME : /tmp/tmp.22fa8m9qrP/cfg-BreezeDark
+Farbschema      : BreezeDark
+Window          : #202326   WindowText: #fcfcfc
+
+Desktop-Theme          | Auswahl     | Alpha | Streu | RGB          | = Window?  | Deckung | ungünstigster Kontrast
+-----------------------+-------------+-------+-------+--------------+------------+---------+-----------------------
+CachyOS-Nord-round     | (keine)     |   255 |     0 |   30, 34, 51 | NEIN ( 13)  |  100.0 % |  15.37
+CachyOS-Nord-round     | opaque      |   255 |     0 |   30, 34, 51 | NEIN ( 13)  |  100.0 % |  15.37
+Iridescent-round       | (keine)     |    51 |     0 |    0,  0,  0 | NEIN ( 38)  |   20.0 % |   1.57  UNTER 4,5:1
+Iridescent-round       | opaque      |    51 |     0 |    0,  0,  0 | NEIN ( 38)  |   20.0 % |   1.57  UNTER 4,5:1
+breeze-dark            | (keine)     |   216 |     0 |   32, 35, 38 |    ja       |   84.7 % |   9.42
+breeze-dark            | opaque      |   255 |     0 |   32, 35, 38 |    ja       |  100.0 % |  15.39
+breeze-light           | (keine)     |   216 |     0 |  240,240,241 | NEIN (208)  |   84.7 % |   1.09  UNTER 4,5:1
+breeze-light           | opaque      |   255 |     0 |  239,240,241 | NEIN (207)  |  100.0 % |   1.11  UNTER 4,5:1
+cachyos-emerald        | (keine)     |     7 |     0 |    0,  0,  0 | NEIN ( 38)  |    2.7 % |   1.04  UNTER 4,5:1
+cachyos-emerald        | opaque      |     9 |     0 |  227,227,255 | NEIN (217)  |    3.5 % |   1.02  UNTER 4,5:1
+cachyos-emerald-color  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN ( 38)  |    2.7 % |   1.04  UNTER 4,5:1
+cachyos-emerald-color  | opaque      |     9 |     0 |  227,227,255 | NEIN (217)  |    3.5 % |   1.02  UNTER 4,5:1
+cachyos-emerald-light  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN ( 38)  |    2.7 % |   1.04  UNTER 4,5:1
+cachyos-emerald-light  | opaque      |     9 |     0 |  227,227,255 | NEIN (217)  |    3.5 % |   1.02  UNTER 4,5:1
+default                | (keine)     |   216 |     0 |   32, 35, 38 |    ja       |   84.7 % |   9.42
+default                | opaque      |   255 |     0 |   32, 35, 38 |    ja       |  100.0 % |  15.39
+
+############ Farbschema CachyOSNordLightly
+=== Deckung der nativen Hülle je Desktop-Theme ===
+Plattform       : offscreen
+XDG_CONFIG_HOME : /tmp/tmp.22fa8m9qrP/cfg-CachyOSNordLightly
+Farbschema      : CachyOSNordLightly
+Window          : #1e2233   WindowText: #66c2f2
+
+Desktop-Theme          | Auswahl     | Alpha | Streu | RGB          | = Window?  | Deckung | ungünstigster Kontrast
+-----------------------+-------------+-------+-------+--------------+------------+---------+-----------------------
+CachyOS-Nord-round     | (keine)     |   255 |     0 |   30, 34, 51 |    ja       |  100.0 % |   7.93
+CachyOS-Nord-round     | opaque      |   255 |     0 |   30, 34, 51 |    ja       |  100.0 % |   7.93
+Iridescent-round       | (keine)     |    51 |     0 |    0,  0,  0 | NEIN ( 51)  |   20.0 % |   1.24  UNTER 4,5:1
+Iridescent-round       | opaque      |    51 |     0 |    0,  0,  0 | NEIN ( 51)  |   20.0 % |   1.24  UNTER 4,5:1
+breeze-dark            | (keine)     |   216 |     0 |   32, 35, 38 | NEIN ( 13)  |   84.7 % |   4.86
+breeze-dark            | opaque      |   255 |     0 |   32, 35, 38 | NEIN ( 13)  |  100.0 % |   7.94
+breeze-light           | (keine)     |   216 |     0 |  240,240,241 | NEIN (210)  |   84.7 % |   1.23  UNTER 4,5:1
+breeze-light           | opaque      |   255 |     0 |  239,240,241 | NEIN (209)  |  100.0 % |   1.74  UNTER 4,5:1
+cachyos-emerald        | (keine)     |     7 |     0 |    0,  0,  0 | NEIN ( 51)  |    2.7 % |   1.87  UNTER 4,5:1
+cachyos-emerald        | opaque      |     9 |     0 |  227,227,255 | NEIN (204)  |    3.5 % |   1.97  UNTER 4,5:1
+cachyos-emerald-color  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN ( 51)  |    2.7 % |   1.87  UNTER 4,5:1
+cachyos-emerald-color  | opaque      |     9 |     0 |  227,227,255 | NEIN (204)  |    3.5 % |   1.97  UNTER 4,5:1
+cachyos-emerald-light  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN ( 51)  |    2.7 % |   1.87  UNTER 4,5:1
+cachyos-emerald-light  | opaque      |     9 |     0 |  227,227,255 | NEIN (204)  |    3.5 % |   1.97  UNTER 4,5:1
+default                | (keine)     |   216 |     0 |   30, 34, 51 |    ja       |   84.7 % |   4.88
+default                | opaque      |   255 |     0 |   30, 34, 51 |    ja       |  100.0 % |   7.93
+
+############ Farbschema KritaNeutral
+=== Deckung der nativen Hülle je Desktop-Theme ===
+Plattform       : offscreen
+XDG_CONFIG_HOME : /tmp/tmp.22fa8m9qrP/cfg-KritaNeutral
+Farbschema      : KritaNeutral
+Window          : #808080   WindowText: #121212
+
+Desktop-Theme          | Auswahl     | Alpha | Streu | RGB          | = Window?  | Deckung | ungünstigster Kontrast
+-----------------------+-------------+-------+-------+--------------+------------+---------+-----------------------
+CachyOS-Nord-round     | (keine)     |   255 |     0 |   30, 34, 51 | NEIN ( 98)  |  100.0 % |   1.19  UNTER 4,5:1
+CachyOS-Nord-round     | opaque      |   255 |     0 |   30, 34, 51 | NEIN ( 98)  |  100.0 % |   1.19  UNTER 4,5:1
+Iridescent-round       | (keine)     |    51 |     0 |    0,  0,  0 | NEIN (128)  |   20.0 % |   1.12  UNTER 4,5:1
+Iridescent-round       | opaque      |    51 |     0 |    0,  0,  0 | NEIN (128)  |   20.0 % |   1.12  UNTER 4,5:1
+breeze-dark            | (keine)     |   216 |     0 |   32, 35, 38 | NEIN ( 96)  |   84.7 % |   1.12  UNTER 4,5:1
+breeze-dark            | opaque      |   255 |     0 |   32, 35, 38 | NEIN ( 96)  |  100.0 % |   1.19  UNTER 4,5:1
+breeze-light           | (keine)     |   216 |     0 |  240,240,241 | NEIN (113)  |   84.7 % |  11.56
+breeze-light           | opaque      |   255 |     0 |  239,240,241 | NEIN (113)  |  100.0 % |  16.42
+cachyos-emerald        | (keine)     |     7 |     0 |    0,  0,  0 | NEIN (128)  |    2.7 % |   1.12  UNTER 4,5:1
+cachyos-emerald        | opaque      |     9 |     0 |  227,227,255 | NEIN (127)  |    3.5 % |   1.07  UNTER 4,5:1
+cachyos-emerald-color  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN (128)  |    2.7 % |   1.12  UNTER 4,5:1
+cachyos-emerald-color  | opaque      |     9 |     0 |  227,227,255 | NEIN (127)  |    3.5 % |   1.07  UNTER 4,5:1
+cachyos-emerald-light  | (keine)     |     7 |     0 |    0,  0,  0 | NEIN (128)  |    2.7 % |   1.12  UNTER 4,5:1
+cachyos-emerald-light  | opaque      |     9 |     0 |  227,227,255 | NEIN (127)  |    3.5 % |   1.07  UNTER 4,5:1
+default                | (keine)     |   216 |     0 |  128,128,128 |    ja       |   84.7 % |   3.57  UNTER 4,5:1
+default                | opaque      |   255 |     0 |  128,128,128 |    ja       |  100.0 % |   4.74
+
