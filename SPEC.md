@@ -260,6 +260,32 @@ Interview). Syntax-Umfang (damit ist offene Frage 3 des Konzepts beantwortet):
     kein „Ü"). Betrifft ausschließlich Begriffe mit ein oder zwei Zeichen.
 - Die Trefferliste behält die Ordnung der Bibliothek (neueste zuerst, 9.)
   statt der FTS5-Relevanzsortierung — nur so trägt sie deren Tagesgruppen.
+  - **BM25 ist am 04.08.2026 geprüft und verworfen** (Kundenentscheidung;
+    Belege unter `docs/scrum/reviews/2026-08-04-bm25/`). Der Grund ist **nicht**
+    der Trigramm-Tokenizer — die Vermutung, ein in Trigramme zerfallender
+    Suchbegriff verzerre die Formel, ist widerlegt: FTS5 summiert BM25 über
+    **Phrasen**, nicht über Tokens, und die Abfrage ist phrasenweise gebaut.
+    Verworfen wurde BM25 aus drei anderen Gründen:
+    1. **Bei kurzen Notizen entartet es zu „kürzeste Notiz zuerst".** Ein
+       gesuchter Begriff steht dort fast immer genau einmal (`f=1`); bei einem
+       einzelnen Suchbegriff kürzt sich der IDF-Anteil heraus, und übrig bleibt
+       die Längennormierung. Eine Einzeilernotiz, in der „Backup" beiläufig
+       vorkommt, stünde vor der ausführlichen Notiz über Backups. `k1` und `b`
+       sind in FTS5 **nicht einstellbar** — es gibt keinen Regler dagegen.
+    2. **Zwei Suchwege hätten gar keinen Rang:** Begriffe mit ein oder zwei
+       Zeichen laufen über `content LIKE` und stehen nicht im FTS-Index; reine
+       Filtersuchen (`tag:`, `kat:`, `vor:`) enthalten keinen Volltextterm.
+    3. **Die Sortierung ist keine Eigenschaft der Suche, sondern die
+       Voraussetzung der Listendarstellung.** Der Zeilenbau gruppiert, er
+       sortiert nicht; nach Rang geordnete Eingabe erzeugt Tagesköpfe mehrfach
+       und in wechselnder Folge. Dazu hängt der Zeitstempel je Eintrag an seiner
+       Gruppe (9., Zeichnung 3b): Ohne Kopf verlöre jeder Treffer von heute und
+       gestern seine Tagesangabe. Und da bei jedem Tastendruck gesucht wird,
+       spränge die Liste, während der Nutzer noch tippt.
+  - **Was stattdessen fehlt, ist die Lesbarkeit des Treffers**, nicht seine
+    Rangfolge: Der gefundene Begriff wird in der Liste nicht hervorgehoben, und
+    die Fundstelle liegt oft im abgeschnittenen Teil (Hinweis 2 des
+    S6-Reviews, Sprint 3). Eigene Story.
 
 ## 7. KI-Pipeline
 
