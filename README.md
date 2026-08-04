@@ -97,27 +97,25 @@ cmake --build build
 ctest --test-dir build
 ```
 
-Die Tests laufen offscreen und brauchen keine laufende Plasma-Sitzung. Wer
-Bilder für einen Prüfbericht erzeugt, baut den passenden Bildläufer
-ausdrücklich (`cmake --build build --target editshots`) — sie hängen nicht am
-normalen Build und liefern sonst Bilder eines veralteten Standes.
+Die Tests laufen offscreen und brauchen keine laufende Plasma-Sitzung. Die
+vier Bildläufer (`editshots`, `libraryshots`, `searchshots`, `readmeshots`)
+baut ein gewöhnlicher Build seit dem 04.08.2026 mit. Sie stehen weiterhin
+**nicht** in `ctest` — ein kaputter Bildschreiber soll die Suite nicht rot
+färben —, aber ein Läufer, den niemand neu baut, altert unbemerkt und schreibt
+plausible Bilder eines alten Standes.
 
-Die beiden Bilder oben in dieser Datei stammen aus einem eigenen Läufer und
-sind mit einem Befehl neu zu erzeugen:
+Die beiden Bilder oben in dieser Datei stammen aus `readmeshots` und sind mit
+einem Befehl neu zu erzeugen:
 
 ```
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
-cmake --build build --target readmeshots
 QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2 \
     LANG=de_DE.UTF-8 build/bin/readmeshots docs/bilder
 ```
 
-Der Konfigurationslauf steht hier noch einmal, weil ein Ziel, das der
-Arbeitsbaum noch nicht kennt, sonst mit „keine Regel" abbricht. Der Läufer
-arbeitet deterministisch: Zwei Läufe hintereinander liefern bytegleiche
-Dateien. Die darin gezeigten Notizen sind erfunden. Das Plattformthema muss
-gesetzt sein, sonst tritt eine Ersatzschrift an die Stelle der echten und
-stellt die Größenverhältnisse falsch dar.
+Der Läufer arbeitet deterministisch: Zwei Läufe hintereinander liefern
+bytegleiche Dateien. Die darin gezeigten Notizen sind erfunden. Das
+Plattformthema muss gesetzt sein, sonst tritt eine Ersatzschrift an die Stelle
+der echten und stellt die Größenverhältnisse falsch dar.
 
 ### Linter
 

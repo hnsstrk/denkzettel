@@ -54,6 +54,19 @@ auf.
 Ordnern; von acht Bildern der Sprint-3-Abnahme überlebte sieben Minuten nur
 eines.
 
+**Das `sp:`-Label wird im selben Zug gesetzt wie die zweite unabhängige
+Schätzung — vorher gar nicht** (04.08.2026). Der PO legt die Issues an, also
+entsteht die Zweideutigkeit hier: Ein Label sieht gleich aus, ob es eine
+moderierte Schätzung trägt oder eine beim Anlegen hingeschriebene Zahl — #57
+trug `sp:2` aus der Anlage und wurde von zwei Schätzern auf 3 gehoben, #68 trug
+`sp:5` aus einer Hand. In der *einzigen Quelle der Wahrheit* ist ein
+doppeldeutiges Feld teurer als anderswo. Eine grobe Hausnummer gehört als
+Freitextsatz ins Issue, der nicht wie eine Schätzung aussieht. Damit ist der
+zweimal gerissene Punkt (M2 in Sprint 5, K1 in Sprint 6) verankert; der
+Altbestand und die Falle beim Nachprüfen — die Schätzung steht unter der
+**Story-ID**, nicht unter der Issue-Nummer — stehen in `PROZESS.md`,
+Abschnitt Artefakte.
+
 ## Prüfhaltung
 
 Dieses Projekt hat an einem einzigen Abend **vier grüne Tests entlarvt, die
