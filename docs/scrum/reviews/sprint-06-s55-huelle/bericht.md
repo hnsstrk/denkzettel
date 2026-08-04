@@ -651,21 +651,42 @@ Bilder                             14 neu erzeugt aus frisch gebautem Läufer,
 
 ## 13. Nachtrag 04.08.2026 — M1: die zehn clazy-Befunde dieses Sprints
 
-**Selbst nachgezählt, nicht übernommen** — beide Zahlen des PO stimmen, und der
-Unterschied zwischen ihnen hat eine Ursache, die man kennen muss:
+**Selbst nachgezählt, nicht übernommen**, und in **beiden** Formen — die CI
+misst Warnungs*zeilen*, der Scrum Master zählte *Stellen*. Wer die eine Zahl
+liest und mit der anderen vergleicht, findet einen Widerspruch, den es nicht
+gibt:
+
+| | Warnungszeilen (CI-Zählweise) | verschiedene Stellen |
+|---|---|---|
+| **vorher** | **16** (Schwelle 3 → rot) | **13**, davon 10 aus diesem Sprint |
+| **nachher** | **3** | **3** |
+
+**Warum vorher 16 und nicht 13 — gemessen, nicht hergeleitet.** Die Vermutung
+des PO war `tests/desktopthemes.h`; sie trifft zu, und der Beleg steht im
+Protokoll des Laufs selbst:
 
 ```
-vorher:   16 Zeilen in der Zählweise der CI   (Schwelle 3)
-          13 verschiedene Stellen, davon 10 aus diesem Sprint
-nachher:   3 Zeilen  —  genau die drei Altbefunde, genau die Schwelle
+  aus tests/captureshots.cpp  ->  tests/desktopthemes.h:91:9
+  aus tests/captureshots.cpp  ->  tests/desktopthemes.h:112:5
+  aus tests/captureshots.cpp  ->  tests/desktopthemes.h:135:5
+  aus tests/capturetest.cpp   ->  tests/desktopthemes.h:91:9
+  aus tests/capturetest.cpp   ->  tests/desktopthemes.h:112:5
+  aus tests/capturetest.cpp   ->  tests/desktopthemes.h:135:5
 ```
 
-**Warum 16 und nicht 13:** Die CI zählt `grep -c 'warning:'`, also **Zeilen**,
-nicht Stellen. `tests/desktopthemes.h` ist ein Header und wird über **zwei**
-Übersetzungseinheiten verarbeitet (`capturetest.cpp` und `captureshots.cpp`);
-seine drei Befunde zählen doppelt. 13 + 3 = 16. Wer künftig die Schwelle
-nachzieht, sollte das wissen: **Ein Befund in einem Header kostet so viele
-Zähler, wie er Übersetzungseinheiten hat.**
+Zeilen je Datei vorher: `capturewindow.cpp` 5 · `capturetest.cpp` 2 ·
+`desktopthemes.h` **6 aus 3 Stellen** · `librarytest.cpp` 2 · `shelltest.cpp` 1
+= 16. **Ein Befund in einer Kopfdatei kostet so viele Zähler, wie sie
+Übersetzungseinheiten hat.**
+
+**Nachher fallen beide Formen zusammen:** Unter den drei Restbefunden ist keine
+Kopfdatei mehr, also sind 3 Zeilen auch 3 Stellen — `librarytest.cpp` 2×
+`range-loop-detach`, `shelltest.cpp` 1× `detaching-temporary`.
+
+**Die Schwelle bleibt bei 3.** Es sind **genau** die drei Altbefunde vom
+04.08.2026, keiner davon liegt in einer Datei dieses Strangs, und ich bin nicht
+tiefer gekommen. `ci.yml` braucht deshalb keine Änderung — die Nachziehpflicht
+aus seinem Kommentar greift hier nicht.
 
 ### 13.1 Die drei Befundklassen
 
@@ -708,7 +729,8 @@ Bildläufer neu gebaut und gefahren: die 15 Bilder sind byteweise unverändert.
 
 **Die Schwelle bleibt bei 3** und ist damit wieder das, was sie sein soll — der
 gemessene Altbestand, nicht eine Schranke darüber. Sie zu heben wäre der
-Fehler, den `ci.yml` in seinem eigenen Kommentar benennt.
+Fehler, den `ci.yml` in seinem eigenen Kommentar benennt; sie zu senken gäbe
+der Ist-Stand nicht her.
 
 *Zur Redlichkeit:* Der Bau war die ganze Zeit warnungsfrei, DoD 1 war nicht
 gerissen. Gerissen war die CI-Kundenentscheidung vom 04.08.2026 — und zwar von
