@@ -1,0 +1,42 @@
+Themepaar: schmal=breeze-dark breit=CachyOS-Nord-round
+
+--- Theme: breeze-dark
+Fenster           : 600 x 174
+Layout-Innenrand  : links 16 oben 14 rechts 16 unten 12
+App-Name          : x 16 y 14  568x15  Text="Denkzettel"  Rolle=20
+Textfeld          : x 16 y 37  568x98  Dokumentrand=4  Rahmen=0
+Fusszeile         : x 16 y 147  568x15  Ausrichtung=132  Text="Esc verwirft · Strg+Enter speichert"
+Abstand App->Feld : 8
+Abstand Feld->Fuss: 12
+Fuss->Unterkante  : 12
+Zeilenabstand     : 18  Feldhoehe/Zeilen = 5
+Schriften         : Notiz 10pt  App-Name 8pt  Fuss 8pt
+Notiztextfarbe    : #232629  Fensterrolle WindowText #232629  Feld-Base #000000 (alpha 0)
+Kleintextrolle    : App 20 Fuss 20  (PlaceholderText=20)
+Viewport autofill : 0
+bei 12 Zeilen Text: Fenster 600x228  Feld 152  Zeilen = 8  Scrollbalken sichtbar=1
+nach clear        : Fenster 600x228
+
+--- Theme: CachyOS-Nord-round
+Fenster           : 600 x 182
+Layout-Innenrand  : links 20 oben 18 rechts 20 unten 16
+App-Name          : x 20 y 18  560x15  Text="Denkzettel"  Rolle=20
+Textfeld          : x 20 y 41  560x98  Dokumentrand=4  Rahmen=0
+Fusszeile         : x 20 y 151  560x15  Ausrichtung=132  Text="Esc verwirft · Strg+Enter speichert"
+Abstand App->Feld : 8
+Abstand Feld->Fuss: 12
+Fuss->Unterkante  : 16
+Zeilenabstand     : 18  Feldhoehe/Zeilen = 5
+Schriften         : Notiz 10pt  App-Name 8pt  Fuss 8pt
+Notiztextfarbe    : #232629  Fensterrolle WindowText #232629  Feld-Base #000000 (alpha 0)
+Kleintextrolle    : App 20 Fuss 20  (PlaceholderText=20)
+Viewport autofill : 0
+bei 12 Zeilen Text: Fenster 600x236  Feld 152  Zeilen = 8  Scrollbalken sichtbar=1
+nach clear        : Fenster 600x236
+
+Schrift 9pt: Zeilenabstand 17  Feldhoehe 93  Zeilen = 5  Fenster 600x174
+        acht Zeilen: Feldhoehe 144  Zeilen = 8
+Schrift 16pt: Zeilenabstand 28  Feldhoehe 148  Zeilen = 5  Fenster 600x224
+        acht Zeilen: Feldhoehe 232  Zeilen = 8
+Schrift 24pt: Zeilenabstand 43  Feldhoehe 223  Zeilen = 5  Fenster 600x308
+        acht Zeilen: Feldhoehe 352  Zeilen = 8

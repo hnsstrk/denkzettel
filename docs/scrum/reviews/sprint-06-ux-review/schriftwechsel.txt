@@ -1,0 +1,3 @@
+Schriftfolge 9pt -> 24pt -> 9pt
+  verdeckt: 9pt -> Feld 93 (5 Zeilen), Fenster 169   24pt -> Feld 223 (5 Zeilen), Fenster 299   9pt -> Feld 93 (5 Zeilen), Fenster 169   
+  gezeigt : 9pt -> Feld 93 (5 Zeilen), Fenster 174   24pt -> Feld 223 (5 Zeilen), Fenster 299   9pt -> Feld 93 (5 Zeilen), Fenster 299   

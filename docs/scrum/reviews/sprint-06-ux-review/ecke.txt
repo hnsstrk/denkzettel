@@ -1,0 +1,57 @@
+--- breeze-dark  600x174
+    ARGB der Ecke (a,r,g,b):
+        0/  0   0/  0   0/  0   0/  0   0/  0   0/  0 255/198 255/198 255/198 255/198
+        0/  0   0/  0   0/  0   0/  0   0/  0   0/  0   0/  0 255/239 255/239 255/239
+        0/  0   0/  0   0/  0  13/235 136/238 205/239 239/239 255/239 255/239 255/239
+        0/  0   0/  0  12/234 223/239 255/239 255/239 255/239 255/239 255/239 255/239
+        0/  0   0/  0 133/240 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+        0/  0   0/  0 203/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+      255/198   0/  0 238/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+      255/198 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+      255/198 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+      255/198 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+    linke Kante Mitte: a=255 r=198
+--- CachyOS-Nord-round  600x182
+    ARGB der Ecke (a,r,g,b):
+        0/  0   0/  0   0/  0   0/  0   0/  0   0/  0   0/  0  29/202 108/198 181/199
+        0/  0   0/  0   0/  0   0/  0   0/  0   0/  0   0/  0   0/  0  29/237 108/238
+        0/  0   0/  0   0/  0   0/  0   0/  0   0/  0  27/236 157/239 252/239 255/239
+        0/  0   0/  0   0/  0   0/  0   0/  0  82/239 243/239 255/239 255/239 255/239
+        0/  0   0/  0   0/  0   0/  0 116/240 254/239 255/239 255/239 255/239 255/239
+        0/  0   0/  0   0/  0  82/239 254/239 255/239 255/239 255/239 255/239 255/239
+        0/  0   0/  0  27/236 243/239 255/239 255/239 255/239 255/239 255/239 255/239
+       29/202   0/  0 157/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+      108/198  29/237 252/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+      181/199 108/238 255/239 255/239 255/239 255/239 255/239 255/239 255/239 255/239
+    linke Kante Mitte: a=255 r=198
+
+--- breeze-dark  aussen 600x174  innen 598x172
+    Alpha der Ecke oben links, Diagonale (aussen | innen um 1,1 versetzt | Ringanteil):
+      k=0  aussen 0  innen 0  Ring 0
+      k=1  aussen 0  innen 0  Ring 0
+      k=2  aussen 223  innen 0  Ring 223
+      k=3  aussen 255  innen 223  Ring 32
+      k=4  aussen 255  innen 255  Ring 0
+      k=5  aussen 255  innen 255  Ring 0
+      k=6  aussen 255  innen 255  Ring 0
+      k=7  aussen 255  innen 255  Ring 0
+      k=8  aussen 255  innen 255  Ring 0
+      k=9  aussen 255  innen 255  Ring 0
+      k=10  aussen 255  innen 255  Ring 0
+      k=11  aussen 255  innen 255  Ring 0
+    linke Kante (y=87): aussen 255/255  innen(versetzt) 0/255  -> Ring in Spalte 0 = 255
+--- CachyOS-Nord-round  aussen 600x174  innen 598x172
+    Alpha der Ecke oben links, Diagonale (aussen | innen um 1,1 versetzt | Ringanteil):
+      k=0  aussen 0  innen 0  Ring 0
+      k=1  aussen 0  innen 0  Ring 0
+      k=2  aussen 0  innen 0  Ring 0
+      k=3  aussen 116  innen 0  Ring 116
+      k=4  aussen 255  innen 116  Ring 139
+      k=5  aussen 255  innen 255  Ring 0
+      k=6  aussen 255  innen 255  Ring 0
+      k=7  aussen 255  innen 255  Ring 0
+      k=8  aussen 255  innen 255  Ring 0
+      k=9  aussen 255  innen 255  Ring 0
+      k=10  aussen 255  innen 255  Ring 0
+      k=11  aussen 255  innen 255  Ring 0
+    linke Kante (y=87): aussen 255/255  innen(versetzt) 0/255  -> Ring in Spalte 0 = 255

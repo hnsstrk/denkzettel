@@ -1,0 +1,4 @@
+1. erstes Oeffnen              : Fenster 174 px
+2. acht Zeilen getippt         : Fenster 228 px
+3. nach Esc (versteckt)        : Fenster 228 px, sichtbar=0, Text leer=1
+4. zweites Oeffnen, Feld leer  : Fenster 228 px

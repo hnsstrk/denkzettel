@@ -1,0 +1,9 @@
+Zustand 0 (0 leer, 1 getippt, 2 zwoelf Zeilen)
+   direkt nach show()  : waagerecht sichtbar=0 max=0 | senkrecht sichtbar=0 | Feld 98 Sichtfenster 98 | Fenster 174
+   150 ms nach show()  : waagerecht sichtbar=0 max=0 | senkrecht sichtbar=0 | Feld 98 Sichtfenster 98 | Fenster 174
+Zustand 1 (0 leer, 1 getippt, 2 zwoelf Zeilen)
+   direkt nach show()  : waagerecht sichtbar=1 max=0 | senkrecht sichtbar=0 | Feld 98 Sichtfenster 77 | Fenster 174
+   150 ms nach show()  : waagerecht sichtbar=0 max=0 | senkrecht sichtbar=0 | Feld 98 Sichtfenster 98 | Fenster 174
+Zustand 2 (0 leer, 1 getippt, 2 zwoelf Zeilen)
+   direkt nach show()  : waagerecht sichtbar=0 max=0 | senkrecht sichtbar=1 | Feld 152 Sichtfenster 152 | Fenster 228
+   150 ms nach show()  : waagerecht sichtbar=0 max=0 | senkrecht sichtbar=1 | Feld 152 Sichtfenster 152 | Fenster 228
