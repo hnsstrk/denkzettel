@@ -53,11 +53,18 @@ constexpr int OutlineWidth = 1;
  */
 constexpr qreal FrameContrast = 0.20;
 
-/** Where the hull comes from, and what KSvg falls back to without an answer. */
-const QString DesktopThemePath = QStringLiteral("plasma/desktoptheme");
-const QString HullImage = QStringLiteral("dialogs/background");
-const QString ShadowPrefix = QStringLiteral("shadow");
-const QString DefaultDesktopTheme = QStringLiteral("default");
+/**
+ * Where the hull comes from, and what KSvg falls back to without an answer.
+ *
+ * Latin-1 views and not `QString`: a `QString` at namespace scope is a non-POD
+ * static — it is built in an unspecified order relative to other translation
+ * units and torn down again at exit. These four are pure ASCII, so the view
+ * costs nothing and carries the same name.
+ */
+constexpr QLatin1StringView DesktopThemePath("plasma/desktoptheme");
+constexpr QLatin1StringView HullImage("dialogs/background");
+constexpr QLatin1StringView ShadowPrefix("shadow");
+constexpr QLatin1StringView DefaultDesktopTheme("default");
 
 QColor mixed(const QColor &from, const QColor &to, qreal amount)
 {
@@ -188,13 +195,18 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     const QString plasmarc = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
         + QStringLiteral("/plasmarc");
     KDirWatch::self()->addFile(plasmarc);
-    for (auto signal : {&KDirWatch::dirty, &KDirWatch::created}) {
-        connect(KDirWatch::self(), signal, this, [this, plasmarc](const QString &path) {
-            if (path == plasmarc) {
-                reloadDesktopTheme();
-            }
-        });
-    }
+    // Both connections spelled out rather than looped over the two signals:
+    // clazy cannot see through a loop variable that a pointer-to-member is a
+    // signal and reports the pair as a non-signal connect. Two lines are
+    // shorter than the loop plus a suppression, and the next reader gets them
+    // for free.
+    auto onPlasmarcChanged = [this, plasmarc](const QString &path) {
+        if (path == plasmarc) {
+            reloadDesktopTheme();
+        }
+    };
+    connect(KDirWatch::self(), &KDirWatch::dirty, this, onPlasmarcChanged);
+    connect(KDirWatch::self(), &KDirWatch::created, this, onPlasmarcChanged);
 
     reloadDesktopTheme();
     adjustHeight();
@@ -214,7 +226,7 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     if (theme.isEmpty()) {
         m_plasmaConfig->reparseConfiguration();
         theme = KConfigGroup(m_plasmaConfig, QStringLiteral("Theme"))
-                    .readEntry("name", DefaultDesktopTheme);
+                    .readEntry("name", QString(DefaultDesktopTheme));
     }
 
     // Two measured properties of KSvg in one line (measurements 1 and 3 of this

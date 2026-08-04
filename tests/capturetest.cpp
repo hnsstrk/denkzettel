@@ -23,6 +23,7 @@
 #include <QTextDocument>
 
 #include <memory>
+#include <utility>
 
 /**
  * Unit tests of the growth logic and of the saving path of the capture window
@@ -509,7 +510,7 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
         checked << *installed;
     }
 
-    for (const QString &theme : checked) {
+    for (const QString &theme : std::as_const(checked)) {
         // A window of its own per theme, and that is not tidiness. A window
         // that has been shown does not shrink back below the minimum its layout
         // took from the taller state — measured, and measured on the state
@@ -570,7 +571,7 @@ void CaptureTest::bindsAShadowFromTheThemeTiles()
         checked << *installed;
     }
 
-    for (const QString &theme : checked) {
+    for (const QString &theme : std::as_const(checked)) {
         m_window->reloadDesktopTheme(theme);
         m_window->showCapture();
 

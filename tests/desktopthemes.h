@@ -88,7 +88,8 @@ inline QStringList installedThemes()
                                                         QStandardPaths::LocateDirectory);
 
     for (const QString &root : roots) {
-        for (const QString &name : QDir(root).entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
+        const QStringList entries = QDir(root).entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+        for (const QString &name : entries) {
             if (!names.contains(name) && name != bundledNarrow() && name != bundledWide()) {
                 names << name;
             }
@@ -109,7 +110,8 @@ inline std::optional<std::pair<QString, QString>> installedThemePair()
     QString narrow;
     qreal narrowBorder = 0;
 
-    for (const QString &theme : installedThemes()) {
+    const QStringList candidates = installedThemes();
+    for (const QString &theme : candidates) {
         const qreal border = borderOf(theme);
         if (border <= 0) {
             continue;
@@ -132,7 +134,8 @@ inline std::optional<std::pair<QString, QString>> installedThemePair()
 /** One resolvable installed theme, or nothing. */
 inline std::optional<QString> anyInstalledTheme()
 {
-    for (const QString &theme : installedThemes()) {
+    const QStringList candidates = installedThemes();
+    for (const QString &theme : candidates) {
         if (borderOf(theme) > 0) {
             return theme;
         }
