@@ -8,9 +8,10 @@
 #   DoD 1 verlangt die Tests auf dem Entwicklungsrechner — der Container ist ein zweites Netz,
 #   keine Verlegung des Prüfstands.
 #   DoD 2 (installierter Stand unter /usr) und DoD 3 (Bildprüfung) erreicht er
-#   gar nicht: kein Compositor, kein /usr dieses Projekts, und die Bildläufer
-#   (editshots, libraryshots, searchshots, readmeshots) sind EXCLUDE_FROM_ALL
-#   und werden hier nicht gebaut.
+#   gar nicht: kein Compositor und kein /usr dieses Projekts. Die fünf
+#   Bildläufer (editshots, libraryshots, searchshots, readmeshots,
+#   captureshots) baut er seit dem 04.08.2026 mit — gestartet werden sie hier
+#   nicht, und ohne Compositor entstünde ohnehin kein prüfbares Bild.
 # Wer die grüne Marke für eine erfüllte DoD hält, hat drei ihrer sechs Punkte
 # übersprungen.
 #
