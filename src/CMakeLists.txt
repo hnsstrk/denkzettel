@@ -48,11 +48,18 @@ target_include_directories(denkzettelcapture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzettelcapture PUBLIC
     denkzettelstore
     Qt6::Widgets
+    # Whether this session blurs behind windows at all, asked of KWin itself
+    # (issue #83, AK 7). No new dependency of the project: Qt6::DBus is already
+    # required for the daemon's entry points, and libPlasma — the other road to
+    # the same answers — would pull QtQuick in for four numbers.
+    Qt6::DBus
     # The hull of the capture window (issue #55, SPEC 3 and 15): KSvg renders
     # `dialogs/background` of the desktop theme, KWindowShadow hands its shadow
-    # tiles to the compositor. The theme name is not KSvg's to find — it stands
-    # in `plasmarc` (KConfigCore), and KDirWatch (KCoreAddons) is what notices
-    # it changing under a standing window.
+    # tiles to the compositor, and KWindowEffects registers the blur and the
+    # contrast effect that Plasma registers beside it (issue #83). The theme
+    # name is not KSvg's to find — it stands in `plasmarc` (KConfigCore), and
+    # KDirWatch (KCoreAddons) is what notices it changing under a standing
+    # window.
     KF6::ConfigCore
     KF6::CoreAddons
     KF6::I18n

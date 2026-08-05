@@ -97,7 +97,7 @@ WURZEL="$(cd "$HIER/../../../.." && pwd)"
 {
   for t in denkzettel-test-schmal denkzettel-test-breit denkzettel-pruef-eckig default; do
     case "$t" in
-      denkzettel-pruef-eckig) D="$WURZEL/docs/scrum/reviews/2026-08-04-abnahme-befunde/pruef-theme" ;;
+      denkzettel-pruef-eckig) D="$WURZEL/tests/themes" ;;   # überführt am 05.08.2026, #83 AK 9
       denkzettel-test-*)      D="$WURZEL/tests/themes" ;;
       *)                      D="/usr/share" ;;
     esac

@@ -1,0 +1,26 @@
+=== #83, Sonde 3: wirkt der Weichzeichner? ===
+Plattform     : wayland
+Lauf          : ecke
+Weichzeichnende Sitzung: ja
+Das echte Erfassungsfenster, showCapture() — Anmeldung steht in present().
+
+spectacle -f beendet: ja, Rückgabe 0
+Aufnahme 3840x2160 Bildpunkte (Vollbildpuffer sofort gelöscht, gespeichert wird nur der Ausschnitt)
+Fenster erwartet 1200 Bildpunkte breit; längster passender Lauf: 960 Bildpunkte bei y=909, x=1440..2399
+Hülle im Bild: 960x245 Bildpunkte (y=904..1148)
+Linke obere Ecke der Fläche: x=1440, y=904
+Ungeschatteter Grund weit draußen (x=1190, y=654): 128
+
+Waagerechte Schnitte durch den Bogen, von außen nach innen:
+  Zeile   904:  128 128 128 128 128 128 128 128 128 128 128 128 127 127 127 126 126 126 125 125 124 123 122 122 121 100  79  63  55  51  41  41
+  Zeile   905:  128 128 128 128 128 128 128 128 128 128 128 128 127 127 126 126 126 125 125 124 123 122 121 101  59  48  48  48  48  49  43  43
+  Zeile   906:  128 128 128 128 128 128 128 128 128 128 128 127 127 126 126 126 125 125 124 123 121 121  88  48  48  49  49  49  49  49  49  49
+  Zeile   907:  128 128 128 128 128 128 128 128 128 128 127 127 127 126 126 125 125 124 123 121 120 100  49  49  49  49  49  49  49  49  49  49
+  Zeile   908:  128 128 128 128 128 128 128 128 128 128 127 127 127 126 126 125 124 123 121 120 119  58  49  49  49  49  49  49  49  49  49  49
+  Zeile   909:  128 128 128 128 128 128 128 128 128 128 127 127 126 126 126 125 124 122 120 118  98  48  49  49  49  49  49  49  49  49  49  49
+  Zeile   910:  128 128 128 128 128 128 128 128 128 127 127 126 126 126 125 124 123 121 119 117  78  48  49  49  49  49  49  49  49  49  49  49
+  Zeile   911:  128 128 128 128 128 128 128 128 128 127 127 126 126 126 125 124 122 120 118 116  62  48  49  49  49  49  49  49  49  49  49  49
+
+Hellster Bildpunkt am Bogen: 128 bei x=1420, y=904
+Grund außerhalb des Schattens: 128
+Befund: Kein Bildpunkt am Bogen ist heller als der Grund (0). AK 13 ist erfüllt.

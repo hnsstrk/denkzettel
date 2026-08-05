@@ -1,0 +1,13 @@
+=== #83, Sonde 5: teilen sich zwei ImageSets ihre Auswahlpfade? ===
+Plattform : offscreen
+Theme     : breeze-dark (es muss beide Fassungen mitbringen)
+
+1. eine allein, ohne Auswahlpfad          Deckung 216   meldet []
+2. eine lebende mit `opaque`              Deckung 255   meldet [opaque]
+3. eine zweite daneben, ohne Auswahlpfad  Deckung 255   meldet [opaque]
+4. nach dem Ende der lebenden, ohne       Deckung 216   meldet []
+
+Lesart: Stimmt Zeile 3 mit Zeile 2 überein statt mit Zeile 1 und 4, dann hat
+die zweite Instanz die Auswahlpfade der ersten übernommen — ohne dass jemand
+sie ihr gegeben hätte. Ein Vergleich zweier Fassungen derselben Grafik ist
+dann nur zu haben, solange keine dritte desselben Themenamens lebt.

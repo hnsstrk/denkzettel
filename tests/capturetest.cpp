@@ -54,10 +54,16 @@ private Q_SLOTS:
     void hullFollowsTheDesktopTheme();
     void hullFollowsAnInstalledDesktopTheme();
     void readsTheDesktopThemeFromPlasmarc();
-    void paintsOneSurfaceInThePaletteColours();
+    void paintsTheThemesOwnHullInOnePiece();
     void noteTextUsesTheWindowTextRole();
     void footerHasMoreAirThanTheApplicationName();
     void hullIsCompleteAtFiveAndEightLines();
+    void hullFollowsTheWindowPixelRatio();
+    void hullHasNoStairAtTheCorner();
+    void hullHoldsAtTheCustomersScale();
+    void squareThemeKeepsSquareCorners();
+    void readsTheContrastEffectOfTheDesktopTheme();
+    void takesTheOpaqueVariantWithoutABlurringCompositor();
     void wearsNoDecoration();
     void bindsAShadowFromTheThemeTiles();
     void staysUsableWithoutADesktopTheme();
@@ -67,6 +73,24 @@ private:
     static QImage shot(QWidget &window);
     /** How far into the top row of the picture the hull is still transparent. */
     static int cornerRun(const QImage &picture);
+    /**
+     * The first column of each of the first ten rows in which the hull covers
+     * more than half — the edge walk of AK 4. A smoothed arc moves inwards row
+     * by row; a stair stands still and then jumps by two columns or more.
+     */
+    static QList<int> edgeWalk(const QImage &picture);
+    /** Empty when the walk is smooth, otherwise what is wrong with it. */
+    static QString faultOfEdgeWalk(const QImage &picture, int allowedStairs);
+    /**
+     * The hull the desktop theme itself draws at that size — the window's only
+     * source since issue #83.
+     *
+     * The `opaque` selector is set here for the same reason the window sets it:
+     * offscreen nothing blurs, and the theme's translucent variant would leave
+     * a window one cannot read (AK 7). Leaving it out is what
+     * takesTheOpaqueVariantWithoutABlurringCompositor() measures.
+     */
+    static QImage themeHull(const QString &theme, const QSize &size, const QStringList &selectors);
     static void writePlasmarc(const QString &theme);
     void checkHullDiffersBetween(const QString &narrow, const QString &wide);
 
@@ -92,6 +116,34 @@ namespace
  */
 const QString NarrowBorderTheme = themes::bundledNarrow();
 const QString WideBorderTheme = themes::bundledWide();
+
+/**
+ * The bundled theme whose corner pieces are rectangles (issue #83, AK 9).
+ *
+ * The customer's question was whether the window rounds everything off even
+ * under a theme that does not round. All eight themes installed on his machine
+ * round, so no installed theme can answer it; this one was built to, and it
+ * moved here out of the acceptance evidence of sprint 6 where it was measured.
+ */
+const QString SquareCornerTheme = themes::bundledSquare();
+
+/**
+ * KSvg's own fallback, and the theme the customer's machine runs on: his
+ * `plasmarc` names none, so the window lands here.
+ */
+QString fallbackTheme()
+{
+    return QStringLiteral("default");
+}
+
+/** The selectors the window uses where nothing blurs — offscreen, that is. */
+QStringList opaqueSelectors()
+{
+    return {QStringLiteral("opaque")};
+}
+
+/** How many rows of the corner the edge walk of AK 4 looks at. */
+constexpr int EdgeWalkRows = 10;
 }
 
 void CaptureTest::initTestCase()
@@ -324,6 +376,69 @@ int CaptureTest::cornerRun(const QImage &picture)
     return x;
 }
 
+QList<int> CaptureTest::edgeWalk(const QImage &picture)
+{
+    QList<int> columns;
+    for (int y = 0; y < EdgeWalkRows && y < picture.height(); ++y) {
+        int found = picture.width();
+        for (int x = 0; x < picture.width(); ++x) {
+            if (qAlpha(picture.pixel(x, y)) >= 128) {
+                found = x;
+                break;
+            }
+        }
+        columns << found;
+    }
+    return columns;
+}
+
+QString CaptureTest::faultOfEdgeWalk(const QImage &picture, int allowedStairs)
+{
+    const QList<int> walk = edgeWalk(picture);
+    QStringList parts;
+    for (const int column : std::as_const(walk)) {
+        parts << QString::number(column);
+    }
+    const QString trace = parts.join(QStringLiteral("·"));
+
+    int stairs = 0;
+    for (int row = 1; row < walk.size(); ++row) {
+        // Monotonically **falling**: the corner opens up towards the bottom.
+        if (walk.at(row) > walk.at(row - 1)) {
+            return QStringLiteral("Rückschritt in Zeile %1: %2").arg(row).arg(trace);
+        }
+        if (walk.at(row - 1) - walk.at(row) >= 2) {
+            ++stairs;
+        }
+    }
+
+    if (stairs > allowedStairs) {
+        return QStringLiteral("%1 Stufen, erlaubt %2: %3").arg(stairs).arg(allowedStairs).arg(trace);
+    }
+    return {};
+}
+
+QImage CaptureTest::themeHull(const QString &theme, const QSize &size, const QStringList &selectors)
+{
+    KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
+    imageSet.setSelectors(selectors);
+
+    KSvg::FrameSvg frame;
+    // No rendering cache: a FrameSvg keeps what it once resolved, and this
+    // helper is called several times per run with different themes and
+    // selectors. Without the line the second call could measure the first
+    // one's picture — the fault measurement 3 of sprint 6 uncovered.
+    frame.setUsingRenderingCache(false);
+    frame.setColorSet(KSvg::Svg::Window);
+    frame.setImageSet(&imageSet);
+    frame.setImagePath(QStringLiteral("dialogs/background"));
+    frame.setEnabledBorders(KSvg::FrameSvg::AllBorders);
+    frame.setDevicePixelRatio(qApp->devicePixelRatio());
+    frame.resizeFrame(size);
+
+    return frame.framePixmap().toImage();
+}
+
 void CaptureTest::writePlasmarc(const QString &theme)
 {
     auto config = KSharedConfig::openConfig(QStringLiteral("plasmarc"));
@@ -408,28 +523,41 @@ void CaptureTest::readsTheDesktopThemeFromPlasmarc()
     QVERIFY(m_window->layout()->contentsMargins().left() > narrowMargins.left());
 }
 
-void CaptureTest::paintsOneSurfaceInThePaletteColours()
+void CaptureTest::paintsTheThemesOwnHullInOnePiece()
 {
     // One continuous surface, not a box inside a box (wireframe 4b): the ground
-    // behind the text area is the same ground as beside it. And it is the
-    // palette's, not the theme's — of the eight installed desktop themes only
-    // `default` adjusts its fill to the colour scheme.
+    // behind the text area is the same ground as beside it.
+    //
+    // And it is the **theme's** ground, which is what issue #83 turned around.
+    // Until then the window filled the theme's alpha mask with a colour of the
+    // palette; now it draws the theme's own graphic and adds nothing. The
+    // assertion is therefore held against a second rendering of the same
+    // graphic and not against a colour — under this bundled theme the two
+    // differ visibly, so a window that went back to filling would be caught.
     m_window->reloadDesktopTheme(NarrowBorderTheme);
 
     QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
     const QImage picture = shot(*m_window);
-    const QColor surface = m_window->palette().color(QPalette::Window);
+    const QImage hull = themeHull(NarrowBorderTheme, m_window->size(), opaqueSelectors());
+    QCOMPARE(hull.size(), picture.size());
 
     // Inside the text area, in its lower right corner where no text stands.
-    const QColor behindTheText =
-        picture.pixelColor(text->x() + text->width() - 20, text->y() + text->height() - 6);
+    const QPoint behindTheText(text->x() + text->width() - 20, text->y() + text->height() - 6);
     // Beside it, in the gap between application name and text area.
-    const QColor besideTheText = picture.pixelColor(m_window->width() / 2, text->y() - 4);
+    const QPoint besideTheText(m_window->width() / 2, text->y() - 4);
 
-    QCOMPARE(behindTheText, surface);
-    QCOMPARE(besideTheText, surface);
+    QCOMPARE(picture.pixelColor(behindTheText), picture.pixelColor(besideTheText));
+    QCOMPARE(picture.pixelColor(behindTheText), hull.pixelColor(behindTheText));
+    QCOMPARE(picture.pixelColor(besideTheText), hull.pixelColor(besideTheText));
+
+    // And it is not the palette's colour any more. Without this line the three
+    // comparisons above would still hold if the graphic happened to carry the
+    // scheme colour — which under `default` it does, and under this theme it
+    // does not (measured: the bundled graphic draws black, the scheme does not).
+    QVERIFY2(picture.pixelColor(besideTheText) != m_window->palette().color(QPalette::Window),
+             qPrintable(picture.pixelColor(besideTheText).name(QColor::HexArgb)));
 }
 
 void CaptureTest::noteTextUsesTheWindowTextRole()
@@ -538,14 +666,235 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
             // The corner is the theme's, and it is the same one at either size:
             // the corner pieces do not stretch, only the middle does.
             QCOMPARE(cornerRun(picture), cornerRun(atFive));
-            // Closed: opaque along the middle of every edge, and in the middle.
-            QVERIFY(qAlpha(picture.pixel(picture.width() / 2, 0)) == 255);
-            QVERIFY(qAlpha(picture.pixel(picture.width() / 2, picture.height() - 1)) == 255);
-            QVERIFY(qAlpha(picture.pixel(0, picture.height() / 2)) == 255);
-            QVERIFY(qAlpha(picture.pixel(picture.width() - 1, picture.height() / 2)) == 255);
-            QVERIFY(qAlpha(picture.pixel(picture.width() / 2, picture.height() / 2)) == 255);
+
+            // Closed — and since issue #83 that no longer means opaque. Under
+            // a Plasma overlay the surface lets the ground through on purpose
+            // (`default` covers 84,7 %), so the demand is that every edge and
+            // the middle carry **the theme's own** coverage and no hole of
+            // ours. Held against a second rendering of the same graphic: a
+            // number here would have to be the number of one theme, and this
+            // run walks three.
+            // The size out of the picture, not out of the window: the window
+            // has grown to eight lines by now, and `atFive` is the shorter of
+            // the two. Taken from the window both rounds would be measured
+            // against the taller hull.
+            const QImage hull = themeHull(theme,
+                                          picture.size() / qApp->devicePixelRatio(),
+                                          opaqueSelectors());
+            QCOMPARE(hull.size(), picture.size());
+
+            for (const QPoint &point : {QPoint(picture.width() / 2, 0),
+                                        QPoint(picture.width() / 2, picture.height() - 1),
+                                        QPoint(0, picture.height() / 2),
+                                        QPoint(picture.width() - 1, picture.height() / 2),
+                                        QPoint(picture.width() / 2, picture.height() / 2)}) {
+                QVERIFY2(qAlpha(picture.pixel(point)) > 0,
+                         qPrintable(QStringLiteral("%1 bei %2,%3")
+                                        .arg(theme)
+                                        .arg(point.x())
+                                        .arg(point.y())));
+                QCOMPARE(qAlpha(picture.pixel(point)), qAlpha(hull.pixel(point)));
+            }
         }
     }
+}
+
+void CaptureTest::hullFollowsTheWindowPixelRatio()
+{
+    // A FrameSvg stands at ratio 1 whatever the session scales to — it does not
+    // follow the screen by itself, and the application has to hand the number
+    // over (measured, `sonde1-rahmenmasse-offscreen.txt`). This run holds the
+    // hull's ratio against the window's; hullHoldsAtTheCustomersScale() below
+    // runs the same assertion again at the customer's 1,6, where the two can
+    // actually differ.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    const QImage picture = shot(*m_window);
+
+    QCOMPARE(m_window->hullDevicePixelRatio(), m_window->devicePixelRatioF());
+
+    // And the picture is that many pixels wide, not merely labelled so.
+    QCOMPARE(picture.width(), qRound(m_window->width() * m_window->devicePixelRatioF()));
+
+    // A resize has to carry the ratio with it: resizeFrame() alone would leave
+    // the hull at whatever it was set to last.
+    textArea()->setPlainText(QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht"));
+    QCoreApplication::processEvents();
+    QCOMPARE(m_window->hullDevicePixelRatio(), m_window->devicePixelRatioF());
+}
+
+void CaptureTest::hullHasNoStairAtTheCorner()
+{
+    // The customer's finding B1: the arc of the corner ran in steps. The cause
+    // was the road, not the theme — the old hull came from the `mask-` elements
+    // of the graphic, which are coarser than its frame elements and were being
+    // scaled up from ratio 1. Drawn in one piece from the frame elements the
+    // walk is smooth (measured, `native-huelle-breeze.txt`).
+    //
+    // What is asserted is the **number of stairs**, not a step of at most one:
+    // an arc of radius r moves √(2r−1) pixels in its topmost row, so near the
+    // apex it always moves by more than one. That is geometry, not a fault.
+    //
+    // Against `default`, and that name is not a shortcut: the numbers of AK 4
+    // were measured on it, it is KSvg's own fallback, and it is the theme the
+    // customer's machine runs on because `plasmarc` names none. The counts do
+    // not carry over to an arbitrary theme — a wider border makes a longer arc
+    // and the topmost row then moves by more (measured over eight themes,
+    // `messungen/kantenlauf-je-theme.txt`).
+    if (themes::borderOf(fallbackTheme()) <= 0) {
+        QSKIP("Das Theme `default` löst hier nicht auf — ohne installierte Plasma-Themes "
+              "ist der Kantenlauf von AK 4 nicht zu messen.");
+    }
+
+    const int allowed = qFuzzyCompare(m_window->devicePixelRatioF(), 1.0) ? 0 : 1;
+
+    m_window->reloadDesktopTheme(fallbackTheme());
+    QVERIFY2(faultOfEdgeWalk(shot(*m_window), allowed).isEmpty(),
+             qPrintable(faultOfEdgeWalk(shot(*m_window), allowed)));
+
+    // And once more on the variant the customer actually sees. Offscreen the
+    // window draws the opaque one — nothing blurs here, so AK 7 picks it — and
+    // that variant hardly rounds at all (walk 1·0·0…). The translucent one
+    // carries the arc the finding was about, and no picture taken offscreen can
+    // show it on the window itself.
+    const QString fault =
+        faultOfEdgeWalk(themeHull(fallbackTheme(), m_window->size(), {}), allowed);
+    QVERIFY2(fault.isEmpty(), qPrintable(QStringLiteral("durchscheinende Fassung: %1").arg(fault)));
+}
+
+void CaptureTest::hullHoldsAtTheCustomersScale()
+{
+    // The two assertions above once more, in a process that scales the way the
+    // customer's session does. It has to be a process of its own: the pixel
+    // ratio is fixed when the platform comes up, and the geometry assertions of
+    // the other tests measure spacings at ratio 1.
+    //
+    // Offscreen `QT_SCALE_FACTOR=1,6` yields exactly 1,6. Under Wayland it
+    // would **multiply** with the session's own scaling and yield 2,56, which
+    // is why the session evidence of AK 3 sets nothing at all (measured, F4).
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("QT_SCALE_FACTOR"), QStringLiteral("1.6"));
+
+    QProcess child;
+    child.setProcessEnvironment(environment);
+    child.setProcessChannelMode(QProcess::MergedChannels);
+    child.start(QCoreApplication::applicationFilePath(),
+                {QStringLiteral("hullFollowsTheWindowPixelRatio"),
+                 QStringLiteral("hullHasNoStairAtTheCorner")});
+
+    QVERIFY(child.waitForFinished(60000));
+    QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
+             child.readAll().constData());
+}
+
+void CaptureTest::squareThemeKeepsSquareCorners()
+{
+    // The customer's second question to finding B1: "does it bluntly round
+    // everything off, even under a theme with no rounded corners?" All eight
+    // themes on his machine round, so this is the theme that answers it — the
+    // shape comes from the theme's corner pieces and from nowhere else.
+    QVERIFY2(themes::borderOf(SquareCornerTheme) > 0,
+             "Das eckige Prüf-Theme löst nicht auf — steht tests/themes/ am Platz?");
+
+    m_window->reloadDesktopTheme(SquareCornerTheme);
+    const QImage picture = shot(*m_window);
+
+    // No corner is cut away at all, and the very first pixel of the top row
+    // already carries the theme's full coverage.
+    QCOMPARE(cornerRun(picture), 0);
+    QCOMPARE(qAlpha(picture.pixel(0, 0)), 255);
+
+    // Not one column of movement over the whole walk: a rectangle has no arc.
+    const QList<int> walk = edgeWalk(picture);
+    for (const int column : walk) {
+        QCOMPARE(column, 0);
+    }
+}
+
+void CaptureTest::readsTheContrastEffectOfTheDesktopTheme()
+{
+    // The second registration Plasma makes (AK 6). The four numbers come out of
+    // the theme's own metadata file, read with KConfig rather than through
+    // `Plasma::Theme` — that class would pull libPlasma and QtQuick in for four
+    // numbers (build decision of the strand, handover report).
+    const capture::ContrastEffect wide = capture::contrastEffectOf(WideBorderTheme);
+    QVERIFY(wide.enabled);
+    QCOMPARE(wide.contrast, 1.0);
+    QCOMPARE(wide.intensity, 0.4);
+    QCOMPARE(wide.saturation, 1.4);
+
+    // A theme without the group asks for nothing, and neither does a name
+    // nothing answers to. Both matter: the second is the road a machine with no
+    // desktop themes at all takes.
+    QVERIFY(!capture::contrastEffectOf(NarrowBorderTheme).enabled);
+    QVERIFY(!capture::contrastEffectOf(QStringLiteral("kein-solches-theme")).enabled);
+}
+
+void CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor()
+{
+    // SPEC 3.2 point 4 promises a window that stays opaque and usable outside a
+    // Plasma session. The theme's own answer to that is its `opaque` variant,
+    // and picking it is what Plasma does — not an adjustment of ours (AK 7).
+    //
+    // Offscreen nothing blurs, so this is the state under test here. The
+    // condition is deliberately not hung on
+    // `KWindowEffects::isEffectAvailable(BlurBehind)`: that one answers false in
+    // the customer's own session until we have registered once, and a window
+    // built on it would start out opaque in exactly the session where it must
+    // not (measured, F9 of the pre-check).
+    QVERIFY(!capture::sessionBlursBehindWindows());
+
+    // The theme has to be one that **ships both variants**, and it is searched
+    // for rather than named. Taking whatever theme came first turned this into
+    // an assertion that could not fail: `CachyOS-Nord-round` ships neither
+    // variant, so the two renderings were identical and removing the selector
+    // from the window changed nothing. Measured — the mutation probe stayed
+    // green and said so (`messungen/m12-mutationsproben.txt`, erster Lauf).
+    //
+    // The search runs while the window wears a **bundled** theme, and that is
+    // not tidiness either: two live `KSvg::ImageSet` instances of the same theme
+    // name share their selectors. A second one built beside the window's own
+    // reports `opaque` although nobody gave it any, and renders accordingly
+    // (measured, `messungen/m13-ksvg-selektoren.txt`). Held against the theme
+    // the window is wearing, the counter-check would compare opaque with opaque.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+
+    const QSize size = m_window->size();
+    const QPoint centre(size.width() / 2, size.height() / 2);
+    QString candidate;
+    int translucentAlpha = 0;
+    int opaqueAlpha = 0;
+    const QStringList installed = themes::installedThemes();
+    for (const QString &theme : installed) {
+        const int loose = qAlpha(themeHull(theme, size, {}).pixel(centre));
+        const int tight = qAlpha(themeHull(theme, size, opaqueSelectors()).pixel(centre));
+        if (loose != tight) {
+            candidate = theme;
+            translucentAlpha = loose;
+            opaqueAlpha = tight;
+            break;
+        }
+    }
+    if (candidate.isEmpty()) {
+        QSKIP("Kein installiertes Theme unterscheidet opaque von translucent — die Wahl wäre "
+              "hier nicht messbar. Die mitgelieferten Prüf-Themes bringen keine "
+              "Auswahlpfade mit.");
+    }
+
+    m_window->reloadDesktopTheme(candidate);
+    const QImage picture = shot(*m_window);
+
+    // The coverage in the middle of the surface is the same number at every
+    // window size — the centre piece of the graphic is stretched, not redrawn —
+    // so the two readings above stay comparable even though a wider theme
+    // border makes a taller window.
+    const int drawn = qAlpha(picture.pixel(picture.width() / 2, picture.height() / 2));
+    const QString trace = QStringLiteral("%1: gezeichnet %2, opaque %3, durchscheinend %4")
+                              .arg(candidate)
+                              .arg(drawn)
+                              .arg(opaqueAlpha)
+                              .arg(translucentAlpha);
+    QVERIFY2(drawn == opaqueAlpha, qPrintable(trace));
+    QVERIFY2(drawn != translucentAlpha, qPrintable(trace));
 }
 
 void CaptureTest::wearsNoDecoration()

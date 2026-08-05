@@ -1,0 +1,47 @@
+=== #83, Sonde 2: das echte Erfassungsfenster ===
+Plattform       : wayland
+QT_SCALE_FACTOR : (nicht gesetzt)
+Bildschirm      : 2400x1350 logisch, DPR 2
+Weichzeichnende Sitzung: ja — durchscheinende Fassung
+
+########## A — nach dem ersten Zeigen (AK 3, AK 4) ##########
+  Ruhezustand, fünf Zeilen
+    Fenster 600x174 logisch, Bild 960x278 Bildpunkte
+    Fenster-DPR 1.6   Hüllen-DPR 1.6   gleich
+    Ecke: cornerRun 4   Kantenlauf 7.4.3.2.1.1.1.0.0.0   Stufen 1   fallend ja
+    Alpha: Mitte 216   Randmitte oben 235   Ecke(0,0) 0
+    Schatten: Objekt vorhanden, oberste Kachel 32x16
+
+########## B — folgt die Maskenregion der Größe? (AK 5) ##########
+    Fensterhöhe  174  →  Region 7 Rechteck(e), Hüllrechteck 600x174, 104400 Bildpunkte
+    Fensterhöhe  228  →  Region 7 Rechteck(e), Hüllrechteck 600x228, 136800 Bildpunkte
+    Fensterhöhe  228  →  Region 7 Rechteck(e), Hüllrechteck 600x228, 136800 Bildpunkte
+    Lesart: Die Höhe des Hüllrechtecks folgt der Fensterhöhe. Ob eine späte
+    Anmeldung die Region eines **laufenden** Weichzeichners noch ändert, sagt
+    diese Messung nicht — das misst Sonde 3.
+
+########## C — eckiges Theme, eckige Ecken (AK 9) ##########
+  denkzettel-pruef-eckig
+    Fenster 600x174 logisch, Bild 960x278 Bildpunkte
+    Fenster-DPR 1.6   Hüllen-DPR 1.6   gleich
+    Ecke: cornerRun 0   Kantenlauf 0.0.0.0.0.0.0.0.0.0   Stufen 0   fallend ja
+    Alpha: Mitte 255   Randmitte oben 255   Ecke(0,0) 255
+    Schatten: Objekt vorhanden, oberste Kachel 12x6
+
+########## D — Theme-Wechsel im Betrieb (AK 10) ##########
+  Theme default
+    Innenrand links 16  Region 600x174
+  Fensterbild
+    Fenster 600x174 logisch, Bild 960x278 Bildpunkte
+    Fenster-DPR 1.6   Hüllen-DPR 1.6   gleich
+    Ecke: cornerRun 4   Kantenlauf 7.4.3.2.1.1.1.0.0.0   Stufen 1   fallend ja
+    Alpha: Mitte 216   Randmitte oben 235   Ecke(0,0) 0
+    Schatten: Objekt vorhanden, oberste Kachel 32x16
+  Theme CachyOS-Nord-round
+    Innenrand links 20  Region 600x182
+  Fensterbild
+    Fenster 600x182 logisch, Bild 960x291 Bildpunkte
+    Fenster-DPR 1.6   Hüllen-DPR 1.6   gleich
+    Ecke: cornerRun 12   Kantenlauf 14.11.9.8.6.5.4.4.3.2   Stufen 3   fallend ja
+    Alpha: Mitte 255   Randmitte oben 255   Ecke(0,0) 0
+    Schatten: Objekt vorhanden, oberste Kachel 20x24

@@ -1,0 +1,4 @@
+=== M3: Vergleich der beiden Läufe (AK 11) ===
+Verglichen werden die Prüfsummen je Zeile — Theme, Auswahlpfad, Verhältnis.
+
+Kein Unterschied: Die Hülle ist offscreen und unter Wayland byteweise gleich.

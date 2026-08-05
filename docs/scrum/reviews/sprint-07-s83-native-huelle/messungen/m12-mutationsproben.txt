@@ -1,0 +1,80 @@
+Kopie des Arbeitsbaums nach /tmp/tmp.a859KDx0d3
+== Ausgangsstand übersetzen ==
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+100% tests passed out of 1
+
+Total Test time (real) =   0.35 sec
+
+===== Probe 1 — Die Hülle ist die Grafik des Themes, in einem Stück
+Eingriff: sed -i s|painter.drawPixmap(0, 0, m_hull->framePixmap());|painter.fillRect(rect(), palette().color(QPalette::Window));| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullFollowsAnInstalledDesktopTheme() 'narrowCorner > 0' returned FALSE. ()
+  FAIL!  : CaptureTest::hullFollowsTheDesktopTheme() 'narrowCorner > 0' returned FALSE. ()
+  FAIL!  : CaptureTest::hullIsCompleteAtFiveAndEightLines() 'cornerRun(atFive) > 0' returned FALSE. ()
+  FAIL!  : CaptureTest::paintsTheThemesOwnHullInOnePiece() Compared values are not the same
+
+===== Probe 2 — Die Hülle trägt das Bildpunktverhältnis des Fensters
+Eingriff: sed -i s|    m_hull->setDevicePixelRatio(devicePixelRatioF());|    // entfernt (Mutationsprobe)| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullFollowsTheWindowPixelRatio() Compared doubles are not the same (fuzzy compare)
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE. (********* Start testing of CaptureTest *********
+
+===== Probe 3 — Die Hülle wird auf die Fenstergröße gebracht
+Eingriff: sed -i s|    m_hull->resizeFrame(size());|    // entfernt (Mutationsprobe)| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullIsCompleteAtFiveAndEightLines() 'qAlpha(picture.pixel(point)) > 0' returned FALSE. (denkzettel-test-schmal bei 300,0)
+  FAIL!  : CaptureTest::paintsTheThemesOwnHullInOnePiece() Compared values are not the same
+  FAIL!  : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() 'drawn == opaqueAlpha' returned FALSE. (breeze-dark: gezeichnet 0, opaque 255, durchscheinend 216)
+
+===== Probe 4 — Gezeichnet wird framePixmap(), nicht die gröbere Alphamaske
+Eingriff: sed -i s|painter.drawPixmap(0, 0, m_hull->framePixmap());|painter.drawPixmap(0, 0, m_hull->alphaMask());| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullIsCompleteAtFiveAndEightLines() Compared values are not the same
+  FAIL!  : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() 'drawn == opaqueAlpha' returned FALSE. (breeze-dark: gezeichnet 247, opaque 255, durchscheinend 216)
+
+===== Probe 5 — Die Eckform kommt aus dem Theme, nicht aus einem eigenen Radius
+Eingriff: sed -i s|    painter.drawPixmap(0, 0, m_hull->framePixmap());|    painter.setPen(Qt::NoPen); painter.setBrush(QColor(30, 34, 51)); painter.drawRoundedRect(rect(), 12, 12);| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullFollowsAnInstalledDesktopTheme() 'wideCorner != narrowCorner' returned FALSE. (beide 9)
+  FAIL!  : CaptureTest::hullFollowsTheDesktopTheme() 'wideCorner != narrowCorner' returned FALSE. (beide 9)
+  FAIL!  : CaptureTest::hullHasNoStairAtTheCorner() 'faultOfEdgeWalk(shot(*m_window), allowed).isEmpty()' returned FALSE. (1 Stufen, erlaubt 0: 9·6·5·4·3·2·1·1·1·0)
+  FAIL!  : CaptureTest::hullHasNoStairAtTheCorner() 'faultOfEdgeWalk(shot(*m_window), allowed).isEmpty()' returned FALSE. (3 Stufen, erlaubt 1: 15·12·10·8·7·6·5·4·3·3)
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE. (********* Start testing of CaptureTest *********
+  FAIL!  : CaptureTest::paintsTheThemesOwnHullInOnePiece() Compared values are not the same
+  FAIL!  : CaptureTest::squareThemeKeepsSquareCorners() Compared values are not the same
+
+===== Probe 6 — Die Kontrastwerte kommen aus der Gruppe des Themes
+Eingriff: sed -i s|                             QStringLiteral("ContrastEffect"));|                             QStringLiteral("KeineSolcheGruppe"));| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::readsTheContrastEffectOfTheDesktopTheme() 'wide.enabled' returned FALSE. ()
+
+===== Probe 7 — Ohne weichzeichnende Sitzung gilt der Auswahlpfad opaque
+Eingriff: sed -i s|        imageSet->setSelectors({QString(OpaqueSelector)});|        // entfernt (Mutationsprobe)| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() 'drawn == opaqueAlpha' returned FALSE. (breeze-dark: gezeichnet 216, opaque 255, durchscheinend 216)
+
+===== Probe 8 — Die Ermittlung antwortet ohne Compositor mit nein
+Eingriff: sed -i s|    if (!KWindowSystem::isPlatformWayland() \&\& !KWindowSystem::isPlatformX11()) {|    if (false) {| src/capture/capturewindow.cpp
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() '!capture::sessionBlursBehindWindows()' returned FALSE. ()
+
+===== Probe 9 — Der Farbsatz der Hülle ist der eines Dialoggrundes
+Eingriff: sed -i s|    m_hull->setColorSet(KSvg::Svg::Window);|    // entfernt (Mutationsprobe)| src/capture/capturewindow.cpp
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diese Zusicherung.
+
+===== Probe 10 — Das Verhältnis wird bei DevicePixelRatioChange nachgezogen
+Eingriff: sed -i s|    if (event->type() == QEvent::DevicePixelRatioChange) {|    if (false) {| src/capture/capturewindow.cpp
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diese Zusicherung.
+
+===== Probe 11 — Die Anmeldungen bekommen kein nullptr-Fenster
+Eingriff: sed -i s|    if (!windowHandle() \|\| !m_hull->isValid()) {|    if (false) {| src/capture/capturewindow.cpp
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diese Zusicherung.
+
+===== Probe 12 — Der Weichzeichner wird überhaupt angemeldet
+Eingriff: sed -i s|    KWindowEffects::enableBlurBehind(windowHandle(), true, region);|    // entfernt (Mutationsprobe)| src/capture/capturewindow.cpp
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diese Zusicherung.
+
+Fertig. Der Arbeitsbaum des Repositoriums wurde nicht angefasst.

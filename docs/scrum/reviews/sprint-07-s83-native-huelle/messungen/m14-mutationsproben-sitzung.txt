@@ -1,0 +1,35 @@
+Kopie des Arbeitsbaums nach /tmp/tmp.d011UWnrCz
+== Ausgangsstand ==
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+    Fenster-DPR 1.6   Hüllen-DPR 1.6   gleich
+
+===== S1 — DevicePixelRatioChange wird nicht mehr beachtet
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+    Fenster 600x174 logisch, Bild 960x278 Bildpunkte
+    Fenster-DPR 1.6   Hüllen-DPR 2   **VERSCHIEDEN — die Hülle hinkt nach**
+
+===== S2 — die Wache gegen ein nullptr-Fenster fällt weg
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+docs/scrum/reviews/sprint-07-s83-native-huelle/mutationsproben-sitzung.sh: Zeile 65: 170297 Speicherzugriffsfehler     (Speicherabzug geschrieben) "$ARBEIT/bau/sonden/fensterlage" "$ARBEIT/bilder" > /dev/null 2>&1
+Rückgabe 139 — Signal 11 (11 = SIGSEGV). Der Aufruf stürzt ab.
+
+===== S3 — der Weichzeichner wird nicht mehr angemeldet
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Hülle im Bild: 967x278 Bildpunkte (y=904..1181)
+Spannweite im linken Innenstreifen (x=1441..1459, y=944..1141): 29 bis 68 (39)
+Lesart: Viele Sprünge und eine weite Spannweite heißen scharf, wenige und eine
+
+Fertig. Zum Vergleich der Ausgangsstand: Hülle und Fenster bei 1,6 gleich,
+kein Absturz, Spannweite im Innenstreifen 6 (gegen 39 ohne Anmeldung).

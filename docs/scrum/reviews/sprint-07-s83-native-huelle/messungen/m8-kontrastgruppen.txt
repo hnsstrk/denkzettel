@@ -1,0 +1,15 @@
+=== #83, M8: welches Theme verlangt den Kontrasteffekt? (AK 6) ===
+Gelesen wird die Gruppe [ContrastEffect] aus metadata.desktop des Themes —
+dieselbe Datei und dieselbe Gruppe, die Plasma::Theme liest.
+
+breeze-dark                  keine Gruppe — kein Kontrasteffekt
+breeze-light                 keine Gruppe — kein Kontrasteffekt
+cachyos-emerald              angemeldet:  contrast=1.0 enabled=true intensity=0.40 saturation=1.4 
+cachyos-emerald-color        angemeldet:  contrast=1.0 enabled=true intensity=0.40 saturation=3 
+cachyos-emerald-light        keine Gruppe — kein Kontrasteffekt
+CachyOS-Nord-round           keine Gruppe — kein Kontrasteffekt
+default                      keine Gruppe — kein Kontrasteffekt
+Iridescent-round             angemeldet:  contrast=1.0 enabled=true intensity=0.45 saturation=1.4 
+denkzettel-pruef-eckig       keine Gruppe — kein Kontrasteffekt
+denkzettel-test-breit        angemeldet:  enabled=true contrast=1.0 intensity=0.40 saturation=1.4 
+denkzettel-test-schmal       keine Gruppe — kein Kontrasteffekt

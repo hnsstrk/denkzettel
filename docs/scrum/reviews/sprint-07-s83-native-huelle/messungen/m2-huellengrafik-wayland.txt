@@ -1,0 +1,97 @@
+=== #83, Sonde 1: die Grafik der Hülle ===
+Plattform     : wayland
+QT_SCALE_FACTOR: (nicht gesetzt)
+Fenstermaß    : 600x174 logisch
+Farbsatz      : Window (der des Erfassungsfensters)
+
+Theme                      Ausw.  DPR   Maß        Alpha  Deckung  Stufen  fallend  Kantenlauf                    Prüfsumme
+-------------------------- ------ ----- ---------- ------ -------- ------- -------- ----------------------------- ----------------
+denkzettel-pruef-eckig     (kein)   1.0    600x174    255  100.0 %       0       ja 0.0.0.0.0.0.0.0.0.0           7d6bf8cb774b199b
+denkzettel-pruef-eckig     (kein)   1.6    960x279    255  100.0 %       0       ja 0.0.0.0.0.0.0.0.0.0           74c80feed3a7e5dd
+denkzettel-pruef-eckig     opaque   1.0    600x174    255  100.0 %       0       ja 0.0.0.0.0.0.0.0.0.0           7d6bf8cb774b199b
+denkzettel-pruef-eckig     opaque   1.6    960x279    255  100.0 %       0       ja 0.0.0.0.0.0.0.0.0.0           74c80feed3a7e5dd
+denkzettel-test-breit      (kein)   1.0    600x174    255  100.0 %       0       ja 12.12.12.11.11.11.10.9.8.7    7cb0b690cdd04b2b
+denkzettel-test-breit      (kein)   1.6    960x279    255  100.0 %       0       ja 19.19.19.19.19.19.19.18.18.17 9f1c25002b3ebd34
+denkzettel-test-breit      opaque   1.0    600x174    255  100.0 %       0       ja 12.12.12.11.11.11.10.9.8.7    7cb0b690cdd04b2b
+denkzettel-test-breit      opaque   1.6    960x279    255  100.0 %       0       ja 19.19.19.19.19.19.19.18.18.17 9f1c25002b3ebd34
+denkzettel-test-schmal     (kein)   1.0    600x174    255  100.0 %       1       ja 4.4.3.2.0.0.0.0.0.0           2a155988cf4fb61b
+denkzettel-test-schmal     (kein)   1.6    960x279    255  100.0 %       1       ja 6.6.6.6.5.4.0.0.0.0           941beb8816a9ff60
+denkzettel-test-schmal     opaque   1.0    600x174    255  100.0 %       1       ja 4.4.3.2.0.0.0.0.0.0           2a155988cf4fb61b
+denkzettel-test-schmal     opaque   1.6    960x279    255  100.0 %       1       ja 6.6.6.6.5.4.0.0.0.0           941beb8816a9ff60
+CachyOS-Nord-round         (kein)   1.0    600x174    255  100.0 %       2       ja 8.6.4.3.2.2.1.1.0.0           c9d7576fe0bc1130
+CachyOS-Nord-round         (kein)   1.6    960x279    255  100.0 %       3       ja 14.11.9.8.6.5.4.4.3.2         a7d4c6d9f1885945
+CachyOS-Nord-round         opaque   1.0    600x174    255  100.0 %       2       ja 8.6.4.3.2.2.1.1.0.0           c9d7576fe0bc1130
+CachyOS-Nord-round         opaque   1.6    960x279    255  100.0 %       3       ja 14.11.9.8.6.5.4.4.3.2         a7d4c6d9f1885945
+Iridescent-round           (kein)   1.0    600x174     51   20.0 %       0       ja 600.600.600.600.600.600.600.600.600.600 bf40e536075b9f49
+Iridescent-round           (kein)   1.6    960x279     51   20.0 %       0       ja 960.960.960.960.960.960.960.960.960.960 105cc4a70876d2f9
+Iridescent-round           opaque   1.0    600x174     51   20.0 %       0       ja 600.600.600.600.600.600.600.600.600.600 bf40e536075b9f49
+Iridescent-round           opaque   1.6    960x279     51   20.0 %       0       ja 960.960.960.960.960.960.960.960.960.960 105cc4a70876d2f9
+breeze-dark                (kein)   1.0    600x174    216   84.7 %       0       ja 3.2.1.0.0.0.0.0.0.0           2bdf1e037db24799
+breeze-dark                (kein)   1.6    960x279    216   84.7 %       1       ja 7.4.3.2.1.1.1.0.0.0           0e4705e8de6f0cfe
+breeze-dark                opaque   1.0    600x174    255  100.0 %       0       ja 1.0.0.0.0.0.0.0.0.0           406a788a47182f3b
+breeze-dark                opaque   1.6    960x279    255  100.0 %       0       ja 1.0.0.0.0.0.0.0.0.0           ac2f37920658bde6
+breeze-light               (kein)   1.0    600x174    216   84.7 %       0       ja 3.2.1.0.0.0.0.0.0.0           5128d87cc7753988
+breeze-light               (kein)   1.6    960x279    216   84.7 %       1       ja 7.4.3.2.1.1.1.0.0.0           7962ca195f83ff5e
+breeze-light               opaque   1.0    600x174    255  100.0 %       0       ja 1.0.0.0.0.0.0.0.0.0           654e584d58e74e4e
+breeze-light               opaque   1.6    960x279    255  100.0 %       0       ja 1.0.0.0.0.0.0.0.0.0           175ac88c61d68934
+cachyos-emerald            (kein)   1.0    600x174      7    2.7 %       0       ja 600.600.600.600.600.600.600.600.600.600 9d97af1a08554ff1
+cachyos-emerald            (kein)   1.6    960x279      7    2.7 %       0       ja 960.960.960.960.960.960.960.960.960.960 d4d5c73abed16b4a
+cachyos-emerald            opaque   1.0    600x174      9    3.5 %       0       ja 600.600.600.600.600.600.600.600.600.600 29a783267a74f9d7
+cachyos-emerald            opaque   1.6    960x279      9    3.5 %       0       ja 960.960.960.960.960.960.960.960.960.960 d3aa05a2e5f8977a
+cachyos-emerald-color      (kein)   1.0    600x174      7    2.7 %       0       ja 600.600.600.600.600.600.600.600.600.600 9d97af1a08554ff1
+cachyos-emerald-color      (kein)   1.6    960x279      7    2.7 %       0       ja 960.960.960.960.960.960.960.960.960.960 d4d5c73abed16b4a
+cachyos-emerald-color      opaque   1.0    600x174      9    3.5 %       0       ja 600.600.600.600.600.600.600.600.600.600 29a783267a74f9d7
+cachyos-emerald-color      opaque   1.6    960x279      9    3.5 %       0       ja 960.960.960.960.960.960.960.960.960.960 d3aa05a2e5f8977a
+cachyos-emerald-light      (kein)   1.0    600x174      7    2.7 %       0       ja 600.600.600.600.600.600.600.600.600.600 9d97af1a08554ff1
+cachyos-emerald-light      (kein)   1.6    960x279      7    2.7 %       0       ja 960.960.960.960.960.960.960.960.960.960 d4d5c73abed16b4a
+cachyos-emerald-light      opaque   1.0    600x174      9    3.5 %       0       ja 600.600.600.600.600.600.600.600.600.600 29a783267a74f9d7
+cachyos-emerald-light      opaque   1.6    960x279      9    3.5 %       0       ja 960.960.960.960.960.960.960.960.960.960 d3aa05a2e5f8977a
+default                    (kein)   1.0    600x174    216   84.7 %       0       ja 3.2.1.0.0.0.0.0.0.0           2bdf1e037db24799
+default                    (kein)   1.6    960x279    216   84.7 %       1       ja 7.4.3.2.1.1.1.0.0.0           0e4705e8de6f0cfe
+default                    opaque   1.0    600x174    255  100.0 %       0       ja 1.0.0.0.0.0.0.0.0.0           406a788a47182f3b
+default                    opaque   1.6    960x279    255  100.0 %       0       ja 1.0.0.0.0.0.0.0.0.0           ac2f37920658bde6
+
+
+=== Anstieg der obersten Zeile des Bogens (AK 4, erste Hälfte) ===
+  denkzettel-pruef-eckig     DPR 1.0  Randwert  255  streng steigend bis dahin: ja    255
+  denkzettel-pruef-eckig     DPR 1.6  Randwert  255  streng steigend bis dahin: ja    255
+  denkzettel-test-breit      DPR 1.0  Randwert  255  streng steigend bis dahin: ja    14.255
+  denkzettel-test-breit      DPR 1.6  Randwert  255  streng steigend bis dahin: ja    255
+  denkzettel-test-schmal     DPR 1.0  Randwert  255  streng steigend bis dahin: ja    26.255
+  denkzettel-test-schmal     DPR 1.6  Randwert  255  streng steigend bis dahin: ja    255
+  CachyOS-Nord-round         DPR 1.0  Randwert  255  streng steigend bis dahin: ja    19.102.178.219.244.255
+  CachyOS-Nord-round         DPR 1.6  Randwert  255  streng steigend bis dahin: ja    6.73.149.186.211.236.254.255
+  Iridescent-round           DPR 1.0  Randwert   61  streng steigend bis dahin: ja    5.25.42.52.58.61
+  Iridescent-round           DPR 1.6  Randwert   61  streng steigend bis dahin: ja    1.17.35.45.50.56.61
+  breeze-dark                DPR 1.0  Randwert  235  streng steigend bis dahin: ja    47.138.189.209.235
+  breeze-dark                DPR 1.6  Randwert  235  streng steigend bis dahin: ja    2.65.125.173.195.209.235
+  breeze-light               DPR 1.0  Randwert  235  streng steigend bis dahin: ja    47.138.189.209.235
+  breeze-light               DPR 1.6  Randwert  235  streng steigend bis dahin: ja    2.65.125.173.195.209.235
+  cachyos-emerald            DPR 1.0  Randwert   19  streng steigend bis dahin: ja    1.8.13.16.18.19
+  cachyos-emerald            DPR 1.6  Randwert   19  streng steigend bis dahin: ja    5.11.14.16.17.19
+  cachyos-emerald-color      DPR 1.0  Randwert   19  streng steigend bis dahin: ja    1.8.13.16.18.19
+  cachyos-emerald-color      DPR 1.6  Randwert   19  streng steigend bis dahin: ja    5.11.14.16.17.19
+  cachyos-emerald-light      DPR 1.0  Randwert   19  streng steigend bis dahin: ja    1.8.13.16.18.19
+  cachyos-emerald-light      DPR 1.6  Randwert   19  streng steigend bis dahin: ja    5.11.14.16.17.19
+  default                    DPR 1.0  Randwert  235  streng steigend bis dahin: ja    47.138.189.209.235
+  default                    DPR 1.6  Randwert  235  streng steigend bis dahin: ja    2.65.125.173.195.209.235
+
+
+=== Ändert der Farbsatz die Zeichnung? ===
+Je Theme die sieben Farbsätze von KSvg, gemessen an der Mitte der Fläche.
+
+  denkzettel-pruef-eckig     1 verschiedene Ergebnisse: 0,0,0/255
+  denkzettel-test-breit      1 verschiedene Ergebnisse: 0,0,0/255
+  denkzettel-test-schmal     1 verschiedene Ergebnisse: 0,0,0/255
+  CachyOS-Nord-round         1 verschiedene Ergebnisse: 30,34,51/255
+  Iridescent-round           1 verschiedene Ergebnisse: 0,0,0/51
+  breeze-dark                1 verschiedene Ergebnisse: 32,35,38/216
+  breeze-light               1 verschiedene Ergebnisse: 240,240,241/216
+  cachyos-emerald            1 verschiedene Ergebnisse: 0,0,0/7
+  cachyos-emerald-color      1 verschiedene Ergebnisse: 0,0,0/7
+  cachyos-emerald-light      1 verschiedene Ergebnisse: 0,0,0/7
+  default                    1 verschiedene Ergebnisse: 32,35,38/216
+
+Lesart: Steht überall eine 1, unterscheidet auf dieser Maschine **kein**
+Theme die Farbsätze. Die Wahl ist dann richtig und zugleich nicht messbar —
+eine benannte Grenze, keine ungeprüfte Behauptung.

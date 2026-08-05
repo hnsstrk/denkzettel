@@ -1,0 +1,16 @@
+=== #83, Sonde 3: wirkt der Weichzeichner? ===
+Plattform     : wayland
+Lauf          : aus
+Weichzeichnende Sitzung: ja
+Gegenlauf: dieselbe Grafik, **keine** Anmeldung.
+
+spectacle -f beendet: ja, Rückgabe 0
+Aufnahme 3840x2160 Bildpunkte (Vollbildpuffer sofort gelöscht, gespeichert wird nur der Ausschnitt)
+Fenster erwartet 1200 Bildpunkte breit; längster passender Lauf: 960 Bildpunkte bei y=910, x=1440..2399
+Hülle im Bild: 960x278 Bildpunkte (y=904..1181)
+Harte Sprünge (Helligkeitssprung > 60 zwischen Nachbarn):
+  innerhalb der Hülle (y=910, x=1480..2359): 0
+  blankes Schachbrett darüber (y=610, gleiche Breite): 45
+Spannweite im linken Innenstreifen (x=1448..1466, y=944..1141): 29 bis 68 (39)
+Lesart: Viele Sprünge und eine weite Spannweite heißen scharf, wenige und eine
+enge heißen verwaschen. Der Beleg ist der Vergleich `an` gegen `aus`.
