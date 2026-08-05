@@ -348,7 +348,39 @@ mitgenommen hätte, die diese Story gerade sinnvoll heilt.
    Der Versuch mit `-O2` ist in §5 protokolliert, samt seinem negativen
    Ausgang.
 
-## 12. Zwei Befunde außerhalb meiner Fläche — gemeldet, nicht geheilt
+## 12. Der Bildvergleich — 27 von 42 Bildern bytegleich, die übrigen 15 erklärt
+
+**Die Story behauptet nichts über das Aussehen, aber sie fasst den Zeichenweg
+an**: `NoteListDelegate::paint()` bekommt einen `const QStyle *`, und fünf der
+sieben Enums mit neuem Basistyp stecken in der Bibliotheksansicht
+(`NoteGroup`, `Role`, `Selection`, `UnsavedAnswer`, `Note::Type`). Ein grünes
+`ctest` deckt das nur zum Teil. Deshalb: alle fünf Bildläufer gegen eine frisch
+gebaute Debug-Kopie von `main` gehalten, beide mit
+`QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2` — die
+Skalierung, mit der auch die README-Bilder entstehen.
+
+| Läufer | Bilder | bytegleich |
+|---|---|---|
+| `editshots` | 5 | **5** |
+| `searchshots` | 6 | **6** |
+| `readmeshots` | 2 | **2** |
+| `captureshots` | 14 | **14** |
+| `libraryshots` | 15 | 12 |
+| | **42** | **27 direkt** |
+
+**Die drei übrigen sind nicht meine Änderung.** Fünf Läufe **desselben**
+Binärcodes von `main` liefern für genau diese drei Bilder je **zwei**
+Fassungen; die anderen zwölf sind stabil. Jedes der 15 Bilder meines Zweiges
+liegt in der Menge der Fassungen, die `main` selbst erzeugt.
+
+Damit ist der Zeichenweg belegt, soweit ein Bild ihn belegen kann — und die
+Grenze aus B21 bleibt: offscreen zeichnen weder Theme noch Compositor
+vollständig. Für diese Story genügt es, weil kein Akzeptanzkriterium über
+Hülle, Rundung, Kontur, Schatten oder Durchsichtigkeit etwas behauptet.
+
+Beleg: `messungen/07-bildvergleich.txt`.
+
+## 13. Zwei Befunde außerhalb meiner Fläche — gemeldet, nicht geheilt
 
 **`ctest` ist im Release-Bau rot, und zwar auf `main`, schon vor #76.**
 Gemessen, weil ich §5 hart belegen wollte:
@@ -373,12 +405,33 @@ dasselbe Bild. Aufgefallen ist es nur, weil hier zum ersten Mal jemand mit
 `-O2` gebaut hat; DoD 1 und der CI-Lauf bauen beide `Debug`. Nicht meine
 Fläche, keine Zeile angefasst.
 
+**`libraryshots` arbeitet nicht deterministisch, und das README behauptet das
+Gegenteil.** README.md sagt: *„Der Läufer arbeitet deterministisch: Zwei Läufe
+hintereinander liefern bytegleiche Dateien."* Gemessen an fünf Läufen desselben
+Binärcodes auf `main`: **3 von 15 Bildern kommen in zwei Fassungen.**
+
+Die Ursache ist eng lokalisiert — in allen drei Fällen **70 Bildpunkte** auf
+einer Fläche von zwei Bildpunkten Breite und 35 Höhe:
+
+| Bild | Bereich |
+|---|---|
+| `02-leerzustand.png` | x 32–33, y 30–64 (im Suchfeld) |
+| `10c-schema-dunkel-bearbeiten.png` | x 1061–1062, y 212–246 (im Editor) |
+| `10d-schema-hell-bearbeiten.png` | dieselbe Stelle |
+
+Das ist ein **blinkender Textcursor**, aufgenommen in verschiedenen Phasen des
+Blinkens. **Warum das über eine Schönheitsfrage hinausgeht:** Auf
+Bildvergleichen ruht DoD 3. Wer zwei Stände nebeneinanderhält, sieht bis zu
+drei Unterschiede, die keine sind — und gewöhnt sich daran, Unterschiede
+wegzuerklären. Das ist die Bauart, an der dieses Projekt seine wertlosen
+Belege gefunden hat. Nicht meine Fläche, keine Zeile angefasst.
+
 **Ein unversionierter Ordner `--help` liegt in der Wurzel des Repositoriums**
 mit acht PNG aus einem Bildlauf (`ecke-*.png`, `fenster-*.png`). Da hat ein
 Bildläufer ein Argument als Ausgabepfad genommen. Nicht versioniert, also ohne
 Wirkung auf den Stand — aber jemand sollte ihn wegräumen.
 
-## 13. Ein Fund, der in die Fallenliste gehört
+## 14. Ein Fund, der in die Fallenliste gehört
 
 **Meine ersten drei `-fix`-Runden haben null Dateien geprüft und dabei wie eine
 saubere Konvergenz ausgesehen.** Gemeldet wurden `Bau rc=0`, `Baufehler=0`,

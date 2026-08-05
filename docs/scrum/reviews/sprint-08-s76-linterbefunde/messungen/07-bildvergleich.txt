@@ -1,0 +1,32 @@
+# Bildvergleich: dieser Zweig gegen main, alle fuenf Bildlaeufer
+# QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2 LANG=de_DE.UTF-8
+# main als Debug-Kopie aus 'git archive main', beide frisch gebaut.
+
+editshots     5 von  5 Bildern bytegleich
+searchshots   6 von  6 Bildern bytegleich
+readmeshots   2 von  2 Bildern bytegleich
+captureshots 14 von 14 Bildern bytegleich
+libraryshots 12 von 15 Bildern bytegleich
+             ---------------------------
+             27 von 42 direkt bytegleich, die uebrigen 15 siehe unten
+
+## Die drei uebrigen sind nicht meine Aenderung, sondern Rauschen des Laeufers
+
+Fuenf Laeufe DESSELBEN Binaercodes von main, je 15 Bilder:
+  02-leerzustand.png              2 Fassungen in 5 Laeufen
+  10c-schema-dunkel-bearbeiten.png 2 Fassungen in 5 Laeufen
+  10d-schema-hell-bearbeiten.png   2 Fassungen in 5 Laeufen
+  die uebrigen 12                  stabil
+
+Jedes der 15 Bilder dieses Zweiges liegt in der Menge der Fassungen, die
+main selbst erzeugt. Es gibt also keine Abweichung, die auf #76 zurueckgeht.
+
+## Ursache der Instabilitaet, lokalisiert
+
+  02-leerzustand.png               70 Bildpunkte anders, x 32..33   y 30..64
+  10c-schema-dunkel-bearbeiten.png 70 Bildpunkte anders, x 1061..1062 y 212..246
+  10d-schema-hell-bearbeiten.png   70 Bildpunkte anders, x 1061..1062 y 212..246
+
+Zwei Bildpunkte breit, 35 hoch, im Suchfeld bzw. im Editor: ein blinkender
+Textcursor, aufgenommen in unterschiedlichen Phasen des Blinkens.
+Bildgroesse jeweils 1800x1200.
