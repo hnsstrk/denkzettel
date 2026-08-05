@@ -216,7 +216,8 @@ int main(int argc, char **argv)
     const QTemporaryDir configuration;
     qputenv("XDG_CONFIG_HOME", configuration.path().toLocal8Bit());
 
-    const QApplication app(argc, argv);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
     // Note on the symbols of the guard dialog: this bench can show them again

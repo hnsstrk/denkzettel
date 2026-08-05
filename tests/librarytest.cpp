@@ -1079,7 +1079,8 @@ void LibraryTest::keepsTheNoteWhenTheDeletionIsUndone()
     const qint64 id = storedNote(QStringLiteral("bleibt doch"));
     PendingDeletion deletion(m_store.get(), 1);
     QSignalSpy reverted(&deletion, &PendingDeletion::reverted);
-    const QSignalSpy committed(&deletion, &PendingDeletion::committed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy committed(&deletion, &PendingDeletion::committed);
 
     deletion.request(id);
     deletion.undo();
@@ -1133,7 +1134,8 @@ void LibraryTest::carriesOutThePendingDeletionOnFlush()
 {
     const qint64 id = storedNote(QStringLiteral("Fenster wird geschlossen"));
     PendingDeletion deletion(m_store.get(), 5);
-    const QSignalSpy committed(&deletion, &PendingDeletion::committed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy committed(&deletion, &PendingDeletion::committed);
 
     deletion.request(id);
     deletion.flush();
@@ -2562,7 +2564,8 @@ void LibraryTest::leavesTheFocusAloneWhenTheOpenWindowIsShownAgain()
 
 void LibraryTest::keepsTheListWideEnoughForThePreview()
 {
-    const LibraryWindow window(m_store.get());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    LibraryWindow window(m_store.get());
 
     auto *splitter = window.findChild<QSplitter *>();
     QVERIFY(splitter);
@@ -2783,7 +2786,8 @@ void LibraryTest::keepsTheWindowSizeForTheNextSession()
         window.close();
     }
 
-    const LibraryWindow reopened(m_store.get());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    LibraryWindow reopened(m_store.get());
 
     QCOMPARE(reopened.size(), chosen);
 }
@@ -3676,7 +3680,8 @@ void LibraryTest::keepsTheEditorWhenTheListIsRebuiltUnderIt()
     captured.createdAt = captured.createdAt.addSecs(60);
     QVERIFY(m_store->addNote(captured).has_value());
 
-    const DialogWatch watch;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    DialogWatch watch;
     window.showLibrary();
     QTest::qWait(100);
 
@@ -3710,7 +3715,8 @@ void LibraryTest::keepsTheEditorWhenTheWindowIsActivatedAgain()
     // asked about a change he has not finished making.
     window.setReferenceTime(at(QStringLiteral("2026-08-01T09:00:00")));
 
-    const DialogWatch watch;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    DialogWatch watch;
 
     QWidget elsewhere;
     elsewhere.show();

@@ -148,7 +148,8 @@ void typeState(QPlainTextEdit *text, int state)
 
 int main(int argc, char **argv)
 {
-    const QApplication app(argc, argv);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QApplication app(argc, argv);
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
 
     if (app.arguments().size() < 2) {

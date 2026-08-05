@@ -26,7 +26,7 @@ mit eingeschaltetem Schalter steht in §6.
 `messungen/03-endstand.txt`. Die Zeile
 `Running clang-tidy … for 30 files out of 49 in compilation database` steht im
 Beleg, weil eine Null ohne sie nichts darüber sagt, ob überhaupt etwas geprüft
-wurde — siehe §7.
+wurde — siehe §8.
 
 **Ausgangsstand, selbst nachgemessen** statt aus dem Issue übernommen:
 
@@ -55,10 +55,16 @@ Bau:
 |---|---|---|---|---|---|
 | Ausgang | — | rc=0 | 0 | 149 | 88 |
 | nach der `.clang-tidy`-Streichung | — | rc=0 | 0 | **148** | **87** |
-| 1 | 30 von 49 | rc=0 | **0** | **90** | **29** |
-| 2 | 30 von 49 | rc=0 | **0** | **86** | **25** |
-| 3 | 30 von 49 | rc=0 | 0 | 86 | 25 |
-| 4 | 30 von 49 | rc=0 | 0 | 86 | 25 |
+| 1 | **30 von 49** | rc=0 | **0** | **90** | **29** |
+| 2 | **30 von 49** | rc=0 | **0** | **86** | **25** |
+| 3 | **30 von 49** | rc=0 | 0 | 86 | 25 |
+| 4 | **30 von 49** | rc=0 | 0 | 86 | 25 |
+
+**Die Spalte „geprüfte Dateien" steht hier auf Auflage des PO, und sie ist die
+wichtigste der Tabelle.** Sie kommt aus der Zeile
+`Running clang-tidy … for N files out of M`, die `run-clang-tidy` je Lauf
+schreibt. Ist `N` kleiner als die Zahl der Dateien, die geheilt werden sollten,
+ist das ein Abbruchgrund und kein Nebenbefund — warum, steht in §15.
 
 **Eine Runde genügt nicht**, wie die Vorprüfung gemessen hatte: Das `const` auf
 einer Variablen legt das `const` auf der nächsten erst frei. Runde 2 findet
@@ -109,7 +115,7 @@ steht zu jeder Änderung, was sie tut und warum das Verhalten dasselbe bleibt.
 
 | Stelle | Änderung | Warum das Verhalten dasselbe bleibt |
 |---|---|---|
-| `src/shell/globalshortcuts.cpp:48` | `const QString application` → `QString application`, dazu `NOLINTNEXTLINE(misc-const-correctness)` mit Begründung | PO-Entscheidung 3. Die Variable wird zurückgegeben; das `const` verhinderte die Rückgabe per Verschiebung und kostete eine Kopie je Aufruf. Der Wert ändert sich nirgends — zwischen Zuweisung und `return` steht nur ein `isEmpty()`. **Eine Kopie weniger, sonst nichts.** Die Regel dahinter steht als Kommentar in `.clang-tidy`, damit die nächste Funktion dieser Bauart ihr folgt |
+| `src/shell/globalshortcuts.cpp:53` | `const QString application` → `QString application`, dazu `NOLINTNEXTLINE(misc-const-correctness)` mit Begründung | PO-Entscheidung 3. Die Variable wird zurückgegeben; das `const` verhinderte die Rückgabe per Verschiebung und kostete eine Kopie je Aufruf. Der Wert ändert sich nirgends — zwischen Zuweisung und `return` steht nur ein `isEmpty()`. **Eine Kopie weniger, sonst nichts.** Die Regel dahinter steht als Kommentar in `.clang-tidy`, damit die nächste Funktion dieser Bauart ihr folgt |
 
 ### 3.4 Enum-Basistypen — 7 Enums in 5 Dateien
 
@@ -143,7 +149,22 @@ Datenbank. **Keiner dieser Wege liegt hier vor**, gemessen:
   und 257 passen mit weitem Abstand. Der Kommentar an der Stelle sagt, warum
   hier nicht ein Byte steht.
 
-### 3.5 `NOLINT`-Blöcke ohne Codeänderung — 2 Stellen
+### 3.5 `const` **nicht gesetzt**, wo die Änderung über eine Qt-Verbindung kommt — 3 Stellen
+
+PO-Entscheidung 9, ausführlich in §5. Alle drei stehen in `src/main.cpp` und
+tragen `NOLINTNEXTLINE(misc-const-correctness)` mit Verweis auf Regel 2 in
+`.clang-tidy`.
+
+| Stelle | Änderung | Warum das Verhalten dasselbe bleibt |
+|---|---|---|
+| `src/main.cpp:50` | `KDBusService service` bleibt ohne `const` | **Das ist der Stand von `main` — die Änderung ist, dass er es bleibt.** Der Maschinenfix wollte `const` setzen; `activateRequested` wird auf diesem Objekt ausgelöst (`:63`), also verändert es sich. Kein `const` gesetzt heißt: keine Änderung am Verhalten, und die Marke hält den Prüfer davon ab, sie erneut vorzuschlagen |
+| `src/main.cpp:69` | `LibraryWindow library` bleibt ohne `const` | dasselbe. `:74` und `:78` verbinden `&LibraryWindow::showLibrary` darauf, und der Slot ruft `reload()`, `show()`, `raise()`, `setFocus()`. **Am gebauten Stand nachgewiesen** (§7): `ShowLibrary()` über D-Bus öffnet das Fenster |
+| `src/main.cpp:72` | `TrayIcon tray` bleibt ohne `const` | dasselbe. Das Objekt sendet `captureRequested` und `libraryRequested` und hält ein `KStatusNotifierItem`, das der Panel-Wirt bedient |
+
+**Die Zeilen sind gegenüber `main` unverändert** — was hinzukommt, ist je eine
+Kommentarzeile darüber. Ein Verhalten kann sich daran nicht ändern.
+
+### 3.6 `NOLINT`-Blöcke ohne Codeänderung — 2 Stellen
 
 `src/shell/shortcutregistration.cpp:33` (`desktopFileDeclaresAction`) und
 `src/ui/librarywindow.cpp:153` (`placeholderPage`) bekommen je einen
@@ -152,73 +173,115 @@ nur Kommentar. Siehe §4.
 
 ## 4. Jedes `NOLINT` mit Begründung, gezählt (AK 4)
 
-**17 Marken**, gezählt mit `git grep -E '^\s*// NOLINT' -- src tests`. Die
-Zählung sieht ausdrücklich nur auf Zeilen, die mit der Marke **beginnen** — im
-Kopf von `librarytest.cpp` steht das Wort auch im Fließtext einer Begründung,
-und eine naive Zählung meldete 18.
+**37 Marken in vier Klassen**, gezählt mit `git grep -E '^\s*// NOLINT' -- src tests`.
 
-| Fall | Prüfung | Zahl | Fundorte | Begründung |
+| Klasse | Prüfung | Zahl | Fundorte | Begründung |
 |---|---|---|---|---|
 | **1** (PO-Entscheidung 1) | `misc-const-correctness` | **8** | `tests/librarytest.cpp`, alle auf einer `QFETCH`-Zeile | `QFETCH` ist ein Makro und deklariert die Variable selbst (`Type name = *static_cast<Type *>(…)`). Ein `const` ist dort nur unterzubringen, indem man `QFETCH` aufgibt — die QTest-Redensart für datengetriebene Tests. **Eine** gemeinsame Begründung steht im Kopf der Datei, jede Marke verweist darauf |
-| **2** (PO-Entscheidung 3) | `misc-const-correctness` | **1** | `src/shell/globalshortcuts.cpp:52` | An einer zurückgegebenen lokalen Variablen gewinnt `performance-no-automatic-move`. Siehe §3.3 |
+| **2** (PO-Entscheidung 3) | `misc-const-correctness` | **1** | `src/shell/globalshortcuts.cpp` | An einer zurückgegebenen lokalen Variablen gewinnt `performance-no-automatic-move`. Siehe §3.3 |
 | **3** (PO-Entscheidung 4) | `bugprone-easily-swappable-parameters` | **8** | `src/shell/shortcutregistration.cpp`, `src/ui/librarywindow.cpp`, `tests/editshots.cpp` (2), `tests/libraryshots.cpp`, `tests/librarytest.cpp`, `tests/readmeshots.cpp`, `tests/searchshots.cpp` | Heilen hieße Signaturen ändern oder eigene Typen einführen — Entwurf, nicht Aufräumen. Der sichtbare Fall (`placeholderPage`) bekommt stattdessen eine Testzusicherung als **#88** |
-| | | **17** | | |
+| **4** (PO-Entscheidung 9) | `misc-const-correctness` | **20** | `src/main.cpp` (3), `tests/librarytest.cpp` (6), `tests/shelltest.cpp` (5), `tests/captureshots.cpp`, `tests/editshots.cpp`, `tests/identitytest.cpp`, `tests/libraryshots.cpp`, `tests/readmeshots.cpp`, `tests/searchshots.cpp` (je 1) | Die Änderung kommt über eine Qt-Verbindung, die der Prüfer nicht sieht. Siehe §5. Die gemeinsame Begründung steht als Regel 2 in `.clang-tidy`, jede Marke nennt sie |
+| | | **37** | verteilt auf 12 Dateien | |
 
-**Ein vierter Fall ist aufgetreten und ging als Frage an den PO, nicht in ein
-stilles `NOLINT`.** Er steht in §5.
+Nach Prüfung: **29 `misc-const-correctness`** (8 + 1 + 20) und
+**8 `bugprone-easily-swappable-parameters`**.
 
-**Eine Falle beim Setzen, gemessen:** Die ersten acht `NOLINTNEXTLINE` des
-dritten Falls standen als **erste** Zeile eines fünfzeiligen Kommentarblocks.
-Sie haben nichts unterdrückt — `NOLINTNEXTLINE` gilt für die unmittelbar
-folgende Zeile, und das war eine weitere Kommentarzeile. Der Linterlauf zeigte
-es sofort; ein Lauf, der nur den Rückgabewert gelesen hätte, nicht. Seither
-steht die Marke als **letzte** Zeile des Blocks.
+**Zwei Fallen beim Zählen und beim Setzen, beide gemessen.**
 
-## 5. Der vierte Fall — offen beim PO
+**Eine Zählung, die den Fließtext der eigenen Begründung mitzählt, meldet 18
+statt 17.** Im Kopf von `librarytest.cpp` steht die gemeinsame Begründung der
+ersten Klasse, und darin kommt das Wort `NOLINTNEXTLINE` vor. Ein
+`git grep -o 'NOLINT'` zählt es mit. Die Zählung sieht deshalb nur auf Zeilen,
+die mit der Marke **beginnen** (`^\s*// NOLINT`). Dieselbe Familie wie
+`grep -h` ohne Dateinamen und wie „für 0 von 49 Dateien" (§15).
 
-`misc-const-correctness` schlägt `const` auf **Objekten** vor, die über das
-Meta-Object-System verändert werden. Der Prüfer sieht diese Änderung nicht:
+**Die ersten acht Marken der dritten Klasse haben nichts unterdrückt.** Sie
+standen als **erste** Zeile eines fünfzeiligen Kommentarblocks — und
+`NOLINTNEXTLINE` gilt für die unmittelbar folgende Zeile, die dort eine weitere
+Kommentarzeile war. Der Linterlauf zeigte es sofort; ein Lauf, der nur den
+Rückgabewert gelesen hätte, nicht. Seither steht die Marke als **letzte** Zeile
+des Blocks.
+
+## 5. Der vierte Fall — PO-Entscheidung 9, entschieden und umgesetzt
+
+`misc-const-correctness` schlägt `const` auf **Objekten** vor, die über eine
+Qt-Verbindung verändert werden. Der Prüfer sieht diese Änderung nicht:
 `QObject::connect`, `QSignalSpy` und `QTest::qExec` nehmen ihre Ziele als
-`const QObject *` und `const_cast`en innen. Der Maschinenfix hat das an
-**16 Stellen** getan (3 in `src/`, 13 in `tests/`). Ein `const` definiertes
-Objekt während seiner Lebensdauer zu verändern, ist nach [dcl.type.cv]/4
-undefiniert.
+`const QObject *` und `const_cast`en innen, und eine im Konstruktor gefangene
+Lambda behält ein nicht-`const`es `this`, wie das Objekt auch deklariert sei.
+Ein `const` definiertes Objekt während seiner Lebensdauer zu verändern, ist
+nach [dcl.type.cv]/4 undefiniert, und der Übersetzer darf den Lesezugriff auf
+den Anfangswert zurückfalten.
 
-Die drei Fälle, an denen das keine Sprachjuristerei ist:
+Der Fall ist als vierter an den PO gegangen, wie AK 4 es verlangt, und **am
+05.08.2026 als Entscheidung 9 entschieden**:
 
-1. **`tests/librarytest.cpp` — `const DialogWatch watch;` (2×).** Der
+> Auf einem Objekt, das auf diesem Weg verändert wird, wird `const` nicht
+> gesetzt; die Stelle trägt `NOLINT(misc-const-correctness)` mit gemeinsamer
+> Begründung, und die Regel steht als Kommentar in `.clang-tidy` neben der aus
+> Entscheidung 3.
+
+**Umgesetzt an 20 Stellen** (3 in `src/`, 17 in `tests/`). Die drei Fälle, an
+denen das keine Sprachjuristerei ist:
+
+1. **`tests/librarytest.cpp:3684` und `:3719` — `DialogWatch watch;`.** Der
    Konstruktor hängt eine Lambda an einen Timer, die `m_appeared = true;`
-   schreibt; der Test prüft danach `QVERIFY2(!watch.appeared(), …)`. **Faltet
-   der Übersetzer `m_appeared` auf seinen Anfangswert, ist der Test grün, ohne
-   etwas gemessen zu haben.**
-2. **`src/main.cpp:67` — `const LibraryWindow library(&store);`**, und
-   `:71`/`:75` verbinden `&LibraryWindow::showLibrary` darauf. Der Slot ruft
-   `reload()`, `show()`, `raise()` und `setFocus()`.
-3. **`tests/captureshots.cpp:151`, `tests/identitytest.cpp:72` —
-   `const QApplication app(argc, argv);`** vor `QTest::qExec()`.
+   schreibt; `:3692` und `:3733` prüfen `QVERIFY2(!watch.appeared(), …)`.
+   **Faltet der Übersetzer `m_appeared` auf seinen Anfangswert, sind beide
+   Zusicherungen bedingungslos grün.**
+2. **`src/main.cpp:69` — `LibraryWindow library(&store);`**, und `:74`/`:78`
+   verbinden `&LibraryWindow::showLibrary` darauf. Der Slot ruft `reload()`,
+   `show()`, `raise()` und `setFocus()`. Ein benannter verändernder Aufruf auf
+   einem `const` definierten Objekt, am Typsystem vorbeigeführt.
+3. **`tests/captureshots.cpp`, `tests/identitytest.cpp` u. a. —
+   `QApplication app(argc, argv);`** vor `QTest::qExec()`. Ein
+   Anwendungsobjekt, das eine Ereignisschleife fährt, verändert sich.
 
-**Vorgeschlagene Regel** (dieselbe Bauart wie PO-Entscheidung 3): *Auf einem
-QObject-Abkömmling, der als Wert deklariert ist, wird `const` nicht gesetzt;
-die Stelle trägt `NOLINT(misc-const-correctness)` mit gemeinsamer Begründung.*
 **Zeiger bleiben unberührt** — `const QPushButton *edit` qualifiziert nur
-unseren Zeiger, und wir lesen nur darüber (§3.1).
+unseren Zeiger, nicht das Objekt, und wir lesen nur darüber (§3.1).
 
-*Die Vorprüfung hat diesen Fix in F2 auf Verträglichkeit geprüft und
-festgestellt, dass `const LibraryWindow library;` **kompiliert**. Das stimmt und
-ist genau der Punkt: Der Empfängerparameter von `connect` ist
-`const`-qualifiziert, deshalb übersetzt es — und deshalb sieht der Prüfer die
-Änderung nicht.*
+### Zwei Abweichungen von dem, was der PO wörtlich aufgetragen hat
+
+**Es sind 20 Stellen und nicht 16, und damit 37 `NOLINT` und nicht 33.** Die 16
+waren meine eigene Liste, und die stammte aus dem Maschinendiff. Eine
+vollständige Erhebung findet **vier weitere**, die schon vor dieser Story
+`const` waren: `const QApplication app(argc, argv);` in `tests/editshots.cpp`,
+`tests/libraryshots.cpp`, `tests/readmeshots.cpp` und `tests/searchshots.cpp`.
+Der PO hat eine davon selbst genannt (`editshots.cpp:219`), was zeigt, dass die
+**Regel** gemeint war und nicht der Diff. Sie stehen alle in der Dateimenge
+dieser Story. Sie stehenzulassen hieße, `const QApplication app` in
+`libraryshots.cpp` neben ein mit `NOLINT` versehenes in `captureshots.cpp` zu
+setzen — dieselbe Zeile, zwei Urteile. **Wer die vier lieber draußen hätte,
+sagt es; es sind vier Zeilen zurück.**
+
+**Die Regel steht in `.clang-tidy` etwas weiter gefasst als „QObject-Abkömmling".**
+`DialogWatch` — der stärkste Fall überhaupt — **ist kein QObject**: eine
+gewöhnliche Klasse mit einem `QTimer`-Feld. Der Mechanismus ist derselbe (die
+Änderung kommt über eine Qt-Verbindung), die Vererbung ist es nicht. Die Regel
+spricht deshalb von einem Objekt, das **auf diesem Weg** verändert wird,
+„gleich ob es von QObject abstammt".
+
+### Die Lehre des Falls
+
+**Der Vorprüfbericht hat diesen Fix an `const LibraryWindow library;` gemessen
+und festgestellt, dass er kompiliert** (Falle F2). Das war richtig gemessen und
+beantwortete die falsche Frage — kompilierbar heißt hier nicht gefahrlos, und
+zwar aus demselben Grund, aus dem der Prüfer die Änderung nicht sieht: Der
+Empfängerparameter von `connect` ist `const`-qualifiziert.
 
 **Ich habe versucht, das hart zu messen, und es ist mir nicht gelungen.** Ein
 Release-Bau (`-O2`) ist der Ort, an dem ein Übersetzer die Konstantheit
 ausnutzen dürfte; die beiden `DialogWatch`-Tests laufen dort **grün**. Das
 entkräftet das Argument nicht — undefiniertes Verhalten, das heute nicht
 zubeißt, bleibt undefiniertes Verhalten, und der Übersetzer darf seine Meinung
-mit jeder Version ändern —, aber es ist ehrlich zu sagen, was §5 ist: **ein
-Argument aus der Sprachnorm und dem gelesenen Änderungsweg, kein Messwert.**
-Ein Lauf, der das Gegenteil zu belegen schiene, wäre hier ebenfalls keiner: Ein
-grüner Test beweist bei undefiniertem Verhalten nur, dass dieser Übersetzer an
-diesem Tag so entschieden hat.
+mit jeder Version ändern —, aber es ist ehrlich zu sagen, was der Kern von §5
+ist: **ein Argument aus der Sprachnorm und dem gelesenen Änderungsweg, kein
+Messwert.** Ein Lauf, der das Gegenteil zu belegen schiene, wäre hier ebenfalls
+keiner: Ein grüner Test beweist bei undefiniertem Verhalten nur, dass dieser
+Übersetzer an diesem Tag so entschieden hat.
+
+**Und die Wette ist einseitig.** Verlieren wir sie, verlieren wir zwei
+Zusicherungen **still**. Gewinnen wir sie, sparen wir zwanzig Kommentarzeilen.
 
 ## 6. Die Gegenprobe — eine Null, die etwas behauptet
 
@@ -243,7 +306,49 @@ eine lokale Variable ohne `const` (`messungen/05-gegenprobe.txt`):
 Beide werden rot. Danach zurückgesetzt; `pruefen.sh` führt die Probe auf einer
 Wegwerfkopie.
 
-## 7. Die CI-Wache prüft die Dreizahl (AK 6)
+## 7. Die Selbst-Sichtprüfung am gebauten Stand (DoD 2)
+
+**Vom PO freigegeben, weil dafür der installierte Dienst zu beenden war.** Ohne
+das reicht die Einzelinstanz-Weiche von `KDBusService` den Start weiter, und
+man prüft den installierten Stand statt des gebauten (B16).
+
+**Warum sie bei einer Aufräumstory nicht entfällt:** Diese Story fasst
+`src/main.cpp` an (Lebensdauer und `const` der drei Dienstobjekte) und
+`src/shell/globalshortcuts.cpp` (Registrierung und Rücklesen des Kürzels). Das
+sind die beiden Stellen, an denen „nur Aufräumen" aufhört, eines zu sein.
+
+Sitzung vorher abgefragt und nicht angenommen: `Type=wayland`, `Active=yes`,
+**`LockedHint=no`** — bei gesperrter Sitzung liefert `spectacle` ein schwarzes
+Bild mit Rückgabe 0, und der Lauf hätte den Rollladen fotografiert.
+
+| Schritt | Beleg |
+|---|---|
+| vorher | PID 4029, `exe=/usr/bin/denkzetteld` |
+| gebauten Stand gestartet | PID 502543, `exe=…/denkzettel-76/build/bin/denkzetteld` |
+| Meldungen | **stderr leer** — kein „Kürzel nicht einsatzbereit", kein „Exporting org.denkzettel.Daemon failed". `registerCaptureShortcut()` hat also `Reached` erreicht |
+| Kürzel **beim Dienst zurückgelesen** | `a(ai) 1 4 268435534 0 0 0` — eine Sequenz, `268435534 = 0x1000004E = Qt::META \| Qt::Key_N`, also **Meta+N** |
+| D-Bus | `org.denkzettel.Daemon` auf dem Bus, `/Daemon` mit `AddNote`, `Quit`, `ShowCapture`, `ShowLibrary` |
+| **Hauptweg** | `ShowLibrary()` über D-Bus, `rc=0`, Dienst lief unverändert weiter |
+| nachher | PID 505843, `exe=/usr/bin/denkzetteld`, **kein `(deleted)`**, Kürzel erneut als Meta+N zurückgelesen |
+
+**Das Rücklesen des Kürzels ist genau der Beleg, den der Rückgabewert von
+`setGlobalShortcut()` nicht liefern kann** — der Grund für die Streichung in
+`.clang-tidy` (§9). Und **`ShowLibrary()` ist genau der Weg aus Entscheidung 9**:
+`DaemonService::libraryRequested` hängt in `src/main.cpp:78` an
+`&LibraryWindow::showLibrary`, und `library` ist das Objekt, an dem der
+Maschinenfix ein `const` setzen wollte.
+
+Vom Sitzungsbild des aktiven Fensters abgelesen: Die Bibliothek steht offen,
+mit Kopfzeile „Denkzettel — Bibliothek", Volltextsuchfeld, gruppierter Liste
+(„Gestern", „Letzte Woche") mit Zeitstempeln und dem Leerzustand des
+Lesebereichs („Keine Notiz ausgewählt / Zum Lesen links eine Notiz auswählen.").
+
+**Das Bild liegt nicht im Repositorium.** Es zeigt die echten Notizen des
+Kunden, und das Repositorium ist öffentlich (Kundenentscheidung 02.08.2026).
+Belegt ist hier die Beobachtung, nicht das Bild. Belege:
+`messungen/08-sichtpruefung.txt`.
+
+## 8. Die CI-Wache prüft die Dreizahl (AK 6)
 
 `.github/workflows/ci.yml`: die clazy-Schwelle geht von 3 auf 0, und ein
 `clang-tidy`-Schritt kommt hinzu, den es bisher nicht gab. Beide prüfen
@@ -271,7 +376,7 @@ die Schwelle je wieder über null setzt, muss vorher entdoppeln** — bei
 und `grep -c 'warning:'` zählt zusätzlich Compiler-Diagnosen mit. Der Hinweis
 steht im Kommentar beider Schritte.
 
-## 8. Die Schwelle steht nicht mehr allein in einer YAML-Datei (AK 7)
+## 9. Die Schwelle steht nicht mehr allein in einer YAML-Datei (AK 7)
 
 **DoD 1 in `docs/scrum/PROZESS.md` nennt sie jetzt**: `lint-tidy` und
 `lint-clazy` liefern in der Standardkonfiguration je rc=0, null Warnungen, null
@@ -295,9 +400,12 @@ macht — gesucht mit
 Test fehl" wird durch diese Änderung nicht falsch, und die Datei ist die
 Arbeitsanweisung des ganzen Projekts — das ist eine PO-Entscheidung.
 
-## 9. `.clang-tidy` — was sich geändert hat und warum (AK 5)
+## 10. `.clang-tidy` — was sich geändert hat und warum (AK 5)
 
-Beides steht als Kommentar in der Datei selbst.
+Alles drei steht als Kommentar in der Datei selbst — das ist die Bedingung aus
+AK 5: Eine Prüfung oder eine Option zu ändern, verschiebt die Messlatte, und
+ohne den Vermerk misst ein späterer Nachweis „0 Befunde" etwas anderes als
+heute.
 
 **Gestrichen: `^::KGlobalAccel::setGlobalShortcut$`** aus
 `bugprone-unused-return-value.CheckedFunctions` (PO-Entscheidung 2). Die Regel
@@ -310,15 +418,25 @@ Regel stehenlassen, die etwas messbar Falsches behauptet, und jede spätere
 Registrierung liefe wieder dagegen. **Die drei übrigen Projekteinträge
 bleiben** — neben keinem von ihnen steht ein stärkerer Nachweis.
 
-**Ergänzt: die Regel für zwei gegenläufige Prüfungen** (PO-Entscheidung 3), als
-Kommentar über der `Checks`-Zeile, damit die nächste Funktion dieser Bauart ihr
-folgt.
+**Ergänzt: zwei Regeln zu `misc-const-correctness`**, als Kommentar über der
+`Checks`-Zeile, damit die nächste Funktion dieser Bauart ihnen folgt. Sie stehen
+dort, weil der Prüfer über die Sprache recht hat und über diese Codebasis
+nicht:
+
+- **Regel 1** (PO-Entscheidung 3): An einer zurückgegebenen lokalen Variablen
+  gewinnt `performance-no-automatic-move`.
+- **Regel 2** (PO-Entscheidung 9): Auf einem Objekt, das über eine
+  Qt-Verbindung verändert wird, wird `const` nicht gesetzt — gleich ob es von
+  QObject abstammt. Zeiger sind nicht betroffen.
+
+Die zwanzig Marken der vierten Klasse nennen Regel 2 im Text, statt die
+Begründung zwanzigmal zu wiederholen.
 
 **Die Prüfliste selbst ist unverändert.** Keine Prüfung wurde abgewählt —
 insbesondere nicht `misc-const-correctness` für `tests/`, was 52 Befunde
 mitgenommen hätte, die diese Story gerade sinnvoll heilt.
 
-## 10. Was diese Story nicht angefasst hat
+## 11. Was diese Story nicht angefasst hat
 
 - **`tests/spellfixspike.cpp`** (PO-Entscheidung 5). Die drei Befunde darin
   sind gemessen und in §6 benannt.
@@ -327,7 +445,7 @@ mitgenommen hätte, die diese Story gerade sinnvoll heilt.
 - **Kein Verhalten.** Diese Story ändert Schlüsselwörter, Basistypen und
   Kommentare. Wo eine Änderung mehr wäre als das, steht sie einzeln in §3.
 
-## 11. Was hier nicht prüfbar war
+## 12. Was hier nicht prüfbar war
 
 1. **Dass eine `const`-Änderung das Verhalten nicht berührt**, ist im
    allgemeinen kein Messwert. Belegbar ist, dass es übersetzt und dass die
@@ -348,7 +466,7 @@ mitgenommen hätte, die diese Story gerade sinnvoll heilt.
    Der Versuch mit `-O2` ist in §5 protokolliert, samt seinem negativen
    Ausgang.
 
-## 12. Der Bildvergleich — 27 von 42 Bildern bytegleich, die übrigen 15 erklärt
+## 13. Der Bildvergleich — 27 von 42 Bildern bytegleich, die übrigen 15 erklärt
 
 **Die Story behauptet nichts über das Aussehen, aber sie fasst den Zeichenweg
 an**: `NoteListDelegate::paint()` bekommt einen `const QStyle *`, und fünf der
@@ -380,7 +498,7 @@ Hülle, Rundung, Kontur, Schatten oder Durchsichtigkeit etwas behauptet.
 
 Beleg: `messungen/07-bildvergleich.txt`.
 
-## 13. Zwei Befunde außerhalb meiner Fläche — gemeldet, nicht geheilt
+## 14. Zwei Befunde außerhalb meiner Fläche — gemeldet, nicht geheilt
 
 **`ctest` ist im Release-Bau rot, und zwar auf `main`, schon vor #76.**
 Gemessen, weil ich §5 hart belegen wollte:
@@ -426,12 +544,20 @@ drei Unterschiede, die keine sind — und gewöhnt sich daran, Unterschiede
 wegzuerklären. Das ist die Bauart, an der dieses Projekt seine wertlosen
 Belege gefunden hat. Nicht meine Fläche, keine Zeile angefasst.
 
-**Ein unversionierter Ordner `--help` liegt in der Wurzel des Repositoriums**
-mit acht PNG aus einem Bildlauf (`ecke-*.png`, `fenster-*.png`). Da hat ein
-Bildläufer ein Argument als Ausgabepfad genommen. Nicht versioniert, also ohne
-Wirkung auf den Stand — aber jemand sollte ihn wegräumen.
+**Ein Ordner `--help` lag in der Wurzel des Repositoriums** mit acht PNG aus
+einem Bildlauf (`ecke-*.png`, `fenster-*.png`). Alle drei Bildläufer nehmen
+jedes Argument als Zielverzeichnis; der PO hat den Ordner entfernt und die
+Ursache als **#98** gebucht.
 
-## 14. Ein Fund, der in die Fallenliste gehört
+**Berichtigung, weil sie die Bewertung verändert hätte:** Ich hatte gemeldet,
+der Ordner sei **nicht versioniert**. Er war es. Mein Prüfausdruck war falsch —
+`git ls-files | grep -- '^--help$'` sucht nach einer *Datei* dieses Namens, und
+`git ls-files` führt Verzeichnisse gar nicht auf; richtig gewesen wäre
+`grep -- '^--help/'`, was die acht PNG sofort zeigt. Ein leeres Suchergebnis
+sah aus wie ein Befund und war ein Fehler in der Frage. Der Ordner war seit dem
+05.08.2026 gepusht und damit veröffentlicht.
+
+## 15. Ein Fund, der in die Fallenliste gehört
 
 **Meine ersten drei `-fix`-Runden haben null Dateien geprüft und dabei wie eine
 saubere Konvergenz ausgesehen.** Gemeldet wurden `Bau rc=0`, `Baufehler=0`,

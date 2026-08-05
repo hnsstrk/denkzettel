@@ -69,7 +69,8 @@ void IdentityTest::keepsTheNameTheConfigurationAndTheNotesHangOn()
 
 int main(int argc, char *argv[])
 {
-    const QApplication app(argc, argv);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QApplication app(argc, argv);
 
     // The name src/main.cpp starts with, set before the registration runs, so
     // that the assertions above measure what the registration changed and not
