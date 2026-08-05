@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QString>
 
+#include <cstdint>
 #include <optional>
 
 /**
@@ -12,12 +13,12 @@
  * been analysed yet, an empty audioPath means there is no audio file.
  */
 struct Note {
-    enum class Type {
+    enum class Type : std::uint8_t {
         Text,
         Audio,
     };
 
-    enum class State {
+    enum class State : std::uint8_t {
         New,
         Transcribed,
         Analysed,

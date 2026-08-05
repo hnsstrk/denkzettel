@@ -68,7 +68,7 @@ jobs:
             extra-cmake-modules qt6-base \
             kconfig kcoreaddons kdbusaddons kglobalaccel ki18n knotifications \
             kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem libplasma \
-            plasma-integration breeze-icons appstream clazy
+            plasma-integration breeze-icons appstream clazy clang
 
       - uses: actions/checkout@v4
 
@@ -78,7 +78,7 @@ jobs:
         run: |
           cmake --version | head -1
           gcc --version | head -1
-          pacman -Q qt6-base kconfig plasma-integration breeze-icons
+          pacman -Q qt6-base kconfig plasma-integration breeze-icons clang clazy
 
       - name: Konfigurieren
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
@@ -111,25 +111,63 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       - name: clazy
-        # Kundenentscheidung 04.08.2026. Nur clazy, noch nicht clang-tidy: Der
-        # steht bei 72 Altbefunden, die als eigene Story geheilt werden; ein Tor
-        # unterhalb des gemessenen Standes wäre Dauerrot.
-        #
-        # Die Schwelle ist eine Zahl und kein `rc`, weil clazy-standalone auch
-        # mit Befunden **0** zurückgibt — der Rückgabewert allein wäre hier eine
-        # Wache, die nie anschlägt. Dieselbe Bauart wie bei den Compiler-Warnungen,
-        # nur mit einer Schwelle über null: die drei Altbefunde vom 04.08.2026
-        # (2× range-loop-detach, 1× detaching-temporary) sind echte Qt-Fallen und
-        # gehen in dieselbe Heilungs-Story. **Sinkt die Zahl, wird die Schwelle
-        # nachgezogen** — eine Schranke, die über dem Ist-Stand hängen bleibt,
+        # Kundenentscheidung 04.08.2026, Schwelle mit #76 von 3 auf 0 gezogen:
+        # die drei Altbefunde (2× range-loop-detach, 1× detaching-temporary)
+        # sind geheilt. Eine Schranke, die über dem Ist-Stand hängen bleibt,
         # misst nichts mehr.
+        #
+        # WARUM DREI ZAHLEN UND NICHT EINE (#76, AK 6). Keine von ihnen trägt
+        # allein, beide Lücken sind gemessen:
+        #   `rc` allein ist kein Befundurteil — clazy-standalone liefert rc=0
+        #   auch mit Befunden.
+        #   Eine Zahl allein ist kein Vollständigkeitsurteil — fehlt eine
+        #   .moc-Datei, bricht clazy die Übersetzungseinheit mit `fatal error`
+        #   ab, meldet **null** Befunde und rc=2. Der Zähler sähe dann aus wie
+        #   ein sauberer Lauf über Dateien, die nie analysiert wurden
+        #   (docs/scrum/vorberichte/76-linterbefunde/, Feld 4).
+        # Bei Schwelle 0 fällt die Zeilenzählung mit der Befundzählung zusammen;
+        # `grep -c 'warning:'` zählt aber gemessen auch Compiler-Diagnosen mit
+        # und Kopfdateibefunde mehrfach. **Wer die Schwelle je wieder über null
+        # setzt, muss vorher entdoppeln** — sonst zählt diese Wache etwas
+        # anderes, als ihr Name sagt.
         run: |
           set -o pipefail
-          cmake --build build --target lint-clazy 2>&1 | tee clazy.log
-          anzahl=$(grep -c 'warning:' clazy.log || true)
-          echo "clazy-Befunde: ${anzahl} (Schwelle 3)"
-          if [ "${anzahl}" -gt 3 ]; then
-            grep 'warning:' clazy.log
-            echo "::error::${anzahl} clazy-Befunde, erlaubt sind 3 (Altbestand vom 04.08.2026)."
+          rc=0
+          cmake --build build --target lint-clazy 2>&1 | tee clazy.log || rc=$?
+          warnungen=$(grep -c 'warning:' clazy.log || true)
+          fehler=$(grep -c 'error:' clazy.log || true)
+          echo "lint-clazy: rc=${rc} Warnungen=${warnungen} Fehler=${fehler} (Schwelle 0/0/0)"
+          if [ "${rc}" -ne 0 ] || [ "${warnungen}" -ne 0 ] || [ "${fehler}" -ne 0 ]; then
+            grep -E 'warning:|error:' clazy.log || true
+            echo "::error::lint-clazy: rc=${rc}, ${warnungen} Warnung(en), ${fehler} Fehler — erlaubt ist 0/0/0 (#76)."
+            exit 1
+          fi
+
+      - name: clang-tidy
+        # Neu mit #76. Bis dahin fehlte dieser Schritt, weil clang-tidy bei 81
+        # Altbefunden stand und ein Tor unterhalb des Ist-Standes Dauerrot wäre.
+        # Die sind geheilt oder tragen ein begründetes NOLINT, also steht das Tor
+        # jetzt auf 0.
+        #
+        # Dieselbe Dreizahl wie bei clazy, aus denselben zwei gemessenen Gründen.
+        # Für clang-tidy kommt ein dritter dazu: `grep -c` zählt **Rohzeilen**,
+        # und jede Kopfdatei wird von jeder Übersetzungseinheit erneut gemeldet —
+        # gemessen Faktor 9,4 bei performance-enum-size (7 Enums, 66 Zeilen).
+        # Bei Schwelle 0 ist das folgenlos; darüber wäre es eine Falle.
+        #
+        # Die Zahlen dieses Schritts gelten für die Standardkonfiguration.
+        # Mit -DDENKZETTEL_SPIKE_SPELLFIX=ON nimmt der Glob in CMakeLists.txt
+        # tests/spellfixspike.cpp dazu, und die Datei folgt ihrem eigenen Ziel
+        # (#76, Entscheidung 5). Der Bau oben konfiguriert ohne den Schalter.
+        run: |
+          set -o pipefail
+          rc=0
+          cmake --build build --target lint-tidy 2>&1 | tee tidy.log || rc=$?
+          warnungen=$(grep -c 'warning:' tidy.log || true)
+          fehler=$(grep -c 'error:' tidy.log || true)
+          echo "lint-tidy: rc=${rc} Warnungen=${warnungen} Fehler=${fehler} (Schwelle 0/0/0)"
+          if [ "${rc}" -ne 0 ] || [ "${warnungen}" -ne 0 ] || [ "${fehler}" -ne 0 ]; then
+            grep -E 'warning:|error:' tidy.log || true
+            echo "::error::lint-tidy: rc=${rc}, ${warnungen} Warnung(en), ${fehler} Fehler — erlaubt ist 0/0/0 (#76)."
             exit 1
           fi

@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     // the registration and is restored right after: config and data paths
     // derive from it.
     app.setApplicationName(QStringLiteral("Daemon"));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     KDBusService service(KDBusService::Unique);
     app.setApplicationName(QStringLiteral("denkzettel"));
 
@@ -64,8 +65,10 @@ int main(int argc, char *argv[])
                          capture.showCapture();
                      });
 
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     LibraryWindow library(&store);
 
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);

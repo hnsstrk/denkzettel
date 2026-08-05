@@ -6,6 +6,7 @@
 #include <QModelIndex>
 #include <QWidget>
 
+#include <cstdint>
 #include <optional>
 
 class NoteListModel;
@@ -69,7 +70,7 @@ protected:
 
 private:
     /** What a reload does with the note the list has selected. */
-    enum class Selection {
+    enum class Selection : std::uint8_t {
         /** A freshly opened library has nothing selected (wireframe 2c). */
         Clear,
         /** The open window keeps the note the user is reading. */
@@ -77,7 +78,7 @@ private:
     };
 
     /** The answers of the guard dialog over unsaved changes (wireframe 2a). */
-    enum class UnsavedAnswer {
+    enum class UnsavedAnswer : std::uint8_t {
         /** Write, then carry the triggering act out. */
         Save,
         /** Carry the triggering act out without writing. */

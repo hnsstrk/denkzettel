@@ -25,6 +25,11 @@ ShortcutRegistration shortcutRegistration(const QList<QKeySequence> &storedByThe
     return ShortcutRegistration::Reached;
 }
 
+// Healing this means changing the signature or introducing a type of its own,
+// which is design rather than tidying up (issue #76). The one case a mix-up
+// would be visible in - placeholderPage() in the empty library - gets a test
+// assurance instead, as issue #88.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &actionId)
 {
     if (desktopFilePath.isEmpty() || !QFileInfo::exists(desktopFilePath)) {
@@ -33,7 +38,7 @@ bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &ac
 
     // Both halves are needed: kglobalacceld reads the list under `Actions=`, and
     // the group is where the Exec line it starts lives.
-    KDesktopFile file(desktopFilePath);
+    const KDesktopFile file(desktopFilePath);
     return file.readActions().contains(actionId) && file.hasActionGroup(actionId);
 }
 

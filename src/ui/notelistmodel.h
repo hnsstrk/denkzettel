@@ -7,6 +7,8 @@
 #include <QList>
 #include <QString>
 
+#include <cstdint>
+
 /**
  * The notes of the library list, newest first, grouped like an inbox
  * (SPEC 9, wireframe 3a): each group of notes carries a head row above it.
@@ -29,7 +31,9 @@ class NoteListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    enum Role {
+    // The base type is named because Qt::UserRole (256) does not fit a byte;
+    // it stays wide enough for every role Qt itself hands out.
+    enum Role : std::uint16_t {
         /** The timestamp as the list shows it, see library::entryTimestamp. */
         TimestampRole = Qt::UserRole,
         /** True on the rows that carry a group heading rather than a note. */

@@ -52,6 +52,11 @@ QDateTime at(const QString &isoDateTime)
     return QDateTime::fromString(isoDateTime, Qt::ISODate);
 }
 
+// Healing this means changing the signature or introducing a type of its own,
+// which is design rather than tidying up (issue #76). The one case a mix-up
+// would be visible in - placeholderPage() in the empty library - gets a test
+// assurance instead, as issue #88.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 qint64 addNote(Store &store, const QString &content, const QString &isoDateTime)
 {
     Note note;
@@ -169,6 +174,11 @@ QString wrongTranscript()
  * character, and the picture would then show a cursor position the running
  * application never produces.
  */
+// Healing this means changing the signature or introducing a type of its own,
+// which is design rather than tidying up (issue #76). The one case a mix-up
+// would be visible in - placeholderPage() in the empty library - gets a test
+// assurance instead, as issue #88.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void correct(QPlainTextEdit *editor, const QString &misheard, const QString &meant)
 {
     const QTextCursor found = editor->document()->find(misheard);
@@ -206,7 +216,8 @@ int main(int argc, char **argv)
     const QTemporaryDir configuration;
     qputenv("XDG_CONFIG_HOME", configuration.path().toLocal8Bit());
 
-    const QApplication app(argc, argv);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("denkzettel"));
 
     // Note on the symbols of the guard dialog: this bench can show them again
