@@ -1,0 +1,10 @@
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+FAIL!  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() Compared values are not the same
+   Actual   (edit->toolTip())                                     : ""
+   Expected (QStringLiteral("Notiz bearbeiten (%1)").arg(editKey)): "Notiz bearbeiten (F2)"
+   Loc: [/home/hnsstrk/Projekte/denkzettel-71/tests/librarytest.cpp(3369)]
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 2 passed, 1 failed, 0 skipped, 0 blacklisted, 23ms
+********* Finished testing of LibraryTest *********

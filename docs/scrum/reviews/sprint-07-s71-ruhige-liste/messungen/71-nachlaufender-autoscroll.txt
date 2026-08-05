@@ -1,0 +1,20 @@
+SZENE11 Doppelklick-Intervall: 400 ms
+SZENE11 nach    0 ms: Rollwert 6, markiert 14
+SZENE11 nach   50 ms: Rollwert 6, markiert 14
+SZENE11 nach  100 ms: Rollwert 6, markiert 14
+SZENE11 nach  150 ms: Rollwert 6, markiert 14
+SZENE11 nach  200 ms: Rollwert 6, markiert 14
+SZENE11 nach  250 ms: Rollwert 6, markiert 14
+SZENE11 nach  300 ms: Rollwert 6, markiert 14
+SZENE11 nach  350 ms: Rollwert 6, markiert 14
+SZENE11 nach  400 ms: Rollwert 6, markiert 14
+SZENE11 nach  450 ms: Rollwert 6, markiert 14
+SZENE11 nach  500 ms: Rollwert 6, markiert 14
+SZENE11 nach  550 ms: Rollwert 7, markiert 14
+SZENE11 nach  600 ms: Rollwert 7, markiert 14
+SZENE11 nach  650 ms: Rollwert 7, markiert 14
+SZENE11 nach  700 ms: Rollwert 7, markiert 14
+SZENE11 nach  750 ms: Rollwert 7, markiert 14
+SZENE11 nach  800 ms: Rollwert 7, markiert 14
+SZENE11 nach  850 ms: Rollwert 7, markiert 14
+SZENE11 nach  900 ms: Rollwert 7, markiert 14

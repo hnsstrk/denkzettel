@@ -1,0 +1,7 @@
+# Gebietsabhaengigkeit des Kuerzeltextes (#72, Falle 1)
+## LANG=de_DE.UTF-8
+QINFO  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() SONDE Tooltips: [Notiz bearbeiten (F2)] [Notiz löschen (Entf)]
+Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 581ms
+## LANG=C
+QINFO  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() SONDE Tooltips: [Notiz bearbeiten (F2)] [Notiz löschen (Del)]
+Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 582ms
