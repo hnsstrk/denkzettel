@@ -37,8 +37,13 @@ verfälscht eine Ersatzschrift die Größenverhältnisse.
 **Ein offscreen erzeugtes Bild zeigt nicht, was der Kunde sieht** (B21). Es
 belegt Geometrie, Textsatz und Farbrollen; es belegt **nicht** Hülle, Rundung,
 Kontur, Schatten oder Dekoration — die zeichnen Theme und Compositor, und
-offscreen fehlt beiden die Grundlage (gemessen: `tinted()` verliert offscreen
-den Alphakanal, unter Wayland nicht). Zweierlei folgt daraus: Ein Bild, das als
+offscreen fehlt beiden die Grundlage (gemessen am 04.08.2026 an `tinted()`, das
+offscreen den Alphakanal verlor und unter Wayland nicht — **die Funktion ist mit
+#83 gefallen, die Messung gilt**; seit dem 05.08.2026 tragen drei
+Mutationsproben von #83 dieselbe Aussage: ohne `DevicePixelRatioChange`-Zweig,
+ohne `nullptr`-Wache und ohne Weichzeichner-Anmeldung bleibt der Testlauf
+offscreen **grün** und fällt in der Sitzung — Rückgabe 139 im zweiten Fall).
+Zweierlei folgt daraus: Ein Bild, das als
 Beleg dient, läuft mit `QT_SCALE_FACTOR` auf der Skalierung des Kunden — und wo
 ein Akzeptanzkriterium über Theme oder Compositor etwas behauptet, gehört ein
 Bild aus der angemeldeten Sitzung dazu.
