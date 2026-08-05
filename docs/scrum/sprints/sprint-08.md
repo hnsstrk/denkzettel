@@ -113,6 +113,92 @@ Entscheidungen K1 bis K6 stehen in `sprint-07.md` §6.
 | **Zehn neue Issues** #86–#95, dazu #96 | im Backlog geblieben, kein Zugang in einen laufenden Sprint |
 | **Zwei Prüfmittel-Fallen** (gesperrte Sitzung, Vollbild-Prüfgrund) | als Punkte 8 und 9 in `denkzettel-dev.md` verankert |
 
+## 5a. Lieferung
+
+Alle drei Stränge zusammengeführt, jeder mit `--no-ff`. **Bau warnungsfrei,
+`ctest` 9 von 9** (zwei neue Testbinärdateien aus #61), **`lint-tidy` und
+`lint-clazy` je null** — am gemergten Stand vom PO selbst nachgemessen.
+
+| Strang | Commits | Was |
+|---|---|---|
+| **A** (#85) | 2 | Beide Textklassen nehmen ihre Farbe aus derselben Quelle wie die Fläche. `KSvg::Svg::color()` mit gesetztem `colorSet` für den Notiztext, der KConfig-Weg für die gedämpfte Klasse — für `ForegroundInactive` hat KSvg kein Gegenstück |
+| **B** (#61) | 4 | `denkzetteld --version` antwortet **`denkzettel 0.1.0`**. Die Nummer steht weiter allein in `project(… VERSION …)` und wird durchgereicht; `KAboutData` trägt sie |
+| **C** (#76) | 7 | 88 Befunde geheilt, **37 `NOLINT` in vier Klassen** begründet stehengelassen, beide Linter auf null. `ci.yml` prüft die Dreizahl, DoD 1 nennt die Schwelle |
+
+### Was #61 besser gemacht hat als verlangt
+
+Die Story sollte die Namensfalle **umgehen**. Sie hat sie **beseitigt**:
+`KAboutData::setApplicationData()` schreibt Organisationsdomäne und
+Desktop-Dateinamen mit, und seine Vorgaben (`kde.org`, `org.kde.denkzettel`)
+hätten den Busnamen aus SPEC 2.3 und den Kürzel-Komponentennamen aus SPEC 2.4
+gebrochen — **ohne dass ein Rückgabewert es meldet**. Statt daneben
+gegenzusteuern, setzt die Registrierung beide Werte am `KAboutData`-Objekt, und
+`main.cpp` setzt sie nicht mehr doppelt. **Vorher entschieden zwei Setzer die
+Frage nach Zeilenreihenfolge; jetzt steht der Wert an einer Stelle.**
+
+### Der vierte `NOLINT`-Fall — die Entscheidung, an der der Sprint hing
+
+AK 4 von #76 verlangt: *„ein vierter Fall geht als Frage an den PO, nicht als
+stiller `NOLINT`."* Der Fall trat ein, und er war der schwerste des Sprints.
+
+`misc-const-correctness` schlägt `const` auf Objekten vor, die über eine
+Qt-Verbindung verändert werden — der Prüfer sieht die Änderung nicht, weil
+`connect`, `QSignalSpy` und `QTest::qExec` ihr Ziel als `const QObject *` nehmen
+und intern `const_cast`en. Der Maschinenfix hatte es an zwanzig Stellen getan.
+
+**Der Fall, der es entschieden hat:**
+
+```cpp
+DialogWatch() {
+    QObject::connect(&m_timer, &QTimer::timeout, &m_timer, [this] {
+        …  m_appeared = true;          // schreibt in ein const-Objekt
+    });
+}
+…
+const DialogWatch watch;
+QVERIFY2(!watch.appeared(), "…");     // darf der Compiler auf wahr falten
+```
+
+**PO-Entscheidung K10: `const` zurücknehmen, `NOLINT` mit gemeinsamer
+Begründung, Regel als Kommentar in `.clang-tidy`.** Die Alternative, die auf
+null Befunde käme, hieße einen Test stehen zu lassen, dessen Zusicherung ein
+Optimierer aushebeln darf — **ein grüner Test, der nichts prüft, um eine Zahl
+schöner zu machen.**
+
+**Zur Ehrlichkeit der Entscheidungsgrundlage:** Der Strang hat versucht, den
+Fall mit einem `-O2`-Lauf **hart zu belegen, und ist gescheitert** — die
+betroffenen Tests laufen im Release grün. Er hat das mit negativem Ausgang in
+den Bericht geschrieben und als eigene Grenze geführt. Die Entscheidung ruht
+damit auf der Sprachnorm und dem gelesenen Änderungsweg, **nicht auf einem
+Messwert**. Das steht hier, weil es sonst stärker aussähe, als es ist.
+
+*Zwei Berichtigungen des PO durch den Strang, beide angenommen:* Es sind
+**zwanzig** Stellen, nicht sechzehn — die Zahl des PO stammte aus einem
+Maschinendiff, nicht aus einer Erhebung, und vier gleichlautende Zeilen standen
+schon vorher da. Und die Regel in `.clang-tidy` ist weiter gefasst als
+„QObject-Abkömmling", **weil `DialogWatch` keiner ist** — die vom PO diktierte
+Fassung hätte ihren eigenen Kronzeugen nicht gedeckt.
+
+### Der wertvollste Fund des Sprints stand in keinem Kriterium
+
+**Im Release-Bau gehen Kategorien verloren.** Zwei Prüfsätze fallen mit `-O2`
+(`ctest` 8/9), im Debug-Bau nicht; die Anzeige zeigt „Kategorie —",
+`saved->category` ist leer. **Das besteht auf `main` vor diesem Sprint** und ist
+vom PO unabhängig nachgemessen.
+
+Gefunden hat es ein Strang, der aus einem ganz anderen Grund einen Release-Bau
+brauchte. **In acht Sprints hat nie jemand mit `-O2` gebaut** — DoD 1, der
+öffentliche Lauf und der installierte Stand bauen alle `Debug`. Gebucht als
+**#99**; den Kunden trifft es heute nicht, jedes Paket aber schon.
+
+### Prüfsummen der Bildbelege
+
+Drei Gruppen im UI-Belegordner, alle einzeln beurteilt, **kein Mangel**:
+`breeze-dark` und `default` erzeugen dasselbe Bild, weil die Themefarbe dort
+gemessen der Schemafarbe **gleicht**; und die Bytegleichheit von
+`wechsel-2` und `wechsel-3` ist **der Nachweis von AK 7** — nach einem
+Schemawechsel bleibt die Themefarbe —, nicht sein Verstoß.
+
 ## 6. DoD-Prüfung
 
 *(Takt 1, vor der Abnahme — wird beim Sprint-Ende gefüllt)*
