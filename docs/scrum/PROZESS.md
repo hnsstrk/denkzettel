@@ -400,9 +400,19 @@ PO aus.
   baut und testet bei jedem Push auf `main`, bei jedem Pull Request und auf
   Abruf. Er läuft in einem Arch-Container, also im selben rollenden
   Paketstrom wie die Entwicklungsmaschine, und schlägt fehl bei **Baufehler,
-  bei jeder Compiler-Warnung und bei jedem roten Test**. Die Warnungsschwelle
-  steht auf null, weil sie am 04.08.2026 an einem Neubau gemessen null war —
-  eine Schranke oberhalb des gemessenen Standes wäre keine.
+  bei jeder Compiler-Warnung, bei jedem roten Test und bei jedem
+  Linterbefund**. Die Warnungsschwelle steht auf null, weil sie am 04.08.2026
+  an einem Neubau gemessen null war — eine Schranke oberhalb des gemessenen
+  Standes wäre keine.
+  **Die beiden Linterschwellen stehen seit #76 (05.08.2026) ebenfalls auf
+  null**, `lint-clazy` heruntergezogen von 3 und `lint-tidy` als neuer
+  Schritt. Beide Wachen prüfen die **Dreizahl** — Rückgabewert, Zahl der
+  Warnungen, Zahl der Fehler —, weil keine der Zahlen allein trägt: Der
+  Rückgabewert meldet Befunde nicht (clazy liefert rc=0 auch mit Befunden),
+  und eine Zählung meldet den stillen Nulllauf nicht (eine abgebrochene
+  Übersetzungseinheit liefert null Befunde über Dateien, die nie analysiert
+  wurden). Die Schwelle steht zusätzlich in DoD 1, damit sie nicht wieder
+  allein in einer YAML-Datei lebt.
   *Warum das der Punkt ist, an dem der PR-Probelauf scheiterte:* Von dessen
   Abbruchkriterium war dies die Hälfte, die **keine Disziplin** verlangt. Die
   andere Hälfte — Berichte und Befunde am PR — ist an genau der Disziplin
@@ -424,6 +434,21 @@ PO aus.
    Tests grün (auf Ganymed). Jede Aussage des Wireframes über die
    Raumaufteilung einer Ansicht ist als Geometrie-Zusicherung im Test
    festgehalten, geprüft bei zwei Fenstergrößen (offscreen genügt).
+   **Die Linterschwelle ist null** (seit #76, 05.08.2026): `lint-tidy` und
+   `lint-clazy` liefern in der Standardkonfiguration
+   (`-DDENKZETTEL_SPIKE_SPELLFIX=OFF`) je **rc=0, null Warnungen, null
+   Fehler**. Sie stand vorher allein in `ci.yml`, und „warnungsarm" hier sagte
+   über die Linter nichts — eine entdeckte Bedingung nach DoD 4/B9.
+   **Drei Zahlen und nicht eine, beide Lücken gemessen:** `rc` allein ist kein
+   Befundurteil (`clazy-standalone` liefert rc=0 auch mit Befunden), eine Zahl
+   allein ist kein Vollständigkeitsurteil (fehlt eine `.moc`-Datei, bricht die
+   Übersetzungseinheit ab und der Zähler meldet **null** Befunde über Dateien,
+   die nie analysiert wurden). **Ein Befund darf nur mit `NOLINT` und
+   danebenstehender Begründung stehenbleiben**; ein Fall, den die bestehenden
+   Begründungen nicht decken, geht an den PO und nicht in ein stilles `NOLINT`.
+   Ein Sprung von clang oder clazy bringt neue Prüfungen mit und färbt den Lauf
+   rot, ohne dass jemand etwas geändert hat — das ist die beabsichtigte
+   Frühwarnung und kein Grund, die Schwelle zu heben.
 2. Akzeptanzkriterien des Issues erfüllt und vom PO abgenommen. Vor der
    Übergabe hat der Entwickler den gebauten Stand selbst gestartet, den
    Hauptweg der Story einmal ausgeführt und den Nachweis in den Bericht
