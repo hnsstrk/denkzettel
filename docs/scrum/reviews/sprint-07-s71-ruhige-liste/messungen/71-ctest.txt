@@ -1,0 +1,8 @@
+1/7 Test #1: appstreamtest ....................   Passed    0.01 sec
+2/7 Test #2: storetest ........................   Passed    0.02 sec
+3/7 Test #3: capturetest ......................   Passed    0.21 sec
+4/7 Test #4: librarytest ......................   Passed    5.51 sec
+5/7 Test #5: shelltest ........................   Passed    0.07 sec
+6/7 Test #6: firstruntest .....................   Passed    0.01 sec
+7/7 Test #7: installtest ......................   Passed    0.02 sec
+100% tests passed out of 7
