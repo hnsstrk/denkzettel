@@ -5,7 +5,8 @@
 `bash docs/scrum/reviews/sprint-08-s76-linterbefunde/pruefen.sh`
 
 **Werkzeugstand** (B17 — eine Aussage gilt für einen Stand): clang 22.1.8,
-clazy 1.17.1, cmake 4.1.2, qt6-base 6.11.1.
+clazy 1.17.1, cmake 4.4.2, qt6-base 6.11.1 (selbst abgefragt, nicht aus der
+Vorprüfung übernommen — dort stand cmake 4.1.2).
 
 **Schalterstellung, für die „0" gilt:** `-DDENKZETTEL_SPIKE_SPELLFIX=OFF`, die
 Standardkonfiguration. Ohne diesen Zusatz ist „0" keine Aussage; die Gegenprobe

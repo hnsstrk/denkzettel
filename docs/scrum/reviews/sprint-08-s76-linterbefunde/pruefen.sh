@@ -23,11 +23,16 @@ set -o pipefail
 
 HIER="$(cd "$(dirname "$0")" && pwd)"
 WURZEL="$(cd "$HIER/../../../.." && pwd)"
-MESS="$HIER/messungen"
 ARBEIT="${TMPDIR:-/tmp}/denkzettel-76-pruefung"
+# Die Ausgabe dieses Laufs geht NICHT nach messungen/ daneben. Dort steht der
+# Nachweis des Laufs vom 05.08.2026, gegen den verglichen wird; ein Wiederholer
+# soll ihn lesen und nicht überschreiben.
+MESS="$ARBEIT/messungen"
 BAU="$ARBEIT/build"
 BAU_SPIKE="$ARBEIT/build-spike"
 mkdir -p "$MESS" "$ARBEIT"
+echo "Ausgabe dieses Laufs: $MESS"
+echo "Nachweis vom 05.08.2026 zum Vergleich: $HIER/messungen"
 
 echo "== Stand und Werkzeuge =="
 git -C "$WURZEL" log --oneline -1
