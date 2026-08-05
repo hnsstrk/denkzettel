@@ -775,10 +775,17 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         //
         // It crosses a group boundary — that is what AK 7 and wireframe 3b,
         // case 4 ask for, and what the first selection after opening or
-        // rebuilding counts as, its predecessor being none. Moving within a
-        // group fetches nothing: the user has rolled the list to where he
-        // wants it, and one arrow key must not throw that away, least of all
-        // against the direction he presses in.
+        // rebuilding counts as, its predecessor being none — or it reaches the
+        // first note of its group, which needs no boundary to be crossed: the
+        // key can walk up to it from within the same group, and then nothing
+        // fetched the head (issue #70, customer decision of 04.08.2026). Under
+        // „Heute" and „Gestern" an entry carries nothing but the time, so with
+        // the head outside there stands „08:00" and nothing says of which day —
+        // the timestamp rule of SPEC 9 counts on the head being there.
+        //
+        // Otherwise moving within a group fetches nothing: the user has rolled
+        // the list to where he wants it, and one arrow key must not throw that
+        // away, least of all against the direction he presses in.
         //
         // Whether the entry is in the picture already does not enter into it.
         // A note can stand in full view while its head sits just above the
@@ -792,7 +799,14 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
         const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
 
-        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
+        // Told by the structure, not by pixels: a head always stands
+        // immediately above the first note of its group, so one row up is the
+        // whole test. No measure of how far the head misses the picture enters
+        // into it — that number belongs to a screen, and every screen has its
+        // own (issue #70).
+        const bool isFirstOfItsGroup = head.isValid() && head.row() == index.row() - 1;
+
+        if (head.isValid() && (crossesAGroupBoundary || isFirstOfItsGroup) && !m_selectionFollowsAPress) {
             const QRect heading = m_list->visualRect(head);
             const QRect selected = m_list->visualRect(index);
             if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {

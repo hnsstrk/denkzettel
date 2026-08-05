@@ -184,6 +184,8 @@ private Q_SLOTS:
     void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
     void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
     void keepsTheHeadFetchAfterAClickThatSelectedNothing();
+    void bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGroup();
+    void leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked();
     void selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs();
     void dropsTheMarkOfAPressThatSelectedNothingWhenItEnds();
     void bringsBackTheHeadWhenTheDeletionIsUndone();
@@ -1665,6 +1667,121 @@ void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
     QCOMPARE(list->currentIndex(), target);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
              qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
+}
+
+void LibraryTest::bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGroup()
+{
+    // Issue #70: the arrow key walks up to the first note of a group without
+    // crossing a boundary — the note above it in the same group is where it
+    // comes from — and until now nothing fetched the head. Under "Heute" and
+    // "Gestern" an entry carries nothing but the time, so with the head outside
+    // there stands „08:00" and nothing says of which day (SPEC 9, timestamps).
+    //
+    // Measured against the roll value before and after the key, not against a
+    // picture: the scrollTo(selection) that follows makes both cases look right
+    // in a picture, and only the movement between them tells them apart.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // The selection sits on the second note of "Letzte Woche", and the user has
+    // rolled the list so that the head of the group stands above the upper
+    // edge. The note the key is about to reach is in the picture already — the
+    // very case in which fetching the head looks like waste and is not.
+    const QModelIndex first = noteRow(list, 11);
+    list->setCurrentIndex(noteRow(list, 12));
+    const QModelIndex head = modelOf(list)->index(first.row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Letzte Woche"));
+
+    list->verticalScrollBar()->setValue(first.row());
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1 — der Fall verlangt ihn außerhalb")
+                            .arg(list->visualRect(head).y())));
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(first)));
+
+    QTest::keyClick(list, Qt::Key_Up);
+
+    QCOMPARE(list->currentIndex(), first);
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1, Bild %2 hoch")
+                            .arg(list->visualRect(head).y())
+                            .arg(list->viewport()->height())));
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(first)),
+             qPrintable(QStringLiteral("Auswahl bei y=%1, Bild %2 hoch")
+                            .arg(list->visualRect(first).y())
+                            .arg(list->viewport()->height())));
+}
+
+void LibraryTest::leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked()
+{
+    // What #70 has to keep out: its new trigger must not reach the mouse. The
+    // one click test with a head assertion aims at the last note of a group, so
+    // the first note of one appeared in no test at all.
+    //
+    // Since #71 a click moves the list for nothing at all, so "no jump on a
+    // click" is held there; what is measured here is that the head is not
+    // fetched for a press either, and it is measured before and after the
+    // click, not on the end state.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    const QModelIndex first = noteRow(list, 11);
+    const QModelIndex head = modelOf(list)->index(first.row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Letzte Woche"));
+
+    // Selection elsewhere, head rolled out of the picture, the note to be
+    // clicked fully in it.
+    list->setCurrentIndex(noteRow(list, 2));
+    list->verticalScrollBar()->setValue(first.row());
+    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(first)));
+
+    const int rolledTo = list->verticalScrollBar()->value();
+    const int firstBefore = list->visualRect(first).y();
+
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(first).center());
+
+    QCOMPARE(list->currentIndex(), first);
+    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+    QCOMPARE(list->visualRect(first).y(), firstBefore);
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1 — für den Mausdruck darf er nicht kommen")
+                            .arg(list->visualRect(head).y())));
 }
 
 void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs()
