@@ -218,6 +218,21 @@ keine Lesbarkeit zu.
 - **Fläche** die des Themes, **eine durchgehende** — kein Kasten im Kasten.
   Sie deckt nicht notwendig: `default` deckt zu 84,7 %, andere Themes zu 2,7 %
   bis 100 %. „Geschlossen" heißt hier vollständig, nicht undurchsichtig.
+  **Diese Festlegung steht unter Kundenbefund** (05.08.2026, Issue #100: „Das
+  Erfassungsfenster ist ein Farbblock. Der Eingabebereich ist nicht klar
+  erkennbar"). Sie bleibt gültig, bis eine andere an ihre Stelle tritt; ihre
+  Begründung ist am 06.08.2026 überprüft worden und trägt nur zur Hälfte. Dass
+  **keine Palettenrolle** einen zweiten Kasten konturieren kann, ist über 18
+  Schemata gemessen und bleibt richtig. Dass die KDE HIG einen solchen Kasten
+  **ablehnten**, ist falsch: *Getting input*, Abschnitt *Signaling
+  interactivity*, verlangt das Gegenteil („Use standard controls as much as
+  possible to automatically inherit this style of visual interactivity"), und
+  Plasmas eigenes Eingabefeld — der Maßstab des Kunden, KRunner — zeichnet
+  seine Fläche und seine Kante über `widgets/lineedit`, Vorsatz `base`. Diese
+  Grafik gehört derselben Quelle an wie die Hülle und liegt unter `default`
+  bei 1,39 : 1 Fläche und 1,33 : 1 Kante gegen die Hülle; im Sitzungsbild
+  desselben Fensters neben KRunner sind es 1,41 : 1. Belege und Vorlage:
+  `docs/scrum/reviews/2026-08-06-lesbarkeit/`.
 - **Kontur** ist keine eigene Linie mehr. Die Theme-Grafik zeichnet an ihrem
   Rand dieselbe Farbe wie in der Fläche und unterscheidet sich allein in der
   Deckung (gemessen unter `default`: 235 gegen 216 von 255). Der Rand des
@@ -253,6 +268,14 @@ keine Lesbarkeit zu.
   16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
   mehr Luft (12) als unter dem App-Namen (8); seit dem Entfall der Trennlinie
   ist dieser Unterschied die gesamte Gliederung.
+  **Der Halbsatz nach dem Semikolon beschreibt den Zustand, den Issue #100
+  beanstandet** (05.08.2026) — die Maßangaben davor gelten unverändert. Der
+  Entfall der Trennlinie war am 01.08.2026 mit drei Gründen belegt; der dritte
+  berief sich auf eine HIG-Aussage, die es nicht gibt, und ist am 06.08.2026
+  zurückgezogen (Wireframe 4b). Die beiden anderen tragen weiter, und der
+  erste ist zugleich enger als er klang: Er gilt für **Palettenrollen**, nicht
+  für jede Farbe. Die Kirigami-Mischung aus Grund und Textfarbe im Verhältnis
+  `frameContrast` liegt über 18 Schemata zwischen 1,24 : 1 und 1,93 : 1.
 
 **Rundung und Rand sind keine Zahlen dieser Spezifikation.** Sie gehören dem
 Theme. Zugesichert wird **relativ**: Bei zwei Desktop-Themes mit
