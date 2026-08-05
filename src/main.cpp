@@ -1,4 +1,5 @@
 #include "capture/capturewindow.h"
+#include "shell/appidentity.h"
 #include "shell/daemonservice.h"
 #include "shell/firstrun.h"
 #include "shell/globalshortcuts.h"
@@ -18,19 +19,26 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    app.setOrganizationDomain(QStringLiteral("denkzettel.org"));
-    app.setApplicationName(QStringLiteral("denkzettel"));
-    // Wayland uses the desktop file as the application id, and KGlobalAccel
-    // names its component after it (SPEC 2.4) — the file itself is installed
-    // from desktop/.
-    app.setDesktopFileName(QStringLiteral("org.denkzettel.Denkzettel"));
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
+    // Name, version, organisation domain and desktop file in one place —
+    // shell/appidentity.cpp says why they may not be set anywhere else.
+    registerApplicationIdentity();
+
+    // Before KDBusService below, and that order carries the whole option
+    // handling: with a running daemon the single-instance switch hands a second
+    // start over to the first process, so --version would open a capture window
+    // there instead of writing a line here — and return 0 while doing it
+    // (measured, docs/scrum/vorberichte/61-versionsanzeige/, F2/F3). Without a
+    // reachable session bus KDBusService ends the process with 1, so the
+    // version would not appear in the automated run either.
+    processCommandLineArguments(app);
+
     app.setQuitOnLastWindowClosed(false);
     // The bundled copy covers runs from the build directory, before the icon
     // is installed into any theme (issue #43).
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("denkzettel"),
                                        QIcon(QStringLiteral(":/icons/denkzettel.svg"))));
-
-    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
 
     // KDBusService builds the bus name from the reversed organization domain
     // plus the application name (see kdbusservice.h). SPEC 2.3 fixes that name
