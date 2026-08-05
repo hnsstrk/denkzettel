@@ -1,0 +1,20 @@
+M5 — AK 2 am wirklichen Fall: Aufnahme der angemeldeten Sitzung über einem
+benannten Grund. Stand: 2026-08-05 20:10 CEST, Ganymed, Wayland, ohne
+QT_SCALE_FACTOR. kwin 6.7.3-1.1, ksvg 6.28.0-1.1
+
+### Lage der Sitzung zur Messzeit
+Type=wayland
+Active=yes
+LockedHint=yes
+ScreenSaver GetActive: b true
+
+### Lauf über weissem Grund
+=== Vorprüfung #85, Sitzungsbeleg über benanntem Grund ===
+Plattform : wayland
+Theme     : cachyos-emerald-light
+Grund     : weiss (255,255,255)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+ABBRUCH: Die Aufnahme zeigt den Grund nicht (Abweichung 765 Zählschritte).
+Ist der Bildschirm gesperrt? Dann ist jede Aufnahme schwarz, und jede Zahl
+aus ihr wäre erfunden. Prüfen mit: loginctl show-session … -p LockedHint
+Rückgabe: 3

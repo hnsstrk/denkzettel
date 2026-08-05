@@ -144,6 +144,16 @@ QColor ksvgTextfarbe(const QString &theme, KSvg::Svg::StyleSheetColor rolle)
 
 int main(int argc, char **argv)
 {
+    // Der Testmodus ist hier zuschaltbar, weil er die Messung verschiebt und
+    // nicht nur den Ablageort: `QStandardPaths::setTestModeEnabled(true)` biegt
+    // GenericConfigLocation um, damit findet Qt die `kdeglobals` des Kunden
+    // nicht mehr, und die Anwendung läuft auf der Ersatzpalette. Ein Theme, das
+    // dem Farbschema folgt, folgt dann einem anderen Schema als dem, über das
+    // die Story spricht. Genau in diesem Modus laufen die Tests des Projekts.
+    const bool testmodus = qEnvironmentVariableIntValue("DENKZETTEL_SONDE_TESTMODUS") == 1;
+    if (testmodus) {
+        QStandardPaths::setTestModeEnabled(true);
+    }
     QGuiApplication app(argc, argv);
     const QStringList themes = app.arguments().mid(1);
 

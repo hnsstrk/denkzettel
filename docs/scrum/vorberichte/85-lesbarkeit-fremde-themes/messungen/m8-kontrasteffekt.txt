@@ -1,0 +1,24 @@
+M8 — Hat die Kontrast-Anmeldung auf diesem Stand überhaupt einen Empfänger?
+Stand: 2026-08-05 20:15 CEST, Ganymed. kwin 6.7.3-1.1.
+Anlass: Die drei cachyos-emerald-Themes zeichnen 2,7 % Deckung und fordern
+in ihrer eigenen Beschreibung einen [ContrastEffect]. Ob der wirkt, hat
+Strang A als Impediment gemeldet (Übergabebericht #83, §4 Punkt 1).
+
+### Globale des Compositors
+interface: 'ext_background_effect_manager_v1',           version:  1, name: 58
+
+### KWin selbst gefragt
+isEffectLoaded(blur)              : b true
+isEffectLoaded(backgroundcontrast): b false
+isEffectLoaded(contrast)          : b false
+
+### Kennt dieser KWin überhaupt einen Kontrasteffekt?
+Treffer 'contrast' in listOfEffects (54 Einträge): 0
+0
+geladene Effekte mit 'blur' oder 'contrast':
+  blur
+
+Befund: 'blur' ist geladen, ein Kontrasteffekt steht nicht einmal in der
+Liste der 54 bekannten Effekte. enableBackgroundContrast() hat auf diesem
+Stand keinen Empfänger — was die durchsichtigen Themes lesbar machen
+sollte, ist nicht vorhanden.

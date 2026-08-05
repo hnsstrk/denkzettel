@@ -1,0 +1,22 @@
+=== clang-tidy auf den drei Capture-Dateien — Stand 717f077, 05.08.2026 20:10 CEST ===
+Datenbank: build/lint/compile_commands.json (Stand 04.08.2026, also VOR #83)
+
+--- src/capture/capturewindow.cpp ---
+  src/capture/capturewindow.cpp:17:10: error: 'QDBusConnection' file not found [clang-diagnostic-error]
+  src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+
+--- tests/capturetest.cpp ---
+  src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  tests/capturetest.cpp:349:10: warning: pointee of variable 'label' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+  tests/capturetest.cpp:539:5: warning: pointee of variable 'text' of type 'QPlainTextEdit *' can be declared 'const' [misc-const-correctness]
+  tests/capturetest.cpp:569:5: warning: pointee of variable 'text' of type 'QPlainTextEdit *' can be declared 'const' [misc-const-correctness]
+  tests/capturetest.cpp:607:5: warning: pointee of variable 'appName' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+  tests/capturetest.cpp:608:5: warning: pointee of variable 'footer' of type 'QLabel *' can be declared 'const' [misc-const-correctness]
+
+--- tests/captureshots.cpp ---
+  src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  tests/captureshots.cpp:151:5: warning: variable 'app' of type 'QApplication' can be declared 'const' [misc-const-correctness]
+

@@ -18,3 +18,4 @@ build-install/
 # deaktiviert (Sprint-2-Retro, 9.6). Lokale Einstellungen gehören nicht ins
 # Projekt -- eine geteilte Konfiguration nähme man bewusst auf.
 .claude/settings.json
+build-*/

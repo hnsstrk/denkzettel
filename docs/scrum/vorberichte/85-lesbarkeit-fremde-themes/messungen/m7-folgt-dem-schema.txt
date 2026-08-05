@@ -1,0 +1,61 @@
+M7 — Folgt die Flächenfarbe dem Farbschema? Zwei Schemata, acht Themes.
+Stand: 2026-08-05 20:12 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Ein Theme folgt dem Schema nur, wenn es sich MIT dem Schema aendert.
+Eine Messung unter EINEM Schema kann das nicht zeigen — sie zeigt nur
+Uebereinstimmung, und die kann Zufall sein. Genau der Zufall steht in der
+Tabelle des Issues (CachyOS-Nord-round unter dem Nord-Schema).
+
+############ Farbschema BreezeLight
+Farbschema der Anwendung: Window 239,240,241/a255  WindowText 35,38,41/a255  PlaceholderText 112,125,138/a255
+==== default
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+  gezeichnet lose       : 240,240,241/a216
+==== breeze-dark
+  KSvg::Svg::color(Text): 252,252,252/a255   == Themeschrift
+  gezeichnet lose       : 32,35,38/a216
+==== breeze-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift   == Themeschrift
+  gezeichnet lose       : 240,240,241/a216
+==== CachyOS-Nord-round
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+  gezeichnet lose       : 30,34,51/a255
+==== Iridescent-round
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a51
+==== cachyos-emerald
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a7
+==== cachyos-emerald-color
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+==== cachyos-emerald-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+
+############ Farbschema CachyOSNordLightly
+Farbschema der Anwendung: Window 30,34,51/a255  WindowText 102,194,242/a255  PlaceholderText 102,106,115/a255
+==== default
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+  gezeichnet lose       : 30,34,51/a216
+==== breeze-dark
+  KSvg::Svg::color(Text): 252,252,252/a255   == Themeschrift
+  gezeichnet lose       : 32,35,38/a216
+==== breeze-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  gezeichnet lose       : 240,240,241/a216
+==== CachyOS-Nord-round
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+  gezeichnet lose       : 30,34,51/a255
+==== Iridescent-round
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a51
+==== cachyos-emerald
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a7
+==== cachyos-emerald-color
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+==== cachyos-emerald-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+

@@ -15,8 +15,8 @@
  * ändert ein Theme-Wechsel die Fläche und lässt die Schrift stehen.
  *
  * Schreibt nur in ein eigenes Verzeichnis, nichts in die Einstellungen des
- * Kunden. `QStandardPaths::setTestModeEnabled(true)` hält auch das Lesen von
- * `plasmarc` aus dem Weg — das Theme wird hier ausdrücklich übergeben.
+ * Kunden: der Aufrufer setzt XDG_CONFIG_HOME auf eine Kopie. Das Theme wird
+ * ausdrücklich übergeben, `plasmarc` also gar nicht gebraucht.
  *
  * Aufruf: fenstertext <theme> [<theme> …]
  */
@@ -69,7 +69,9 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
     const QStringList themes = app.arguments().mid(1);
 
-    QStandardPaths::setTestModeEnabled(true);
+    // Kein Testmodus: er schneidet das Farbschema des Kunden ab, und `default`
+    // folgt genau diesem Schema (gemessen, M3). Das Schema kommt aus einem
+    // eigenen XDG_CONFIG_HOME mit einer Kopie seiner kdeglobals.
     QDir().mkpath(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation));
 
     QTemporaryDir dir;

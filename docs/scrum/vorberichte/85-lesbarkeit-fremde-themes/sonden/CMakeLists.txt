@@ -44,3 +44,37 @@ target_link_libraries(fenstertext PRIVATE
     KF6::Svg
     KF6::WindowSystem
 )
+
+# Färbt ein lebendes Fenster einen Bildsatz daneben — und zieht die Farbe beim
+# Theme-Wechsel nach?
+add_executable(nebenlauf nebenlauf.cpp)
+target_include_directories(nebenlauf PRIVATE "${DENKZETTEL_QUELLE}")
+target_link_libraries(nebenlauf PRIVATE
+    "${DENKZETTEL_BUILD}/lib/libdenkzettelcapture.a"
+    "${DENKZETTEL_BUILD}/lib/libdenkzettelstore.a"
+    Qt6::Widgets
+    Qt6::DBus
+    Qt6::Sql
+    KF6::ConfigCore
+    KF6::CoreAddons
+    KF6::I18n
+    KF6::Svg
+    KF6::WindowSystem
+)
+
+# Der Kern von AK 2: Kontrast aus einer Aufnahme der angemeldeten Sitzung über
+# einem benannten Grund.
+add_executable(sitzungsgrund sitzungsgrund.cpp)
+target_include_directories(sitzungsgrund PRIVATE "${DENKZETTEL_QUELLE}")
+target_link_libraries(sitzungsgrund PRIVATE
+    "${DENKZETTEL_BUILD}/lib/libdenkzettelcapture.a"
+    "${DENKZETTEL_BUILD}/lib/libdenkzettelstore.a"
+    Qt6::Widgets
+    Qt6::DBus
+    Qt6::Sql
+    KF6::ConfigCore
+    KF6::CoreAddons
+    KF6::I18n
+    KF6::Svg
+    KF6::WindowSystem
+)

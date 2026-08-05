@@ -361,12 +361,182 @@ ist wie eine Regel, die niemand liest.**
 
 ## 7. DoD-Prüfung
 
-*(Takt 1, vor der Abnahme — wird beim Sprint-Ende gefüllt)*
+**Takt 1, vor der Abnahme.** Geführt vom Scrum Master am 05.08.2026 gegen den
+Stand `268a7c5` auf `main`. **Gemessen, nicht übernommen:** Bau, Testlauf,
+Prüfsummen der Bildbelege, Installationsstand, README-Bilder und Doku-Abgleich
+sind eigene Läufe; die Berichte der Stränge dienen als Anspruch, gegen den
+gemessen wurde, nicht als Beleg.
+
+### 7.1 Eigene Messungen
+
+| Gegenstand | Lauf | Ergebnis |
+|---|---|---|
+| Bau warnungsfrei | frischer Bauplatz außerhalb des Repositoriums, `cmake -B … -DCMAKE_BUILD_TYPE=Debug` + `cmake --build … -j12` | **0 Warnungen** in 124 Zeilen Bauausgabe (`grep -ci warning` = 0). Nicht in `build/` gemessen — der gehört den Strängen |
+| Tests auf Ganymed | `ctest --test-dir build` | **7 von 7** bestanden, 6,48 s |
+| Volle Auflage | `capturetest`, `librarytest`, offscreen mit `QT_QPA_PLATFORMTHEME=kde` | **27** und **113** Prüfsätze, je 0 gescheitert |
+| Automatischer Lauf | `gh run list --commit c488ab5` | `completed success` — **gilt nur bis `c488ab5`**; die vier jüngsten Commits sind ungepusht und haben keine Marke |
+| Installierter Stand | `readlink /proc/$(pgrep -x denkzetteld)/exe`, `stat` | `/usr/bin/denkzetteld`, **kein `(deleted)`** — und die Datei trägt den **04.08.2026, 16:05** bei 7.913.024 Bytes gegen den gebauten Stand vom 05.08.2026, 19:38 bei 7.979.744 Bytes. **Der laufende Dienst ist der Stand von Sprint 6** |
+| Zwei Fenstergrößen (DoD 1, Satz 2) | `tests/capturetest.cpp` | `hullIsCompleteAtFiveAndEightLines` prüft fünf und acht Zeilen; `checkHullDiffersBetween` zwei Themes. Die Raumaufteilungs-Zusicherungen der Bibliothek stehen unverändert im Bestand |
+
+### 7.2 DoD 1–4 je Story
+
+| Story | DoD 1 Bau/Tests | DoD 2 AK + installierter Stand | DoD 3 Reviews | DoD 4 SPEC |
+|---|---|---|---|---|
+| **#83** | **erfüllt** | **nicht geführt** — AK am gebauten Stand belegt, Hauptweg am **installierten** Stand nicht ausgeführt (M1) | **nicht geführt** — zwei offene `fail` im UI-Review (M2); karpathy ohne `fail` | **erfüllt** — 3.1 umgedreht, 3.2 Punkte 6–9, 15 und 16; ein falscher Verweis (M6) |
+| **#71** | **erfüllt** | **nicht geführt** — dieselbe Ursache (M1) | **erfüllt** — UI-Review Punkte 21–25 `pass`, Punkt 24 `warn`; karpathy ohne `fail` | **erfüllt** — SPEC 9 samt Nachlauf-Bedingung aus Befund P2 |
+| **#70** | **erfüllt** | **nicht geführt** — dieselbe Ursache (M1) | **erfüllt** — Punkte 32–34 `pass`, 35/36 `warn` (Zeichnung) | **erfüllt** — SPEC 9 als Ergänzung |
+| **#72** | **erfüllt** | **nicht geführt** — dieselbe Ursache (M1) | **entfällt** (K6: keine UI-Story); karpathy ohne `fail` | **erfüllt, geprüft statt unterstellt** — die entdeckte Bedingung („die *Aktionen* starten abgeschaltet, nicht die Knöpfe") berührt keine SPEC-Festlegung; SPEC 9 sagt über den Zustand der Schaltflächen nichts zu. Kein Nachzug nötig |
+
+**Zu DoD 2, damit die Zeile nicht milder gelesen wird als sie ist:** Die
+Akzeptanzkriterien sind je Story einzeln belegt, und die Belege tragen — aber
+DoD 2 verlangt den Hauptweg **am installierten Stand**, und Takt 1 Punkt 1
+verlangt ihn für **jede** Story. Beides ist nicht geschehen. Die vier Stories
+sind damit nicht abnahmereif, unabhängig von der Qualität ihrer Belege.
+
+### 7.3 Doku-Abgleich (B10 in der Fassung nach B17)
+
+Geprüft: `README.md`, `docs/`, `CLAUDE.md`, der Kommentarkopf von
+`.github/workflows/ci.yml` und die Kommentarköpfe von `CMakeLists.txt`,
+`src/CMakeLists.txt`, `tests/CMakeLists.txt`. **Das Ergebnis steht hier auch
+dort, wo nichts zu melden war.**
+
+| Ort | Befund |
+|---|---|
+| `.github/workflows/ci.yml`, Kopf | **in Ordnung.** Beschreibt Zweck, die drei nicht erreichten DoD-Punkte und die fünf Bildläufer richtig. Die Paketliste enthält `qt6-base` — die mit #83 an `denkzettelcapture` gelinkte `Qt6::DBus` steckt darin, der Lauf auf `c488ab5` bestätigt es |
+| `CMakeLists.txt`, `src/`, `tests/` | **in Ordnung.** Die Silence-Begründung in `tests/CMakeLists.txt` und die spellfix-Zeile in `src/CMakeLists.txt` beschreiben den gelieferten Stand |
+| `CLAUDE.md`, B21-Absatz | **in Ordnung und mustergültig geankert** (`c488ab5`): `tinted()` bleibt als Messung stehen, der Fall ist datiert, drei jüngere Geschwister sind benannt |
+| `CLAUDE.md`, B17-Griff (Zeile 108) | **Befund M5** — die Liste ist um `SPEC.md` und `wireframes/` erweitert worden, **`.claude/` fehlt weiterhin** |
+| `README.md`, Statuszeile | **existiert in dieser README nicht** — dieselbe Feststellung wie in Sprint 6 §19.7. Ihre Funktion nimmt der Absatz „Auf der Liste stehen noch" (`:49–52`) wahr; er nennt keinen Sprint und verweist auf die Issues. **Durch die Abnahme wird daran nichts falsch** |
+| `README.md:56–59`, Abhängigkeiten | **in Ordnung, geprüft statt unterstellt.** #83 verlinkt `Qt6::DBus` neu an `denkzettelcapture` und liest die Theme-Gruppe mit `KConfigGroup` — DBus, Config und Svg stehen bereits in der Liste, sie wächst nicht. Das ist die Stelle, an der Sprint-6-Mangel M4 saß |
+| `README.md:151` | **Befund M4** — „Sprints mit **geschätzten** Stories". Die Story-Point-Schätzung ist am 04.08.2026 beendet |
+| `README.md:111–129` | **in Ordnung.** Fünf Bildläufer, seit dem 04.08.2026 im gewöhnlichen Build, weiterhin nicht in `ctest` — trifft den Stand |
+| **README-Bilder** | **Mangel bleibt offen, jetzt mit gemessenem Grund** (§6a-Nachtrag). Eigene Nachmessung: `docs/bilder/erfassungsfenster.png` ist 600×178 Bildpunkte, die Fläche (239, 240, 241) deckend, und außer dem Eckpunkt (0,0) ist keine Zeile durchscheinend — ein Fenster **ohne** Theme-Hülle. Das Bild zeigt den Stand vor #55. **Befund M3** |
+| `docs/scrum/` | Die Prozessdateien tragen den Stand; `PROZESS.md` DoD 3 ist mit `c488ab5` geankert |
+
+### 7.4 Prüfsummen der Bildbelege — das Urteil des PO nachgeprüft
+
+Eigener Lauf über die drei Belegordner dieses Sprints:
+**Rückgabe 1** (#83, fünf Gruppen), **Rückgabe 0** (Strang B), **Rückgabe 0**
+(UI-Review). Gleiche Zahlen wie beim PO. Die fünf Gruppen habe ich **nicht
+übernommen, sondern gegen die Quelle des Läufers gelesen**
+(`sonden/fensterlage.cpp:194–251`, `sonden/weichzeichner.cpp:283`, die vier
+`m6-*`-Ausgaben):
+
+| Gruppe | Urteil | Grund |
+|---|---|---|
+| `ecke-ruhe` = `ecke-theme-default`, `fenster-ruhe` = `fenster-theme-default` (offscreen **und** Sitzung) | **kein Mangel — und stärker als der PO es gefasst hat** | Der PO nennt es „derselbe Zustand unter zwei Namen". Gemessen liegt zwischen den beiden Aufnahmen **eine ganze Wegstrecke**: acht Zeilen Text hinein und wieder heraus (Zeilen 204–218), Wechsel auf das eckige Prüf-Theme (225), Rückwechsel auf `default` (234). Byteidentität ist hier **kein Duplikat, sondern der Nachweis, dass der Rückweg vollständig ist** — genau der ausdrücklich erlaubte Fall |
+| `weichzeichner-an` = `weichzeichner-wiederzeigen` | **kein Mangel — mit einer Berichtigung an der Begründung** | Es sind zwei getrennte Prozessaufrufe mit je eigenem `spectacle -f`; der Lauf `wiederzeigen` führt vorher `hide()`/`showCapture()` aus. Byteidentität heißt: die Anmeldung überlebt das Neuzeigen. **Nicht zutreffend ist der Zusatz des PO, die Spannweite 6 sei „unabhängig gemessen":** Sie ist aus **derselben** Aufnahme gerechnet. Unabhängig ist die *Aufnahme*, nicht die Zahl. Das Urteil bleibt richtig, sein Beleg ist ein anderer als angegeben |
+
+**Stop-Bedingung nach PROZESS.md:** Dieser Lauf hat neue Gruppen gefunden, die
+Prüfung bleibt Vollprüfung.
+
+### 7.5 Vollzähligkeit der Prüfberichte (Takt 1, Punkt 2)
+
+Vier Prüfläufe, vier Berichte als Datei, alle vor dieser Prüfung abgelegt:
+`sprint-07-s83-native-huelle/bericht.md`, `sprint-07-s71-ruhige-liste/bericht.md`,
+`sprint-07-karpathy.md`, `sprint-07-ui-review/bericht.md`.
+
+Gegenprobe nach dem vorgeschriebenen Weg — alle Commit-Botschaften des
+Sprint-Diffs nach Befund-Nennungen durchsucht: Jede genannte Prüfung
+(karpathy-Lauf, UI-Review, die beiden Übergabeberichte, der Nachlauf der
+Mutationsproben von Strang B) hat ihren Bericht oder ihre Messausgabe im Repo.
+**Ein Lauf ohne Bericht ist nicht aufgefallen.**
+
+Zwei Beobachtungen an den Berichten selbst:
+
+- Der karpathy-Bericht führt in der Statusspalte **sechs Befunde weiterhin als
+  „offen"**, obwohl das Protokoll sie als bearbeitet ausweist. Nur K2 ist
+  nachgeführt. **Befund M7** — die Prüfung soll gegen das Artefakt laufen, nicht
+  gegen die Behauptung des Protokolls; das ist der Zweck von Takt 1 Punkt 2.
+- Der UI-Bericht trägt **eine unversionierte Zeile** (Befund P5). **Befund M8.**
+
+### 7.6 Sprint-Konto (B12)
+
+| Zeitpunkt | Stand | Anlass |
+|---|---|---|
+| Freigabe 05.08.2026 | 4 Issues · 1×l, 3×s | Zuschnitt §4 |
+| Sprint-Ende 05.08.2026 | **4 Issues · 1×l, 3×s** | **kein Zugang** |
+
+Nachgemessen am Milestone: `Sprint 7` trägt genau **#83, #72, #71, #70**. Die
+zehn im Sprint entstandenen Issues **#86–#95** tragen **keinen Milestone** und
+sind sämtlich offen im Backlog. Beide Grenzen sind gehalten; die Issue-Grenze
+war von Anfang an ausgereizt und ist nicht angetastet worden.
+
+---
 
 ## 8. Mängelliste
 
-*(wird beim Sprint-Ende gefüllt)*
+Melden, nicht heilen. Die Behebung liegt beim PO.
+
+| # | Mangel | DoD/Regel | Gewicht |
+|---|---|---|---|
+| **M1** | **Der Endstand ist nicht nach `/usr` installiert, und der Hauptweg keiner der vier Stories ist am installierten Stand ausgeführt.** `pkexec` wartet seit über einer Stunde auf das Passwort des Kunden. Gemessen: `/usr/bin/denkzetteld` trägt den 04.08.2026, 16:05 — der laufende Dienst ist der Stand von **Sprint 6**; alle Läufe dieses Sprints liefen am gebauten Stand | **DoD 2**, Takt 1 Punkt 1 | **schwer** |
+| **M2** | **Zwei offene `fail`-Befunde im UI-Review** (W1: Zeichnung 4a behauptet das Gegenteil des gelieferten Standes; W2: Zeichnung 4b führt eine Farbrolle, die es nicht mehr gibt). Sie sind an #94 gebucht — **eine Buchung ist keine Heilung.** Der Präzedenzfall des Projekts ist Sprint 4: dort wurde der `fail` geheilt und **nachgeprüft**, erst dann galt DoD 3 als erfüllt | **DoD 3** | **schwer** (blockiert die Abnahme von #83) |
+| **M3** | **Die README beschreibt den gelieferten Stand weiter nicht.** Der Nachzug ist versucht, gemessen und begründet zurückgenommen worden (§6a-Nachtrag) — das ist sauber gearbeitet, hebt den Mangel aber nicht auf. §6a sagte „er endet mit diesem Sprint"; er endet nicht. Die Bindung wandert auf #85 | **DoD 2**/B10 | **mittel, bewusst getragen** |
+| **M4** | **`README.md:151` nennt „Sprints mit geschätzten Stories".** Die Story-Point-Schätzung ist am 04.08.2026 beendet und durch Vorprüfbericht und Größenklasse ersetzt. Der öffentliche Text beschreibt ein Verfahren, das es nicht mehr gibt | B10 | leicht |
+| **M5** | **Der B17-Griff in `CLAUDE.md:108` durchsucht `.claude/` nicht** — obwohl die dritte der drei `tinted()`-Fundstellen dieses Sprints in `.claude/agents/denkzettel-dev.md` lag und §6a den Griff nur deshalb fand, weil dort **von Hand** `.claude/` angehängt war. Das ist **dieselbe Fehlerklasse wie K5, eine Runde später**: ein Werkzeug, dessen Suchraum kleiner ist als der Geltungsbereich der Regel | B17 | mittel |
+| **M6** | **`SPEC.md` 3.2 Punkt 9 schreibt die Grenze dem „karpathy-Befund **K5**" zu.** Es ist **K4**; K5 ist der Zeichnungsbefund. Ein Verweis, der auf den falschen Befund zeigt, führt jeden Nachprüfer an die falsche Stelle | DoD 4 | leicht |
+| **M7** | **Der karpathy-Bericht führt K1, K3, K4, K5, K6 und K7 in der Statusspalte weiterhin als „offen".** Nur K2 ist nachgeführt. DoD 3 wird damit gegen die Behauptung des Protokolls geprüft statt gegen das Artefakt — genau die Lage, gegen die B7 und Takt 1 Punkt 2 gefasst sind. Nachzuführen ist **datiert und anhängend** (B17), nicht durch Überschreiben | Takt 1 Punkt 2 | mittel |
+| **M8** | **Der UI-Bericht trägt eine unversionierte Zeile** — Befund P5 steht im Arbeitsbaum und nicht im Commit. Ein unversionierter Beleg ist kein Beleg | B7 | leicht |
+| **M9** | **`build-vor85/` ist mit `402ee8b` ins Repository geraten: 445 Dateien, 9,8 MB, darunter `.o`- und `.a`-Dateien, `a.out` und `CMakeCache.txt`.** `.gitignore` deckt `build/` und `build-install/` ab, diesen Bauplatz nicht. **Drei Zeilen der `CMakeCache.txt` nennen Pfade unterhalb von `~/.local`** — Pfade außerhalb des Projekts sind nach der Kundenentscheidung vom 02.08.2026 tabu, und das Repository ist öffentlich. **Der Commit ist noch nicht gepusht; der Fehler ist bis dahin ohne Außenwirkung reparabel** | Repo-Grenzen (Artefakte), B7 | **schwer, aber zeitkritisch statt dauerhaft** |
+| **M10** | **`main` ist seit sieben Commits nicht gepusht** (`4a4d249` … `268a7c5`), weil der SSH-Schlüssel nicht freigegeben ist — dieselbe Ursache wie M1. Folge für die Beweislage: Die vier jüngsten Commits haben **keine Marke des automatischen Laufs**; grün ist zuletzt `c488ab5`, und das ist der Stand **vor** UI-Review, SPEC-9-Berichtigung und K3-Heilung | Push-Kadenz | mittel |
+
+**Was aus M1 für die Abnahme folgt, ausdrücklich:** Der Sprint ist **nicht
+abnahmefähig**. Takt 1 Punkt 1 ist der erste Punkt der Liste, und DoD 2 ist für
+alle vier Stories offen. Eine Abnahme jetzt wäre eine Abnahme des **gebauten**
+Standes — und genau diese Verwechslung ist der Sprint-3-Mangel M1, um
+dessentwillen die Regel überhaupt in `CLAUDE.md` steht. Zwei Wege stehen offen,
+und beide gehören dem PO: die Installation nachholen, sobald der Kunde am
+Rechner ist — oder die Lücke dem Kunden **als benannte Grenze** vorlegen und die
+Abnahme mit ihr treffen. Was nicht geht, ist die Punkte still abzuhaken.
+
+**Was aus M2 folgt:** #71, #70 und #72 sind nach DoD 3 sauber. **#83 ist es
+nicht.** W1 und W2 betreffen keine Zeile Code — sie sind mit einem datierten
+Vermerk an der Zeichnung heilbar und einer Nachprüfung durch `denkzettel-ux`,
+beides innerhalb dieses Sprints machbar. Wird stattdessen entschieden, einen
+`fail` an einem Dokumentationsartefakt als nicht abnahmeblockierend zu führen,
+ist das eine **Änderung der DoD** und gehört dem Kunden vorgelegt, nicht
+nebenbei entschieden.
+
+---
 
 ## 9. done/next
 
-*(wird beim Sprint-Ende gefüllt)*
+**done**
+
+- **Vier Stories gebaut und belegt**, zwei Stränge, beide mit `--no-ff`
+  zusammengeführt. Bau **warnungsfrei** (eigener frischer Bauplatz),
+  `ctest` **7 von 7**, `capturetest` **27**, `librarytest` **113** — alles
+  eigenständig nachgemessen.
+- **DoD 1 und DoD 4 sind für alle vier Stories erfüllt.** DoD 3 für #71 und
+  #70; für #72 entfällt der UI-Teil nach K6.
+- **Vier Prüfläufe, vier abgelegte Berichte**, keiner ohne Datei.
+- **Prüfsummen der Bildbelege gelaufen und einzeln beurteilt** — fünf Gruppen,
+  kein Mangel, eine Begründung des PO berichtigt.
+- **Sprint-Konto gehalten:** vier Issues, `1×l, 3×s`, **kein Zugang** nach der
+  Freigabe. Die zehn neuen Issues #86–#95 sind im Backlog geblieben.
+- **Der Sprint hat mehr Befunde hervorgebracht als er Stories hatte** — zehn
+  Issues, davon sieben aus der Arbeit selbst. Zwei Fälle, in denen ein Lauf
+  grün war und nichts prüfte, sind in `denkzettel-dev.md` verankert.
+
+**next — in dieser Reihenfolge**
+
+1. **M9 vor dem Push.** `build-vor85/` aus dem Baum nehmen und `.gitignore`
+   nachziehen, solange `402ee8b` lokal ist. Danach ist es öffentlich.
+2. **M1: installieren**, sobald der Kunde am Rechner ist — dann den Hauptweg
+   **jeder** Story am installierten Stand ausführen, vorher `denkzetteld`
+   beenden und neu starten und den `readlink`-Beleg ablegen (B16). Ohne diesen
+   Schritt bleibt Takt 1 unvollständig.
+3. **M2: W1 und W2 heilen oder eskalieren.** Ohne das ist #83 nicht abnehmbar.
+4. **M7, M8, M6, M5, M4** — Nachträge an Bericht, SPEC, `CLAUDE.md` und README;
+   je datiert und anhängend, nicht überschreibend.
+5. **Dann erst die Abnahme** durch den PO (Rollenlage §1), danach Takt 2:
+   AK-Haken, Issues und Milestone schließen, Journal, Push, Zweige und
+   Worktrees räumen — `story/71-ruhige-liste` und `story/83-native-huelle`
+   samt `../denkzettel-71` und `../denkzettel-83` stehen noch —, Changelog.
+   **Punkt 10 (Version und Tag) bleibt ausgesetzt:** Der Kunde nimmt nach
+   Sprint 8 ab, und Abschnitt 6b von #61 ist nicht geliefert.
+6. **Nicht zu diesem Sprint:** Die unversionierten Dateien unter
+   `docs/scrum/vorberichte/85-lesbarkeit-fremde-themes/` gehören zur Vorprüfung
+   von Sprint 8 und sind hier kein Mangel — sie gehören in den Commit, der die
+   Vorprüfung abschließt.

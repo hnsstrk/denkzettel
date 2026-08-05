@@ -1,0 +1,73 @@
+M2 — Die Falle: acht Themes in EINEM Prozess gegen acht eigene Prozesse.
+Anlass: zwei lebende KSvg::ImageSet desselben Themenamens teilen ihre
+Auswahlpfade (Fund 2 aus Sprint 7). Eine Story, die acht Themes vergleicht,
+misst sonst gegen sich selbst. Hier wird gemessen, ob ein Reihenlauf
+dieselben Zahlen liefert wie getrennte Läufe.
+
+### Reihenlauf: ein Prozess, acht Themes nacheinander
+==== default
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+==== breeze-dark
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift   == Themeschrift
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+==== breeze-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  gezeichnet lose       : 240,240,241/a216
+  gezeichnet opaque     : 239,240,241/a255
+==== CachyOS-Nord-round
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 30,34,51/a255
+  gezeichnet opaque     : 30,34,51/a255
+==== Iridescent-round
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a51
+  gezeichnet opaque     : 0,0,0/a51
+==== cachyos-emerald
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+==== cachyos-emerald-color
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+==== cachyos-emerald-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+
+### Einzelläufe: je Theme ein eigener Prozess (aus M1)
+==== default
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+==== breeze-dark
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift   == Themeschrift
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+==== breeze-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  gezeichnet lose       : 240,240,241/a216
+  gezeichnet opaque     : 239,240,241/a255
+==== CachyOS-Nord-round
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 30,34,51/a255
+  gezeichnet opaque     : 30,34,51/a255
+==== Iridescent-round
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a51
+  gezeichnet opaque     : 0,0,0/a51
+==== cachyos-emerald
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+==== cachyos-emerald-color
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+==== cachyos-emerald-light
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9

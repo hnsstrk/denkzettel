@@ -1,0 +1,14 @@
+=== Existenzprobe der Pruefmittel — Stand 717f077, 05.08.2026 20:10 CEST ===
+
+  JA   docs/scrum/vorberichte/83-native-huelle/sonden/weichzeichnerbeleg.cpp
+  JA   docs/scrum/vorberichte/83-native-huelle/ux-beratung/messungen/m1-deckung-je-theme.txt
+  JA   docs/scrum/vorberichte/83-native-huelle/messung-b-themefarbe.txt
+  JA   docs/scrum/vorberichte/83-native-huelle/po-themeschrift.py
+  JA   docs/scrum/vorberichte/83-native-huelle/po-themeschrift.txt
+  JA   docs/scrum/reviews/2026-08-04-abnahme-befunde/sonden/echtelage.cpp
+
+--- Zeilenangabe von AK 4 nachgeprueft ---
+  96:QLabel *subtleLabel(const QString &text, QWidget *parent)
+  105:    label->setForegroundRole(QPalette::PlaceholderText);
+  AK 4 nennt capturewindow.cpp:132 — dort steht heute:
+        }

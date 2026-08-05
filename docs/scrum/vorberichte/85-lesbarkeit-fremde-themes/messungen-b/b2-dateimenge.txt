@@ -1,0 +1,53 @@
+=== Dateimenge #85, am Code vermessen — Stand 717f077, 05.08.2026 20:10 CEST ===
+
+--- 1. Wo die Textfarbe heute entsteht (src/) ---
+  src/capture/capturewindow.cpp:105:    label->setForegroundRole(QPalette::PlaceholderText);
+  src/capture/capturewindow.cpp:205:    applyTextColours();
+  src/capture/capturewindow.cpp:333:        applyTextColours();
+  src/capture/capturewindow.cpp:440:void CaptureWindow::applyTextColours()
+  src/capture/capturewindow.cpp:448:    palette.setColor(QPalette::Text, this->palette().color(QPalette::WindowText));
+  src/capture/capturewindow.h:141:    void applyTextColours();
+  src/ui/librarywindow.cpp:139:    label->setForegroundRole(QPalette::PlaceholderText);
+  src/ui/librarywindow.cpp:378:    m_editingBadge->setForegroundRole(QPalette::Link);
+  src/ui/notelistdelegate.cpp:118:                 entry.palette.color(QPalette::Normal, QPalette::Text),
+  src/ui/notelistdelegate.cpp:129:    const QColor textColor = entry.palette.color(selected ? QPalette::HighlightedText : QPalette::Text);
+  src/ui/notelistdelegate.cpp:130:    const QColor dimmedColor = selected ? textColor : entry.palette.color(QPalette::PlaceholderText);
+
+--- 2. Das Muster, dem eine Themefarb-Funktion folgen wuerde ---
+  capture::contrastEffectOf() — Deklaration capturewindow.h:36-45,
+  Definition capturewindow.cpp:114-142 (29 Zeilen). Sie liest
+  metadata.desktop ueber QStandardPaths::locate + KConfigGroup; die
+  colors-Datei liegt daneben und ist dieselbe Dateiart.
+
+--- 3. Zeilenumfaenge ---
+    167 src/capture/capturewindow.h
+    587 src/capture/capturewindow.cpp
+   1018 tests/capturetest.cpp
+    225 tests/captureshots.cpp
+    164 tests/desktopthemes.h
+   2161 insgesamt
+
+--- 4. Pruefsaetze, die heute ueber Textfarben urteilen ---
+  330:void CaptureTest::textsFollowAColourSchemeChange()
+  563:void CaptureTest::noteTextUsesTheWindowTextRole()
+  587:void CaptureTest::footerHasMoreAirThanTheApplicationName()
+
+--- 5. Bringen die mitgelieferten Pruef-Themes eine colors-Datei mit? ---
+  denkzettel-pruef-eckig: colors nein
+    Dateien: dialogs metadata.json 
+  denkzettel-test-breit: colors nein
+    Dateien: dialogs metadata.desktop metadata.json 
+  denkzettel-test-schmal: colors nein
+    Dateien: dialogs metadata.json 
+
+--- 6. Die Wahl von anyInstalledTheme() haengt an der Sortierung ---
+  QDir::entryList(..., QDir::Name) ohne QDir::IgnoreCase.
+  ASCII-Sortierung, erstes Theme:              CachyOS-Nord-round
+  Sortierung ohne Gross-/Kleinunterscheidung:  breeze-dark
+  Das eine bringt keine colors-Datei mit, das andere bringt eine mit.
+
+--- 7. Aus welcher Datei liest KSvg seine Farben? ---
+  NEEDED KF6ColorScheme: 1
+  Treffer auf "/colors": 1
+  KSvg::Svg::color(StyleSheetColor) ist oeffentlich (svg.h:629).
+  GRENZE: was color(Text) je Theme liefert, ist NICHT gemessen.

@@ -1,0 +1,48 @@
+M6 — Was der Testmodus mit der Messgrundlage macht.
+Stand: 2026-08-05 20:11 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Frage: Sieht ein QTest dieses Projekts dasselbe Farbschema wie der Kunde?
+capturetest ruft QStandardPaths::setTestModeEnabled(true) (tests/capturetest.cpp:157).
+
+### ohne Testmodus — das Schema des Kunden
+Farbschema der Anwendung: Window 32,35,38/a255  WindowText 252,252,252/a255  PlaceholderText 161,169,177/a255
+Gruende fuer die Zusammensetzung: hell 255,255,255 und dunkel 0,0,0
+
+==== default
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+  --- Fläche lose, Deckung 84.7 %
+      Schemaschrift  deckend  15.39  ueber hell   9.42  ueber dunkel  16.33
+      Schema gedämpft deckend   6.64  ueber hell   4.06  ueber dunkel   7.04
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend  15.39  ueber hell  15.39  ueber dunkel  15.39
+      Schema gedämpft deckend   6.64  ueber hell   6.64  ueber dunkel   6.64
+
+==== breeze-light
+  colors-Datei          : ja
+    ForegroundNormal    : 35,38,41/a255
+    ForegroundInactive  : 112,125,138/a255
+
+### mit Testmodus — wie im Testlauf
+Farbschema der Anwendung: Window 32,35,38/a255  WindowText 252,252,252/a255  PlaceholderText 161,169,177/a255
+Gruende fuer die Zusammensetzung: hell 255,255,255 und dunkel 0,0,0
+
+==== default
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 35,38,41/a255
+  KSvg::Svg::color(Bkgd): 239,240,241/a255
+  gezeichnet lose       : 240,240,241/a216
+  gezeichnet opaque     : 239,240,241/a255
+  --- Fläche lose, Deckung 84.7 %
+      Schemaschrift  deckend   1.11  ueber hell   1.09  ueber dunkel   1.58
+      Schema gedämpft deckend   2.09  ueber hell   2.13  ueber dunkel   1.47
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend   1.11  ueber hell   1.11  ueber dunkel   1.11
+      Schema gedämpft deckend   2.09  ueber hell   2.09  ueber dunkel   2.09
+
+==== breeze-light
+  colors-Datei          : ja
+    ForegroundNormal    : 35,38,41/a255
+    ForegroundInactive  : 112,125,138/a255

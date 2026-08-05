@@ -1,0 +1,66 @@
+=== Sprint-8-Schnitt — Stand 717f077, 05.08.2026 20:10 CEST ===
+
+--- clang-tidy auf src/main.cpp (Dateimenge #61 gegen #76) ---
+  src/main.cpp:41:5: warning: variable 'service' of type 'KDBusService' can be declared 'const' [misc-const-correctness]
+  src/main.cpp:59:5: warning: variable 'library' of type 'LibraryWindow' can be declared 'const' [misc-const-correctness]
+  src/main.cpp:61:5: warning: variable 'tray' of type 'TrayIcon' can be declared 'const' [misc-const-correctness]
+  src/store/note.h:15:16: warning: enum 'Type' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/store/note.h:20:16: warning: enum 'State' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/ui/librarywindow.h:72:16: warning: enum 'Selection' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/ui/librarywindow.h:80:16: warning: enum 'UnsavedAnswer' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+  src/ui/timestampformat.h:18:12: warning: enum 'NoteGroup' uses a larger base type ('int', size: 4 bytes) than necessary for its value set, consider using 'std::uint8_t' (1 byte) as the base type to reduce its size [performance-enum-size]
+
+--- Pruefsatzgrenzen in tests/capturetest.cpp ---
+  149:void CaptureTest::initTestCase()
+  173:void CaptureTest::init()
+  184:void CaptureTest::cleanup()
+  196:void CaptureTest::restsAtFiveLines()
+  205:void CaptureTest::growsWithTheText()
+  215:void CaptureTest::stopsAtEightLines()
+  222:void CaptureTest::windowFollowsTheTextHeight()
+  245:void CaptureTest::heightFollowsAFontChange()
+  279:void CaptureTest::savesTextOnControlReturn()
+  302:void CaptureTest::keepsBlankTextOutOfTheStore()
+  314:void CaptureTest::discardsTextOnEscape()
+  330:void CaptureTest::textsFollowAColourSchemeChange()
+  442:void CaptureTest::writePlasmarc(const QString &theme)
+  449:void CaptureTest::hullFollowsTheDesktopTheme()
+  456:void CaptureTest::hullFollowsAnInstalledDesktopTheme()
+  472:void CaptureTest::checkHullDiffersBetween(const QString &narrow, const QString &wide)
+  510:void CaptureTest::readsTheDesktopThemeFromPlasmarc()
+  526:void CaptureTest::paintsTheThemesOwnHullInOnePiece()
+  563:void CaptureTest::noteTextUsesTheWindowTextRole()
+  587:void CaptureTest::footerHasMoreAirThanTheApplicationName()
+  627:void CaptureTest::hullIsCompleteAtFiveAndEightLines()
+  702:void CaptureTest::hullFollowsTheWindowPixelRatio()
+  725:void CaptureTest::hullHasNoStairAtTheCorner()
+  764:void CaptureTest::hullHoldsAtTheCustomersScale()
+  789:void CaptureTest::squareThemeKeepsSquareCorners()
+  813:void CaptureTest::readsTheContrastEffectOfTheDesktopTheme()
+  832:void CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor()
+  900:void CaptureTest::wearsNoDecoration()
+  908:void CaptureTest::bindsAShadowFromTheThemeTiles()
+  961:void CaptureTest::staysUsableWithoutADesktopTheme()
+
+--- SPEC-Abschnitte: #85 (3.1) gegen #61 (2.3, 2.4, 15) ---
+  8:## 1. Ziel
+  24:## 2. Architektur
+  54:### 2.3 D-Bus-Schnittstelle `org.denkzettel.Daemon`
+  68:### 2.4 Globale Kürzel
+  124:## 3. Capture-Fenster (Text)
+  152:### 3.1 Hülle aus dem Desktop-Theme (Issue #55, Wireframe 4a/4b)
+  206:### 3.2 Bedingungen der Hülle (entdeckt beim Bau, DoD 4/B9)
+  275:## 4. Aufnahmefenster (Sprachnotiz)
+  289:## 5. Datenhaltung
+  335:## 6. Suche
+  418:## 7. KI-Pipeline
+  517:## 8. Überführungen
+  551:## 9. Bibliothek und Vorschlags-Review
+  696:## 10. Tray und Benachrichtigungen
+  759:## 11. Volllauf-Schutz
+  768:## 12. Transkription
+  789:## 13. Einstellungen (Dialog)
+  798:## 14. Fehlerbehandlung und Loop-Disziplin
+  810:## 15. Build, Abhängigkeiten, Paketierung
+  845:## 16. Teststrategie
+  928:## 17. Meilensteine
