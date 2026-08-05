@@ -24,6 +24,11 @@
  */
 namespace
 {
+// Healing this means changing the signature or introducing a type of its own,
+// which is design rather than tidying up (issue #76). The one case a mix-up
+// would be visible in - placeholderPage() in the empty library - gets a test
+// assurance instead, as issue #88.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 Note noteAt(const QString &content, const QString &isoDateTime)
 {
     Note note;
