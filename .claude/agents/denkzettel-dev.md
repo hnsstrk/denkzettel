@@ -136,6 +136,23 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
    Vollbildfenster legt der Compositor über das Erfassungsfenster, und gemessen
    wird dann der Grund über der Hülle statt unter ihr (Vorprüfung #85,
    05.08.2026).
+10. **Drei Heilungsrunden, die null Dateien anfassten — und dabei aussahen wie
+    eine saubere Konvergenz.** Gemeldet wurden `Bau rc=0`, `Baufehler=0`,
+    `Compilerwarnungen=0` und **dreimal dieselbe Zahl**, also genau der
+    Fixpunkt, den das Kriterium verlangte. Ursache: `run-clang-tidy … $DATEIEN`
+    in einer Shell, die ungeschützte Parameterexpansion **nicht** in Wörter
+    zerlegt (zsh — und die Shell dieses Rechners ist fish; `#!/usr/bin/env bash`
+    im Skriptkopf gilt nur, wenn das Skript auch so gestartet wird).
+    `run-clang-tidy` bekam **ein** Argument mit Zeilenumbrüchen darin und baute
+    daraus einen Ausdruck, der auf nichts passt. Der einzige Hinweis stand in
+    einer Zeile, die niemand liest: `for 0 files out of 49 in compilation
+    database` (Sprint 8, #76).
+    **Zwei Lehren, die zweite ist die allgemeinere.** Prüfe bei jedem
+    Werkzeuglauf, **wie viele** Dateien er angefasst hat, und schreib die Zahl
+    in den Bericht — ist sie kleiner als beabsichtigt, ist das ein Abbruchgrund
+    und kein Nebenbefund. Und: **Ein Fixpunkt bei null Eingriffen sieht aus wie
+    ein Fixpunkt nach vollständiger Heilung.** Wo du Stabilität als Nachweis
+    benutzt, belege zuerst, dass überhaupt etwas geschehen ist.
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 
