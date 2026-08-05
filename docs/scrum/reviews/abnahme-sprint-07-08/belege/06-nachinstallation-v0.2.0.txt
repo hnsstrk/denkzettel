@@ -1,0 +1,18 @@
+=== Nachinstallation v0.2.0 — der Tag und der installierte Stand muessen dasselbe sagen ===
+05.08.2026 23:06:11
+
+-- vorher --
+PID 571864  /usr/bin/denkzetteld (deleted)
+denkzettel 0.2.0
+
+-- nach Neustart --
+PID 584368  /usr/bin/denkzetteld
+
+-- Version am installierten Stand --
+denkzettel 0.2.0
+-- Tag --
+v0.2.0
+
+-- Busname und Kuerzel nach der Neuinstallation --
+org.denkzettel.Daemon
+268435534

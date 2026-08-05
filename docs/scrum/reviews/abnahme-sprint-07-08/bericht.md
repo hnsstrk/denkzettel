@@ -83,3 +83,39 @@ Im Release-Bau gehen **Kategorien verloren** (#99). Das besteht auf `main` vor
 Sprint 8, ist unabhängig nachgemessen und trifft den Kunden heute nicht — sein
 Dienst ist ein Debug-Bau. **Es trifft ihn an dem Tag, an dem ein Paket
 entsteht.**
+
+---
+
+## 4. Nachtrag 23:06 — ein Fehler des PO und seine Behebung
+
+**Die Reihenfolge war falsch.** Der PO hat den Endstand installiert, die
+Hauptwege daran belegt — und **danach** die Version von 0.1.0 auf 0.2.0 erhöht
+und getaggt. Damit sagte der Tag `v0.2.0` und der installierte Dienst
+`denkzettel 0.1.0`.
+
+**Das ist genau die Bauart stiller Abweichung, gegen die dieses Projekt seine
+Regeln geschrieben hat:** Beide Angaben für sich richtig, zusammen falsch, und
+niemandem fällt es auf, bis jemand beide nebeneinanderlegt. Aufgefallen ist es
+bei der Schlusskontrolle, nicht beim Tun.
+
+**Behoben** (`belege/06-nachinstallation-v0.2.0.txt`): neu installiert, Dienst
+beendet und neu gestartet, alles nachgemessen.
+
+```
+-- nach Neustart --   PID 584368   /usr/bin/denkzetteld
+Version               denkzettel 0.2.0
+Tag                   v0.2.0
+Busname               org.denkzettel.Daemon
+Kürzel                268435534 = Meta+N
+```
+
+**B16 hat sich dabei ein zweites Mal am selben Abend bewiesen.** Vor dem
+Neustart zeigte `readlink` erneut `(deleted)` — der Dienst hielt wieder die
+gelöschte Vorgängerdatei, und `--version` meldete bereits `0.2.0`, **obwohl der
+laufende Prozess der alte war**. Die Zahl kam aus der neu installierten Datei,
+die der Aufruf startete; der Dienst dahinter war ein anderer. Wer nur auf die
+Versionszeile gesehen hätte, hätte sich für fertig gehalten.
+
+**Die Belege der Hauptwege bleiben gültig.** Zwischen beiden Ständen liegt eine
+Zeile in `CMakeLists.txt`; Bau, Tests und Verhalten sind unverändert (`ctest`
+9/9, beide Linter null, Busname und Kürzel nachgemessen identisch).
