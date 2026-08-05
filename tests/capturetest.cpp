@@ -843,35 +843,58 @@ void CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor()
     // not (measured, F9 of the pre-check).
     QVERIFY(!capture::sessionBlursBehindWindows());
 
-    const auto installed = themes::anyInstalledTheme();
-    if (!installed) {
-        QSKIP("Kein installiertes Desktop-Theme gefunden — die mitgelieferten Prüf-Themes "
-              "bringen keine Auswahlpfade mit, an denen sich die Wahl zeigen ließe.");
-    }
+    // The theme has to be one that **ships both variants**, and it is searched
+    // for rather than named. Taking whatever theme came first turned this into
+    // an assertion that could not fail: `CachyOS-Nord-round` ships neither
+    // variant, so the two renderings were identical and removing the selector
+    // from the window changed nothing. Measured — the mutation probe stayed
+    // green and said so (`messungen/m12-mutationsproben.txt`, erster Lauf).
+    //
+    // The search runs while the window wears a **bundled** theme, and that is
+    // not tidiness either: two live `KSvg::ImageSet` instances of the same theme
+    // name share their selectors. A second one built beside the window's own
+    // reports `opaque` although nobody gave it any, and renders accordingly
+    // (measured, `messungen/m13-ksvg-selektoren.txt`). Held against the theme
+    // the window is wearing, the counter-check would compare opaque with opaque.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
 
-    m_window->reloadDesktopTheme(*installed);
-    const QImage picture = shot(*m_window);
-
-    const QPoint centre(picture.width() / 2, picture.height() / 2);
-    const QImage opaque = themeHull(*installed, m_window->size(), opaqueSelectors());
-    QCOMPARE(qAlpha(picture.pixel(centre)), qAlpha(opaque.pixel(centre)));
-
-    // And the choice has to make a difference somewhere, or the assertion above
-    // would hold on a window that never asked. Not every theme ships both
-    // variants — `CachyOS-Nord-round` and `Iridescent-round` ship neither — so
-    // the counter-check runs over whatever this machine has and needs one hit.
-    const QStringList candidates = themes::installedThemes();
-    int withVariants = 0;
-    for (const QString &theme : candidates) {
-        const QSize size = m_window->size();
-        if (qAlpha(themeHull(theme, size, {}).pixel(centre))
-            != qAlpha(themeHull(theme, size, opaqueSelectors()).pixel(centre))) {
-            ++withVariants;
+    const QSize size = m_window->size();
+    const QPoint centre(size.width() / 2, size.height() / 2);
+    QString candidate;
+    int translucentAlpha = 0;
+    int opaqueAlpha = 0;
+    const QStringList installed = themes::installedThemes();
+    for (const QString &theme : installed) {
+        const int loose = qAlpha(themeHull(theme, size, {}).pixel(centre));
+        const int tight = qAlpha(themeHull(theme, size, opaqueSelectors()).pixel(centre));
+        if (loose != tight) {
+            candidate = theme;
+            translucentAlpha = loose;
+            opaqueAlpha = tight;
+            break;
         }
     }
-    QVERIFY2(withVariants > 0,
-             "Kein installiertes Theme unterscheidet opaque von translucent — die Wahl "
-             "wäre hier nicht messbar.");
+    if (candidate.isEmpty()) {
+        QSKIP("Kein installiertes Theme unterscheidet opaque von translucent — die Wahl wäre "
+              "hier nicht messbar. Die mitgelieferten Prüf-Themes bringen keine "
+              "Auswahlpfade mit.");
+    }
+
+    m_window->reloadDesktopTheme(candidate);
+    const QImage picture = shot(*m_window);
+
+    // The coverage in the middle of the surface is the same number at every
+    // window size — the centre piece of the graphic is stretched, not redrawn —
+    // so the two readings above stay comparable even though a wider theme
+    // border makes a taller window.
+    const int drawn = qAlpha(picture.pixel(picture.width() / 2, picture.height() / 2));
+    const QString trace = QStringLiteral("%1: gezeichnet %2, opaque %3, durchscheinend %4")
+                              .arg(candidate)
+                              .arg(drawn)
+                              .arg(opaqueAlpha)
+                              .arg(translucentAlpha);
+    QVERIFY2(drawn == opaqueAlpha, qPrintable(trace));
+    QVERIFY2(drawn != translucentAlpha, qPrintable(trace));
 }
 
 void CaptureTest::wearsNoDecoration()

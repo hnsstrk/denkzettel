@@ -1,0 +1,24 @@
+=== #83, M7: folgt die Flächenfarbe dem Farbschema? (AK 8) ===
+Desktop-Theme default, ein Prozess je Farbschema, Toleranz ein Zählschritt.
+
+BreezeClassic                 Fläche 240,240,241 / Alpha 216   Window 239,240,241   Abweichung   1  innerhalb der Toleranz
+BreezeDark                    Fläche  32, 35, 38 / Alpha 216   Window  32, 35, 38   Abweichung   0  innerhalb der Toleranz
+BreezeLight                   Fläche 240,240,241 / Alpha 216   Window 239,240,241   Abweichung   1  innerhalb der Toleranz
+CachyOSNord                   Fläche  24, 27, 40 / Alpha 216   Window  24, 27, 40   Abweichung   0  innerhalb der Toleranz
+CachyOSNordLightly            Fläche  30, 34, 51 / Alpha 216   Window  30, 34, 51   Abweichung   0  innerhalb der Toleranz
+Emerald                       Fläche 255,255,255 / Alpha 216   Window 255,255,255   Abweichung   0  innerhalb der Toleranz
+EmeraldDark                   Fläche  24, 27, 40 / Alpha 216   Window  24, 27, 40   Abweichung   0  innerhalb der Toleranz
+EmeraldLight                  Fläche 255,255,255 / Alpha 216   Window 255,255,255   Abweichung   0  innerhalb der Toleranz
+EmeraldSmooth                 Fläche  26, 28, 32 / Alpha 216   Window  26, 28, 32   Abweichung   0  innerhalb der Toleranz
+IridescentLightly2            Fläche   8,  4, 19 / Alpha 216   Window   8,  4, 19   Abweichung   0  innerhalb der Toleranz
+IridescentLightly3            Fläche   1, 11, 18 / Alpha 216   Window   1, 11, 18   Abweichung   0  innerhalb der Toleranz
+IridescentLightly             Fläche   8,  4, 19 / Alpha 216   Window   8,  4, 19   Abweichung   0  innerhalb der Toleranz
+KritaBlender                  Fläche  48, 48, 48 / Alpha 216   Window  48, 48, 48   Abweichung   0  innerhalb der Toleranz
+KritaBright                   Fläche 213,213,213 / Alpha 216   Window 212,212,212   Abweichung   1  innerhalb der Toleranz
+KritaDark                     Fläche  71, 71, 71 / Alpha 216   Window  71, 71, 71   Abweichung   0  innerhalb der Toleranz
+KritaDarker                   Fläche  50, 50, 50 / Alpha 216   Window  50, 50, 50   Abweichung   0  innerhalb der Toleranz
+KritaDarkOrange               Fläche  31, 31, 31 / Alpha 216   Window  31, 31, 31   Abweichung   0  innerhalb der Toleranz
+KritaNeutral                  Fläche 128,128,128 / Alpha 216   Window 128,128,128   Abweichung   0  innerhalb der Toleranz
+Ant-Dark                      Fläche  30, 40, 44 / Alpha 216   Window  30, 40, 44   Abweichung   0  innerhalb der Toleranz
+
+Über der Toleranz: 0 von 19 Farbschemata.

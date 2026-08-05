@@ -1,0 +1,11 @@
+=== #83, Sonde 3: wirkt der Weichzeichner? ===
+Plattform     : wayland
+Lauf          : krunner
+Weichzeichnende Sitzung: ja
+Das echte Erfassungsfenster, showCapture() — Anmeldung steht in present().
+KRunner über org.kde.krunner.App.display() geöffnet.
+
+spectacle -f beendet: ja, Rückgabe 0
+Aufnahme 3840x2160 Bildpunkte (Vollbildpuffer sofort gelöscht, gespeichert wird nur der Ausschnitt)
+Beide Fenster im Ausschnitt 2426x2050 (x=1398, y=0)
+Die **Beurteilung** dieses Bildes ist Sache der Kundenabnahme (AK 12).
