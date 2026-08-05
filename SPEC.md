@@ -323,13 +323,31 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
 10. **Der Kontrasteffekt hat auf diesem Stand keinen Empfänger.** KWin 6.7.3
     führt unter 54 geladenen Effekten **keinen** mit „contrast" im Namen;
     `isEffectLoaded("backgroundcontrast")` antwortet `false`, `blur` antwortet
-    `true`. Die Anmeldung aus Punkt 8 geht damit ins Leere. Das trifft die drei
-    `cachyos-emerald`-Themes, deren Hülle zu 3,5 % deckt: Dort steht der Text
-    auf dem Bildschirmhintergrund und auf nichts sonst, und **keine Wahl der
-    Schriftfarbe rettet beide Richtungen** — gemessen unter
-    `cachyos-emerald-light` über weißem Grund 14,32:1, über schwarzem 1,37:1
-    (Belege in `docs/scrum/reviews/sprint-08-s85-lesbarkeit/`). Die Bedingung
-    ist benannt und nicht geschlossen.
+    `true`. Die Anmeldung aus Punkt 8 geht damit ins Leere.
+    **Betroffen sind die drei Themes, die den Effekt anfordern** — an den
+    Dateien selbst nachgezählt (`/usr/share/plasma/desktoptheme/*/metadata.desktop`,
+    Gruppe `[ContrastEffect]`): `cachyos-emerald` und `cachyos-emerald-color`
+    (`intensity=0.40`) sowie **`Iridescent-round`** (`0.45`). Ihre Hülle deckt
+    fast nichts; dort steht der Text auf dem Bildschirmhintergrund und auf
+    nichts sonst. Sie sind darauf gebaut, dass der Compositor den Grund
+    abdunkelt — und genau das tut er auf diesem Stand nicht.
+    **`cachyos-emerald-light` ist ein eigener Fall und nicht Teil dieser
+    Bedingung.** Es fordert **keinen** Kontrasteffekt an; nach Punkt 8 meldet
+    Denkzettel dort auch keinen an. Seine dunkle Themeschrift auf einer
+    durchscheinenden Hülle bliebe deshalb **auch auf einem KWin mit geladenem
+    Kontrasteffekt**, wie sie ist — gemessen über weißem Grund 14,32:1, über
+    schwarzem 1,37:1, und **keine Wahl der Schriftfarbe rettet beide
+    Richtungen**.
+    *Warum das hier so ausdrücklich steht (05.08.2026, UI-Review Sprint 8,
+    Befund P2, DoD 4):* Die erste Fassung dieses Punktes zählte die drei
+    `cachyos-emerald`-Themes auf und begründete den Absturz unter
+    `cachyos-emerald-light` damit, das Theme trage „genau dafür seine
+    `[ContrastEffect]`-Gruppe". **Es trägt keine.** Die Begründung trug also für
+    den einen Fall nicht, für den sie geschrieben war, und ein Theme mit
+    demselben Problem fehlte in der Aufzählung. Belege in
+    `docs/scrum/reviews/sprint-08-s85-lesbarkeit/` und
+    `docs/scrum/reviews/sprint-08-ui-review/`. Die Bedingung ist benannt und
+    nicht geschlossen.
 11. **Die Vorrangregel für die Textfarben steht an genau einer Stelle.** Die
     beiden Quellen aus 3.1 bewegen sich zu verschiedenen Zeitpunkten — das
     Theme beim Theme-Wechsel, das Schema beim Palettenwechsel. Eine Umsetzung,

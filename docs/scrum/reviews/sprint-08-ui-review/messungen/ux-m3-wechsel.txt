@@ -1,0 +1,26 @@
+=== UI-Review Sprint 8 — Theme- und Schemawechsel am stehenden Fenster ===
+Plattform: wayland
+Fenster 600x174 bei Verhältnis 1.6, erwartete Kantenlänge 960x278
+
+Fenster samt Schatten im Vollbild: 976x294 an 1432,899
+
+1-default (Theme ohne colors-Datei, Schema gilt)
+    Notiztext  : 252,252,252
+    Kleintext  : 161,169,177
+    Schema sagt: 252,252,252 / 161,169,177
+2-breeze-light (AK 5: Theme-Wechsel am stehenden Fenster)
+    Notiztext  : 35,38,41
+    Kleintext  : 112,125,138
+    Schema sagt: 252,252,252 / 161,169,177
+3-breeze-light-nach-schemawechsel (AK 7: Schema auf Magenta, Theme hat eine colors-Datei)
+    Notiztext  : 35,38,41
+    Kleintext  : 112,125,138
+    Schema sagt: 255,0,255 / 255,0,255
+5-breeze-light-auswahl (Themeschrift, Auswahl aus dem Schema)
+    Notiztext  : 35,38,41
+    Kleintext  : 112,125,138
+    Schema sagt: 252,252,252 / 161,169,177
+4-zurueck-auf-default (AK 5 rückwärts: Themefarbe geräumt, Schema gilt wieder)
+    Notiztext  : 252,252,252
+    Kleintext  : 161,169,177
+    Schema sagt: 252,252,252 / 161,169,177

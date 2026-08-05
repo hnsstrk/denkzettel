@@ -1,0 +1,105 @@
+### Schrift im Bild gemessen — UI-Review Sprint 8, #85
+Fläche aus dem Leerbild, Schriftfarbe aus dem Glyphenkern (oberes Drittel der abweichenden Bildpunkte).
+
+--- fenster-CachyOS-Nord-round-schwarz.png
+    Fläche im Bild: (30, 34, 51)   Fensterinneres y 2–290, x 2–959   Textbänder: 5
+    Band 1     y   2–6   Farbe (0, 0, 0)          Kontrast  1.33:1   UNTER 4,5:1
+    Band 2     y  35–49  Farbe (156, 164, 172)    Kontrast  6.30:1
+    Band 3     y  78–95  Farbe (250, 250, 250)    Kontrast 15.19:1
+    Band 4     y 247–261 Farbe (156, 163, 172)    Kontrast  6.25:1
+    Band 5     y 286–290 Farbe (0, 0, 0)          Kontrast  1.33:1   UNTER 4,5:1
+
+--- fenster-CachyOS-Nord-round-weiss.png
+    Fläche im Bild: (30, 34, 51)   Fensterinneres y 14–302, x 14–971   Textbänder: 5
+    Band 1     y  14–19  Farbe (230, 230, 230)    Kontrast 12.72:1
+    Band 2     y  47–61  Farbe (156, 164, 172)    Kontrast  6.30:1
+    Band 3     y  90–107 Farbe (250, 250, 250)    Kontrast 15.19:1
+    Band 4     y 259–273 Farbe (156, 163, 172)    Kontrast  6.25:1
+    Band 5     y 297–302 Farbe (237, 237, 237)    Kontrast 13.49:1
+
+--- fenster-Iridescent-round-schwarz.png
+    Fläche im Bild: (2, 2, 2)   Fensterinneres y 2–290, x 2–959   Textbänder: 3
+    App-Name   y  35–49  Farbe (155, 163, 170)    Kontrast  8.14:1
+    Notiztext  y  78–95  Farbe (250, 250, 250)    Kontrast 19.95:1
+    Fußzeile   y 247–261 Farbe (154, 162, 170)    Kontrast  8.09:1
+
+--- fenster-Iridescent-round-weiss.png
+    Fläche im Bild: (204, 204, 204)   Fensterinneres y 10–305, x 10–974   Textbänder: 5
+    Band 1     y  10–18  Farbe (198, 198, 198)    Kontrast  1.06:1   UNTER 4,5:1
+    Band 2     y  47–60  Farbe (161, 169, 177)    Kontrast  1.47:1   UNTER 4,5:1
+    Band 3     y  90–106 Farbe (251, 251, 251)    Kontrast  1.56:1   UNTER 4,5:1
+    Band 4     y 259–272 Farbe (161, 169, 177)    Kontrast  1.47:1   UNTER 4,5:1
+    Band 5     y 295–305 Farbe (198, 198, 198)    Kontrast  1.06:1   UNTER 4,5:1
+
+--- fenster-breeze-dark-weiss.png
+    Fläche im Bild: (66, 69, 71)   Fensterinneres y 7–282, x 10–966   Textbänder: 3
+    App-Name   y  33–46  Farbe (158, 166, 174)    Kontrast  3.95:1   UNTER 4,5:1
+    Notiztext  y  77–94  Farbe (251, 251, 251)    Kontrast  9.34:1
+    Fußzeile   y 246–260 Farbe (157, 165, 173)    Kontrast  3.90:1   UNTER 4,5:1
+
+--- fenster-breeze-light-schwarz.png
+    Fläche im Bild: (203, 203, 204)   Fensterinneres y 2–277, x 2–958   Textbänder: 3
+    App-Name   y  28–41  Farbe (113, 126, 139)    Kontrast  2.53:1   UNTER 4,5:1
+    Notiztext  y  72–89  Farbe (35, 38, 41)       Kontrast  9.27:1
+    Fußzeile   y 241–255 Farbe (114, 127, 139)    Kontrast  2.51:1   UNTER 4,5:1
+
+--- fenster-breeze-light-weiss.png
+    Fläche im Bild: (242, 242, 243)   Fensterinneres y 2–293, x 2–974   Textbänder: 4
+    Band 1     y  32–47  Farbe (120, 132, 144)    Kontrast  3.39:1   UNTER 4,5:1
+    Band 2     y  77–94  Farbe (36, 39, 42)       Kontrast 13.33:1
+    Band 3     y 245–264 Farbe (117, 130, 142)    Kontrast  3.49:1   UNTER 4,5:1
+    Band 4     y 282–289 Farbe (210, 210, 210)    Kontrast  1.34:1   UNTER 4,5:1
+
+--- fenster-cachyos-emerald-color-schwarz.png
+    Fläche im Bild: (2, 2, 2)   Fensterinneres y 2–272, x 2–941   Textbänder: 3
+    App-Name   y  35–48  Farbe (98, 102, 111)     Kontrast  3.65:1   UNTER 4,5:1
+    Notiztext  y  78–95  Farbe (0, 198, 143)      Kontrast  9.37:1
+    Fußzeile   y 247–261 Farbe (98, 102, 110)     Kontrast  3.62:1   UNTER 4,5:1
+
+--- fenster-cachyos-emerald-color-weiss.png
+    Fläche im Bild: (248, 248, 248)   Fensterinneres y 0–315, x 0–984   Textbänder: 5
+    Band 1     y  10–17  Farbe (192, 192, 192)    Kontrast  1.71:1   UNTER 4,5:1
+    Band 2     y  46–61  Farbe (110, 114, 122)    Kontrast  4.51:1
+    Band 3     y  90–107 Farbe (1, 199, 144)      Kontrast  2.06:1   UNTER 4,5:1
+    Band 4     y 258–277 Farbe (108, 112, 121)    Kontrast  4.64:1
+    Band 5     y 298–305 Farbe (192, 192, 192)    Kontrast  1.71:1   UNTER 4,5:1
+
+--- fenster-cachyos-emerald-light-schwarz.png
+    Fläche im Bild: (2, 2, 2)   Fensterinneres y 2–272, x 2–941   Textbänder: 3
+    App-Name   y  35–49  Farbe (108, 121, 133)    Kontrast  4.66:1
+    Notiztext  y  78–94  Farbe (35, 38, 41)       Kontrast  1.36:1   UNTER 4,5:1
+    Fußzeile   y 247–261 Farbe (107, 120, 132)    Kontrast  4.62:1
+
+--- fenster-cachyos-emerald-light-weiss.png
+    Fläche im Bild: (248, 248, 248)   Fensterinneres y 0–315, x 0–984   Textbänder: 5
+    Band 1     y  10–17  Farbe (192, 192, 192)    Kontrast  1.71:1   UNTER 4,5:1
+    Band 2     y  46–61  Farbe (120, 132, 144)    Kontrast  3.58:1   UNTER 4,5:1
+    Band 3     y  90–107 Farbe (37, 40, 43)       Kontrast 13.95:1
+    Band 4     y 258–277 Farbe (118, 130, 142)    Kontrast  3.66:1   UNTER 4,5:1
+    Band 5     y 298–305 Farbe (192, 192, 192)    Kontrast  1.71:1   UNTER 4,5:1
+
+--- fenster-cachyos-emerald-schwarz.png
+    Fläche im Bild: (2, 2, 2)   Fensterinneres y 2–272, x 2–941   Textbänder: 3
+    App-Name   y  35–49  Farbe (155, 163, 170)    Kontrast  8.14:1
+    Notiztext  y  78–95  Farbe (250, 250, 250)    Kontrast 19.95:1
+    Fußzeile   y 247–261 Farbe (154, 162, 170)    Kontrast  8.09:1
+
+--- fenster-cachyos-emerald-weiss.png
+    Fläche im Bild: (248, 248, 248)   Fensterinneres y 0–315, x 0–984   Textbänder: 4
+    Band 1     y  10–17  Farbe (192, 192, 192)    Kontrast  1.71:1   UNTER 4,5:1
+    Band 2     y  46–61  Farbe (166, 173, 181)    Kontrast  2.12:1   UNTER 4,5:1
+    Band 3     y 258–277 Farbe (164, 172, 179)    Kontrast  2.16:1   UNTER 4,5:1
+    Band 4     y 298–305 Farbe (192, 192, 192)    Kontrast  1.71:1   UNTER 4,5:1
+
+--- fenster-default-schwarz.png
+    Fläche im Bild: (27, 30, 32)   Fensterinneres y 0–278, x 0–960   Textbänder: 3
+    App-Name   y  28–42  Farbe (157, 164, 172)    Kontrast  6.72:1
+    Notiztext  y  72–89  Farbe (250, 250, 250)    Kontrast 16.17:1
+    Fußzeile   y 241–255 Farbe (155, 163, 171)    Kontrast  6.62:1
+
+--- fenster-default-weiss.png
+    Fläche im Bild: (66, 69, 71)   Fensterinneres y 7–282, x 10–966   Textbänder: 3
+    App-Name   y  33–46  Farbe (158, 166, 174)    Kontrast  3.95:1   UNTER 4,5:1
+    Notiztext  y  77–94  Farbe (251, 251, 251)    Kontrast  9.34:1
+    Fußzeile   y 246–260 Farbe (157, 165, 173)    Kontrast  3.90:1   UNTER 4,5:1
+

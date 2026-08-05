@@ -1,0 +1,513 @@
+### UI-Review Sprint 8 — eigene Sitzungsbelege zu #85
+Datum: 2026-08-05T21:12:49+02:00
+Sitzung: wayland, gesperrt: no
+Sonde: /tmp/claude-1000/-home-hnsstrk-Projekte-denkzettel/d75d6f43-6d74-4682-8289-26b962507afd/scratchpad/build-sonde/sitzungsbeleg
+
+----------------------------------------------------------------
+LAUF: default über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : default
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x174 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 611 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x278
+Fenster samt Schatten gefunden: 976x294 an 1432,899
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-default-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-default-weiss-leer.png
+Messpunkt 1919,1045 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.06 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 66,69,71
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 9.42:1
+  Kleintext : 4.06:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 9.42:1
+    Schema gedämpft: 4.06:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: breeze-light über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : breeze-light
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x174 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 651 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x278
+Fenster samt Schatten gefunden: 976x294 an 1432,899
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-breeze-light-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-breeze-light-weiss-leer.png
+Messpunkt 1919,1045 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.06 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 242,242,243
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 35,38,41
+  Kleintext des Fensters  : 112,125,138
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 13.59:1
+  Kleintext : 3.76:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 1.09:1
+    Schema gedämpft: 2.13:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: breeze-dark über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : breeze-dark
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x174 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 611 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x278
+Fenster samt Schatten gefunden: 976x294 an 1432,899
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-breeze-dark-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-breeze-dark-weiss-leer.png
+Messpunkt 1919,1045 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.06 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 66,69,71
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 9.42:1
+  Kleintext : 4.06:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 9.42:1
+    Schema gedämpft: 4.06:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: CachyOS-Nord-round über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : CachyOS-Nord-round
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 650 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 984x315 an 1428,886
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-CachyOS-Nord-round-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-CachyOS-Nord-round-weiss-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.08 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 30,34,51
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 15.37:1
+  Kleintext : 6.63:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 15.37:1
+    Schema gedämpft: 6.63:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: Iridescent-round über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : Iridescent-round
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 483 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 984x315 an 1428,886
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-Iridescent-round-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-Iridescent-round-weiss-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.08 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 204,204,204
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 1.57:1
+  Kleintext : 1.48:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 1.57:1
+    Schema gedämpft: 1.48:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: cachyos-emerald über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : cachyos-emerald
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 483 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 984x315 an 1428,886
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-weiss-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.08 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 248,248,248
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 1.04:1
+  Kleintext : 2.24:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 1.04:1
+    Schema gedämpft: 2.24:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: cachyos-emerald-color über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : cachyos-emerald-color
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 483 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 984x315 an 1428,886
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-color-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-color-weiss-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.08 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 248,248,248
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 0,199,144
+  Kleintext des Fensters  : 102,106,115
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 2.07:1
+  Kleintext : 5.10:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 1.04:1
+    Schema gedämpft: 2.24:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: cachyos-emerald-light über weiss
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : cachyos-emerald-light
+Grund      : weiss (255,255,255)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 255,255,255
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 651 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 984x315 an 1428,886
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-light-weiss.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-light-weiss-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.02 breit, 1.08 hoch
+
+Grund an derselben Stelle ohne Fenster : 255,255,255
+Zusammengesetzte Fläche im Fenster     : 248,248,248
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 35,38,41
+  Kleintext des Fensters  : 112,125,138
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 14.32:1
+  Kleintext : 3.96:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 1.04:1
+    Schema gedämpft: 2.24:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: cachyos-emerald-light über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : cachyos-emerald-light
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 483 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 941x272 an 1440,898
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-light-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-light-schwarz-leer.png
+Messpunkt 1910,1033 (Mitte des Teilstücks); Teilstück zu Fenster: 0.98 breit, 0.93 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 1,1,1
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 35,38,41
+  Kleintext des Fensters  : 112,125,138
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 1.37:1
+  Kleintext : 4.96:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 20.35:1
+    Schema gedämpft: 8.77:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: cachyos-emerald-color über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : cachyos-emerald-color
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 651 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 941x272 an 1440,898
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-color-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-color-schwarz-leer.png
+Messpunkt 1910,1033 (Mitte des Teilstücks); Teilstück zu Fenster: 0.98 breit, 0.93 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 1,1,1
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 0,199,144
+  Kleintext des Fensters  : 102,106,115
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 9.51:1
+  Kleintext : 3.85:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 20.35:1
+    Schema gedämpft: 8.77:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: breeze-light über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : breeze-light
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x174 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 665 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x278
+Fenster samt Schatten gefunden: 960x278 an 1440,904
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-breeze-light-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-breeze-light-schwarz-leer.png
+Messpunkt 1919,1042 (Mitte des Teilstücks); Teilstück zu Fenster: 1.00 breit, 1.00 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 203,203,204
+
+Woher die Farben kommen:
+  colors-Datei des Themes : ja
+  Notiztext des Fensters  : 35,38,41
+  Kleintext des Fensters  : 112,125,138
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 9.38:1
+  Kleintext : 2.60:1   — unter 4,5:1 (Grenze, #84)
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 1.58:1
+    Schema gedämpft: 1.47:1
+Rückgabe: 0
+
+----------------------------------------------------------------
+LAUF: default über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : default
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x174 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 756 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x278
+Fenster samt Schatten gefunden: 960x278 an 1440,904
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-default-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-default-schwarz-leer.png
+Messpunkt 1919,1042 (Mitte des Teilstücks); Teilstück zu Fenster: 1.00 breit, 1.00 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 27,30,32
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 16.33:1
+  Kleintext : 7.04:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 16.33:1
+    Schema gedämpft: 7.04:1
+Rückgabe: 0
+
+Fertig.
+----------------------------------------------------------------
+NACHLAUF: Iridescent-round über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : Iridescent-round
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 756 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 960x291 an 1440,898
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-Iridescent-round-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-Iridescent-round-schwarz-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.00 breit, 1.00 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 1,1,1
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 20.35:1
+  Kleintext : 8.77:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 20.35:1
+    Schema gedämpft: 8.77:1
+Rückgabe: 0
+----------------------------------------------------------------
+NACHLAUF: cachyos-emerald über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : cachyos-emerald
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 756 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 941x272 an 1440,898
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-cachyos-emerald-schwarz-leer.png
+Messpunkt 1910,1033 (Mitte des Teilstücks); Teilstück zu Fenster: 0.98 breit, 0.93 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 1,1,1
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 20.35:1
+  Kleintext : 8.77:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 20.35:1
+    Schema gedämpft: 8.77:1
+Rückgabe: 0
+----------------------------------------------------------------
+NACHLAUF: CachyOS-Nord-round über schwarz
+=== #85 AK 2 — Sitzungsbeleg über benanntem Grund ===
+Plattform  : wayland
+Theme      : CachyOS-Nord-round
+Grund      : schwarz (0,0,0)
+Auswahlpfad: durchscheinend (Sitzung weichzeichnet)
+Grund sichtbar: ja, 2400x1304; Bildmitte der ersten Aufnahme: 0,0,0
+Fenster sichtbar: ja, Geometrie 600x182 an 0,0
+Aufnahmen 3840x2160, größter Unterschied 756 Zählschritte
+Bildpunktverhältnis des Fensters: 1.6, erwartete Kantenlänge 960x291
+Fenster samt Schatten gefunden: 960x291 an 1440,898
+Ausschnitt abgelegt: /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-CachyOS-Nord-round-schwarz.png
+Leerzustand abgelegt : /home/hnsstrk/Projekte/denkzettel/docs/scrum/reviews/sprint-08-ui-review/bilder/fenster-CachyOS-Nord-round-schwarz-leer.png
+Messpunkt 1919,1043 (Mitte des Teilstücks); Teilstück zu Fenster: 1.00 breit, 1.00 hoch
+
+Grund an derselben Stelle ohne Fenster : 0,0,0
+Zusammengesetzte Fläche im Fenster     : 30,34,51
+
+Woher die Farben kommen:
+  colors-Datei des Themes : nein
+  Notiztext des Fensters  : 252,252,252
+  Kleintext des Fensters  : 161,169,177
+  Schemaschrift (Palette) : 252,252,252
+  Schema gedämpft         : 161,169,177
+
+Kontrast gegen die zusammengesetzte Fläche:
+  Notiztext : 15.37:1
+  Kleintext : 6.63:1
+  Zum Vergleich, was vor #85 gestanden hätte:
+    Schemaschrift : 15.37:1
+    Schema gedämpft: 6.63:1
+Rückgabe: 0
