@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     // the registration and is restored right after: config and data paths
     // derive from it.
     app.setApplicationName(QStringLiteral("Daemon"));
-    KDBusService service(KDBusService::Unique);
+    const KDBusService service(KDBusService::Unique);
     app.setApplicationName(QStringLiteral("denkzettel"));
 
     Store store(Store::defaultDatabasePath());
@@ -64,9 +64,9 @@ int main(int argc, char *argv[])
                          capture.showCapture();
                      });
 
-    LibraryWindow library(&store);
+    const LibraryWindow library(&store);
 
-    TrayIcon tray;
+    const TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
 

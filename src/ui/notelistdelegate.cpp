@@ -122,7 +122,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         return;
     }
 
-    QStyle *style = entry.widget ? entry.widget->style() : QApplication::style();
+    const QStyle *style = entry.widget ? entry.widget->style() : QApplication::style();
     style->drawControl(QStyle::CE_ItemViewItem, &entry, painter, entry.widget);
 
     const bool selected = entry.state.testFlag(QStyle::State_Selected);

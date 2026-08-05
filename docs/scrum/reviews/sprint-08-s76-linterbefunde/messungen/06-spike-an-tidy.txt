@@ -1,0 +1,3 @@
+tests/spellfixspike.cpp:306:46: warning: 2 adjacent parameters of 'bestMatch' of similar type ('const QString &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+tests/spellfixspike.cpp:331:12: warning: variable 'typed' of type 'QString' can be declared 'const' [misc-const-correctness]
+tests/spellfixspike.cpp:332:12: warning: variable 'expected' of type 'QString' can be declared 'const' [misc-const-correctness]

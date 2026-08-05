@@ -1,0 +1,8 @@
+# Die Wache aus ci.yml, gegen echte Logs gehalten
+
+Gutfall                     : rc=0, 0 Warnungen, 0 Fehler   -> Wache rc=0 (gruen)
+Befunde bei rc=0            : rc=0, 149 Warnungen, 0 Fehler -> Wache rc=1 (rot)
+stiller Nulllauf bei 0 Bef. : rc=2, 0 Warnungen, 0 Fehler   -> Wache rc=1 (rot)
+
+Die zweite Zeile ist der Fall, den eine reine rc-Pruefung verpasst;
+die dritte der Fall, den eine reine Zaehlung verpasst.

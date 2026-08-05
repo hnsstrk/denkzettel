@@ -69,7 +69,7 @@ void IdentityTest::keepsTheNameTheConfigurationAndTheNotesHangOn()
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    const QApplication app(argc, argv);
 
     // The name src/main.cpp starts with, set before the registration runs, so
     // that the assertions above measure what the registration changed and not
