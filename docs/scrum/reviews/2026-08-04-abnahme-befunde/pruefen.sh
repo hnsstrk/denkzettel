@@ -57,7 +57,7 @@ done
 
 echo "== B1: Prüf-Theme mit eckigen Ecken =="
 for f in 1 1.6; do
-    XDG_DATA_DIRS="$HIER/pruef-theme:/usr/share" QT_SCALE_FACTOR=$f QT_QPA_PLATFORM=offscreen \
+    XDG_DATA_DIRS="$WURZEL/tests/themes:/usr/share" QT_SCALE_FACTOR=$f QT_QPA_PLATFORM=offscreen \
         "$BAU/sonden/eckenraster" "$HIER/bilder/b1/eckig-$f" denkzettel-pruef-eckig \
         > "$HIER/messungen/b1-eckiges-theme-skala-$f.txt"
 done
@@ -66,7 +66,7 @@ echo "== B1: die echte Lage in der angemeldeten Sitzung =="
 if [ -n "${WAYLAND_DISPLAY:-}" ]; then
     "$BAU/sonden/echtelage" "$HIER/bilder/b1/echt" \
         > "$HIER/messungen/b1-echtelage.txt"
-    XDG_DATA_DIRS="$HIER/pruef-theme:/usr/share" \
+    XDG_DATA_DIRS="$WURZEL/tests/themes:/usr/share" \
         "$BAU/sonden/echtelage" "$HIER/bilder/b1/echt-eckig" denkzettel-pruef-eckig \
         > "$HIER/messungen/b1-echtelage-eckiges-theme.txt"
 else
@@ -117,7 +117,7 @@ else
 fi
 
 echo "== Nativ: das Prüf-Theme mit eckigen Ecken =="
-XDG_DATA_DIRS="$HIER/pruef-theme:/usr/share" XDG_CONFIG_HOME="$FLUECHTIG/cfg-nord" \
+XDG_DATA_DIRS="$WURZEL/tests/themes:/usr/share" XDG_CONFIG_HOME="$FLUECHTIG/cfg-nord" \
     QT_QPA_PLATFORM=offscreen \
     "$BAU/sonden/nativehuelle" "$HIER/bilder/native/eckig" denkzettel-pruef-eckig \
     > "$HIER/messungen/native-huelle-eckiges-theme.txt"

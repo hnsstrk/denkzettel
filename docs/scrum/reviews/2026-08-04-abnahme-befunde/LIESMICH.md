@@ -59,6 +59,11 @@ Durchsichtigkeit abzulesen ist.
 
 ## Das Prüf-Theme
 
+**Nicht mehr hier:** Das Theme ist am 05.08.2026 mit #83 AK 9 nach
+`tests/themes/plasma/desktoptheme/denkzettel-pruef-eckig/` überführt worden,
+wo `themes::addBundledThemesToDataPath()` es findet. Der Absatz beschreibt es
+weiter, `pruefen.sh` dieses Ordners zeigt auf den neuen Platz.
+
 `pruef-theme/plasma/desktoptheme/denkzettel-pruef-eckig/` ist Zeichen für
 Zeichen der Aufbau von `tests/themes/.../denkzettel-test-schmal`, nur sind die
 vier Eckstücke rechteckig statt Viertelkreise. Es existiert, weil **alle acht

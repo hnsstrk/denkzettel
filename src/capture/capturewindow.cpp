@@ -9,9 +9,14 @@
 #include <KLocalizedString>
 #include <KSvg/FrameSvg>
 #include <KSvg/ImageSet>
+#include <KWindowEffects>
 #include <KWindowShadow>
+#include <KWindowSystem>
 
 #include <QAbstractTextDocumentLayout>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusReply>
 #include <QDateTime>
 #include <QFontDatabase>
 #include <QKeyEvent>
@@ -41,18 +46,6 @@ constexpr QMargins ContentMargins = QMargins(12, 10, 12, 8);
 constexpr int SpacingBelowAppName = 8;
 constexpr int SpacingAboveFooter = 12;
 
-/** Width of the single line of the hull, in logical pixels. */
-constexpr int OutlineWidth = 1;
-
-/**
- * How far the outline is mixed from the surface towards the text colour. In a
- * Widgets application `frameContrast` is this constant — there is no
- * KColorScheme behind it (issue #55). Measured over all 18 installed colour
- * schemes it lands between 1,24:1 and 1,91:1 against the surface: visible
- * everywhere, obtrusive nowhere (wireframe 4b).
- */
-constexpr qreal FrameContrast = 0.20;
-
 /**
  * Where the hull comes from, and what KSvg falls back to without an answer.
  *
@@ -66,32 +59,12 @@ constexpr QLatin1StringView HullImage("dialogs/background");
 constexpr QLatin1StringView ShadowPrefix("shadow");
 constexpr QLatin1StringView DefaultDesktopTheme("default");
 
-QColor mixed(const QColor &from, const QColor &to, qreal amount)
-{
-    return QColor::fromRgbF(from.redF() + (to.redF() - from.redF()) * amount,
-                            from.greenF() + (to.greenF() - from.greenF()) * amount,
-                            from.blueF() + (to.blueF() - from.blueF()) * amount);
-}
-
 /**
- * The theme's shape, filled with a colour of ours.
- *
- * `shape` is the alpha channel the desktop theme renders — the rounding of its
- * corners with every intermediate step, not a radius we made up. What it gets
- * filled with comes from the palette (wireframe 4a).
+ * The variant of the theme's graphic a window without a blurring compositor
+ * gets. Plasma picks between `opaque` and `translucent` the same way
+ * (`KSvg::ImageSet::setSelectors()`, imageset.h).
  */
-QPixmap tinted(const QPixmap &shape, const QColor &colour)
-{
-    QPixmap result(shape.size());
-    result.setDevicePixelRatio(shape.devicePixelRatio());
-    result.fill(colour);
-
-    QPainter painter(&result);
-    painter.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-    painter.drawPixmap(0, 0, shape);
-
-    return result;
-}
+constexpr QLatin1StringView OpaqueSelector("opaque");
 
 /**
  * One shadow tile of the desktop theme, ready for the compositor.
@@ -135,27 +108,91 @@ QLabel *subtleLabel(const QString &text, QWidget *parent)
 }
 }
 
+namespace capture
+{
+
+ContrastEffect contrastEffectOf(const QString &desktopTheme)
+{
+    // Themes carry their KPlugin data in `metadata.json` these days, but the
+    // effect groups stayed where Plasma::Theme reads them: in the KConfig file
+    // beside it. A theme may have either file, both, or only the JSON one —
+    // `default` has no `metadata.desktop` at all, and that is the measured case
+    // of "no group, no contrast effect".
+    const QString file = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                QStringLiteral("%1/%2/metadata.desktop")
+                                                    .arg(DesktopThemePath, desktopTheme));
+    if (file.isEmpty()) {
+        return {};
+    }
+
+    const KConfigGroup group(KSharedConfig::openConfig(file, KConfig::SimpleConfig),
+                             QStringLiteral("ContrastEffect"));
+    if (!group.exists()) {
+        return {};
+    }
+
+    ContrastEffect effect;
+    // The defaults are the ones Plasma::Theme documents: a group that names
+    // only `enabled` leaves the picture as it is.
+    effect.enabled = group.readEntry("enabled", false);
+    effect.contrast = group.readEntry("contrast", 1.0);
+    effect.intensity = group.readEntry("intensity", 1.0);
+    effect.saturation = group.readEntry("saturation", 1.0);
+    return effect;
+}
+
+bool sessionBlursBehindWindows()
+{
+    // Neither offscreen nor any other platform without a compositing window
+    // server can blur anything, and asking a session bus about it would make
+    // the answer depend on whether a Plasma session happens to stand beside
+    // the test run — the very unsteadiness that makes a theme-dependent test
+    // trustworthy in one place and worthless in another (issue #83, F16).
+    if (!KWindowSystem::isPlatformWayland() && !KWindowSystem::isPlatformX11()) {
+        return false;
+    }
+
+    QDBusMessage question = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+                                                           QStringLiteral("/Effects"),
+                                                           QStringLiteral("org.kde.kwin.Effects"),
+                                                           QStringLiteral("isEffectLoaded"));
+    question << QStringLiteral("blur");
+
+    // A short timeout, because this stands in the way of the first frame: a
+    // window server that does not answer is one that does not blur either.
+    const QDBusReply<bool> answer =
+        QDBusConnection::sessionBus().call(question, QDBus::Block, 1000);
+    return answer.isValid() && answer.value();
+}
+
+}
+
 CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     : QWidget(parent, Qt::Window | Qt::FramelessWindowHint)
     , m_store(store)
     , m_text(new QPlainTextEdit(this))
     , m_plasmaConfig(KSharedConfig::openConfig(QStringLiteral("plasmarc")))
     , m_hull(new KSvg::FrameSvg(this))
-    , m_hullInner(new KSvg::FrameSvg(this))
     , m_shadowTiles(new KSvg::FrameSvg(this))
+    , m_blursBehind(capture::sessionBlursBehindWindows())
 {
     setWindowTitle(i18n("Denkzettel"));
 
     // The hull has rounded corners, so the corners of the window have to be
-    // able to disappear. Nothing is left transparent by accident: paintEvent()
-    // fills every pixel it keeps, and without a theme it fills all of them.
+    // able to disappear. The theme's own graphic decides how much of the rest
+    // stays see-through; without a theme paintEvent() fills every pixel.
     setAttribute(Qt::WA_TranslucentBackground);
 
-    for (KSvg::FrameSvg *frame : {m_hull, m_hullInner, m_shadowTiles}) {
+    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles}) {
         frame->setImagePath(HullImage);
         frame->setEnabledBorders(KSvg::FrameSvg::AllBorders);
         connect(frame, &KSvg::Svg::repaintNeeded, this, qOverload<>(&QWidget::update));
     }
+    // The colour set of a dialog background, the one Plasma draws this graphic
+    // with. Under `default` all seven sets render the same pixels (measured,
+    // `native-huelle-breeze.txt`, section B); under a theme that ships more
+    // than one they would not, and this is the set the image is meant for.
+    m_hull->setColorSet(KSvg::Svg::Window);
     m_shadowTiles->setElementPrefix(ShadowPrefix);
 
     m_text->setFrameShape(QFrame::NoFrame);
@@ -238,10 +275,19 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     // does. Hence a new one here rather than a rename, and the old one only
     // goes once all three frames point at the new one.
     auto imageSet = std::make_unique<KSvg::ImageSet>(theme, DesktopThemePath);
-    for (KSvg::FrameSvg *frame : {m_hull, m_hullInner, m_shadowTiles}) {
+    // Outside a session that blurs, the translucent variant of the graphic
+    // would leave a window one can see through and hardly read — SPEC 3.2
+    // point 4 promises the opposite. `opaque` is the theme's own answer to
+    // that, and picking it is what Plasma does, not an adjustment of ours. A
+    // theme that ships no such variant simply keeps the one it has.
+    if (!m_blursBehind) {
+        imageSet->setSelectors({QString(OpaqueSelector)});
+    }
+    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles}) {
         frame->setImageSet(imageSet.get());
     }
     m_imageSet = std::move(imageSet);
+    m_contrast = capture::contrastEffectOf(theme);
 
     applyHullMargins();
     // The margins are part of the height: a wider theme border makes a taller
@@ -309,22 +355,22 @@ bool CaptureWindow::eventFilter(QObject *watched, QEvent *event)
 void CaptureWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    const QColor surface = palette().color(QPalette::Window);
 
     if (!m_hull->isValid()) {
         // Outside a Plasma session `dialogs/background` is simply not there
-        // (AK 9). The window then wears no hull — and that is the whole
-        // difference: it stays opaque, and it stays usable.
-        painter.fillRect(rect(), surface);
+        // (SPEC 3.2 point 4). The window then wears no hull — and that is the
+        // whole difference: it stays opaque, and it stays usable.
+        painter.fillRect(rect(), palette().color(QPalette::Window));
         QWidget::paintEvent(event);
         return;
     }
 
-    // Two shapes of the same theme, one outline width apart. The ring between
-    // them is the single line of the window, and it follows the theme's
-    // rounding because it is that rounding, drawn twice.
-    painter.drawPixmap(0, 0, tinted(m_hull->alphaMask(), mixed(surface, palette().color(QPalette::WindowText), FrameContrast)));
-    painter.drawPixmap(OutlineWidth, OutlineWidth, tinted(m_hullInner->alphaMask(), surface));
+    // One graphic, one call, no colour of ours. What the theme draws is what
+    // the window wears — rounding, edge and translucency included. The edge is
+    // not a line in another colour: theme graphics draw it as a step in
+    // coverage (235 against 216 under `default`, measured), and it becomes
+    // visible only because the hull lets the ground through.
+    painter.drawPixmap(0, 0, m_hull->framePixmap());
 
     QWidget::paintEvent(event);
 }
@@ -335,11 +381,41 @@ void CaptureWindow::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 }
 
+bool CaptureWindow::event(QEvent *event)
+{
+    // The pixel ratio of the window is not settled when show() returns: under
+    // Wayland Qt reports 2 first and 1,6 about a second later, and it delivers
+    // that as a DevicePixelRatioChange **without** a Resize beside it
+    // (measured, `sonde2-fensterlauf-wayland-skala-1.txt`). A hull that is only
+    // redrawn out of resizeEvent() would keep drawing at 2 on a window that is
+    // 1,6, for good. Offscreen this event never arrives — no test of this
+    // project would notice the line missing.
+    if (event->type() == QEvent::DevicePixelRatioChange) {
+        resizeHull();
+        update();
+    }
+
+    return QWidget::event(event);
+}
+
 void CaptureWindow::resizeHull()
 {
+    // The ratio before the size: a FrameSvg does not follow the screen by
+    // itself — it stands at 1 whatever the session scales to, and the
+    // application has to hand the number over (measured,
+    // `sonde1-rahmenmasse-offscreen.txt`). Setting it after resizeFrame() works
+    // just as well; there is no order to find here.
+    m_hull->setDevicePixelRatio(devicePixelRatioF());
     m_hull->resizeFrame(size());
-    m_hullInner->resizeFrame(size() - QSize(2 * OutlineWidth, 2 * OutlineWidth));
     m_shadowTiles->resizeFrame(size());
+
+    // The blur region **is** the hull's mask, and the hull just changed shape.
+    bindWindowEffects();
+}
+
+qreal CaptureWindow::hullDevicePixelRatio() const
+{
+    return m_hull->devicePixelRatio();
 }
 
 void CaptureWindow::applyHullMargins()
@@ -416,6 +492,39 @@ void CaptureWindow::bindShadow()
     m_shadow = std::move(shadow);
 }
 
+void CaptureWindow::bindWindowEffects()
+{
+    // Passing a window that has no native handle yet is not a failure but a
+    // crash: `enableBlurBehind(nullptr, …)` ends in SIGSEGV under Wayland, and
+    // offscreen the same call returns quietly — so no test of this project
+    // would find the guard missing (measured, `sonde2-fensterlauf-*`, part E).
+    if (!windowHandle() || !m_hull->isValid()) {
+        return;
+    }
+
+    // Both calls are void, and the one value that could be read back lies
+    // before the first registration (F9/F10 of the pre-check). Nothing here
+    // reports a failure; what this does is shown by a picture out of a session
+    // and by nothing else.
+    //
+    // The region is the theme's mask and is given in logical pixels, which is
+    // what the header asks for — measured 600x174 at ratio 1 and at 1,6 alike.
+    const QRegion region = m_hull->mask();
+    KWindowEffects::enableBlurBehind(windowHandle(), true, region);
+
+    // The second registration Plasma makes, and the themes that draw almost
+    // nothing ask for it in so many words: it is what puts a readable ground
+    // under text in a see-through window. A theme without the group gets none.
+    if (m_contrast.enabled) {
+        KWindowEffects::enableBackgroundContrast(windowHandle(),
+                                                 true,
+                                                 m_contrast.contrast,
+                                                 m_contrast.intensity,
+                                                 m_contrast.saturation,
+                                                 region);
+    }
+}
+
 void CaptureWindow::present()
 {
     show();
@@ -427,6 +536,13 @@ void CaptureWindow::present()
     // old one is gone with it. This is the line no test of this project would
     // notice missing — it shows only on the second opening.
     bindShadow();
+
+    // And the effects immediately behind it, for a harder reason than the
+    // shadow: measured over seven runs the blur takes hold **only** when it is
+    // registered right after show(). Registered a second later it does nothing
+    // at all — not with our mask, and not with the empty region that means the
+    // whole window (`sonde4-weichzeichner-*.txt`). No return value says so.
+    bindWindowEffects();
 }
 
 void CaptureWindow::save()
