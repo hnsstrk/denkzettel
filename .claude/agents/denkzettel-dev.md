@@ -56,7 +56,7 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 
 ## Rückgabewerte und Läufe, die nichts belegen
 
-Vier gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
+Fünf gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
 gegen diese Liste, bevor du einen Nachweis in deinen Bericht schreibst — und
 **erweitere sie**: Jeder neue Fund dieser Art gehört hier hinein, mit
 Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
@@ -86,6 +86,19 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
    `b1-huellenring-offscreen.txt` gegen `-live.txt`). Ein offscreen erzeugtes
    Bild belegt Geometrie, Textsatz und Farbrollen — Hülle, Rundung, Kontur,
    Schatten und Dekoration belegt es nicht.
+5. **Ein Vergleich kann auf beiden Seiten falsch sein und trotzdem „stimmt"
+   melden.** Bei der Reproduktionsmessung zu #71 lautete das erste Messkriterium
+   „markierte Zeile == aktuelle Zeile" — der Vergleich, den das Issue nahelegt.
+   Wird bei gedrückter Taste ein Move zugestellt, zieht Qt die aktuelle Zeile
+   auf die Nachbarzeile nach; danach *stimmen* beide überein, nur eben auf der
+   **falschen** Zeile. Unter diesem Kriterium hätte der Lauf in 9 von 14 Fällen
+   „stimmt" gemeldet und wie ein sauberes Ergebnis ausgesehen. Erst die Spalte
+   „ist die **geklickte** Zeile markiert?" zeigte, dass 13 von 14 danebenlagen
+   (`docs/scrum/vorberichte/71-klick-nachbarzeile/reproduktion.md`).
+   **Die Regel dahinter:** Vergleichst du zwei Größen, die derselbe Fehler
+   gemeinsam verschieben kann, misst du nichts. Halte mindestens eine Seite
+   gegen einen **von außen gesetzten** Wert — hier die Zeile, auf die geklickt
+   wurde.
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 

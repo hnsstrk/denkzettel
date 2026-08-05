@@ -1,0 +1,217 @@
+diff --git a/tests/librarytest.cpp b/tests/librarytest.cpp
+index cc05380..f426be9 100644
+--- a/tests/librarytest.cpp
++++ b/tests/librarytest.cpp
+@@ -141,6 +141,8 @@ private Q_SLOTS:
+     void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
+     void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
+     void keepsTheHeadFetchAfterAClickThatSelectedNothing();
++    void reproIssue71PlainClick();
++    void reproIssue71PressMoveRelease();
+     void bringsBackTheHeadWhenTheDeletionIsUndone();
+     void regroupsWhenTheWindowIsActivated();
+     void staysPutWhenTheWindowIsActivatedWithoutADayChange();
+@@ -1556,6 +1558,203 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
+     QVERIFY(visibleLabels(window).contains(QStringLiteral("Gestern 09:00")));
+ }
+ 
++// ==== Wegwerf-Messung zur Vorprüfung von #71 — nicht zum Bleiben gedacht ====
++//
++// Die Frage: Lässt sich der Befund von #71 im vorhandenen offscreen-Aufbau
++// dieser Datei reproduzieren, also mit QTest-Mausereignissen auf dem Viewport?
++namespace
++{
++
++/** Die unten angeschnittene, wählbare Zeile: oben im Bild, unten darüber hinaus. */
++int repro71BottomClippedRow(QListView *list)
++{
++    for (int row = 0; row < list->model()->rowCount(); ++row) {
++        const QModelIndex index = list->model()->index(row, 0);
++        if (!index.flags().testFlag(Qt::ItemIsSelectable)) {
++            continue;
++        }
++        const QRect rect = list->visualRect(index);
++        if (rect.top() < list->viewport()->height() && rect.bottom() > list->viewport()->height()) {
++            return row;
++        }
++    }
++    return -1;
++}
++
++QString repro71SelectedRows(QListView *list)
++{
++    const QModelIndexList selected = list->selectionModel()->selectedIndexes();
++    if (selected.isEmpty()) {
++        return QStringLiteral("keine");
++    }
++    QStringList rows;
++    for (const QModelIndex &index : selected) {
++        rows << QString::number(index.row());
++    }
++    return rows.join(QLatin1Char(','));
++}
++
++} // namespace
++
++void LibraryTest::reproIssue71PlainClick()
++{
++    for (int hour = 8; hour < 16; ++hour) {
++        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
++                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
++    }
++    for (int hour = 9; hour < 12; ++hour) {
++        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
++                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
++    }
++    for (int hour = 8; hour < 16; ++hour) {
++        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
++                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
++    }
++
++    LibraryWindow window(m_store.get());
++    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
++    window.resize(900, 600);
++    window.showLibrary();
++    QVERIFY(QTest::qWaitForWindowExposed(&window));
++
++    QListView *list = listOf(window);
++
++    qInfo("=== Versuch 1: QTest::mouseClick (Druck und Loslassen, kein Move) ===");
++    qInfo("Viewport %dx%d, Rollbereich %d..%d, Zeilenhoehe %d",
++          list->viewport()->width(), list->viewport()->height(),
++          list->verticalScrollBar()->minimum(), list->verticalScrollBar()->maximum(),
++          list->visualRect(modelOf(list)->index(1)).height());
++    qInfo("Rollwert | Zielzeile | sichtbar | Rollwert nachher | Versatz | aktuell | markiert | Befund | "
++          "geklickte Zeile getroffen?");
++
++    int auseinander = 0;
++    int verfehlt = 0;
++    int geprueft = 0;
++    for (int value = list->verticalScrollBar()->minimum(); value <= list->verticalScrollBar()->maximum();
++         ++value) {
++        list->setCurrentIndex(modelOf(list)->index(1));
++        list->verticalScrollBar()->setValue(value);
++
++        const int row = repro71BottomClippedRow(list);
++        if (row < 0) {
++            qInfo("%8d | — keine angeschnittene Zeile", value);
++            continue;
++        }
++        ++geprueft;
++
++        const QModelIndex target = modelOf(list)->index(row);
++        const QRect rect = list->visualRect(target);
++        const int visible = list->viewport()->height() - rect.top();
++        const QPoint point(rect.center().x(), rect.top() + qMin(5, visible - 1));
++
++        const int scrollBefore = list->verticalScrollBar()->value();
++        const int yBefore = rect.y();
++
++        QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, point);
++
++        const int scrollAfter = list->verticalScrollBar()->value();
++        const int shift = list->visualRect(target).y() - yBefore;
++        const QString marked = repro71SelectedRows(list);
++        const bool apart = marked != QString::number(list->currentIndex().row());
++        if (apart) {
++            ++auseinander;
++        }
++
++        const bool hit = marked == QString::number(row);
++        if (!hit) {
++            ++verfehlt;
++        }
++
++        qInfo("%8d | %9d | %5d px | %6d -> %-6d | %5d px | %7d | %8s | %-11s | %s",
++              value, row, visible, scrollBefore, scrollAfter, shift, list->currentIndex().row(),
++              qPrintable(marked), apart ? "AUSEINANDER" : "stimmt", hit ? "getroffen" : "VERFEHLT");
++    }
++    qInfo("ERGEBNIS Versuch 1: %d von %d angeschnittenen Faellen gehen auseinander, "
++          "%d von %d markieren nicht die geklickte Zeile",
++          auseinander, geprueft, verfehlt, geprueft);
++}
++
++void LibraryTest::reproIssue71PressMoveRelease()
++{
++    for (int hour = 8; hour < 16; ++hour) {
++        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
++                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
++    }
++    for (int hour = 9; hour < 12; ++hour) {
++        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
++                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
++    }
++    for (int hour = 8; hour < 16; ++hour) {
++        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
++                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
++    }
++
++    LibraryWindow window(m_store.get());
++    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
++    window.resize(900, 600);
++    window.showLibrary();
++    QVERIFY(QTest::qWaitForWindowExposed(&window));
++
++    QListView *list = listOf(window);
++
++    qInfo("=== Versuch 2: mousePress, mouseMove auf denselben Punkt, mouseRelease ===");
++    qInfo("Rollwert | Zielzeile | sichtbar | Rollwert nachher | Versatz | aktuell | markiert | Befund | "
++          "geklickte Zeile getroffen?");
++
++    int auseinander = 0;
++    int verfehlt = 0;
++    int geprueft = 0;
++    for (int value = list->verticalScrollBar()->minimum(); value <= list->verticalScrollBar()->maximum();
++         ++value) {
++        list->setCurrentIndex(modelOf(list)->index(1));
++        list->verticalScrollBar()->setValue(value);
++
++        const int row = repro71BottomClippedRow(list);
++        if (row < 0) {
++            qInfo("%8d | — keine angeschnittene Zeile", value);
++            continue;
++        }
++        ++geprueft;
++
++        const QModelIndex target = modelOf(list)->index(row);
++        const QRect rect = list->visualRect(target);
++        const int visible = list->viewport()->height() - rect.top();
++        const QPoint point(rect.center().x(), rect.top() + qMin(5, visible - 1));
++
++        const int scrollBefore = list->verticalScrollBar()->value();
++        const int yBefore = rect.y();
++
++        QTest::mousePress(list->viewport(), Qt::LeftButton, Qt::NoModifier, point);
++        const int currentAfterPress = list->currentIndex().row();
++        const QString markedAfterPress = repro71SelectedRows(list);
++        QTest::mouseMove(list->viewport(), point);
++        const QString markedAfterMove = repro71SelectedRows(list);
++        QTest::mouseRelease(list->viewport(), Qt::LeftButton, Qt::NoModifier, point);
++
++        const int scrollAfter = list->verticalScrollBar()->value();
++        const int shift = list->visualRect(target).y() - yBefore;
++        const QString marked = repro71SelectedRows(list);
++        const bool apart = marked != QString::number(list->currentIndex().row());
++        if (apart) {
++            ++auseinander;
++        }
++
++        const bool hit = marked == QString::number(row);
++        if (!hit) {
++            ++verfehlt;
++        }
++
++        qInfo("%8d | %9d | %5d px | %6d -> %-6d | %5d px | %7d | %8s | %-11s | %s",
++              value, row, visible, scrollBefore, scrollAfter, shift, list->currentIndex().row(),
++              qPrintable(marked), apart ? "AUSEINANDER" : "stimmt", hit ? "getroffen" : "VERFEHLT");
++        qInfo("           (nach dem Druck: aktuell %d, markiert %s | nach dem Move: markiert %s)",
++              currentAfterPress, qPrintable(markedAfterPress), qPrintable(markedAfterMove));
++    }
++    qInfo("ERGEBNIS Versuch 2: %d von %d angeschnittenen Faellen gehen auseinander, "
++          "%d von %d markieren nicht die geklickte Zeile",
++          auseinander, geprueft, verfehlt, geprueft);
++}
++
+ void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
+ {
+     // The press is remembered for the selection change it causes — and a press

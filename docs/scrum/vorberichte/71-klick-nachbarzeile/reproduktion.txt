@@ -1,0 +1,141 @@
+== Reproduktionsmessung zu Issue #71 im vorhandenen offscreen-Testaufbau ==
+Datum: 05.08.2026, Ganymed
+Quellstand: 581dacc (main), Arbeitsbaum bis auf den
+  Wegwerf-Testfall in tests/librarytest.cpp unveraendert
+Bauplatz: build-repro71 (Debug), Ziel librarytest
+Umgebung: QT_QPA_PLATFORM=offscreen, QT_QPA_PLATFORMTHEME=kde, eigenes XDG_CONFIG_HOME
+Qt: 6.11.1
+
+---- Lauf 1: QT_SCALE_FACTOR nicht gesetzt (Verhaeltnis 1) ----
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+QWARN  : LibraryTest::reproIssue71PlainClick() This plugin does not support propagateSizeHints()
+QWARN  : LibraryTest::reproIssue71PlainClick() This plugin does not support raise()
+QINFO  : LibraryTest::reproIssue71PlainClick() === Versuch 1: QTest::mouseClick (Druck und Loslassen, kein Move) ===
+QINFO  : LibraryTest::reproIssue71PlainClick() Viewport 279x552, Rollbereich 0..15, Zeilenhoehe 72
+QINFO  : LibraryTest::reproIssue71PlainClick() Rollwert | Zielzeile | sichtbar | Rollwert nachher | Versatz | aktuell | markiert | Befund | geklickte Zeile getroffen?
+QINFO  : LibraryTest::reproIssue71PlainClick()        0 |         8 |    21 px |      0 -> 2      |   -99 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        1 |         8 |    48 px |      1 -> 2      |   -72 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        2 |        10 |    13 px |      2 -> 3      |   -72 px |      10 |       11 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        3 |        11 |    13 px |      3 -> 4      |   -72 px |      11 |       12 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        4 |        12 |    13 px |      4 -> 5      |   -72 px |      12 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        5 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PlainClick()        6 |        14 |    50 px |      6 -> 7      |   -72 px |      14 |       15 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        7 |        15 |    50 px |      7 -> 8      |   -72 px |      15 |       16 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        8 |        16 |    50 px |      8 -> 9      |   -72 px |      16 |       17 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        9 |        17 |    50 px |      9 -> 10     |   -35 px |      17 |       17 | stimmt      | getroffen
+QINFO  : LibraryTest::reproIssue71PlainClick()       10 |        18 |    13 px |     10 -> 11     |   -72 px |      18 |       19 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       11 |        19 |    13 px |     11 -> 12     |   -72 px |      19 |       20 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       12 |        20 |    13 px |     12 -> 13     |   -72 px |      20 |       21 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       13 |        21 |    13 px |     13 -> 15     |  -107 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       14 |        21 |    48 px |     14 -> 15     |   -72 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       15 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PlainClick() ERGEBNIS Versuch 1: 13 von 14 angeschnittenen Faellen gehen auseinander, 13 von 14 markieren nicht die geklickte Zeile
+PASS   : LibraryTest::reproIssue71PlainClick()
+QWARN  : LibraryTest::reproIssue71PressMoveRelease() This plugin does not support propagateSizeHints()
+QWARN  : LibraryTest::reproIssue71PressMoveRelease() This plugin does not support raise()
+QINFO  : LibraryTest::reproIssue71PressMoveRelease() === Versuch 2: mousePress, mouseMove auf denselben Punkt, mouseRelease ===
+QINFO  : LibraryTest::reproIssue71PressMoveRelease() Rollwert | Zielzeile | sichtbar | Rollwert nachher | Versatz | aktuell | markiert | Befund | geklickte Zeile getroffen?
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        0 |         8 |    21 px |      0 -> 2      |   -99 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 8, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        1 |         8 |    48 px |      1 -> 2      |   -72 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 8, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        2 |        10 |    13 px |      2 -> 4      |  -144 px |      11 |       11 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 10, markiert 11 | nach dem Move: markiert 11)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        3 |        11 |    13 px |      3 -> 5      |  -144 px |      12 |       12 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 11, markiert 12 | nach dem Move: markiert 12)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        4 |        12 |    13 px |      4 -> 5      |   -72 px |      12 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 12, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        5 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        6 |        14 |    50 px |      6 -> 8      |  -144 px |      15 |       15 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 14, markiert 15 | nach dem Move: markiert 15)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        7 |        15 |    50 px |      7 -> 9      |  -144 px |      16 |       16 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 15, markiert 16 | nach dem Move: markiert 16)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        8 |        16 |    50 px |      8 -> 10     |  -107 px |      17 |       17 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 16, markiert 17 | nach dem Move: markiert 17)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        9 |        17 |    50 px |      9 -> 10     |   -35 px |      17 |       17 | stimmt      | getroffen
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 17, markiert 17 | nach dem Move: markiert 17)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       10 |        18 |    13 px |     10 -> 12     |  -144 px |      19 |       19 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 18, markiert 19 | nach dem Move: markiert 19)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       11 |        19 |    13 px |     11 -> 13     |  -144 px |      20 |       20 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 19, markiert 20 | nach dem Move: markiert 20)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       12 |        20 |    13 px |     12 -> 15     |  -179 px |      21 |       21 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 20, markiert 21 | nach dem Move: markiert 21)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       13 |        21 |    13 px |     13 -> 15     |  -107 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 21, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       14 |        21 |    48 px |     14 -> 15     |   -72 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 21, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       15 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PressMoveRelease() ERGEBNIS Versuch 2: 5 von 14 angeschnittenen Faellen gehen auseinander, 13 von 14 markieren nicht die geklickte Zeile
+PASS   : LibraryTest::reproIssue71PressMoveRelease()
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 34ms
+********* Finished testing of LibraryTest *********
+
+---- Lauf 2: QT_SCALE_FACTOR=1.6 (Skalierung des Kunden) ----
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+QWARN  : LibraryTest::reproIssue71PlainClick() This plugin does not support propagateSizeHints()
+QWARN  : LibraryTest::reproIssue71PlainClick() This plugin does not support raise()
+QINFO  : LibraryTest::reproIssue71PlainClick() === Versuch 1: QTest::mouseClick (Druck und Loslassen, kein Move) ===
+QINFO  : LibraryTest::reproIssue71PlainClick() Viewport 279x552, Rollbereich 0..15, Zeilenhoehe 72
+QINFO  : LibraryTest::reproIssue71PlainClick() Rollwert | Zielzeile | sichtbar | Rollwert nachher | Versatz | aktuell | markiert | Befund | geklickte Zeile getroffen?
+QINFO  : LibraryTest::reproIssue71PlainClick()        0 |         8 |    21 px |      0 -> 2      |   -99 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        1 |         8 |    48 px |      1 -> 2      |   -72 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        2 |        10 |    13 px |      2 -> 3      |   -72 px |      10 |       11 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        3 |        11 |    13 px |      3 -> 4      |   -72 px |      11 |       12 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        4 |        12 |    13 px |      4 -> 5      |   -72 px |      12 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        5 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PlainClick()        6 |        14 |    50 px |      6 -> 7      |   -72 px |      14 |       15 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        7 |        15 |    50 px |      7 -> 8      |   -72 px |      15 |       16 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        8 |        16 |    50 px |      8 -> 9      |   -72 px |      16 |       17 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()        9 |        17 |    50 px |      9 -> 10     |   -35 px |      17 |       17 | stimmt      | getroffen
+QINFO  : LibraryTest::reproIssue71PlainClick()       10 |        18 |    13 px |     10 -> 11     |   -72 px |      18 |       19 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       11 |        19 |    13 px |     11 -> 12     |   -72 px |      19 |       20 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       12 |        20 |    13 px |     12 -> 13     |   -72 px |      20 |       21 | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       13 |        21 |    13 px |     13 -> 15     |  -107 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       14 |        21 |    48 px |     14 -> 15     |   -72 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PlainClick()       15 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PlainClick() ERGEBNIS Versuch 1: 13 von 14 angeschnittenen Faellen gehen auseinander, 13 von 14 markieren nicht die geklickte Zeile
+PASS   : LibraryTest::reproIssue71PlainClick()
+QWARN  : LibraryTest::reproIssue71PressMoveRelease() This plugin does not support propagateSizeHints()
+QWARN  : LibraryTest::reproIssue71PressMoveRelease() This plugin does not support raise()
+QINFO  : LibraryTest::reproIssue71PressMoveRelease() === Versuch 2: mousePress, mouseMove auf denselben Punkt, mouseRelease ===
+QINFO  : LibraryTest::reproIssue71PressMoveRelease() Rollwert | Zielzeile | sichtbar | Rollwert nachher | Versatz | aktuell | markiert | Befund | geklickte Zeile getroffen?
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        0 |         8 |    21 px |      0 -> 2      |   -99 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 8, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        1 |         8 |    48 px |      1 -> 2      |   -72 px |       8 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 8, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        2 |        10 |    13 px |      2 -> 4      |  -144 px |      11 |       11 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 10, markiert 11 | nach dem Move: markiert 11)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        3 |        11 |    13 px |      3 -> 5      |  -144 px |      12 |       12 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 11, markiert 12 | nach dem Move: markiert 12)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        4 |        12 |    13 px |      4 -> 5      |   -72 px |      12 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 12, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        5 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        6 |        14 |    50 px |      6 -> 8      |  -144 px |      15 |       15 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 14, markiert 15 | nach dem Move: markiert 15)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        7 |        15 |    50 px |      7 -> 9      |  -144 px |      16 |       16 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 15, markiert 16 | nach dem Move: markiert 16)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        8 |        16 |    50 px |      8 -> 10     |  -107 px |      17 |       17 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 16, markiert 17 | nach dem Move: markiert 17)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()        9 |        17 |    50 px |      9 -> 10     |   -35 px |      17 |       17 | stimmt      | getroffen
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 17, markiert 17 | nach dem Move: markiert 17)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       10 |        18 |    13 px |     10 -> 12     |  -144 px |      19 |       19 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 18, markiert 19 | nach dem Move: markiert 19)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       11 |        19 |    13 px |     11 -> 13     |  -144 px |      20 |       20 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 19, markiert 20 | nach dem Move: markiert 20)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       12 |        20 |    13 px |     12 -> 15     |  -179 px |      21 |       21 | stimmt      | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 20, markiert 21 | nach dem Move: markiert 21)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       13 |        21 |    13 px |     13 -> 15     |  -107 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 21, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       14 |        21 |    48 px |     14 -> 15     |   -72 px |      21 |    keine | AUSEINANDER | VERFEHLT
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()            (nach dem Druck: aktuell 21, markiert keine | nach dem Move: markiert keine)
+QINFO  : LibraryTest::reproIssue71PressMoveRelease()       15 | — keine angeschnittene Zeile
+QINFO  : LibraryTest::reproIssue71PressMoveRelease() ERGEBNIS Versuch 2: 5 von 14 angeschnittenen Faellen gehen auseinander, 13 von 14 markieren nicht die geklickte Zeile
+PASS   : LibraryTest::reproIssue71PressMoveRelease()
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 32ms
+********* Finished testing of LibraryTest *********
