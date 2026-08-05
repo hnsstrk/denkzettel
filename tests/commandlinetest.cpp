@@ -9,13 +9,16 @@
 // CMake through the compiler into a line on stdout, and no in-process assertion
 // covers that road.
 //
-// ctest starts this test through dbus-run-session, so the daemon of the last
-// case gets a session bus of its own and never touches the one the customer is
-// logged into. The three cases before it point DBUS_SESSION_BUS_ADDRESS at a
-// socket that does not exist, which is what makes them proof rather than
+// ctest starts this test through dbus-run-session, so every daemon started
+// below gets a session bus of its own and none of them touches the one the
+// customer is logged into.
+//
+// The version case is the exception and points DBUS_SESSION_BUS_ADDRESS at a
+// socket that does not exist, which is what makes it proof rather than
 // coincidence: KDBusService ends the process with 1 when it cannot reach a bus
 // (measured 05.08.2026), so a version line can only appear if the option is
-// answered before that line runs.
+// answered before that line runs. Why the two refusals must not do the same is
+// written above expectRefusal().
 class CommandLineTest : public QObject
 {
     Q_OBJECT
@@ -55,7 +58,7 @@ QProcessEnvironment CommandLineTest::isolatedEnvironment(const QTemporaryDir &ho
 
 void CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus()
 {
-    QTemporaryDir home;
+    const QTemporaryDir home;
     QVERIFY(home.isValid());
 
     QProcess daemon;
@@ -68,8 +71,8 @@ void CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus()
 
     // The name, not the bus name: QCommandLineParser composes the line from
     // applicationName and applicationVersion, and src/main.cpp turns the name
-    // into "Daemon" for the registration further down. "Daemon 0.1.0" here
-    // would mean the option is answered inside that window.
+    // into "Daemon" for the registration further down. A line beginning with
+    // "Daemon" would mean the option is answered inside that window.
     QCOMPARE(QString::fromLocal8Bit(daemon.readAllStandardOutput()).trimmed(),
              QStringLiteral("denkzettel " DENKZETTEL_VERSION));
 }
@@ -84,7 +87,7 @@ void CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus()
 // not end at all. The two outcomes cannot be confused.
 void CommandLineTest::expectRefusal(const QStringList &arguments)
 {
-    QTemporaryDir home;
+    const QTemporaryDir home;
     QVERIFY(home.isValid());
 
     QProcess daemon;
@@ -127,7 +130,7 @@ void CommandLineTest::startsTheDaemonWithoutAnArgument()
                  QStringLiteral("org.denkzettel.Daemon")),
              "Auf diesem Bus liegt der Name schon; der Test misst dann einen fremden Dienst.");
 
-    QTemporaryDir home;
+    const QTemporaryDir home;
     QVERIFY(home.isValid());
 
     // The way the autostart entry takes: both Exec= lines of the desktop file
