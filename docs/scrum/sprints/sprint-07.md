@@ -187,9 +187,33 @@ das war der **Textcursor**. Erst die häufigste Tinte im Textband zeigt die
 1,10 : 1. **Wer Kontrast am Extremwert misst statt an der Fläche, misst das
 Falsche** — und bekommt eine Zahl, die das Gegenteil belegt.
 
-**Die Bindung wandert von #83 zu #85.** Der Befund ist dort als Kommentar
-eingetragen; er ist der erste **offscreen reproduzierbare** Beleg für das
-Problem dieser Story.
+**Nachtrag zwei Stunden später — die Zuordnung war falsch, und das ist der
+zweite Fehler in derselben Sache.** Ich hatte den Befund #85 zugeschrieben
+(„Fläche aus dem Theme, Schrift aus dem Farbschema"). Eine Zahl aus der
+Vorprüfung zu #85 passte nicht dazu: Das Farbschema des Kunden hat `Window`
+(30, 34, 51) — **dunkel**, mein Bild hatte eine **helle** Fläche.
+
+**Der Läufer erklärt es selbst.** `tests/readmeshots.cpp` setzt eine
+**Qt-Palette** (Breeze Dark) und legt sein `XDG_CONFIG_HOME` **absichtlich auf
+ein frisches leeres Verzeichnis** — mit dem ausdrücklichen Kommentar, es gebe
+dort kein `kdeglobals`. Das trug, solange die Fläche aus der Qt-Palette kam.
+**Seit #83 kommt sie von KSvg, und KSvg liest `kdeglobals`** — ohne eines fällt
+es auf seinen eigenen hellen Standard zurück.
+
+**Damit heilt #85 den Fall nicht:** Jene Story nimmt die Textfarbe aus der
+`colors`-Datei des Themes; der Läufer läuft unter `default`, und `default` hat
+keine. Gebucht als **#96**; die Bindung der README-Bilder hängt dort, nicht an
+#85.
+
+**Und es ist kein Anwendungsfehler.** Auf der Maschine des Kunden gibt es ein
+`kdeglobals`, KSvg liest es, und Fläche und Schrift stimmen überein — im
+UI-Review am Sitzungsbild belegt (Notiztext 12,58 : 1).
+
+*Zwei Fehler in derselben Stunde, beide derselben Bauart:* erst am Extremwert
+gemessen statt an der Fläche, dann eine plausible Ursache zugeordnet, ohne sie
+zu prüfen. **Beide Male sah das Ergebnis aus wie ein Befund.** Gefunden hat den
+zweiten nicht eine Prüfung, sondern eine Zahl aus einem anderen Bericht, die
+nicht dazu passte.
 
 **Drei B17-Fundstellen zu `tinted()`.** #83 entfernt die Funktion; drei Regeln
 außerhalb der Dateimenge des Strangs nennen sie als **Messgrundlage** von B21
