@@ -1,0 +1,15 @@
+P7 — Der Stand, für den die Zahlen dieses Ordners gelten.
+2026-08-05 20:50 CEST
+
+kwin 6.7.3-1.1
+ksvg 6.28.0-1.1
+qt6-base 6.11.1-1.1
+libplasma 6.7.3-1.1
+plasma-desktop 6.7.3-1.1
+
+Farbschema der Sitzung ([Colors:Window] der kdeglobals):
+BackgroundNormal=32,35,38
+ForegroundInactive=161,169,177
+ForegroundNormal=252,252,252
+
+Desktop-Theme laut plasmarc: keines genannt — Rückfall default

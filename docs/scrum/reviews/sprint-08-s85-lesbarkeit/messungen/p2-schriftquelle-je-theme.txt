@@ -1,0 +1,180 @@
+P2 — Woher kommt die Schriftfarbe? Je installiertes Theme ein eigener Prozess.
+Offscreen, QT_QPA_PLATFORMTHEME=kde, Farbschema aus der kdeglobals des Kunden.
+Je Theme beide Auswahlpfade — seit #83 hat jedes Theme zwei Flächen.
+
+
+==== default
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+  --- Fläche lose, Deckung 84.7 %
+      Schemaschrift  deckend  15.39  ueber hell   9.42  ueber dunkel  16.33
+      Schema gedämpft deckend   6.64  ueber hell   4.06  ueber dunkel   7.04
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend  15.39  ueber hell  15.39  ueber dunkel  15.39
+      Schema gedämpft deckend   6.64  ueber hell   6.64  ueber dunkel   6.64
+
+
+==== breeze-dark
+  colors-Datei          : ja
+    ForegroundNormal    : 252,252,252/a255
+    ForegroundInactive  : 161,169,177/a255
+    BackgroundNormal    : 32,35,38/a255
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift   == Themeschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 32,35,38/a216
+  gezeichnet opaque     : 32,35,38/a255
+  --- Fläche lose, Deckung 84.7 %
+      Schemaschrift  deckend  15.39  ueber hell   9.42  ueber dunkel  16.33
+      Schema gedämpft deckend   6.64  ueber hell   4.06  ueber dunkel   7.04
+      Themeschrift   deckend  15.39  ueber hell   9.42  ueber dunkel  16.33
+      Theme gedämpft deckend   6.64  ueber hell   4.06  ueber dunkel   7.04
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend  15.39  ueber hell  15.39  ueber dunkel  15.39
+      Schema gedämpft deckend   6.64  ueber hell   6.64  ueber dunkel   6.64
+      Themeschrift   deckend  15.39  ueber hell  15.39  ueber dunkel  15.39
+      Theme gedämpft deckend   6.64  ueber hell   6.64  ueber dunkel   6.64
+
+
+==== breeze-light
+  colors-Datei          : ja
+    ForegroundNormal    : 35,38,41/a255
+    ForegroundInactive  : 112,125,138/a255
+    BackgroundNormal    : 239,240,241/a255
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  KSvg::Svg::color(Bkgd): 239,240,241/a255
+  gezeichnet lose       : 240,240,241/a216
+  gezeichnet opaque     : 239,240,241/a255
+  --- Fläche lose, Deckung 84.7 %
+      Schemaschrift  deckend   1.11  ueber hell   1.09  ueber dunkel   1.58
+      Schema gedämpft deckend   2.09  ueber hell   2.13  ueber dunkel   1.47
+      Themeschrift   deckend  13.35  ueber hell  13.59  ueber dunkel   9.38
+      Theme gedämpft deckend   3.70  ueber hell   3.76  ueber dunkel   2.60
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend   1.11  ueber hell   1.11  ueber dunkel   1.11
+      Schema gedämpft deckend   2.09  ueber hell   2.09  ueber dunkel   2.09
+      Themeschrift   deckend  13.33  ueber hell  13.33  ueber dunkel  13.33
+      Theme gedämpft deckend   3.69  ueber hell   3.69  ueber dunkel   3.69
+
+
+==== CachyOS-Nord-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 30,34,51/a255
+  gezeichnet opaque     : 30,34,51/a255
+  --- Fläche lose, Deckung 100.0 %
+      Schemaschrift  deckend  15.37  ueber hell  15.37  ueber dunkel  15.37
+      Schema gedämpft deckend   6.63  ueber hell   6.63  ueber dunkel   6.63
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend  15.37  ueber hell  15.37  ueber dunkel  15.37
+      Schema gedämpft deckend   6.63  ueber hell   6.63  ueber dunkel   6.63
+
+
+==== Iridescent-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 0,0,0/a51
+  gezeichnet opaque     : 0,0,0/a51
+  --- Fläche lose, Deckung 20.0 %
+      Schemaschrift  deckend  20.47  ueber hell   1.57  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   1.48  ueber dunkel   8.83
+  --- Fläche opaque, Deckung 20.0 %
+      Schemaschrift  deckend  20.47  ueber hell   1.57  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   1.48  ueber dunkel   8.83
+
+
+==== cachyos-emerald
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+  --- Fläche lose, Deckung 2.7 %
+      Schemaschrift  deckend  20.47  ueber hell   1.04  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   2.24  ueber dunkel   8.83
+  --- Fläche opaque, Deckung 3.5 %
+      Schemaschrift  deckend   1.23  ueber hell   1.02  ueber dunkel  19.51
+      Schema gedämpft deckend   1.89  ueber hell   2.36  ueber dunkel   8.41
+
+
+==== cachyos-emerald-color
+  colors-Datei          : ja
+    ForegroundNormal    : 0,199,144/a255
+    ForegroundInactive  : 102,106,115/a255
+    BackgroundNormal    : 24,27,40/a255
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+  KSvg::Svg::color(Bkgd): 24,27,40/a255
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+  --- Fläche lose, Deckung 2.7 %
+      Schemaschrift  deckend  20.47  ueber hell   1.04  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   2.24  ueber dunkel   8.83
+      Themeschrift   deckend   9.57  ueber hell   2.07  ueber dunkel   9.57
+      Theme gedämpft deckend   3.87  ueber hell   5.10  ueber dunkel   3.87
+  --- Fläche opaque, Deckung 3.5 %
+      Schemaschrift  deckend   1.23  ueber hell   1.02  ueber dunkel  19.51
+      Schema gedämpft deckend   1.89  ueber hell   2.36  ueber dunkel   8.41
+      Themeschrift   deckend   1.74  ueber hell   2.18  ueber dunkel   9.12
+      Theme gedämpft deckend   4.31  ueber hell   5.38  ueber dunkel   3.69
+
+
+==== cachyos-emerald-light
+  colors-Datei          : ja
+    ForegroundNormal    : 35,38,41/a255
+    ForegroundInactive  : 112,125,138/a255
+    BackgroundNormal    : 239,240,241/a255
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+  KSvg::Svg::color(Bkgd): 239,240,241/a255
+  gezeichnet lose       : 0,0,0/a7
+  gezeichnet opaque     : 227,227,255/a9
+  --- Fläche lose, Deckung 2.7 %
+      Schemaschrift  deckend  20.47  ueber hell   1.04  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   2.24  ueber dunkel   8.83
+      Themeschrift   deckend   1.38  ueber hell  14.32  ueber dunkel   1.38
+      Theme gedämpft deckend   4.99  ueber hell   3.96  ueber dunkel   4.99
+  --- Fläche opaque, Deckung 3.5 %
+      Schemaschrift  deckend   1.23  ueber hell   1.02  ueber dunkel  19.51
+      Schema gedämpft deckend   1.89  ueber hell   2.36  ueber dunkel   8.41
+      Themeschrift   deckend  12.09  ueber hell  15.09  ueber dunkel   1.32
+      Theme gedämpft deckend   3.35  ueber hell   4.18  ueber dunkel   4.76
+
+
+### Und die beiden mitgelieferten Prüf-Themes — das Paar, an dem die Prüfsätze hängen
+
+==== denkzettel-test-breit
+  colors-Datei          : ja
+    ForegroundNormal    : 255,0,153/a255
+    ForegroundInactive  : 0,153,255/a255
+    BackgroundNormal    : 17,34,51/a255
+  KSvg::Svg::color(Text): 255,0,153/a255   == Themeschrift
+  KSvg::Svg::color(Bkgd): 17,34,51/a255
+  gezeichnet lose       : 0,0,0/a255
+  gezeichnet opaque     : 0,0,0/a255
+  --- Fläche lose, Deckung 100.0 %
+      Schemaschrift  deckend  20.47  ueber hell  20.47  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   8.83  ueber dunkel   8.83
+      Themeschrift   deckend   5.71  ueber hell   5.71  ueber dunkel   5.71
+      Theme gedämpft deckend   7.00  ueber hell   7.00  ueber dunkel   7.00
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend  20.47  ueber hell  20.47  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   8.83  ueber dunkel   8.83
+      Themeschrift   deckend   5.71  ueber hell   5.71  ueber dunkel   5.71
+      Theme gedämpft deckend   7.00  ueber hell   7.00  ueber dunkel   7.00
+
+==== denkzettel-test-schmal
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+  KSvg::Svg::color(Bkgd): 32,35,38/a255
+  gezeichnet lose       : 0,0,0/a255
+  gezeichnet opaque     : 0,0,0/a255
+  --- Fläche lose, Deckung 100.0 %
+      Schemaschrift  deckend  20.47  ueber hell  20.47  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   8.83  ueber dunkel   8.83
+  --- Fläche opaque, Deckung 100.0 %
+      Schemaschrift  deckend  20.47  ueber hell  20.47  ueber dunkel  20.47
+      Schema gedämpft deckend   8.83  ueber hell   8.83  ueber dunkel   8.83
+

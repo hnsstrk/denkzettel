@@ -1,0 +1,85 @@
+P4 — Dieselben acht Themes unter drei Farbschemata.
+Eine Aussage „folgt dem Schema" braucht zwei Schemata; unter einem misst man
+Übereinstimmung, nicht Folgen. Deshalb drei.
+
+############ Farbschema BreezeLight
+Farbschema der Anwendung: Window 239,240,241/a255  WindowText 35,38,41/a255  PlaceholderText 112,125,138/a255
+==== default
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+==== breeze-dark
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 252,252,252/a255   == Themeschrift
+==== breeze-light
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift   == Themeschrift
+==== CachyOS-Nord-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+==== Iridescent-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+==== cachyos-emerald
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift
+==== cachyos-emerald-color
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+==== cachyos-emerald-light
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 35,38,41/a255   == Schemaschrift   == Themeschrift
+
+############ Farbschema BreezeDark
+Farbschema der Anwendung: Window 32,35,38/a255  WindowText 252,252,252/a255  PlaceholderText 161,169,177/a255
+==== default
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+==== breeze-dark
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift   == Themeschrift
+==== breeze-light
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+==== CachyOS-Nord-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+==== Iridescent-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+==== cachyos-emerald
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 252,252,252/a255   == Schemaschrift
+==== cachyos-emerald-color
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+==== cachyos-emerald-light
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+
+############ Farbschema CachyOSNordLightly
+Farbschema der Anwendung: Window 30,34,51/a255  WindowText 102,194,242/a255  PlaceholderText 102,106,115/a255
+==== default
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+==== breeze-dark
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 252,252,252/a255   == Themeschrift
+==== breeze-light
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+==== CachyOS-Nord-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+==== Iridescent-round
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+==== cachyos-emerald
+  colors-Datei          : nein
+  KSvg::Svg::color(Text): 102,194,242/a255   == Schemaschrift
+==== cachyos-emerald-color
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 0,199,144/a255   == Themeschrift
+==== cachyos-emerald-light
+  colors-Datei          : ja
+  KSvg::Svg::color(Text): 35,38,41/a255   == Themeschrift
+
