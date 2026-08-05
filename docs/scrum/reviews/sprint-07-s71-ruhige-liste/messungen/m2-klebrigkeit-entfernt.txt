@@ -1,0 +1,8 @@
+********* Start testing of LibraryTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : LibraryTest::initTestCase()
+FAIL!  : LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-39, Bild 559 hoch)
+   Loc: [/home/hnsstrk/Projekte/denkzettel-71/tests/librarytest.cpp(1831)]
+PASS   : LibraryTest::cleanupTestCase()
+Totals: 2 passed, 1 failed, 0 skipped, 0 blacklisted, 31ms
+********* Finished testing of LibraryTest *********

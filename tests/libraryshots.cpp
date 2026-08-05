@@ -120,6 +120,28 @@ void walkUp(QListView *list, int steps)
     }
 }
 
+/**
+ * The selectable row the lower edge cuts through, or -1 if none does.
+ *
+ * Looked up rather than written down: which row is clipped depends on the roll
+ * value, and one written down would go stale with the first change of a line
+ * height (issue #71).
+ */
+int bottomClippedRow(const QListView *list)
+{
+    for (int row = 0; row < list->model()->rowCount(); ++row) {
+        const QModelIndex index = list->model()->index(row, 0);
+        if (!index.flags().testFlag(Qt::ItemIsSelectable)) {
+            continue;
+        }
+        const QRect rect = list->visualRect(index);
+        if (rect.top() < list->viewport()->height() && rect.bottom() > list->viewport()->height()) {
+            return row;
+        }
+    }
+    return -1;
+}
+
 /** Shows the window and waits until it is really on screen. */
 void open(LibraryWindow &window)
 {
@@ -414,6 +436,55 @@ int main(int argc, char **argv)
 
         applyScheme(breezePalette(false));
         shoot(window, directory, QStringLiteral("10d-schema-hell-bearbeiten.png"));
+    }
+
+    // 11 — the click on a row the lower edge cuts through (issue #71). It used
+    // to move the list by a line height and mark the neighbour, or nothing at
+    // all; now the row that was clicked is the row that carries the frame, the
+    // reading pane shows its note, and the picture stands exactly where it
+    // stood. That the list did not move is held by the roll value in
+    // librarytest — a picture can only show the state it ended in.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        for (int hour = 8; hour < 16; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von heute, %1 Uhr — Tray-Icon im dunklen Theme testen").arg(hour),
+                    QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+        for (int hour = 9; hour < 12; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von gestern, %1 Uhr — Whisper-Warteschlange bei Suspend prüfen").arg(hour),
+                    QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+        for (int hour = 8; hour < 16; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von letzter Woche, %1 Uhr — Kategorien-Prompt: Beispiele mitgeben").arg(hour),
+                    QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        open(window);
+
+        QListView *list = listOf(window);
+        // The selection is put somewhere else first, or the click would change
+        // no current row and the case would not arise at all.
+        list->setCurrentIndex(list->model()->index(1, 0));
+        QTest::qWait(100);
+        list->verticalScrollBar()->setValue(6);
+        QTest::qWait(100);
+
+        const int row = bottomClippedRow(list);
+        if (row < 0) {
+            qFatal("Keine angeschnittene Zeile — die Szene zeigt den Fall nicht");
+        }
+        const QRect rect = list->visualRect(list->model()->index(row, 0));
+        QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier,
+                          QPoint(rect.center().x(), rect.top() + 5));
+        qInfo("Szene 11: geklickte Zeile %d, Rollwert %d", row, list->verticalScrollBar()->value());
+        shoot(window, directory, QStringLiteral("11-klick-auf-angeschnittene-zeile.png"));
     }
 
     return 0;

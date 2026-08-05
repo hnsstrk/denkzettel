@@ -511,9 +511,18 @@ v1 aber nicht gebaut.
   seine Auswahl zurück (Issue #59, gemessen 04.08.2026). Der Kalendertag
   genügt als Bedingung, weil alle vier Gruppengrenzen Tagesgrenzen sind.
   Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
-  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick tut das
-  nicht**: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
+  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick bewegt
+  die Liste überhaupt nicht** — weder holt er den Kopf, noch rückt er zur
+  Auswahl nach: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
   Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
+  **Dass auch das Nachrücken zur Auswahl darunterfällt, ist bei der Umsetzung
+  entdeckt worden** (DoD 4): Ein Klick auf eine angeschnittene Zeile rückte das
+  Bild um eine Zeilenhöhe, und weil der View seine Auswahl erst danach aus dem
+  beim Druck gemerkten Rechteck bestimmt, markierte er die Nachbarzeile — in
+  13 von 14 gemessenen Fällen die falsche (Issue #71, gemessen 05.08.2026).
+  Der Preis, ausdrücklich: Eine angeschnittene Zeile bleibt nach dem Klick
+  angeschnitten. Sie ganz sichtbar zu machen hieße, sie unter dem Zeiger
+  wegzuziehen — das ist der Fehler selbst.
   Der Tag geht dabei nicht verloren — der Detailbereich trägt den vollen
   Zeitstempel.
   Dazu Suchfeld (Abschnitt 6) und Button „Vorschläge" mit Badge.
