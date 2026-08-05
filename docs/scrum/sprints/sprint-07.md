@@ -195,6 +195,67 @@ weiter, nur ihr Beispiel ist dann Geschichte. Nachzuziehen ist die
 **Fundstellenangabe**, nicht die Aussage — sonst entsteht der umgekehrte Fehler:
 eine Regel ohne Beleg. Fällig **nach** der Abnahme von #83, nicht davor.
 
+## 6b. Lieferung — was die beiden Stränge gebaut haben
+
+Zusammengeführt am 05.08.2026, beide mit `--no-ff`. **Bau warnungsfrei, `ctest`
+7 von 7 grün, volle Testauflage 113 von 113.**
+
+| Strang | Commits | Codeänderung |
+|---|---|---|
+| **A** (#83) | 4 | `tinted()`, `mixed()`, `FrameContrast`, `OutlineWidth` und der Zwei-Masken-Ring entfallen; `framePixmap()` zeichnet in einem Stück beim Bildpunktverhältnis des Fensters; neuer `event()`-Zweig für `DevicePixelRatioChange`; die beiden Anmeldungen `enableBlurBehind` und `enableBackgroundContrast`; Auswahlpfad `opaque` ohne weichzeichnende Sitzung |
+| **B** (#71, #70, #72) | 4 | #71: das `scrollTo(index)` steht unter dem Mausdruck-Merker, der Merker endet mit dem Loslassen (4+3 Zeilen) · #70: ein Oder-Zweig im Bedingungskopf (2 Zeilen) · #72: drei `setToolTip()` und eine Hilfsfunktion (3+4 Zeilen) |
+
+**Die Belege sind der weitaus größere Teil des Diffs** — 146 Dateien, 7.577
+Zeilen, davon rund 20 Produktivcode und Tests. Das ist gewollt (B7).
+
+### Die Mutationsproben, gezählt
+
+**#83: fünfzehn Proben, vierzehn belegt, eine als Grenze benannt.** Drei davon
+laufen in der angemeldeten Sitzung, weil ihr Fehler offscreen **gar nicht
+auftreten kann** — ohne `DevicePixelRatioChange`-Zweig hinkt die Hülle bei 2,
+ohne die `nullptr`-Wache stürzt der Aufruf ab (Rückgabe 139, Signal 11), ohne
+die Anmeldung bleibt der Grund scharf. Offscreen sind alle drei **grün**.
+
+**Strang B: vierzehn Proben.** Zwei Zusicherungen tragen den Beweis
+ausdrücklich **nicht** und sind als Regressionsschutz ausgewiesen — im
+Fehlerbild von #71 waren beide richtig, das war ja der Befund.
+
+### Vier Funde, die die Arbeit selbst hervorgebracht hat
+
+1. **Ein Prüfsatz war grün, als die geprüfte Zeile entfernt wurde** (#83 AK 7).
+   Er lief gegen ein Theme ohne zweite Fassung — die Wahl konnte dort nichts
+   ändern. Gefunden hat ihn die Mutationsprobe, nicht das Nachdenken.
+2. **Zwei lebende `KSvg::ImageSet` desselben Themenamens teilen ihre
+   Auswahlpfade.** Eine zweite Instanz meldet `opaque`, ohne dass ihr jemand
+   einen gegeben hätte — jeder Vergleich zweier Fassungen derselben Grafik läuft
+   sonst gegen sich selbst.
+3. **Die Überführung des Prüf-Themes hat drei Zusicherungen in die stille
+   Richtung umgeworfen** — der Testaufbau reichte danach ein *eckiges* Theme an
+   drei Prüfsätze weiter, die ein rundendes brauchen. Gefangen hat es der
+   Testlauf.
+4. **Qt rollt eine halbe Sekunde nach dem Klick doch nach** (Sichtprüfung
+   Strang B). Gebucht als **#89**, dem Blick des Kunden vorbehalten.
+
+Die Fälle 1 und 2 stehen seit dem 05.08.2026 als Punkte 6 und 7 in der Liste
+„Rückgabewerte und Läufe, die nichts belegen" (`.claude/agents/denkzettel-dev.md`).
+
+### Eine Messung des PO am Bild neben KRunner
+
+Ich hatte beim Hinsehen den **Eindruck**, das Erfassungsfenster sei heller als
+KRunner und die Benachrichtigung daneben. Nachgemessen im selben Bild:
+
+```
+KRunner  Fläche      (47, 50, 52)
+Denkzettel Fläche    (47, 50, 52)
+Meldung  Fläche      (47, 50, 52)
+Schreibtisch        (128,128,128)
+```
+
+**Byteidentisch über drei verschiedene Plasma-Überlagerungen.** Mein Eindruck
+kam aus dem Umfeld, nicht aus dem Fenster — genau die Sorte Fehlurteil, gegen
+die „prüfe am Einzelfall, nicht an der Plausibilität" geschrieben ist. Es steht
+hier, weil ein widerlegter PO billiger ist als ein übersehener Befund.
+
 ## 7. DoD-Prüfung
 
 *(Takt 1, vor der Abnahme — wird beim Sprint-Ende gefüllt)*
