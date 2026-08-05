@@ -6,13 +6,30 @@
 # parent/child model systematically, where every `new QWidget(this)` is an
 # owning raw pointer by design.
 #
-# Two of the checks below pull at the same variable in opposite directions:
+# Two rules for misc-const-correctness, both decided with issue #76. They exist
+# because the check is right about the language and wrong about this code base.
+#
+# 1) Two of the checks below pull at the same variable in opposite directions:
 # misc-const-correctness wants `const` on every local, performance-no-automatic-
-# move reports that this very `const` stops the return from moving. The rule for
-# the whole project, decided with issue #76: **on a local that is returned,
-# performance-no-automatic-move wins** - the variable stays non-const and carries
-# a NOLINT(misc-const-correctness). A const there costs a copy on every call; the
-# const buys nothing, because the variable dies with the return anyway.
+# move reports that this very `const` stops the return from moving. **On a local
+# that is returned, performance-no-automatic-move wins** - the variable stays
+# non-const and carries a NOLINT(misc-const-correctness). A const there costs a
+# copy on every call; the const buys nothing, because the variable dies with the
+# return anyway.
+#
+# 2) misc-const-correctness does not see a change that arrives through a Qt
+# connection - `connect`, `QSignalSpy` and `QTest::qExec` take their target as
+# `const QObject *` and const_cast internally, and a lambda captured in a
+# constructor keeps a non-const `this` whatever the object is declared. **On an
+# object that is changed this way, `const` is therefore not set**, whether or not
+# it descends from QObject; the place carries a NOLINT(misc-const-correctness)
+# naming this rule. Modifying an object defined const is undefined behaviour
+# ([dcl.type.cv]/4), and the compiler is free to fold the read back to the
+# initial value. Measured case: a test guard whose timer lambda writes
+# `m_appeared = true` while the assertion reads it - taking the const would trade
+# two working assurances for a smaller number, which is the wrong direction.
+# **Pointers are not affected**: `const QPushButton *edit` qualifies our pointer,
+# not the object, and reading through it is what we do.
 Checks: '-*,bugprone-*,performance-*,misc-const-correctness'
 
 # Project headers are analysed, the AUTOMOC output is not - it sits in

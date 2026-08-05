@@ -124,7 +124,8 @@ void ShellTest::asksForTheLibraryWindow()
 {
     // SPEC 2.3: ShowLibrary() only passes the request on — whether the window
     // opens or comes to the front is the window's own decision.
-    const QSignalSpy requested(m_service.get(), &DaemonService::libraryRequested);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy requested(m_service.get(), &DaemonService::libraryRequested);
 
     m_service->ShowLibrary();
 
@@ -275,7 +276,8 @@ void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
 
 void ShellTest::announcesItselfAsAMenuAndKeepsTheMenuToShow()
 {
-    const TrayIcon icon;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
 
     // ItemIsMenu has no change signal in the SNI protocol: the host reads the
     // property when the item registers and never asks again, so it has to stand
@@ -313,7 +315,8 @@ void ShellTest::showsTheEntriesOfTheWireframeWithTheirIcons()
         {"Beenden", "application-exit", true},
     };
 
-    const TrayIcon icon;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
     const QList<QAction *> actions = icon.item()->contextMenu()->actions();
     QCOMPARE(actions.size(), expected.size());
 
@@ -340,7 +343,8 @@ void ShellTest::keepsQuitApartInTheLastGroup()
     // they do not carry under Wayland. What is left of the finding is the
     // distance: the destructive action is last and behind a separator, never
     // next to the entry that is used most.
-    const TrayIcon icon;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
     const QList<QAction *> actions = icon.item()->contextMenu()->actions();
 
     QVERIFY(!actions.isEmpty());
@@ -357,7 +361,8 @@ void ShellTest::hintsTheShortcutWithoutBindingItASecondTime()
     // A shortcut on a menu action reaches only the window of that menu, and the
     // tray menu has none — it is drawn by plasmashell. So the entry may carry
     // the sequence for display, and no window of ours may answer to it.
-    const TrayIcon icon;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
     const QList<QAction *> entries = icon.item()->contextMenu()->actions();
     const QAction *capture = entries.constFirst();
 
