@@ -105,13 +105,22 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   Zeichnung beruft, liest sie vorher.
 - **Eine Aussage gilt für einen Stand** (B17). Wer eine Bau- oder
   Werkzeugeigenschaft ändert, sucht im selben Zug nach den Aussagen darüber:
-  `git grep -n <Eigenschaft> -- CLAUDE.md README.md docs/ .github/`; beim
-  Erweitern einer Aufzählung nach dem Namen eines **Geschwisters** statt nach
-  dem neuen (`readmeshots` findet jede Liste, die `captureshots` noch nicht
+  `git grep -n <Eigenschaft> -- CLAUDE.md README.md SPEC.md docs/ wireframes/ .github/`;
+  beim Erweitern einer Aufzählung nach dem Namen eines **Geschwisters** statt
+  nach dem neuen (`readmeshots` findet jede Liste, die `captureshots` noch nicht
   kennt). Gemessen: Der Griff hätte alle drei Fundstellen von Sprint-6-Mangel
   M4 gezeigt, bei fünf Zeilen Ausgabe. Wer den Zustand ändert und die Aussage
   stehenlässt, macht aus einer Begründung eine Falle — die Pflicht gilt dann
   weiter, nur aus einem anderen Grund.
+  **`wireframes/` und `SPEC.md` stehen seit dem 05.08.2026 in der Liste, und
+  zwar auf einen Fehlschlag hin.** In Sprint 7 hat der PO den Griff selbst
+  gefahren, fünf Zeilen Ausgabe bekommen und ihn für vollständig gehalten. Der
+  karpathy-Reviewer fand danach, dass Zeichnung 4a/4b weiterhin den vom Kunden
+  **abgewählten** Nachbau zeigt — samt der Kontur, die es nicht mehr gibt — und
+  dass `SPEC.md` in der Überschrift von 3.1 darauf verweist. Beides war für den
+  Griff unsichtbar. **Ein Werkzeug, dessen Suchraum kleiner ist als der
+  Geltungsbereich der Regel, meldet Vollständigkeit und liefert sie nicht** —
+  und es meldet sie besonders überzeugend, weil es Treffer hatte.
 - Ein Testaufbau, in dem der Fehler gar nicht auftreten *kann*, ist kein Test.
 - **Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
   Es gibt fünf: `editshots`, `libraryshots`, `searchshots`, `readmeshots`,

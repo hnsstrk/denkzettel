@@ -264,6 +264,13 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
    beim Start auf deckend. Denkzettel fragt stattdessen KWin selbst
    (D-Bus, `org.kde.kwin.Effects.isEffectLoaded("blur")`) und antwortet ohne
    Rückfrage mit „nein", wo es gar kein zusammensetzendes Fenstersystem gibt.
+   **Grenze, benannt statt verdeckt (05.08.2026, karpathy-Befund K5 zu Sprint 7):**
+   Dieser Wert wird **einmal beim Anlegen des Fensters** erhoben. Wer den
+   Weichzeichner **zur Laufzeit** abschaltet, während der Dienst läuft, bekommt
+   bis zum Neustart weiter die durchscheinende Fassung — Punkt 4 gilt für den
+   Zustand beim Start, nicht für einen Wechsel danach. Der Theme-Wechsel ist
+   davon **nicht** betroffen; ihn fängt die Wache auf `plasmarc`. Ob die Grenze
+   geschlossen oder festgeschrieben wird, ist offen (Issue #93).
 
 ## 4. Aufnahmefenster (Sprachnotiz)
 
