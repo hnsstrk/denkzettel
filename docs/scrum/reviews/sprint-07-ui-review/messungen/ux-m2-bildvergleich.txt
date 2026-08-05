@@ -1,0 +1,41 @@
+=== Hülle des Erfassungsfensters gegen KRunner (eigener Sitzungslauf) ===
+Bild 1044x1228, Untergrund (128, 128, 128)
+
+KRunner            waagerecht x 72..972
+Erfassungsfenster  waagerecht x 42..1001
+
+Fläche    KRunner (47, 50, 52)   Erfassung (47, 50, 52)
+Randpunkt KRunner (40, 42, 45)   Erfassung (40, 42, 45)
+
+Schattenverlauf nach außen (Rotkanal, Grund = 128)
+  KRunner  : [115, 114, 117, 119, 121, 124, 125, 126, 126, 126, 127, 127, 128]
+  Erfassung: [113, 114, 117, 119, 121, 124, 125, 126, 126, 126, 127, 127, 128]
+
+Kantenlauf am Eckbogen (Spalte je Zeile)
+  KRunner   unten links: [5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+  Erfassung oben  links: [6, 4, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0]
+  Erfassung unten links: [3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+  Fenstermaß im Bild: 960x278 Bildpunkte
+
+Hellster Bildpunkt am Bogen (AK 13 — nichts darf heller sein als der Grund 128)
+  Erfassung oben links : 128
+  Erfassung oben rechts: 128
+  Erfassung unten links: 128
+  KRunner unten links  : 128
+
+Kontraste auf der Kundeneinstellung (Fläche (47, 50, 52) )
+  App-Name : Tinte (161, 169, 177)  5.43 : 1
+  Notiztext: Tinte (252, 252, 252)  12.58 : 1
+  Fußzeile : Tinte (161, 169, 177)  5.43 : 1
+
+Einheitlichkeit der Fläche (4b: eine durchgehende Fläche)
+  97.88 % der Stichproben genau (47, 50, 52) — der Rest ist Schrift
+
+=== Fremdes Desktop-Theme (breeze-dark) unter hellem Farbschema — #85 ===
+Fläche (32, 35, 38), hellste Tinte des Notiztextes (35, 38, 41)
+Kontrast Notiztext : 1.04 : 1
+Kontrast Fußzeile  : 3.75 : 1
+
+=== #71: bewegt sich die Liste nach dem Klick? (eigene Bilder 11a/11b) ===
+  ux-71-11a-klick-auf-angeschnittene-zeile.png: Markierung y 882..959
+  ux-71-11b-nach-dem-nachlauf.png: Markierung y 767..877

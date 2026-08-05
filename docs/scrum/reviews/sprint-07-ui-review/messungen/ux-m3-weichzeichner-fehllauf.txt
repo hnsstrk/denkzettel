@@ -1,0 +1,28 @@
+Dritter und vierter eigener Lauf der Weichzeichner-Sonde, 05.08.2026.
+Sie stehen hier als Beleg fuer Befund P12: die Sonde sucht die Huelle in
+einer Breite, die sie aus app.devicePixelRatio() (2) statt aus dem
+Fensterverhaeltnis (1,6) errechnet — erwartet 1200 statt 960 Bildpunkte.
+
+########## Lauf an ##########
+=== #83, Sonde 3: wirkt der Weichzeichner? ===
+Plattform     : wayland
+Lauf          : an
+Weichzeichnende Sitzung: ja
+Das echte Erfassungsfenster, showCapture() — Anmeldung steht in present().
+
+spectacle -f beendet: ja, Rückgabe 0
+Aufnahme 3840x2160 Bildpunkte (Vollbildpuffer sofort gelöscht, gespeichert wird nur der Ausschnitt)
+Fenster erwartet 1200 Bildpunkte breit; längster passender Lauf: 0 Bildpunkte bei y=-1, x=-1..-1
+Die Hülle war im Bild nicht zu finden — der Lauf trägt nichts.
+
+########## Lauf aus ##########
+=== #83, Sonde 3: wirkt der Weichzeichner? ===
+Plattform     : wayland
+Lauf          : aus
+Weichzeichnende Sitzung: ja
+Gegenlauf: dieselbe Grafik, **keine** Anmeldung.
+
+spectacle -f beendet: ja, Rückgabe 0
+Aufnahme 3840x2160 Bildpunkte (Vollbildpuffer sofort gelöscht, gespeichert wird nur der Ausschnitt)
+Fenster erwartet 1200 Bildpunkte breit; längster passender Lauf: 0 Bildpunkte bei y=-1, x=-1..-1
+Die Hülle war im Bild nicht zu finden — der Lauf trägt nichts.
