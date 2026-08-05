@@ -16,6 +16,56 @@ class FrameSvg;
 class ImageSet;
 }
 
+namespace capture
+{
+
+/**
+ * What a desktop theme asks the compositor for in its `[ContrastEffect]` group.
+ *
+ * Plasma reads these four keys out of the theme's metadata file and hands them
+ * to `KWindowEffects::enableBackgroundContrast()` (`Plasma/plasma/theme.h`).
+ * A theme that names no group gets no contrast effect — `enabled` stays false.
+ */
+struct ContrastEffect {
+    bool enabled = false;
+    qreal contrast = 1;
+    qreal intensity = 1;
+    qreal saturation = 1;
+};
+
+/**
+ * The `[ContrastEffect]` group of a desktop theme, or a disabled one.
+ *
+ * Read out of `metadata.desktop` ourselves rather than through `Plasma::Theme`:
+ * that class lives in libPlasma, which the project does not depend on and which
+ * would pull QtQuick in for four numbers (issue #83, build decision of the
+ * strand). The file is an ordinary KConfig file, and the group is the one
+ * `Plasma::Theme` documents.
+ */
+ContrastEffect contrastEffectOf(const QString &desktopTheme);
+
+/**
+ * Whether this session can blur behind a window at all (issue #83, AK 7).
+ *
+ * Asked **before** the first registration, and therefore not through
+ * `KWindowEffects::isEffectAvailable(BlurBehind)`: that one answers `false` in
+ * the customer's own session until we have registered once and `true` only
+ * afterwards (measured, `docs/scrum/vorberichte/83-native-huelle/messungen/`
+ * `sonde2-fensterlauf-wayland-skala-1.txt:50` against
+ * `sonde4-weichzeichner-frueh.txt:6`). A window built on that value would start
+ * out opaque in exactly the session this story is for.
+ *
+ * Asked instead of KWin itself, over D-Bus. KWin advertises the Wayland
+ * interface behind the blur — `ext_background_effect_manager_v1` — only while
+ * that effect is loaded, so the two answers are the same answer from two sides;
+ * the equivalence is measured in the handover report of the story. A platform
+ * without a compositing window server (offscreen, and the CI run with it)
+ * answers false without asking anybody.
+ */
+bool sessionBlursBehindWindows();
+
+}
+
 /**
  * Frameless window for capturing a text note (SPEC 3).
  *
@@ -24,11 +74,10 @@ class ImageSet;
  * client cannot position itself anyway.
  *
  * The window wears the hull of the desktop theme — rounding, outline and
- * shadow (issue #55). Form comes from the theme, colour from the palette:
- * of the eight desktop themes installed on the customer's machine only
- * `default` adjusts its fill to the colour scheme, so painting the theme's own
- * pixels would put dark text on a dark surface under seven of them
- * (wireframe 4a, measured 01.08.2026).
+ * shadow (issue #55), drawn the way Plasma draws its own overlays: the graphic
+ * of `dialogs/background` in one piece, plus the two effect registrations
+ * `libPlasmaQuick` makes beside the shadow (issue #83). Nothing of the hull is
+ * ours any more; what the theme does not draw, the window does not wear.
  */
 class CaptureWindow : public QWidget
 {
@@ -51,6 +100,17 @@ public:
      */
     const KWindowShadow *shadow() const;
 
+    /**
+     * The pixel ratio the hull was last drawn at.
+     *
+     * The named substitute for a picture, like shadow() above (issue #83,
+     * AK 3): under Wayland the window's own ratio is not settled after show()
+     * — Qt reports 2 first and 1,6 about a second later — and a picture taken
+     * offscreen cannot show that at all, because offscreen the second value
+     * never arrives. What can be shown is the number the hull is carrying.
+     */
+    qreal hullDevicePixelRatio() const;
+
 public Q_SLOTS:
     /** Brings the window up with the keyboard focus, empty and ready. */
     void showCapture();
@@ -65,6 +125,7 @@ public Q_SLOTS:
     void reloadDesktopTheme(const QString &name = {});
 
 protected:
+    bool event(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -79,6 +140,7 @@ private:
     void applyHullMargins();
     void applyTextColours();
     void bindShadow();
+    void bindWindowEffects();
 
     Store *m_store;
     QPlainTextEdit *m_text;
@@ -90,10 +152,16 @@ private:
      * see reloadDesktopTheme()). It has to outlive the frames that point at it.
      */
     std::unique_ptr<KSvg::ImageSet> m_imageSet;
-    /** The hull itself, and the same hull one outline width smaller. */
+    /** The hull, drawn in one piece out of the theme's own graphic. */
     KSvg::FrameSvg *m_hull;
-    KSvg::FrameSvg *m_hullInner;
     /** The `shadow` prefix of the same image: the tiles and their extents. */
     KSvg::FrameSvg *m_shadowTiles;
     std::unique_ptr<KWindowShadow> m_shadow;
+    /** What the current desktop theme asks the compositor for (AK 6). */
+    capture::ContrastEffect m_contrast;
+    /**
+     * Asked once and kept: the answer decides which variant of the theme's
+     * graphic the window draws, and it is needed before the first frame.
+     */
+    const bool m_blursBehind;
 };

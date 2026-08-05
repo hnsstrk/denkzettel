@@ -50,6 +50,22 @@ inline QString bundledWide()
 }
 
 /**
+ * The third bundled one: same build as the narrow theme, but with **square**
+ * corner pieces (issue #83, AK 9).
+ *
+ * It moved onto the data path with that story, and it has to be named here or
+ * it would be counted as an installed Plasma theme: `installedThemes()` below
+ * lists everything on the path and knows the bundled ones by name. Sorted by
+ * name it comes first, so `anyInstalledTheme()` would hand a **square** theme
+ * to every assertion that wants a real, rounding one — measured, and it turned
+ * three of them red the moment the theme was moved.
+ */
+inline QString bundledSquare()
+{
+    return QStringLiteral("denkzettel-pruef-eckig");
+}
+
+/**
  * Puts the bundled themes on the data path.
  *
  * Called before the first theme is resolved. `qputenv` in a running process is
@@ -90,7 +106,8 @@ inline QStringList installedThemes()
     for (const QString &root : roots) {
         const QStringList entries = QDir(root).entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
         for (const QString &name : entries) {
-            if (!names.contains(name) && name != bundledNarrow() && name != bundledWide()) {
+            if (!names.contains(name) && name != bundledNarrow() && name != bundledWide()
+                && name != bundledSquare()) {
                 names << name;
             }
         }
