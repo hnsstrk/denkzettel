@@ -5,6 +5,14 @@
 # cppcoreguidelines-* is left out on purpose: it contradicts the Qt
 # parent/child model systematically, where every `new QWidget(this)` is an
 # owning raw pointer by design.
+#
+# Two of the checks below pull at the same variable in opposite directions:
+# misc-const-correctness wants `const` on every local, performance-no-automatic-
+# move reports that this very `const` stops the return from moving. The rule for
+# the whole project, decided with issue #76: **on a local that is returned,
+# performance-no-automatic-move wins** - the variable stays non-const and carries
+# a NOLINT(misc-const-correctness). A const there costs a copy on every call; the
+# const buys nothing, because the variable dies with the return anyway.
 Checks: '-*,bugprone-*,performance-*,misc-const-correctness'
 
 # Project headers are analysed, the AUTOMOC output is not - it sits in
@@ -18,5 +26,17 @@ CheckOptions:
   # (SPEC 2.3, 2.4). Setting this option replaces the upstream default list
   # instead of extending it, which is why the defaults are repeated in front of
   # our own entries.
+  #
+  # `^::KGlobalAccel::setGlobalShortcut$` was in this list and was removed with
+  # issue #76. It demanded a proof that does not exist: the return value cannot
+  # show a backend failure, because doRegister() sends its D-Bus call and drops
+  # the answer, so it says `true` even with the daemon out of reach. What the
+  # code does instead - reading the shortcut back off the daemon in
+  # registerCaptureShortcut() - is strictly stronger: it catches everything a
+  # `false` would have reported, plus the failures `false` cannot report at all
+  # (measured, docs/scrum/vorberichte/76-linterbefunde/, F6). The entry was
+  # written eight minutes before that read-back landed, on another branch. The
+  # three remaining project entries stay: none of them has a stronger proof
+  # beside it.
   - key: bugprone-unused-return-value.CheckedFunctions
-    value: '^::std::async$;^::std::launder$;^::std::remove$;^::std::remove_if$;^::std::unique$;^::std::unique_ptr::release$;^::std::basic_string::empty$;^::std::vector::empty$;^::std::back_inserter$;^::std::distance$;^::std::find$;^::std::find_if$;^::std::inserter$;^::std::lower_bound$;^::std::make_pair$;^::std::map::count$;^::std::map::find$;^::std::map::lower_bound$;^::std::multimap::equal_range$;^::std::multimap::upper_bound$;^::std::set::count$;^::std::set::find$;^::std::setfill$;^::std::setprecision$;^::std::setw$;^::std::upper_bound$;^::std::vector::at$;^::bsearch$;^::ferror$;^::feof$;^::isalnum$;^::isalpha$;^::isblank$;^::iscntrl$;^::isdigit$;^::isgraph$;^::islower$;^::isprint$;^::ispunct$;^::isspace$;^::isupper$;^::iswalnum$;^::iswprint$;^::iswspace$;^::isxdigit$;^::memchr$;^::memcmp$;^::strcmp$;^::strcoll$;^::strncmp$;^::strpbrk$;^::strrchr$;^::strspn$;^::strstr$;^::wcscmp$;^::access$;^::bind$;^::connect$;^::difftime$;^::dlsym$;^::fnmatch$;^::getaddrinfo$;^::getopt$;^::htonl$;^::htons$;^::iconv_open$;^::inet_addr$;^::isascii$;^::isatty$;^::mmap$;^::newlocale$;^::openat$;^::pathconf$;^::pthread_equal$;^::pthread_getspecific$;^::pthread_mutex_trylock$;^::readdir$;^::readlink$;^::recvmsg$;^::regexec$;^::scandir$;^::semget$;^::setjmp$;^::shm_open$;^::shmget$;^::sigismember$;^::strcasecmp$;^::strsignal$;^::ttyname$;^::KGlobalAccel::setGlobalShortcut$;^::QDBusConnection::registerObject$;^::QDBusConnection::registerService$;^::DaemonService::registerOnSessionBus$'
+    value: '^::std::async$;^::std::launder$;^::std::remove$;^::std::remove_if$;^::std::unique$;^::std::unique_ptr::release$;^::std::basic_string::empty$;^::std::vector::empty$;^::std::back_inserter$;^::std::distance$;^::std::find$;^::std::find_if$;^::std::inserter$;^::std::lower_bound$;^::std::make_pair$;^::std::map::count$;^::std::map::find$;^::std::map::lower_bound$;^::std::multimap::equal_range$;^::std::multimap::upper_bound$;^::std::set::count$;^::std::set::find$;^::std::setfill$;^::std::setprecision$;^::std::setw$;^::std::upper_bound$;^::std::vector::at$;^::bsearch$;^::ferror$;^::feof$;^::isalnum$;^::isalpha$;^::isblank$;^::iscntrl$;^::isdigit$;^::isgraph$;^::islower$;^::isprint$;^::ispunct$;^::isspace$;^::isupper$;^::iswalnum$;^::iswprint$;^::iswspace$;^::isxdigit$;^::memchr$;^::memcmp$;^::strcmp$;^::strcoll$;^::strncmp$;^::strpbrk$;^::strrchr$;^::strspn$;^::strstr$;^::wcscmp$;^::access$;^::bind$;^::connect$;^::difftime$;^::dlsym$;^::fnmatch$;^::getaddrinfo$;^::getopt$;^::htonl$;^::htons$;^::iconv_open$;^::inet_addr$;^::isascii$;^::isatty$;^::mmap$;^::newlocale$;^::openat$;^::pathconf$;^::pthread_equal$;^::pthread_getspecific$;^::pthread_mutex_trylock$;^::readdir$;^::readlink$;^::recvmsg$;^::regexec$;^::scandir$;^::semget$;^::setjmp$;^::shm_open$;^::shmget$;^::sigismember$;^::strcasecmp$;^::strsignal$;^::ttyname$;^::QDBusConnection::registerObject$;^::QDBusConnection::registerService$;^::DaemonService::registerOnSessionBus$'
