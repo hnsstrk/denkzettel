@@ -151,6 +151,39 @@ Gesammelt, damit der Kunde sie nach Sprint 8 in einem Zug prüfen kann.
 | **K5** | **#61 — unbekannte Schalter abweisen?** | **Ja** | Heute nimmt der Dienst jedes Argument stillschweigend an. Geprüft, dass es den Start nicht bricht: Beide `Exec=`-Zeilen der Desktop-Datei starten ohne Argument |
 | **K6** | **#72 ist keine UI-Story im Sinne von DoD 3** | siehe §4 | Sonst stünde am Sprint-Ende ein Punkt offen, der nie erfüllbar war |
 
+## 6a. Nacharbeit, die an diesen Sprint gebunden ist
+
+**Die README-Bilder zeigen einen Stand vor #55** (Sprint 6, N1, nachgemessen:
+`docs/bilder/erfassungsfenster.png` ist rechteckig und deckend, ohne Hülle).
+Der PO hat in Sprint 6 entschieden, sie **nicht** damals nachzuziehen — ein
+frischer Lauf hätte ein Bild mit dem Alphakanal-Fehler erzeugt, und das Aussehen
+ändert sich mit #83 ohnehin. **Der Befund ist ausdrücklich an die Abnahme von
+#83 gebunden** und steht hier, damit er nicht zwischen zwei Protokollen
+durchfällt.
+
+Bis dahin beschreibt die README nicht den gelieferten Stand. Das ist ein bewusst
+getragener Mangel, kein übersehener — und er endet mit diesem Sprint.
+
+**Drei B17-Fundstellen zu `tinted()`.** #83 entfernt die Funktion; drei Regeln
+außerhalb der Dateimenge des Strangs nennen sie als **Messgrundlage** von B21
+(was ein offscreen erzeugtes Bild belegt und was nicht):
+
+| Datei | Rolle der Stelle |
+|---|---|
+| `CLAUDE.md` | die Kurzfassung von B21, die jede Sitzung liest |
+| `docs/scrum/PROZESS.md` (DoD 3) | die ausführliche Fassung mit Messbeleg |
+| `.claude/agents/denkzettel-dev.md` | Punkt 4 der Liste „Rückgabewerte und Läufe, die nichts belegen" |
+
+Gefunden mit dem Griff aus `CLAUDE.md`:
+`git grep -n "tinted\|frameContrast\|Alphamaske\|alphaMask" -- CLAUDE.md README.md docs/ .github/ .claude/`
+— fünf Zeilen Ausgabe, drei Treffer.
+
+**Sie sind ausdrücklich aus der Dateimenge von Strang A ausgenommen und gehören
+dem PO.** Und sie werden **nicht gestrichen:** Die Regel ist gemessen und gilt
+weiter, nur ihr Beispiel ist dann Geschichte. Nachzuziehen ist die
+**Fundstellenangabe**, nicht die Aussage — sonst entsteht der umgekehrte Fehler:
+eine Regel ohne Beleg. Fällig **nach** der Abnahme von #83, nicht davor.
+
 ## 7. DoD-Prüfung
 
 *(Takt 1, vor der Abnahme — wird beim Sprint-Ende gefüllt)*
