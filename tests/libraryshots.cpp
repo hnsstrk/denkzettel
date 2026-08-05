@@ -120,6 +120,28 @@ void walkUp(QListView *list, int steps)
     }
 }
 
+/**
+ * The selectable row the lower edge cuts through, or -1 if none does.
+ *
+ * Looked up rather than written down: which row is clipped depends on the roll
+ * value, and one written down would go stale with the first change of a line
+ * height (issue #71).
+ */
+int bottomClippedRow(const QListView *list)
+{
+    for (int row = 0; row < list->model()->rowCount(); ++row) {
+        const QModelIndex index = list->model()->index(row, 0);
+        if (!index.flags().testFlag(Qt::ItemIsSelectable)) {
+            continue;
+        }
+        const QRect rect = list->visualRect(index);
+        if (rect.top() < list->viewport()->height() && rect.bottom() > list->viewport()->height()) {
+            return row;
+        }
+    }
+    return -1;
+}
+
 /** Shows the window and waits until it is really on screen. */
 void open(LibraryWindow &window)
 {
@@ -414,6 +436,79 @@ int main(int argc, char **argv)
 
         applyScheme(breezePalette(false));
         shoot(window, directory, QStringLiteral("10d-schema-hell-bearbeiten.png"));
+    }
+
+    // 11 — the click on a row the lower edge cuts through (issue #71). It used
+    // to move the list by a line height and mark the neighbour, or nothing at
+    // all; now the row that was clicked is the row that carries the frame and
+    // the reading pane shows its note. That the list did not move is held by
+    // the roll value in librarytest — a picture can only show a state.
+    //
+    // Two pictures, because there are two states and one of them arrives late.
+    // QAbstractItemView starts a delayed autoscroll on the press, and it fires
+    // one double-click interval afterwards: measured on 05.08.2026 the roll
+    // value stood at 6 up to 500 ms after the click and at 7 from 550 ms on,
+    // with the selection on the clicked row throughout
+    // (messungen/71-nachlaufender-autoscroll.txt). A single picture taken by
+    // shoot() would sit right on that edge and come out differently from one
+    // run to the next — which it did, twice, before this was measured.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        for (int hour = 8; hour < 16; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von heute, %1 Uhr — Tray-Icon im dunklen Theme testen").arg(hour),
+                    QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+        for (int hour = 9; hour < 12; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von gestern, %1 Uhr — Whisper-Warteschlange bei Suspend prüfen").arg(hour),
+                    QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+        for (int hour = 8; hour < 16; ++hour) {
+            addNote(store,
+                    QStringLiteral("Von letzter Woche, %1 Uhr — Kategorien-Prompt: Beispiele mitgeben").arg(hour),
+                    QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+        }
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        open(window);
+
+        QListView *list = listOf(window);
+        // The selection is put somewhere else first, or the click would change
+        // no current row and the case would not arise at all.
+        list->setCurrentIndex(list->model()->index(1, 0));
+        QTest::qWait(100);
+        list->verticalScrollBar()->setValue(6);
+        QTest::qWait(100);
+
+        const int row = bottomClippedRow(list);
+        if (row < 0) {
+            qFatal("Keine angeschnittene Zeile — die Szene zeigt den Fall nicht");
+        }
+        const QRect rect = list->visualRect(list->model()->index(row, 0));
+        const int rolledTo = list->verticalScrollBar()->value();
+        QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier,
+                          QPoint(rect.center().x(), rect.top() + 5));
+
+        // 11a — what the click itself leaves behind: the clicked row marked,
+        // still cut through, and the picture where it was. Taken without a
+        // wait, so it stands well before the delayed autoscroll.
+        if (list->verticalScrollBar()->value() != rolledTo) {
+            qFatal("Rollwert nach dem Klick %d statt %d — die Szene zeigt nicht, was sie behauptet",
+                   list->verticalScrollBar()->value(), rolledTo);
+        }
+        if (!window.grab().save(directory + QStringLiteral("/11a-klick-auf-angeschnittene-zeile.png"))) {
+            qFatal("Bild 11a ließ sich nicht schreiben");
+        }
+
+        // 11b — and what the user sees a moment later: Qt has fetched the row
+        // into full view on its own. The selection has not moved with it, which
+        // is the whole point of the heal.
+        QTest::qWait(1500);
+        shoot(window, directory, QStringLiteral("11b-nach-dem-nachlaufenden-autoscroll.png"));
     }
 
     return 0;

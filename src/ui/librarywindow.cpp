@@ -66,6 +66,20 @@ KConfigGroup windowGroup()
 }
 
 /**
+ * „Notiz löschen (Entf)" — the wording of a tooltip that names its key.
+ *
+ * The key is read off the action every time rather than written down: „Entf"
+ * is what a German session calls it and „Del" what a run without a locale
+ * does, and the undo keys are not even fixed on one machine — they come out of
+ * kdeglobals and whoever changed them there would read a wrong tooltip
+ * (issue #72).
+ */
+QString tooltipNaming(const QString &activity, const QAction *action)
+{
+    return i18nc("@info:tooltip", "%1 (%2)", activity, action->shortcut().toString(QKeySequence::NativeText));
+}
+
+/**
  * Puts Return on the primary action of a message dialog.
  *
  * Two calls, because one of them alone does not hold (measured 02.08.2026,
@@ -263,6 +277,17 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_editAction->setEnabled(false);
     connect(m_editAction, &QAction::triggered, this, &LibraryWindow::startEditing);
     addAction(m_editAction);
+
+    // The three action surfaces name their key (UI review S5, H1). Set here
+    // rather than where the buttons are built: the keys are only fixed by the
+    // lines above, and a tooltip written before them would name none.
+    //
+    // „Rückgängig" is no button of this code — KMessageWidget makes one out of
+    // the action and passes text, symbol and tooltip on, so the tooltip goes to
+    // the action.
+    m_editButton->setToolTip(tooltipNaming(i18nc("@action", "Notiz bearbeiten"), m_editAction));
+    m_deleteButton->setToolTip(tooltipNaming(i18nc("@action", "Notiz löschen"), m_deleteAction));
+    m_undoAction->setToolTip(tooltipNaming(i18nc("@action", "Löschen rückgängig machen"), m_undoAction));
 
     // Both Return keys, as in the capture window (SPEC 3).
     m_saveAction->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Return), QKeySequence(Qt::CTRL | Qt::Key_Enter)});
@@ -526,8 +551,18 @@ bool LibraryWindow::eventFilter(QObject *watched, QEvent *event)
 
     // A press that selected nothing leaves its mark lying around: group heads
     // cannot be picked (wireframe 3b), and neither can the empty space below
-    // the list. The next key drops it, or it would make the keyboard behave
-    // like a mouse.
+    // the list. The release ends it, and so does the next key, or it would make
+    // the keyboard behave like a mouse.
+    //
+    // The release was added for issue #71, and it is what keeps the mark from
+    // sticking. Everything the press causes runs inside the handling of the
+    // press itself, so nothing is taken away too early — but from the release
+    // on the mark is spent, and a selection changed from the program afterwards
+    // (a deletion by button, an undo, a reload) is no longer taken for a mouse.
+    if (watched == m_list->viewport() && event->type() == QEvent::MouseButtonRelease) {
+        m_selectionFollowsAPress = false;
+    }
+
     if (watched == m_list && event->type() == QEvent::KeyPress) {
         m_selectionFollowsAPress = false;
     }
@@ -765,10 +800,17 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         //
         // It crosses a group boundary — that is what AK 7 and wireframe 3b,
         // case 4 ask for, and what the first selection after opening or
-        // rebuilding counts as, its predecessor being none. Moving within a
-        // group fetches nothing: the user has rolled the list to where he
-        // wants it, and one arrow key must not throw that away, least of all
-        // against the direction he presses in.
+        // rebuilding counts as, its predecessor being none — or it reaches the
+        // first note of its group, which needs no boundary to be crossed: the
+        // key can walk up to it from within the same group, and then nothing
+        // fetched the head (issue #70, customer decision of 04.08.2026). Under
+        // „Heute" and „Gestern" an entry carries nothing but the time, so with
+        // the head outside there stands „08:00" and nothing says of which day —
+        // the timestamp rule of SPEC 9 counts on the head being there.
+        //
+        // Otherwise moving within a group fetches nothing: the user has rolled
+        // the list to where he wants it, and one arrow key must not throw that
+        // away, least of all against the direction he presses in.
         //
         // Whether the entry is in the picture already does not enter into it.
         // A note can stand in full view while its head sits just above the
@@ -782,14 +824,37 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
         const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
 
-        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
+        // Told by the structure, not by pixels: a head always stands
+        // immediately above the first note of its group, so one row up is the
+        // whole test. No measure of how far the head misses the picture enters
+        // into it — that number belongs to a screen, and every screen has its
+        // own (issue #70).
+        const bool isFirstOfItsGroup = head.isValid() && head.row() == index.row() - 1;
+
+        if (head.isValid() && (crossesAGroupBoundary || isFirstOfItsGroup) && !m_selectionFollowsAPress) {
             const QRect heading = m_list->visualRect(head);
             const QRect selected = m_list->visualRect(index);
             if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
                 m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
             }
         }
-        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+
+        // The same mark holds the list still for the selection itself. A press
+        // sets the current row first — which brings us here — and only
+        // afterwards picks its selection from the rectangle it remembered at
+        // the press. Moving the list in between hands that rectangle another
+        // row, and the click ends up on the neighbour of what was pointed at
+        // (issue #71, UI review S5, finding B2; Qt shuts its own autoscrolling
+        // off during a press for exactly this reason, and an explicit scrollTo
+        // walks around that guard).
+        //
+        // A row the lower edge cuts through therefore stays cut through. That
+        // is the price of reading 2 and it was weighed: the row would only
+        // become fully visible by moving out from under the cursor, which is
+        // the fault itself (PO decision of 05.08.2026).
+        if (!m_selectionFollowsAPress) {
+            m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+        }
 
         showNoteText(index);
     }
