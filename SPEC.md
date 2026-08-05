@@ -235,6 +235,15 @@ keine Lesbarkeit zu.
   eigene Datei mit und vier nicht (gemessen).
 - **Zur gedämpften Klasse gehört auch der Platzhaltertext** des leeren
   Eingabefeldes — drei Stellen, nicht zwei.
+- **Der Textcursor folgt der Schrift, nicht dem Farbschema** (entdeckte
+  Bedingung, 05.08.2026, DoD 4/B9). Qt zeichnet ihn in der Textfarbe des
+  Eingabefeldes; sobald diese aus dem Theme kommt, tut er es mit. **Das ist
+  gewollt und darf nicht „zurückgeheilt" werden:** Unter `breeze-light` mit
+  dunklem Schema steht er im Bild bei 91,91,90 auf einer Fläche von
+  242,242,243 — die Schemafarbe wäre 252,252,252 und damit **unsichtbar**.
+  Die Zeichnung sagte bis dahin, Auswahl, Cursor und Scrollbalken kämen
+  unverändert aus der Palette; für den Cursor stimmt das seit #85 nicht mehr,
+  für die **Auswahl** weiterhin schon.
 - **Zugesichert ist die Herkunft der Farbe, nicht ihre Kontrastzahl.** Eine
   Kontrastzahl gilt für ein Farbschema, einen Auswahlpfad und einen benannten
   Grund; keines der drei gehört dem Code. Was sich prüfen lässt, ist, aus
