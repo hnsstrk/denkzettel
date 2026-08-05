@@ -82,3 +82,10 @@ denselben zwei Plattformen, zwanzigfach und ungeglättet vergrößert —
 Die Aufnahmen des Kunden liegen daneben in `kundenbilder/` mit eigenem
 LIESMICH; die Sonden `eckhelligkeit.py` und `schattenprofil.py` messen an
 diesen Originalen.
+
+---
+
+**Nachtrag 05.08.2026 — das Prüf-Theme ist umgezogen.** `pruef-theme/` lag
+hier und liegt seit #83 unter `tests/themes/plasma/desktoptheme/denkzettel-pruef-eckig/`
+— dort sucht der Testaufbau es (`#83` AK 9). Die Belege dieses Ordners bleiben,
+wie sie waren; nur der Pfad, den sie nennen, ist ein anderer.

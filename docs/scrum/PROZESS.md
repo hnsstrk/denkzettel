@@ -467,6 +467,14 @@ PO aus.
    vollständigen Bogen
    (`docs/scrum/reviews/2026-08-04-abnahme-befunde/messungen/b1-huellenring-offscreen.txt`
    gegen `-live.txt`).
+   **Stand dieses Belegs: `tinted()` ist mit #83 gefallen (05.08.2026).** Die
+   Messung bleibt gültig — sie hat einen Mechanismus gezeigt, nicht eine
+   Funktion —, und sie hat seither drei jüngere Geschwister aus demselben
+   Sprint: Die Mutationsproben 10, 11 und 12 von #83 bleiben **offscreen grün**
+   und fallen erst in der angemeldeten Sitzung (`docs/scrum/reviews/sprint-07-s83-native-huelle/bericht.md`
+   §6). Der zweite Fall endet dort mit Rückgabe 139, Signal 11 — offscreen
+   kehrt derselbe Aufruf zurück. **Wer den Beleg für überholt hält, weil die
+   Funktion fort ist, verwechselt das Beispiel mit der Aussage.**
    **Macht ein Akzeptanzkriterium eine Aussage über eine dieser Größen, gehört
    ein Bild aus der angemeldeten Sitzung zum Beleg**; ohne es ist DoD 3 für
    diese Story nicht geführt. Die Bildläufer bleiben offscreen — das

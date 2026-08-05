@@ -950,3 +950,27 @@ heute **kein einziges** offenes Issue mit `size:s` — Labels entstehen erst mit
 einem Vorprüfbericht. Ein Sprint mit #83 braucht also vorher eine zweite
 Vorprüfung. Kandidaten ohne Kollision zu `capturewindow.cpp`: #73, #76. #79 und
 #81 fallen nach Feld 1.1 aus.
+
+---
+
+## Anker 05.08.2026 — ein Detail an der Messgrundlage, gefunden beim Bauen
+
+**Der Berichtstext oberhalb bleibt unverändert** (B17). Angehängt wird, was
+Strang A beim Umsetzen von #83 nachgemessen hat (Übergabebericht §7, Punkt 7);
+es hat **keine Folge für die Story**, wohl aber für die Lesart einer Tabelle.
+
+`native-huelle-nord.txt` und `native-huelle-nord-wayland.txt` tragen im Kopf
+`Theme: default`. Sie sind unter dem **Farbschema** von Nord gelaufen, nicht
+unter dessen **Desktop-Theme**. Die Tabelle in §0.2 liest sie als zwei Themes;
+gemessen ist **ein Theme, dreimal**.
+
+Die Zahlen für `default` stimmen und sind am 05.08.2026 bestätigt.
+`CachyOS-Nord-round` läuft tatsächlich `8·6·4·3·2·2·1·1·0·0` bei Verhältnis 1
+und `14·11·9·8·6·5·4·4·3·2` bei 1,6
+(`docs/scrum/reviews/sprint-07-s83-native-huelle/messungen/m1`).
+
+**Das ist der Grund, warum der Prüfsatz zu AK 4 gegen `default` läuft und nicht
+gegen ein beliebiges Theme:** Die Stufenzahlen, die AK 4 nennt, sind die dieses
+einen Themes. Ein Prüfsatz, der sich sein Theme frei sucht, hätte die Zahlen
+eines anderen gemessen und wäre gefallen — oder, schlimmer, zufällig grün
+geblieben.

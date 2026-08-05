@@ -56,7 +56,7 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 
 ## Rückgabewerte und Läufe, die nichts belegen
 
-Fünf gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
+Sieben gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
 gegen diese Liste, bevor du einen Nachweis in deinen Bericht schreibst — und
 **erweitere sie**: Jeder neue Fund dieser Art gehört hier hinein, mit
 Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
@@ -78,7 +78,12 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
    compositor-getriebene Weg: **das obenauf liegende Fenster schließen**, dann
    gibt der Compositor den Fokus von sich aus zurück. Ein Alt-Tab kannst du
    nicht auslösen.
-4. **Offscreen verliert `tinted()` den Alphakanal, unter Wayland nicht.** Die
+4. **Offscreen verliert `tinted()` den Alphakanal, unter Wayland nicht.**
+   *(Die Funktion ist mit #83 gefallen; der Fall bleibt stehen, weil er einen
+   Mechanismus zeigt und nicht eine Funktion — und weil er drei Geschwister aus
+   demselben Sprint hat: Ohne `DevicePixelRatioChange`-Zweig, ohne
+   `nullptr`-Wache und ohne Weichzeichner-Anmeldung bleibt der Testlauf
+   **offscreen grün** und fällt erst in der Sitzung.)* Die
    Funktion füllt eine QPixmap deckend, woraufhin Qt offscreen ein Format ohne
    Alphakanal wählt und die Kontur auf dem Eckbogen verschwindet; derselbe
    Binärcode unter Wayland liefert den vollständigen Bogen (B21, Messbelege in
@@ -99,6 +104,23 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
    gemeinsam verschieben kann, misst du nichts. Halte mindestens eine Seite
    gegen einen **von außen gesetzten** Wert — hier die Zeile, auf die geklickt
    wurde.
+6. **Zwei lebende `KSvg::ImageSet` desselben Themenamens teilen ihre
+   Auswahlpfade.** Solange eine Instanz mit `setSelectors("opaque")` am Leben
+   ist, meldet eine **zweite** Instanz desselben Themes ebenfalls `opaque` und
+   zeichnet danach — ohne dass ihr jemand einen Auswahlpfad gegeben hätte.
+   Gemessen in vier Schritten: allein 216, lebende mit `opaque` 255, zweite
+   daneben 255, nach ihrem Ende wieder 216
+   (`docs/scrum/reviews/sprint-07-s83-native-huelle/bericht.md` §5, Fund 2).
+   **Jeder Vergleich zweier Fassungen derselben Grafik läuft sonst gegen sich
+   selbst** — und der Prüfsatz ist grün. Wer zwei Fassungen nebeneinander
+   stellen will, nimmt für die zweite ein **anderes** Theme.
+7. **Ein Prüfsatz, der sich sein Theme nicht aussucht, prüft womöglich an einem
+   Theme, das den Unterschied gar nicht kennt.** Der Prüfsatz zu #83 AK 7 lief
+   gegen ein Theme ohne zweite Fassung und blieb **grün, als die geprüfte Zeile
+   entfernt wurde**. Gefunden hat ihn die Mutationsprobe, nicht das Nachdenken.
+   **Wähle den Prüfgegenstand danach, dass die Wahl überhaupt etwas ändert** —
+   und wenn du das nicht sicherstellen kannst, sichere im Test zu, dass sie es
+   tut.
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 
