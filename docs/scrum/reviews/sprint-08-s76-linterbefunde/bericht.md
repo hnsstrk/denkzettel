@@ -496,6 +496,10 @@ Grenze aus B21 bleibt: offscreen zeichnen weder Theme noch Compositor
 vollständig. Für diese Story genügt es, weil kein Akzeptanzkriterium über
 Hülle, Rundung, Kontur, Schatten oder Durchsichtigkeit etwas behauptet.
 
+**Zweimal gemessen**, vor und nach Entscheidung 9 — die vier Bildläufer haben
+dabei ihr `const QApplication app` verloren, sind also selbst geändert worden.
+Beide Male dasselbe Ergebnis; die Zahlen oben gelten für den abgegebenen Stand.
+
 Beleg: `messungen/07-bildvergleich.txt`.
 
 ## 14. Zwei Befunde außerhalb meiner Fläche — gemeldet, nicht geheilt

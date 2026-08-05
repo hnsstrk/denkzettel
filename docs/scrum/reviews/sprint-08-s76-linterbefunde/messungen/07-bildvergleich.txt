@@ -1,6 +1,9 @@
 # Bildvergleich: dieser Zweig gegen main, alle fuenf Bildlaeufer
 # QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2 LANG=de_DE.UTF-8
 # main als Debug-Kopie aus 'git archive main', beide frisch gebaut.
+# Zweimal gemessen: vor und nach PO-Entscheidung 9 (die vier Bildlaeufer
+# haben dabei ihr `const QApplication app` verloren). Beide Male dasselbe
+# Ergebnis - die Zahlen unten gelten fuer den abgegebenen Stand.
 
 editshots     5 von  5 Bildern bytegleich
 searchshots   6 von  6 Bildern bytegleich
