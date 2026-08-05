@@ -511,8 +511,17 @@ v1 aber nicht gebaut.
   seine Auswahl zurück (Issue #59, gemessen 04.08.2026). Der Kalendertag
   genügt als Bedingung, weil alle vier Gruppengrenzen Tagesgrenzen sind.
   Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
-  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick bewegt
-  die Liste überhaupt nicht** — weder holt er den Kopf, noch rückt er zur
+  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4) — **und ebenso, wenn
+  die Auswahl per Taste die erste Notiz einer Gruppe erreicht, ohne eine Grenze
+  zu überschreiten** (Issue #70, Kundenentscheidung 04.08.2026): Wer aufwärts
+  von der zweiten auf die erste Notiz geht, bekäme den Kopf sonst nie zu sehen,
+  und ohne ihn steht unter „Heute" und „Gestern" nur eine Uhrzeit ohne Tag —
+  die Zeitstempel-Regel oben setzt den Kopf voraus. Der Preis ist, dass die
+  Liste sich in diesem Fall weiter bewegt als zuvor. Es gilt weiter für beide
+  Fälle: Passen Kopf und Auswahl nicht zusammen ins Bild, bleibt der Kopf
+  draußen.
+  **Ein Mausklick bewegt die Liste überhaupt nicht** — weder holt er den Kopf,
+  noch rückt er zur
   Auswahl nach: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
   Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
   **Dass auch das Nachrücken zur Auswahl darunterfällt, ist bei der Umsetzung
