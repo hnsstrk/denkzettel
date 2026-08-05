@@ -56,7 +56,7 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 
 ## Rückgabewerte und Läufe, die nichts belegen
 
-Sieben gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
+Neun gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
 gegen diese Liste, bevor du einen Nachweis in deinen Bericht schreibst — und
 **erweitere sie**: Jeder neue Fund dieser Art gehört hier hinein, mit
 Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
@@ -121,6 +121,21 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
    **Wähle den Prüfgegenstand danach, dass die Wahl überhaupt etwas ändert** —
    und wenn du das nicht sicherstellen kannst, sichere im Test zu, dass sie es
    tut.
+8. **Bei gesperrter Sitzung liefert `spectacle -f` ein schwarzes Bild mit
+   Rückgabe 0.** Du fotografierst dann den Rollladen, nicht den Bildschirm — und
+   der Lauf meldet Erfolg. Gemessen bei der Vorprüfung zu #85: Die Sitzung war
+   den ganzen Lauf über gesperrt (`LockedHint=yes`), und die Sonde hätte „das
+   Fenster hebt sich nirgends ab" berichtet. **Das sieht aus wie ein Befund über
+   das Fenster und ist einer über den Bildschirmschoner.** Frag den Sperrzustand
+   vorher ab und brich ab, statt zu messen: `qdbus org.freedesktop.ScreenSaver`
+   bzw. die `LockedHint`-Eigenschaft der Sitzung. **Ein Sitzungsbild ist nur ein
+   Beleg, wenn jemand hätte hinsehen können.**
+9. **Ein Vollbildfenster als Prüfgrund verdeckt das, was du messen willst.**
+   Wer einen gleichmäßigen Untergrund für eine Durchsichtigkeitsmessung
+   braucht, nimmt ein **gewöhnliches** Fenster in Bildschirmgröße — ein echtes
+   Vollbildfenster legt der Compositor über das Erfassungsfenster, und gemessen
+   wird dann der Grund über der Hülle statt unter ihr (Vorprüfung #85,
+   05.08.2026).
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 
