@@ -151,26 +151,45 @@ stattdessen `ShowCapture()` (Einzelinstanz).
 
 ### 3.1 Hülle aus dem Desktop-Theme (Issue #55, Wireframe 4a/4b)
 
-Das rahmenlose Fenster trägt **Rundung, Kontur und Schatten seines
+Das rahmenlose Fenster trägt **Rundung, Rand, Deckung und Schatten seines
 Desktop-Themes**, gezeichnet aus `dialogs/background` — derselben Grafik, aus
 der Plasma seine Popups und KRunner baut. Bibliothek und Dialoge sind davon
 nicht berührt: Sie sind dekorierte Fenster und bekommen ihre Hülle von KWin.
 
-**Form kommt vom Theme, Farbe aus der Palette.** Von den acht auf der
-Kundenmaschine installierten Themes richtet nur `default` seine Füllfarbe am
-Farbschema aus; ein Fenster in Theme-Farben stünde bei sieben von acht dunkel
-auf dunkel (Messung 01.08.2026). Gezeichnet wird deshalb die *Alphamaske* des
-Themes, gefüllt mit Palettenfarben:
+**Zur Hülle gehören drei Anmeldungen beim Fenstersystem, nicht eine.** Am
+Binärcode von `libPlasmaQuick` gemessen meldet Plasma für seine eigenen
+Überlagerungen `KWindowShadow`, `KWindowEffects::enableBlurBehind` und
+`KWindowEffects::enableBackgroundContrast` an. Denkzettel macht dieselben drei;
+die Bedingungen dazu stehen in 3.2.
 
-- **Fläche** `Window`, **eine durchgehende** — kein Kasten im Kasten.
+**Form und Farbe kommen vom Theme** (Kundenentscheidung 04.08.2026, Issue #83:
+„dann eine native Plasma-Überlagerung ohne Anpassungen"). Gezeichnet wird die
+Grafik des Themes selbst, **in einem Stück** (`FrameSvg::framePixmap()` beim
+Bildpunktverhältnis des Fensters) — keine Alphamaske, keine eigene Füllfarbe,
+keine selbst gezogene Kontur.
+
+Bis Sprint 6 war es umgekehrt: Gezeichnet wurde die Alphamaske des Themes,
+gefüllt mit Palettenfarben, samt einer Konturlinie aus `Window` und
+`WindowText` im Verhältnis 0,20. Der Kunde hat diesen Nachbau abgewählt. Die
+Kehrseite ist benannt und angenommen: Von den acht auf der Kundenmaschine
+installierten Themes richtet nur `default` seine Füllfarbe am Farbschema aus,
+also sind sechs der acht danach schlechter lesbar als zuvor — was daraus folgt,
+behandelt Issue #85. Auf der Kundeneinstellung ändert sich nichts, weil dort
+mangels `[Theme] name` in `plasmarc` der Rückfall `default` greift.
+
+- **Fläche** die des Themes, **eine durchgehende** — kein Kasten im Kasten.
+  Sie deckt nicht notwendig: `default` deckt zu 84,7 %, andere Themes zu 2,7 %
+  bis 100 %. „Geschlossen" heißt hier vollständig, nicht undurchsichtig.
+- **Kontur** ist keine eigene Linie mehr. Die Theme-Grafik zeichnet an ihrem
+  Rand dieselbe Farbe wie in der Fläche und unterscheidet sich allein in der
+  Deckung (gemessen unter `default`: 235 gegen 216 von 255). Der Rand des
+  Themes ist ein **Deckungsrand**; sichtbar wird er nur, weil die Hülle
+  durchscheint.
 - **Notiztext** `WindowText`, **nicht** die Rolle für Eingabefelder: über 18
   Schemata schlechtestens 4,74:1 gegen 4,22:1, also über beziehungsweise unter
   dem Mindestwert von 4,5:1. Das ist die Bedingung, unter der die durchgehende
   Fläche überhaupt trägt.
-- **App-Name und Fußzeile** `PlaceholderText`, **Kontur** eine Mischung aus
-  `Window` und `WindowText` im Verhältnis `frameContrast`. In einer
-  Widgets-Anwendung ist das der konstante Faktor **0,20**, kein
-  KColorScheme-Aufruf.
+- **App-Name und Fußzeile** `PlaceholderText`.
 - **Innenabstände** (12 seitlich, 10 oben, 8 unten) gelten **zuzüglich** des
   Randes, den das Theme für sich beansprucht — der Text beginnt bei Breeze
   16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
@@ -186,9 +205,11 @@ sein.
 
 ### 3.2 Bedingungen der Hülle (entdeckt beim Bau, DoD 4/B9)
 
-Vier davon widersprechen dem, was der Aufbau nahelegt. Sie stehen hier, weil
-eine Umsetzung ohne sie eine Hülle zeichnet, die richtig aussieht und falsch
-ist — belegt in `docs/scrum/reviews/sprint-06-s55-huelle/` samt `pruefen.sh`.
+Sie stehen hier, weil eine Umsetzung ohne sie eine Hülle zeichnet, die richtig
+aussieht und falsch ist — belegt in `docs/scrum/reviews/sprint-06-s55-huelle/`
+und `docs/scrum/reviews/sprint-07-s83-native-huelle/`, je samt `pruefen.sh`.
+Die meisten widersprechen dem, was der Aufbau nahelegt, und **keine einzige
+meldet ihren Fehlschlag über einen Rückgabewert.**
 
 1. **KSvg findet das Desktop-Theme nicht selbst.** Der eingestellte Name steht
    in `plasmarc` unter `[Theme] name`; ohne Übergabe bleibt `KSvg::ImageSet`
@@ -211,6 +232,38 @@ ist — belegt in `docs/scrum/reviews/sprint-06-s55-huelle/` samt `pruefen.sh`.
    wird das Fenster neu gemappt (oben), und die Wayland-Surface verschwindet
    dabei; ein einmal im Konstruktor gebundener Schatten wäre nach dem ersten
    Verstecken weg. Die Bindung gehört deshalb hinter `show()`.
+6. **Der Weichzeichner wirkt nur, wenn er unmittelbar nach `show()` angemeldet
+   wird.** Über sieben A/B-Läufe gemessen: eine Sekunde später angemeldet
+   bleibt der Grund scharf — mit Maskenregion wie mit leerer Region, ein- wie
+   zweimal gerufen. `enableBlurBehind()` ist `void`, es gibt also keinen
+   Rückgabewert, der den Fehlschlag meldete; sichtbar wird er allein im Bild
+   aus einer angemeldeten Sitzung. Die Anmeldung steht deshalb neben der
+   Schattenbindung. **Und sie darf kein `nullptr`-Fenster bekommen:**
+   `enableBlurBehind(nullptr, …)` stürzt unter Wayland ab (SIGSEGV), während
+   derselbe Aufruf offscreen zurückkehrt.
+7. **Das Bildpunktverhältnis des Fensters steht nach `show()` noch nicht
+   fest.** Unter Wayland meldet Qt zunächst 2 und rund eine Sekunde später
+   1,6, zugestellt als `QEvent::DevicePixelRatioChange` **ohne begleitendes
+   `QEvent::Resize`**. Ein `KSvg::FrameSvg` folgt dem Bildschirm ohnehin nicht
+   von selbst — sein Verhältnis ist nach dem Bau 1, gleich welche Skalierung
+   gilt. Wer die Hülle nur im `resizeEvent()` nachzieht, zeichnet dauerhaft
+   bei 2 auf einem Fenster, das 1,6 ist. **Offscreen tritt der Fall nicht
+   auf.**
+8. **Ob der Kontrasteffekt angemeldet wird, sagt das Theme.** Die vier Werte
+   stehen in der Gruppe `[ContrastEffect]` der Datei `metadata.desktop` des
+   Themes; fehlt die Gruppe — wie bei `default` —, wird nichts angemeldet.
+   Gelesen werden sie selbst und nicht über `Plasma::Theme`: Diese Klasse
+   liegt in libPlasma, das QtQuick nachzöge (Bauentscheidung zu #83).
+9. **Ohne Sitzung mit Weichzeichner gilt der Auswahlpfad `opaque`.** Sonst
+   zeichnete das Fenster die durchscheinende Fassung der Theme-Grafik ohne den
+   Compositor, der sie tragfähig macht — Punkt 4 verspricht das Gegenteil. Die
+   Bedingung hängt **nicht** an
+   `KWindowEffects::isEffectAvailable(BlurBehind)`: Dieser Wert ist träge und
+   liefert in der Sitzung des Kunden **vor** der ersten eigenen Anmeldung
+   `false`, danach `true` — daran aufgehängt schaltete das Fenster ausgerechnet
+   beim Start auf deckend. Denkzettel fragt stattdessen KWin selbst
+   (D-Bus, `org.kde.kwin.Effects.isEffectLoaded("blur")`) und antwortet ohne
+   Rückfrage mit „nein", wo es gar kein zusammensetzendes Fenstersystem gibt.
 
 ## 4. Aufnahmefenster (Sprachnotiz)
 
@@ -719,14 +772,19 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
 ## 15. Build, Abhängigkeiten, Paketierung
 
 - **CMake** + ECM (Extra CMake Modules), C++20.
-- Qt 6: Widgets, Sql, Network, Multimedia, **DBus**. KF6: KGlobalAccel,
+- Qt 6: Widgets, Sql, Network, Multimedia, **DBus** (nicht nur für die
+  Einzelinstanz und die Dienst-Schnittstelle: das Erfassungsfenster fragt
+  darüber KWin, ob diese Sitzung überhaupt weichzeichnet — 3.2, Punkt 9).
+  KF6: KGlobalAccel,
   KConfig, KNotifications, KStatusNotifierItem, KWallet (Framework: KWallet),
   **KDBusAddons** (KDBusService/Einzelinstanz), **KWidgetsAddons**
   (KMessageWidget — Meldungen im Fenster; KMessageDialog samt
   KStandardGuiItem — Wächterdialog, Abschnitt 9), **KWindowSystem**
   (KWindowConfig — Fenstergröße über Sitzungen; die Position setzt ein
   Wayland-Client nicht selbst, siehe Abschnitt 3; **KWindowShadow** — der
-  Schatten des Erfassungsfensters, Abschnitt 3.1), **KSvg** (`FrameSvg` und
+  Schatten des Erfassungsfensters, Abschnitt 3.1; **KWindowEffects** — die
+  beiden anderen Anmeldungen der Hülle, Weichzeichner und Kontrasteffekt,
+  Abschnitt 3.1/3.2), **KSvg** (`FrameSvg` und
   `ImageSet` — die Hülle aus `dialogs/background` des Desktop-Themes),
   **KCoreAddons** (`KDirWatch` — die Wache auf `plasmarc`, über die ein
   Theme-Wechsel ein stehendes Fenster erreicht; warum nicht `KConfigWatcher`,
@@ -785,6 +843,28 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   Dass der Schatten nach **jedem** Neuzeigen wieder daliegt (3.2, Punkt 5),
   ist von keiner der beiden Formen gedeckt und gehört in die manuelle
   Checkliste.
+- **Und der Weichzeichner, schärfer als der Schatten** (gemessen zu #83): Ihn
+  zeigt auch eine **Fensteraufnahme** nicht. `spectacle -a` liefert wie
+  `QWidget::grab()` die eigene Fläche des Fensters; was hinter der Hülle liegt,
+  steht in beiden nicht darin. Belegbar ist er allein an einer Aufnahme des
+  **zusammengesetzten Bildes** über einem bekannten Muster, im A/B-Vergleich
+  gegen einen Lauf ohne Anmeldung. `enableBlurBehind()` und
+  `enableBackgroundContrast()` sind `void`, und der eine verfügbare
+  Rückgabewert — `isEffectAvailable()` — lügt vor der ersten Anmeldung (3.2,
+  Punkt 9). Ob der Kontrasteffekt auf dem geprüften Stand überhaupt **wirkt**,
+  ist unvermessen: `org_kde_kwin_contrast_manager` steht nicht mehr in der
+  Globalenliste des Compositors. Der Aufruf ist belegt, die Wirkung nicht.
+- **Was offscreen ebenfalls nicht auftritt: der Sprung des
+  Bildpunktverhältnisses** (3.2, Punkt 7). Offscreen bleibt es bei einem
+  `Resize`, und der einzige bekannte Fehlermechanismus ist damit systematisch
+  unsichtbar. Ein Beleg dazu kommt aus der angemeldeten Sitzung und **ohne**
+  `QT_SCALE_FACTOR` — unter Wayland multipliziert die Variable mit der
+  Sitzungsskalierung (1 → 1,6; 1,6 → 2,56), offscreen nicht.
+- **Ein Bildvergleich ganzer Fenster über Plattformgrenzen hinweg ist kein
+  Prüfmittel** (gemessen zu #83): Die **Hülle** ist offscreen und unter Wayland
+  bei gleichem Bildpunktverhältnis byteweise gleich, ein **gegrabbtes Fenster**
+  nicht — die Schriftrasterung weicht ab (1.587 von 154.440 Bildpunkten,
+  sämtlich im Textbereich; Ursache Fontconfig, nicht KSvg).
 - **Zustände, die im Prüfprozess selbst nicht herstellbar sind, brauchen einen
   eigenen Prozess** (entdeckt zu #55, AK 8): Das Fenster ohne Desktop-Theme
   lässt sich nicht durch einen erfundenen Theme-Namen erzeugen — KSvg fällt
