@@ -1,0 +1,4 @@
+# Aus pruefen.sh erzeugt: eine Kopie von src/ui/librarywindow.cpp mit
+# flicken/a-70.patch darauf. Gehört nicht ins Repositorium — der Flicken
+# daneben sagt dasselbe in sechs Zeilen.
+kandidat/

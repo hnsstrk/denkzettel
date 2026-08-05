@@ -1,0 +1,83 @@
+=== Sonde 3 · Kandidatenfassung (#70) gegen die volle Testauflage ===
+Kandidat: kandidat/librarywindow.cpp — src/ unangetastet
+
+--- A · librarytest gegen den HEUTIGEN Stand ---
+Totals: 108 passed, 0 failed, 0 skipped, 0 blacklisted, 5484ms
+
+--- B · dieselbe Testauflage gegen die KANDIDATENFASSUNG ---
+Totals: 108 passed, 0 failed, 0 skipped, 0 blacklisted, 5460ms
+
+--- C · die Sondenfälle gegen die Kandidatenfassung ---
+Plattform: offscreen  QT_SCALE_FACTOR=(nicht gesetzt)  Theme=kde
+
+== A · Maße der Liste ==
+Notizen: 24  Zeilen: 27
+Viewport: 552 px hoch, Rollbereich 0..20
+Kopfzeile 0 ("Heute"): y=0 h=27 unten=26
+Notizzeile 1:           y=27 h=72 unten=98
+Kopf "Gestern" in Zeile 9: Gestern, Höhe 35 px
+
+== B · Pfeil aufwärts auf die ERSTE Notiz der Gruppe (Befund N2) ==
+vorher:  Rollwert=11  Kopf y=-107 h=35 unten=-73  Kopf ganz im Bild? nein
+         Ziel (Notiz 8) y=-72 h=72 unten=-1  ganz im Bild? nein
+nachher: Rollwert=9 (Δ -2 Zeilen)
+         Auswahl steht auf Notizzeile 10 (erwartet 10)
+         Kopf y=0 h=35 unten=34  Kopf ganz im Bild? JA
+
+== C · Grenzübertritt aufwärts auf eine schon sichtbare Zeile (Prüfsatz Sprint 3) ==
+vorher:  Rollwert=17  Kopf "Gestern" y=-539 h=35 unten=-505  ganz im Bild? nein
+         Ziel (Notiz 15, letzte der Gruppe) y=0 h=72 unten=71  ganz im Bild? ja
+nachher: Rollwert=17 (Δ 0)  Kopf y=-539 h=35 unten=-505  ganz im Bild? nein
+
+== D · Bewegung innerhalb der Gruppe, Ziel ist nicht die erste Notiz (AK 4) ==
+vorher:  Rollwert=11  Ziel (Notiz 10) y=72 h=72 unten=143  ganz im Bild? ja
+nachher: Rollwert=11 (Δ 0)  Auswahl auf Zeile 12
+
+== E · Klick auf eine sichtbare Notiz einer anderen Gruppe (#57, AK 3) ==
+vorher:  Rollwert=10  Kopf "Gestern" y=-35 h=35 unten=-1  ganz im Bild? nein
+         Klickziel (Notiz 10) y=144 h=72 unten=215  ganz im Bild? ja
+nachher: Rollwert=10 (Δ 0)  Auswahl auf Zeile 12 (erwartet 12)
+         Kopf y=-35 h=35 unten=-1  ganz im Bild? nein
+
+== F · Reine Zeilenmaße ==
+Kopfzeile hoch:  27 px
+Notizzeile hoch: 72 px
+Viewport hoch:   552 px
+Rollmodus: ScrollPerItem (eine Zeile je Rollschritt)
+
+== G · Wirkung der beiden vorhandenen scrollTo-Zeilen im Fall B ==
+Ausgangslage nach dem Tastendruck: Rollwert=9  Kopf y=0 h=35 unten=34  Auswahl y=35 h=72 unten=106
+Passbedingung (Auswahl.unten − Kopf.oben ≤ Viewport): 106 − 0 = 106 ≤ 552 → erfüllt
+nach scrollTo(Kopf):     Rollwert=9 (Δ 0)
+nach scrollTo(Auswahl):  Rollwert=9 (Δ 0 — rollt die zweite Zeile zurück?)
+Ergebnis: Kopf y=0 h=35 unten=34  ganz im Bild? JA
+          Auswahl y=35 h=72 unten=106  ganz im Bild? ja
+Bewegung gegenüber heute: 0 Zeile(n) = 35 px
+
+== H · Tut scrollTo(EnsureVisible) nichts, wenn die Zeile schon im Bild steht? ==
+Kopf y=0 h=35 unten=34  ganz im Bild? ja  Rollwert=9
+nach scrollTo(Kopf, EnsureVisible): Rollwert=9 (Δ 0)
+Kopf angeschnitten: y=-35 h=35 unten=-1  Rollwert=10
+nach scrollTo: Rollwert=9 (Δ -1)  Kopf y=0 h=35 unten=34
+
+== I · Prüfsatz Sprint 3 in seiner echten Bauart (kleine Mittelgruppe) ==
+vorher:  Rollwert=10  Kopf y=-35 h=35 unten=-1  ganz im Bild? nein
+         Ziel (Notiz 10) y=144 h=72 unten=215  ganz im Bild? ja
+nachher: Rollwert=9 (Δ -1)  Kopf y=0 h=35 unten=34  ganz im Bild? JA — Prüfsatz hält
+
+Befund B im selben Fenster (aufwärts auf Notiz 8, erste der Gruppe):
+vorher:  Rollwert=11  Kopf y=-107 h=35 unten=-73  ganz im Bild? nein
+nachher: Rollwert=9 (Δ -2)  Kopf y=0 h=35 unten=34  ganz im Bild? ja
+
+== J · Flachstes Fenster: trägt die Passbedingung für die erste Notiz? ==
+Fensterhöhe angefordert 150, geworden 197  Viewport 149 px
+Kopf y=0 h=35 unten=34  Auswahl y=35 h=72 unten=106
+Passbedingung: 106 − 0 = 106 ≤ 149 → erfüllt — AK 1 gilt ohne Zusatzbedingung
+
+== K · Szene 7 von libraryshots (tests/libraryshots.cpp:278–306) nachgestellt ==
+Zeilen: 18  Notizen: 16
+Auswahl steht auf Zeile 10: "Notiz von letzter Woche, 15 Uhr"
+Ihr Kopf ist Zeile 9 ("Letzte Woche"), unmittelbar darüber? ja
+Kopf y=0 h=35 unten=34  ganz im Bild? ja
+Der Kommentar der Szene behauptet: "its head comes along and the entry stays whole".
+Gemessen: Kopf kommt mit.

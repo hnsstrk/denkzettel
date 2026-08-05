@@ -1,0 +1,41 @@
+# M2 — Kopf-Pruefsaetze im Stand HEAD (581dacc), 05.08.2026 18:34
+
+ACHTUNG: Der Arbeitsbaum ist waehrend dieser Messung fremdveraendert
+(git status: ' M tests/librarytest.cpp', dazu build-repro71/ und build-vor70/).
+Gemessen wird deshalb gegen 'git show HEAD:', nicht gegen die Arbeitskopie.
+
+$ git show HEAD:tests/librarytest.cpp | grep -n 'void .*Head\|void .*Group\|void walks'
+100:    void sortsIntoTheFiveGroupsWithTheFirstMatchWinning();
+103:    void shortensTheEntryTimestampToWhatItsGroupLeavesOpen();
+105:    void namesTheGroups();
+114:    void writesAHeadOverEachGroupAndNoneOverAnEmptyOne();
+115:    void keepsTheHeadsOutOfReachOfTheSelection();
+117:    void dropsTheHeadWithTheLastNoteOfItsGroup();
+134:    void walksTheListWithTheArrowKeys();
+135:    void walksPastTheGroupHeadsWithTheArrowKeys();
+136:    void bringsTheHeadOfTheNewGroupIntoView_data();
+137:    void bringsTheHeadOfTheNewGroupIntoView();
+138:    void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
+139:    void leavesTheHeadOutsideWhereItCannotFitWithTheSelection();
+140:    void staysPutWhileTheSelectionMovesWithinItsGroup();
+141:    void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
+142:    void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
+143:    void keepsTheHeadFetchAfterAClickThatSelectedNothing();
+144:    void bringsBackTheHeadWhenTheDeletionIsUndone();
+162:    void keepsTheHeaderAtTheTopAndTheRestForTheNotes_data();
+163:    void keepsTheHeaderAtTheTopAndTheRestForTheNotes();
+164:    void keepsTheMeasuresOfTheGroupedList_data();
+165:    void keepsTheMeasuresOfTheGroupedList();
+166:    void putsTheMessageBetweenTheHeaderAndTheNotes();
+
+$ git show HEAD:tests/librarytest.cpp | grep -n 'Key_Up'
+1238:    QTest::keyClick(list, Qt::Key_Up);
+1281:        QTest::keyClick(list, Qt::Key_Up);
+1343:        QTest::keyClick(list, Qt::Key_Up);
+1470:    QTest::keyClick(list, Qt::Key_Up);
+1616:    QTest::keyClick(list, Qt::Key_Up);
+1659:        QTest::keyClick(list, Qt::Key_Up);
+1717:    QTest::keyClick(list, Qt::Key_Up);
+
+$ git show HEAD:tests/librarytest.cpp | grep -c 'reproIssue71'
+0

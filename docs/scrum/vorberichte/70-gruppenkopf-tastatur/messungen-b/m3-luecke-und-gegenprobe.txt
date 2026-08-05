@@ -1,0 +1,29 @@
+# M3 — Deckt ein Pruefsatz den Fall von #70 ab? Stand HEAD 581dacc, 05.08.2026 18:34
+
+Der Fall von #70: Pfeiltaste AUFWAERTS auf die ERSTE Notiz einer Gruppe,
+OHNE dabei eine Gruppengrenze zu ueberschreiten (Vorgaenger ist die zweite
+Notiz derselben Gruppe). Nur dann ist 'crossesAGroupBoundary' falsch.
+
+Sieben Key_Up-Stellen im Stand HEAD, je mit Gruppenlage des Ziels:
+  1238 walksTheListWithTheArrowKeys              — keine Kopf-Zusicherung
+  1281 walksPastTheGroupHeadsWithTheArrowKeys    — keine Kopf-Zusicherung
+  1343 bringsTheHeadOfTheNewGroupIntoView        — 16 -> 8, Grenzuebertritt
+  1470 bringsTheHeadAlongEvenWhenTheNoteIsInView — 11 -> 10, Grenzuebertritt
+  1616 keepsTheHeadFetchAfterAClickThatSelected  — 11 -> 10, Grenzuebertritt
+  1659 bringsTheHeadAlongForANoteInTheMiddle     — 18 -> 9, Grenzuebertritt
+  1717 leavesTheHeadOutsideWhereItCannotFit      — 29 -> 28, INNERHALB, Ziel ist
+                                                    nicht die erste Notiz
+
+ERGEBNIS: kein Pruefsatz trifft den Fall. Der Fehler aus #70 kann heute
+gruen bleiben, und er tut es.
+
+Gegenprobe — welche Klicks sind geprueft (Mausseite, AK 3 von #70):
+$ git show HEAD:tests/librarytest.cpp | grep -n 'mouseClick'
+1541:    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(target).center());
+1613:    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(visibleHead).center());
+
+Der einzige Klick mit Kopf-Zusicherung steht bei Zeile 1541 in
+leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked;
+(Zusicherung in 1544) — sein Ziel ist noteRow(10) — die LETZTE Notiz von 'Gestern' (8,9,10),
+nicht die erste. Ein Klick auf die ERSTE Notiz einer Gruppe ist in
+keinem Pruefsatz enthalten.

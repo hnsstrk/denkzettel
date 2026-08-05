@@ -1,0 +1,15 @@
+--- librarywindow.cpp
++++ librarywindow.cpp (b-71-lesart2)
+@@ -789,7 +789,11 @@
+                 m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
+             }
+         }
+-        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
++        // Lesart 2 des Reviews S5, B2: derselbe Merker wie beim Vorscrollen zum
++        // Kopf — ein Klick lässt das Bild stehen (#71).
++        if (!m_selectionFollowsAPress) {
++            m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
++        }
+ 
+         showNoteText(index);
+     }

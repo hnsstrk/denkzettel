@@ -1,0 +1,42 @@
+# M7 — Abstand der Sprint-7-Straenge, Stand HEAD 581dacc, 05.08.2026 18:39
+
+Strang A = #83 (src/capture/), Strang B = #72 + #70 (src/ui/).
+
+Gemeinsame Dateien der beiden Straenge:
+  Quellen: keine. #83 arbeitet in src/capture/capturewindow.{h,cpp},
+  Strang B in src/ui/librarywindow.cpp.
+  Tests:   keine. capturetest/captureshots gegen librarytest/libraryshots.
+  Build:   #83 fasst CMakeLists an (KSvg), Strang B nicht.
+  Einzige Beruehrung: SPEC.md.
+
+$ grep -n '^## 3\.\|^## 4\.\|^## 9\.\|^## 10\.' SPEC.md
+124:## 3. Capture-Fenster (Text)
+215:## 4. Aufnahmefenster (Sprachnotiz)
+491:## 9. Bibliothek und Vorschlags-Review
+605:## 10. Tray und Benachrichtigungen
+
+#83 zieht SPEC 3 nach (124-214), Strang B SPEC 9 (491-604), darin die
+Kopfregel bei 513-518 und die Sprachregel fuer #72 im selben Abschnitt.
+Abstand zwischen dem Ende von SPEC 3 und dem Anfang von SPEC 9:
+277 Zeilen
+
+Innerhalb Strang B, src/ui/librarywindow.cpp (1073 Zeilen):
+  #72: 168-176, 249-265, 355-372   #70: 780-793
+  kleinster Abstand: 408 Zeilen
+Innerhalb Strang B, tests/librarytest.cpp (3491 Zeilen):
+  Koerper #70 um 1380-1740, Koerper #72 um 3100-3130 -> ueber 1360 Zeilen.
+  Slot-Deklarationen: #70 bei 136-144, #72 bei etwa 191 -> rund 50 Zeilen.
+
+## Korrektur (18:44): #83 zieht nicht nur SPEC 3 nach, sondern auch 15 und 16
+(docs/scrum/vorberichte/83-native-huelle/bericht.md:102).
+491:## 9. Bibliothek und Vorschlags-Review
+605:## 10. Tray und Benachrichtigungen
+719:## 15. Build, Abhängigkeiten, Paketierung
+749:## 16. Teststrategie
+810:## 17. Meilensteine
+
+Strang B (#70) schreibt in SPEC 9 (491-604). #83 schreibt in SPEC 3
+(124-214) sowie SPEC 15 (719-748) und SPEC 16 (749-809).
+Kleinster Abstand in SPEC.md: 115 Zeilen (Ende SPEC 9 -> Anfang SPEC 15)
+Das bleibt der kleinste gemessene Abstand zwischen beiden Straengen;
+Git mischt mit drei Zeilen Kontext, ein Textkonflikt ist ausgeschlossen.

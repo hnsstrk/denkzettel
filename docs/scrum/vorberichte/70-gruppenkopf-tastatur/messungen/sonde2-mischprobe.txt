@@ -1,0 +1,13 @@
+=== Mischprobe: #70 gegen die beiden Lesarten von #71 ===
+Basis: src/ui/librarywindow.cpp @ 7afe022
+
+--- Lage der Änderungsstellen ---
+a-70             @@ -781,8 +781,13 @@
+b-71-lesart2     @@ -789,7 +789,11 @@
+b-71-lesart1     @@ -782,14 +782,24 @@
+
+--- #70 gegen #71-Lesart 2 (Merker am scrollTo) ---
+Rückgabewert: 0  (0 = sauber, >0 = Zahl der Konflikte)
+
+--- #70 gegen #71-Lesart 1 (aufgeschobene Bewegung) ---
+Rückgabewert: 1  (0 = sauber, >0 = Zahl der Konflikte)

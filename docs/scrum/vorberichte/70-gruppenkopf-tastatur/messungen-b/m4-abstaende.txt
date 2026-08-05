@@ -1,0 +1,97 @@
+# M4 — Abstaende zwischen den Straengen, Stand HEAD 581dacc, 05.08.2026 18:35
+
+## src/ui/librarywindow.cpp — 1073 Zeilen
+
+#70 fasst an: 780-793 (Bedingung und beide scrollTo in showNote())
+#71 fasst an: 792     (das unbedingte scrollTo — Verdachtszeile des UI-Reviews,
+                       dort noch :783 genannt)
+  -> kleinster Abstand: NULL, dieselbe 14-Zeilen-Bedingung.
+
+#72 fasst an: die Aktionen und die Knoepfe. Fundstellen:
+168:    , m_deleteAction(new QAction(i18n("Löschen"), this))
+173:    , m_undoAction(new QAction(QIcon::fromTheme(QStringLiteral("edit-undo")), i18n("Rückgängig"), this))
+174:    , m_editAction(new QAction(i18n("Bearbeiten"), this))
+234:    m_message->addAction(m_undoAction);
+249:    m_deleteAction->setShortcut(QKeySequence::Delete);
+250:    m_deleteAction->setEnabled(false);
+251:    connect(m_deleteAction, &QAction::triggered, this, &LibraryWindow::deleteCurrentNote);
+252:    addAction(m_deleteAction);
+254:    m_undoAction->setShortcuts(KStandardShortcut::undo());
+255:    m_undoAction->setEnabled(false);
+256:    connect(m_undoAction, &QAction::triggered, m_deletion, &PendingDeletion::undo);
+257:    addAction(m_undoAction);
+262:    m_editAction->setShortcut(Qt::Key_F2);
+263:    m_editAction->setEnabled(false);
+264:    connect(m_editAction, &QAction::triggered, this, &LibraryWindow::startEditing);
+265:    addAction(m_editAction);
+296:        m_undoAction->setEnabled(true);
+303:            m_undoAction->setEnabled(false);
+361:    m_editButton = new QPushButton(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Bearbeiten"), detail);
+362:    connect(m_editButton, &QPushButton::clicked, m_editAction, &QAction::trigger);
+  -> hoechste #72-Zeile: 369 (m_deleteButton). Abstand zu 780: 411 Zeilen.
+
+## tests/librarytest.cpp — 3491 Zeilen
+Deklarationsblock der Pruefsaetze — hier treffen sich alle drei:
+     1	    void walksTheListWithTheArrowKeys();
+     2	    void walksPastTheGroupHeadsWithTheArrowKeys();
+     3	    void bringsTheHeadOfTheNewGroupIntoView_data();
+     4	    void bringsTheHeadOfTheNewGroupIntoView();
+     5	    void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
+     6	    void leavesTheHeadOutsideWhereItCannotFitWithTheSelection();
+     7	    void staysPutWhileTheSelectionMovesWithinItsGroup();
+     8	    void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
+     9	    void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
+    10	    void keepsTheHeadFetchAfterAClickThatSelectedNothing();
+    11	    void bringsBackTheHeadWhenTheDeletionIsUndone();
+    12	    void regroupsWhenTheWindowIsActivated();
+(absolut 134-145)
+
+Vorhandene Tooltip-Pruefsaetze (Flaeche #72):
+1985:        QVERIFY2(!widget->toolTip().contains(QStringLiteral("steht noch nicht zur Verfügung")),
+1986:                 qPrintable(widget->toolTip()));
+3109:    QVERIFY(searchOf(window)->toolTip().isEmpty());
+3117:    QVERIFY2(!searchOf(window)->toolTip().isEmpty(), "Das ruhende Suchfeld sagt nicht, warum");
+3124:    QVERIFY2(searchOf(window)->toolTip().isEmpty(), "Die Kurzhilfe bleibt am wieder freien Feld stehen");
+
+## Belege
+tests/libraryshots.cpp Zeilen: 420
+Szene 7 (:278-306) und Szene 8 (:309-340) sind das Muster fuer eine Szene 11;
+der Helfer walkUp(list, steps) steht bereits bei :115-121.
+
+## SPEC.md — Abschnitt 9
+     1	  Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
+     2	  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick tut das
+     3	  nicht**: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
+     4	  Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
+     5	  Der Tag geht dabei nicht verloren — der Detailbereich trägt den vollen
+     6	  Zeitstempel.
+(absolut 513-518; die Kopfregel steht in 513-516)
+
+## Nachtrag zum Deklarationsblock (die einzige enge Stelle zwischen #70 und #72)
+$ git show HEAD:tests/librarytest.cpp | grep -n 'void .*[Ss]earch.*[Ee]dit\|void .*Kurzhilfe\|void .*[Tt]ooltip\|void .*restsWhile\|void .*While.*Edit'
+152:    void showsTheSearchField();
+153:    void filtersTheListWithTheSearchField();
+154:    void groupsTheSearchResultsLikeTheLibrary();
+156:    void restoresTheFullListWhenTheSearchFieldIsCleared();
+157:    void carriesOutAPendingDeletionWhenTheSearchChanges();
+180:    void findsTheSavedTextInTheSearchIndex();
+191:    void saysWhyTheSearchFieldRestsWhileEditing();
+196:    void keepsTheSavedNoteInTheResultListUntilTheSearchChanges();
+
+$ git show HEAD:tests/librarytest.cpp | sed -n '146,161p'
+    void staysPutWhenTheWindowIsActivatedWithoutADayChange();
+    void undoesTheDeletionByKeyboard();
+    void deletesWithTheDeleteKey();
+    void showsTheRemainingTimeInTheMessage();
+    void keepsOneMessageWhenASecondNoteIsDeleted();
+    void closesWithTheStandardShortcut();
+    void showsTheSearchField();
+    void filtersTheListWithTheSearchField();
+    void groupsTheSearchResultsLikeTheLibrary();
+    void showsTheEmptyStateWhenNothingMatches();
+    void restoresTheFullListWhenTheSearchFieldIsCleared();
+    void carriesOutAPendingDeletionWhenTheSearchChanges();
+    void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
+    void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
+    void leavesTheFocusAloneWhenTheOpenWindowIsShownAgain();
+    void keepsTheListWideEnoughForThePreview();

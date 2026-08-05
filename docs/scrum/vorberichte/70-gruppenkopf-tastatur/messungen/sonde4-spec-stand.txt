@@ -1,0 +1,8 @@
+=== Sonde 4 · Was die SPEC heute über die Rollregel sagt ===
+
+--- Die Rollregel in SPEC 9 ---
+513:  Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
+
+--- Steht die Passbedingung aus librarywindow.cpp:788 in der SPEC? ---
+0
+(0 = nein)

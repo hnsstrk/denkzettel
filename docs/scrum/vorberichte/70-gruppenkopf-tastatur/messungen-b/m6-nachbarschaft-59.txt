@@ -1,0 +1,43 @@
+# M6 — Der offene Punkt 'Nachbarschaft #59: vor dem Ziehen pruefen', beantwortet
+Stand HEAD 581dacc, 05.08.2026 18:38
+
+$ git show --stat 084385c
+commit 084385cc012df59aedb32d7a8ee74231e3fe8599
+Author: hnsstrk <hans.juergen.stark@gmail.com>
+Date:   Tue Aug 4 14:24:37 2026 +0200
+
+    #59: Aktivierung ohne Tageswechsel lässt die Liste stehen
+    
+    regroupList() lief bei jeder Fensteraktivierung. Der volle Model-Reset und
+    das Wiederherstellen der Auswahl zogen die Liste anschließend auf die
+    Auswahl: Wer weit weggescrollt hatte und per Alt-Tab zurückkam, wurde um
+    7 Zeilen — 459 px bei 552 px Viewport — zurückgeworfen, obwohl sich an der
+    Gruppierung nichts geändert hatte.
+    
+    Gemessen vor der Heilung, offscreen und unter Wayland; der Befund aus dem
+    karpathy-Review war ausdrücklich nicht empirisch belegt.
+    
+    Das Fenster merkt sich jetzt in m_groupedOn den Kalendertag, für den die
+    Liste zuletzt gruppiert wurde, und gruppiert bei Aktivierung nur neu, wenn
+    heute ein anderer Tag ist. Der Kalendertag genügt, weil alle vier
+    Gruppengrenzen Tagesgrenzen sind.
+    
+    Der neue Test setzt die Auswahl in Zeile 14, nicht in Zeile 0 — dort ist der
+    Sprung unsichtbar, und genau daran ist er im Sprint vorbeigegangen. Er misst
+    den Rollwert, nicht das Endbild, und sichert ab, dass die Auswahl vor der
+    Aktivierung außerhalb des Bildes steht.
+
+
+$ git show 084385c -- src/ui/librarywindow.cpp | grep -n '^@@'
+30:@@ -541,7 +541,14 @@ void LibraryWindow::changeEvent(QEvent *event)
+46:@@ -592,6 +599,7 @@ void LibraryWindow::reload(Selection selection)
+54:@@ -606,6 +614,7 @@ void LibraryWindow::regroupList()
+
+$ git show 084385c -- src/ui/librarywindow.cpp | grep '^[+-]' | grep -c 'scrollTo'
+0
+
+ERGEBNIS: #59 hat showNote() nicht angefasst. Die Heilung sitzt in
+changeEvent()/regroupList() und haengt das Neugruppieren an den
+Kalendertag; die Kopf-Hol-Bedingung in :780-793 ist unveraendert.
+Weder billiger noch kollidierend — der Punkt 'vor dem Ziehen pruefen'
+ist damit erledigt und gehoert aus dem Issue heraus.

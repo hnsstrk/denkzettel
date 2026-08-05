@@ -1,0 +1,17 @@
+--- librarywindow.cpp
++++ librarywindow.cpp (a-70)
+@@ -781,8 +781,13 @@
+         const std::optional<library::NoteGroup> group = groupOf(index);
+         const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
+         const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
++        // Die erste Notiz einer Gruppe holt ihren Kopf auch ohne Grenzübertritt
++        // (#70). Strukturell entschieden, nicht an Pixeln: der Kopf steht immer
++        // unmittelbar über der ersten Notiz seiner Gruppe.
++        const bool isFirstOfItsGroup = head.isValid() && head.row() == index.row() - 1;
+ 
+-        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
++        if (head.isValid() && (crossesAGroupBoundary || isFirstOfItsGroup)
++            && !m_selectionFollowsAPress) {
+             const QRect heading = m_list->visualRect(head);
+             const QRect selected = m_list->visualRect(index);
+             if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {

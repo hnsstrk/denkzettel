@@ -1,0 +1,52 @@
+# M8 — Nachtragsmessung zur korrigierten Praemisse (Lesart 2)
+Stand 7afe022, 05.08.2026 18:46
+
+## 1. Praemisse nachgeprueft, nicht uebernommen
+
+$ grep -n 'Lesart 2' docs/scrum/vorberichte/71-klick-nachbarzeile/bericht.md | head -4
+109:umsonst); und die Klebrigkeit des #57-Merkers, die Lesart 2 auf jede
+132:Lesart 2 entfallen**.
+138:| Welche Lesart? | **Lesart 2** — beim Mausdruck gar nicht nachrücken. Erfüllt beide Kriterien wörtlich, eine Zeile groß, schreibt die Regel aus SPEC 9 weiter. Lesart 1 fällt aus (Bild springt weiter); Lesart 3 ist die schönere Bedienung, ändert aber nebenbei das Mausradverhalten — das hat niemand verlangt |
+139:| AK 2 ist nicht einzeln prüfbar | Auf Lesart 2 festgelegt: „Versatz 0 px" |
+
+Bestaetigt: Lesart 2 = Bedingung an librarywindow.cpp:792, kein Rollmodus-
+wechsel. Damit bleibt ScrollPerItem, und der Fund 2 aus messung-b.md
+(m5) trifft nicht mehr zu. Die vier Aufbauten in 1406, 1459, 1532, 1595
+behalten ihre Einheit.
+
+## 2. NEU GEMESSEN: #70 und #71 ueberschreiben denselben SPEC-Absatz
+
+$ sed -n '513,518p' SPEC.md
+     1	  Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
+     2	  Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4). **Ein Mausklick tut das
+     3	  nicht**: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
+     4	  Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
+     5	  Der Tag geht dabei nicht verloren — der Detailbereich trägt den vollen
+     6	  Zeitstempel.
+
+#70 AK 6 zieht die Kopfregel nach — Satz in 513-514.
+#71 AK 7 zieht die Mausklick-Bedingung nach — Satz in 514-518.
+GEMEINSAME ZEILE: 514 — Abstand NULL. In SPEC.md beruehren sich #70 und #71
+also ebenso wie im Code.
+(Die 115 Zeilen aus m7 sind davon unberuehrt: sie messen den Abstand zwischen
+Strang A (#83, SPEC 3/15/16) und Strang B, nicht den innerhalb von Strang B.)
+
+## 3. Der geteilte Merker
+
+#71 AK 6 heilt die Klebrigkeit von m_selectionFollowsAPress. #70 haengt
+seinen neuen Ausloeser hinter dieselbe Marke (librarywindow.cpp:785).
+Wer #71 zuerst baut, heilt die Marke einmal fuer beide Ausloeser.
+Wer #70 zuerst baut, baut einen zweiten Ausloeser an eine Marke, deren
+Fehler bekannt und noch nicht behoben ist.
+
+## 4. Umfang von Strang B (#71 -> #70 -> #72), abgeschaetzt am Bestand
+
+  src/ui/librarywindow.cpp   :792 (#71), :785 (#70), 3x setToolTip (#72)
+                             rund 6 geaenderte Zeilen in 1073
+  tests/librarytest.cpp      1 (#71) + 3 (#70) + 1-2 (#72) Pruefsaetze
+  tests/libraryshots.cpp     1 Szene (#71) + 1 Szene (#70), Muster :278-340
+  SPEC.md                    Abschnitt 9, ein Absatz, beide Stories
+  Build                      keine Aenderung
+
+Kein neuer Laeufer, kein neues Bauziel, keine neue Abhaengigkeit, keine
+angemeldete Sitzung. Drei Klassen s hintereinander in einem Worktree.

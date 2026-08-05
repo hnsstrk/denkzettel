@@ -1,0 +1,44 @@
+# M5 — Die Rollwert-Einheit: warum #71 die Zusicherungen von #70 mitnimmt
+Stand HEAD 581dacc, 05.08.2026 18:38
+
+Die Liste steht heute im Voreinstellungs-Rollmodus (ScrollPerItem):
+$ git grep -n 'setVerticalScrollMode\|ScrollPerPixel\|ScrollPerItem' -- src/
+  (keine Treffer — QListView bleibt bei ScrollPerItem)
+
+Unter ScrollPerItem ist verticalScrollBar()->value() eine ZEILENNUMMER.
+Die bestehenden Pruefsaetze verlassen sich darauf und stellen den Rollwert
+mit einer Zeilennummer ein:
+$ git show HEAD:tests/librarytest.cpp | grep -n 'verticalScrollBar()->setValue'
+1406:    list->verticalScrollBar()->setValue(noteRow(list, 9).row());
+1459:    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+1532:    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+1595:    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+1865:    list->verticalScrollBar()->setValue(0);
+
+$ git show HEAD:tests/librarytest.cpp | grep -n 'verticalScrollBar()->value'
+1415:    const int rolledTo = list->verticalScrollBar()->value();
+1421:    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+1538:    const int rolledTo = list->verticalScrollBar()->value();
+1547:    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+1716:    const int scrolledTo = list->verticalScrollBar()->value();
+1718:    QCOMPARE(list->verticalScrollBar()->value(), scrolledTo);
+1868:    const int rolledTo = list->verticalScrollBar()->value();
+1881:    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+3306:    const int rolledTo = list->verticalScrollBar()->value();
+3318:    QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+
+FOLGE: Setzt #71 die Liste auf ScrollPerPixel (Lesart 3 aus
+docs/scrum/vorberichte/71-klick-nachbarzeile/messung-a.md), bedeutet
+setValue(noteRow(list, 8).row()) nicht mehr 'roll bis Zeile 8', sondern
+'roll 11 Bildpunkte weit'. Die vier Aufbauten stellen dann einen anderen
+Fall her als den beschriebenen, und der Test wird davon nicht rot — er prueft
+etwas anderes. Zuordnung der vier Stellen zu den Pruefsaetzen:
+
+  1406  staysPutWhileTheSelectionMovesWithinItsGroup          -> #70 AK 4
+  1459  bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready      -> #70 AK 2
+  1532  leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked -> #70 AK 3
+  1595  keepsTheHeadFetchAfterAClickThatSelectedNothing       -> Nachbarschaft
+
+DREI DER VIER SIND GENAU DIE PRUEFSAETZE, AUF DIE SICH #70 IN AK 2, AK 3
+UND AK 4 STUETZT. #71 und #70 haengen damit nicht nur an denselben Zeilen,
+sondern an derselben Masseinheit.

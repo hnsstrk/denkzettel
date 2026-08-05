@@ -1,0 +1,29 @@
+# M1 — Die Kopf-Hol-Bedingung in showNote(), Stand 581dacc, 05.08.2026 18:33
+
+$ sed -n '776,795p' src/ui/librarywindow.cpp
+1|        // decision of 01.08.2026, after the case was measured).
+2|        //
+3|        // And both fit into the list at once. In a group taller than the
+4|        // window the head cannot be shown without pushing the selection out.
+5|        const QModelIndex head = groupHeadOf(index);
+6|        const std::optional<library::NoteGroup> group = groupOf(index);
+7|        const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
+8|        const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
+9|
+10|        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
+11|            const QRect heading = m_list->visualRect(head);
+12|            const QRect selected = m_list->visualRect(index);
+13|            if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
+14|                m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
+15|            }
+16|        }
+17|        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+18|
+19|        showNoteText(index);
+20|    }
+
+Zeilennummern absolut: 776 = erste ausgegebene Zeile.
+
+$ git grep -n 'crossesAGroupBoundary' -- src/
+src/ui/librarywindow.cpp:783:        const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
+src/ui/librarywindow.cpp:785:        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {

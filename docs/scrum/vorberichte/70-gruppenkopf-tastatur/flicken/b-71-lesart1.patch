@@ -1,0 +1,35 @@
+--- librarywindow.cpp
++++ librarywindow.cpp (b-71-lesart1)
+@@ -782,14 +782,24 @@
+         const std::optional<library::NoteGroup> previousGroup = groupOf(previous);
+         const bool crossesAGroupBoundary = !previousGroup.has_value() || previousGroup != group;
+ 
+-        if (head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress) {
+-            const QRect heading = m_list->visualRect(head);
+-            const QRect selected = m_list->visualRect(index);
+-            if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
+-                m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
+-            }
+-        }
+-        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
++        // Lesart 1 des Reviews S5, B2: die Bewegung geschieht erst NACH der
++        // Auswahlverarbeitung, sonst rollt die Liste mitten im Mausdruck und
++        // eine andere Zeile liegt danach unter dem Zeiger (#71).
++        const bool fetchesTheHead =
++            head.isValid() && crossesAGroupBoundary && !m_selectionFollowsAPress;
++        QMetaObject::invokeMethod(
++            this,
++            [this, index, head, fetchesTheHead] {
++                if (fetchesTheHead) {
++                    const QRect heading = m_list->visualRect(head);
++                    const QRect selected = m_list->visualRect(index);
++                    if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {
++                        m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
++                    }
++                }
++                m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
++            },
++            Qt::QueuedConnection);
+ 
+         showNoteText(index);
+     }
