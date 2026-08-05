@@ -56,6 +56,11 @@ private Q_SLOTS:
     void readsTheDesktopThemeFromPlasmarc();
     void paintsTheThemesOwnHullInOnePiece();
     void noteTextUsesTheWindowTextRole();
+    void readsTheTextColoursOfTheDesktopTheme();
+    void noteTextComesFromTheThemesOwnColours();
+    void subtleTextsComeFromTheThemesOwnColours();
+    void textColoursFollowADesktopThemeChange();
+    void themeTextColoursOutlastAColourSchemeChange();
     void footerHasMoreAirThanTheApplicationName();
     void hullIsCompleteAtFiveAndEightLines();
     void hullFollowsTheWindowPixelRatio();
@@ -126,6 +131,20 @@ const QString WideBorderTheme = themes::bundledWide();
  * moved here out of the acceptance evidence of sprint 6 where it was measured.
  */
 const QString SquareCornerTheme = themes::bundledSquare();
+
+/**
+ * What the wide theme's own `colors` file names (issue #85).
+ *
+ * Two colours no colour scheme carries, and that is what makes the assertion
+ * one about the **origin**: a fixture holding 35,38,41 could not tell a theme
+ * colour from a scheme colour that happens to look the same. The value is
+ * written down twice on purpose — here and in the file — so that a change to
+ * the fixture turns the test red instead of quietly moving what it proves.
+ *
+ * The narrow theme deliberately brings no such file; it is the other half.
+ */
+const QColor WideThemeTextColour(255, 0, 153);
+const QColor WideThemeInactiveColour(0, 153, 255);
 
 /**
  * KSvg's own fallback, and the theme the customer's machine runs on: his
@@ -332,6 +351,12 @@ void CaptureTest::textsFollowAColourSchemeChange()
     // The daemon builds the window once and keeps it (SPEC 2.1), so a colour
     // scheme change reaches a window that is already standing. Every text has
     // to follow it — the application name and the key hint included (issue #54).
+    //
+    // Under a theme that brings no `colors` file, which is what the narrow one
+    // is here: since #85 a theme with one keeps its own colour through a scheme
+    // change, and that half is themeTextColoursOutlastAColourSchemeChange().
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+
     const QPalette startPalette = qApp->palette();
 
     QPalette switched = startPalette;
@@ -568,6 +593,14 @@ void CaptureTest::noteTextUsesTheWindowTextRole()
     // every palette change, so it follows the scheme instead of freezing (#54).
     QPlainTextEdit *text = textArea();
     QVERIFY(text);
+
+    // Since #85 the scheme is only half the rule, so the theme is named here
+    // rather than inherited: the narrow one brings no `colors` file, which is
+    // the case this assertion is about. Without the line the test would run
+    // under whatever `plasmarc` the run before it left behind — and the run
+    // before it writes the **wide** theme, which since #85 has a file.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+
     QCOMPARE(text->palette().color(QPalette::Text),
              m_window->palette().color(QPalette::WindowText));
 
@@ -579,6 +612,161 @@ void CaptureTest::noteTextUsesTheWindowTextRole()
     QCoreApplication::processEvents();
 
     QCOMPARE(text->palette().color(QPalette::Text), QColor(0xfc, 0xfc, 0xfc));
+
+    qApp->setPalette(startPalette);
+    QCoreApplication::processEvents();
+}
+
+void CaptureTest::readsTheTextColoursOfTheDesktopTheme()
+{
+    // The gate of the whole story (issue #85, AK 1): does this theme bring a
+    // hand of its own? Read out of the theme's `colors` file with KConfig, the
+    // same road contrastEffectOf() takes to the file beside it.
+    const capture::ThemeTextColours wide = capture::themeTextColoursOf(WideBorderTheme);
+    QCOMPARE(wide.normal, WideThemeTextColour);
+    QCOMPARE(wide.inactive, WideThemeInactiveColour);
+
+    // A theme without the file hands out nothing, and neither does a name
+    // nothing answers to. Both matter: the second is the road a machine with no
+    // desktop themes at all takes, and it must not end in a colour.
+    QVERIFY(!capture::themeTextColoursOf(NarrowBorderTheme).normal.isValid());
+    QVERIFY(!capture::themeTextColoursOf(NarrowBorderTheme).inactive.isValid());
+    QVERIFY(!capture::themeTextColoursOf(QStringLiteral("kein-solches-theme")).normal.isValid());
+}
+
+void CaptureTest::noteTextComesFromTheThemesOwnColours()
+{
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    // AK 1 for the note text: the writing comes from the same hand as the
+    // surface. Asserted on the **origin** and not on a contrast number, and
+    // that is measured rather than modest: in test mode QStandardPaths no
+    // longer finds the customer's `kdeglobals`, so KSvg reckons with Qt's
+    // fallback palette while the application palette still carries the KDE
+    // platform theme's colours. A contrast asserted here would be a number for
+    // a state no machine is ever in (1,11:1, measured — pre-check F3).
+    m_window->reloadDesktopTheme(WideBorderTheme);
+    QCOMPARE(text->palette().color(QPalette::Text), WideThemeTextColour);
+
+    // And it is not the scheme's colour. Without this line the comparison above
+    // would still hold if the fixture happened to name the scheme's own value —
+    // the very confusion the fixture's unusual colours are chosen against.
+    QVERIFY2(text->palette().color(QPalette::Text)
+                 != m_window->palette().color(QPalette::WindowText),
+             qPrintable(text->palette().color(QPalette::Text).name()));
+
+    // The two roads have to agree, or they drift apart unnoticed: the note text
+    // is painted with `KSvg::Svg::color(Text)`, the gate is read out of the file
+    // with KConfig. Where a theme brings the file, both must name the same
+    // colour — measured over eight themes and three colour schemes, and held
+    // here so that a KSvg that changed its mind would turn something red.
+    QCOMPARE(text->palette().color(QPalette::Text),
+             capture::themeTextColoursOf(WideBorderTheme).normal);
+
+    // The other half of the customer decision: a theme without a `colors` file
+    // leaves the note text to the colour scheme, exactly as before #85.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    QCOMPARE(text->palette().color(QPalette::Text),
+             m_window->palette().color(QPalette::WindowText));
+}
+
+void CaptureTest::subtleTextsComeFromTheThemesOwnColours()
+{
+    // The same rule for the dimmed class — application name, key hint and the
+    // placeholder of the empty text area (SPEC 3.1). It gets there by another
+    // road, and not by choice: `KSvg::Svg::StyleSheetColor` has no counterpart
+    // to `ForegroundInactive`, so this class is read out of the theme's file.
+    //
+    // Expressly **not** asserted: that this makes the class readable. Under
+    // `breeze-light` neither source reaches 4,5:1 — 3,70:1 against 2,09:1,
+    // measured. That is issue #84, and AK 4 asks for the limit to be named.
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    m_window->reloadDesktopTheme(WideBorderTheme);
+
+    const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+    QCOMPARE(labels.size(), 2);
+    for (QLabel *label : labels) {
+        // What the label paints with: its own palette, read through its role.
+        QCOMPARE(label->palette().color(label->foregroundRole()), WideThemeInactiveColour);
+    }
+    QCOMPARE(text->palette().color(QPalette::PlaceholderText), WideThemeInactiveColour);
+
+    QVERIFY2(WideThemeInactiveColour != m_window->palette().color(QPalette::PlaceholderText),
+             qPrintable(WideThemeInactiveColour.name()));
+
+    // And back to the scheme under a theme that brings no file of its own.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    for (QLabel *label : labels) {
+        QCOMPARE(label->palette().color(label->foregroundRole()),
+                 m_window->palette().color(QPalette::PlaceholderText));
+    }
+    QCOMPARE(text->palette().color(QPalette::PlaceholderText),
+             m_window->palette().color(QPalette::PlaceholderText));
+}
+
+void CaptureTest::textColoursFollowADesktopThemeChange()
+{
+    // AK 5, on **one** window: the daemon builds it at start and keeps it
+    // (SPEC 2.1), so a theme change reaches a window that is already standing.
+    // There and back again, because a colour that only ever moved one way
+    // would also be explained by a colour that was set once and never cleared.
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+    const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+    QCOMPARE(labels.size(), 2);
+
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    const QColor schemeNote = text->palette().color(QPalette::Text);
+    const QColor schemeSubtle = labels.first()->palette().color(labels.first()->foregroundRole());
+
+    m_window->reloadDesktopTheme(WideBorderTheme);
+    QCOMPARE(text->palette().color(QPalette::Text), WideThemeTextColour);
+    QCOMPARE(labels.first()->palette().color(labels.first()->foregroundRole()),
+             WideThemeInactiveColour);
+
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    QCOMPARE(text->palette().color(QPalette::Text), schemeNote);
+    QCOMPARE(labels.first()->palette().color(labels.first()->foregroundRole()), schemeSubtle);
+}
+
+void CaptureTest::themeTextColoursOutlastAColourSchemeChange()
+{
+    // AK 7, and it is the criterion the story was not ready without: the whole
+    // mechanism hangs on the palette change, so an implementation that only
+    // met AK 1 in reloadDesktopTheme() would be right at the acceptance and
+    // wrong after the first scheme change — without a word from anybody.
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+    const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+    QCOMPARE(labels.size(), 2);
+
+    m_window->reloadDesktopTheme(WideBorderTheme);
+
+    const QPalette startPalette = qApp->palette();
+    QPalette switched = startPalette;
+    switched.setColor(QPalette::WindowText, QColor(0x23, 0x26, 0x29));
+    switched.setColor(QPalette::PlaceholderText, QColor(0x70, 0x7d, 0x8a));
+    qApp->setPalette(switched);
+    // Qt hands the new palette to the widgets through a posted event; without a
+    // running event loop the test has to let it through itself.
+    QCoreApplication::processEvents();
+
+    QCOMPARE(text->palette().color(QPalette::Text), WideThemeTextColour);
+    QCOMPARE(labels.first()->palette().color(labels.first()->foregroundRole()),
+             WideThemeInactiveColour);
+    QCOMPARE(text->palette().color(QPalette::PlaceholderText), WideThemeInactiveColour);
+
+    // The counter-case in the same run, or the assertion above would also hold
+    // for a window that ignores palette changes altogether: without a `colors`
+    // file the texts follow the scheme, and they follow it to the values this
+    // test has just set.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    QCOMPARE(text->palette().color(QPalette::Text), QColor(0x23, 0x26, 0x29));
+    QCOMPARE(labels.first()->palette().color(labels.first()->foregroundRole()),
+             QColor(0x70, 0x7d, 0x8a));
 
     qApp->setPalette(startPalette);
     QCoreApplication::processEvents();
