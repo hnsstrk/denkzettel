@@ -29,6 +29,8 @@
 #include <QWindow>
 #include <QtMath>
 
+#include <utility>
+
 namespace
 {
 constexpr int WindowWidth = 600;
@@ -141,6 +143,32 @@ ContrastEffect contrastEffectOf(const QString &desktopTheme)
     return effect;
 }
 
+ThemeTextColours themeTextColoursOf(const QString &desktopTheme)
+{
+    // Beside the graphic and beside `metadata.desktop`, in the same file kind
+    // and read the same way. A theme that ships no `colors` file — four of the
+    // eight on the customer's machine — leaves both colours invalid, and the
+    // window then keeps to the colour scheme, which is the other half of the
+    // customer decision of 04.08.2026.
+    const QString file = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                QStringLiteral("%1/%2/colors")
+                                                    .arg(DesktopThemePath, desktopTheme));
+    if (file.isEmpty()) {
+        return {};
+    }
+
+    const KConfigGroup group(KSharedConfig::openConfig(file, KConfig::SimpleConfig),
+                             QStringLiteral("Colors:Window"));
+    if (!group.exists()) {
+        return {};
+    }
+
+    ThemeTextColours colours;
+    colours.normal = group.readEntry("ForegroundNormal", QColor());
+    colours.inactive = group.readEntry("ForegroundInactive", QColor());
+    return colours;
+}
+
 bool sessionBlursBehindWindows()
 {
     // Neither offscreen nor any other platform without a compositing window
@@ -202,14 +230,17 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     // One continuous surface, not a box inside a box (wireframe 4b): the text
     // area draws no ground of its own.
     m_text->viewport()->setAutoFillBackground(false);
-    applyTextColours();
+    // No applyTextColours() here: since #85 the colours depend on the desktop
+    // theme, so they are set where the theme is read. reloadDesktopTheme()
+    // below calls it, and it is the only place that has both halves.
 
     // Activating the window puts the keyboard focus straight into the text.
     setFocusProxy(m_text);
 
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(0);
-    layout->addWidget(subtleLabel(i18n("Denkzettel"), this));
+    QLabel *appName = subtleLabel(i18n("Denkzettel"), this);
+    layout->addWidget(appName);
     layout->addSpacing(SpacingBelowAppName);
     layout->addWidget(m_text);
     layout->addSpacing(SpacingAboveFooter);
@@ -217,6 +248,7 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     QLabel *hint = subtleLabel(i18n("Esc verwirft · Strg+Enter speichert"), this);
     hint->setAlignment(Qt::AlignCenter);
     layout->addWidget(hint);
+    m_subtleLabels = {appName, hint};
 
     connect(m_text->document()->documentLayout(),
             &QAbstractTextDocumentLayout::documentSizeChanged,
@@ -288,6 +320,13 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     }
     m_imageSet = std::move(imageSet);
     m_contrast = capture::contrastEffectOf(theme);
+    // Read here and kept: the writing comes from the same hand as the surface
+    // (customer decision 04.08.2026, issue #85), so it is read where the
+    // surface is. Kept rather than asked for again, because the next palette
+    // change has to find it — a colour scheme change does not change the
+    // theme, and applyTextColours() runs on both occasions.
+    m_themeText = capture::themeTextColoursOf(theme);
+    applyTextColours();
 
     applyHullMargins();
     // The margins are part of the height: a wider theme border makes a taller
@@ -326,9 +365,11 @@ bool CaptureWindow::eventFilter(QObject *watched, QEvent *event)
         return QWidget::eventFilter(watched, event);
     }
 
-    // The note text is drawn in the window's text colour, so it has to be
-    // copied over again whenever that colour changes (issue #54: a colour
-    // taken once and kept stays put when the scheme moves).
+    // Both text classes may be drawn in a colour of the scheme, so they have
+    // to be written over again whenever the scheme moves (issue #54: a colour
+    // taken once and kept stays put). Under a theme that brings its own
+    // `colors` file applyTextColours() keeps the theme's colour here — that is
+    // the whole point of the precedence living in one place (issue #85, AK 7).
     if (watched == m_text && event->type() == QEvent::PaletteChange) {
         applyTextColours();
         return QWidget::eventFilter(watched, event);
@@ -439,17 +480,49 @@ void CaptureWindow::applyHullMargins()
 
 void CaptureWindow::applyTextColours()
 {
+    // The one place both text classes get their colour, and the only place the
+    // order of precedence is written down (issue #85). It has to be one place:
+    // the two sources move on different occasions — the theme on a theme
+    // change, the scheme on a palette change — and a rule spread over two
+    // places would be right at the moment it was written and wrong after the
+    // next change of the other kind. Both occasions come here.
+    //
+    // The note text through KSvg and the dimmed class through the file we read
+    // ourselves, and that is not a taste: `KSvg::Svg::StyleSheetColor` has no
+    // counterpart to `ForegroundInactive` (see themeTextColoursOf()). Where the
+    // theme brings a `colors` file the two roads agree — measured over eight
+    // themes and three colour schemes, and held together by a test.
+    //
+    // On the continuous surface the scheme's half of the note text is
+    // `WindowText` and not the role for entry fields: measured over all 18
+    // colour schemes the former holds 4,74:1 at worst, the latter 4,22:1 and
+    // thus below the minimum of 4,5:1 (wireframe 4b).
+    const QColor noteColour = m_themeText.normal.isValid()
+        ? m_hull->color(KSvg::Svg::Text)
+        : this->palette().color(QPalette::WindowText);
+    const QColor subtleColour = m_themeText.inactive.isValid()
+        ? m_themeText.inactive
+        : this->palette().color(QPalette::PlaceholderText);
+
     QPalette palette = m_text->palette();
-    // On the continuous surface the note text carries `WindowText` and not the
-    // role for entry fields: measured over all 18 colour schemes the former
-    // holds 4,74:1 at worst, the latter 4,22:1 and thus below the minimum of
-    // 4,5:1 (wireframe 4b). Copied on every palette change rather than set
-    // once — a colour taken from the palette and kept would freeze (issue #54).
-    palette.setColor(QPalette::Text, this->palette().color(QPalette::WindowText));
+    // Written onto the widget on every occasion rather than set once — a
+    // colour taken from the palette and kept would freeze (issue #54).
+    palette.setColor(QPalette::Text, noteColour);
+    // The third place the dimmed class shows: the placeholder of the empty
+    // text area draws out of this role of the text area's own palette.
+    palette.setColor(QPalette::PlaceholderText, subtleColour);
     palette.setColor(QPalette::Base, Qt::transparent);
 
     if (palette != m_text->palette()) {
         m_text->setPalette(palette);
+    }
+
+    for (QLabel *label : std::as_const(m_subtleLabels)) {
+        QPalette labelPalette = label->palette();
+        labelPalette.setColor(label->foregroundRole(), subtleColour);
+        if (labelPalette != label->palette()) {
+            label->setPalette(labelPalette);
+        }
     }
 }
 

@@ -2,12 +2,15 @@
 
 #include <KSharedConfig>
 
+#include <QColor>
+#include <QList>
 #include <QWidget>
 
 #include <memory>
 
 class KWindowShadow;
 class Store;
+class QLabel;
 class QPlainTextEdit;
 
 namespace KSvg
@@ -43,6 +46,38 @@ struct ContrastEffect {
  * `Plasma::Theme` documents.
  */
 ContrastEffect contrastEffectOf(const QString &desktopTheme);
+
+/**
+ * The two text colours a desktop theme brings in its own `colors` file.
+ *
+ * Both invalid when the theme ships no such file — the measured majority: of
+ * the eight themes on the customer's machine four bring one and four do not
+ * (`docs/scrum/vorberichte/85-lesbarkeit-fremde-themes/messungen/`
+ * `m1-schriftquelle-je-theme.txt`). That is the fork of the customer decision
+ * of 04.08.2026: the writing comes from the same hand as the surface, and
+ * where the theme keeps no hand of its own, the colour scheme keeps it.
+ */
+struct ThemeTextColours {
+    QColor normal;
+    QColor inactive;
+};
+
+/**
+ * The `[Colors:Window]` group of a desktop theme's own `colors` file.
+ *
+ * Read ourselves and not through `KSvg::Svg::color()`, for one measured
+ * reason: the enumeration `KSvg::Svg::StyleSheetColor` knows `Text`,
+ * `Background`, `Highlight`, `HighlightedText` and three signal colours —
+ * **no counterpart to `ForegroundInactive`** (`KSvg/ksvg/svg.h`). The dimmed
+ * class has no KSvg road, so it takes the road `contrastEffectOf()` above
+ * already takes: the theme's own KConfig file beside the graphic.
+ *
+ * `normal` is read all the same, and it is not the value the note text is
+ * painted with — `KSvg::Svg::color(Text)` is. It is what says whether the
+ * theme brings a hand of its own at all, and the tests hold the two against
+ * each other so that the two roads cannot drift apart unnoticed.
+ */
+ThemeTextColours themeTextColoursOf(const QString &desktopTheme);
 
 /**
  * Whether this session can blur behind a window at all (issue #83, AK 7).
@@ -144,6 +179,14 @@ private:
 
     Store *m_store;
     QPlainTextEdit *m_text;
+    /**
+     * The application name and the key hint (SPEC 3.1).
+     *
+     * Held rather than looked up: since #85 their colour can come from the
+     * desktop theme, and a colour has to be written onto the widget where a
+     * role resolved itself.
+     */
+    QList<QLabel *> m_subtleLabels;
 
     KSharedConfig::Ptr m_plasmaConfig;
     /**
@@ -159,6 +202,14 @@ private:
     std::unique_ptr<KWindowShadow> m_shadow;
     /** What the current desktop theme asks the compositor for (AK 6). */
     capture::ContrastEffect m_contrast;
+    /**
+     * The current desktop theme's own text colours, both invalid when it
+     * brings none (issue #85). Kept beside `m_contrast` because it is read
+     * from the same file kind at the same moment, and because
+     * `applyTextColours()` needs it on every palette change afterwards — the
+     * theme does not change when the colour scheme does.
+     */
+    capture::ThemeTextColours m_themeText;
     /**
      * Asked once and kept: the answer decides which variant of the theme's
      * graphic the window draws, and it is needed before the first frame.
