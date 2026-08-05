@@ -74,6 +74,49 @@ private:
     QTimer m_timer;
     bool m_appeared = false;
 };
+
+/**
+ * The selectable row the lower edge cuts through, or -1 if none does.
+ *
+ * Looked up instead of written down: which row is clipped depends on the roll
+ * value, and a test that fixes one can land on the very value at which the
+ * fault stays below its threshold (issue #71, reproduction of 05.08.2026).
+ * Only the lower edge ever cuts a row — under ScrollPerItem the list always
+ * sets down flush at the top.
+ */
+int bottomClippedRow(const QListView *list)
+{
+    for (int row = 0; row < list->model()->rowCount(); ++row) {
+        const QModelIndex index = list->model()->index(row, 0);
+        if (!index.flags().testFlag(Qt::ItemIsSelectable)) {
+            continue;
+        }
+        const QRect rect = list->visualRect(index);
+        if (rect.top() < list->viewport()->height() && rect.bottom() > list->viewport()->height()) {
+            return row;
+        }
+    }
+    return -1;
+}
+
+/**
+ * The rows the selection covers right now, as "3" or "keine" or "3,4".
+ *
+ * Kept as text so a failure names what was marked instead of only that a count
+ * came out wrong — after the fault of #71 the answer is sometimes "keine".
+ */
+QString selectedRows(const QListView *list)
+{
+    const QModelIndexList selected = list->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) {
+        return QStringLiteral("keine");
+    }
+    QStringList rows;
+    for (const QModelIndex &index : selected) {
+        rows << QString::number(index.row());
+    }
+    return rows.join(QLatin1Char(','));
+}
 }
 
 /**
@@ -141,6 +184,8 @@ private Q_SLOTS:
     void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
     void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
     void keepsTheHeadFetchAfterAClickThatSelectedNothing();
+    void selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs();
+    void dropsTheMarkOfAPressThatSelectedNothingWhenItEnds();
     void bringsBackTheHeadWhenTheDeletionIsUndone();
     void regroupsWhenTheWindowIsActivated();
     void staysPutWhenTheWindowIsActivatedWithoutADayChange();
@@ -1620,6 +1665,174 @@ void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
     QCOMPARE(list->currentIndex(), target);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
              qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
+}
+
+void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs()
+{
+    // Issue #71: a click on a row the lower edge cuts through used to select
+    // its neighbour. QAbstractItemView::mousePressEvent sets the current row
+    // first — which runs showNote() synchronously, and its scrollTo moved the
+    // list by a row — and only afterwards picks the selection from the
+    // rectangle it remembered at the press. That rectangle then pointed at the
+    // row which had moved into its place.
+    //
+    // Three ways of writing this test would have gone green without measuring
+    // anything (reproduction of 05.08.2026):
+    //
+    //  - Without a selection set beforehand currentChanged never fires, so the
+    //    scrollTo never runs and every case reports "right" (2 of 11).
+    //  - A fixed roll value can be the one at which the list moves by 35 px
+    //    instead of 72, leaving the click point inside the same row.
+    //  - Comparing selection against current index proves nothing: both are
+    //    dragged onto the wrong row together. Measured against the row that
+    //    was clicked.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const QModelIndex preselected = noteRow(list, 0);
+
+    int checked = 0;
+    for (int value = list->verticalScrollBar()->minimum(); value <= list->verticalScrollBar()->maximum();
+         ++value) {
+        // The selection is put somewhere else first, or the click would not
+        // change the current row and nothing would be measured at all.
+        list->setCurrentIndex(preselected);
+        list->verticalScrollBar()->setValue(value);
+
+        const int row = bottomClippedRow(list);
+        if (row < 0) {
+            continue;
+        }
+        const QModelIndex target = modelOf(list)->index(row);
+        QVERIFY2(target != preselected,
+                 qPrintable(QStringLiteral("Rollwert %1: die Zielzeile ist die Vorauswahl").arg(value)));
+
+        // The point is 5 px below the upper edge of the row, well inside the
+        // strip the viewport still shows of it.
+        const QRect rect = list->visualRect(target);
+        const int visible = list->viewport()->height() - rect.top();
+        QVERIFY2(visible >= 2,
+                 qPrintable(QStringLiteral("Rollwert %1: sichtbarer Streifen nur %2 px").arg(value).arg(visible)));
+        const QPoint point(rect.center().x(), rect.top() + qMin(5, visible - 1));
+
+        const int rolledTo = list->verticalScrollBar()->value();
+        const int targetBefore = rect.y();
+        ++checked;
+
+        QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, point);
+
+        // Exactly one row is marked, and it is the one the click sat in. In 5
+        // of 14 measured cases nothing at all was marked, because after the
+        // list had moved a group head or the empty space lay under the cursor.
+        QCOMPARE(selectedRows(list), QString::number(row));
+        QCOMPARE(list->currentIndex(), target);
+        QCOMPARE(readerOf(window)->toPlainText(), modelOf(list)->noteAt(row).content);
+
+        // And the picture stands still: the row the user pointed at has not
+        // moved out from under his finger (reading 2 of UI review S5, B2).
+        QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
+        QCOMPARE(list->visualRect(target).y(), targetBefore);
+    }
+
+    QVERIFY2(checked >= 10,
+             qPrintable(QStringLiteral("Nur %1 angeschnittene Rollwerte geprüft — der Aufbau misst nicht")
+                            .arg(checked)));
+}
+
+void LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds()
+{
+    // The mark of the press is dropped by the call it belongs to — but a press
+    // that selects nothing causes no such call, and until issue #71 only a key
+    // on the list took the mark away afterwards. A selection set from the
+    // program in between was then taken for a mouse and got no head fetched,
+    // although no mouse had been anywhere near it (#71, AK 6).
+    //
+    // Two things came out of measuring this on 05.08.2026, and the second is
+    // why this test looks at the head and not at the selection:
+    //
+    //  - The mark really does stick. It still stood after the click when the
+    //    deletion set its selection two calls later.
+    //  - It cannot be seen on the selection, though: QAbstractItemView::
+    //    setCurrentIndex scrolls to what it selects on its own, so the list
+    //    follows even when this window's own scrollTo is held back. The head
+    //    fetch has no such second cover, and that is where the stale mark
+    //    shows.
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 9; hour < 12; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // The same starting point as the arrow-key case: selection in "Letzte
+    // Woche", the head of "Gestern" rolled out of the picture.
+    list->setCurrentIndex(noteRow(list, 11));
+    const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+
+    list->verticalScrollBar()->setValue(noteRow(list, 8).row());
+    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
+
+    // A group head that stands in the picture, clicked. The mouse cannot pick
+    // it (wireframe 3b), so the press changes no selection and causes no
+    // showNote — and until #71 nothing but a key on the list took its mark away
+    // afterwards.
+    QModelIndex visibleHead;
+    for (int row = 0; row < modelOf(list)->rowCount() && !visibleHead.isValid(); ++row) {
+        const QModelIndex candidate = modelOf(list)->index(row);
+        if (candidate.data(NoteListModel::GroupHeaderRole).toBool()
+            && list->viewport()->rect().contains(list->visualRect(candidate))) {
+            visibleHead = candidate;
+        }
+    }
+    QVERIFY2(visibleHead.isValid(), "Kein Gruppenkopf im Bild — der Fall tritt nicht ein");
+
+    const QModelIndex before = list->currentIndex();
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(visibleHead).center());
+    QCOMPARE(list->currentIndex(), before);
+
+    // Now a selection set from the program, across a group boundary. This is
+    // the call reload(), regroupList(), the deletion and its undo all make, and
+    // it has to fetch the head: it is no press, and a mark left over from one
+    // must not make it look like one.
+    list->setCurrentIndex(noteRow(list, 10));
+
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
+             qPrintable(QStringLiteral("Kopf bei y=%1, Bild %2 hoch")
+                            .arg(list->visualRect(head).y())
+                            .arg(list->viewport()->height())));
+    QVERIFY(list->viewport()->rect().contains(list->visualRect(list->currentIndex())));
 }
 
 void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()

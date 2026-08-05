@@ -526,8 +526,18 @@ bool LibraryWindow::eventFilter(QObject *watched, QEvent *event)
 
     // A press that selected nothing leaves its mark lying around: group heads
     // cannot be picked (wireframe 3b), and neither can the empty space below
-    // the list. The next key drops it, or it would make the keyboard behave
-    // like a mouse.
+    // the list. The release ends it, and so does the next key, or it would make
+    // the keyboard behave like a mouse.
+    //
+    // The release was added for issue #71, and it is what keeps the mark from
+    // sticking. Everything the press causes runs inside the handling of the
+    // press itself, so nothing is taken away too early — but from the release
+    // on the mark is spent, and a selection changed from the program afterwards
+    // (a deletion by button, an undo, a reload) is no longer taken for a mouse.
+    if (watched == m_list->viewport() && event->type() == QEvent::MouseButtonRelease) {
+        m_selectionFollowsAPress = false;
+    }
+
     if (watched == m_list && event->type() == QEvent::KeyPress) {
         m_selectionFollowsAPress = false;
     }
@@ -789,7 +799,23 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
                 m_list->scrollTo(head, QAbstractItemView::EnsureVisible);
             }
         }
-        m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+
+        // The same mark holds the list still for the selection itself. A press
+        // sets the current row first — which brings us here — and only
+        // afterwards picks its selection from the rectangle it remembered at
+        // the press. Moving the list in between hands that rectangle another
+        // row, and the click ends up on the neighbour of what was pointed at
+        // (issue #71, UI review S5, finding B2; Qt shuts its own autoscrolling
+        // off during a press for exactly this reason, and an explicit scrollTo
+        // walks around that guard).
+        //
+        // A row the lower edge cuts through therefore stays cut through. That
+        // is the price of reading 2 and it was weighed: the row would only
+        // become fully visible by moving out from under the cursor, which is
+        // the fault itself (PO decision of 05.08.2026).
+        if (!m_selectionFollowsAPress) {
+            m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
+        }
 
         showNoteText(index);
     }
