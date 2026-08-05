@@ -232,6 +232,7 @@ private Q_SLOTS:
     void showsTheWarningSymbolInTheGuardDialog();
     void namesTheSymbolsOfTheDetailButtons();
     void namesTheSymbolOfTheUndoAction();
+    void namesTheShortcutInTheTooltipOfEachActionSurface();
     void keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks();
     void namesTheEditedNoteWithoutBreakingTheSentence_data();
     void namesTheEditedNoteWithoutBreakingTheSentence();
@@ -1864,6 +1865,15 @@ void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs
 
         // And the picture stands still: the row the user pointed at has not
         // moved out from under his finger (reading 2 of UI review S5, B2).
+        //
+        // Measured immediately, and that is a limit of what this holds:
+        // QAbstractItemView starts a delayed autoscroll on the press which
+        // fires one double-click interval later and does fetch the row into
+        // full view — the roll value stood at 6 up to 500 ms after the click
+        // and at 7 from 550 ms on, with the selection staying on the clicked
+        // row (05.08.2026, reported to the PO). What #71 heals is the
+        // selection; that the list is quiet holds for the press, not for the
+        // second after it.
         QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
         QCOMPARE(list->visualRect(target).y(), targetBefore);
     }
@@ -3323,6 +3333,84 @@ void LibraryTest::namesTheSymbolOfTheUndoAction()
     }
     QVERIFY(undo);
     QCOMPARE(undo->icon().name(), QStringLiteral("edit-undo"));
+}
+
+void LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface()
+{
+    // UI review S5, recommendation H1: only the search field carried a tooltip,
+    // the three action surfaces said nothing about their keys.
+    //
+    // The expected text is put together from the same source as the shown one,
+    // never from a literal: QKeySequence::toString(NativeText) answers „Entf"
+    // under de_DE and „Del" in a container without LANG, so an assertion on the
+    // word would be green here and red in the public run. „Strg+Z" is not even
+    // fixed on one machine — the undo action reads its keys from kdeglobals,
+    // and whoever changed them there would fail this test.
+    //
+    // And nothing here asks whether a tooltip is empty: QAction::toolTip falls
+    // back to text(), so at the undo action such an assertion is green before
+    // anything is built (measured in the pre-check of #72).
+    storedNote(QStringLiteral("eine Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    QPushButton *del = buttonNamed(window, QStringLiteral("Löschen"));
+    QVERIFY(edit);
+    QVERIFY(del);
+
+    // The state is made, not assumed. Measured on 05.08.2026: the two buttons
+    // are switched on from the start although nothing is selected — it is the
+    // two *actions* that start switched off, and the buttons are joined to them
+    // by clicked/trigger, not by setDefaultAction. What keeps them off screen
+    // in that state is the placeholder page in front of the detail pane.
+    QVERIFY(!actionNamed(window, QStringLiteral("Bearbeiten"))->isEnabled());
+
+    const QString editKey =
+        actionNamed(window, QStringLiteral("Bearbeiten"))->shortcut().toString(QKeySequence::NativeText);
+    const QString deleteKey =
+        actionNamed(window, QStringLiteral("Löschen"))->shortcut().toString(QKeySequence::NativeText);
+    QVERIFY(!editKey.isEmpty());
+    QVERIFY(!deleteKey.isEmpty());
+
+    QCOMPARE(edit->toolTip(), QStringLiteral("Notiz bearbeiten (%1)").arg(editKey));
+    QCOMPARE(del->toolTip(), QStringLiteral("Notiz löschen (%1)").arg(deleteKey));
+
+    // And in the state the two are on screen in, which is the one the pointer
+    // can reach them in at all.
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    QVERIFY(edit->isVisible());
+    QVERIFY(del->isVisible());
+    QCOMPARE(edit->toolTip(), QStringLiteral("Notiz bearbeiten (%1)").arg(editKey));
+    QCOMPARE(del->toolTip(), QStringLiteral("Notiz löschen (%1)").arg(deleteKey));
+
+    // The message band with „Rückgängig" only exists while the grace period
+    // runs, so that state is made too.
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    auto *message = window.findChild<KMessageWidget *>();
+    QVERIFY(message);
+    QTRY_VERIFY(message->isVisible() && !message->isShowAnimationRunning());
+
+    // Read off the button KMessageWidget builds from the action, not off the
+    // action: the button is the surface the pointer rests on, and it is the
+    // button that would say nothing if the widget stopped passing the tooltip
+    // on. „Rückgängig" is no QPushButton of this code — it is that button.
+    QToolButton *undo = nullptr;
+    const QList<QToolButton *> buttons = message->findChildren<QToolButton *>();
+    for (QToolButton *button : buttons) {
+        if (button->defaultAction() && button->defaultAction()->text() == QStringLiteral("Rückgängig")) {
+            undo = button;
+        }
+    }
+    QVERIFY2(undo, "KMessageWidget baut keinen Knopf mit der Rückgängig-Aktion");
+
+    const QString undoKey = undo->defaultAction()->shortcut().toString(QKeySequence::NativeText);
+    QVERIFY(!undoKey.isEmpty());
+    QCOMPARE(undo->toolTip(), QStringLiteral("Löschen rückgängig machen (%1)").arg(undoKey));
 }
 
 void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
