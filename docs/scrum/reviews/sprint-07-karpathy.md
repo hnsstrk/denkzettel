@@ -115,3 +115,21 @@ Nachgeprüft am 05.08.2026 mit `grep -n` je Datei.
   05.08.2026, sprint-07.md §1), kein ungefragter Umfang; das Sprint-Protokoll
   benennt die Rollenabweichung selbst und sammelt die PO-Entscheidungen an
   Kundenstelle prüfbar an einem Ort.
+
+---
+
+## Vollzugsvermerk des Product Owners, 05.08.2026
+
+Angehängt, nicht eingearbeitet (B17). Die Statusspalte oben beschreibt den Stand
+zum Zeitpunkt des Reviews; hier steht, was daraus geworden ist. Der Mangel, dass
+sie nicht nachgeführt war, ist in der DoD-Prüfung als **M7** gebucht worden.
+
+| ID | Stand |
+|---|---|
+| **K1** | **behoben.** Datierte Berichtigung an `sprint-07-s83-native-huelle/bericht.md`: zwölf Zusicherungen in fünfzehn Läufen, elf belegt, eine als Grenze benannt. Die Tabelle war ehrlich, der Satz darüber zählte drei doppelt. AK 14 bleibt erfüllt |
+| **K2** | **verworfen** — vom PO widerlegt, vom Reviewer an der Quelle nachgeprüft und datiert berichtigt. Ursache benannt: Erhebung der Summen mit `grep -h`, also ohne Dateinamen |
+| **K3** | **behoben.** `mutationsproben.sh` hält je Probe den Eingriff im Wortlaut, den Lauf und das erwartete Ergebnis; es arbeitet auf einer Kopie unter `/tmp`. **Vom PO selbst gefahren:** vierzehn Läufe, zwölf rot mit dem erwarteten Fehlschlag, zwei erwartungsgemäß grün |
+| **K4** | **behoben.** Grenze in SPEC 3.2 Punkt 9 benannt (DoD 4/B9), Entscheidung als **#93** gebucht |
+| **K5** | **behoben, und der Befund hat mehr getragen als seinen eigenen Fall.** Zeichnung 4a/4b ist am 05.08.2026 datiert vermerkt und vom UI-Review nachgeprüft worden; der B17-Griff in `CLAUDE.md` schließt seither **aus, statt aufzuzählen**. Der Grund dafür ist ein zweiter Fehlschlag: Die erste Erweiterung übersah `.claude/`, obwohl eine der drei Fundstellen dort lag (DoD-Mangel M5) |
+| **K6** | **angenommen und protokolliert** (`sprint-07.md` §6c) |
+| **K7** | **erledigt** — der UI-Review lag am selben Tag vor, mit eigenen Bildern aus einem eigenen Bau |

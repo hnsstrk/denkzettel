@@ -308,10 +308,10 @@ nichts geändert worden.
 
 | # | Befund | Verdikt | Vorschlag |
 |---|---|---|---|
-| **W1** | **Wireframe 4a behauptet das Gegenteil des gebauten Standes.** Dort steht: „Die Farbe kommt nicht aus dem Theme, sondern aus der Palette" und „Form und Schatten sind farbneutral — die kommen vom Theme; alles Farbige kommt aus der Palette." Mit der Kundenentscheidung vom 04.08.2026 und #83 kommt die **Fläche selbst** aus der Theme-Grafik; unter `default` nimmt sie die Schemafarbe an, unter sechs von acht installierten Themes nicht. SPEC 3.1 ist nachgezogen, die Zeichnung nicht | **fail** | Absatz umdrehen, den Messwert (84,7 % Deckung unter `default`) und den Verweis auf #85 aufnehmen. Der alte Absatz gehört als datierter Vermerk stehengelassen, wie es 4b bei der Trennlinie vormacht |
-| **W2** | **Wireframe 4b führt eine Farbrolle, die es nicht mehr gibt.** „Kontur der Hülle — Mischung aus `Window` und `WindowText` im Verhältnis `frameContrast` … Es ist die einzige Linie im Fenster." `frameContrast` ist mit #83 AK 1 entfallen; der Rand des Themes ist heute ein Deckungsrand (235 gegen 216 unter `default`) | **fail** | Farbrolle streichen, den Deckungsrand an ihre Stelle setzen. Die Maßtafel „Rundung und Rand" bleibt gültig |
-| **W3** | **3b Fall 4 kennt die Regel aus #70 nicht.** Gezeichnet ist allein der Grenzübertritt. Die Erweiterung („erste Notiz einer Gruppe, ohne Grenze") steht in SPEC 9 und im Bau | **warn** | Einen Satz in Fall 4 aufnehmen. Das Issue hat den Punkt ausdrücklich als UX-Frage zurückgestellt |
-| **W4** | **Keine Zeichnung trägt die Regel „ein Mausklick bewegt die Liste nicht".** Sie ist seit #57 tragend und mit #71 erweitert worden; die Festlegungstafel zu 3a/3b schweigt dazu | **warn** | Zeile in die Festlegungstafel zu 3a/3b, neben „Gruppenkopf ist keine Notiz" |
+| **W1** | **Wireframe 4a behauptet das Gegenteil des gebauten Standes.** Dort steht: „Die Farbe kommt nicht aus dem Theme, sondern aus der Palette" und „Form und Schatten sind farbneutral — die kommen vom Theme; alles Farbige kommt aus der Palette." Mit der Kundenentscheidung vom 04.08.2026 und #83 kommt die **Fläche selbst** aus der Theme-Grafik; unter `default` nimmt sie die Schemafarbe an, unter sechs von acht installierten Themes nicht. SPEC 3.1 ist nachgezogen, die Zeichnung nicht | **behoben** (Abschnitt 9) | Absatz umdrehen, den Messwert (84,7 % Deckung unter `default`) und den Verweis auf #85 aufnehmen. Der alte Absatz gehört als datierter Vermerk stehengelassen, wie es 4b bei der Trennlinie vormacht |
+| **W2** | **Wireframe 4b führt eine Farbrolle, die es nicht mehr gibt.** „Kontur der Hülle — Mischung aus `Window` und `WindowText` im Verhältnis `frameContrast` … Es ist die einzige Linie im Fenster." `frameContrast` ist mit #83 AK 1 entfallen; der Rand des Themes ist heute ein Deckungsrand (235 gegen 216 unter `default`) | **behoben** (Abschnitt 9) | Farbrolle streichen, den Deckungsrand an ihre Stelle setzen. Die Maßtafel „Rundung und Rand" bleibt gültig |
+| **W3** | **3b Fall 4 kennt die Regel aus #70 nicht.** Gezeichnet ist allein der Grenzübertritt. Die Erweiterung („erste Notiz einer Gruppe, ohne Grenze") steht in SPEC 9 und im Bau | **behoben** (Abschnitt 9) | Einen Satz in Fall 4 aufnehmen. Das Issue hat den Punkt ausdrücklich als UX-Frage zurückgestellt |
+| **W4** | **Keine Zeichnung trägt die Regel „ein Mausklick bewegt die Liste nicht".** Sie ist seit #57 tragend und mit #71 erweitert worden; die Festlegungstafel zu 3a/3b schweigt dazu | **behoben** (Abschnitt 9) | Zeile in die Festlegungstafel zu 3a/3b, neben „Gruppenkopf ist keine Notiz" |
 | **W5** | Der Vermerk unter 4a/4b, das Aufnahmefenster 1f erbe Hülle und Fläche und seine Zeichnung sei „noch nicht nachgezogen", steht seit dem 01.08.2026. Mit #83 ist der Abstand größer geworden | **warn** | Zur Kenntnis; eigene Gestaltungsaufgabe, wenn das Aufnahmefenster ansteht |
 
 ### Produkt und Prüfmittel
@@ -378,3 +378,69 @@ nichts geändert worden.
 | `ux-m4-eckenvergleich.txt` | Schwellwert-Fächer und Grauwertgitter der Ecken, Abschnitt 1a |
 | `bildvergleich.py` | Messprogramm zu den Abschnitten 1 bis 4; läuft gegen die Bilder im Nachbarordner |
 | `eckenvergleich.py` | Messprogramm zu Abschnitt 1a; misst über einen Schwellwert-Fächer, weil ein Eckenlauf ohne seine Schwelle nicht vergleichbar ist |
+
+---
+
+## 9. Nachprüfung 05.08.2026 — W1 bis W4
+
+**Modus:** UI-Review, Heilung der eigenen Zeichnungsbefunde und Nachprüfung ·
+**Geänderte Datei:** `wireframes/Denkzettel Wireframes.dc.html` (vier Stellen) ·
+**Geprüfter Stand:** derselbe wie oben, dazu `SPEC.md` und `src/` im Stand vom
+05.08.2026. An Quellcode, SPEC und Tests ist nichts geändert worden.
+
+**Bauart der Heilung, für alle vier gleich:** Der überholte Absatz bleibt Wort
+für Wort stehen; darunter steht ein datierter Vermerk in der Warnfarbe der
+Datei (`#b3701f`) mit Datum, Story und dem Messwert, der an die Stelle der
+alten Aussage tritt. Das ist die Bauart, die 4b bei der Trennlinie vormacht
+(Vermerk vom 01.08.2026) — ein Wireframe ist die Beweislage seines Standes,
+und ein geglätteter Absatz nimmt einer künftigen Prüfung genau den Beleg, den
+sie braucht (B17).
+
+### Was jetzt in der Zeichnung steht, und woran ich es geprüft habe
+
+| # | Stelle | Was der Vermerk sagt | Womit geprüft |
+|---|---|---|---|
+| **W1** | 4a, Schlussabsatz | Die Fläche kommt aus der Theme-Grafik, gezeichnet in einem Stück über `FrameSvg::framePixmap()`, ohne eigene Füllfarbe und ohne eigene Kontur. Deckung unter `default` **84,7 %**, über die acht installierten Themes 2,7 % bis 100 %. Nur `default` nimmt die Schemafarbe an; **sechs der acht** sind danach schlechter lesbar (#85). Auf der Kundeneinstellung greift der Rückfall `default`. Aus der Palette kommen weiterhin Text, Auswahl, Cursor und Scrollbalken; ohne Plasma-Sitzung füllt das Fenster mit `Window` und trägt gar keine Hülle (SPEC 3.2 Punkt 4) | **Eigene Messung am eigenen Sitzungsbild**: `bilder/ux-83-sitzung-fenster-ruhe.png` (960×278, mit Alphakanal) — Alpha in der Fläche **216 von 255 = 84,7 %**, am Rand 235 = 92,2 %. **Code**: `src/capture/capturewindow.cpp:373` zeichnet `m_hull->framePixmap()` als einzigen Aufruf, davor kein Füllen; die Palettenfüllung steht allein im Zweig `!m_hull->isValid()`. **SPEC 3.1** trägt dieselbe Aussage. Die Spanne 2,7 % bis 100 % über alle acht Themes ist **übernommen** aus SPEC 3.1 (Messung des Strangs A), nicht von mir nachgemessen; die Richtung habe ich an einem Theme selbst gesehen (Befund P1: `breeze-dark` unter hellem Schema, Notiztext 1,04 : 1) |
+| **W2** | 4b, Farbrolle „Kontur der Hülle" | Die eigene Linie und `frameContrast` sind entfallen. Der Rand gehört zur Theme-Grafik und unterscheidet sich von der Fläche allein in der Deckung: **235 gegen 216** von 255 unter `default`. Sichtbar wird er, weil die Hülle den Grund durchscheinen lässt; er ist zwei Bildpunkte breit, und was den Rand für das Auge macht, ist der Schatten | **Eigene Messung**: dieselbe Bilddatei, Zeile durch die Mitte — Alphalauf von links `235 · 229 · 216 · 216 · …`. **Code**: `git grep frameContrast -- src/ tests/` findet nichts mehr. **Bild neben KRunner** (Abschnitt 1): äußerster Bildpunkt (40, 42, 45), Fläche (47, 50, 52), bei beiden Fenstern gleich |
+| **W3** | 3b, Bildunterschrift zu Fall 4 | Der Kopf kommt auch dann ins Bild, wenn die Auswahl per Taste die erste Notiz einer Gruppe erreicht, ohne eine Grenze zu überschreiten (#70). Für beide Fälle gilt weiter: Passen Kopf und Auswahl nicht zusammen ins Bild, bleibt der Kopf draußen. Der Mausklick bleibt unberührt | **Eigenes Bild**: `bilder/ux-70-szene7-kopf-im-bild.png` (Prüfpunkt 32). **Code**: `src/ui/librarywindow.cpp` — der Kopf wird geholt bei `crossesAGroupBoundary || isFirstOfItsGroup`, und nur wenn `selected.bottom() - heading.top()` in die Sichthöhe passt; der ganze Zweig hängt an `!m_selectionFollowsAPress`. **SPEC 9** trägt dieselbe Aussage |
+| **W4** | Festlegungstafel zu 3a/3b, neben „Gruppenkopf ist keine Notiz" | Neuer Eintrag „Ein Mausklick bewegt die Liste nicht" (#57, erweitert mit #71) samt Preis („eine angeschnittene Zeile bleibt angeschnitten"), den Messwerten 387 px (#57) und 13 von 14 falschen Markierungen (#71), und dem Hinweis, dass die Regel für den Zeiger gilt und Fall 4 unberührt lässt. Darunter als Vermerk die **Bedingung**: Der Satz gilt für den Druck, nicht für die Sekunde danach — verzögerter Autoscroll, Rollwert bis 500 ms unverändert, ab 550 ms um eine Zeilenhöhe gerückt, offen als #89 | **Eigene Bilder, neu ausgewertet**: `messungen/bildvergleich.py` gegen 11a und 11b erneut gelaufen — Markierung y 882…959 gegen y 767…877, also 115 Gerätebildpunkte = **71,9 logisch** bei 1,6. **Code**: der Klickzweig scrollt weder zum Kopf noch zur Auswahl (`!m_selectionFollowsAPress` an beiden Stellen). **SPEC 9** trägt beide Sätze und die Bedingung |
+
+### Prüfung der Zeichnung selbst
+
+Die Datei ist nach der Änderung in Chrome gerendert und an allen vier Stellen
+angesehen worden; die Ausschnitte liegen als Bilder daneben:
+
+| Datei | Zeigt |
+|---|---|
+| `bilder/ux-nachpruefung-w1-4a-farbe-und-flaeche.png` | 4a: alter Absatz und neuer Vermerk untereinander |
+| `bilder/ux-nachpruefung-w2-4b-deckungsrand.png` | 4b: Farbrolle „Kontur der Hülle" mit dem Entfallen-Vermerk |
+| `bilder/ux-nachpruefung-w3-3b-fall4.png` | 3b: Fall 4 mit der Erweiterung aus #70 |
+| `bilder/ux-nachpruefung-w4-tafel-mausklick.png` | Festlegungstafel 3a/3b: der neue Eintrag zum Mausklick samt Bedingung |
+
+Alle vier stehen in der Warnfarbe und im Aufbau der übrigen Vermerke, der
+Textfluss bricht an keiner Stelle. Auf- und zugehende Auszeichnungen sind
+gezählt: `span` 336/336, `div` 570/570, `b` 248/248, `a` 77/77 — vor der
+Änderung stand jedes Paar ebenso gleich.
+
+### Was das für die Prüfpunkte oben bedeutet
+
+Der Berichtstext der Abschnitte 1 bis 5 bleibt unverändert; er hält fest, was
+der Review am `c488ab5` gefunden hat. Geschlossen sind damit die Prüfpunkte
+**4** und **9** aus Abschnitt 2 (beide `fail` an der Zeichnung) sowie **35**
+und **36** aus Abschnitt 4 (beide `warn` an der Zeichnung); ihre Verdikte in
+der Befundtabelle des Abschnitts 6 stehen jetzt auf **behoben**.
+
+### Neu gefunden, nicht geheilt — Entscheidung des PO
+
+Beim Nachziehen der beiden 4b-Stellen ist eine dritte aufgefallen, die der
+gelieferte Stand widerlegt. Sie liegt außerhalb des Auftragsumfangs (W1 bis
+W4), deshalb steht sie hier und ist nicht angefasst:
+
+| # | Befund | Verdikt | Vorschlag |
+|---|---|---|---|
+| **W6** | **4b sichert für Rundung, Rand und Kontur eine Belegform zu, die es so nicht mehr gibt.** Die Maßtafel sagt „Beides ist offscreen im Bild zu belegen — es steht innerhalb des Fensters", und der Vermerk vom 02.08.2026 darunter zählt „Fläche, Farbrollen, Maße, Rundung und Kontur" als offscreen belegbar auf. Mit #83 zeichnet das Fenster die Theme-Grafik selbst, und **ohne Sitzung mit Weichzeichner wählt es die Fassung `opaque`** (`src/capture/capturewindow.cpp:283–284`, SPEC 3.2 Punkt 9) — offscreen entsteht also ein Bild einer **anderen Grafikfassung**, ohne Alphakanal und damit ohne den Deckungsrand, der die Kontur heute ausmacht. Ich habe Randmaß und Eckform in diesem Review folgerichtig in der angemeldeten Sitzung belegt, nicht offscreen (Prüfpunkte 1 und 2); B21 sagt dasselbe | **warn** | Den Satz der Maßtafel und den Vermerk vom 02.08.2026 um den Sitzungsbeleg für Hülle, Rundung und Kontur erweitern — wieder als datierter Zusatz, nicht als Ersatz. Der Auftrag hat die Maßtafel ausdrücklich unangetastet gelassen; die Entscheidung liegt beim PO |
+
+**Unverändert stehengelassen**, wie beauftragt: die Maßtafel „Rundung und
+Rand" (am gelieferten Stand bestätigt: Innenrand 16 unter `default`, 20 unter
+`CachyOS-Nord-round`; `cornerRun` 4, 12 und 0) und **W5** — das Aufnahmefenster
+1f ist eine eigene Gestaltungsaufgabe.
