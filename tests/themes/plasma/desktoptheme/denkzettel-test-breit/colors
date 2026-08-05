@@ -25,3 +25,16 @@
 BackgroundNormal=17,34,51
 ForegroundNormal=255,0,153
 ForegroundInactive=0,153,255
+
+# The second set exists for the mutation probe and for nothing else, and it
+# carries **different** values on purpose. The window reads `[Colors:Window]`,
+# the set its hull is drawn with. Without a second group the probe "reads the
+# wrong group" could not be told apart from the probe "finds no file at all":
+# both would end on the same `return {}`, produce the same five failing
+# assertions, and one of the two would prove nothing (karpathy finding K1 to
+# sprint 8). With these values the wrong group hands out a colour instead of
+# nothing, and the two failure pictures differ.
+[Colors:View]
+BackgroundNormal=51,34,17
+ForegroundNormal=0,204,0
+ForegroundInactive=204,102,0

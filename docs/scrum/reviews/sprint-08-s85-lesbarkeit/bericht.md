@@ -222,7 +222,7 @@ keine „grün geblieben".**
 | M1 | Notiztext nimmt wieder die Schemafarbe | rot (3) |
 | M2 | gedämpfte Klasse nimmt wieder die Schemafarbe | rot (3) |
 | M3 | das Tor sagt immer „dieses Theme bringt nichts mit" | rot (5) |
-| M4 | das Tor liest `[Colors:View]` statt `[Colors:Window]` | rot (5) |
+| M4 | das Tor liest `[Colors:View]` statt `[Colors:Window]` | rot (5) — *seit 06.08.2026, siehe unten* |
 | M5 | der Theme-Wechsel schreibt die Farben nicht mehr nach | rot (4) |
 | M6 | die Themefarbe überlebt den Palettenwechsel nicht | rot (4) |
 | M6b | die Vorrangregel wandert nach `reloadDesktopTheme()` | rot (3) |
@@ -232,8 +232,35 @@ keine „grün geblieben".**
 | M10 | App-Name und Fußzeile bekommen die Themefarbe nicht | rot (3) |
 | M11 | `noteTextUsesTheWindowTextRole()` nennt sein Theme nicht selbst | rot (1) |
 
-**Zwei Dinge, die dieser Lauf über sich selbst gelernt hat, und beide gehören in
-den Bericht, weil sie beim ersten Mal falsch waren:**
+**Berichtigung vom 06.08.2026 (karpathy-Befund K1): M4 hat bis dahin nichts
+Eigenes geprüft.** Das mitgelieferte Prüf-Theme trug nur `[Colors:Window]`, also
+endete „die falsche Gruppe gelesen" auf demselben `return {}` wie M3 „keine
+Datei gefunden" — **dieselben fünf Fehlschläge mit denselben Ist-Werten.** Es
+waren zwölf Eingriffe, aber **elf Sachverhalte**; die Tabelle oben war ehrlich,
+die Zusammenfassung zählte doppelt. Das ist dieselbe Fehlerklasse, die in
+Sprint 7 an #83 gefunden wurde (fünfzehn behauptete Proben, zwölf Sachverhalte),
+und sie trifft AK 6 im Kern: Eine Zusicherung war ungeprüft.
+
+**Behoben durch drei Zeilen im Prüfgut**, nicht durch eine Umformulierung: Das
+Theme trägt jetzt eine `[Colors:View]`-Gruppe mit **abweichenden** Werten
+(0,204,0 und 204,102,0). Die falsche Gruppe liefert damit eine Farbe statt
+nichts, und die beiden Fehlerbilder trennen sich — nachgemessen:
+
+| | M3 „keine Datei" | M4 „falsche Gruppe" |
+|---|---|---|
+| `readsTheTextColoursOfTheDesktopTheme` | Ist `#ff000000` *(ungültig)* | Ist `#ff00cc00` *(View-Farbe)* |
+| `noteTextComesFromTheThemesOwnColours` | Notiztext fällt auf `#fffcfcfc` *(Schemafarbe)* | Notiztext **bleibt** `#ffff0099`, und der Satz fällt an der Zeile, die **beide Lesewege gegeneinander hält** |
+| gedämpfte Klasse | `#ffa1a9b1` *(Schemafarbe)* | `#ffcc6600` *(View-Farbe)* |
+
+Damit belegt M4 genau die Zusicherung, die vorher unbelegt war: dass der
+KConfig-Weg und der KSvg-Weg dieselbe Farbe nennen. **Zwölf Eingriffe, zwölf
+Sachverhalte.** Die Gesamtzahl der Fehlschläge bleibt bei beiden Proben 5 — wer
+Mutationsproben an der Zahl der roten Sätze unterscheidet, unterscheidet sie
+auch jetzt nicht. Unterscheidbar sind sie an der **gefallenen Zeile** und am
+**Ist-Wert**, und danach ist zu prüfen.
+
+**Zwei weitere Dinge, die dieser Lauf über sich selbst gelernt hat, und beide
+gehören in den Bericht, weil sie beim ersten Mal falsch waren:**
 
 1. **Der erste Durchlauf hatte eine rote Grundlinie und war damit wertlos.** Die
    Kopie entsteht aus `git ls-files`, und die neue `colors`-Datei war noch nicht
@@ -317,6 +344,11 @@ geladenen Effekten keinen mit „contrast" im Namen; `isEffectLoaded("blur")` is
 (`messungen/p6-kontrasteffekt.txt`). Bei 3,5 % Deckung steht der Text dort auf
 dem Bildschirmhintergrund und auf nichts sonst.
 
+*Zum Halbsatz „auf die diese Themes gebaut sind" siehe die Berichtigung vom
+06.08.2026 weiter unten: `cachyos-emerald-light` fordert den Effekt gar nicht
+an. Die Zusicherungslücke bleibt für alle drei, ihr Grund ist nicht bei allen
+dreien derselbe.*
+
 **Und daraus folgt der Punkt, der dem PO gehört, weil er über die Story
 hinausgeht:**
 
@@ -334,6 +366,41 @@ die Folge eines fehlenden Compositor-Effekts. **Ich melde es, statt es zu
 heilen** — eine Ausnahme für dieses Theme wäre genau die „Anpassung", die der
 Kunde am 04.08.2026 abgewählt hat. Was damit zu tun ist, entscheidet der PO;
 sachlich hängt es an demselben Impediment wie #83.
+
+**Berichtigung vom 06.08.2026 (karpathy-Befund K2). Der letzte Satz des Kastens
+oben ist widerlegt: `cachyos-emerald-light` trägt keine
+`[ContrastEffect]`-Gruppe.** Der Absatz bleibt stehen, weil ein überholter Beleg
+geankert und nicht geglättet wird (B17); was gilt, steht hier.
+
+An den Dateien nachgemessen (`/usr/share/plasma/desktoptheme/*/metadata.desktop`,
+06.08.2026):
+
+| Theme | `metadata.desktop` | `[ContrastEffect]` |
+|---|---|---|
+| `cachyos-emerald` | ja | **ja** |
+| `cachyos-emerald-color` | ja | **ja** |
+| `cachyos-emerald-light` | ja | **nein** |
+| `Iridescent-round` | ja | **ja** |
+| `CachyOS-Nord-round` | ja | nein |
+| `default`, `breeze-dark`, `breeze-light` | keine | — |
+
+**Was das für die Reichweite des Impediments ändert, und es ändert sie:** Der
+Absturz auf 1,37 : 1 unter `cachyos-emerald-light` hängt **nicht** am
+Compositor. Dieses Theme fordert keinen Kontrasteffekt an, also bekäme es auch
+auf einem KWin **mit** geladenem Effekt keinen — der Fall bliebe, wie er ist. Es
+reicht eine dunkle Schrift zu einer Hülle, die zu 3,5 % deckt, und verlässt sich
+auf nichts, was den Grund darunter abdunkelte. Das ist eine Eigenschaft des
+Themes, keine des Fenstersystems.
+
+Das Impediment unten bleibt davon unberührt und gilt für die drei Themes, die
+den Effekt tatsächlich anfordern (`cachyos-emerald`, `cachyos-emerald-color`,
+`Iridescent-round`). Auch nach seiner Behebung wäre `cachyos-emerald-light` über
+dunklem Grund unlesbar — wer diesen Fall lösen will, braucht eine eigene
+Entscheidung dazu und nicht die Rückkehr des Effekts. Ich melde ihn; ihn zu
+heilen wäre wieder die abgewählte Anpassung.
+
+SPEC 3.2 Punkt 10 und der UI-Review sind bereits berichtigt; dieser Bericht war
+die letzte Stelle, die die widerlegte Begründung führte.
 
 ### Impediment (unverändert offen, jetzt schärfer belegt)
 
