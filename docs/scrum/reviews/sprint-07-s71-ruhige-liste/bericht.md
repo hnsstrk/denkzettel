@@ -205,3 +205,46 @@ Zuordnung Commit/Issue stimmt für diese Dateien nicht.
   der PO. Alle Läufe liefen am gebauten Stand in `denkzettel-71/build`.
 - **Ob der Handel „Lesbarkeit gegen Bewegung" (#70) im täglichen Gebrauch
   aufgeht.** Ein Agent kann das messen, nicht bewerten.
+
+---
+
+## Nachtrag 05.08.2026 — K3
+
+**Der karpathy-Review hat an der Beweislage oben einen Mangel gefunden, und er
+trägt.** Der Satz „Alles hier ist mit `pruefen.sh` in diesem Ordner
+wiederholbar" stimmte nicht: Das Skript listete die abgelegten Ausgaben, aber
+**der Eingriff jeder Probe stand nirgends**. Damit war nachprüfbar nur, dass
+irgendetwas rot wurde — nicht, dass die genannte Zeile es war. Eine
+Mutationsprobe ist der einzige Beleg dafür, dass eine Zusicherung überhaupt
+etwas prüft; ohne ihren Eingriff ist sie eine Behauptung mit Anlage. Dazu sagte
+`pruefen.sh` zweimal „zwölf", während vierzehn Läufe abgelegt sind.
+
+**Ergänzt:**
+
+- **`mutationsproben.sh`** in diesem Ordner, ausführbar, nach dem Muster von
+  Strang A (`../sprint-07-s83-native-huelle/mutationsproben.sh`). Es arbeitet
+  auf einer Kopie des Arbeitsbaums unter `/tmp`, nimmt je Probe den Eingriff
+  selbst vor, fährt den Lauf, nennt das erwartete Ergebnis und baut zurück.
+  Alle vierzehn stehen darin — **keine läuft von Hand.**
+  Beleg des ersten vollständigen Laufs: `messungen/mutationsproben-lauf.txt`
+  (14 Proben, **12 rot, 2 erwartungsgemäß grün**).
+- **`pruefen.sh`** berichtigt: die beiden „zwölf" sind weg, der Abschnitt
+  verweist auf das Nachbarskript statt die Ausgaben aufzuzählen.
+
+**Zwei Dinge, die beim Schreiben des Skripts genauer wurden als oben:**
+
+1. **M3, M4, M5 und M6 greifen in den Test, nicht in den Code** — das steht
+   oben nur zwischen den Zeilen. Der Grund gehört dazu: QTest hält beim ersten
+   Fehlschlag an, also fällt immer nur die vorderste Zusicherung. Wer die
+   hinteren belegen will, muss die vorderen aussetzen. Im Skript steht das als
+   Kommentar über den vier Proben.
+2. **M12 meldet unter `LANG=C` „Ctrl+Z", nicht „Strg+Z".** Der Bericht oben
+   nennt die deutsche Form, weil er den Wortlaut der deutschen Sitzung
+   beschreibt. Beides ist richtig — und es ist dieselbe Gebietsabhängigkeit,
+   gegen die AK 2 von #72 geschnitten ist. Das Skript sagt es an der Probe.
+
+**Was hier nicht mehr offen ist** (Stand nach der Lieferung, zur Kenntnis):
+**B-6** — der Vorprüfbericht zu #70 ist seit `5a7de67` eingecheckt. **B-1** ist
+als **#89** gebucht und dem Blick des Kunden vorbehalten, **B-2** als **#90**,
+**B-5** als **#91**, **B-7** als **#92**. Die Tabelle in Abschnitt 6 bleibt
+stehen, wie sie war — sie beschreibt den Stand ihres Tages (B17).

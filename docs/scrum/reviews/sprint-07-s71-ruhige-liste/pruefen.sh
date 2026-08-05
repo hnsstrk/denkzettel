@@ -71,5 +71,7 @@ echo
 echo "== 5. Mutationsproben — vierzehn, im Nachbarskript"
 echo "   bash docs/scrum/reviews/sprint-07-s71-ruhige-liste/mutationsproben.sh"
 echo "   Es nimmt jeden Eingriff auf einer Kopie des Arbeitsbaums selbst vor."
-echo "   Die Terminalausgaben des ersten Laufs liegen daneben unter messungen/:"
-ls docs/scrum/reviews/sprint-07-s71-ruhige-liste/messungen/m*.txt | sed 's|.*/|   |'
+echo "   Die Terminalausgaben liegen daneben unter messungen/ — je Probe eine,"
+echo "   dazu mutationsproben-lauf.txt als Ausgabe eines vollständigen Laufs:"
+ls docs/scrum/reviews/sprint-07-s71-ruhige-liste/messungen/m[0-9]*.txt |
+    sed 's|.*/|   |'

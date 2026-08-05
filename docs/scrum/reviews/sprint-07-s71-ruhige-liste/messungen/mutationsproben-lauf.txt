@@ -132,3 +132,50 @@ ERGEBNIS: rot.
 ===== Probe 10 — Die Passbedingung des Kopfholens (AK 5)
 Eingriff: sed -i s|            if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {|            if (true) {| src/ui/librarywindow.cpp
 Erwartet: GRÜN erwartet — und das ist der Befund: kein Prüfsatz deckt sie (Issue #90)
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diese Zusicherung.
+  Totals: 113 passed, 0 failed, 0 skipped, 0 blacklisted, 6149ms
+
+########## #72 — die Tooltips mit Tastenkürzel ##########
+
+===== Probe 11 — Alle drei Flächen tragen einen Tooltip (AK 1)
+Eingriff: sed -i /setToolTip(tooltipNaming/d src/ui/librarywindow.cpp
+Erwartet: rot an namesTheShortcutInTheTooltipOfEachActionSurface: leerer Tooltip
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() Compared values are not the same
+     Actual   (edit->toolTip())                                     : ""
+     Expected (QStringLiteral("Notiz bearbeiten (%1)").arg(editKey)): "Notiz bearbeiten (F2)"
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(3378)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 5810ms
+
+===== Probe 12 — „Rückgängig" kommt über die QAction an der Fläche an (AK 5)
+Eingriff: sed -i /m_undoAction->setToolTip(tooltipNaming/d src/ui/librarywindow.cpp
+Erwartet: rot mit „Rückgängig" statt „Löschen rückgängig machen (Ctrl+Z)" — unter LANG=C heißt die Taste so, in einer deutschen Sitzung „Strg+Z". Zugleich der Beleg zu AK 4: der Tooltip ist ohne setToolTip **nicht leer**
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() Compared values are not the same
+     Actual   (undo->toolTip())                                              : "R\u00FCckg\u00E4ngig"
+     Expected (QStringLiteral("Löschen rückgängig machen (%1)").arg(undoKey)): "L\u00F6schen r\u00FCckg\u00E4ngig machen (Ctrl+Z)"
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(3413)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6124ms
+
+===== Probe 13 — Der Kürzelteil steht im Wortlaut (AK 3)
+Eingriff: sed -i s|    return i18nc("@info:tooltip", "%1 (%2)", activity, action->shortcut().toString(QKeySequence::NativeText));|    Q_UNUSED(action)\n    return activity;| src/ui/librarywindow.cpp
+Erwartet: rot mit „Notiz bearbeiten" statt „Notiz bearbeiten (F2)"
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() Compared values are not the same
+     Actual   (edit->toolTip())                                     : "Notiz bearbeiten"
+     Expected (QStringLiteral("Notiz bearbeiten (%1)").arg(editKey)): "Notiz bearbeiten (F2)"
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(3378)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 5710ms
+
+===== Probe 14 — Das Kürzel wird gelesen, nicht hingeschrieben (AK 2)
+Eingriff: sed -i s|    return i18nc("@info:tooltip", "%1 (%2)", activity, action->shortcut().toString(QKeySequence::NativeText));|    Q_UNUSED(action)\n    return i18nc("@info:tooltip", "%1 (%2)", activity, QStringLiteral("Entf"));| src/ui/librarywindow.cpp
+Erwartet: rot unter LANG=C mit „Notiz bearbeiten (Entf)" statt „(F2)"
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface() Compared values are not the same
+     Actual   (edit->toolTip())                                     : "Notiz bearbeiten (Entf)"
+     Expected (QStringLiteral("Notiz bearbeiten (%1)").arg(editKey)): "Notiz bearbeiten (F2)"
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(3378)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 5537ms
+
+Fertig. Der Arbeitsbaum des Repositoriums wurde nicht angefasst.
+Zwei Proben bleiben erwartungsgemäß grün: M5 (Gegenprobe) und M10 (Issue #90).

@@ -77,6 +77,120 @@ beantwortet die Messung mit ja; das Urteil bleibt beim Kunden.
 
 ---
 
+## 1a. Nachmessung zur PO-Rückfrage: ist unsere Ecke runder als die von KRunner?
+
+**Nein.** Wo die beiden Ecken direkt vergleichbar sind — dieselbe Ecke, dieselbe
+Schattenseite —, sind sie bis auf den letzten Zählschritt gleich. Die Zahlen des
+PO reproduzieren sich nicht; sie stammen aus einem Kantenbegriff, der den
+Schatten mitnimmt, und der Schatten hat seinen eigenen, viel weicheren Bogen.
+
+**Zuerst zum Handwerk, weil es hier den Ausschlag gibt.** Mein erster eigener
+Anlauf war ebenfalls falsch: Ich habe den Fensterkasten gesucht, indem ich von
+einem Punkt im Fenster nach außen lief — und blieb dabei an der Fußzeile und am
+Suchfeld hängen. Der Kasten kam 28 Zeilen zu kurz heraus, und die Eckläufe
+daraus waren Unsinn. Tragfähig ist erst der Zeilenscan über die volle Bildbreite
+(`messungen/eckenvergleich.py`). **Ein Eckenlauf ohne die Schwelle, aus der er
+stammt, ist nicht vergleichbar** — das ist der Kern der Sache.
+
+### Der Schwellwert-Fächer (eigenes Bild und Bild von Strang A, Zahl für Zahl gleich)
+
+| Grauwert-Schwelle | Erfassung unten links | Erfassung unten rechts | KRunner unten links | KRunner unten rechts |
+|---|---|---|---|---|
+| < 100 (nur die Hülle) | 3·2·1·1·0 | 3·2·1·1·0 | 5·3·2·1·1·0 | 5·3·2·1·1·0 |
+| < 110 | 8·5·4·3·2·1·1·0 | 8·5·4·3·2·1·1·0 | **8·5·4·3·2·1·1·0** | **8·5·4·3·2·1·1·0** |
+| < 118 | 9·7·5·4·3·2·2·1 | 9·7·5·4·3·2·2·1 | **9·7·5·4·3·2·2·1** | **9·7·5·4·3·2·2·1** |
+| < 124 | 13·9·7·6·4·4·3·2 | 13·9·7·6·4·4·3·2 | **13·9·7·6·4·4·3·2** | **13·9·7·6·4·4·3·2** |
+
+**Bei jeder Schwelle, die den Schatten mitnimmt — also bei allem, was ein Auge
+am Fensterrand sieht —, sind die vier Ecken zeichenweise identisch.** Auch die
+Schattenausdehnung stimmt überein: von Schwelle 100 auf 124 wächst der Kasten
+bei beiden Fenstern um **5 Spalten** nach links und rechts und um **9 Zeilen**
+nach unten; nach oben wächst er um 2. Beide Fenster tragen denselben nach unten
+versetzten Schatten.
+
+### Ohne Schwelle: die Grauwerte am Eckscheitel
+
+Spalte, in der der Wert erstmals unter 100 fällt, Zeile für Zeile vom Scheitel
+weg (`messungen/ux-m4-eckenvergleich.txt`):
+
+```
+Erfassung oben  links                    6·4·2·2·1·0·0·0
+Erfassung unten links                    3·2·1·1·0·0·0·0
+KRunner   unten links                    5·3·2·1·1·0·0·0
+KRunner   unten rechts (Eigenkontrolle)  5·3·2·1·1·0·0·0
+```
+
+Die letzte Zeile ist die Genauigkeitsprobe: KRunners eigene beiden Ecken weichen
+im Grauwertgitter um höchstens **einen** Zählschritt voneinander ab. Die Messung
+ist also scharf genug, dass ein Unterschied von einer Spalte etwas bedeutet.
+
+Zwei Unterschiede bleiben, und beide haben eine Ursache:
+
+1. **Oben gegen unten (6·4·2·2·1 gegen 3·2·1·1).** Über dem Fenster ist der
+   Schatten schwächer als darunter — in Spalte 0 misst die obere Ecke 124, die
+   untere 114. Eine feste Schwelle greift auf der dunkleren Seite eine Spalte
+   früher. Der Vergleich über zwei Schattenseiten hinweg trägt deshalb nicht.
+2. **Unsere untere Ecke gegen die von KRunner (3·2·1·1 gegen 5·3·2·1·1).** Hier
+   ist es kein Messfehler, sondern eine Zeile, die dem Bild fehlt. Siehe unten.
+
+### Die einzige echte Abweichung: eine Gerätezeile am unteren Rand fehlt
+
+Das Erfassungsfenster ist **174 logische Bildpunkte** hoch. Bei 1,6 sind das
+**278,4** Gerätebildpunkte; die Fläche hat 278. Die Grafik selbst wird von der
+Hüllen-Sonde bei 1,6 mit **279** Zeilen gerendert (`m1` von Strang A). Eine Zeile
+geht also verloren, und es ist die äußerste des unteren Bogens.
+
+Der Beleg steht im Alphakanal meines Sitzungs-Grabs
+(`bilder/ux-83-sitzung-fenster-ruhe.png`, 960×278):
+
+```
+oberste Zeile    0  0  0  0  2 65 125 173 195 209
+zweitoberste     0  0  0 61 185 216 216 216 216 216
+zweitunterste    0  0 96 214 216 216 216 216 216 216
+unterste Zeile   0  0  0 61 185 216 216 216 216 216
+```
+
+Die unterste Zeile des Bildes ist **die zweitoberste** — Wert für Wert. Das
+Gegenstück zur obersten Zeile (`… 2 65 125 …`), die zarteste Zeile des Bogens,
+kommt unten gar nicht vor. Genau um diese eine Zeile ist unser unterer Eckenlauf
+kürzer: `5·3·2·1·1` ohne seinen ersten Wert ist `3·2·1·1`.
+
+**Bewertung:** Der Betrag ist eine halbe Gerätezeile, gerundet, und er wechselt
+mit der Fensterhöhe das Vorzeichen — bei fünf Zeilen 278,4 → 278 (abgeschnitten),
+bei einer Höhe mit Nachkommaanteil über 0,5 wird aufgerundet und die Grafik um
+den Rest gedehnt. Im Bild ist davon nichts zu sehen: Sobald der Schatten
+mitgezählt wird, stimmen alle Läufe mit KRunner überein. **Verdikt: ok**, hier
+als benannte Erscheinung festgehalten, damit sie niemand ein zweites Mal als
+Rätsel findet. **Das ist nicht die Kategorie, in der #55 zurückgewiesen wurde** —
+dort ging es um eine Hülle, die aus einer anderen Grafik kam.
+
+### Was mir sonst am Nebeneinander auffällt
+
+- **Kontur.** Keines der beiden Fenster zieht eine eigene Linie. Beide zeigen
+  denselben Deckungsrand: äußerster Bildpunkt (40, 42, 45), Fläche (47, 50, 52).
+  Unter `default` sind das Alpha 235 gegen 216.
+- **Schatten.** Gleiche Ausdehnung, gleicher Versatz nach unten, gleicher
+  Verlauf (ab dem zweiten Wert bildpunktgleich). Er ist bei beiden das, was den
+  Rand des Fensters für das Auge macht — die Hüllkante selbst ist nur zwei
+  Bildpunkte breit.
+- **Abstand zum Grund.** Identisch; beide Hüllen sitzen mit demselben
+  Deckungsgrad auf demselben Untergrund.
+- **Der eine Unterschied, den ich sehe, ist der gewollte:** KRunner setzt ein
+  umrandetes Eingabefeld in seine Hülle, wir haben die durchgehende Fläche aus
+  Wireframe 4b. Das ist eine Entscheidung vom 01.08.2026, keine Abweichung.
+
+**Zur Messung des PO:** Die Werte `17·15·14·13·13·12·12·12·11·11·10·10` und
+`12·11·11·10·10·10·10·10·10·10` treten in meinem Fächer bei keiner Schwelle auf.
+Beide laufen gegen 10 beziehungsweise 12 aus, was auf einen schattenweiten
+Kasten als Nullpunkt deutet; die KRunner-Reihe beginnt zudem erkennbar unterhalb
+des Eckscheitels — ihr erster Wert entspricht ungefähr dem vierten meiner Reihe.
+Damit misst sie den Auslauf des Bogens und nicht seinen Anfang, was die
+verbleibenden drei Zeilen erklärt. **Der Verdacht ist entkräftet, die Vorsicht
+war richtig:** Ohne Fächer hätte ich mit meiner ersten, ebenfalls falschen
+Messung dasselbe Bild bekommen.
+
+---
+
 ## 2. #83 — Prüfpunkte aus Wireframe 4a und 4b
 
 Die Prüfpunkte sind aus der Zeichnung abgeleitet, ein Punkt je gezeichnetem
@@ -242,6 +356,7 @@ nichts geändert worden.
 | `ux-83-sitzung-ecke-default.png` | Sitzung, Sonde `fensterlage` | Eckform unter `default` |
 | `ux-83-sitzung-ecke-nord-round.png` | ebenda | Eckform unter `CachyOS-Nord-round` |
 | `ux-83-sitzung-ecke-eckiges-theme.png` | ebenda | eckiges Theme, eckige Ecken |
+| `ux-83-sitzung-fenster-ruhe.png` | Sitzung, Sonde `fensterlage` (Grab, 960×278, mit Alphakanal) | Abschnitt 1a — die fehlende Gerätezeile am unteren Rand |
 | `ux-83-acht-zeilen.png` | `captureshots`, offscreen, 1,6 | gewachsener Zustand, Scrollbalken |
 | `ux-83-fremdes-theme-notiztext-unsichtbar.png` | ebenda | Befund P1 |
 | `ux-bibliothek-01-normalfall.png` | `libraryshots`, offscreen, 1,6 | Normalfall, Gliederung, Zeitstempel |
@@ -259,4 +374,6 @@ nichts geändert worden.
 | `ux-m1-fensterlage-sitzung.txt` | eigener Sitzungslauf: Fensterverhältnis, Kantenlauf, Region, Theme-Wechsel |
 | `ux-m2-bildvergleich.txt` | Ausgabe von `bildvergleich.py` — alle Bildzahlen dieses Berichts |
 | `ux-m3-weichzeichner-fehllauf.txt` | die beiden erfolglosen Läufe, Beleg zu Befund P4 |
-| `bildvergleich.py` | das Messprogramm; läuft gegen die Bilder im Nachbarordner |
+| `ux-m4-eckenvergleich.txt` | Schwellwert-Fächer und Grauwertgitter der Ecken, Abschnitt 1a |
+| `bildvergleich.py` | Messprogramm zu den Abschnitten 1 bis 4; läuft gegen die Bilder im Nachbarordner |
+| `eckenvergleich.py` | Messprogramm zu Abschnitt 1a; misst über einen Schwellwert-Fächer, weil ein Eckenlauf ohne seine Schwelle nicht vergleichbar ist |

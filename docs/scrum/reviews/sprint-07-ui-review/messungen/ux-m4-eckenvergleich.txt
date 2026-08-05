@@ -1,0 +1,121 @@
+==========================================================================
+Mein eigenes Bild  (1044x1228)
+
+  -- Grauwert < 100 (nur die Hülle)
+     Erfassung  x 42..1001  y 904..1181
+     KRunner    x 72..972  y 0..60
+     Erfassung oben  links : [6, 4, 2, 2, 1, 0, 0, 0]
+     Erfassung unten links : [3, 2, 1, 1, 0, 0, 0, 0]
+     Erfassung unten rechts: [3, 2, 1, 1, 0, 0, 0, 0]
+     KRunner   unten links : [5, 3, 2, 1, 1, 0, 0, 0]
+     KRunner   unten rechts: [5, 3, 2, 1, 1, 0, 0, 0]
+
+  -- Grauwert < 110 (Hülle und Schatten)
+     Erfassung  x 42..1001  y 904..1184
+     KRunner    x 72..972  y 0..63
+     Erfassung oben  links : [5, 3, 2, 1, 1, 0, 0, 0]
+     Erfassung unten links : [8, 5, 4, 3, 2, 1, 1, 0]
+     Erfassung unten rechts: [8, 5, 4, 3, 2, 1, 1, 0]
+     KRunner   unten links : [8, 5, 4, 3, 2, 1, 1, 0]
+     KRunner   unten rechts: [8, 5, 4, 3, 2, 1, 1, 0]
+
+  -- Grauwert < 118 (Hülle und Schatten)
+     Erfassung  x 39..1004  y 904..1187
+     KRunner    x 69..975  y 0..66
+     Erfassung oben  links : [8, 6, 5, 4, 4, 3, 2, 2]
+     Erfassung unten links : [9, 7, 5, 4, 3, 2, 2, 1]
+     Erfassung unten rechts: [9, 7, 5, 4, 3, 2, 2, 1]
+     KRunner   unten links : [9, 7, 5, 4, 3, 2, 2, 1]
+     KRunner   unten rechts: [9, 7, 5, 4, 3, 2, 2, 1]
+
+  -- Grauwert < 124 (Hülle und Schatten)
+     Erfassung  x 37..1006  y 902..1190
+     KRunner    x 67..977  y 0..69
+     Erfassung oben  links : [10, 8, 6, 5, 4, 3, 2, 2]
+     Erfassung unten links : [13, 9, 7, 6, 4, 4, 3, 2]
+     Erfassung unten rechts: [13, 9, 7, 6, 4, 4, 3, 2]
+     KRunner   unten links : [13, 9, 7, 6, 4, 4, 3, 2]
+     KRunner   unten rechts: [13, 9, 7, 6, 4, 4, 3, 2]
+==========================================================================
+Bild von Strang A  (2426x2050)
+
+  -- Grauwert < 100 (nur die Hülle)
+     Erfassung  x 42..1001  y 904..1181
+     KRunner    x 72..972  y 0..60
+     Erfassung oben  links : [6, 4, 2, 2, 1, 0, 0, 0]
+     Erfassung unten links : [3, 2, 1, 1, 0, 0, 0, 0]
+     Erfassung unten rechts: [3, 2, 1, 1, 0, 0, 0, 0]
+     KRunner   unten links : [5, 3, 2, 1, 1, 0, 0, 0]
+     KRunner   unten rechts: [5, 3, 2, 1, 1, 0, 0, 0]
+
+  -- Grauwert < 110 (Hülle und Schatten)
+     Erfassung  x 42..1001  y 904..1184
+     KRunner    x 72..972  y 0..63
+     Erfassung oben  links : [5, 3, 2, 1, 1, 0, 0, 0]
+     Erfassung unten links : [8, 5, 4, 3, 2, 1, 1, 0]
+     Erfassung unten rechts: [8, 5, 4, 3, 2, 1, 1, 0]
+     KRunner   unten links : [8, 5, 4, 3, 2, 1, 1, 0]
+     KRunner   unten rechts: [8, 5, 4, 3, 2, 1, 1, 0]
+
+  -- Grauwert < 118 (Hülle und Schatten)
+     Erfassung  x 39..1004  y 904..1187
+     KRunner    x 69..975  y 0..66
+     Erfassung oben  links : [8, 6, 5, 4, 4, 3, 2, 2]
+     Erfassung unten links : [9, 7, 5, 4, 3, 2, 2, 1]
+     Erfassung unten rechts: [9, 7, 5, 4, 3, 2, 2, 1]
+     KRunner   unten links : [9, 7, 5, 4, 3, 2, 2, 1]
+     KRunner   unten rechts: [9, 7, 5, 4, 3, 2, 2, 1]
+
+  -- Grauwert < 124 (Hülle und Schatten)
+     Erfassung  x 37..1006  y 902..1190
+     KRunner    x 67..977  y 0..69
+     Erfassung oben  links : [10, 8, 6, 5, 4, 3, 2, 2]
+     Erfassung unten links : [13, 9, 7, 6, 4, 4, 3, 2]
+     Erfassung unten rechts: [13, 9, 7, 6, 4, 4, 3, 2]
+     KRunner   unten links : [13, 9, 7, 6, 4, 4, 3, 2]
+     KRunner   unten rechts: [13, 9, 7, 6, 4, 4, 3, 2]
+==========================================================================
+Grauwerte am Eckscheitel — ohne Schwelle, Zahl gegen Zahl
+
+  Erfassungsfenster, obere linke Ecke
+      124  123  122  122  121  100   79   63
+      123  122  121  101   59   48   48   48
+      121  121   88   48   48   49   49   49
+      120  100   49   49   49   49   49   49
+      119   58   49   49   49   49   49   49
+       98   48   49   49   49   49   49   49
+       78   48   49   49   49   49   49   49
+       62   48   49   49   49   49   49   49
+
+  Erfassungsfenster, untere linke Ecke (senkrecht gespiegelt)
+      114  112  110   91   55   46   47   47
+      113  111   81   47   47   48   48   48
+      112   93   47   47   48   49   49   49
+      111   56   48   48   49   49   49   49
+       91   47   48   49   49   49   49   49
+       75   48   49   49   49   49   49   49
+       61   48   48   49   49   49   49   49
+       54   48   49   49   49   49   49   49
+
+  KRunner, untere linke Ecke (senkrecht gespiegelt)
+      114  112  110  108  105   87   70   58
+      113  111  108   85   54   47   48   48
+      112  109   77   48   49   49   49   49
+      111   87   49   48   49   49   49   49
+      107   56   48   49   49   49   49   49
+       90   48   49   49   49   49   49   49
+       73   48   49   49   49   49   49   49
+       60   48   49   49   49   49   49   49
+
+  Spalte des Übergangs je Zeile (erster Wert unter 100)
+     Erfassung oben : [6, 4, 2, 2, 1, 0, 0, 0]
+     Erfassung unten: [3, 2, 1, 1, 0, 0, 0, 0]
+     KRunner  unten : [5, 3, 2, 1, 1, 0, 0, 0]
+     KRunner  unten rechts (Eigenkontrolle): [5, 3, 2, 1, 1, 0, 0, 0]
+==========================================================================
+Sitzungs-Grab des Erfassungsfensters: 960x278
+600x174 logisch bei 1,6 wären 960.0 x 278.4
+  Alpha oberste Zeile   : [0, 0, 0, 0, 2, 65, 125, 173, 195, 209]
+  Alpha zweitoberste    : [0, 0, 0, 61, 185, 216, 216, 216, 216, 216]
+  Alpha zweitunterste   : [0, 0, 96, 214, 216, 216, 216, 216, 216, 216]
+  Alpha unterste Zeile  : [0, 0, 0, 61, 185, 216, 216, 216, 216, 216]
