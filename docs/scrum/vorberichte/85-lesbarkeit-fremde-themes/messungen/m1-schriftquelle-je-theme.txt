@@ -1,0 +1,3 @@
+M1 — Woher käme die Schriftfarbe? Je Theme ein eigener Prozess.
+Stand: 2026-08-05 20:02 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Farbschema: das des Kunden, gelesen aus seiner kdeglobals (nur gelesen).

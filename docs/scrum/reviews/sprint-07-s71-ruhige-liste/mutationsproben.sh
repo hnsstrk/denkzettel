@@ -70,6 +70,9 @@ lauf() {
 }
 
 echo "== Ausgangsstand übersetzen =="
+# Die Kopie ist kein Git-Repositorium, deshalb schlägt der Versionsgriff des
+# Bauwerks hier fehl und meldet es zweimal. Das ist folgenlos — gebaut wird
+# derselbe Quelltext.
 cmake -B "$BAU" -S . -DCMAKE_BUILD_TYPE=Debug > /dev/null
 cmake --build "$BAU" -j "$(nproc)" --target librarytest > /dev/null
 QT_QPA_PLATFORM=offscreen "$BAU/bin/librarytest" 2>&1 | grep -E "^Totals"
@@ -150,7 +153,7 @@ lauf 11 "Alle drei Flächen tragen einen Tooltip (AK 1)" \
     sed -i '/setToolTip(tooltipNaming/d' "$FENSTER"
 
 lauf 12 "„Rückgängig\" kommt über die QAction an der Fläche an (AK 5)" \
-    "rot mit „Rückgängig\" statt „Löschen rückgängig machen (Strg+Z)\" — zugleich der Beleg zu AK 4: der Tooltip ist ohne setToolTip **nicht leer**" C \
+    "rot mit „Rückgängig\" statt „Löschen rückgängig machen (Ctrl+Z)\" — unter LANG=C heißt die Taste so, in einer deutschen Sitzung „Strg+Z\". Zugleich der Beleg zu AK 4: der Tooltip ist ohne setToolTip **nicht leer**" C \
     sed -i '/m_undoAction->setToolTip(tooltipNaming/d' "$FENSTER"
 
 lauf 13 "Der Kürzelteil steht im Wortlaut (AK 3)" \

@@ -592,6 +592,19 @@ v1 aber nicht gebaut.
   Der Preis, ausdrücklich: Eine angeschnittene Zeile bleibt nach dem Klick
   angeschnitten. Sie ganz sichtbar zu machen hieße, sie unter dem Zeiger
   wegzuziehen — das ist der Fehler selbst.
+  **Bedingung, entdeckt bei der Sichtprüfung (05.08.2026, DoD 4/B9): „bewegt die
+  Liste überhaupt nicht" gilt für den Druck, nicht für die Sekunde danach.**
+  `QAbstractItemView` startet beim Mausdruck einen **verzögerten Autoscroll**
+  und holt die angeschnittene Zeile rund eine halbe Sekunde später doch ins
+  Bild; die Markierung bleibt dabei auf der geklickten Zeile. Gemessen: Rollwert
+  bis 500 ms unverändert, ab 550 ms um eine Zeile gerückt
+  (`docs/scrum/reviews/sprint-07-s71-ruhige-liste/messungen/71-nachlaufender-autoscroll.txt`);
+  am Bild bestätigt im UI-Review (11a gegen 11b, 71,9 logische Bildpunkte).
+  **Der Absatz oben beschreibt damit, was die Story herstellt, nicht, was der
+  Nutzer nach einer Sekunde sieht.** Ob der Nachlauf bleibt oder abgeschaltet
+  wird, ist eine Produktentscheidung und offen (Issue #89); bis sie fällt, steht
+  die Bedingung hier — ein Satz, der mehr zusichert, als der Bau hält, ist eine
+  Falle, gleich wie die Entscheidung ausgeht.
   Der Tag geht dabei nicht verloren — der Detailbereich trägt den vollen
   Zeitstempel.
   Dazu Suchfeld (Abschnitt 6) und Button „Vorschläge" mit Badge.

@@ -1,10 +1,13 @@
 #!/bin/bash
 # Prüfskript zu Strang B von Sprint 7 — Issues #71, #70, #72.
 #
-# Wiederholt alles, was der Bericht behauptet: die volle Testauflage, den
-# Doppellauf unter zwei Gebieten (#72, Falle 1), die Bilder und die zwölf
-# Mutationsproben. Es baut vorher — ein veralteter Bildläufer schreibt ein
-# plausibles Bild eines alten Standes mit frischem Zeitstempel (CLAUDE.md).
+# Wiederholt die volle Testauflage, den Doppellauf unter zwei Gebieten (#72,
+# Falle 1) und die Bilder. Es baut vorher — ein veralteter Bildläufer schreibt
+# ein plausibles Bild eines alten Standes mit frischem Zeitstempel (CLAUDE.md).
+#
+# **Die vierzehn Mutationsproben fährt das Nachbarskript** `mutationsproben.sh`.
+# Es nimmt jeden Eingriff selbst vor, statt nur seine Ausgabe abzulegen
+# (karpathy-Befund K3, 05.08.2026).
 #
 # Aufruf aus einem Arbeitsbaum des Zweigs story/71-ruhige-liste:
 #     bash docs/scrum/reviews/sprint-07-s71-ruhige-liste/pruefen.sh
@@ -65,8 +68,8 @@ echo "   im Editor blinkt, und die Aufnahme trifft mal die eine, mal die andere"
 echo "   Phase. Gemessen am 05.08.2026, kein Befund dieser Stories."
 echo
 
-echo "== 5. Mutationsproben"
-echo "   Die zwölf Läufe liegen als Terminalausgabe unter messungen/ (m1..m14"
-echo "   ohne m2-Erstfassung). Sie einzeln nachzufahren beschreibt der Bericht,"
-echo "   Abschnitt „Mutationsproben\" — jede ist eine Zeile im Quelltext."
+echo "== 5. Mutationsproben — vierzehn, im Nachbarskript"
+echo "   bash docs/scrum/reviews/sprint-07-s71-ruhige-liste/mutationsproben.sh"
+echo "   Es nimmt jeden Eingriff auf einer Kopie des Arbeitsbaums selbst vor."
+echo "   Die Terminalausgaben des ersten Laufs liegen daneben unter messungen/:"
 ls docs/scrum/reviews/sprint-07-s71-ruhige-liste/messungen/m*.txt | sed 's|.*/|   |'

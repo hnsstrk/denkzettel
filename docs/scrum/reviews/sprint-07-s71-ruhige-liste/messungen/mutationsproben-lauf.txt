@@ -1,0 +1,134 @@
+Kopie des Arbeitsbaums nach /tmp/tmp.ILBK37neAz
+== Ausgangsstand übersetzen ==
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Totals: 113 passed, 0 failed, 0 skipped, 0 blacklisted, 6148ms
+
+########## #71 — der Klick auf die angeschnittene Zeile ##########
+
+===== Probe 1 — Der Mausdruck rückt die Liste nicht nach (AK 1)
+Eingriff: sed -i s|        if (!m_selectionFollowsAPress) {|        if (true) {| src/ui/librarywindow.cpp
+Erwartet: rot an selectedRows: „keine" statt der geklickten Zeile
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs() Compared values are not the same
+     Actual   (selectedRows(list))  : "keine"
+     Expected (QString::number(row)): "8"
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1862)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6194ms
+
+===== Probe 2 — Der Merker des Drucks endet mit dem Loslassen (AK 6)
+Eingriff: sed -i s|    if (watched == m_list->viewport() \&\& event->type() == QEvent::MouseButtonRelease) {|    if (false) {| src/ui/librarywindow.cpp
+Erwartet: rot an dropsTheMarkOfAPressThatSelectedNothingWhenItEnds: Kopf bei y=-39
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-39, Bild 559 hoch)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1958)]
+  PASS   : LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
+  PASS   : LibraryTest::regroupsWhenTheWindowIsActivated()
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6166ms
+
+===== Probe 3 — Der Rollwert steht still (AK 2, erste Hälfte)
+Eingriff: bash -c 
+        sed -i 's|        if (!m_selectionFollowsAPress) {|        if (true) {|' 'src/ui/librarywindow.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(selectedRows(list)|        // M3: |' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(list->currentIndex(), target);|        // M3|' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(readerOf(window)->toPlainText()|        // M3: |' 'tests/librarytest.cpp'
+    
+Erwartet: rot am Rollwert: 2 statt 0
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs() Compared values are not the same
+     Actual   (list->verticalScrollBar()->value()): 2
+     Expected (rolledTo)                          : 0
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1877)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6264ms
+
+===== Probe 4 — Der Wächter des Aufbaus (AK 3)
+Eingriff: sed -i /^int bottomClippedRow(const QListView \*list)$/,/^{$/ s|^{$|{\n    return -1; // M4| tests/librarytest.cpp
+Erwartet: rot an checked >= 10: „Nur 0 angeschnittene Rollwerte geprüft"
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs() 'checked >= 10' returned FALSE. (Nur 0 angeschnittene Rollwerte geprüft — der Aufbau misst nicht)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1882)]
+  PASS   : LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds()
+  PASS   : LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6224ms
+
+===== Probe 5 — Aktuelle Zeile und Detailbereich — die Gegenprobe
+Eingriff: bash -c 
+        sed -i 's|        if (!m_selectionFollowsAPress) {|        if (true) {|' 'src/ui/librarywindow.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(selectedRows(list)|        // M5: |' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(list->verticalScrollBar()->value(), rolledTo);|        // M5|' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(list->visualRect(target).y(), targetBefore);|        // M5|' 'tests/librarytest.cpp'
+    
+Erwartet: GRÜN erwartet: beide sind im Fehlerbild von #71 richtig, sie fangen ihn nicht
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diese Zusicherung.
+  Totals: 113 passed, 0 failed, 0 skipped, 0 blacklisted, 6095ms
+
+===== Probe 6 — Die Zeilenlage steht still (AK 2, zweite Hälfte)
+Eingriff: bash -c 
+        sed -i 's|        if (!m_selectionFollowsAPress) {|        if (true) {|' 'src/ui/librarywindow.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(selectedRows(list)|        // M6: |' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(list->currentIndex(), target);|        // M6|' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(readerOf(window)->toPlainText()|        // M6: |' 'tests/librarytest.cpp'
+        sed -i '/void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs/,/^}/ s|^        QCOMPARE(list->verticalScrollBar()->value(), rolledTo);|        // M6|' 'tests/librarytest.cpp'
+    
+Erwartet: rot an visualRect(target).y(): 444 statt 549
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs() Compared values are not the same
+     Actual   (list->visualRect(target).y()): 444
+     Expected (targetBefore)                : 549
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1878)]
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6068ms
+
+########## #70 — der Kopf der ersten Notiz einer Gruppe ##########
+
+===== Probe 7 — Der neue Oder-Zweig holt den Kopf (AK 1)
+Eingriff: sed -i s|(crossesAGroupBoundary \|\| isFirstOfItsGroup)|crossesAGroupBoundary| src/ui/librarywindow.cpp
+Erwartet: rot an bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGroup
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGroup() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-39, Bild 559 hoch)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1723)]
+  PASS   : LibraryTest::leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked()
+  PASS   : LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs()
+  Totals: 112 passed, 1 failed, 0 skipped, 0 blacklisted, 6096ms
+
+===== Probe 8 — Der Grenzübertritt-Zweig bleibt erhalten (AK 2)
+Eingriff: sed -i s|(crossesAGroupBoundary \|\| isFirstOfItsGroup)|isFirstOfItsGroup| src/ui/librarywindow.cpp
+Erwartet: rot an vier Prüfsätzen, darunter bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-113, Viewport 559 px hoch)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(2013)]
+  PASS   : LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
+  PASS   : LibraryTest::staysPutWhileTheSelectionMovesWithinItsGroup()
+  FAIL!  : LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-39, Viewport 559 px hoch)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1523)]
+  PASS   : LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked()
+  FAIL!  : LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-39)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1669)]
+  PASS   : LibraryTest::bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGroup()
+  PASS   : LibraryTest::leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked()
+  --
+  FAIL!  : LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds() 'list->viewport()->rect().contains(list->visualRect(head))' returned FALSE. (Kopf bei y=-39, Bild 559 hoch)
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1958)]
+  PASS   : LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
+  PASS   : LibraryTest::regroupsWhenTheWindowIsActivated()
+  Totals: 109 passed, 4 failed, 0 skipped, 0 blacklisted, 6123ms
+
+===== Probe 9 — Der Merker bleibt im selben if — sonst öffnet #57 wieder (AK 3)
+Eingriff: sed -i s| \&\& !m_selectionFollowsAPress) {|) {| src/ui/librarywindow.cpp
+Erwartet: rot an leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked und am #57-Prüfsatz
+ERGEBNIS: rot.
+  FAIL!  : LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked() Compared values are not the same
+     Actual   (list->verticalScrollBar()->value()): 9
+     Expected (rolledTo)                          : 10
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1595)]
+  --
+  FAIL!  : LibraryTest::leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked() Compared values are not the same
+     Actual   (list->verticalScrollBar()->value()): 13
+     Expected (rolledTo)                          : 14
+     Loc: [/tmp/tmp.ILBK37neAz/tests/librarytest.cpp(1781)]
+  Totals: 111 passed, 2 failed, 0 skipped, 0 blacklisted, 6226ms
+
+===== Probe 10 — Die Passbedingung des Kopfholens (AK 5)
+Eingriff: sed -i s|            if (selected.bottom() - heading.top() <= m_list->viewport()->height()) {|            if (true) {| src/ui/librarywindow.cpp
+Erwartet: GRÜN erwartet — und das ist der Befund: kein Prüfsatz deckt sie (Issue #90)
