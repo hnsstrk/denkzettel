@@ -15,6 +15,9 @@ set -u
 WURZEL="$(cd "$(dirname "$0")/../../../.." && pwd)"
 cd "$WURZEL" || exit 1
 ZIEL="${1:-/tmp/pruefen-s71}"
+# Geräumt, damit kein Bild eines früheren Laufs stehen bleibt und wie ein
+# Ergebnis dieses Laufs aussieht.
+rm -rf "${ZIEL:?}/bilder-1.6"
 mkdir -p "$ZIEL"
 
 echo "== Arbeitsbaum: $WURZEL"

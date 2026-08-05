@@ -66,6 +66,20 @@ KConfigGroup windowGroup()
 }
 
 /**
+ * „Notiz löschen (Entf)" — the wording of a tooltip that names its key.
+ *
+ * The key is read off the action every time rather than written down: „Entf"
+ * is what a German session calls it and „Del" what a run without a locale
+ * does, and the undo keys are not even fixed on one machine — they come out of
+ * kdeglobals and whoever changed them there would read a wrong tooltip
+ * (issue #72).
+ */
+QString tooltipNaming(const QString &activity, const QAction *action)
+{
+    return i18nc("@info:tooltip", "%1 (%2)", activity, action->shortcut().toString(QKeySequence::NativeText));
+}
+
+/**
  * Puts Return on the primary action of a message dialog.
  *
  * Two calls, because one of them alone does not hold (measured 02.08.2026,
@@ -263,6 +277,17 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_editAction->setEnabled(false);
     connect(m_editAction, &QAction::triggered, this, &LibraryWindow::startEditing);
     addAction(m_editAction);
+
+    // The three action surfaces name their key (UI review S5, H1). Set here
+    // rather than where the buttons are built: the keys are only fixed by the
+    // lines above, and a tooltip written before them would name none.
+    //
+    // „Rückgängig" is no button of this code — KMessageWidget makes one out of
+    // the action and passes text, symbol and tooltip on, so the tooltip goes to
+    // the action.
+    m_editButton->setToolTip(tooltipNaming(i18nc("@action", "Notiz bearbeiten"), m_editAction));
+    m_deleteButton->setToolTip(tooltipNaming(i18nc("@action", "Notiz löschen"), m_deleteAction));
+    m_undoAction->setToolTip(tooltipNaming(i18nc("@action", "Löschen rückgängig machen"), m_undoAction));
 
     // Both Return keys, as in the capture window (SPEC 3).
     m_saveAction->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Return), QKeySequence(Qt::CTRL | Qt::Key_Enter)});
