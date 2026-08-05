@@ -65,6 +65,24 @@ Prozess exportiert `org.denkzettel.Daemon` als externe Schnittstelle (siehe
 Ein zweiter Prozessstart erkennt die belegte D-Bus-Registrierung und ruft
 stattdessen `ShowCapture()` (Einzelinstanz).
 
+- **Der Busname hängt an der Organisationsdomäne (entdeckte Bedingung, Befund
+  04.08.2026, Issue #61):** KDBusService setzt ihn aus der umgedrehten Domäne
+  und dem Anwendungsnamen zusammen. `KAboutData::setApplicationData()`
+  überschreibt beide Felder mit seinen eigenen Vorgaben — die Domäne mit
+  `kde.org` —, und der Dienst meldet sich dann als `org.kde.Daemon` an.
+  Gemessen am tatsächlich angemeldeten Namen, nicht aus der Kopfdatei
+  abgeleitet. **Deshalb setzt Denkzettel Domäne und Desktop-Dateiname am
+  `KAboutData`-Objekt, bevor es registriert wird, und an keiner zweiten
+  Stelle** — zwei Setzer entschieden die Frage nach Zeilenreihenfolge. Kein
+  Rückgabewert meldet den Bruch.
+- **Die Argumente werden vor der Einzelinstanz-Weiche ausgewertet (entdeckte
+  Bedingung, Befund 04.08.2026):** Läuft der Dienst schon, reicht die Weiche
+  einen zweiten Start an ihn weiter; eine dahinter liegende Auswertung von
+  `--version` öffnete dann ein Erfassungsfenster und gäbe **0** zurück, ohne
+  etwas auszugeben. Ohne erreichbaren Sitzungsbus beendet KDBusService den
+  Prozess zudem mit 1. Beides macht die Reihenfolge zur Bedingung, nicht zur
+  Geschmacksfrage.
+
 ### 2.4 Globale Kürzel
 
 - `Meta+N` → `ShowCapture()` · `Meta+Umschalt+N` → `ShowRecorder()`
@@ -105,6 +123,19 @@ stattdessen `ShowCapture()` (Einzelinstanz).
   dieselbe Prüfung wie `Meta+N` — ohne sie wiederholt es dessen Fehlschlag, und
   „in den Systemeinstellungen sichtbar“ ist gerade der Zustand, den ein still
   gescheitertes Kürzel erzeugt.
+- **Der Komponentenname hängt am Desktop-Dateinamen (entdeckte Bedingung,
+  Befund 04.08.2026, Issue #61):** Denkzettel liest
+  `QGuiApplication::desktopFileName()` und hängt `.desktop` an — daran hängen
+  Komponentenname und, unter Wayland, die Anwendungs-Id.
+  `KAboutData::setApplicationData()` überschreibt die Eigenschaft mit seiner
+  Vorgabe `org.kde.<Komponentenname>`; die Kürzel liefen danach unter einer
+  Komponente, zu der keine installierte Desktop-Datei gehört. Deshalb setzt
+  Denkzettel den Namen am `KAboutData`-Objekt vor der Registrierung (siehe 2.3).
+- **Die Anwendungs-Id ist kein Kommandozeilenwert (Festlegung 05.08.2026):**
+  `KAboutData::setupCommandLine()` brächte die Option `--desktopfile
+  <Dateiname>` mit, die genau diesen Wert zur Laufzeit überschreibt. Denkzettel
+  meldet sie nicht an; sie fällt damit unter die zurückgewiesenen Schalter
+  (Abschnitt 15).
 
 ### 2.5 Autostart und Erststart (Ergänzung aus der Schätzklausur)
 
@@ -841,6 +872,30 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   XDG-Autostart-Eintrag in `/etc/xdg/autostart`; unter dem
   CMake-Standard `/usr/local` liest ihn keine Plasma-Sitzung
   (Sprint-2-Befund, Issue #6). PKGBUILD/AUR nach Stabilisierung.
+
+### 15.1 Versionsregeln und Kommandozeile (Issue #61)
+
+- **Eine einzige Quelle:** die Nummer steht in `project(denkzettel VERSION …)`
+  der Wurzel-`CMakeLists.txt` und sonst nirgends. Von dort reicht
+  `src/CMakeLists.txt` sie als Übersetzungsdefinition `DENKZETTEL_VERSION` an
+  den Code weiter, der sie in `KAboutData` einträgt. Eine zweite Kopie in einer
+  Quelldatei wäre die, die unbemerkt veraltet.
+- **Schema 0.x-SemVer**, solange die Anwendung vor 1.0 steht:
+  - **MINOR** (`0.1.0` → `0.2.0`) mit **jeder Kundenabnahme**.
+  - **PATCH** (`0.2.0` → `0.2.1`) für außerplanmäßige Behebungen zwischen zwei
+    Abnahmen.
+  - **Jede Schemamigration der Datenbank erzwingt mindestens MINOR** — auch
+    wenn sonst nichts dazukommt. Ein Datenbestand, der nicht mehr zur
+    Vorgängerversion passt, ist keine Kleinigkeit.
+- **Der Tag ist das Siegel:** `vMAJOR.MINOR.PATCH` auf dem abgenommenen Stand.
+  Erhöhung und Tag stehen im Sprint-Abschluss (`docs/scrum/PROZESS.md`,
+  Takt 2) und folgen der Abnahme; sie gehen ihr nicht voraus.
+- **Sichtbar wird die Nummer über `denkzetteld --version`** — Ausgabe
+  `denkzettel <Nummer>`, Rückgabe 0, auch bei laufendem Dienst und ohne
+  Sitzungsbus (Bedingung in 2.3). Ein Über-Dialog ist eine eigene Story (#87).
+- **Unbekannte Schalter werden zurückgewiesen** (Rückgabe ≠ 0). Der
+  argumentlose Start bleibt der Start des Dienstes — beide `Exec=`-Zeilen der
+  Desktop-Datei rufen ohne Argument auf.
 
 ## 16. Teststrategie
 
