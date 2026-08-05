@@ -178,6 +178,17 @@ Gefunden mit dem Griff aus `CLAUDE.md`:
 `git grep -n "tinted\|frameContrast\|Alphamaske\|alphaMask" -- CLAUDE.md README.md docs/ .github/ .claude/`
 — fünf Zeilen Ausgabe, drei Treffer.
 
+**Das Prüf-Theme wandert aus einem fremden Belegordner heraus.** #83 AK 9
+verlangt, das rechteckige Prüf-Theme nach `tests/themes/` zu überführen, wo der
+Testaufbau es sucht. Es liegt heute unter
+`docs/scrum/reviews/2026-08-04-abnahme-befunde/pruef-theme/` — einem
+**abgeschlossenen Belegordner**. Nach dem Verschieben zeigt der dortige Bericht
+auf einen Pfad, den es nicht mehr gibt.
+**Das ist PO-Arbeit, nicht Strangarbeit** (Belegordner fremder Sprints sind aus
+der Dateimenge ausgenommen): Beim Merge kommt in den alten Ordner eine datierte
+Zeile mit dem neuen Ort. Der Beleg bleibt damit auffindbar, ohne dass der
+Berichtstext geglättet wird (B17).
+
 **Sie sind ausdrücklich aus der Dateimenge von Strang A ausgenommen und gehören
 dem PO.** Und sie werden **nicht gestrichen:** Die Regel ist gemessen und gilt
 weiter, nur ihr Beispiel ist dann Geschichte. Nachzuziehen ist die
