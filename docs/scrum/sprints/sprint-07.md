@@ -256,6 +256,58 @@ kam aus dem Umfeld, nicht aus dem Fenster — genau die Sorte Fehlurteil, gegen
 die „prüfe am Einzelfall, nicht an der Plausibilität" geschrieben ist. Es steht
 hier, weil ein widerlegter PO billiger ist als ein übersehener Befund.
 
+## 6c. karpathy-Review — sieben Warnungen, kein `fail`, einer widerlegt
+
+Bericht: `docs/scrum/reviews/sprint-07-karpathy.md`. Auftrag nach B19 über den
+**Diff** (`sprint-07-basis..main`, 146 Dateien), nicht über die Stories.
+
+| ID | Sache | Behandlung |
+|---|---|---|
+| **K1** | Die Kopfzahl der Mutationsproben von #83 zählt drei Sachverhalte doppelt | **bestätigt**, Berichtigung an den Übergabebericht gehängt: 12 Zusicherungen in 15 Läufen, 11 belegt, 1 als Grenze benannt. AK 14 bleibt erfüllt |
+| **K2** | „beide Läufe 113/113 grün" widerspreche den Belegen (112 und 110) | **widerlegt** — siehe unten |
+| **K3** | Die Mutationsproben von Strang B sind nicht wiederholbar; die Eingriffe sind nirgends festgehalten | **bestätigt**, an Strang B zur Nacharbeit |
+| **K4** | `m_blursBehind` wird einmal im Konstruktor erhoben — Abschalten des Effekts zur Laufzeit erreicht das Fenster nicht | **bestätigt**, Grenze in SPEC 3.2 Punkt 9 benannt (DoD 4/B9), Entscheidung als **#93** gebucht |
+| **K5** | Zeichnung 4a/4b zeigt weiterhin den abgewählten Nachbau, SPEC 3.1 verweist darauf | **bestätigt**, **#94** gebucht — und der B17-Griff erweitert, siehe unten |
+| **K6** | Der Regelstellen-Nachzug lief **vor** der Abnahme, entgegen der eigenen Festlegung in §6a | **angenommen**, siehe unten |
+| **K7** | Der UI-Review fehlte im Diff | in Arbeit, war zum Prüfzeitpunkt richtig |
+
+### K2 — warum ein Befund zurückgewiesen wird, und wie
+
+Der Reviewer hat zwei Dateipaare verwechselt. Die von ihm genannten Dateien
+tragen beide `113 passed, 0 failed`; die Zahlen 112 und 110 stehen in
+`70-testauflage-nach-heilung.txt` und `71-testauflage-nach-heilung.txt`.
+
+**Sie sind nicht widersprüchlich, sondern belegen die Reihenfolge:** 110 nach
+#71, 112 nach #70 (zwei neue Prüfsätze), 113 nach #72 (einer). Der Satz im
+Übergabebericht stimmt.
+
+**Der Befund wird nicht gelöscht, sondern auf `verworfen` gesetzt und mit einer
+datierten Zeile versehen** (B17). Ein zurückgezogener Befund, der spurlos
+verschwindet, sieht später aus, als hätte niemand hingesehen.
+
+### K5 — der wertvollste Befund trifft nicht den Sprint, sondern das Werkzeug
+
+Der B17-Griff in `CLAUDE.md` durchsuchte `CLAUDE.md README.md docs/ .github/`.
+**`wireframes/` und `SPEC.md` standen nicht darin.** Der PO hat den Griff in
+diesem Sprint selbst gefahren (§6a), fünf Zeilen Ausgabe bekommen und ihn für
+vollständig gehalten — **er hatte Treffer, also sah er richtig aus.**
+
+Unsichtbar blieb dabei, dass Zeichnung 4a/4b weiterhin den vom Kunden
+abgewählten Nachbau zeigt, samt einer Kontur, die es nicht mehr gibt.
+
+Der Griff ist am 05.08.2026 erweitert worden, mit diesem Vorfall als Begründung:
+**Ein Werkzeug, dessen Suchraum kleiner ist als der Geltungsbereich der Regel,
+meldet Vollständigkeit und liefert sie nicht.**
+
+### K6 — eine eigene Festlegung, gegen die der PO verstoßen hat
+
+§6a hält fest, der Regelstellen-Nachzug sei „fällig **nach** der Abnahme von
+#83, nicht davor". Gefahren wurde er unmittelbar nach dem Merge, vor jeder
+Prüfung. Sachlich ohne Folge — die Regeln sind inhaltlich unverändert, nur ihre
+Fundstelle ist geankert. **Es steht hier, weil der Satz im selben Protokoll
+steht und ein unbemerkter Verstoß gegen die eigene Festlegung derselbe Fehler
+ist wie eine Regel, die niemand liest.**
+
 ## 7. DoD-Prüfung
 
 *(Takt 1, vor der Abnahme — wird beim Sprint-Ende gefüllt)*
