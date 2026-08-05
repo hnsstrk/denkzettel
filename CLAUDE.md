@@ -199,8 +199,11 @@ noch SPEC, und Agenten arbeiten nur in ihrer zugewiesenen Dateimenge.
   (Kundenentscheidung 02.08.2026). Das Sprint-Ende-Minimum regelt der
   Sprint-Abschluss in `PROZESS.md`.
   **Seit dem 04.08.2026 löst jeder Push auf `main` einen öffentlichen Bau- und
-  Testlauf aus** (`.github/workflows/ci.yml`). Er schlägt bei jeder Warnung und
-  jedem roten Test fehl, und seine Marke steht am öffentlichen Repository.
+  Testlauf aus** (`.github/workflows/ci.yml`). Er schlägt bei jeder
+  Compiler-Warnung, jedem roten Test **und seit #76 (05.08.2026) bei jedem
+  Linterbefund** fehl — `lint-tidy` und `lint-clazy` stehen beide auf Schwelle
+  null, und die Wache prüft die Dreizahl (Rückgabewert, Warnungen, Fehler)
+  statt `grep`-Zeilen zu zählen. Seine Marke steht am öffentlichen Repository.
   Wer pusht, sieht nach — **am Lauf des eigenen Commits**, nicht am obersten
   der Liste (B18):
   `gh run list --commit $(git rev-parse HEAD) --json status,conclusion --jq '.[]|[.status,.conclusion]|@tsv'`
