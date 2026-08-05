@@ -1,0 +1,6 @@
+== AK 1 — --version bei laufendem Dienst (echter Sitzungsbus) ==
+Laufender Dienst: ja (das ist die Voraussetzung dieses Nachweises)
+--- gebauter Stand, --version ---
+denkzettel 0.1.0
+Rückgabe: 0
+Dienst danach noch da: ja

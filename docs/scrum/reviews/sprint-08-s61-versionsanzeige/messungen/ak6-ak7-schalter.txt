@@ -1,0 +1,17 @@
+== AK 6/7 — Schalter ==
+--- --kennt-keiner ---
+denkzettel: Unbekannte Option 'kennt-keiner'.
+Rückgabe: 1 (erwartet: ungleich 0)
+--- --desktopfile ---
+denkzettel: Unbekannte Option 'desktopfile'.
+Rückgabe: 1 (erwartet: ungleich 0)
+
+--- --help, zur Ansicht ---
+Aufruf: /home/hnsstrk/Projekte/denkzettel-61/build/bin/denkzetteld [Optionen]
+Dienst von Denkzettel: nimmt Notizen entgegen und hält die globalen Kürzel bereit.
+
+Optionen:
+  -h, --help     Zeigt Hilfe zu den Kommandozeilenoptionen an.
+  --help-all     Zeigt Hilfe einschließlich der generischen Qt-Optionen an.
+  -v, --version  Zeigt Versionsinformation an.
+Rückgabe: 0

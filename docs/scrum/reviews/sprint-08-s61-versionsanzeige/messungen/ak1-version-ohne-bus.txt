@@ -1,0 +1,12 @@
+== AK 1/2/3 — --version ohne DBUS_SESSION_BUS_ADDRESS ==
+Erwartet: 'denkzettel 0.1.0', Rückgabe 0
+--- --version ---
+denkzettel 0.1.0
+Rückgabe: 0
+--- -v ---
+denkzettel 0.1.0
+Rückgabe: 0
+
+== Gegenprobe: dieselben Schalter mit unerreichbarem Bus ==
+denkzettel 0.1.0
+Rückgabe: 0

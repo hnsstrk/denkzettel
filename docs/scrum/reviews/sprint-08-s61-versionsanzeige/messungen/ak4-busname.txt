@@ -1,0 +1,6 @@
+== AK 4 — angemeldeter Busname des gebauten Standes ==
+Erwartet: org.denkzettel.Daemon (SPEC 2.3)
+angemeldete Namen (gefiltert):
+        string "org.denkzettel.Daemon"
+Prozess lebt noch: ja
+Ausgabe des Dienstes:
