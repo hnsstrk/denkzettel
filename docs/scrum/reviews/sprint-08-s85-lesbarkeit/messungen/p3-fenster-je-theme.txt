@@ -1,0 +1,57 @@
+P3 — Beide Textklassen am gebauten CaptureWindow, Theme für Theme in EINEM Prozess.
+Der Reihenlauf ist unbedenklich: zwei lebende ImageSet teilen ihre Auswahlpfade,
+ihre Farben nicht (Vorprüfung F4/F5) — und hier überlebt ohnehin keiner.
+Zugleich der Beleg zu AK 5: jede Zeile entsteht nach einem Theme-Wechsel am
+stehenden Fenster, und die Farbe zieht jedes Mal nach.
+
+Anwendungspalette: WindowText 252,252,252/a255  PlaceholderText 161,169,177/a255
+Kleintexte gefunden: 2
+
+==== default
+  Fläche in der Mitte : 32,35,38/a255   Deckung 100.0 %
+  Notiztext           : 252,252,252/a255   Kontrast deckend 15.39:1
+  Kleintext (gedämpft): 161,169,177/a255   Kontrast deckend 6.64:1
+  Fenstergröße        : 600x178
+
+==== breeze-dark
+  Fläche in der Mitte : 32,35,38/a255   Deckung 100.0 %
+  Notiztext           : 252,252,252/a255   Kontrast deckend 15.39:1
+  Kleintext (gedämpft): 161,169,177/a255   Kontrast deckend 6.64:1
+  Fenstergröße        : 600x178
+
+==== breeze-light
+  Fläche in der Mitte : 239,240,241/a255   Deckung 100.0 %
+  Notiztext           : 35,38,41/a255   Kontrast deckend 13.33:1
+  Kleintext (gedämpft): 112,125,138/a255   Kontrast deckend 3.69:1
+  Fenstergröße        : 600x178
+
+==== CachyOS-Nord-round
+  Fläche in der Mitte : 30,34,51/a255   Deckung 100.0 %
+  Notiztext           : 252,252,252/a255   Kontrast deckend 15.37:1
+  Kleintext (gedämpft): 161,169,177/a255   Kontrast deckend 6.63:1
+  Fenstergröße        : 600x182
+
+==== Iridescent-round
+  Fläche in der Mitte : 0,0,0/a51   Deckung 20.0 %
+  Notiztext           : 252,252,252/a255   Kontrast deckend 20.47:1
+  Kleintext (gedämpft): 161,169,177/a255   Kontrast deckend 8.83:1
+  Fenstergröße        : 600x182
+
+==== cachyos-emerald
+  Fläche in der Mitte : 227,227,255/a9   Deckung 3.5 %
+  Notiztext           : 252,252,252/a255   Kontrast deckend 1.23:1
+  Kleintext (gedämpft): 161,169,177/a255   Kontrast deckend 1.89:1
+  Fenstergröße        : 600x182
+
+==== cachyos-emerald-color
+  Fläche in der Mitte : 227,227,255/a9   Deckung 3.5 %
+  Notiztext           : 0,199,144/a255   Kontrast deckend 1.74:1
+  Kleintext (gedämpft): 102,106,115/a255   Kontrast deckend 4.31:1
+  Fenstergröße        : 600x178
+
+==== cachyos-emerald-light
+  Fläche in der Mitte : 227,227,255/a9   Deckung 3.5 %
+  Notiztext           : 35,38,41/a255   Kontrast deckend 12.09:1
+  Kleintext (gedämpft): 112,125,138/a255   Kontrast deckend 3.35:1
+  Fenstergröße        : 600x178
+

@@ -1,0 +1,27 @@
+# Fixture of the test suite. Not a design proposal.
+#
+# The one file that decides where the window's writing comes from (issue #85):
+# a desktop theme that ships a `colors` file of its own hands both text colours
+# out itself, and one that does not leaves them to the colour scheme. Until this
+# story none of the bundled themes had one, so the assertion would have hung on
+# whatever Plasma themes happened to be installed on the machine — of the eight
+# on the customer's machine four bring a `colors` file and four do not, and a
+# build host that installs only this project's KF6 parts brings none at all,
+# because ksvg does not depend on libplasma.
+#
+# The narrow bundled theme deliberately has no such file — it is the other half
+# of the assertion: no file, no theme colour, the colour scheme keeps its say.
+#
+# The two foreground values are deliberately colours no colour scheme carries.
+# That is what makes the origin readable: a test that saw 35,38,41 could not
+# tell a theme colour from a scheme colour that happens to look the same, and
+# the assertion of AK 1 is about the origin and not about the value.
+#
+# Neither value colours the graphic beside this file: the bundled SVGs name no
+# `ColorScheme-*` class, so KSvg has nothing to substitute in them (measured —
+# the drawn hull is byte for byte the one from before this file existed).
+
+[Colors:Window]
+BackgroundNormal=17,34,51
+ForegroundNormal=255,0,153
+ForegroundInactive=0,153,255

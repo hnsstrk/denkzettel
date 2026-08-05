@@ -1,0 +1,10 @@
+P6 — Kontrasteffekt des Compositors. Unter den drei Emerald-Themes hängt die
+Lesbarkeit an diesem Effekt und nicht an der Textfarbe; diese Story erbt die
+Grenze aus #83 und schließt sie nicht.
+
+kwin 6.7.3
+isEffectLoaded(blur)               : b true
+isEffectLoaded(backgroundcontrast) : b false
+Treffer 'contrast' in listOfEffects : 0
+0
+Zahl der geladenen Effekte          : 54

@@ -173,9 +173,16 @@ gefüllt mit Palettenfarben, samt einer Konturlinie aus `Window` und
 `WindowText` im Verhältnis 0,20. Der Kunde hat diesen Nachbau abgewählt. Die
 Kehrseite ist benannt und angenommen: Von den acht auf der Kundenmaschine
 installierten Themes richtet nur `default` seine Füllfarbe am Farbschema aus,
-also sind sechs der acht danach schlechter lesbar als zuvor — was daraus folgt,
-behandelt Issue #85. Auf der Kundeneinstellung ändert sich nichts, weil dort
-mangels `[Theme] name` in `plasmarc` der Rückfall `default` greift.
+also sind sechs der acht danach schlechter lesbar als zuvor. Auf der
+Kundeneinstellung ändert sich nichts, weil dort mangels `[Theme] name` in
+`plasmarc` der Rückfall `default` greift.
+
+Issue #85 hat das für die vier Themes mit eigener `colors`-Datei geheilt (siehe
+den Spiegelstrich zur Schrift unten) und die Grenze für die übrigen benannt:
+Unter den drei `cachyos-emerald`-Themes deckt die Hülle zu 3,5 %, und was den
+Text dort tragen soll, ist der Kontrasteffekt des Compositors — der auf diesem
+Stand **nicht vorhanden** ist (3.2, Punkt 10). Dort sichert die Spezifikation
+keine Lesbarkeit zu.
 
 - **Fläche** die des Themes, **eine durchgehende** — kein Kasten im Kasten.
   Sie deckt nicht notwendig: `default` deckt zu 84,7 %, andere Themes zu 2,7 %
@@ -185,11 +192,22 @@ mangels `[Theme] name` in `plasmarc` der Rückfall `default` greift.
   Deckung (gemessen unter `default`: 235 gegen 216 von 255). Der Rand des
   Themes ist ein **Deckungsrand**; sichtbar wird er nur, weil die Hülle
   durchscheint.
-- **Notiztext** `WindowText`, **nicht** die Rolle für Eingabefelder: über 18
-  Schemata schlechtestens 4,74:1 gegen 4,22:1, also über beziehungsweise unter
-  dem Mindestwert von 4,5:1. Das ist die Bedingung, unter der die durchgehende
-  Fläche überhaupt trägt.
-- **App-Name und Fußzeile** `PlaceholderText`.
+- **Die Schrift kommt aus derselben Quelle wie die Fläche** (Kundenentscheidung
+  04.08.2026, Issue #85), und das gilt für **beide** Textklassen. Bringt das
+  Desktop-Theme eine eigene `colors`-Datei mit, gelten deren Farben:
+  `ForegroundNormal` für den Notiztext, `ForegroundInactive` für die gedämpfte
+  Klasse. Bringt es keine mit, gilt das Farbschema — dann **Notiztext**
+  `WindowText`, **nicht** die Rolle für Eingabefelder (über 18 Schemata
+  schlechtestens 4,74:1 gegen 4,22:1, also über beziehungsweise unter dem
+  Mindestwert von 4,5:1), und **App-Name und Fußzeile** `PlaceholderText`.
+  Von den acht auf der Kundenmaschine installierten Themes bringen vier eine
+  eigene Datei mit und vier nicht (gemessen).
+- **Zur gedämpften Klasse gehört auch der Platzhaltertext** des leeren
+  Eingabefeldes — drei Stellen, nicht zwei.
+- **Zugesichert ist die Herkunft der Farbe, nicht ihre Kontrastzahl.** Eine
+  Kontrastzahl gilt für ein Farbschema, einen Auswahlpfad und einen benannten
+  Grund; keines der drei gehört dem Code. Was sich prüfen lässt, ist, aus
+  welcher Quelle die Farbe stammt.
 - **Innenabstände** (12 seitlich, 10 oben, 8 unten) gelten **zuzüglich** des
   Randes, den das Theme für sich beansprucht — der Text beginnt bei Breeze
   16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
@@ -271,6 +289,30 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
    Zustand beim Start, nicht für einen Wechsel danach. Der Theme-Wechsel ist
    davon **nicht** betroffen; ihn fängt die Wache auf `plasmarc`. Ob die Grenze
    geschlossen oder festgeschrieben wird, ist offen (Issue #93).
+10. **Der Kontrasteffekt hat auf diesem Stand keinen Empfänger.** KWin 6.7.3
+    führt unter 54 geladenen Effekten **keinen** mit „contrast" im Namen;
+    `isEffectLoaded("backgroundcontrast")` antwortet `false`, `blur` antwortet
+    `true`. Die Anmeldung aus Punkt 8 geht damit ins Leere. Das trifft die drei
+    `cachyos-emerald`-Themes, deren Hülle zu 3,5 % deckt: Dort steht der Text
+    auf dem Bildschirmhintergrund und auf nichts sonst, und **keine Wahl der
+    Schriftfarbe rettet beide Richtungen** — gemessen unter
+    `cachyos-emerald-light` über weißem Grund 14,32:1, über schwarzem 1,37:1
+    (Belege in `docs/scrum/reviews/sprint-08-s85-lesbarkeit/`). Die Bedingung
+    ist benannt und nicht geschlossen.
+11. **Die Vorrangregel für die Textfarben steht an genau einer Stelle.** Die
+    beiden Quellen aus 3.1 bewegen sich zu verschiedenen Zeitpunkten — das
+    Theme beim Theme-Wechsel, das Schema beim Palettenwechsel. Eine Umsetzung,
+    die die Themefarbe nur beim Theme-Wechsel schreibt, ist bei der Abnahme
+    richtig und nach dem ersten Schemawechsel falsch, und zwar **lautlos**:
+    kein Rückgabewert, kein Ereignis, kein roter Prüfsatz. Beide Anlässe laufen
+    deshalb durch dieselbe Funktion.
+12. **KSvg kennt kein Gegenstück zu `ForegroundInactive`.** Die Aufzählung
+    `KSvg::Svg::StyleSheetColor` führt je Farbsatz `Text`, `Background`,
+    `Highlight`, `HighlightedText` und drei Signalfarben. Der Notiztext kommt
+    deshalb über `KSvg::Svg::color(Text)` bei gesetztem `colorSet(Window)` —
+    das **ist** bereits die Regel aus 3.1, über acht Themes und drei Schemata
+    gemessen —, die gedämpfte Klasse dagegen aus der `colors`-Datei des Themes,
+    selbst gelesen wie die Gruppe aus Punkt 8.
 
 ## 4. Aufnahmefenster (Sprachnotiz)
 
