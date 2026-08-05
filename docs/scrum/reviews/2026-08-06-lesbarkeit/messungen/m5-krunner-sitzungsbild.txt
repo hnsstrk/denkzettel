@@ -1,0 +1,22 @@
+M5 — KRunner als Maßstab, gemessen am versionierten Sitzungsbild
+Bild: docs/scrum/reviews/sprint-07-s83-native-huelle/bilder/sitzung/fenster-neben-krunner.png
+Größe: (2426, 2050) — aufgenommen im UI-Review zu Sprint 7, angemeldete
+Wayland-Sitzung, Desktop-Theme default (kein [Theme] name in plasmarc),
+Farbschema Breeze Dark.
+
+KRunner
+  Hülle (x=90,y=30)              (47, 50, 52)
+  Feldfläche (x=300,y=30)        (20, 22, 24)
+  Feldkante, fokussiert (x=134)  (61, 174, 233)
+  Feldfläche gegen Hülle         1.41:1
+
+Denkzettel im selben Bild
+  Fläche (x=500,y=1000)          (47, 50, 52)
+  Es gibt keinen zweiten Ton: das Fenster ist von der Kopfzeile bis zur
+  Fußzeile eine Fläche. Genau das ist der Kundenbefund #100.
+
+Zum Vergleich die offscreen gerechnete Sonde (M3, Theme default):
+  Hülle 47,49,52 · Feldfläche 20,22,24 · Feldfläche gegen Hülle 1,39:1
+  Das Sitzungsbild liegt bei 1.41:1 — dieselbe Aussage, und die
+  Farbwerte stimmen bis auf den Bildpunkt. Die Rechnung der Sonde ist damit
+  am wirklichen Fall bestätigt, nicht nur in sich stimmig.

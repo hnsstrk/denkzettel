@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Denkzettel — Trennung in der Bibliothek und Kante im Erfassungsfenster (06.08.2026)</title>
+<style>
+  :root {
+    /* Maße aus src/ui/notelistdelegate.cpp:12–28 — keine geschätzten Zahlen. */
+    --pad-x: 12px;
+    --pad-y: 9px;
+    --gap: 3px;
+    --head-top-first: 6px;
+    --head-top: 14px;
+    --head-bottom: 6px;
+    /* Schriften aus messungen/m4-farbtafel.txt (QT_QPA_PLATFORMTHEME=kde). */
+    --font-body: 13.3px;   /* Noto Sans 10 pt, Zeilenhöhe 18 px */
+    --font-small: 10.7px;  /* Noto Sans  8 pt, Zeilenhöhe 15 px */
+  }
+  body {
+    margin: 0;
+    padding: 28px 32px 60px;
+    background: #f4f4f5;
+    color: #333;
+    font: 14px/1.6 "Noto Sans", system-ui, sans-serif;
+  }
+  h1 { font-size: 21px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 40px 0 4px; padding-top: 18px; border-top: 1px solid #ddd; }
+  h3 { font-size: 14px; margin: 22px 0 8px; color: #444; }
+  p  { max-width: 62em; margin: 8px 0; color: #555; }
+  .lead { color: #333; }
+  code { font: 12px ui-monospace, monospace; background: #ececee; padding: 1px 4px; border-radius: 3px; }
+  .quelle { font-size: 12px; color: #888; }
+  .zahl { font-variant-numeric: tabular-nums; }
+  table { border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  th, td { border: 1px solid #ddd; padding: 4px 9px; text-align: left; }
+  th { background: #ececee; font-weight: 600; }
+  td.zahl, th.zahl { text-align: right; font-variant-numeric: tabular-nums; }
+  .gut { color: #1d7a34; font-weight: 600; }
+  .schwach { color: #b3701f; font-weight: 600; }
+  .aus { color: #b02020; font-weight: 600; }
+
+  .reihe { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; margin-top: 10px; }
+  .spalte { width: 300px; }
+  .spalte > .titel { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 2px; }
+  .spalte > .unter { font-size: 12px; color: #888; margin-bottom: 8px; min-height: 48px; }
+
+  /* Die Listenspalte hat im Bau 300 px Startbreite (Zeichnung 2c). */
+  .liste {
+    width: 300px;
+    font-family: "Noto Sans", system-ui, sans-serif;
+    overflow: hidden;
+    border-radius: 3px;
+  }
+  .kopf {
+    font-size: var(--font-small);
+    line-height: 15px;
+    font-weight: 600;
+    padding: var(--head-top) var(--pad-x) var(--head-bottom);
+  }
+  .kopf.erster { padding-top: var(--head-top-first); }
+  .eintrag { padding: var(--pad-y) var(--pad-x); }
+  .zeit { font-size: var(--font-small); line-height: 15px; margin-bottom: var(--gap); }
+  .betreff, .vorschau {
+    font-size: var(--font-body);
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Farben: BreezeLight und BreezeDark, unverändert aus m4-farbtafel.txt. */
+  .hell  { background: #ffffff; }
+  .hell  .kopf, .hell .betreff { color: #232629; }
+  .hell  .zeit, .hell .vorschau { color: #707d8a; }
+  .dunkel { background: #141618; }
+  .dunkel .kopf, .dunkel .betreff { color: #fcfcfc; }
+  .dunkel .zeit, .dunkel .vorschau { color: #a1a9b1; }
+
+  .hell  .gewaehlt { background: #3daee9; }
+  .hell  .gewaehlt .betreff, .hell .gewaehlt .zeit, .hell .gewaehlt .vorschau { color: #ffffff; }
+  .dunkel .gewaehlt { background: #3daee9; }
+  .dunkel .gewaehlt .betreff, .dunkel .gewaehlt .zeit, .dunkel .gewaehlt .vorschau { color: #fcfcfc; }
+
+  /* Variante B — abwechselnde Zeilenfarben, AlternateBase. */
+  .hell  .streifen { background: #f7f7f7; }
+  .dunkel .streifen { background: #1d1f22; }
+
+  /* Variante C/D — Trennlinie, Grund und Textfarbe im Verhältnis frameContrast. */
+  .hell  .linie  { border-bottom: 1px solid #d3d4d4; }
+  .dunkel .linie { border-bottom: 1px solid #424446; }
+  .linie-voll { }
+  .linie-eingerueckt { position: relative; border-bottom: none; }
+  .hell  .linie-eingerueckt::after,
+  .dunkel .linie-eingerueckt::after {
+    content: "";
+    position: absolute;
+    left: var(--pad-x); right: var(--pad-x); bottom: 0;
+    height: 1px;
+  }
+  .hell  .linie-eingerueckt::after { background: #d3d4d4; }
+  .dunkel .linie-eingerueckt::after { background: #424446; }
+
+  /* Gruppenlinie — dieselbe Farbe, aber über die volle Breite: die Rangfolge
+     entsteht aus der Ausdehnung, nicht aus der Stärke. Sie liegt im oberen
+     Innenabstand des Kopfes (14 px), also wächst keine Zeile. */
+  .hell  .gruppenlinie { border-top: 1px solid #d3d4d4; }
+  .dunkel .gruppenlinie { border-top: 1px solid #424446; }
+
+  /* Erfassungsfenster. */
+  .capture { width: 300px; border-radius: 6px; padding: 16px; box-sizing: border-box; }
+  .capture .app { font-size: var(--font-small); line-height: 15px; margin-bottom: 8px; }
+  .capture .feld {
+    min-height: 62px;
+    padding: 6px 6px;
+    box-sizing: border-box;
+    font-size: var(--font-body);
+    line-height: 18px;
+  }
+  .capture .fuss { font-size: var(--font-small); line-height: 15px; text-align: center; margin-top: 12px; }
+  .cap-dunkel { background: #2f3134; }
+  .cap-dunkel .app, .cap-dunkel .fuss { color: #a1a9b1; }
+  .cap-dunkel .feld { color: #fcfcfc; }
+  .cap-hell { background: #dfdfe0; }
+  .cap-hell .app, .cap-hell .fuss { color: #707d8a; }
+  .cap-hell .feld { color: #232629; }
+  .cap-dunkel .feld.gefuellt { background: #141618; border: 1px solid #424446; border-radius: 3px; }
+  .cap-hell  .feld.gefuellt { background: #ffffff; border: 1px solid #d3d4d4; border-radius: 3px; }
+  .cap-dunkel .feld.nurkante { border: 1px solid #424446; border-radius: 3px; }
+  .cap-hell  .feld.nurkante { border: 1px solid #d3d4d4; border-radius: 3px; }
+  .cursor { display: inline-block; width: 1.5px; height: 14px; vertical-align: -2px; margin-left: 1px; }
+  .cap-dunkel .cursor { background: #fcfcfc; }
+  .cap-hell .cursor { background: #232629; }
+
+  .merk { background: #fff8ec; border-left: 3px solid #b3701f; padding: 8px 12px; margin: 14px 0; max-width: 62em; }
+  .merk b { color: #8a5312; }
+  .empf { background: #eef7ef; border-left: 3px solid #1d7a34; padding: 8px 12px; margin: 14px 0; max-width: 62em; }
+  .empf b { color: #14612a; }
+</style>
+</head>
+<body>
+
+<h1>Trennung in der Bibliothek · Kante im Erfassungsfenster</h1>
+<p class="lead">Mockup vom 06.08.2026 zu den Kundenbefunden <b>#101</b> („die einzelnen
+Notizen lassen sich optisch nicht sauber voneinander unterscheiden, weil ein Trenner
+fehlt. Gleiches gilt für ‚Gestern‘ und ‚Letzte Woche‘“) und <b>#100</b> („Das
+Erfassungsfenster ist ein Farbblock. Der Eingabebereich ist nicht klar erkennbar“).</p>
+
+<p class="quelle">Alle Maße stammen aus <code>src/ui/notelistdelegate.cpp:12–28</code>,
+alle Farben und Schriftgrößen aus den Messungen dieses Ordners
+(<code>messungen/m1</code> bis <code>m5</code>). Geschätzt ist nichts. Der Eintrag ist
+72 px hoch (9 + 15 + 3 + 2 × 18 + 9), der erste Gruppenkopf 27 px, jeder weitere 35 px —
+dieselben Zahlen, die die Sonde am gebauten Fenster gemessen hat.</p>
+
+<h2>Teil 1 — Die Bibliothek</h2>
+
+<h3>Was gemessen wurde, bevor gezeichnet wurde</h3>
+<p>Die Liste steht auf <code>Base</code>, nicht auf <code>Window</code> — gemessen am
+gebauten <code>LibraryWindow</code> unter allen 18 installierten Farbschemata und unter
+zwei Stilen (<code>breeze</code> und <code>fusion</code>), am gezeichneten Bildpunkt und
+nicht an der angemeldeten Rolle. Damit ist auch geklärt, worauf sich
+<code>AlternateBase</code> bezieht: auf denselben Grund.</p>
+
+<table>
+  <tr><th>Trennmittel</th><th class="zahl">schlechtester Fall</th><th class="zahl">bester Fall</th><th class="zahl">Schemata unter 1,20 : 1</th></tr>
+  <tr><td>Trennlinie, Grund ↔ Textfarbe im Verhältnis <code>frameContrast</code></td><td class="zahl gut">1,24 : 1</td><td class="zahl">1,93 : 1</td><td class="zahl gut">0 von 18</td></tr>
+  <tr><td>Abwechselnde Zeilenfarben (<code>AlternateBase</code>) — die HIG-Empfehlung</td><td class="zahl aus">1,00 : 1</td><td class="zahl">1,21 : 1</td><td class="zahl aus">17 von 18</td></tr>
+  <tr><td>Fläche hinter dem Gruppenkopf (<code>KColorScheme::Header</code>)</td><td class="zahl aus">1,00 : 1</td><td class="zahl">1,70 : 1</td><td class="zahl aus">11 von 18</td></tr>
+  <tr><td>Einzelrollen <code>Mid</code> / <code>Midlight</code> / <code>Dark</code> / <code>Shadow</code></td><td class="zahl aus">1,00 : 1</td><td class="zahl">6,16 : 1</td><td class="zahl aus">— fallen wie am 01.08.2026</td></tr>
+</table>
+
+<div class="merk">
+  <b>Die HIG-Empfehlung fällt hier aus einem Grund durch, den die HIG nicht kennen.</b>
+  Der Gruppenkopf ist im Modell eine Zeile wie jede andere, also verbraucht er einen
+  Streifen. Zwischen zwei Notizen, die durch einen Kopf getrennt sind, liegt damit immer
+  eine ungerade Zahl von Zeilen — <b>die beiden bekommen stets dieselbe Farbe</b>.
+  Gemessen in allen 18 Schemata und mit zwei verschiedenen Gruppengrößen: an jeder
+  Gruppengrenze <span class="zahl">1,00 : 1</span>. Der Streifen versagt genau dort, wo
+  der Kunde am deutlichsten hingesehen hat. Nebenbei bekommt der Kopf selbst mal eine
+  Fläche und mal keine, je nachdem, wie viele Notizen über ihm stehen.
+</div>
+
+<h3>Die Varianten nebeneinander — helles Schema (BreezeLight)</h3>
+<div class="reihe">
+
+  <div class="spalte">
+    <div class="titel">A · Heute</div>
+    <div class="unter">Nichts trennt. Der Befund des Kunden.</div>
+    <div class="liste hell">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf">Gestern</div>
+      <div class="eintrag"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">B · Abwechselnde Zeilenfarben</div>
+    <div class="unter">Die HIG-Empfehlung. 1,07 : 1 — und an beiden Gruppengrenzen gar nichts.</div>
+    <div class="liste hell">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag streifen"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag streifen"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf">Gestern</div>
+      <div class="eintrag streifen"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf streifen">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+    <p class="quelle">Streifenfolge und Kopfflächen sind nicht erfunden — sie stehen so
+    in <code>messungen/m2-streifen.txt</code>, Zeile für Zeile am gegriffenen Bild
+    abgelesen.</p>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">C · Trennlinie, durchgehend</div>
+    <div class="unter">1,49 : 1. Sichtbar — aber die Linie läuft bis an den Rand und stößt an den Kopf.</div>
+    <div class="liste hell">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag linie"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag linie"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag linie"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf">Gestern</div>
+      <div class="eintrag linie"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag linie"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">D · Zwei Linien in Rangfolge — <span class="gut">Empfehlung</span></div>
+    <div class="unter">Zwischen Notizen einer Gruppe eingerückt (12 px), über jedem Gruppenkopf über die volle Breite. Gleiche Farbe, verschiedene Ausdehnung.</div>
+    <div class="liste hell">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf gruppenlinie">Gestern</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf gruppenlinie">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">E · Empfehlung mit Auswahl</div>
+    <div class="unter">Die Auswahlmarkierung bleibt das Stärkste im Bild — eine Haarlinie tritt nicht mit ihr in Wettbewerb.</div>
+    <div class="liste hell">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag gewaehlt"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf gruppenlinie">Gestern</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf gruppenlinie">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+    <p class="quelle">Über und unter der ausgewählten Zeile entfällt die Linie: die
+    gefüllte Fläche ist selbst die Grenze, und eine Linie an ihrer Kante sähe nach einem
+    Fehler aus.</p>
+  </div>
+
+</div>
+
+<h3>Dieselben Varianten im dunklen Schema (BreezeDark)</h3>
+<div class="reihe">
+
+  <div class="spalte">
+    <div class="titel">A · Heute</div>
+    <div class="unter">&nbsp;</div>
+    <div class="liste dunkel">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf">Gestern</div>
+      <div class="eintrag"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">B · Abwechselnde Zeilenfarben</div>
+    <div class="unter">1,10 : 1 — im Dunklen etwas mehr als im Hellen, an den Gruppengrenzen ebenso nichts.</div>
+    <div class="liste dunkel">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag streifen"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag streifen"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf">Gestern</div>
+      <div class="eintrag streifen"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf streifen">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">C · Trennlinie, durchgehend</div>
+    <div class="unter">1,85 : 1.</div>
+    <div class="liste dunkel">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag linie"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag linie"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag linie"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf">Gestern</div>
+      <div class="eintrag linie"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag linie"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">D · Zwei Linien in Rangfolge — <span class="gut">Empfehlung</span></div>
+    <div class="unter">&nbsp;</div>
+    <div class="liste dunkel">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf gruppenlinie">Gestern</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf gruppenlinie">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">E · Empfehlung mit Auswahl</div>
+    <div class="unter">&nbsp;</div>
+    <div class="liste dunkel">
+      <div class="kopf erster">Heute</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">14:20</div><div class="betreff">Backup prüfen</div><div class="vorschau">prune-Policy, monatliche Snapshots behalten</div></div>
+      <div class="eintrag gewaehlt"><div class="zeit">09:05</div><div class="betreff">Zahnarzt anrufen</div><div class="vorschau">Termin für September, am besten vormittags</div></div>
+      <div class="eintrag"><div class="zeit">08:10</div><div class="betreff">Einkauf</div><div class="vorschau">Mehl, Hefe, Tomaten</div></div>
+      <div class="kopf gruppenlinie">Gestern</div>
+      <div class="eintrag linie-eingerueckt"><div class="zeit">21:40</div><div class="betreff">Idee: Denkzettel-Export</div><div class="vorschau">Markdown mit Frontmatter, ein Ordner je Monat</div></div>
+      <div class="eintrag"><div class="zeit">11:15</div><div class="betreff">Anruf Vermieter</div><div class="vorschau">Heizungsablesung, Termin bestätigen</div></div>
+      <div class="kopf gruppenlinie">Diese Woche</div>
+      <div class="eintrag"><div class="zeit">Di, 28. Juli</div><div class="betreff">Buchtipp notieren</div><div class="vorschau">von Kolja empfohlen, Titel nachschlagen</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="empf">
+  <b>Empfehlung für die Bibliothek: Variante D — zwei Linien, eine Farbe, zwei
+  Ausdehnungen.</b>
+  <ul style="margin:6px 0 0;padding-left:18px">
+    <li><b>Zwischen zwei Notizen derselben Gruppe</b> eine Haarlinie, eingerückt auf die
+      Textkante (12 px links und rechts). Nicht unter der letzten Notiz einer Gruppe und
+      nicht an der ausgewählten Zeile.</li>
+    <li><b>Über jedem Gruppenkopf außer dem ersten</b> dieselbe Haarlinie über die volle
+      Breite der Liste.</li>
+  </ul>
+  Beide in der Farbe aus Grund und Textfarbe im Verhältnis <code>frameContrast</code> des
+  Schemas — das Verfahren, mit dem Kirigami seine Trennlinien färbt und mit dem Plasmas
+  eigene <code>lineedit</code>-Grafik ihre Kante zeichnet (unter Breeze Dark beide
+  <span class="zahl">66,68,70</span>, bis auf den Bildpunkt dieselbe Farbe).<br><br>
+  Die Rangfolge entsteht aus der <i>Ausdehnung</i>, nicht aus der Stärke: die volle Breite
+  trennt Gruppen, die eingerückte trennt Notizen. Das beantwortet beide Hälften des
+  Kundenbefunds — die Notizen und die Gruppen — mit einem Mittel statt mit zweien, die
+  miteinander in Wettbewerb treten.<br><br>
+  <b>Es ändert kein Maß.</b> Beide Linien liegen in Innenabständen, die es schon gibt (die
+  Eintragslinie im unteren der 9 px, die Gruppenlinie im oberen der 14 px). Keine Zeile
+  wächst, also bleiben die Geometrie-Prüfsätze aus Zeichnung 3a und die Zusicherung aus
+  #70 unberührt.
+</div>
+
+<h2>Teil 2 — Das Erfassungsfenster</h2>
+
+<p>Der Maßstab des Kunden ist KRunner. KRunners Eingabefeld ist ein
+<code>KSvg.FrameSvgItem</code> mit <code>imagePath: "widgets/lineedit"</code>,
+<code>prefix: "base"</code>
+(<code>/usr/lib/qt6/qml/org/kde/plasma/components/TextField.qml:187–191</code>) — also
+dieselbe Machart, mit der Denkzettel seit #83 seine Hülle zeichnet, nur eine Grafik
+tiefer. Im Sitzungsbild des UI-Reviews zu Sprint 7 hebt sich KRunners Feld mit
+<span class="zahl">1,41 : 1</span> von seiner Hülle ab; dieselbe Grafik offscreen
+gerechnet ergibt <span class="zahl">1,39 : 1</span>.</p>
+
+<div class="reihe">
+  <div class="spalte">
+    <div class="titel">Heute — ein Farbblock</div>
+    <div class="unter">Der Befund #100. Nichts sagt, wo geschrieben wird.</div>
+    <div class="capture cap-dunkel">
+      <div class="app">Denkzettel</div>
+      <div class="feld">Sieht das aus wie ein Fenster von Plasma?<span class="cursor"></span></div>
+      <div class="fuss">Esc verwirft · Strg+Enter speichert</div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">Feld aus <code>widgets/lineedit</code> — <span class="gut">Empfehlung</span></div>
+    <div class="unter">Fläche und Kante aus der Theme-Grafik. 1,39 : 1 Fläche, 1,33 : 1 Kante.</div>
+    <div class="capture cap-dunkel">
+      <div class="app">Denkzettel</div>
+      <div class="feld gefuellt">Sieht das aus wie ein Fenster von Plasma?<span class="cursor"></span></div>
+      <div class="fuss">Esc verwirft · Strg+Enter speichert</div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">Nur die Kante, ohne Fläche</div>
+    <div class="unter">Der schonende Weg: die Schriftentscheidung aus #85 bliebe unberührt, weil der Text auf der Hülle stehen bleibt.</div>
+    <div class="capture cap-dunkel">
+      <div class="app">Denkzettel</div>
+      <div class="feld nurkante">Sieht das aus wie ein Fenster von Plasma?<span class="cursor"></span></div>
+      <div class="fuss">Esc verwirft · Strg+Enter speichert</div>
+    </div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">Empfehlung, helles Schema</div>
+    <div class="unter">Theme <code>breeze-light</code>: Fläche 1,33 : 1, Kante 1,12 : 1.</div>
+    <div class="capture cap-hell">
+      <div class="app">Denkzettel</div>
+      <div class="feld gefuellt">Sieht das aus wie ein Fenster von Plasma?<span class="cursor"></span></div>
+      <div class="fuss">Esc verwirft · Strg+Enter speichert</div>
+    </div>
+  </div>
+</div>
+
+<div class="merk">
+  <b>Was an der gefüllten Fassung mitentschieden wird.</b> Bekommt das Feld eine eigene
+  Fläche, steht der Notiztext nicht mehr auf der Hülle, sondern auf der Feldfläche. Die
+  Farbwahl aus #85 (<code>WindowText</code> statt der Feldrolle,
+  <span class="zahl">4,74 : 1</span> gegen <span class="zahl">4,22 : 1</span>) ist damit
+  nicht falsch, aber sie gilt für einen anderen Grund. Gemessen wird es besser:
+  Unter <code>default</code> steigt der Textkontrast von
+  <span class="zahl">12,72 : 1</span> auf <span class="zahl">17,68 : 1</span>, unter
+  <code>breeze-light</code> von <span class="zahl">11,42 : 1</span> auf
+  <span class="zahl">15,21 : 1</span>. Fällt die Entscheidung für die gefüllte Fassung,
+  gehört die Textfarbe im selben Zug auf die Ansichts-Textfarbe des Themes umgestellt —
+  sonst stehen Fläche und Schrift aus verschiedenen Farbsätzen aufeinander.
+</div>
+
+<p class="quelle">Grenze, ausdrücklich: Unter <code>CachyOS-Nord-round</code>,
+<code>Iridescent-round</code> und den drei <code>cachyos-emerald</code>-Themes zeichnet
+die eigene <code>lineedit</code>-Grafik nur einen Hauch (<span class="zahl">1,03 : 1</span>
+bis <span class="zahl">1,10 : 1</span>). Dort bliebe das Feld unsichtbar. Das ist
+dieselbe Grenze, die SPEC 3.1 für diese Themes schon benennt, und diese Vorlage hebt sie
+nicht auf. Auf der Einstellung des Kunden greift der Rückfall <code>default</code>, und
+dort trägt es.</p>
+
+</body>
+</html>

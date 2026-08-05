@@ -1,0 +1,109 @@
+M1 — Auf welchem Grund steht die Bibliotheksliste, und was trüge eine Trennung?
+Stand: 2026-08-06 00:22 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Gemessen am gebauten LibraryWindow mit gefüllter Liste (showLibrary), 18 Schemata.
+
+Stil: breeze
+Gemessen am gebauten LibraryWindow — angemeldete Rolle, gezeichneter Bildpunkt.
+
+Schema                 Window    Base      AltBase   gezeichn. = Rolle    angemeldet
+------------------------------------------------------------------------------------------------
+BreezeClassic          #eff0f1   #fcfcfc   #eff0f1   #fcfcfc   Base       Base / autoFill=ja
+BreezeDark             #202326   #141618   #1d1f22   #141618   Base       Base / autoFill=ja
+BreezeLight            #eff0f1   #ffffff   #f7f7f7   #ffffff   Base       Base / autoFill=ja
+CachyOSNord            #181b28   #161925   #141a21   #161925   Base       Base / autoFill=ja
+CachyOSNordLightly     #1e2233   #161925   #141a21   #161925   Base       Base / autoFill=ja
+Emerald                #ffffff   #fafbfc   #f8f8f8   #fafbfc   Base       Base / autoFill=ja
+EmeraldDark            #181b28   #161925   #141a21   #161925   Base       Base / autoFill=ja
+EmeraldLight           #ffffff   #fafbfc   #f8f8f8   #fafbfc   Base       Base / autoFill=ja
+EmeraldSmooth          #1a1c20   #1e2024   #141421   #1e2024   Base       Base / autoFill=ja
+IridescentLightly2     #080413   #06030f   #141421   #06030f   Base       Base / autoFill=ja
+IridescentLightly3     #010b12   #010e17   #141421   #010e17   Base       Base / autoFill=ja
+IridescentLightly      #080413   #06030f   #141421   #06030f   Base       Base / autoFill=ja
+KritaBlender           #303030   #3d3d3d   #363636   #3d3d3d   Base       Base / autoFill=ja
+KritaBright            #d4d4d4   #f4f4f4   #eaeaea   #f4f4f4   Base       Base / autoFill=ja
+KritaDark              #474747   #383838   #323232   #383838   Base       Base / autoFill=ja
+KritaDarker            #323232   #1c1c1c   #242323   #1c1c1c   Base       Base / autoFill=ja
+KritaDarkOrange        #1f1f1f   #242424   #202020   #242424   Base       Base / autoFill=ja
+KritaNeutral           #808080   #aaaaaa   #9a9a9a   #aaaaaa   Base       Base / autoFill=ja
+
+
+Kontraste gegen den GEZEICHNETEN Grund
+Schema                   AltBase (auf Base)      Mid Midlight     Dark   Shadow Kirigami
+------------------------------------------------------------------------------------------------
+BreezeClassic             1,11:1    1,11:1   1,64:1   1,05:1   3,24:1   8,73:1   1,49:1
+BreezeDark                1,10:1    1,10:1   1,09:1   1,42:1   1,01:1   1,06:1   1,86:1
+BreezeLight               1,07:1    1,07:1   1,68:1   1,07:1   3,33:1   8,96:1   1,49:1
+CachyOSNord               1,00:1    1,00:1   1,00:1   1,14:1   1,06:1   1,10:1   1,41:1
+CachyOSNordLightly        1,00:1    1,00:1   1,07:1   1,23:1   1,01:1   1,07:1   1,41:1
+Emerald                   1,03:1    1,03:1   1,00:1   1,02:1   1,03:1   1,07:1   1,60:1
+EmeraldDark               1,00:1    1,00:1   1,00:1   1,14:1   1,06:1   1,10:1   1,40:1
+EmeraldLight              1,03:1    1,03:1   1,00:1   1,02:1   1,03:1   1,07:1   1,60:1
+EmeraldSmooth             1,12:1    1,12:1   1,08:1   1,19:1   1,16:1   1,20:1   1,70:1
+IridescentLightly2        1,12:1    1,12:1   2,79:1   6,16:1   4,47:1   6,16:1   1,24:1
+IridescentLightly3        1,07:1    1,07:1   2,63:1   5,89:1   4,25:1   5,89:1   1,29:1
+IridescentLightly         1,12:1    1,12:1   2,79:1   6,16:1   4,47:1   6,16:1   1,24:1
+KritaBlender              1,11:1    1,11:1   1,32:1   1,00:1   1,57:1   1,69:1   1,72:1
+KritaBright               1,09:1    1,09:1   1,83:1   1,27:1   3,20:1   7,44:1   1,52:1
+KritaDark                 1,09:1    1,09:1   1,12:1   1,43:1   1,16:1   1,38:1   1,57:1
+KritaDarker               1,09:1    1,09:1   1,20:1   1,72:1   1,04:1   1,10:1   1,79:1
+KritaDarkOrange           1,05:1    1,05:1   1,11:1   1,17:1   1,20:1   1,25:1   1,92:1
+KritaNeutral              1,21:1    1,21:1   2,18:1   1,46:1   3,99:1   5,62:1   1,41:1
+------------------------------------------------------------------------------------------------
+schlechtester Fall        1,00:1    1,00:1   1,00:1   1,00:1   1,01:1   1,06:1   1,24:1
+
+AlternateBase gegen den gezeichneten Grund: 3 von 18 Schemata ohne messbaren
+Unterschied, 5 von 18 unter 1,03:1.
+
+############ Gegenprobe mit dem Stil fusion — hängt der Grund am Stil?
+
+Stil: fusion
+Gemessen am gebauten LibraryWindow — angemeldete Rolle, gezeichneter Bildpunkt.
+
+Schema                 Window    Base      AltBase   gezeichn. = Rolle    angemeldet
+------------------------------------------------------------------------------------------------
+BreezeClassic          #eff0f1   #fcfcfc   #eff0f1   #fcfcfc   Base       Base / autoFill=ja
+BreezeDark             #202326   #141618   #1d1f22   #141618   Base       Base / autoFill=ja
+BreezeLight            #eff0f1   #ffffff   #f7f7f7   #ffffff   Base       Base / autoFill=ja
+CachyOSNord            #181b28   #161925   #141a21   #161925   Base       Base / autoFill=ja
+CachyOSNordLightly     #1e2233   #161925   #141a21   #161925   Base       Base / autoFill=ja
+Emerald                #ffffff   #fafbfc   #f8f8f8   #fafbfc   Base       Base / autoFill=ja
+EmeraldDark            #181b28   #161925   #141a21   #161925   Base       Base / autoFill=ja
+EmeraldLight           #ffffff   #fafbfc   #f8f8f8   #fafbfc   Base       Base / autoFill=ja
+EmeraldSmooth          #1a1c20   #1e2024   #141421   #1e2024   Base       Base / autoFill=ja
+IridescentLightly2     #080413   #06030f   #141421   #06030f   Base       Base / autoFill=ja
+IridescentLightly3     #010b12   #010e17   #141421   #010e17   Base       Base / autoFill=ja
+IridescentLightly      #080413   #06030f   #141421   #06030f   Base       Base / autoFill=ja
+KritaBlender           #303030   #3d3d3d   #363636   #3d3d3d   Base       Base / autoFill=ja
+KritaBright            #d4d4d4   #f4f4f4   #eaeaea   #f4f4f4   Base       Base / autoFill=ja
+KritaDark              #474747   #383838   #323232   #383838   Base       Base / autoFill=ja
+KritaDarker            #323232   #1c1c1c   #242323   #1c1c1c   Base       Base / autoFill=ja
+KritaDarkOrange        #1f1f1f   #242424   #202020   #242424   Base       Base / autoFill=ja
+KritaNeutral           #808080   #aaaaaa   #9a9a9a   #aaaaaa   Base       Base / autoFill=ja
+
+
+Kontraste gegen den GEZEICHNETEN Grund
+Schema                   AltBase (auf Base)      Mid Midlight     Dark   Shadow Kirigami
+------------------------------------------------------------------------------------------------
+BreezeClassic             1,11:1    1,11:1   1,64:1   1,05:1   3,24:1   8,73:1   1,49:1
+BreezeDark                1,10:1    1,10:1   1,09:1   1,42:1   1,01:1   1,06:1   1,86:1
+BreezeLight               1,07:1    1,07:1   1,68:1   1,07:1   3,33:1   8,96:1   1,49:1
+CachyOSNord               1,00:1    1,00:1   1,00:1   1,14:1   1,06:1   1,10:1   1,41:1
+CachyOSNordLightly        1,00:1    1,00:1   1,07:1   1,23:1   1,01:1   1,07:1   1,41:1
+Emerald                   1,03:1    1,03:1   1,00:1   1,02:1   1,03:1   1,07:1   1,60:1
+EmeraldDark               1,00:1    1,00:1   1,00:1   1,14:1   1,06:1   1,10:1   1,40:1
+EmeraldLight              1,03:1    1,03:1   1,00:1   1,02:1   1,03:1   1,07:1   1,60:1
+EmeraldSmooth             1,12:1    1,12:1   1,08:1   1,19:1   1,16:1   1,20:1   1,70:1
+IridescentLightly2        1,12:1    1,12:1   2,79:1   6,16:1   4,47:1   6,16:1   1,24:1
+IridescentLightly3        1,07:1    1,07:1   2,63:1   5,89:1   4,25:1   5,89:1   1,29:1
+IridescentLightly         1,12:1    1,12:1   2,79:1   6,16:1   4,47:1   6,16:1   1,24:1
+KritaBlender              1,11:1    1,11:1   1,32:1   1,00:1   1,57:1   1,69:1   1,72:1
+KritaBright               1,09:1    1,09:1   1,83:1   1,27:1   3,20:1   7,44:1   1,52:1
+KritaDark                 1,09:1    1,09:1   1,12:1   1,43:1   1,16:1   1,38:1   1,57:1
+KritaDarker               1,09:1    1,09:1   1,20:1   1,72:1   1,04:1   1,10:1   1,79:1
+KritaDarkOrange           1,05:1    1,05:1   1,11:1   1,17:1   1,20:1   1,25:1   1,92:1
+KritaNeutral              1,21:1    1,21:1   2,18:1   1,46:1   3,99:1   5,62:1   1,41:1
+------------------------------------------------------------------------------------------------
+schlechtester Fall        1,00:1    1,00:1   1,00:1   1,00:1   1,01:1   1,06:1   1,24:1
+
+AlternateBase gegen den gezeichneten Grund: 3 von 18 Schemata ohne messbaren
+Unterschied, 5 von 18 unter 1,03:1.

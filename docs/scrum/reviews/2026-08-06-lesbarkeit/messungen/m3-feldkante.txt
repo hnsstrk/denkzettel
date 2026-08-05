@@ -1,0 +1,98 @@
+M3 — Welche Kante bekäme das Textfeld des Erfassungsfensters?
+Stand: 2026-08-06 00:22 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Geprüft wird der Weg, den Plasmas eigenes TextField geht:
+widgets/lineedit, Vorsatz base (TextField.qml:187-191).
+
+Gerechnet wird deckend über einem benannten Grund, weil beide Grafiken
+durchscheinen können. Grund für die Hülle: mittleres Grau 128,128,128
+(derselbe benannte Grund wie in den Belegen zu #85). Grund für das Feld:
+die zusammengesetzte Hülle desselben Themes — dort liegt es ja.
+
+############ default
+  eigene lineedit-Grafik: ja
+  Hülle   Mitte roh 32,35,38/a216  über Grau 47,49,52/a255
+  Feld    Mitte roh 20,22,24/a255  über Hülle 20,22,24/a255
+  Kante   roh       66,68,70/a255  über Hülle 66,68,70/a255  (erster deckender Punkt 66,68,70/a255)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 6 unten 6
+  Feldfläche gegen Hülle : 1.39:1
+  Feldkante  gegen Hülle : 1.33:1
+  Text auf der Hülle heute (Window-Text 252,252,252/a255)      : 12.72:1
+  Text auf der Feldfläche danach (View-Text 252,252,252/a255)  : 17.68:1
+
+############ breeze-dark
+  eigene lineedit-Grafik: nein (Rückfall auf default)
+  Hülle   Mitte roh 32,35,38/a216  über Grau 47,49,52/a255
+  Feld    Mitte roh 20,22,24/a255  über Hülle 20,22,24/a255
+  Kante   roh       66,68,70/a255  über Hülle 66,68,70/a255  (erster deckender Punkt 66,68,70/a255)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 6 unten 6
+  Feldfläche gegen Hülle : 1.39:1
+  Feldkante  gegen Hülle : 1.33:1
+  Text auf der Hülle heute (Window-Text 252,252,252/a255)      : 12.72:1
+  Text auf der Feldfläche danach (View-Text 252,252,252/a255)  : 17.68:1
+
+############ breeze-light
+  eigene lineedit-Grafik: nein (Rückfall auf default)
+  Hülle   Mitte roh 240,240,241/a216  über Grau 223,223,224/a255
+  Feld    Mitte roh 255,255,255/a255  über Hülle 255,255,255/a255
+  Kante   roh       211,212,212/a255  über Hülle 211,212,212/a255  (erster deckender Punkt 211,212,212/a255)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 6 unten 6
+  Feldfläche gegen Hülle : 1.33:1
+  Feldkante  gegen Hülle : 1.12:1
+  Text auf der Hülle heute (Window-Text 35,38,41/a255)      : 11.42:1
+  Text auf der Feldfläche danach (View-Text 35,38,41/a255)  : 15.21:1
+
+############ CachyOS-Nord-round
+  eigene lineedit-Grafik: ja
+  Hülle   Mitte roh 30,34,51/a255  über Grau 30,34,51/a255
+  Feld    Mitte roh 0,0,0/a15  über Hülle 28,32,48/a255
+  Kante   roh       0,0,0/a15  über Hülle 28,32,48/a255  (erster deckender Punkt 0,0,0/a15)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 5.99999 unten 6.00001
+  Feldfläche gegen Hülle : 1.03:1
+  Feldkante  gegen Hülle : 1.03:1
+  Text auf der Hülle heute (Window-Text 252,252,252/a255)      : 15.37:1
+  Text auf der Feldfläche danach (View-Text 252,252,252/a255)  : 15.76:1
+
+############ Iridescent-round
+  eigene lineedit-Grafik: ja
+  Hülle   Mitte roh 0,0,0/a51  über Grau 102,102,102/a255
+  Feld    Mitte roh 0,0,0/a15  über Hülle 96,96,96/a255
+  Kante   roh       0,0,0/a15  über Hülle 96,96,96/a255  (erster deckender Punkt 0,0,0/a15)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 5.99999 unten 6.00001
+  Feldfläche gegen Hülle : 1.10:1
+  Feldkante  gegen Hülle : 1.10:1
+  Text auf der Hülle heute (Window-Text 252,252,252/a255)      : 5.60:1
+  Text auf der Feldfläche danach (View-Text 252,252,252/a255)  : 6.13:1
+
+############ cachyos-emerald
+  eigene lineedit-Grafik: ja
+  Hülle   Mitte roh 0,0,0/a7  über Grau 124,124,124/a255
+  Feld    Mitte roh 0,0,0/a15  über Hülle 117,117,117/a255
+  Kante   roh       0,0,0/a15  über Hülle 117,117,117/a255  (erster deckender Punkt 0,0,0/a15)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 5.99999 unten 6.00001
+  Feldfläche gegen Hülle : 1.10:1
+  Feldkante  gegen Hülle : 1.10:1
+  Text auf der Hülle heute (Window-Text 252,252,252/a255)      : 4.07:1
+  Text auf der Feldfläche danach (View-Text 252,252,252/a255)  : 4.49:1
+
+############ cachyos-emerald-color
+  eigene lineedit-Grafik: ja
+  Hülle   Mitte roh 0,0,0/a7  über Grau 124,124,124/a255
+  Feld    Mitte roh 0,0,0/a15  über Hülle 117,117,117/a255
+  Kante   roh       0,0,0/a15  über Hülle 117,117,117/a255  (erster deckender Punkt 0,0,0/a15)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 5.99999 unten 6.00001
+  Feldfläche gegen Hülle : 1.10:1
+  Feldkante  gegen Hülle : 1.10:1
+  Text auf der Hülle heute (Window-Text 0,199,144/a255)      : 1.90:1
+  Text auf der Feldfläche danach (View-Text 2,189,136/a255)  : 1.90:1
+
+############ cachyos-emerald-light
+  eigene lineedit-Grafik: ja
+  Hülle   Mitte roh 0,0,0/a7  über Grau 124,124,124/a255
+  Feld    Mitte roh 0,0,0/a15  über Hülle 117,117,117/a255
+  Kante   roh       0,0,0/a15  über Hülle 117,117,117/a255  (erster deckender Punkt 0,0,0/a15)
+  Ränder der Feldgrafik: links 6 oben 6 rechts 5.99999 unten 6.00001
+  Feldfläche gegen Hülle : 1.10:1
+  Feldkante  gegen Hülle : 1.10:1
+  Text auf der Hülle heute (Window-Text 35,38,41/a255)      : 3.64:1
+  Text auf der Feldfläche danach (View-Text 35,38,41/a255)  : 3.30:1
+

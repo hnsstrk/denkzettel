@@ -1,0 +1,310 @@
+M4 — Zahlen für das Mockup: Schriften, Schemafarben, Trennmittel.
+Stand: 2026-08-06 00:22 CEST, Ganymed. QT_QPA_PLATFORMTHEME=kde, Stil breeze.
+
+Schriften (QT_QPA_PLATFORMTHEME=kde):
+  Notiztext   Noto Sans  10 pt / 18 px
+  Zeitstempel Noto Sans  8 pt / 15 px
+  Gruppenkopf Noto Sans  8 pt / 15 px, DemiBold
+
+############ BreezeClassic
+  Window             #eff0f1  (239,240,241)
+  WindowText         #232627  (35,38,39)
+  Base               #fcfcfc  (252,252,252)
+  AlternateBase      #eff0f1  (239,240,241)
+  Text               #232627  (35,38,39)
+  PlaceholderText    #7f8c8d  (127,140,141)
+  Highlight          #3daee9  (61,174,233)
+  HighlightedText    #fcfcfc  (252,252,252)
+  Trennlinie         #d1d1d1  (209,209,209)
+  frameContrast 0.2 — Trennlinie gegen Base 1.49:1
+  AlternateBase gegen Base 1.11:1
+  Text gegen Base 14.85:1, PlaceholderText gegen Base 3.39:1
+  Header-Fläche      #eff0f1  (239,240,241)
+  Header-Fläche gegen Base 1.11:1
+
+############ BreezeDark
+  Window             #202326  (32,35,38)
+  WindowText         #fcfcfc  (252,252,252)
+  Base               #141618  (20,22,24)
+  AlternateBase      #1d1f22  (29,31,34)
+  Text               #fcfcfc  (252,252,252)
+  PlaceholderText    #a1a9b1  (161,169,177)
+  Highlight          #3daee9  (61,174,233)
+  HighlightedText    #fcfcfc  (252,252,252)
+  Trennlinie         #424446  (66,68,70)
+  frameContrast 0.2 — Trennlinie gegen Base 1.85:1
+  AlternateBase gegen Base 1.10:1
+  Text gegen Base 17.68:1, PlaceholderText gegen Base 7.62:1
+  Header-Fläche      #292c30  (41,44,48)
+  Header-Fläche gegen Base 1.29:1
+
+############ BreezeLight
+  Window             #eff0f1  (239,240,241)
+  WindowText         #232629  (35,38,41)
+  Base               #ffffff  (255,255,255)
+  AlternateBase      #f7f7f7  (247,247,247)
+  Text               #232629  (35,38,41)
+  PlaceholderText    #707d8a  (112,125,138)
+  Highlight          #3daee9  (61,174,233)
+  HighlightedText    #ffffff  (255,255,255)
+  Trennlinie         #d3d4d4  (211,212,212)
+  frameContrast 0.2 — Trennlinie gegen Base 1.49:1
+  AlternateBase gegen Base 1.07:1
+  Text gegen Base 15.21:1, PlaceholderText gegen Base 4.21:1
+  Header-Fläche      #dee0e2  (222,224,226)
+  Header-Fläche gegen Base 1.32:1
+
+############ CachyOSNord
+  Window             #181b28  (24,27,40)
+  WindowText         #66c2f2  (102,194,242)
+  Base               #161925  (22,25,37)
+  AlternateBase      #141a21  (20,26,33)
+  Text               #47adda  (71,173,218)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #47add6  (71,173,214)
+  HighlightedText    #0a0b0c  (10,11,12)
+  Trennlinie         #203749  (32,55,73)
+  frameContrast 0.2 — Trennlinie gegen Base 1.42:1
+  AlternateBase gegen Base 1.00:1
+  Text gegen Base 6.88:1, PlaceholderText gegen Base 3.23:1
+  Header-Fläche      #1e2233  (30,34,51)
+  Header-Fläche gegen Base 1.11:1
+
+############ CachyOSNordLightly
+  Window             #1e2233  (30,34,51)
+  WindowText         #66c2f2  (102,194,242)
+  Base               #161925  (22,25,37)
+  AlternateBase      #141a21  (20,26,33)
+  Text               #47adda  (71,173,218)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #47add6  (71,173,214)
+  HighlightedText    #0a0b0c  (10,11,12)
+  Trennlinie         #203749  (32,55,73)
+  frameContrast 0.2 — Trennlinie gegen Base 1.42:1
+  AlternateBase gegen Base 1.00:1
+  Text gegen Base 6.88:1, PlaceholderText gegen Base 3.23:1
+  Header-Fläche      #1e2233  (30,34,51)
+  Header-Fläche gegen Base 1.11:1
+
+############ Emerald
+  Window             #ffffff  (255,255,255)
+  WindowText         #010101  (1,1,1)
+  Base               #fafbfc  (250,251,252)
+  AlternateBase      #f8f8f8  (248,248,248)
+  Text               #010101  (1,1,1)
+  PlaceholderText    #888786  (136,135,134)
+  Highlight          #009014  (0,144,20)
+  HighlightedText    #fafbfc  (250,251,252)
+  Trennlinie         #c8c9ca  (200,201,202)
+  frameContrast 0.2 — Trennlinie gegen Base 1.60:1
+  AlternateBase gegen Base 1.03:1
+  Text gegen Base 20.15:1, PlaceholderText gegen Base 3.46:1
+  Header-Fläche      #ffffff  (255,255,255)
+  Header-Fläche gegen Base 1.04:1
+
+############ EmeraldDark
+  Window             #181b28  (24,27,40)
+  WindowText         #00c790  (0,199,144)
+  Base               #161925  (22,25,37)
+  AlternateBase      #141a21  (20,26,33)
+  Text               #02bd88  (2,189,136)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #009014  (0,144,20)
+  HighlightedText    #fefefe  (254,254,254)
+  Trennlinie         #123a39  (18,58,57)
+  frameContrast 0.2 — Trennlinie gegen Base 1.41:1
+  AlternateBase gegen Base 1.00:1
+  Text gegen Base 7.20:1, PlaceholderText gegen Base 3.23:1
+  Header-Fläche      #1e2233  (30,34,51)
+  Header-Fläche gegen Base 1.11:1
+
+############ EmeraldLight
+  Window             #ffffff  (255,255,255)
+  WindowText         #010101  (1,1,1)
+  Base               #fafbfc  (250,251,252)
+  AlternateBase      #f8f8f8  (248,248,248)
+  Text               #010101  (1,1,1)
+  PlaceholderText    #888786  (136,135,134)
+  Highlight          #009014  (0,144,20)
+  HighlightedText    #fafbfc  (250,251,252)
+  Trennlinie         #c8c9ca  (200,201,202)
+  frameContrast 0.2 — Trennlinie gegen Base 1.60:1
+  AlternateBase gegen Base 1.03:1
+  Text gegen Base 20.15:1, PlaceholderText gegen Base 3.46:1
+  Header-Fläche      #ffffff  (255,255,255)
+  Header-Fläche gegen Base 1.04:1
+
+############ EmeraldSmooth
+  Window             #1a1c20  (26,28,32)
+  WindowText         #d3dae3  (211,218,227)
+  Base               #1e2024  (30,32,36)
+  AlternateBase      #141421  (20,20,33)
+  Text               #d3dae3  (211,218,227)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #009014  (0,144,20)
+  HighlightedText    #fefefe  (254,254,254)
+  Trennlinie         #42454a  (66,69,74)
+  frameContrast 0.2 — Trennlinie gegen Base 1.69:1
+  AlternateBase gegen Base 1.12:1
+  Text gegen Base 11.58:1, PlaceholderText gegen Base 3.01:1
+  Header-Fläche      #1a1c20  (26,28,32)
+  Header-Fläche gegen Base 1.05:1
+
+############ IridescentLightly2
+  Window             #080413  (8,4,19)
+  WindowText         #1793d1  (23,147,209)
+  Base               #06030f  (6,3,15)
+  AlternateBase      #141421  (20,20,33)
+  Text               #1793d1  (23,147,209)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #109ee6  (16,158,230)
+  HighlightedText    #160e21  (22,14,33)
+  Trennlinie         #092036  (9,32,54)
+  frameContrast 0.2 — Trennlinie gegen Base 1.24:1
+  AlternateBase gegen Base 1.12:1
+  Text gegen Base 5.97:1, PlaceholderText gegen Base 3.77:1
+  Header-Fläche      #06030f  (6,3,15)
+  Header-Fläche gegen Base 1.00:1
+
+############ IridescentLightly3
+  Window             #010b12  (1,11,18)
+  WindowText         #1793d1  (23,147,209)
+  Base               #010e17  (1,14,23)
+  AlternateBase      #141421  (20,20,33)
+  Text               #1793d1  (23,147,209)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #109ee6  (16,158,230)
+  HighlightedText    #160e21  (22,14,33)
+  Trennlinie         #05293c  (5,41,60)
+  frameContrast 0.2 — Trennlinie gegen Base 1.29:1
+  AlternateBase gegen Base 1.07:1
+  Text gegen Base 5.70:1, PlaceholderText gegen Base 3.60:1
+  Header-Fläche      #010e17  (1,14,23)
+  Header-Fläche gegen Base 1.00:1
+
+############ IridescentLightly
+  Window             #080413  (8,4,19)
+  WindowText         #1793d1  (23,147,209)
+  Base               #06030f  (6,3,15)
+  AlternateBase      #141421  (20,20,33)
+  Text               #1793d1  (23,147,209)
+  PlaceholderText    #666a73  (102,106,115)
+  Highlight          #109ee6  (16,158,230)
+  HighlightedText    #160e21  (22,14,33)
+  Trennlinie         #092036  (9,32,54)
+  frameContrast 0.2 — Trennlinie gegen Base 1.24:1
+  AlternateBase gegen Base 1.12:1
+  Text gegen Base 5.97:1, PlaceholderText gegen Base 3.77:1
+  Header-Fläche      #06030f  (6,3,15)
+  Header-Fläche gegen Base 1.00:1
+
+############ KritaBlender
+  Window             #303030  (48,48,48)
+  WindowText         #ebebeb  (235,235,235)
+  Base               #3d3d3d  (61,61,61)
+  AlternateBase      #363636  (54,54,54)
+  Text               #ebebeb  (235,235,235)
+  PlaceholderText    #c3c3c3  (195,195,195)
+  Highlight          #5983c5  (89,131,197)
+  HighlightedText    #ffffff  (255,255,255)
+  Trennlinie         #606060  (96,96,96)
+  frameContrast 0.2 — Trennlinie gegen Base 1.73:1
+  AlternateBase gegen Base 1.11:1
+  Text gegen Base 9.11:1, PlaceholderText gegen Base 6.16:1
+  Header-Fläche      #282828  (40,40,40)
+  Header-Fläche gegen Base 1.36:1
+
+############ KritaBright
+  Window             #d4d4d4  (212,212,212)
+  WindowText         #2a2a2a  (42,42,42)
+  Base               #f4f4f4  (244,244,244)
+  AlternateBase      #eaeaea  (234,234,234)
+  Text               #181818  (24,24,24)
+  PlaceholderText    #6080a0  (96,128,160)
+  Highlight          #5c90bc  (92,144,188)
+  HighlightedText    #f0f0f0  (240,240,240)
+  Trennlinie         #c8c8c8  (200,200,200)
+  frameContrast 0.2 — Trennlinie gegen Base 1.52:1
+  AlternateBase gegen Base 1.09:1
+  Text gegen Base 16.14:1, PlaceholderText gegen Base 3.75:1
+  Header-Fläche      #d4d4d4  (212,212,212)
+  Header-Fläche gegen Base 1.35:1
+
+############ KritaDark
+  Window             #474747  (71,71,71)
+  WindowText         #c8c8c8  (200,200,200)
+  Base               #383838  (56,56,56)
+  AlternateBase      #323232  (50,50,50)
+  Text               #c8c8c8  (200,200,200)
+  PlaceholderText    #9ca2ae  (156,162,174)
+  Highlight          #53728e  (83,114,142)
+  HighlightedText    #ebebeb  (235,235,235)
+  Trennlinie         #555555  (85,85,85)
+  frameContrast 0.2 — Trennlinie gegen Base 1.57:1
+  AlternateBase gegen Base 1.09:1
+  Text gegen Base 7.01:1, PlaceholderText gegen Base 4.57:1
+  Header-Fläche      #474747  (71,71,71)
+  Header-Fläche gegen Base 1.26:1
+
+############ KritaDarker
+  Window             #323232  (50,50,50)
+  WindowText         #ebebeb  (235,235,235)
+  Base               #1c1c1c  (28,28,28)
+  AlternateBase      #242323  (36,35,35)
+  Text               #ebebeb  (235,235,235)
+  PlaceholderText    #787775  (120,119,117)
+  Highlight          #53728e  (83,114,142)
+  HighlightedText    #ffffff  (255,255,255)
+  Trennlinie         #454545  (69,69,69)
+  frameContrast 0.2 — Trennlinie gegen Base 1.78:1
+  AlternateBase gegen Base 1.09:1
+  Text gegen Base 14.30:1, PlaceholderText gegen Base 3.81:1
+  Header-Fläche      #323232  (50,50,50)
+  Header-Fläche gegen Base 1.33:1
+
+############ KritaDarkOrange
+  Window             #1f1f1f  (31,31,31)
+  WindowText         #ffffff  (255,255,255)
+  Base               #242424  (36,36,36)
+  AlternateBase      #202020  (32,32,32)
+  Text               #ffffff  (255,255,255)
+  PlaceholderText    #c7c7c7  (199,199,199)
+  Highlight          #ffa200  (255,162,0)
+  HighlightedText    #2c1b00  (44,27,0)
+  Trennlinie         #505050  (80,80,80)
+  frameContrast 0.2 — Trennlinie gegen Base 1.93:1
+  AlternateBase gegen Base 1.05:1
+  Text gegen Base 15.52:1, PlaceholderText gegen Base 9.18:1
+  Header-Fläche      #1f1f1f  (31,31,31)
+  Header-Fläche gegen Base 1.06:1
+
+############ KritaNeutral
+  Window             #808080  (128,128,128)
+  WindowText         #121212  (18,18,18)
+  Base               #aaaaaa  (170,170,170)
+  AlternateBase      #9a9a9a  (154,154,154)
+  Text               #1e1e1e  (30,30,30)
+  PlaceholderText    #525252  (82,82,82)
+  Highlight          #2a5b8f  (42,91,143)
+  HighlightedText    #b4b4b4  (180,180,180)
+  Trennlinie         #8e8e8e  (142,142,142)
+  frameContrast 0.2 — Trennlinie gegen Base 1.41:1
+  AlternateBase gegen Base 1.21:1
+  Text gegen Base 7.18:1, PlaceholderText gegen Base 3.36:1
+  Header-Fläche      #808080  (128,128,128)
+  Header-Fläche gegen Base 1.70:1
+
+
+
+=== Zusammenzug über alle 18 Schemata ===
+Jedes Mittel gegen die Fläche, auf der die Liste steht (Base, gemessen in M1).
+
+Trennmittel                    schlechtester   bester  <1,10:1  <1,20:1
+-----------------------------------------------------------------------
+Trennlinie (frameContrast)           1.24:1   1.93:1        0        0
+Abwechselnde Zeilenfarbe             1.00:1   1.21:1       11       17
+Fläche hinter dem Kopf (Header)       1.00:1   1.70:1        7       11
+
+Zum Vergleich die vier Rollen, an denen die Fußzeilen-Linie am 01.08.2026
+gescheitert ist (aus M1, gegen denselben Grund): Mid 1,00:1 · Midlight 1,00:1 ·
+Dark 1,01:1 · Shadow 1,06:1 im jeweils schlechtesten Fall.
