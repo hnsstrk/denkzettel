@@ -208,6 +208,17 @@ ist genau der Punkt: Der Empfängerparameter von `connect` ist
 `const`-qualifiziert, deshalb übersetzt es — und deshalb sieht der Prüfer die
 Änderung nicht.*
 
+**Ich habe versucht, das hart zu messen, und es ist mir nicht gelungen.** Ein
+Release-Bau (`-O2`) ist der Ort, an dem ein Übersetzer die Konstantheit
+ausnutzen dürfte; die beiden `DialogWatch`-Tests laufen dort **grün**. Das
+entkräftet das Argument nicht — undefiniertes Verhalten, das heute nicht
+zubeißt, bleibt undefiniertes Verhalten, und der Übersetzer darf seine Meinung
+mit jeder Version ändern —, aber es ist ehrlich zu sagen, was §5 ist: **ein
+Argument aus der Sprachnorm und dem gelesenen Änderungsweg, kein Messwert.**
+Ein Lauf, der das Gegenteil zu belegen schiene, wäre hier ebenfalls keiner: Ein
+grüner Test beweist bei undefiniertem Verhalten nur, dass dieser Übersetzer an
+diesem Tag so entschieden hat.
+
 ## 6. Die Gegenprobe — eine Null, die etwas behauptet
 
 **Zwei Proben, weil eine Null ohne sie keine Aussage ist.**
@@ -331,8 +342,42 @@ mitgenommen hätte, die diese Story gerade sinnvoll heilt.
    Sitzung des Kunden an. Die Streichung in §9 ruht nicht darauf: Sie ruht
    darauf, dass das Rücklesen **jeden** Fall abdeckt, den der Rückgabewert
    abdeckt.
+4. **Dass ein `const` auf einem QObject wirklich zubeißt** (§5), ist nicht
+   messbar — ein Übersetzer *darf* die Konstantheit ausnutzen, er *muss* nicht.
+   Der Versuch mit `-O2` ist in §5 protokolliert, samt seinem negativen
+   Ausgang.
 
-## 12. Ein Fund, der in die Fallenliste gehört
+## 12. Zwei Befunde außerhalb meiner Fläche — gemeldet, nicht geheilt
+
+**`ctest` ist im Release-Bau rot, und zwar auf `main`, schon vor #76.**
+Gemessen, weil ich §5 hart belegen wollte:
+
+| Bau | Stand | `ctest` |
+|---|---|---|
+| `Debug` | `main` und dieser Zweig | 9/9 grün |
+| `Release` | **`main`** | **8/9** — `librarytest` fällt |
+| `Release` | dieser Zweig | **8/9** — dieselben zwei Fälle |
+| `RelWithDebInfo` | `main` | **8/9** — dieselben zwei Fälle |
+
+Es sind zweimal dieselben Fälle, in zwei Läufen wiederholbar:
+
+- `LibraryTest::showsCategoryAndTagsAsPlainDisplayWhileEditing()` — die
+  Kategorie „Software-Ideen" steht nicht in der Anzeige
+  (`tests/librarytest.cpp:2942`).
+- `LibraryTest::keepsCategoryTagsAndStateWhileSaving()` — `saved->category` ist
+  leer statt „Software-Ideen" (`tests/librarytest.cpp:3060`).
+
+**Diese Story hat das nicht verursacht** — der Kontrolllauf auf `main` zeigt
+dasselbe Bild. Aufgefallen ist es nur, weil hier zum ersten Mal jemand mit
+`-O2` gebaut hat; DoD 1 und der CI-Lauf bauen beide `Debug`. Nicht meine
+Fläche, keine Zeile angefasst.
+
+**Ein unversionierter Ordner `--help` liegt in der Wurzel des Repositoriums**
+mit acht PNG aus einem Bildlauf (`ecke-*.png`, `fenster-*.png`). Da hat ein
+Bildläufer ein Argument als Ausgabepfad genommen. Nicht versioniert, also ohne
+Wirkung auf den Stand — aber jemand sollte ihn wegräumen.
+
+## 13. Ein Fund, der in die Fallenliste gehört
 
 **Meine ersten drei `-fix`-Runden haben null Dateien geprüft und dabei wie eine
 saubere Konvergenz ausgesehen.** Gemeldet wurden `Bau rc=0`, `Baufehler=0`,
