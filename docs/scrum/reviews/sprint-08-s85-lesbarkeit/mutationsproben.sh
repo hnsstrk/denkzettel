@@ -105,7 +105,7 @@ lauf M3 "das Tor sagt immer „dieses Theme bringt nichts mit\"" \
     "rot in readsTheTextColoursOfTheDesktopTheme und in beiden AK-1-Sätzen" \
     sed -i "$TOR s|^    if (file.isEmpty()) {$|    if (true) {|" "$FENSTER"
 
-# Diese Probe hat bis zum 06.08.2026 nichts Eigenes geprüft: Das Prüfgut trug
+# Diese Probe hat bis zum 05.08.2026 nichts Eigenes geprüft: Das Prüfgut trug
 # nur `[Colors:Window]`, also endete „falsche Gruppe gelesen" auf demselben
 # `return {}` wie M3 („keine Datei gefunden") — dieselben fünf Fehlschläge,
 # zwölf Eingriffe, aber elf Sachverhalte (karpathy-Befund K1 zu Sprint 8). Seit

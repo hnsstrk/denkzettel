@@ -222,7 +222,7 @@ keine „grün geblieben".**
 | M1 | Notiztext nimmt wieder die Schemafarbe | rot (3) |
 | M2 | gedämpfte Klasse nimmt wieder die Schemafarbe | rot (3) |
 | M3 | das Tor sagt immer „dieses Theme bringt nichts mit" | rot (5) |
-| M4 | das Tor liest `[Colors:View]` statt `[Colors:Window]` | rot (5) — *seit 06.08.2026, siehe unten* |
+| M4 | das Tor liest `[Colors:View]` statt `[Colors:Window]` | rot (5) — *seit 05.08.2026, siehe unten* |
 | M5 | der Theme-Wechsel schreibt die Farben nicht mehr nach | rot (4) |
 | M6 | die Themefarbe überlebt den Palettenwechsel nicht | rot (4) |
 | M6b | die Vorrangregel wandert nach `reloadDesktopTheme()` | rot (3) |
@@ -232,7 +232,7 @@ keine „grün geblieben".**
 | M10 | App-Name und Fußzeile bekommen die Themefarbe nicht | rot (3) |
 | M11 | `noteTextUsesTheWindowTextRole()` nennt sein Theme nicht selbst | rot (1) |
 
-**Berichtigung vom 06.08.2026 (karpathy-Befund K1): M4 hat bis dahin nichts
+**Berichtigung vom 05.08.2026 (karpathy-Befund K1): M4 hat bis dahin nichts
 Eigenes geprüft.** Das mitgelieferte Prüf-Theme trug nur `[Colors:Window]`, also
 endete „die falsche Gruppe gelesen" auf demselben `return {}` wie M3 „keine
 Datei gefunden" — **dieselben fünf Fehlschläge mit denselben Ist-Werten.** Es
@@ -345,7 +345,7 @@ geladenen Effekten keinen mit „contrast" im Namen; `isEffectLoaded("blur")` is
 dem Bildschirmhintergrund und auf nichts sonst.
 
 *Zum Halbsatz „auf die diese Themes gebaut sind" siehe die Berichtigung vom
-06.08.2026 weiter unten: `cachyos-emerald-light` fordert den Effekt gar nicht
+05.08.2026 weiter unten: `cachyos-emerald-light` fordert den Effekt gar nicht
 an. Die Zusicherungslücke bleibt für alle drei, ihr Grund ist nicht bei allen
 dreien derselbe.*
 
@@ -367,13 +367,13 @@ heilen** — eine Ausnahme für dieses Theme wäre genau die „Anpassung", die 
 Kunde am 04.08.2026 abgewählt hat. Was damit zu tun ist, entscheidet der PO;
 sachlich hängt es an demselben Impediment wie #83.
 
-**Berichtigung vom 06.08.2026 (karpathy-Befund K2). Der letzte Satz des Kastens
+**Berichtigung vom 05.08.2026 (karpathy-Befund K2). Der letzte Satz des Kastens
 oben ist widerlegt: `cachyos-emerald-light` trägt keine
 `[ContrastEffect]`-Gruppe.** Der Absatz bleibt stehen, weil ein überholter Beleg
 geankert und nicht geglättet wird (B17); was gilt, steht hier.
 
 An den Dateien nachgemessen (`/usr/share/plasma/desktoptheme/*/metadata.desktop`,
-06.08.2026):
+05.08.2026):
 
 | Theme | `metadata.desktop` | `[ContrastEffect]` |
 |---|---|---|

@@ -651,6 +651,12 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
     Abschluss; ein zusätzlicher Abschluss-Tag entfällt dann. Der einmalige
     `sprint-03-abschluss` ist eine Übergangsform aus der Zeit vor dieser Regel
     (Sprint 3, 16.13) und kein drittes Tag-Schema.
+    **Die Aussetzung ist am 05.08.2026 beendet: #61 ist geliefert**, und
+    `denkzetteld --version` antwortet mit der Nummer aus `CMakeLists.txt`. Ab
+    der nächsten Kundenabnahme wird erhöht und getaggt; der Vollzugsvermerk
+    führt Punkt 10 nicht mehr als *ausgesetzt*. Die Abnahmen davor bekommen
+    weiterhin **keine** Version rückwirkend — die Regel wirkt ab #61, nicht
+    davor.
 11. Der Scrum Master vermerkt den **Vollzug von Takt 2** im Sprint-Protokoll.
     **Jeder Verwalter-Auftrag endet mit einer Datei (04.08.2026).** Der PO
     schreibt den Ablageort in den Auftrag — `docs/scrum/reviews/sprint-NN-verwalter.md` —,

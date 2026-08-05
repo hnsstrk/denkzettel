@@ -84,6 +84,9 @@ starten oder einmal neu anmelden; der Autostart-Eintrag übernimmt es künftig.
 Die Bibliothek erreicht man über das Tray-Symbol. Dort öffnet `F2` den Editor,
 `Entf` löscht mit Rückgängig-Möglichkeit.
 
+`denkzetteld --version` sagt, welche Fassung läuft, `denkzetteld --help`
+listet die Schalter. Beide antworten auch, während der Dienst schon läuft.
+
 Für Skripte gibt es eine D-Bus-Schnittstelle:
 
 ```
@@ -137,8 +140,10 @@ cmake --build build --target lint-tidy    # clang-tidy
 cmake --build build --target lint-clazy   # clazy, Qt-Semantik
 ```
 
-Beide sehen nur `src/` und `tests/` und stehen auf **null Befunden**; der
-automatische Lauf hält sie dort. Wo ein Befund bewusst stehenbleibt, steht ein
+Beide sehen nur `src/` und `tests/` und stehen auf **null Befunden** — in der
+Standardkonfiguration, also ohne `-DDENKZETTEL_SPIKE_SPELLFIX=ON`; mit dem
+Spike sind es drei, alle in dessen eigener Datei. Eine Null ohne genannte
+Schalterstellung ist keine Aussage. Der automatische Lauf hält sie dort. Wo ein Befund bewusst stehenbleibt, steht ein
 `NOLINT` mit der Begründung daneben. Bekannte Lücke: clazy prüft `tr()`, wir
 benutzen aber `i18n()`.
 

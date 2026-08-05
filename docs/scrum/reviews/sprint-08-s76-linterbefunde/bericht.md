@@ -587,3 +587,22 @@ Wer das Skript mit `zsh pruefen.sh` startet, bekommt eine plausible Zahlenfolge
 irgendwo, **wie viele** Dateien es angefasst hat. Diese Zahl gehört gelesen,
 bevor die Befundzahl gelesen wird. `pruefen.sh` dieses Ordners liest sie vor
 und schlägt Alarm, wenn die Zeile fehlt.
+
+---
+
+## Berichtigung vom 05.08.2026 (PO, nach der DoD-Prüfung, Mangel M8)
+
+**Der Text oben bleibt stehen** (B17). Berichtigt wird eine Zuordnung in §14.
+
+Dort steht, die README widerspreche sich beim Satz „Der Läufer arbeitet
+deterministisch: Zwei Läufe hintereinander liefern bytegleiche Dateien". **Sie
+tut es nicht.** Der Satz steht unmittelbar hinter dem `readmeshots`-Befehl und
+gilt `readmeshots` — den dieser Bericht selbst mit **2 von 2 bytegleich** misst.
+
+Die gemessene Unstetigkeit liegt bei **`libraryshots`**, und über den behauptet
+die README nichts.
+
+**Warum das mehr ist als eine Formulierung:** Wer den Befund abarbeitet, ändert
+einen Satz, der stimmt — und die Aussage der README wird dabei **schwächer statt
+richtiger**. Der Befund selbst bleibt gültig und ist als **#91** gebucht; nur
+sein Adressat war falsch.

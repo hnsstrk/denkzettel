@@ -540,3 +540,25 @@ nebenbei entschieden.
    `docs/scrum/vorberichte/85-lesbarkeit-fremde-themes/` gehören zur Vorprüfung
    von Sprint 8 und sind hier kein Mangel — sie gehören in den Commit, der die
    Vorprüfung abschließt.
+
+---
+
+## Anker 05.08.2026 — ein Beleg in §7.3 gehört zu einem anderen Bild (Sprint-8-Mangel M10)
+
+**Der Text oben bleibt unverändert** (B17). Der Schluss von §7.3 — die README
+zeigt nicht den gelieferten Stand — ist richtig; **sein Beleg nennt die Zahlen
+einer Datei, die nicht im Repositorium steht.**
+
+Dort heißt es, das Bild sei „600 × 178, die Fläche (239, 240, 241) deckend". Das
+sind die Maße des **neu erzeugten** Bildes, das der §6a-Nachtrag ausdrücklich
+**verworfen** hat. Die versionierte Datei war schon am Prüfstand `268a7c5`
+**1200 × 324 im Farbmodus RGB** — ohne Alphakanal — mit der Fläche (20, 22, 24).
+
+**Der Schluss trägt mit beiden Zahlenpaaren**, und zwar aus demselben Grund: Ein
+Bild ohne Alphakanal und mit deckender Fläche zeigt ein Fenster ohne Theme-Hülle.
+Nachgemessen ist das in der Sprint-8-DoD-Prüfung.
+
+*Warum das hier steht:* Es ist dieselbe Bauart wie die Berichtigung, die der
+Scrum Master in diesem Sprint am PO vorgenommen hat — **richtig geschlossen,
+falsche Quelle genannt.** Ein Beleg, der auf die falsche Datei zeigt, ist
+gegenüber einem Nachprüfer wertlos, auch wenn der Satz darüber stimmt.

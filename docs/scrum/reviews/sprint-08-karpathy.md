@@ -137,3 +137,21 @@ Antwort des Reviewers dreht die Sache um und trifft sie damit besser:
 > Ein grüner `-O2`-Lauf kann undefiniertes Verhalten prinzipiell nicht
 > widerlegen. Getauscht wurde keine Zahl gegen ein unmessbares Argument,
 > sondern **eine unmessbare Zusicherung gegen eine messbare Zahl verteidigt.**
+
+### Nachtrag 05.08.2026 — Reichweite dieses Reviews (DoD-Mangel M5)
+
+Der Prüfgegenstand war `f8b7711` mit 138 Dateien. Der Sprint-Diff reicht bis
+`849a6a1` mit 139 — der Unterschied ist die **Heilung von K1 selbst**, und sie
+ändert ein Prüfgut: `tests/themes/…/denkzettel-test-breit/colors` bekommt eine
+`[Colors:View]`-Gruppe mit absichtlich abweichenden Werten, damit sich „falsche
+Gruppe gelesen" von „keine Datei gefunden" trennt.
+
+**Dass daran nichts hängt, ist gemessen** — `ctest` bleibt 9/9, und der Strang
+hat nachgewiesen, dass die neuen Werte die Grafik nicht einfärben (die
+mitgelieferten SVG nennen keine `ColorScheme-*`-Klasse; die gezeichnete Hülle
+ist byteweise die von vorher). **Der Satz „karpathy über den Sprint-Diff" trägt
+für diesen Commit trotzdem nicht**, und das steht hier, statt es zu verschweigen.
+
+*Warum kein Nachlauf:* Der Commit heilt einen Befund dieses Reviews und ändert
+sonst nur Belegdateien. Ein zweiter Lauf prüfte die Antwort auf seine eigene
+Frage.
