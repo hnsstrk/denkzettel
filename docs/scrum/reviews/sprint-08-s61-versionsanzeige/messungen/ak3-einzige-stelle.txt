@@ -1,0 +1,16 @@
+== AK 3 — Fundstellen der Nummer 0.1.0 im versionierten Bestand ==
+Gesucht wird ohne Ordnerfilter; die Vorberichte und Reviews nennen sie
+als Messwert, das ist kein Verdrahten. Entscheidend ist src/ und tests/.
+
+--- src/ und tests/ ---
+Treffer: 0
+
+--- CMakeLists.txt aller drei Ebenen ---
+CMakeLists.txt:3:project(denkzettel VERSION 0.1.0 LANGUAGES CXX)
+
+--- der Durchreichweg ---
+src/CMakeLists.txt:124:    DENKZETTEL_VERSION="${PROJECT_VERSION}")
+src/shell/appidentity.cpp:11:    // DENKZETTEL_VERSION is handed over by src/CMakeLists.txt from the
+src/shell/appidentity.cpp:16:                     QStringLiteral(DENKZETTEL_VERSION));
+tests/CMakeLists.txt:209:    DENKZETTEL_VERSION="${PROJECT_VERSION}")
+tests/commandlinetest.cpp:77:             QStringLiteral("denkzettel " DENKZETTEL_VERSION));

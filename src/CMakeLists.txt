@@ -93,6 +93,7 @@ target_link_libraries(denkzettelui PUBLIC
 # A library, not part of the executable: the tests reach the D-Bus entry points
 # and the conflict rule that way (SPEC 16).
 add_library(denkzettelshell STATIC
+    shell/appidentity.cpp
     shell/daemonservice.cpp
     shell/firstrun.cpp
     shell/globalshortcuts.cpp
@@ -108,11 +109,19 @@ target_link_libraries(denkzettelshell PUBLIC
     Qt6::DBus
     Qt6::Widgets
     KF6::ConfigCore
+    # KAboutData — shell/appidentity.cpp, SPEC 15.
+    KF6::CoreAddons
     KF6::GlobalAccel
     KF6::I18n
     KF6::Notifications
     KF6::StatusNotifierItem
 )
+
+# The one road the version number takes from CMake into the code. It stands in
+# project(... VERSION ...) of the root CMakeLists and nowhere else (SPEC 15);
+# a second copy in a source file would be the thing that goes stale unnoticed.
+target_compile_definitions(denkzettelshell PRIVATE
+    DENKZETTEL_VERSION="${PROJECT_VERSION}")
 
 add_executable(denkzetteld
     main.cpp

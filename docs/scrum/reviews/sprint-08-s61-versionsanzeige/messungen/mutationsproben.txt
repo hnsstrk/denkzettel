@@ -1,0 +1,127 @@
+Kopie des Arbeitsbaums nach /tmp/tmp.p09V9Mhd5q
+== Ausgangsstand übersetzen ==
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+100% tests passed out of 9
+
+########## Die Namen, an denen SPEC 2.3 und 2.4 hängen ##########
+
+===== Probe 1 — Die Organisationsdomäne am KAboutData (SPEC 2.3)
+Eingriff: sed -i /about.setOrganizationDomain(QByteArrayLiteral("denkzettel.org"));/d src/shell/appidentity.cpp
+Erwartet: rot: organizationDomain 'kde.org' statt 'denkzettel.org', und der Bus führt org.kde.Daemon
+ERGEBNIS: rot.
+  1/2 Test #7: identitytest .....................***Failed    0.02 sec
+  FAIL!  : IdentityTest::keepsTheDomainTheBusNameIsBuiltFrom() Compared values are not the same
+  2/2 Test #8: commandlinetest ..................***Failed   10.12 sec
+  FAIL!  : CommandLineTest::startsTheDaemonWithoutAnArgument() 'registered' returned FALSE. (org.denkzettel.Daemon meldete sich nicht an. Ausgabe: )
+  0% tests passed, 2 tests failed out of 2
+
+===== Probe 2 — Der Desktop-Dateiname am KAboutData (SPEC 2.4)
+Eingriff: sed -i /about.setDesktopFileName(QStringLiteral("org.denkzettel.Denkzettel"));/d src/shell/appidentity.cpp
+Erwartet: rot: desktopFileName 'org.kde.denkzettel' statt 'org.denkzettel.Denkzettel'
+ERGEBNIS: rot.
+  1/2 Test #7: identitytest .....................***Failed    0.02 sec
+  FAIL!  : IdentityTest::keepsTheDesktopFileTheShortcutComponentIsNamedAfter() Compared values are not the same
+  	  7 - identitytest (Failed)
+  Errors while running CTest
+  50% tests passed, 1 tests failed out of 2
+
+===== Probe 3 — Der Komponentenname trägt den Pfad der Notizen
+Eingriff: sed -i s|    KAboutData about(QStringLiteral("denkzettel"),|    KAboutData about(QStringLiteral("Denkzettel"),| src/shell/appidentity.cpp
+Erwartet: rot: der Datenbankpfad wandert unter ~/.local/share/Denkzettel
+ERGEBNIS: rot.
+  1/2 Test #7: identitytest .....................***Failed    0.02 sec
+  FAIL!  : IdentityTest::keepsTheNameTheConfigurationAndTheNotesHangOn() Compared values are not the same
+  2/2 Test #8: commandlinetest ..................***Failed    0.15 sec
+  FAIL!  : CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus() Compared values are not the same
+  0% tests passed, 2 tests failed out of 2
+
+########## Die Reihenfolge in main.cpp ##########
+
+===== Probe 4 — Die Auswertung liegt vor der Einzelinstanz-Weiche (F3)
+Eingriff: bash -c 
+        sed -i '/^    processCommandLineArguments(app);$/d' 'src/main.cpp'
+        sed -i 's|^    KDBusService service(KDBusService::Unique);$|    KDBusService service(KDBusService::Unique);\n    processCommandLineArguments(app);|' 'src/main.cpp'
+    
+Erwartet: rot: ohne erreichbaren Bus endet KDBusService mit 1, die Versionszeile bleibt aus
+ERGEBNIS: rot.
+  2/2 Test #8: commandlinetest ..................***Failed    0.15 sec
+  FAIL!  : CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus() Compared values are not the same
+  	  8 - commandlinetest (Failed)
+  Errors while running CTest
+  50% tests passed, 1 tests failed out of 2
+
+===== Probe 5 — Die Registrierung liegt vor der Auswertung
+Eingriff: bash -c 
+        sed -i '/^    registerApplicationIdentity();$/d' 'src/main.cpp'
+        sed -i 's|^    processCommandLineArguments(app);$|    processCommandLineArguments(app);\n    registerApplicationIdentity();|' 'src/main.cpp'
+    
+Erwartet: rot: 'denkzettel ' ohne Nummer — applicationVersion ist zur Ausgabezeit noch leer
+ERGEBNIS: rot.
+  2/2 Test #8: commandlinetest ..................***Failed    0.15 sec
+  FAIL!  : CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus() Compared values are not the same
+  	  8 - commandlinetest (Failed)
+  Errors while running CTest
+  50% tests passed, 1 tests failed out of 2
+
+########## Die Schalter ##########
+
+===== Probe 6 — process() weist zurück, parse() nicht (AK 6)
+Eingriff: sed -i s|    parser.process(app);|    parser.parse(QCoreApplication::arguments());| src/shell/appidentity.cpp
+Erwartet: rot: --kennt-keiner wird angenommen, der Dienst läuft damit weiter
+ERGEBNIS: rot.
+  2/2 Test #8: commandlinetest ..................***Failed   20.15 sec
+  FAIL!  : CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus() Compared values are not the same
+  FAIL!  : CommandLineTest::refusesASwitchNobodyDeclared() --kennt-keiner wurde angenommen: der Dienst lief damit weiter.
+  FAIL!  : CommandLineTest::refusesTheSwitchThatWouldRenameTheApplication() --desktopfile org.example.Fremd wurde angenommen: der Dienst lief damit weiter.
+  50% tests passed, 1 tests failed out of 2
+
+===== Probe 7 — --desktopfile bleibt unangemeldet (AK 7)
+Eingriff: bash -c 
+        sed -i 's|^    parser.addHelpOption();$|    KAboutData angemeldet = KAboutData::applicationData();\n    angemeldet.setupCommandLine(\&parser);|' 'src/shell/appidentity.cpp'
+        sed -i '/^    parser.addVersionOption();$/d' 'src/shell/appidentity.cpp'
+    
+Erwartet: rot: mit setupCommandLine() ist der Schalter bekannt und der Dienst startet damit
+ERGEBNIS: rot.
+  2/2 Test #8: commandlinetest ..................***Failed   10.17 sec
+  FAIL!  : CommandLineTest::refusesTheSwitchThatWouldRenameTheApplication() --desktopfile org.example.Fremd wurde angenommen: der Dienst lief damit weiter.
+  	  8 - commandlinetest (Failed)
+  Errors while running CTest
+  50% tests passed, 1 tests failed out of 2
+
+===== Probe 8 — Der argumentlose Start bleibt der Start des Dienstes (AK 6)
+Eingriff: sed -i s|    parser.process(app);|    parser.process(app);\n    ::exit(2);| src/shell/appidentity.cpp
+Erwartet: rot: org.denkzettel.Daemon meldet sich nicht mehr an
+ERGEBNIS: rot.
+  2/2 Test #8: commandlinetest ..................***Failed   10.12 sec
+  FAIL!  : CommandLineTest::startsTheDaemonWithoutAnArgument() 'registered' returned FALSE. (org.denkzettel.Daemon meldete sich nicht an. Ausgabe: )
+  	  8 - commandlinetest (Failed)
+  Errors while running CTest
+  50% tests passed, 1 tests failed out of 2
+
+########## Der Durchreichweg aus CMake ##########
+
+===== Probe 9 — Die Nummer kommt aus PROJECT_VERSION (AK 3)
+Eingriff: sed -i s|    DENKZETTEL_VERSION="\${PROJECT_VERSION}")|    DENKZETTEL_VERSION="9.9.9")| src/CMakeLists.txt
+Erwartet: rot: die Ausgabe trägt 9.9.9, der Prüfsatz vergleicht gegen 0.1.0 aus project()
+ERGEBNIS: rot.
+  2/2 Test #8: commandlinetest ..................***Failed    0.15 sec
+  FAIL!  : CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus() Compared values are not the same
+  	  8 - commandlinetest (Failed)
+  Errors while running CTest
+  50% tests passed, 1 tests failed out of 2
+
+########## Gegenprobe: was der Bestand vor dieser Story gefangen hätte ##########
+
+===== Probe 10 — derselbe Eingriff wie Probe 1, gemessen am Altbestand
+Eingriff: sed -i '/about.setOrganizationDomain(...)/d' src/shell/appidentity.cpp
+Erwartet: GRÜN — kein Prüfsatz vor #61 sieht den Busnamen
+ERGEBNIS: **GRÜN GEBLIEBEN** — und das ist der Befund: Der Bruch, der den
+          Busnamen und die globalen Kürzel kostet, war vor dieser Story
+          von keinem Prüfsatz gedeckt.
+  100% tests passed out of 7
+
+Fertig. Der Arbeitsbaum des Repositoriums wurde nicht angefasst.
+Eine Probe bleibt erwartungsgemäß grün: M10 (Gegenprobe am Altbestand).
