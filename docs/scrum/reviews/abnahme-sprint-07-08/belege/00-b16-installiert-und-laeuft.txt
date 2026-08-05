@@ -1,0 +1,13 @@
+=== B16: Installieren heisst nicht laufen ===
+05.08.2026 22:52:23
+
+-- vorher --
+PID 505843
+/usr/bin/denkzetteld (deleted)
+
+-- nach Neustart --
+PID 571864
+/usr/bin/denkzetteld
+
+-- Installationsstand --
+8355456 05.08.2026_22:18 /usr/bin/denkzetteld 

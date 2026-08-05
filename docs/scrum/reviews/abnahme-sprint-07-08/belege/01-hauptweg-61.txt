@@ -1,0 +1,32 @@
+=== Hauptweg #61 — Versionsanzeige am installierten Stand ===
+05.08.2026 22:52:42
+
+-- AK 1/2: --version --
+denkzettel 0.1.0
+Rueckgabe 0
+
+-- AK 1: ohne Sitzungsbus --
+denkzettel 0.1.0
+Rueckgabe 0
+
+-- AK 4: Busname (SPEC 2.3) --
+:1.4840                                                           571864 denkzetteld     hnsstrk :1.4840       user@1000.service -       -
+:1.4841                                                           571864 denkzetteld     hnsstrk :1.4841       user@1000.service -       -
+org.denkzettel.Daemon                                             571864 denkzetteld     hnsstrk :1.4840       user@1000.service -       -
+
+-- AK 4: Anwendungs-Id (SPEC 2.4) --
+ ['org.denkzettel.Denkzettel.desktop'
+ 'Denkzettel'
+
+-- AK 5: globale Kuerzel --
+([('_launch', 'Denkzettel', 'org.denkzettel.Denkzettel.desktop', 'Denkzettel', 'default', 'Default Context', [0], [0]), ('show-capture', 'Notiz erfassen', 'org.denkzettel.Denkzettel.desktop', 'Denkzettel', 'default', 'Default Context', [268435534], [268435534])],)
+
+
+-- AK 6: unbekannter Schalter --
+denkzettel: Unbekannte Option 'unbekannt'.
+Rueckgabe 
+-- AK 6, Rueckgabe sauber gemessen --
+Rueckgabe 1
+
+-- AK 6 Gegenprobe: argumentloser Start bricht nicht --
+Dienst laeuft: PID 571864

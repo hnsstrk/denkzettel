@@ -8,6 +8,44 @@ am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
 0.x-SemVer (Festlegung vom 02.08.2026; seit #61 sichtbar über
 `denkzetteld --version`).
 
+## [0.2.0] — 2026-08-05
+
+Abgenommen am 05.08.2026 (Sprints 6 bis 8; die Abnahme lag beim Product Owner,
+der Kunde sieht das Gesamtergebnis danach an). **Die erste Fassung mit einer
+Versionsnummer** — bis hierher gab es keine, weil die Zahl die Anwendung nicht
+erreichte.
+
+### Hinzugefügt
+
+- **Das Erfassungsfenster ist eine native Plasma-Überlagerung.** Rundung,
+  Kontur und Schatten kommen aus dem Desktop-Theme, nicht aus eingebauten
+  Werten; der Grund dahinter wird weichgezeichnet wie bei KRunner und den
+  Benachrichtigungen. Gemessen ist die Fläche mit KRunner **bildpunktgleich**
+  (#83)
+- **Die Schrift kommt aus derselben Quelle wie die Fläche.** Bringt das
+  Desktop-Theme eigene Farben mit, gelten sie — für den Notiztext und für die
+  gedämpften Texte. Unter `breeze-light` steigt der Kontrast des Notiztextes
+  von 1,1 : 1 auf 13,4 : 1 (#85)
+- **`denkzetteld --version` und `--help`.** Beide antworten auch, während der
+  Dienst läuft (#61)
+- **Tooltips mit Tastenkürzel** an „Bearbeiten", „Löschen" und „Rückgängig"
+  in der Bibliothek (#72)
+
+### Behoben
+
+- **Ein Klick auf eine angeschnittene Zeile wählt jetzt diese Zeile.** Vorher
+  rückte das Bild und markierte die Nachbarzeile, während der Lesebereich die
+  geklickte Notiz zeigte — Auswahl und Anzeige gingen auseinander (#71)
+- **Die erste Notiz einer Gruppe holt ihren Tageskopf ins Bild.** Vorher stand
+  bei einer Notiz von gestern „08:00" und nichts sagte, von welchem Tag (#70)
+
+### Geändert
+
+- Die Linterschwelle steht auf null und wird bei jedem öffentlichen Lauf
+  geprüft; 88 Befunde sind geheilt, 37 mit Begründung stehengeblieben (#76)
+
+**Keine Änderung am Datenbank-Schema.**
+
 ## [Unveröffentlicht]
 
 Stand aus den Sprints 4 und 5, abgenommen am 02.08.2026 (Kundenabnahme). Eine

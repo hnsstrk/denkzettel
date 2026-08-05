@@ -1,0 +1,31 @@
+=== Hauptweg #83/#85 — Erfassungsfenster am installierten Stand ===
+05.08.2026 22:53:44
+Aufnahme: spectacle -a (nur das Fenster, nicht der Bildschirm)
+Groesse (992, 310) Modus RGBA — mit Alphakanal
+
+Flaeche Mitte       (32, 35, 38, 216)
+Flaeche links oben  (32, 35, 38, 216)
+
+Kantenlauf der linken oberen Ecke (erste Spalte mit Alpha>0 je Zeile):
+  -4·-4·-4·-4·-4·-4·-4·-4·-4·-4
+
+Alpha Flaeche 216 von 255 = 84.7% — die Huelle laesst den Grund durch
+Alpha Rand    235 von 255 = 92.2% — der Rand deckt staerker als die Flaeche
+Oberkante der Huelle bei y = 16
+Kantenlauf (Spalten ab der Geraden): 9·5·3·2·2·1·1·1·1·0
+
+Der Bogen laeuft ueber 10 Zeilen aus — eine runde Ecke aus dem Desktop-Theme.
+
+--- Einschraenkung, damit der Beleg nicht mehr behauptet, als er zeigt ---
+
+Diese Messung belegt am installierten Stand: eine Huelle mit Alphakanal, eine
+runde Ecke aus dem Desktop-Theme, die Flaeche bei 84,7 % und den staerker
+deckenden Rand bei 92,2 %. Die Flaechenfarbe (32,35,38) ist die des
+eingestellten Farbschemas — #83 AK 8.
+
+Die Stufenzahl von AK 4 ruht NICHT auf dieser Messung. Sie ist mit dem
+Messweg des Strangs erhoben (cornerRun, Belege in
+sprint-07-s83-native-huelle/messungen/) und vom UI-Review nachgeprueft. Der
+Schwellwert hier (Alpha >= 200) ist ad hoc gewaehlt, um Huelle von Schatten zu
+trennen, und liefert deshalb andere Zahlen. Wer AK 4 nachpruefen will, nimmt
+den Messweg des Strangs.

@@ -1,0 +1,11 @@
+=== Was ein Agent an den uebrigen vier Hauptwegen nicht kann ===
+05.08.2026 22:54:34
+
+#61  Meta+N druecken            — Wayland teilt keinem Prozess die Tastatur zu
+#71  Klick auf angeschnittene Zeile — alle Belege beruhen auf zugestellten Ereignissen
+#70  Pfeiltaste auf die erste Notiz einer Gruppe — dito
+#72  Verweilen ueber einer Schaltflaeche — ein Tooltip ist ein eigenes Fenster,
+     das der Zeiger ausloest; offscreen gibt es keinen Zeiger
+
+Die Bibliothek steht offen (ShowLibrary, Rueckgabe 0). Die vier Wege sind
+dem Blick des Kunden vorbehalten; die Prueflisten stehen in HAUPTWEGE.md.
