@@ -45,7 +45,12 @@ QString ownerDescription(const KGlobalShortcutInfo &info)
  */
 QString desktopFilePath()
 {
-    const QString application = QStandardPaths::locate(QStandardPaths::ApplicationsLocation, componentName());
+    // No const on a local that is returned: it would stop the return from
+    // moving and cost a copy on every call, and it buys nothing, because the
+    // variable dies with the return anyway. The rule for the whole project is
+    // written down in .clang-tidy, next to the check list (issue #76).
+    // NOLINTNEXTLINE(misc-const-correctness)
+    QString application = QStandardPaths::locate(QStandardPaths::ApplicationsLocation, componentName());
     if (!application.isEmpty()) {
         return application;
     }

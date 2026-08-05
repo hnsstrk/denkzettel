@@ -1,0 +1,7 @@
+# Gegenprobe: eingebauter Fehler in tests/shelltest.cpp, beide Wachen schlagen an
+
+## lint-clazy
+tests/shelltest.cpp:361:30: warning: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]
+
+## lint-tidy
+tests/shelltest.cpp:362:5: warning: variable 'probeVariableForTidy' of type 'QString' can be declared 'const' [misc-const-correctness]

@@ -34,7 +34,20 @@
 #include <QTimer>
 #include <QToolButton>
 
+#include <cstddef>
 #include <memory>
+
+// Why eight QFETCH lines below carry NOLINTNEXTLINE(misc-const-correctness),
+// the one reason for all of them (issue #76): QFETCH is a macro that declares
+// the variable itself -
+//
+//     #define QFETCH(Type, name) Type name = *static_cast<Type *>(...)
+//
+// so `QFETCH(QSize, windowSize)` expands to `QSize windowSize = ...`. There is
+// no place to put a const short of giving up QFETCH, and QFETCH is the QTest
+// idiom for data-driven tests. Switching misc-const-correctness off for tests/
+// was considered and dropped: it would have dropped the const findings this
+// issue heals as well.
 
 namespace
 {
@@ -488,7 +501,7 @@ void LibraryTest::countsTheWeekAsACalendarWeek()
     // over an empty group.
     for (int hoursBack = 1; hoursBack < 24 * 14; ++hoursBack) {
         const library::NoteGroup group =
-            library::noteGroup(monday.addSecs(-3600 * hoursBack), monday, german());
+            library::noteGroup(monday.addSecs(-3600LL * hoursBack), monday, german());
         QVERIFY2(group != library::NoteGroup::ThisWeek,
                  qPrintable(QStringLiteral("%1 Stunden zurück fällt in „Diese Woche").arg(hoursBack)));
     }
@@ -567,6 +580,11 @@ Note LibraryTest::noteWith(const QString &content)
     return note;
 }
 
+// Healing this means changing the signature or introducing a type of its own,
+// which is design rather than tidying up (issue #76). The one case a mix-up
+// would be visible in - placeholderPage() in the empty library - gets a test
+// assurance instead, as issue #88.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 Note LibraryTest::noteWith(const QString &content, const QString &isoDateTime)
 {
     Note note;
@@ -589,7 +607,7 @@ QStringList LibraryTest::rowsOf(const NoteListModel &model)
 
 QModelIndex LibraryTest::noteRow(const QListView *list, int noteIndex)
 {
-    NoteListModel *model = modelOf(list);
+    const NoteListModel *model = modelOf(list);
     const int row = model->rowOfNote(noteIndex);
     Q_ASSERT(row >= 0);
 
@@ -996,7 +1014,7 @@ QStringList LibraryTest::dialogAnswers(QDialog *dialog)
 {
     QStringList labels;
     const QList<QAbstractButton *> buttons = dialogAnswerButtons(dialog);
-    for (QAbstractButton *button : buttons) {
+    for (const QAbstractButton *button : buttons) {
         labels.append(KLocalizedString::removeAcceleratorMarker(button->text()));
     }
     return labels;
@@ -1061,6 +1079,7 @@ void LibraryTest::keepsTheNoteWhenTheDeletionIsUndone()
     const qint64 id = storedNote(QStringLiteral("bleibt doch"));
     PendingDeletion deletion(m_store.get(), 1);
     QSignalSpy reverted(&deletion, &PendingDeletion::reverted);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy committed(&deletion, &PendingDeletion::committed);
 
     deletion.request(id);
@@ -1115,6 +1134,7 @@ void LibraryTest::carriesOutThePendingDeletionOnFlush()
 {
     const qint64 id = storedNote(QStringLiteral("Fenster wird geschlossen"));
     PendingDeletion deletion(m_store.get(), 5);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy committed(&deletion, &PendingDeletion::committed);
 
     deletion.request(id);
@@ -1355,6 +1375,7 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView_data()
 
 void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QSize, windowSize);
 
     // Three groups, the middle one holding a single note: entering it from
@@ -2313,7 +2334,7 @@ void LibraryTest::showsTheSearchField()
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    QLineEdit *search = searchOf(window);
+    const QLineEdit *search = searchOf(window);
     QVERIFY(search->isVisible());
     QCOMPARE(search->placeholderText(), QStringLiteral("Volltextsuche …"));
 
@@ -2337,7 +2358,7 @@ void LibraryTest::filtersTheListWithTheSearchField()
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    QListView *list = listOf(window);
+    const QListView *list = listOf(window);
     QCOMPARE(modelOf(list)->noteCount(), 3);
 
     // Typing filters while the user types — the store decides what matches,
@@ -2368,7 +2389,7 @@ void LibraryTest::groupsTheSearchResultsLikeTheLibrary()
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    NoteListModel *model = modelOf(listOf(window));
+    const NoteListModel *model = modelOf(listOf(window));
     QCOMPARE(rowsOf(*model),
              QStringList({QStringLiteral("Kopf: Heute"),
                           QStringLiteral("Notiz: Backup heute früh"),
@@ -2424,7 +2445,7 @@ void LibraryTest::restoresTheFullListWhenTheSearchFieldIsCleared()
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    QListView *list = listOf(window);
+    const QListView *list = listOf(window);
 
     searchOf(window)->setText(QStringLiteral("Fahrrad"));
     QCOMPARE(modelOf(list)->noteCount(), 0);
@@ -2543,6 +2564,7 @@ void LibraryTest::leavesTheFocusAloneWhenTheOpenWindowIsShownAgain()
 
 void LibraryTest::keepsTheListWideEnoughForThePreview()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     LibraryWindow window(m_store.get());
 
     auto *splitter = window.findChild<QSplitter *>();
@@ -2565,6 +2587,7 @@ void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes_data()
 
 void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QSize, windowSize);
 
     storedNote(QStringLiteral("die Liste braucht die Resthöhe"));
@@ -2575,7 +2598,7 @@ void LibraryTest::keepsTheHeaderAtTheTopAndTheRestForTheNotes()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     QCOMPARE(window.size(), windowSize);
 
-    QWidget *header = searchOf(window)->parentWidget();
+    const QWidget *header = searchOf(window)->parentWidget();
     QVERIFY(header);
     auto *splitter = window.findChild<QSplitter *>();
     QVERIFY(splitter);
@@ -2624,6 +2647,7 @@ void LibraryTest::keepsTheMeasuresOfTheGroupedList_data()
 
 void LibraryTest::keepsTheMeasuresOfTheGroupedList()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QSize, windowSize);
 
     storedNote(QStringLiteral("eine Notiz mit zwei Zeilen\nund einer Vorschau darunter"),
@@ -2637,8 +2661,8 @@ void LibraryTest::keepsTheMeasuresOfTheGroupedList()
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    QListView *list = listOf(window);
-    NoteListModel *model = modelOf(list);
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
 
     const QModelIndex firstHead = model->index(0);
     const QModelIndex secondHead = model->index(3);
@@ -2704,7 +2728,7 @@ void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
     // settles once that animation has run its course.
     QTRY_VERIFY(message->isVisible() && !message->isShowAnimationRunning());
 
-    QWidget *header = searchOf(window)->parentWidget();
+    const QWidget *header = searchOf(window)->parentWidget();
     QVERIFY(header);
     auto *splitter = window.findChild<QSplitter *>();
     QVERIFY(splitter);
@@ -2723,14 +2747,16 @@ void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
     // word wrap KMessageWidget puts the button underneath instead and the band
     // grows by half; the rows are compared rather than the pixel heights,
     // because those belong to the theme.
-    QLabel *text = nullptr;
-    for (QLabel *label : message->findChildren<QLabel *>()) {
+    const QLabel *text = nullptr;
+    const QList<QLabel *> messageLabels = message->findChildren<QLabel *>();
+    for (const QLabel *label : messageLabels) {
         if (label->text() == message->text()) {
             text = label;
         }
     }
-    QToolButton *undo = nullptr;
-    for (QToolButton *button : message->findChildren<QToolButton *>()) {
+    const QToolButton *undo = nullptr;
+    const QList<QToolButton *> messageButtons = message->findChildren<QToolButton *>();
+    for (const QToolButton *button : messageButtons) {
         if (button->text() == QStringLiteral("Rückgängig")) {
             undo = button;
         }
@@ -2760,6 +2786,7 @@ void LibraryTest::keepsTheWindowSizeForTheNextSession()
         window.close();
     }
 
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     LibraryWindow reopened(m_store.get());
 
     QCOMPARE(reopened.size(), chosen);
@@ -2805,7 +2832,7 @@ void LibraryTest::textsFollowAColourSchemeChange()
     const QList<QLabel *> labels = window.findChildren<QLabel *>();
     QVERIFY(!labels.isEmpty());
 
-    for (QLabel *label : labels) {
+    for (const QLabel *label : labels) {
         if (message->isAncestorOf(label)) {
             continue;
         }
@@ -2870,7 +2897,7 @@ void LibraryTest::leavesTheWordSelectionToTheDoubleClick()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    QTextBrowser *reader = readerOf(window);
+    const QTextBrowser *reader = readerOf(window);
     QTest::mouseDClick(reader->viewport(), Qt::LeftButton, Qt::NoModifier, QPoint(6, 6));
 
     // Wireframe 2a: a double click picks a word — the common way of copying
@@ -2940,8 +2967,8 @@ void LibraryTest::putsTheEditingBadgeWhereTheButtonsStand()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
-    QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+    const QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    const QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
     QVERIFY(edit);
     QVERIFY(remove);
     QVERIFY(edit->isVisible());
@@ -3247,7 +3274,7 @@ void LibraryTest::showsTheWarningSymbolInTheGuardDialog()
         QVERIFY(dialog);
 
         const QList<QLabel *> labels = dialog->findChildren<QLabel *>();
-        for (QLabel *label : labels) {
+        for (const QLabel *label : labels) {
             if (label->isVisible() && !label->pixmap().isNull()) {
                 symbol = label->pixmap().size();
             }
@@ -3277,8 +3304,8 @@ void LibraryTest::namesTheSymbolsOfTheDetailButtons()
     // the *name*, not the drawn shape — the graphic comes from the icon theme
     // and changes with it. An empty name means no symbol was ever asked for,
     // which is what the customer saw („Die Bibliothek hat keine Icons“, #67).
-    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
-    QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+    const QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    const QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
     QVERIFY(edit);
     QVERIFY(remove);
     QCOMPARE(edit->icon().name(), QStringLiteral("document-edit"));
@@ -3293,8 +3320,8 @@ void LibraryTest::namesTheSymbolsOfTheDetailButtons()
 
     // State B, the edit footer. Same two symbols the guard dialog uses for the
     // same two answers — the window says the same thing in both places.
-    QPushButton *save = buttonNamed(window, QStringLiteral("Speichern"));
-    QPushButton *cancel = buttonNamed(window, QStringLiteral("Abbrechen"));
+    const QPushButton *save = buttonNamed(window, QStringLiteral("Speichern"));
+    const QPushButton *cancel = buttonNamed(window, QStringLiteral("Abbrechen"));
     QVERIFY(save);
     QVERIFY(cancel);
     QCOMPARE(save->icon().name(), QStringLiteral("document-save"));
@@ -3324,9 +3351,9 @@ void LibraryTest::namesTheSymbolOfTheUndoAction()
     // rather than off the QAction behind it: the button is what is on screen,
     // and it is the button that would go without a symbol if the widget stopped
     // passing it on.
-    QToolButton *undo = nullptr;
+    const QToolButton *undo = nullptr;
     const QList<QToolButton *> buttons = message->findChildren<QToolButton *>();
-    for (QToolButton *button : buttons) {
+    for (const QToolButton *button : buttons) {
         if (button->text() == QStringLiteral("Rückgängig")) {
             undo = button;
         }
@@ -3356,8 +3383,8 @@ void LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface()
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
-    QPushButton *del = buttonNamed(window, QStringLiteral("Löschen"));
+    const QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    const QPushButton *del = buttonNamed(window, QStringLiteral("Löschen"));
     QVERIFY(edit);
     QVERIFY(del);
 
@@ -3399,9 +3426,9 @@ void LibraryTest::namesTheShortcutInTheTooltipOfEachActionSurface()
     // action: the button is the surface the pointer rests on, and it is the
     // button that would say nothing if the widget stopped passing the tooltip
     // on. „Rückgängig" is no QPushButton of this code — it is that button.
-    QToolButton *undo = nullptr;
+    const QToolButton *undo = nullptr;
     const QList<QToolButton *> buttons = message->findChildren<QToolButton *>();
-    for (QToolButton *button : buttons) {
+    for (const QToolButton *button : buttons) {
         if (button->defaultAction() && button->defaultAction()->text() == QStringLiteral("Rückgängig")) {
             undo = button;
         }
@@ -3476,7 +3503,9 @@ void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence_data()
 
 void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QString, written);
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QString, expected);
 
     storedNote(QStringLiteral("wird bearbeitet"), written);
@@ -3498,7 +3527,7 @@ void LibraryTest::namesTheEditedNoteWithoutBreakingTheSentence()
         QVERIFY(dialog);
 
         const QList<QLabel *> labels = dialog->findChildren<QLabel *>();
-        for (QLabel *label : labels) {
+        for (const QLabel *label : labels) {
             if (!label->text().isEmpty()) {
                 shown.append(label->text());
             }
@@ -3568,7 +3597,9 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
 
 void LibraryTest::asksBeforeUnsavedChangesAreLost()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QString, trigger);
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QString, answer);
 
     const qint64 edited = storedNote(QStringLiteral("erste Notiz"));
@@ -3649,6 +3680,7 @@ void LibraryTest::keepsTheEditorWhenTheListIsRebuiltUnderIt()
     captured.createdAt = captured.createdAt.addSecs(60);
     QVERIFY(m_store->addNote(captured).has_value());
 
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     DialogWatch watch;
     window.showLibrary();
     QTest::qWait(100);
@@ -3683,6 +3715,7 @@ void LibraryTest::keepsTheEditorWhenTheWindowIsActivatedAgain()
     // asked about a change he has not finished making.
     window.setReferenceTime(at(QStringLiteral("2026-08-01T09:00:00")));
 
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     DialogWatch watch;
 
     QWidget elsewhere;
@@ -3757,6 +3790,7 @@ void LibraryTest::keepsTheMeasuresOfTheEditState_data()
 
 void LibraryTest::keepsTheMeasuresOfTheEditState()
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
     QFETCH(QSize, windowSize);
 
     const qint64 id = storedNote(QStringLiteral("Idee für Denkzettel"));
@@ -3770,7 +3804,7 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
 
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    QWidget *detail = detailOf(window);
+    const QWidget *detail = detailOf(window);
     // Reader and editor share this stack, so it is the one thing that can be
     // measured in both states.
     QWidget *stack = readerOf(window)->parentWidget();
@@ -3788,8 +3822,8 @@ void LibraryTest::keepsTheMeasuresOfTheEditState()
     // finding came with: taking the stretch out changes none of these numbers
     // (measured 02.08.2026). What holds the width is the horizontal
     // QSizePolicy::Maximum on the stack — see librarywindow.cpp, buildDetail().
-    QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
-    QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
+    const QPushButton *edit = buttonNamed(window, QStringLiteral("Bearbeiten"));
+    const QPushButton *remove = buttonNamed(window, QStringLiteral("Löschen"));
     QVERIFY(edit);
     QVERIFY(remove);
     QVERIFY2(edit->width() == edit->sizeHint().width(),

@@ -371,7 +371,7 @@ void CaptureTest::textsFollowAColourSchemeChange()
     const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
     QCOMPARE(labels.size(), 2);
 
-    for (QLabel *label : labels) {
+    for (const QLabel *label : labels) {
         // What the label paints with: its own palette, read through its role.
         QCOMPARE(label->palette().color(label->foregroundRole()), QColor(0x70, 0x7d, 0x8a));
     }
@@ -561,7 +561,7 @@ void CaptureTest::paintsTheThemesOwnHullInOnePiece()
     // differ visibly, so a window that went back to filling would be caught.
     m_window->reloadDesktopTheme(NarrowBorderTheme);
 
-    QPlainTextEdit *text = textArea();
+    const QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
     const QImage picture = shot(*m_window);
@@ -591,7 +591,7 @@ void CaptureTest::noteTextUsesTheWindowTextRole()
     // role for entry fields — measured over 18 colour schemes at 4,74:1 against
     // 4,22:1, above and below the minimum of 4,5:1 (wireframe 4b). Copied on
     // every palette change, so it follows the scheme instead of freezing (#54).
-    QPlainTextEdit *text = textArea();
+    const QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
     // Since #85 the scheme is only half the rule, so the theme is named here
@@ -636,7 +636,7 @@ void CaptureTest::readsTheTextColoursOfTheDesktopTheme()
 
 void CaptureTest::noteTextComesFromTheThemesOwnColours()
 {
-    QPlainTextEdit *text = textArea();
+    const QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
     // AK 1 for the note text: the writing comes from the same hand as the
@@ -681,14 +681,14 @@ void CaptureTest::subtleTextsComeFromTheThemesOwnColours()
     // Expressly **not** asserted: that this makes the class readable. Under
     // `breeze-light` neither source reaches 4,5:1 — 3,70:1 against 2,09:1,
     // measured. That is issue #84, and AK 4 asks for the limit to be named.
-    QPlainTextEdit *text = textArea();
+    const QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
     m_window->reloadDesktopTheme(WideBorderTheme);
 
     const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
     QCOMPARE(labels.size(), 2);
-    for (QLabel *label : labels) {
+    for (const QLabel *label : labels) {
         // What the label paints with: its own palette, read through its role.
         QCOMPARE(label->palette().color(label->foregroundRole()), WideThemeInactiveColour);
     }
@@ -699,7 +699,7 @@ void CaptureTest::subtleTextsComeFromTheThemesOwnColours()
 
     // And back to the scheme under a theme that brings no file of its own.
     m_window->reloadDesktopTheme(NarrowBorderTheme);
-    for (QLabel *label : labels) {
+    for (const QLabel *label : labels) {
         QCOMPARE(label->palette().color(label->foregroundRole()),
                  m_window->palette().color(QPalette::PlaceholderText));
     }
@@ -713,7 +713,7 @@ void CaptureTest::textColoursFollowADesktopThemeChange()
     // (SPEC 2.1), so a theme change reaches a window that is already standing.
     // There and back again, because a colour that only ever moved one way
     // would also be explained by a colour that was set once and never cleared.
-    QPlainTextEdit *text = textArea();
+    const QPlainTextEdit *text = textArea();
     QVERIFY(text);
     const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
     QCOMPARE(labels.size(), 2);
@@ -738,7 +738,7 @@ void CaptureTest::themeTextColoursOutlastAColourSchemeChange()
     // mechanism hangs on the palette change, so an implementation that only
     // met AK 1 in reloadDesktopTheme() would be right at the acceptance and
     // wrong after the first scheme change — without a word from anybody.
-    QPlainTextEdit *text = textArea();
+    const QPlainTextEdit *text = textArea();
     QVERIFY(text);
     const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
     QCOMPARE(labels.size(), 2);
@@ -792,8 +792,8 @@ void CaptureTest::footerHasMoreAirThanTheApplicationName()
 
     const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
     QCOMPARE(labels.size(), 2);
-    QLabel *appName = labels.at(0)->y() < labels.at(1)->y() ? labels.at(0) : labels.at(1);
-    QLabel *footer = appName == labels.at(0) ? labels.at(1) : labels.at(0);
+    const QLabel *appName = labels.at(0)->y() < labels.at(1)->y() ? labels.at(0) : labels.at(1);
+    const QLabel *footer = appName == labels.at(0) ? labels.at(1) : labels.at(0);
 
     for (const QString &content :
          {QString(), QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht")}) {

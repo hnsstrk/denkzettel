@@ -137,7 +137,9 @@ cmake --build build --target lint-tidy    # clang-tidy
 cmake --build build --target lint-clazy   # clazy, Qt-Semantik
 ```
 
-Beide sehen nur `src/` und `tests/`. Bekannte Lücke: clazy prüft `tr()`, wir
+Beide sehen nur `src/` und `tests/` und stehen auf **null Befunden**; der
+automatische Lauf hält sie dort. Wo ein Befund bewusst stehenbleibt, steht ein
+`NOLINT` mit der Begründung daneben. Bekannte Lücke: clazy prüft `tr()`, wir
 benutzen aber `i18n()`.
 
 ### Wie hier gearbeitet wird
@@ -158,8 +160,9 @@ waren und sich beim Nachmessen als falsch herausstellten.
 
 Jeder Push auf `main` und jeder Pull Request lösen einen Bau- und Testlauf aus
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Er läuft in einem
-Arch-Container und schlägt bei jedem Baufehler, jeder Compiler-Warnung und
-jedem roten Test fehl. Was er **nicht** prüft, steht im Kopf der Datei: Der
+Arch-Container und schlägt bei jedem Baufehler, jeder Compiler-Warnung, jedem
+roten Test und **jedem Linterbefund** fehl — `lint-tidy` und `lint-clazy`
+stehen seit dem 05.08.2026 beide auf null. Was er **nicht** prüft, steht im Kopf der Datei: Der
 Lauf hat keine grafische Sitzung, installiert nichts und erzeugt keine Bilder —
 die Prüfung am installierten Stand und die Bildprüfung bleiben Handarbeit.
 

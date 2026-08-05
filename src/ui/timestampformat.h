@@ -2,6 +2,8 @@
 
 #include <QString>
 
+#include <cstdint>
+
 class QDateTime;
 class QLocale;
 
@@ -15,7 +17,7 @@ namespace library
  * in the previous calendar week — so the first matching one wins, in the order
  * they are written here.
  */
-enum class NoteGroup {
+enum class NoteGroup : std::uint8_t {
     Today,
     Yesterday,
     ThisWeek,

@@ -1,0 +1,14 @@
+# Endstand am Arbeitsbaum, Standardkonfiguration (-DDENKZETTEL_SPIKE_SPELLFIX=OFF)
+# nach PO-Entscheidung 9 (20 const zurueckgenommen, 20 NOLINT gesetzt)
+
+Bau        rc=0  Warnungen=0  Fehler=0
+lint-tidy  rc=0  Warnungen=0  Fehler=0
+  Vollstaendigkeit: Running clang-tidy in 24 threads for 30 files out of 49 in compilation database ...
+lint-clazy rc=0  Warnungen=0  Fehler=0
+ctest      rc=0  100% tests passed out of 9
+
+NOLINT-Marken: 37 in vier Klassen
+  8 QFETCH                (misc-const-correctness)
+  1 no-automatic-move     (misc-const-correctness)
+ 20 Qt-Verbindung         (misc-const-correctness)
+  8 easily-swappable      (bugprone-easily-swappable-parameters)

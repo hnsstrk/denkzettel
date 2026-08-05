@@ -69,6 +69,7 @@ void IdentityTest::keepsTheNameTheConfigurationAndTheNotesHangOn()
 
 int main(int argc, char *argv[])
 {
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QApplication app(argc, argv);
 
     // The name src/main.cpp starts with, set before the registration runs, so

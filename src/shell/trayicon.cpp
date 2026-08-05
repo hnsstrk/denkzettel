@@ -87,7 +87,7 @@ QMenu *TrayIcon::buildMenu()
     // among the working paths (wireframe 5a).
     menu->addSeparator();
 
-    QAction *libraryAction =
+    const QAction *libraryAction =
         menu->addAction(QIcon::fromTheme(QStringLiteral("view-list-text")), i18n("Bibliothek öffnen"));
     connect(libraryAction, &QAction::triggered, this, &TrayIcon::libraryRequested);
 
@@ -99,7 +99,7 @@ QMenu *TrayIcon::buildMenu()
     // not tell the user why it is greyed (KDE HIG, wireframe 5a).
     menu->addSeparator();
 
-    QAction *quitAction =
+    const QAction *quitAction =
         menu->addAction(QIcon::fromTheme(QStringLiteral("application-exit")), i18n("Beenden"));
     connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
 

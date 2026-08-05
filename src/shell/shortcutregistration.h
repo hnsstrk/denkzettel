@@ -4,8 +4,10 @@
 #include <QList>
 #include <QString>
 
+#include <cstdint>
+
 /** What kglobalacceld answers when asked what it holds for our action. */
-enum class ShortcutRegistration {
+enum class ShortcutRegistration : std::uint8_t {
     Reached, //< the daemon holds a sequence for us
     ApplicationNotInstalled, //< no desktop file, so the daemon drops the component
     DaemonKeptNothing, //< desktop file in place, daemon holds nothing anyway

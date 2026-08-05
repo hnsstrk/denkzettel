@@ -42,12 +42,24 @@ git -C "$WURZEL" archive HEAD | tar -x -C "$K"
 cd "$K" || exit 1
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug > /dev/null 2>&1
 cmake --build build -j "$(nproc)" > bau0.log 2>&1
-DATEIEN=$(ls src/*.cpp src/*/*.cpp tests/*.cpp | grep -v spellfixspike | sed "s|^|$K/|")
+# Die Dateiliste geht über `xargs -a` an run-clang-tidy und NICHT als
+# ungeschütztes $DATEIEN. Nachgetragen am 05.08.2026, nachdem derselbe Griff im
+# Strang zu #76 drei Runden lang null Dateien geprüft und dabei eine saubere
+# Konvergenz gemeldet hat: In zsh zerlegt eine ungeschützte Parameterexpansion
+# keine Wörter, run-clang-tidy bekam ein Argument mit Zeilenumbrüchen darin und
+# baute daraus einen regulären Ausdruck, der auf nichts passt. Die Kopfzeile
+# oben schützt nur, solange das Skript auch wirklich mit bash gestartet wird —
+# `zsh pruefen.sh` umgeht sie. Deshalb wird zusätzlich die Zeile mit der
+# Dateizahl vorgelesen: Ein Fixpunkt bei null Eingriffen sieht aus wie ein
+# Fixpunkt nach vollständiger Heilung.
+ls src/*.cpp src/*/*.cpp tests/*.cpp | grep -v spellfixspike | sed "s|^|$K/|" > "$K/dateien.txt"
+echo "zu prüfende Dateien: $(wc -l < "$K/dateien.txt")"
 for runde in 1 2 3; do
-    run-clang-tidy -p "$K/build/lint" -quiet -fix $DATEIEN > "fix$runde.log" 2>&1
+    xargs -a "$K/dateien.txt" run-clang-tidy -p "$K/build/lint" -quiet -fix > "fix$runde.log" 2>&1
     cmake --build build -j "$(nproc)" > "bau$runde.log" 2>&1; brc=$?
     cmake --build build --target lint-tidy > "tidy$runde.log" 2>&1
-    echo "Runde $runde: Bau rc=$brc  Baufehler=$(grep -c 'error:' "bau$runde.log")" \
+    echo "Runde $runde: $(grep -m1 -o 'for [0-9]* files out of [0-9]*' "fix$runde.log")" \
+         " Bau rc=$brc  Baufehler=$(grep -c 'error:' "bau$runde.log")" \
          " Compilerwarnungen=$(grep -c 'warning:' "bau$runde.log")" \
          " Linter-Rohzeilen=$(grep -c 'warning:' "tidy$runde.log")"
 done

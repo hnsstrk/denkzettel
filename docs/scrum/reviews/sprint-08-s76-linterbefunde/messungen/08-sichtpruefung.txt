@@ -1,0 +1,64 @@
+# Selbst-Sichtpruefung am gebauten Stand (DoD 2), 05.08.2026, 22:01-22:04
+#
+# Freigabe des PO, weil dafuer der installierte Dienst zu beenden war: Ohne das
+# reicht die Einzelinstanz-Weiche von KDBusService den Start weiter und man
+# prueft den installierten Stand (B16).
+#
+# Sitzung: Type=wayland, Active=yes, LockedHint=no
+#   (Der Sperrzustand ist vorher abgefragt, nicht angenommen — bei gesperrter
+#    Sitzung liefert spectacle ein schwarzes Bild mit Rueckgabe 0.)
+
+== 1. Ausgangslage ==
+PID 4029   exe=/usr/bin/denkzetteld
+
+== 2. installierten Dienst beendet, gebauten Stand gestartet ==
+PID 502543 exe=/home/hnsstrk/Projekte/denkzettel-76/build/bin/denkzetteld
+   -> geprueft wird der gebaute Stand, nicht der installierte.
+
+== 3. Meldungen des gebauten Standes ==
+stderr: LEER.
+Kein "Kuerzel nicht einsatzbereit", kein "Exporting org.denkzettel.Daemon
+failed". registerCaptureShortcut() hat also ShortcutRegistration::Reached
+erreicht — das ist der Rueckleseweg, nicht der Rueckgabewert.
+(journalctl --user -t denkzetteld ist leer, weil der Prozess nicht von systemd
+gestartet wurde; qWarning geht dann auf stderr.)
+
+== 4. Das Kuerzel beim Dienst zurueckgelesen ==
+busctl --user call org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel \
+    shortcutKeys as 4 "org.denkzettel.Denkzettel.desktop" "show-capture" "" ""
+-> a(ai) 1 4 268435534 0 0 0
+
+Eine Sequenz, erster Tastenwert 268435534 = 0x1000004E
+    = Qt::META (0x10000000) | Qt::Key_N (0x4E)
+-> Meta+N, vom Dienst geantwortet. Das ist der Beleg, den der Rueckgabewert von
+   setGlobalShortcut() nicht liefern kann (Grund fuer die Streichung in
+   .clang-tidy, PO-Entscheidung 2).
+
+== 5. D-Bus-Registrierung ==
+busctl --user list -> org.denkzettel.Daemon, PID 502543
+Objektpfad /Daemon mit AddNote, Quit, ShowCapture, ShowLibrary.
+
+== 6. Hauptweg: ShowLibrary() ueber D-Bus ==
+qdbus6 org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowLibrary -> rc=0
+
+Das ist genau der Weg aus Entscheidung 9: DaemonService::libraryRequested ist
+in src/main.cpp:76 auf &LibraryWindow::showLibrary verbunden, und `library` ist
+das Objekt, an dem der Maschinenfix ein `const` setzen wollte.
+
+Sitzungsbild des aktiven Fensters aufgenommen und angesehen: Die Bibliothek
+steht offen, mit Kopfzeile "Denkzettel — Bibliothek", Volltextsuchfeld,
+gruppierter Liste ("Gestern", "Letzte Woche") mit Zeitstempeln und dem
+Leerzustand des Lesebereichs ("Keine Notiz ausgewaehlt / Zum Lesen links eine
+Notiz auswaehlen."). Der Dienst lief danach unveraendert weiter, stderr blieb
+leer.
+
+DAS BILD LIEGT NICHT IM REPOSITORIUM. Es zeigt die echten Notizen des Kunden,
+und das Repositorium ist oeffentlich (Kundenentscheidung 02.08.2026: keine
+personenbezogenen Angaben). Belegt ist hier die Beobachtung, nicht das Bild.
+
+== 7. Rueckbau, wie vom PO aufgegeben ==
+gebauten Stand beendet, /usr/bin/denkzetteld wieder gestartet:
+PID 505843 exe=/usr/bin/denkzetteld
+kein "(deleted)" am Pfad.
+Kuerzel danach erneut zurueckgelesen: a(ai) 1 4 268435534 0 0 0  -> Meta+N steht.
+org.denkzettel.Daemon wieder auf dem Bus.

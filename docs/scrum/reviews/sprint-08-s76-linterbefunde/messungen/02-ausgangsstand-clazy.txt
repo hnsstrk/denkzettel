@@ -1,0 +1,3 @@
+tests/librarytest.cpp:2727:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/librarytest.cpp:2733:5: warning: c++11 range-loop might detach Qt container (QList) [-Wclazy-range-loop-detach]
+tests/shelltest.cpp:361:24: warning: Don't call QList::first() on temporary [-Wclazy-detaching-temporary]
