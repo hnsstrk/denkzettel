@@ -162,7 +162,34 @@ frischer Lauf hätte ein Bild mit dem Alphakanal-Fehler erzeugt, und das Aussehe
 durchfällt.
 
 Bis dahin beschreibt die README nicht den gelieferten Stand. Das ist ein bewusst
-getragener Mangel, kein übersehener — und er endet mit diesem Sprint.
+getragener Mangel, kein übersehener.
+
+**Nachtrag 05.08.2026 — er endet nicht mit diesem Sprint, und der Grund ist
+gemessen.** Der Versuch, die Bilder nach der Lieferung von #83 zu erneuern, ist
+ausgeführt und **zurückgenommen** worden. Der Läufer wurde frisch gebaut
+(`cmake --build build --target readmeshots`) und lieferte ein **unlesbares**
+Bild:
+
+| | Fläche | häufigste Tinte im Notiztext | Kontrast |
+|---|---|---|---|
+| vor #83 | (20, 22, 24) | weiß | lesbar |
+| **nach #83** | (239, 240, 241) | **(251, 251, 251)** | **1,10 : 1** |
+
+Die Fläche kommt jetzt aus der Theme-Grafik, die Schrift weiter aus dem
+Farbschema. **Das ist die Kehrseite von #83, und sie trifft nicht nur fremde
+Themes auf fremden Rechnern, sondern den eigenen Dokumentations-Läufer im
+Standardlauf.** Das Bild ging nicht ins Repository; die alten Bilder stehen
+unverändert.
+
+*Eine Messfalle, die hierhergehört:* Der erste Messversuch ergab **16,78 : 1**
+und sah nach einem guten Ergebnis aus — gesucht war der dunkelste Bildpunkt, und
+das war der **Textcursor**. Erst die häufigste Tinte im Textband zeigt die
+1,10 : 1. **Wer Kontrast am Extremwert misst statt an der Fläche, misst das
+Falsche** — und bekommt eine Zahl, die das Gegenteil belegt.
+
+**Die Bindung wandert von #83 zu #85.** Der Befund ist dort als Kommentar
+eingetragen; er ist der erste **offscreen reproduzierbare** Beleg für das
+Problem dieser Story.
 
 **Drei B17-Fundstellen zu `tinted()`.** #83 entfernt die Funktion; drei Regeln
 außerhalb der Dateimenge des Strangs nennen sie als **Messgrundlage** von B21
