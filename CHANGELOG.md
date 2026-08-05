@@ -5,12 +5,14 @@ aus Nutzersicht geschrieben, nach [Keep a Changelog](https://keepachangelog.com/
 gegliedert. Quelle sind die geschlossenen Issues des jeweiligen
 Sprint-Milestones; rein technische Einträge bleiben draußen, jede Änderung
 am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
-0.x-SemVer (Festlegung vom 02.08.2026; sichtbar in der Anwendung mit #61).
+0.x-SemVer (Festlegung vom 02.08.2026; seit #61 sichtbar über
+`denkzetteld --version`).
 
 ## [Unveröffentlicht]
 
-Stand aus den Sprints 4 und 5, abgenommen am 02.08.2026 (Kundenabnahme; die
-Versionsnummer folgt mit #61).
+Stand aus den Sprints 4 und 5, abgenommen am 02.08.2026 (Kundenabnahme). Eine
+Versionsnummer bekamen diese Abnahmen nicht — die Regel wirkt erst ab #61, und
+rückwirkend wird nicht nummeriert.
 
 ### Hinzugefügt
 
