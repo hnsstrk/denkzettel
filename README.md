@@ -148,8 +148,9 @@ Entwicklung, UI/UX, Scrum Master, Verwaltung. Bei mir liegen Ziele,
 Prioritäten, Freigaben und die Abnahme. Die meisten Commits tragen deshalb
 einen `Co-Authored-By: Claude`-Vermerk.
 
-Denkzettel entsteht in Sprints mit geschätzten Stories und einer Definition of
-Done. Sprint-Protokolle, Prüfberichte samt Bildern und die Arbeitsvereinbarung
+Denkzettel entsteht in Sprints. Jede Story wird vor dem Ziehen von zwei
+unabhängigen Bearbeitern am Code vermessen — Dateimenge, gemessene Fallen,
+Prüfmittel und Größenklasse —, und erst dieser Bericht macht sie ziehbar. Sprint-Protokolle, Prüfberichte samt Bildern und die Arbeitsvereinbarung
 liegen offen unter [`docs/scrum/`](docs/scrum/); die bindende Spezifikation ist
 [`SPEC.md`](SPEC.md). Dort stehen auch die Fehlgriffe: grüne Tests, die nichts
 prüften, Bildbelege eines veralteten Standes, Entscheidungen, die gut begründet

@@ -105,7 +105,13 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   Zeichnung beruft, liest sie vorher.
 - **Eine Aussage gilt für einen Stand** (B17). Wer eine Bau- oder
   Werkzeugeigenschaft ändert, sucht im selben Zug nach den Aussagen darüber:
-  `git grep -n <Eigenschaft> -- CLAUDE.md README.md SPEC.md docs/ wireframes/ .github/`;
+  ```
+  git grep -n <Eigenschaft> -- . ':!docs/scrum/reviews' ':!docs/scrum/sprints' \
+      ':!docs/scrum/retro' ':!docs/scrum/vorberichte' ':!src' ':!tests'
+  ```
+  **Der Griff schließt aus, statt aufzuzählen** — ausgenommen sind die
+  Belegarchive, denn ein Beleg wird geankert und nicht nachgezogen. Alles
+  andere wird durchsucht;
   beim Erweitern einer Aufzählung nach dem Namen eines **Geschwisters** statt
   nach dem neuen (`readmeshots` findet jede Liste, die `captureshots` noch nicht
   kennt). Gemessen: Der Griff hätte alle drei Fundstellen von Sprint-6-Mangel
@@ -121,6 +127,18 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   Griff unsichtbar. **Ein Werkzeug, dessen Suchraum kleiner ist als der
   Geltungsbereich der Regel, meldet Vollständigkeit und liefert sie nicht** —
   und es meldet sie besonders überzeugend, weil es Treffer hatte.
+  **Warum ausschließen und nicht aufzählen — das ist der eigentliche Lehrsatz,
+  und er hat zwei Runden gebraucht.** Der Griff zählte auf und übersah
+  `wireframes/`; beim Beheben trug der PO `wireframes/` und `SPEC.md` nach und
+  übersah `.claude/` — **obwohl eine der drei Fundstellen desselben Vorgangs
+  dort lag** und er sie nur gefunden hatte, weil er `.claude/` beim Suchen von
+  Hand angehängt hatte. Der Scrum Master fand es in der DoD-Prüfung desselben
+  Sprints (M5). **Wer ein zu enges Werkzeug erweitert, erweitert es um das,
+  woran er sich erinnert** — die Lücke danach sieht aus wie keine. Gegen
+  `git ls-files | sed 's|/.*||' | sort -u` gehalten fehlten der zweiten Fassung
+  weiterhin `cmake/`, `desktop/`, `KONZEPT.md` und `CHANGELOG.md`.
+  **Gemessen ist die Ausschlussform zugleich vollständiger und leiser:** vier
+  einschlägige Zeilen statt sechzig, weil die Belegarchive nicht mitkommen.
 - Ein Testaufbau, in dem der Fehler gar nicht auftreten *kann*, ist kein Test.
 - **Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
   Es gibt fünf: `editshots`, `libraryshots`, `searchshots`, `readmeshots`,
