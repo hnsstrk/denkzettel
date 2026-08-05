@@ -241,3 +241,37 @@ Am **gebauten** Stand, nicht am installierten — den taktet der PO.
   die beiden Anmeldungen sind `void` und stehen in §4.
 
 **Nicht geprüft, weil es dem PO gehört:** der installierte Stand unter `/usr`.
+
+---
+
+## Berichtigung 05.08.2026 (PO, nach dem karpathy-Review, Befund K1)
+
+**Der Text oberhalb bleibt unverändert** (B17). Berichtigt wird die
+**Kopfzahl** von §6 — die Tabelle darunter ist richtig und ehrlich, der Satz
+darüber zählt falsch.
+
+**Es sind zwölf Zusicherungen in fünfzehn Läufen, nicht fünfzehn
+Zusicherungen.** Die Zeilen 10, 11 und 12 der Tabelle sind offscreen grün und
+verweisen ausdrücklich auf S1, S2 und S3, die **dieselben** Sachverhalte in der
+angemeldeten Sitzung prüfen. Wer sie als eigene Zusicherungen zählt, zählt drei
+doppelt.
+
+Richtig lautet die Bilanz:
+
+| | |
+|---|---|
+| tragende Zusicherungen | **12** |
+| abgelegte Probeläufe | **15** (12 offscreen, 3 in der Sitzung) |
+| durch eine rote Probe belegt | **11** |
+| als Grenze benannt, mit Messung warum | **1** (Nr. 9, `setColorSet`) |
+
+**AK 14 ist damit erfüllt** — es verlangt eine Probe je tragender Zusicherung
+und deren Aufzählung im Bericht, und beides steht da. Falsch war allein die
+Zusammenfassung.
+
+*Warum das eine Berichtigung wert ist und keine Fußnote:* In Sprint 6 ist genau
+diese Fehlerklasse einmal teuer geworden — „jede tragende Zusicherung gegen eine
+Mutation gehalten" deckte acht von elf, und gefunden hat es das **Nachzählen**
+eines fremden Lesers. Dass der Reviewer diesmal wieder nachgezählt hat und
+wieder fündig wurde, ist der Beleg dafür, dass die Prüfung an dieser Stelle
+gebraucht wird.
