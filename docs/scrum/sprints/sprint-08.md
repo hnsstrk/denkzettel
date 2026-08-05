@@ -507,3 +507,44 @@ fängt beide Fälle.
    geliefert, die Nummer erreicht die Anwendung, und die Abnahme löst den
    MINOR-Sprung und den Tag aus. Eine Abnahme für beide Sprints heißt **eine**
    Version.
+
+---
+
+## 9. Vollzug von Takt 2 — 05.08.2026
+
+| Punkt | Stand |
+|---|---|
+| **5** Issues mit AK-Haken, Abnahmekommentar und Commit-Verweis geschlossen | **7 von 7** — 50 Haken gesetzt, **einer bewusst offen** (#61 AK 5: die Registrierung des Kürzels ist belegt, seine Wirkung nicht — kein Prozess löst unter Wayland einen Tastendruck aus) |
+| **5** Milestone geschlossen | Sprint 7 und Sprint 8 |
+| **6** Journal nachgeführt | Eintrag 22:59 im Daily |
+| **7** `main` gepusht | ja |
+| **8** Story-Zweige und Worktrees entfernt | fünf Worktrees, sechs Zweige; auf `origin` steht nur `main`. *`story/83-native-huelle` musste mit `-D` fallen: Die Historienbereinigung vom selben Tag hat seine Commits umgeschrieben, der Zweig zeigte auf die alten Kennungen. Die Arbeit steckt mit elf Commits in `main` — nachgeprüft, nicht angenommen* |
+| **9** Changelog fortgeschrieben | Abschnitt **0.2.0**, aus Nutzersicht, mit dem ausdrücklichen Vermerk „keine Änderung am Datenbank-Schema" |
+| **10** Version erhöht und getaggt | **0.2.0**, `v0.2.0` — **die erste Version dieses Projekts.** Die Aussetzung dieses Punktes endet mit #61 |
+
+**Die Aussetzung von Punkt 10 ist beendet.** Sie stand seit dem 02.08.2026:
+*„bis #61 umgesetzt ist … erreicht die Zahl die Anwendung nicht und wäre eine
+Behauptung ohne Sichtbarkeit."* `denkzetteld --version` antwortet seit heute.
+Die Abnahmen davor bekommen weiterhin keine Version rückwirkend.
+
+## 10. done/next — Gesamtergebnis für den Kunden
+
+**done**
+
+- **Sieben Stories** über zwei Sprints, alle abgenommen. Bau warnungsfrei,
+  `ctest` 9/9, beide Linter auf null.
+- **Der Kundenbefund aus Sprint 6 ist geheilt.** Die Fläche des
+  Erfassungsfensters ist mit KRunner und der Plasma-Benachrichtigung
+  **byteidentisch**; Kante und Schattenverlauf ebenso.
+- **v0.2.0** — die erste Fassung mit einer Nummer.
+- **Vierzehn neue Issues** aus der Arbeit selbst (#86–#99). Der Sprint hat
+  mehr Befunde hervorgebracht als er Stories hatte, und keiner davon ist in
+  einen laufenden Sprint gezogen worden.
+
+**next — was der Kunde entscheiden sollte**
+
+1. **#99 zuerst.** Im Release-Bau gehen **Kategorien verloren**. Trifft ihn
+   heute nicht (sein Dienst ist ein Debug-Bau), trifft jedes Paket.
+2. **#97** und **#89** sind Blickurteile — zwei Bilder nebeneinander, in
+   Sekunden beantwortet.
+3. **Vier Hauptwege** stehen seinem Blick offen (`HAUPTWEGE.md`).
