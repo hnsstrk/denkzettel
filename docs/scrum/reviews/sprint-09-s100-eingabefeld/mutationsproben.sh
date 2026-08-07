@@ -39,18 +39,28 @@ lauf() {
     echo
     echo "===== Probe $nummer — $was"
     echo "Erwartet: $erwartet"
+    # **Jeder** Eingriff wird einzeln nachgewogen, nicht die Probe als Ganzes.
+    # Der Unterschied hat einmal ein falsches Ergebnis geliefert: Probe 5 hat
+    # zwei Eingriffe, und als eine Signatur im Prüfsatz sich änderte, griff der
+    # zweite nicht mehr. Der erste griff weiter, die Wache sah eine veränderte
+    # Datei und ließ die Probe laufen — sie meldete „rot", wo „grün" der Beleg
+    # gewesen wäre (08.08.2026). Eine Wache über die Summe der Eingriffe wacht
+    # über keinen einzelnen.
     local eingriff
+    local vorher
+    local nachher
     for eingriff in "$@"; do
+        vorher="$(cat "$ARBEIT/$FENSTER" "$ARBEIT/$PRUEFSATZ" | sha256sum)"
         eval "$eingriff" || echo "  ACHTUNG: Eingriff schlug fehl: $eingriff"
+        nachher="$(cat "$ARBEIT/$FENSTER" "$ARBEIT/$PRUEFSATZ" | sha256sum)"
+        if [ "$vorher" = "$nachher" ] && [ "$eingriff" != "true" ]; then
+            echo "ERGEBNIS: ABGEBROCHEN — dieser Eingriff hat nichts verändert:"
+            echo "  $eingriff"
+            cp "$WURZEL/$FENSTER" "$ARBEIT/$FENSTER"
+            cp "$WURZEL/$PRUEFSATZ" "$ARBEIT/$PRUEFSATZ"
+            return
+        fi
     done
-    # Beide Pfade absolut, und das ist der Punkt: `git -C` wechselt zuerst das
-    # Verzeichnis, ein relativer Pfad zeigte danach zweimal auf dieselbe Datei
-    # und die Wache meldete jeden Eingriff als wirkungslos (gemessen, 07.08.2026).
-    if git diff --no-index --quiet "$WURZEL/$FENSTER" "$ARBEIT/$FENSTER" 2>/dev/null \
-       && git diff --no-index --quiet "$WURZEL/$PRUEFSATZ" "$ARBEIT/$PRUEFSATZ" 2>/dev/null; then
-        echo "ERGEBNIS: ABGEBROCHEN — der Eingriff hat keine Datei verändert."
-        return
-    fi
     if ! cmake --build "$BAU" -j "$(nproc)" > "$ARBEIT/bau.log" 2>&1; then
         echo "ERGEBNIS: übersetzt nicht mehr — die Zusicherung hängt am Bau selbst."
         grep -m3 "error" "$ARBEIT/bau.log" | sed 's/^/  /'
@@ -132,7 +142,7 @@ lauf 4 "Der Auswahlpfad opaque fällt weg — am **reparierten** Abgriff (AK 9)"
 lauf 5 "Derselbe Wegfall am **alten** Abgriff, dem Fenstermittelpunkt (AK 9, Gegenprobe)" \
     "GRÜN — genau das ist der Befund: der alte Abgriff hätte die Mutation durchgelassen" \
     'perl -0pi -e "s/    if \(!m_blursBehind\) \{\n        imageSet->setSelectors\(\{QString\(OpaqueSelector\)\}\);\n    \}/    \/\/ mutiert/s" "$FENSTER"' \
-    'perl -0pi -e "s/const QPoint sample = inPicture\(besideTheField\(narrowText, m_window->width\(\)\)\);/const QPoint sample = inPicture(QPoint(m_window->width() \/ 2, m_window->height() \/ 2));/" "$PRUEFSATZ"' \
+    'perl -0pi -e "s/const QPoint sample = inPicture\(besideTheField\(\*m_window, narrowText\)\);/const QPoint sample = inPicture(QPoint(m_window->width() \/ 2, m_window->height() \/ 2));/" "$PRUEFSATZ"' \
     'perl -0pi -e "s/    QVERIFY2\(sample\.y\(\) < inPicture.*?\)\)\);\n/    Q_UNUSED(text);\n/s" "$PRUEFSATZ"'
 
 lauf 6 "Das Feld wird über das ganze Fenster gelegt (AK 9, zweiter Abgriff)" \

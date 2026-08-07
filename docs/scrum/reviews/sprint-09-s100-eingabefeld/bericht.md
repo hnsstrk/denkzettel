@@ -229,6 +229,29 @@ nachgezogen.
 
 ## 3. Testnachweis
 
+> **Berichtigt am 08.08.2026 (karpathy K1). Der Absatz darunter ist die Fassung
+> vom 07.08.2026 und war in zwei Punkten falsch.** Er meldet einen grünen Lauf
+> und sagt für den öffentlichen Läufer ein Überspringen voraus — der Lauf zu
+> `70902a4` war **failure**, mit sechs gefallenen Prüfsätzen, und übersprungen
+> hat sich dort nichts. Ich hatte den Läufer nicht gemessen, sondern
+> vorhergesagt. Was daraus geworden ist, steht in Feld 7; der Wortlaut bleibt
+> stehen, weil die Falschangabe zur Sache gehört (B17).
+>
+> **Der Stand vom 08.08.2026:**
+>
+> ```
+> $ QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde ctest --test-dir build
+> 100% tests passed out of 9
+> capturetest: 38 passed, 0 failed, 0 skipped
+>
+> $ XDG_DATA_DIRS=/nonexistent … ctest --test-dir build      # Lage des Läufers
+> 100% tests passed out of 9
+> capturetest: 29 passed, 0 failed, 9 skipped
+> ```
+>
+> Beide Läufe stehen vollständig in `messungen/m3-testlauf.txt` (Zusammenfassung
+> **und** Einzelausgabe, karpathy K8) und `messungen/m7-ohne-plasma-grafik.txt`.
+
 ```
 $ QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde ctest --test-dir build
 100% tests passed out of 9
@@ -387,6 +410,81 @@ niemand liest, wenn es gelingt.
 
 **Beleg:** `messungen/m7-ohne-plasma-grafik.txt` (der ganze Lauf mit allen
 Skip-Texten), `messungen/m2-mutationsproben.txt` Proben 8 und 9.
+
+---
+
+## 8. Nachtrag 08.08.2026 — die vier Befunde des karpathy-Reviews
+
+Der Reviewer hat den Stand **vor** der Reparatur vom 07.08.2026 geprüft. Zwei
+Befunde waren damit erledigt, zwei nicht — und einer der beiden erledigten
+hatte einen Teil, der es nicht war.
+
+### K1 — der Bericht meldete einen Lauf, den es nicht gab · **behoben**
+
+Feld 3 trägt jetzt einen datierten Vermerk; die alte Fassung steht darunter
+lesbar (B17). Ich hatte den öffentlichen Läufer **vorhergesagt statt gemessen**
+— das ist der Fehler dahinter, und er ist derselbe wie bei F1: eine Aussage
+über eine Umgebung, in der ich nicht nachgesehen habe.
+
+### K1, zweiter Teil — die Kopplung an `hullHoldsAtTheCustomersScale()` · **war falsch, aufgelöst**
+
+Der Reviewer hat recht, und die Begründung ist stärker als „unsauber": Der
+Prüfsatz ist ein Bestandssatz aus #55 und #83 über die **Hülle**. Ich hatte
+`paintsTheThemesFieldOntoTheHull` in seinen Kindprozess gehängt, weil beide
+dieselbe Maschinerie brauchen — einen Prozess bei `QT_SCALE_FACTOR=1,6`.
+Geteilt wurde damit aber nicht nur die Maschinerie, sondern auch die
+**Fehlermeldung**: Ein verrutschtes Feld hätte künftig einen Satz rot gemacht,
+der in seinem Namen etwas über die Hülle behauptet. Gemessen ist das keine
+Sorge, sondern eingetreten — in den Mutationsproben 6 und 7 fiel vor der
+Trennung `hullHoldsAtTheCustomersScale()`, obwohl beide Male das Feld mutiert
+war.
+
+Aufgelöst: `fieldHoldsAtTheCustomersScale()` ist ein eigener Prüfsatz, die
+gemeinsame Maschinerie steht in `runAtTheCustomersScale()`. Nach der Trennung
+fallen die Proben 6 und 7 auf den Feldsatz, und der Hüllensatz bleibt bei
+seinem Gegenstand. Der neue Prüfsatz fragt seine Vorbedingung im Elternteil,
+bevor er ein Kind startet.
+
+### K2 — der Skip saß auf der falschen Hälfte · **erledigt, am Gegenversuch geprüft**
+
+Erledigt mit der Reparatur vom 07.08.2026, und nicht mit dem Auge geprüft,
+sondern mit dem Reproduktionsweg: `XDG_DATA_DIRS=/nonexistent` ergibt
+**29 passed, 0 failed, 9 skipped** — vorher 28/6/3. Der zweite Halbsatz des
+Befundes ist mit nachgezogen: `QVERIFY(ring > 0)` und `QVERIFY2(border > 0, …)`
+trugen die Voraussetzung „die Grafik existiert" unausgesprochen. Sie steht
+jetzt ausgesprochen darüber, und die beiden Zeilen sagen im Kommentar, was von
+ihnen übrig ist — eine Übereinstimmungsprobe zwischen zwei Helfern, die
+dieselbe Größe auf zwei Wegen messen.
+
+### K8 — ein Beleg belegte weniger, als er sagte · **behoben**
+
+`messungen/m3-testlauf.txt` trägt jetzt beides: die ctest-Zusammenfassung
+(M3a) und den vollständigen Einzellauf von `capturetest` (M3b), Prüfsatz für
+Prüfsatz.
+
+### K9 — ein Abgriff mit 4 px Luft · **behoben**
+
+`besideTheField()` liest die Lücke jetzt aus den **ausgelegten** Widgets und
+nimmt ihre Mitte, statt vier Bildpunkte vom Textbereich abzuzählen. Damit hält
+der Abgriff seinen Abstand, wie groß die Lücke auch ist; wird sie null, landet
+er **im** Feld und die Hüllenzusicherungen fallen laut, statt still das Falsche
+zu messen. `paintsTheThemesOwnHullInOnePiece()` sichert zusätzlich zu, dass
+beide Abgriffe zwischen ihren Nachbarn liegen — dort, weil die Lücke sein
+Gegenstand ist.
+
+### Was der Lauf dieser Runde selbst zutage gebracht hat
+
+**Probe 5 war rot und hätte grün sein müssen.** Die Signaturänderung aus K9 hat
+den zweiten von drei Eingriffen dieser Probe ins Leere laufen lassen; der erste
+griff weiter, die Wache sah eine veränderte Datei und ließ die Probe laufen.
+Sie meldete „rot" — plausibel, weil Probe 4 dasselbe meldet — und wäre als
+Beleg wertlos gewesen.
+
+**Die Lehre steht jetzt im Skript:** Die Wache prüft **jeden** Eingriff
+einzeln über eine Prüfsumme, nicht die Probe als Ganzes. Eine Wache über die
+Summe der Eingriffe wacht über keinen einzelnen. Das ist die zweite Fassung
+derselben Falle innerhalb von zwei Tagen — die erste war der Vergleich einer
+Datei mit sich selbst.
 
 ---
 

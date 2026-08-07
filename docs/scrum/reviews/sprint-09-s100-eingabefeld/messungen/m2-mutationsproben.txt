@@ -1,4 +1,4 @@
-Kopie des Arbeitsbaums nach /tmp/tmp.o42QEA073D
+Kopie des Arbeitsbaums nach /tmp/tmp.d9dFEDg27K
 == Ausgangsstand übersetzen ==
 Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
 Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
@@ -6,7 +6,7 @@ Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Ein
 Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
 100% tests passed out of 1
 
-Total Test time (real) =   0.56 sec
+Total Test time (real) =   0.64 sec
 
 ===== Probe 1 — Das Feld wird gar nicht gezeichnet (AK 1, AK 4, AK 6b)
 Erwartet: rot
@@ -15,7 +15,7 @@ ERGEBNIS: rot. Gefallene Prüfsätze:
   FAIL!  : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() Compared values are not the same
   FAIL!  : CaptureTest::fieldCoverageIsTheThemesOwn() 'picture.pixelColor(surface) == expected.pixelColor(surface)' returned FALSE.
   FAIL!  : CaptureTest::fieldFollowsADesktopThemeChange() 'narrow != wide' returned FALSE.
-  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::fieldHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'picture.pixelColor(point) == expected.pixelColor(point)' returned FALSE.
   FAIL!  : CaptureTest::textSitsInsideTheFieldBorder() 'text->document()->documentMargin() >= border' returned FALSE.
 
@@ -26,14 +26,14 @@ ERGEBNIS: rot. Gefallene Prüfsätze:
   FAIL!  : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() Compared values are not the same
   FAIL!  : CaptureTest::fieldCoverageIsTheThemesOwn() 'picture.pixelColor(surface) == expected.pixelColor(surface)' returned FALSE.
   FAIL!  : CaptureTest::fieldFollowsADesktopThemeChange() 'narrow != wide' returned FALSE.
-  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::fieldHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'picture.pixelColor(point) == expected.pixelColor(point)' returned FALSE.
   FAIL!  : CaptureTest::textSitsInsideTheFieldBorder() 'text->document()->documentMargin() >= border' returned FALSE.
 
 ===== Probe 3 — Der Feldrand rückt den Text nicht nach innen (AK 5)
 Erwartet: rot
 ERGEBNIS: rot. Gefallene Prüfsätze:
-  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::fieldHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'differing == 0' returned FALSE.
   FAIL!  : CaptureTest::textSitsInsideTheFieldBorder() 'text->document()->documentMargin() >= border' returned FALSE.
 
@@ -49,8 +49,8 @@ ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diesen Eingriff.
 ===== Probe 6 — Das Feld wird über das ganze Fenster gelegt (AK 9, zweiter Abgriff)
 Erwartet: rot — der Abgriff von hullIsCompleteAtFiveAndEightLines() misst wieder die Hülle
 ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::fieldHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::hullFollowsTheDesktopTheme() 'wideCorner != narrowCorner' returned FALSE.
-  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::hullIsCompleteAtFiveAndEightLines() 'picture.pixelColor(clearOfTheField) == hull.pixelColor(clearOfTheField)' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'picture.pixelColor(point) == expected.pixelColor(point)' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesOwnHullInOnePiece() Compared values are not the same
@@ -58,12 +58,12 @@ ERGEBNIS: rot. Gefallene Prüfsätze:
 ===== Probe 7 — Das Feld bekommt das Bildpunktverhältnis des Fensters nicht (F4)
 Erwartet: rot allein über den Lauf bei 1,6 — bei Verhältnis 1 ist der Fehler unsichtbar
 ERGEBNIS: rot. Gefallene Prüfsätze:
-  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::fieldHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'differing == 0' returned FALSE.
 
 ===== Probe 8 — Ohne Plasma-Grafik, **unmutiert** — die Lage des öffentlichen Läufers
 Erwartet: 0 Fehlschläge und mehr als 0 Übersprungene; jeder Skip nennt seinen Grund
-ERGEBNIS: Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 274ms
+ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 277ms
   Übersprungene Prüfsätze zum Feld:
     CaptureTest::hullFollowsAnInstalledDesktopTheme
     CaptureTest::paintsTheThemesFieldOntoTheHull
@@ -72,11 +72,12 @@ ERGEBNIS: Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 274ms
     CaptureTest::textSitsInsideTheFieldBorder
     CaptureTest::fieldCoverageIsTheThemesOwn
     CaptureTest::hullHasNoStairAtTheCorner
+    CaptureTest::fieldHoldsAtTheCustomersScale
     CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor
 
 ===== Probe 9 — Ohne Plasma-Grafik, **mit** Mutation 1 (Feld nicht zeichnen)
 Erwartet: grün — und das ist keine Lücke, sondern die Kehrseite: wo nichts zu messen ist, fängt der Läufer diese Mutation nicht. Probe 1 fängt sie dort, wo die Grafik da ist.
-ERGEBNIS: Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 276ms
+ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 254ms
   Übersprungene Prüfsätze zum Feld:
     CaptureTest::hullFollowsAnInstalledDesktopTheme
     CaptureTest::paintsTheThemesFieldOntoTheHull
@@ -85,6 +86,7 @@ ERGEBNIS: Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 276ms
     CaptureTest::textSitsInsideTheFieldBorder
     CaptureTest::fieldCoverageIsTheThemesOwn
     CaptureTest::hullHasNoStairAtTheCorner
+    CaptureTest::fieldHoldsAtTheCustomersScale
     CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor
 
 Fertig.
