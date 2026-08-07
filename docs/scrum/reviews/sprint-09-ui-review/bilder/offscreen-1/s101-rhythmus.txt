@@ -1,0 +1,32 @@
+Bibliothek — s101-rhythmus
+Bildgröße 900x600 Gerätebildpunkte, Verhältnis 1
+
+Sichtfeld der Liste im Fenster: 0,48 279x552 (logisch)
+                    im Bild:   0,48 279x552
+
+Zeilen der Ansicht (logisch, Fensterkoordinaten):
+   0 Kopf  y=  48..  74 h= 27  Heute
+   1 Notiz y=  75.. 146 h= 72  restic-Backup: prune-Policy prüfen, mo
+   2 Notiz y= 147.. 218 h= 72  Idee für Denkzettel — Bündel-Export er
+   3 Notiz y= 219.. 290 h= 72  Kaffeefilter, Hafermilch, Zitronen
+   4 Kopf  y= 291.. 325 h= 35  Gestern
+   5 Notiz y= 326.. 397 h= 72  journalctl -u whisperd --since today
+   6 Notiz y= 398.. 469 h= 72  Rückruf Werkstatt: Termin für den Reif
+   7 Notiz y= 470.. 541 h= 72  Vortragsfolien auf zwölf Seiten kürzen
+   8 Kopf  y= 542.. 576 h= 35  Diese Woche
+   9 Notiz y= 577.. 648 h= 72  Mara wegen Wochenende anrufen,
+Kuchen 
+  10 Notiz y= 649.. 720 h= 72  Kategorien-Prompt: Beispiele mitgeben,
+
+Listengrund: 20,22,24 (a255)
+
+Durchgehende Farbläufe im Sichtfeld (Bildzeile, Strecke ab linkem Sichtfeldrand):
+  y= 146  x=  12.. 266  Breite  255 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 218  x=  12.. 266  Breite  255 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 291  x=   0.. 278  Breite  279 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 397  x=  12.. 266  Breite  255 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 469  x=  12.. 266  Breite  255 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 542  x=   0.. 278  Breite  279 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+
+Ausschnitt Gruppengrenze um y=291
+Ausschnitt Notizgrenze um y=146

@@ -1,0 +1,86 @@
+Bibliothek — s101-normalfall
+Bildgröße 900x600 Gerätebildpunkte, Verhältnis 1
+
+Sichtfeld der Liste im Fenster: 0,48 279x552 (logisch)
+                    im Bild:   0,48 279x552
+
+Zeilen der Ansicht (logisch, Fensterkoordinaten):
+   0 Kopf  y=  48..  74 h= 27  Heute
+   1 Notiz y=  75.. 146 h= 72  restic-Backup: prune-Policy prüfen, mo
+   2 Notiz y= 147.. 218 h= 72  Idee für Denkzettel — Bündel-Export er
+   3 Kopf  y= 219.. 253 h= 35  Gestern
+   4 Notiz y= 254.. 325 h= 72  journalctl -u whisperd --since today
+   5 Kopf  y= 326.. 360 h= 35  Diese Woche
+   6 Notiz y= 361.. 432 h= 72  Mara wegen Wochenende anrufen,
+Kuchen 
+   7 Kopf  y= 433.. 467 h= 35  Letzte Woche
+   8 Notiz y= 468.. 539 h= 72  Kategorien-Prompt: Beispiele mitgeben,
+   9 Kopf  y= 540.. 574 h= 35  Älter
+  10 Notiz y= 575.. 646 h= 72  Tray-Icon im dunklen Theme testen
+
+Listengrund: 20,22,24 (a255)
+
+Durchgehende Farbläufe im Sichtfeld (Bildzeile, Strecke ab linkem Sichtfeldrand):
+  y= 148  x=   4.. 274  Breite  271 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 149  x=   3.. 275  Breite  273 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 150  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 151  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 152  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 153  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 154  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 155  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 156  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 157  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 158  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 159  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 160  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 161  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 162  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 163  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 164  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 165  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 166  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 167  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 168  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 169  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 170  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 171  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 172  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 173  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 174  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 175  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 176  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 177  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 178  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 179  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 180  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 188  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 189  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 190  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 191  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 192  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 193  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 194  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 195  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 196  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 197  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 198  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 206  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 207  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 208  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 209  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 210  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 211  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 212  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 213  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 214  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 215  x=   2.. 276  Breite  275 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 216  x=   3.. 275  Breite  273 von  279  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 217  x=   4.. 274  Breite  271 von  279  Farbe 60,173,232 (a255)       Kontrast 7.20 : 1
+  y= 219  x=   0.. 278  Breite  279 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 326  x=   0.. 278  Breite  279 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 433  x=   0.. 278  Breite  279 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 540  x=   0.. 278  Breite  279 von  279  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+
+Ausschnitt Gruppengrenze um y=219
+Ausschnitt Notizgrenze um y=146

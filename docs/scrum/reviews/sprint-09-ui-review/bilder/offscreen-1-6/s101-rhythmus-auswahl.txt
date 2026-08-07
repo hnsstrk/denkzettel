@@ -1,0 +1,121 @@
+Bibliothek — s101-rhythmus-auswahl
+Bildgröße 1440x960 Gerätebildpunkte, Verhältnis 1.6
+
+Sichtfeld der Liste im Fenster: 0,48 279x552 (logisch)
+                    im Bild:   0,77 446x883
+
+Zeilen der Ansicht (logisch, Fensterkoordinaten):
+   0 Kopf  y=  48..  74 h= 27  Heute
+   1 Notiz y=  75.. 146 h= 72  restic-Backup: prune-Policy prüfen, mo
+   2 Notiz y= 147.. 218 h= 72  Idee für Denkzettel — Bündel-Export er
+   3 Notiz y= 219.. 290 h= 72  Kaffeefilter, Hafermilch, Zitronen
+   4 Kopf  y= 291.. 325 h= 35  Gestern
+   5 Notiz y= 326.. 397 h= 72  journalctl -u whisperd --since today
+   6 Notiz y= 398.. 469 h= 72  Rückruf Werkstatt: Termin für den Reif
+   7 Notiz y= 470.. 541 h= 72  Vortragsfolien auf zwölf Seiten kürzen
+   8 Kopf  y= 542.. 576 h= 35  Diese Woche
+   9 Notiz y= 577.. 648 h= 72  Mara wegen Wochenende anrufen,
+Kuchen 
+  10 Notiz y= 649.. 720 h= 72  Kategorien-Prompt: Beispiele mitgeben,
+
+Listengrund: 20,22,24 (a255)
+
+Durchgehende Farbläufe im Sichtfeld (Bildzeile, Strecke ab linkem Sichtfeldrand):
+  y= 237  x=   7.. 439  Breite  433 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 238  x=   5.. 440  Breite  436 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 239  x=   4.. 441  Breite  438 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 240  x=   4.. 442  Breite  439 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 241  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 242  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 243  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 244  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 245  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 246  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 247  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 248  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 249  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 250  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 251  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 252  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 253  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 254  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 255  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 256  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 257  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 258  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 259  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 260  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 261  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 262  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 263  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 264  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 265  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 266  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 267  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 268  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 269  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 270  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 271  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 272  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 273  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 274  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 275  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 276  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 277  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 278  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 279  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 280  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 281  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 282  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 283  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 284  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 285  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 286  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 287  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 288  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 301  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 302  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 303  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 304  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 305  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 306  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 307  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 308  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 309  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 310  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 311  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 312  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 313  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 314  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 315  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 316  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 317  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 330  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 331  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 332  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 333  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 334  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 335  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 336  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 337  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 338  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 339  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 340  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 341  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 342  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 343  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 344  x=   3.. 442  Breite  440 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 345  x=   4.. 441  Breite  438 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 346  x=   5.. 441  Breite  437 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 347  x=   6.. 440  Breite  435 von  446  Farbe 61,174,233 (a255)       Kontrast 7.28 : 1
+  y= 348  x=   7.. 438  Breite  432 von  446  Farbe 53,143,191 (a255)       Kontrast 5.04 : 1
+  y= 466  x=   0.. 445  Breite  446 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 635  x=  19.. 426  Breite  408 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 636  x=  19.. 426  Breite  408 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 750  x=  19.. 426  Breite  408 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 751  x=  19.. 426  Breite  408 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 867  x=   0.. 445  Breite  446 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+  y= 868  x=   0.. 445  Breite  446 von  446  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+
+Ausschnitt Gruppengrenze um y=466
+Ausschnitt Notizgrenze um y=234

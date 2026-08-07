@@ -1,0 +1,18 @@
+Bibliothek — s101-suche-für
+Bildgröße 900x600 Gerätebildpunkte, Verhältnis 1
+
+Sichtfeld der Liste im Fenster: 0,48 300x552 (logisch)
+                    im Bild:   0,48 300x552
+
+Zeilen der Ansicht (logisch, Fensterkoordinaten):
+   0 Kopf  y=  48..  74 h= 27  Heute
+   1 Notiz y=  75.. 146 h= 72  Idee für Denkzettel — Bündel-Export er
+   2 Kopf  y= 147.. 181 h= 35  Gestern
+   3 Notiz y= 182.. 253 h= 72  Rückruf Werkstatt: Termin für den Reif
+
+Listengrund: 20,22,24 (a255)
+
+Durchgehende Farbläufe im Sichtfeld (Bildzeile, Strecke ab linkem Sichtfeldrand):
+  y= 147  x=   0.. 299  Breite  300 von  300  Farbe 66,68,70 (a255)         Kontrast 1.85 : 1
+
+Ausschnitt Gruppengrenze um y=147
