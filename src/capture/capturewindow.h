@@ -113,6 +113,11 @@ bool sessionBlursBehindWindows();
  * of `dialogs/background` in one piece, plus the two effect registrations
  * `libPlasmaQuick` makes beside the shadow (issue #83). Nothing of the hull is
  * ours any more; what the theme does not draw, the window does not wear.
+ *
+ * The text field is drawn the same way, out of `widgets/lineedit` (issue #100)
+ * — the graphic KRunner's entry field comes from, on the same image set one
+ * layer down. The same sentence holds for it: where the theme draws nothing,
+ * nothing is there.
  */
 class CaptureWindow : public QWidget
 {
@@ -172,7 +177,9 @@ private:
     void adjustHeight();
 
     void resizeHull();
+    void resizeField();
     void applyHullMargins();
+    void applyFieldMargin();
     void applyTextColours();
     void bindShadow();
     void bindWindowEffects();
@@ -199,6 +206,16 @@ private:
     KSvg::FrameSvg *m_hull;
     /** The `shadow` prefix of the same image: the tiles and their extents. */
     KSvg::FrameSvg *m_shadowTiles;
+    /**
+     * The text field, out of the theme's `widgets/lineedit` (issue #100).
+     *
+     * A third frame on the same image set — the customer's finding of
+     * 05.08.2026 was that the window shows no entry area at all, and the answer
+     * is the one KRunner gives: the theme's own graphic, one layer below the
+     * hull. It is drawn on the geometry of the text area, so it has to be
+     * resized whenever that is.
+     */
+    KSvg::FrameSvg *m_field;
     std::unique_ptr<KWindowShadow> m_shadow;
     /** What the current desktop theme asks the compositor for (AK 6). */
     capture::ContrastEffect m_contrast;

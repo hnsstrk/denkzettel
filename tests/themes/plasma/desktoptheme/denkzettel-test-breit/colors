@@ -17,17 +17,30 @@
 # tell a theme colour from a scheme colour that happens to look the same, and
 # the assertion of AK 1 is about the origin and not about the value.
 #
-# Neither value colours the graphic beside this file: the bundled SVGs name no
+# Neither value colours the **hull** beside this file: the bundled SVGs name no
 # `ColorScheme-*` class, so KSvg has nothing to substitute in them (measured —
 # the drawn hull is byte for byte the one from before this file existed).
+#
+# That sentence used to cover the whole graphic and no longer can (issue #100,
+# 07.08.2026). The window draws a second graphic since then, and that one is
+# **not** bundled: no theme here ships `widgets/lineedit`, so KSvg falls back to
+# `default` per image — and it recolours the fallback out of this file. Measured
+# under this theme the field's surface renders 51,34,17, digit for digit the
+# `BackgroundNormal` of `[Colors:View]` below.
 
 [Colors:Window]
 BackgroundNormal=17,34,51
 ForegroundNormal=255,0,153
 ForegroundInactive=0,153,255
 
-# The second set exists for the mutation probe and for nothing else, and it
-# carries **different** values on purpose. The window reads `[Colors:Window]`,
+# The second set carries **different** values on purpose, and since issue #100
+# it has two jobs rather than one. Whoever changes a value here for the sake of
+# the first job moves the second one with it, silently: `BackgroundNormal` is
+# the colour the field graphic draws, and three assertions of #100 compare
+# against it (`WideThemeFieldColour` in `capturetest.cpp`, written down twice on
+# purpose so that a change here turns the suite red).
+#
+# The first job, unchanged: the window reads `[Colors:Window]`,
 # the set its hull is drawn with. Without a second group the probe "reads the
 # wrong group" could not be told apart from the probe "finds no file at all":
 # both would end on the same `return {}`, produce the same five failing

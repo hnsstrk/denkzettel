@@ -182,6 +182,16 @@ int main(int argc, char **argv)
     // 1 to 12 — the hull under two desktop themes and two colour schemes, in
     // each of the three states (#55, AK 7). One window per picture: the hull
     // has to be right when the window is built, not only after a change.
+    //
+    // Since issue #100 every one of them shows **two** surfaces: the hull and
+    // the text field on top of it, both out of the desktop theme. What the two
+    // colour-scheme columns show of that is the texts and nothing else —
+    // measured, both graphics are recoloured out of `kdeglobals` and not out of
+    // the palette set below, so the field carries the same colour in the light
+    // and the dark column. That has been true of the hull since #83; the field
+    // joins it. The scheme axis of the field is measured in
+    // `fieldColoursComeFromTheThemeBeforeTheScheme()`, which walks two schemes
+    // in a process of its own.
     int number = 0;
     for (int theme = 0; theme < themeList.size(); ++theme) {
         for (const bool dark : {false, true}) {
