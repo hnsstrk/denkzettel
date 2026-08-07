@@ -1,6 +1,6 @@
 # Denkzettel — Scrum-Arbeitsvereinbarung
 
-Stand: 2026-08-04. Diese Vereinbarung regelt, wie das Agenten-Team an
+Stand: 2026-08-07. Diese Vereinbarung regelt, wie das Agenten-Team an
 Denkzettel arbeitet. Änderungen an ihr entstehen in Retrospektiven **oder aus
 einer Kundenentscheidung** — die Änderungen vom 04.08.2026 (automatische
 Testläufe, Verwalter-Bericht als Existenzprüfung, Pflicht-/Kürteil der
@@ -8,7 +8,11 @@ Protokolle, Rückbau des Schätzkegels, Prüfsummen der Bildbelege, Label erst m
 der zweiten Prüfung, **Ende der Story-Point-Schätzung zugunsten des
 Vorprüfberichts**) sind auf dem zweiten Weg entstanden. Die **Ablage der
 Vorprüfung als Ordner** und die **drei Zusätze zur Definition of Ready** kamen
-am selben Tag aus dem ersten Lauf des neuen Verfahrens hinzu.
+am selben Tag aus dem ersten Lauf des neuen Verfahrens hinzu. **Die Änderungen
+vom 07.08.2026** (B23 Rückgabewert statt Protokolltext, B24 Stand und
+Sauberkeit in jeder Messdatei, B25 das Ende des Review-Diffs, dazu die
+bestätigte Modellzuordnung) stammen aus der **Retro nach Sprint 9** und damit
+vom ersten Weg.
 
 **Das Standdatum wird bei jeder Änderung mitgeführt.** Ein Datum, das niemand
 fortschreibt, ist nach der ersten Änderung **still falsch** — die Datei sieht
@@ -68,7 +72,50 @@ PO aus.
   damit nicht belegt; der Sprint-3-Beleg bleibt der tragende. Kein Anlass, das
   Sicherheitsnetz abzustufen. Der `denkzettel-verwalter` auf Haiku hat zwei
   Aufträge mit abgelegter Datei und nachgemessenem Ergebnis ausgeführt.
-  **Nächste Revision: Retro nach Sprint 9.**
+
+  **Revision in der Sprint-9-Retro (08.08.2026): bestätigt.** Kein Anlass, das
+  Sicherheitsnetz abzustufen oder eine bauende Rolle hochzustufen. Was die
+  Belege tragen, und was ausdrücklich nicht:
+
+  - **Das Sicherheitsnetz auf Fable fand vier `fail`**
+    (`docs/scrum/reviews/sprint-09-karpathy-review.md`, K1, K2, K3, K5) und im
+    Nachlauf einen weiteren (`…-nachlauf.md`, N1). Der aussagekräftigste ist
+    **K3**: Der Bearbeiter — ein `denkzettel-dev` auf Opus — hatte den Prüflauf
+    selbst gebaut, **sein eigener Wächter schrieb `ABBRUCH: Eingriff ließ sich
+    nicht anbringen` in die Messdatei**, und im Bericht stand „rot". Ein Befund,
+    den das Werkzeug bereits gedruckt hatte, brauchte einen frischen Leser.
+  - **Opus trägt seine Rollen.** Der `denkzettel-ux` fand L9 — einen echten
+    Fehler im ausgelieferten Bild, im Material des Umsetzungsstranges selbst —,
+    und der karpathy-Reviewer fand ihn nicht; der Befund führte zur einzigen
+    Produktivcode-Heilung nach dem Review.
+  - **Der `denkzettel-verwalter` hatte keinen Auftrag** (Takt 2 stand aus):
+    keine neue Evidenz, keine Änderung.
+
+  **Drei Grenzen dieser Revision, benannt statt zugedeckt** — sie sind der
+  Grund, warum hier „bestätigt" steht und nicht „geschärft":
+
+  1. **Der Fall ist nicht schärfer als der aus Sprint 6, sondern ein zweiter
+     seiner Art.** Eine erste Fassung dieses Absatzes zählte den PO mit („der
+     Fund ging zweimal an einer Opus-Rolle vorbei"). Zwei karpathy-Läufe über
+     die Retro haben das als unbelegt zurückgegeben, und zu Recht: **Das Modell
+     des PO ist in dieser Vereinbarung nirgends festgehalten** — die
+     Zuordnung oben regelt Agenten, der PO ist „Claude (Haupt-Session)" und
+     modellseitig unbestimmt. Eine Aussage über seine Rolle kann in einer
+     Modellrevision deshalb nicht als Beleg dienen.
+  2. **„Vier Opus-Rollen zuvor" war unter jeder Lesart zu weit.** Zwei der in
+     Frage kommenden Prüfungen liefen **nach** dem Reviewstand `70902a4`
+     (22:35 Uhr): der UI-Review (23:08) und die DoD-Prüfung des Scrum Masters
+     (23:41). Wer nach dem Reviewer prüft, hat nicht zuvor nichts gefunden.
+     Belegt ist allein, was oben steht: **eine** Rolle, die ihren eigenen Befund
+     überlas.
+  3. **Dieses Verfahren kann Modell und frischen Kontext nicht trennen.** Der
+     Reviewer bringt beides zugleich mit; jeder Fund von ihm ist mit beiden
+     Erklärungen verträglich. Wer die Zuordnung künftig **ändern** will, braucht
+     dafür einen Lauf, der genau eine der beiden Größen bewegt — etwa denselben
+     Diff von einem Opus-Reviewer in frischem Kontext prüfen zu lassen. Bis
+     dahin ist „bestätigt" die einzige Aussage, die diese Belege tragen.
+
+  **Nächste Revision: Retro nach Sprint 12.**
 
 ## Artefakte und Werkzeuge
 
@@ -183,6 +230,42 @@ PO aus.
   ihn nachzieht, zerstört genau das, wofür B7 ihn ins Repo gestellt hat.
   **Sätze im Präsens ohne genannten Prüfstand sind die Stelle, an der das
   auffällt** (Sprint 6, §19.4).
+  **Ein Befund, der nur im Protokolltext steht, erreicht niemanden** (Retro
+  Sprint 9, B23): Jedes Prüfskript endet mit einem Rückgabewert ungleich null,
+  sobald eine Probe **abbricht** (der Eingriff ließ sich nicht anbringen),
+  **grün bleibt** (der Prüfsatz hat den Eingriff nicht bemerkt) oder der
+  Ausgangsstand **ohne** Eingriff rot ist — die drei Arten, auf die eine Probe
+  nichts misst. Und
+  **jede Zahl im Bericht wird gegen die Messdatei gehalten**, nicht gegen den
+  Lauf davor. *Gemessen:* In Sprint 9 hat die „genau einmal"-Wache einer
+  Mutationsprobe angeschlagen und `ABBRUCH: Eingriff ließ sich nicht anbringen`
+  ins Protokoll geschrieben; im Bericht stand „rot", weil die Zeile gegen den
+  vorigen Lauf geschrieben wurde. Damit war AK 4 von #101 die einzige
+  Zusicherung ohne Mutationsnachweis — in dem Abschnitt, der „Der Nachweis, der
+  diesen Bericht trägt" heißt (karpathy K3).
+  **Jede Messdatei nennt Stand *und* Sauberkeit des Arbeitsbaums** (Retro
+  Sprint 9, B24): Kopfzeile mit Commit, Zweig **und** dem Befund von
+  ```
+  git status --porcelain -- . ':(exclude)<Belegordner>/messungen' \
+                              ':(exclude)<Belegordner>/bilder'
+  ```
+  Ist er leer, steht `sauber` da; sonst die Zahl **und die Namen** der Dateien
+  samt dem Satz, dass diese Messung nicht nachfahrbar ist.
+  *Grund:* `git rev-parse HEAD` in einem geänderten Arbeitsbaum benennt einen
+  Commit, an dem der gemessene Code **nicht existiert**. In Sprint 9 nannten
+  alle sieben Belege zu #101 den Stand `46bb5b5`; dort gibt es `hairline()`
+  nicht, und die dort protokollierte Mutationsprobe 7 ließe sich gar nicht
+  anbringen. Die Gegenrichtung ist ebenso teuer: Die sieben Messdateien zu #100
+  nennen **keinen** Stand, und ein Beleg ohne Stand ist nicht nachzufahren.
+  **Zwei Einzelheiten des Griffs, beide gemessen und beide gegen die
+  naheliegende Fassung.** *Kein `-uno`* — es blendet ungetrackte Dateien aus,
+  und eine neue, noch nicht getrackte Sonde ist genau der Fall, den die Wache
+  sehen muss. *Ausgenommen sind allein die **Ausgabeverzeichnisse***, die der
+  Lauf selbst vollschreibt, **nicht der Belegordner**: Die Prüfskripte liegen
+  darin, und ein geändertes Prüfskript ist die Sorte uncommitteter Änderung,
+  die einen Beleg unnachfahrbar macht. Der erste Anlauf nahm den ganzen Ordner
+  aus und meldete „sauber", während beide Skripte geändert waren — eine Wache,
+  die gerade den Fall nicht sieht, für den sie gebaut ist.
 - **Fachliche Quellen**: `SPEC.md` (bindend), `KONZEPT.md` (Historie der
   Entscheidungen), `wireframes/` (UI-Referenz; Spiegel im
   Claude-Design-Projekt „Denkzettel" auf claude.ai/design, Sync durch den
@@ -474,6 +557,33 @@ PO aus.
    Diff beschreibt, was zur Prüfung ansteht. Beide fallen auseinander, sobald
    an einem Tag auch außerhalb des Sprints gearbeitet wird — und das ist der
    Normalfall (Sprint 6, K4).
+   **Und der Diff endet am Stand, an dem der Review lief** (Retro Sprint 9,
+   B25). B19 hat den Anfang festgenagelt, das Ende stand nirgends. Vor der
+   Kundenabnahme wird deshalb gefahren:
+   ```
+   git diff --stat <Reviewstand>..HEAD
+   ```
+   Ist die Ausgabe nicht leer, braucht es einen **Nachlauf über genau diesen
+   Bereich** oder eine Feststellung im Sprint-Protokoll, die **je geänderter
+   Datei** sagt, warum sie keinen zweiten Blick braucht.
+   **Ohne Pfadfilter, und das ist der Kern des Beschlusses.** Die erste Fassung
+   zählte `src/ tests/ CMakeLists.txt .github/` auf und beging damit den
+   Fehler, gegen den sie geschrieben war — die Aufzählungsform, die
+   `CLAUDE.md` unter „Prüfhaltung" als den eigentlichen Lehrsatz führt und die
+   dort bereits zweimal hintereinander gerissen ist. Der Ausweg ist hier nicht
+   die Ausschlussform, sondern **gar kein Filter**: *Gemessen an den neun
+   Befunden des Sprint-9-Reviews* zeigen sechs auf `docs/scrum` und zwei auf
+   `docs/bilder`; K5 saß **ausschließlich in zwei PNG-Dateien**. Ein Filter auf
+   den Quellcode hätte die Mehrzahl der Befunde nicht gefunden, und ein
+   Ausschluss der Belegarchive hätte K1, K3, K4 und K8 verworfen — sämtlich
+   Befunde gegen Bericht- und Messdateien. **Der Diff ist die Frage, nicht ein
+   Ausschnitt davon.** Was ein Filter spart, ist Lesezeit; was er kostet, ist
+   die Vollständigkeitsaussage, für die der Griff überhaupt gefahren wird.
+   *Grund für den Beschluss:* Das ist die Bauart jedes Sprints — der Review
+   findet Befunde, die Befunde werden geheilt, und die Heilungen sieht niemand.
+   In Sprint 9 lagen zwischen Reviewstand und Lieferstand 455 geänderte Zeilen
+   allein in Quellen, Tests und Bauplan, davon 41 Zeilen Produktivcode; sie
+   waren die Antwort auf den Review selbst.
    UI-Stories zusätzlich: UI-Review durch
    `denkzettel-ux` ohne offene `fail`-Befunde — welche Stories UI-Stories
    sind, legt der PO beim Planning fest (Kundenentscheidung 31.07.2026).
@@ -593,6 +703,12 @@ Eine Regel, die in keiner laufenden Liste steht, ist keine Regel
    Statuszeile des README. Sie beschreibt den **gelieferten Stand**, nicht den
    Stand des Verfahrens: „Sprint N in der Kundenabnahme" wird durch Takt 2
    falsch und gehört gar nicht erst hinein.
+   **Einmal je Sprint gehört dazu der Griff aus DoD 3 (B25):**
+   `git diff --stat <Reviewstand>..HEAD`, ohne Pfadfilter. Er steht in DoD 3,
+   weil er den Review-Diff beschreibt; er wird **hier** ausgelöst, weil er
+   sprintweit ist und nicht je Story. Ohne diese Zeile stünde er in einem
+   Punkt, den der Scrum Master je Story abhakt, und in keiner Liste, die er
+   einmal am Sprint-Ende durchgeht (karpathy-Nachlauf K12).
 4. **Mängelliste an den PO** — melden, nicht heilen.
 
 **Takt 2 — nach der Kundenabnahme.** Ausführung PO:

@@ -55,6 +55,11 @@ Der Auftrag nennt den Modus. Nenne ihn auch in deinem Bericht.
    Raumaufteilung eingeschlossen. Je Befund ein Verdikt **ok / warn / fail**
    mit Fundstelle und konkretem Korrekturvorschlag. Du meldest, du heilst
    nicht: keine Änderungen an Quellcode, auch nicht „nur schnell".
+   **Zwei Sondenfehler sehen aus wie Fehler des Erzeugnisses** (Sprint 9): Ein
+   Sandkasten ohne `kdeglobals` färbt die Theme-Grafik anders als die
+   Qt-Palette — helle Schrift auf hellem Grund —, und `show()` statt
+   `showCapture()` liefert ein Fenster ohne Schatten, weil der erst in
+   `present()` gebunden wird.
 
 ## Grenzen
 
