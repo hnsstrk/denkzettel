@@ -117,7 +117,7 @@ zu `KF6::ColorScheme` verbindlich gemacht hat, und um AK 10.
 |---|---|
 | **Issue / Zweig** | #101 (`epic:M2`, `typ:story`, `size:m`) · `story/101-listentrenner` |
 | **Quellen und Tests** | `src/ui/notelistdelegate.cpp` (168 Z.) — **die Hauptarbeit, drei Stellen**: Konstanten `:12–28` (**kein neues Maß**, beide Linien liegen in `VerticalPadding = 9` und `HeadTopPadding = 14`), Kopfzweig `:109–123` (Gruppenlinie in der obersten Bildpunktzeile, **vor** dem `return`), Notizzweig `:125–151` (Eintragslinie in der letzten Bildpunktzeile, **nach** `style->drawControl(...)` `:126`, sonst überdeckt der Stil sie). Eine Zeichenhilfe nach dem Muster von `drawLine()` `:62–77`.<br>`src/ui/notelistdelegate.h` (51 Z.) — Deklaration neben `drawLine()` `:45–50`.<br>`src/ui/librarywindow.cpp` (1143 Z.) — **eine Stelle**: `showNote(index, previous)` `:732 ff.`; dort das Neuzeichnen der oberen Nachbarn (AK 3c, Falle 2.2). Listenaufbau `:202–207` unberührt.<br>`tests/librarytest.cpp` (3943 Z.) — neue Prüffunktionen für AK 1, AK 2, AK 3a/3b (Bildpunkte) und AK 3c (Malzähler); `keepsTheMeasuresOfTheGroupedList()` `:2648` als Ort für AK 5, `groupsTheSearchResultsLikeTheLibrary()` als Ort für AK 6.<br>`tests/libraryshots.cpp` (521 Z.) — das Bild des Normalfalls für AK 7. |
-| **Build** | **Verbindlich seit der Kundenentscheidung vom 07.08.2026:** `KF6::ColorScheme` an `denkzettelui` (`src/CMakeLists.txt:81–91`), `ColorScheme` in die Komponentenliste (`CMakeLists.txt:24–34`), `KF_MIN_VERSION` von `6.0.0` auf `6.20` (`CMakeLists.txt:6`). **Die Zeile `:6` speist zwei Aufrufe** — `find_package(ECM ${KF_MIN_VERSION})` `:8` und `find_package(KF6 ${KF_MIN_VERSION})` `:24`; sie hebt damit die Untergrenze für ECM und alle zehn Komponenten zugleich (Falle 2.6). |
+| **Build** | **Gültige Fassung (Kundenentscheidung 07.08.2026, 21:17 — siehe Nachtrag 8.1):** `KF6::ColorScheme` an `denkzettelui` (`src/CMakeLists.txt:81–91`); dazu **ein eigener `find_package`-Aufruf für `ColorScheme` mit der Mindestversion 6.20**. **`KF_MIN_VERSION` `:6` bleibt bei `6.0.0`**, und die Komponentenliste `:24–34` bleibt unberührt — der Bauplan trägt eine zweite Versionszahl, und die Untergrenze steigt allein dort, wo die Funktion sitzt.<br>*Überholte Fassung, wie sie hier bis 21:35 stand:* „`ColorScheme` in die Komponentenliste (`CMakeLists.txt:24–34`), `KF_MIN_VERSION` von `6.0.0` auf `6.20` (`CMakeLists.txt:6`)." Sie beruhte auf dem Stand vor dem Nachtrag zu AK 4. **Falle 2.6 ist der Grund, aus dem anders entschieden wurde**, und bleibt gültig. |
 | **Belege und Prüfmittel** | `docs/scrum/reviews/sprint-NN-s101-listentrenner/` mit eigenem `pruefen.sh` nach dem Muster von `sprint-07-s83-native-huelle/`. **Fertig wiederverwendbar:** `sonden/kanten.cpp`, `sonden/farbe.cpp`, `sonden/kontrastwert.cpp` (A) sowie `sonden/nachbarmalung.cpp` und `sonden/nachpruefung.cpp` (B). Die Bildpunkt-Technik liegt fertig in `tests/capturetest.cpp:382–445`. **Bildläufer vor jedem Bildbeleg bauen** (F9): `cmake --build <bau> --target libraryshots searchshots`. Für AK 6 genügt ein Lauf — die Szene `2-trefferliste-mit-gruppen.png` steht bereits (`tests/searchshots.cpp:108`) und braucht keine Codeänderung. |
 | **Fachliche Quellen** | **SPEC 9** (`:674 ff.`) — trägt die Linienregel nach AK 10; schweigt heute über die Trennung.<br>**SPEC 15** (`:933–958`) — nimmt `KColorScheme` auf **und zum ersten Mal eine Versionsgrenze**: Die Abhängigkeitsliste nennt heute überhaupt keine Mindestversion (gemessen: kein Treffer für `KF_MIN`, `Mindestversion`, `6.0.0` in `SPEC.md`). Entdeckte Bedingung nach DoD 4/B9.<br>**Zeichnung 3a** — Maße und Prüfsätze P1–P5, am 06.08.2026 nachgezogen (`36156fd`). **Vom Strang nicht anzufassen**, aber vor dem Spawn vom PO zu berichtigen (Feld 6.1). |
 | **Ausdrücklich nicht** | `src/capture/`, `src/shell/`, `src/store/`, `src/ui/notelistmodel.{h,cpp}` (**gemessen: keine Modelländerung** — die Art der Nachbarzeile liefert `GroupHeaderRole` schon heute), `src/ui/elidedlines.*`, `src/ui/pendingdeletion.*`, `src/ui/timestampformat.*`, `tests/capturetest.cpp`, `tests/captureshots.cpp`, `tests/editshots.cpp`, `tests/readmeshots.cpp`, `tests/searchshots.cpp` (**wird gelaufen, nicht geändert**), `wireframes/`, `CLAUDE.md`, `docs/scrum/PROZESS.md`, `.claude/agents/*`. |
@@ -130,16 +130,21 @@ Dateien, die #101 nicht anfasst. Gemeinsam berührt werden drei:
 
 | Datei | #101 | #100 |
 |---|---|---|
-| `CMakeLists.txt` (Wurzel) | Komponentenliste `:24–34`, `KF_MIN_VERSION` `:6` | keine gemessene Berührung |
-| `src/CMakeLists.txt` | `denkzettelui` `:81–91` | `denkzettelcapture` `:52–68` |
+| `CMakeLists.txt` (Wurzel) | **ein neuer `find_package`-Aufruf** für `ColorScheme`; `:6` und `:24–34` unberührt (8.1) | keine Berührung — **beide Bearbeiter von #100 messen „kein Build-Eingriff"** (`docs/scrum/vorberichte/100-eingabefeld/bericht.md:127`, `:151`) |
+| `src/CMakeLists.txt` | `denkzettelui` `:81–91` | `denkzettelcapture` `:52–68` — `KF6::Svg` steht dort bereits (`:66`), also ebenfalls keine Änderung |
 | `SPEC.md` | Abschnitte 9 und 15 | Abschnitte 3.1 / 3.2 |
 
 Kleinster Abstand: **eine Zeilengruppe in derselben Datei**, nicht dieselbe
 Zeile. Worktree-Trennung nach B13 und getrennte Belegordner genügen.
 
-**Eine Ausnahme, die der PO takten muss:** Berührt #100 die
+~~**Eine Ausnahme, die der PO takten muss:** Berührt #100 die
 `find_package`-Zeilen doch, liegen beide Stränge in `CMakeLists.txt:6–34`.
-Dann rebased der zweite Strang, statt rückwärts zu mergen.
+Dann rebased der zweite Strang, statt rückwärts zu mergen.~~
+**Entfallen (07.08.2026, 21:35, siehe 8.2).** Sie hing an zwei Bedingungen,
+und beide sind fort: `CMakeLists.txt:6` bleibt unberührt, und der
+konsolidierte Vorprüfbericht zu #100 hält für beide Bearbeiter fest, dass die
+Story **keinen Build-Eingriff** braucht. Der Bauplan gehört damit in diesem
+Sprint allein #101; getaktet werden muss nichts.
 
 ---
 
@@ -184,12 +189,17 @@ wertlos. Gegenmittel: den gelesenen Wert vor der Messung selbst zusichern.
 
 **2.6 `KF_MIN_VERSION` speist zwei `find_package`-Aufrufe** (B, am Code
 gemessen). `CMakeLists.txt:6` geht sowohl in `find_package(ECM …)` `:8` als
-auch in `find_package(KF6 …)` `:24`. Der Sprung auf 6.20 hebt die Untergrenze
-für ECM und alle zehn Komponenten. Auf Ganymed unkritisch (ECM 6.28,
-kcolorscheme 6.28), im öffentlichen Prüflauf ebenfalls, weil er aus dem
-rollenden Arch-Strom installiert. Der engere Weg wäre ein eigenes
-`find_package(KF6ColorScheme 6.20)` — die Entscheidung ist gefallen, der
-Nebeneffekt gehört trotzdem in den Auftrag.
+auch in `find_package(KF6 …)` `:24`. Ein Sprung auf 6.20 an dieser Stelle höbe
+die Untergrenze für ECM und alle zehn Komponenten. Auf Ganymed wäre das
+unkritisch (ECM 6.28, kcolorscheme 6.28), im öffentlichen Prüflauf ebenfalls,
+weil er aus dem rollenden Arch-Strom installiert — für ein Paket in einer
+Distribution mit älterem KF6 nicht.
+**Diese Falle hat den Bauplan geändert** (07.08.2026, 21:17): Der PO hat sie
+dem Kunden als Berichtigung seiner eigenen Vorlage vorgelegt, und der Kunde hat
+daraufhin den engeren Weg gewählt — eigener `find_package`-Aufruf für
+`ColorScheme` mit 6.20, `KF_MIN_VERSION` bleibt bei 6.0.0. Die Falle steht
+deshalb weiter hier: Sie ist der Grund der Entscheidung, und wer sie streicht,
+nimmt dem Bauplan seine Begründung.
 
 **2.7 Die Zeilenrechtecke stoßen lückenlos aneinander** (A F5, von B
 bestätigt). `spacing() == 0`, Lücke 0. „Letzte Bildpunktzeile der oberen
@@ -237,7 +247,7 @@ korrigiert. Geprüft, ob die Korrekturen tragen:
 | **AK 3a** | ja — Standzustand, prüfbar am Bildpunkt, drei Fälle einzeln (Feld 4) |
 | **AK 3b** | ja — die Zeichnung zeigt es am Kopf „Gestern" (`border-top` bei ausgewählter Notiz darüber); prüfbar am Bildpunkt |
 | **AK 3c** | ja — deckt den gemessenen Fehler vollständig ab, **beide** Richtungen, und benennt die Belegform, die als einzige trägt. Der Satz „ein Bildbeleg genügt hier nicht" ist die Zeile, die den Prüfweg vor dem bequemen Ersatz schützt |
-| **AK 4** | ja — Herkunft jetzt richtig (`[KDE]`, `KColorScheme::frameContrast()`, Voreinstellung 0,20), Weg entschieden, Prüfmittel in Feld 4. Die beiden Schemadateien sind aus dem Kriterium verschwunden; damit ist auch die Bindung an zwei Pakete weg, die der öffentliche Prüflauf nicht hat (B, `mb4`) |
+| **AK 4** | ja — Herkunft jetzt richtig (`[KDE]`, `KColorScheme::frameContrast()`, Voreinstellung 0,20), Weg entschieden, Prüfmittel in Feld 4. *Nachgeführt am 21:35 (8.3):* Der Nachtrag von 21:17 stellt zusätzlich klar, dass **das Verfahren** zugesichert ist und zwei Schemata geprüft werden, deren **Ergebnis** auseinanderliegt — die beiden Namen bleiben als Herkunft der Zahlen im Kriterium stehen. Als Prüfvorschrift gelesen bänden sie an zwei Pakete, die der öffentliche Prüflauf nicht hat (B, `mb4`); Feld 4 liest sie als Herkunft |
 | **AK 2** | ja — „Breite des Zeilenrechtecks (`option.rect`)" ist die Fassung, die beide Messungen stützen; die Zahl steht zu Recht nicht drin (0.1) |
 | **AK 7** | ja — Ansichtsbeleg, Skalierung 1,6 vom Kunden bestätigt, Bildpunktsätze auf 1 |
 | **AK 10** | ja — prüfbar am Diff von `SPEC.md` (Feld 4) |
@@ -276,7 +286,7 @@ beruft, liest sie vorher" führt.
 | **AK 5** | Die bestehenden Prüfsätze bleiben unverändert grün: `keepsTheMeasuresOfTheGroupedList()` (`librarytest.cpp:2648`) und die #70-Sätze `bringsTheHead…`. Sollzahlen, zweimal unabhängig gemessen: erster Kopf 27, weiterer Kopf 35, Notiz 72. `ctest --test-dir <bau> -R librarytest` | Kein neuer Prüfweg. Rechnerisch unberührt: Beide Linien liegen in vorhandenen Innenabständen (9 unten, 14 oben) |
 | **AK 6** | `groupsTheSearchResultsLikeTheLibrary()` um die Linien-Gegenproben erweitern — gemessen kein Eingriff am Produktivcode (A F8, von B bestätigt, 0.4). Bild: `searchshots`, Szene `2-trefferliste-mit-gruppen.png` (`searchshots.cpp:108`), Läufer vorher bauen | Kein neuer Prüfweg |
 | **AK 7** | `cmake --build <bau> --target libraryshots`, dann `QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.6 libraryshots <Ordner>`; Ablage unter `docs/scrum/reviews/` | Ansichtsbeleg, kein Bildpunktbeleg (2.10). B21 verlangt kein Sitzungsbild: kein Kriterium spricht über Hülle, Rundung, Kontur, Schatten oder Dekoration |
-| **AK 10** | `git diff` auf `SPEC.md`: Abschnitt 9 trägt die Linienregel (beide Linien, ihre Ausdehnungen, die Ausnahme an der Auswahl), Abschnitt 15 trägt `KColorScheme` **und die Mindestversion 6.20**. Gegenprobe, dass die Regel nicht doppelt und widersprüchlich steht: der Ausschluss-Griff aus `CLAUDE.md` über `frameContrast` und über `Trennlinie\|Haarlinie` | SPEC 15 nennt heute **keine** Mindestversion (gemessen). Die Versionsgrenze ist eine entdeckte Bedingung nach DoD 4/B9 und gehört ausgesprochen, nicht nur in die `CMakeLists.txt` |
+| **AK 10** | `git diff` auf `SPEC.md`: Abschnitt 9 trägt die Linienregel (beide Linien, ihre Ausdehnungen, die Ausnahme an der Auswahl), Abschnitt 15 trägt `KColorScheme` **und die Mindestversion 6.20 für diese eine Komponente** — nicht als angehobene Untergrenze für das Ganze (8.1). Gegenprobe, dass die Regel nicht doppelt und widersprüchlich steht: der Ausschluss-Griff aus `CLAUDE.md` über `frameContrast` und über `Trennlinie\|Haarlinie` | SPEC 15 nennt heute **keine** Mindestversion (gemessen). Die Versionsgrenze ist eine entdeckte Bedingung nach DoD 4/B9 und gehört ausgesprochen, nicht nur in die `CMakeLists.txt`. Der Prüfsatz ist damit schärfer als vorher: Steht dort eine allgemeine Untergrenze statt einer Komponentenversion, ist AK 10 **nicht** erfüllt |
 
 **Was ein Agent nicht prüfen kann:**
 
@@ -368,8 +378,21 @@ steht in 2.2 und geht so in den Spawn-Auftrag.
 KF6-Komponenten zugleich (2.6). Der engere Weg wäre
 `find_package(KF6ColorScheme 6.20)` neben der bestehenden Liste. Auf Ganymed
 und im öffentlichen Prüflauf ist beides gleichwertig; für ein Paket in einer
-Distribution mit älterem KF6 ist es das nicht. Entschieden ist der breite Weg;
-die Frage ist, ob das mit dieser Folge entschieden wurde.
+Distribution mit älterem KF6 ist es das nicht. ~~Entschieden ist der breite Weg;
+die Frage ist, ob das mit dieser Folge entschieden wurde.~~
+
+**Beantwortet am 07.08.2026, 21:17.** Der PO hat die Folge dem Kunden als
+Berichtigung seiner eigenen Vorlage vorgelegt; der Kunde hat den **engeren**
+Weg gewählt. `KF_MIN_VERSION` bleibt bei 6.0.0, `ColorScheme` bekommt eine
+eigene Mindestversion 6.20, SPEC 15 trägt die Version für diese eine
+Komponente. Feld 1 ist entsprechend nachgeführt (8.1).
+
+**Erledigt am 07.08.2026, 21:29** (`4be3f8d`, nachgeprüft am Stand): Beide
+Stellen tragen jetzt einen datierten Vermerk. `:565` fasst **P4** neu — „zugesichert
+ist das Verfahren und keine Palettenrolle; geprüft unter zwei Farbschemata,
+deren Ergebnis weit auseinanderliegt" —, `:553` berichtigt die Herkunft und
+hält fest, dass die Kontrastwerte mit 0,20 gerechnet sind. Der Punkt ist
+geschlossen; er steht hier, weil er der Grund der Berichtigung war.
 
 ### 6.4 An den Kunden — keine
 
@@ -385,3 +408,46 @@ offen ist, ist Formulierung und Bauweg.
 eigener Worktree. Vier Zeilen gehören in den Spawn-Auftrag und ersparen je
 einen Fehlversuch: 2.2 mit dem Heilort, 2.3 mit der Belegform, 2.5 mit der
 Sekunde und 2.8 mit der Reihenfolge gegenüber `drawControl`.
+
+---
+
+## 8. Nachtrag 07.08.2026, 21:35 — was sich nach der Konsolidierung geändert hat
+
+Dieser Bericht wurde um 21:04 gegen die erste Korrektur der Akzeptanzkriterien
+konsolidiert (Issue-Kommentar von 20:55). Um **21:17** ist der zweite Nachtrag
+zu AK 4 erschienen, um **21:29** der Commit `4be3f8d`. Die alten Fassungen
+bleiben oben lesbar (B17); hier steht, was gilt.
+
+**8.1 Der Bauplan ist enger** (Feld 1, Zeile „Build"; Feld 4, AK 10; Feld 6.3).
+`KF_MIN_VERSION` bleibt bei `6.0.0`, die Komponentenliste `:24–34` bleibt
+unberührt, und `ColorScheme` wird mit einem **eigenen** `find_package`-Aufruf
+und der Mindestversion **6.20** gesucht. SPEC 15 trägt die Version für diese
+eine Komponente. **Falle 2.6 ist damit nicht überholt, sondern eingelöst:** Sie
+hat die Entscheidung ausgelöst und bleibt ihre Begründung. Der Satz „von 6.0.0
+auf 6.20" in der ersten Fassung von Feld 1 hätte den Umsetzungsstrang den
+falschen Bauplan bauen lassen — er ist die einzige Stelle dieses Berichts, an
+der das möglich gewesen wäre.
+
+**8.2 Die Ausnahme zur Kollisionsfläche entfällt** (Feld 1.1). Sie hing daran,
+dass beide Stränge in `CMakeLists.txt:6–34` hätten liegen können. Beide
+Bedingungen sind fort: `:6` bleibt unberührt (8.1), und der konsolidierte
+Vorprüfbericht zu #100 hält für **beide** Bearbeiter fest, dass die Story
+keinen Build-Eingriff braucht — `KF6::Svg` steht bereits in
+`target_link_libraries(denkzettelcapture …)`. Der Bauplan gehört in diesem
+Sprint allein #101. Der PO muss nichts takten.
+
+**8.3 AK 4 ist noch einmal geschärft** (Feld 3, Feld 4). Der Nachtrag von 21:17
+misst, dass **0 von 19** Schemata den Schlüssel `frameContrast` tragen — die
+ursprüngliche Vorgabe „einem mit hohem und einem mit niedrigem Wert" war damit
+nicht bloß falsch begründet, sondern unerfüllbar. Zugesichert ist jetzt das
+**Verfahren**; geprüft wird unter zwei Schemata, deren **Ergebnis**
+auseinanderliegt. Das Prüfmittel in Feld 4 stand bereits so und bleibt
+unverändert; die Zeile in Feld 3, die die beiden Schemanamen für verschwunden
+erklärte, ist berichtigt.
+
+**8.4 Feld 6.1 ist erledigt** (`4be3f8d`, am Stand nachgeprüft). Zeichnung 3a
+trägt an `:553` und `:565` datierte Vermerke, P4 ist neu gefasst. Der Befund
+bleibt als Befund stehen — er war der Grund der Berichtigung.
+
+**Nicht berührt:** Feld 2 außer 2.6, Feld 5 (`size:m`) und das Ready-Urteil
+in Feld 3. Alle drei stehen unverändert.

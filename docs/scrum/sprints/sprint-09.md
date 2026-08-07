@@ -40,7 +40,7 @@ entscheiden"). Beide sind unten unter §4 verzeichnet.
 | **Epic** | M1 | M2 |
 | **Zweig / Worktree** | `story/100-eingabefeld` · `../denkzettel-100` | `story/101-listentrenner` · `../denkzettel-101` |
 | **Quellen und Tests** | `src/capture/capturewindow.{h,cpp}`, `tests/capturetest.cpp`, `tests/captureshots.cpp`, `tests/themes/…/denkzettel-test-breit/colors` (nur der Kommentarkopf) | `src/ui/notelistdelegate.{h,cpp}`, `src/ui/librarywindow.cpp` (nur `showNote()`), `tests/librarytest.cpp`, `tests/libraryshots.cpp` |
-| **Build** | nichts — `KF6::Svg` steht bereits an `denkzettelcapture` | `KF6::ColorScheme` an `denkzettelui`, Komponentenliste, eigene Mindestversion 6.20 |
+| **Build** | nichts — `KF6::Svg` steht bereits an `denkzettelcapture` (`src/CMakeLists.txt:66`), von beiden Bearbeitern gemessen | `KF6::ColorScheme` an `denkzettelui`, dazu ein **eigener** `find_package`-Aufruf mit Mindestversion 6.20. `KF_MIN_VERSION` `:6` und die Komponentenliste `:24–34` bleiben unberührt |
 | **SPEC** | 3.1, 3.2 | 9 und 15 |
 | **Start** | sofort | sofort |
 
@@ -58,11 +58,14 @@ werden `src/CMakeLists.txt` (verschiedene Ziele), `CMakeLists.txt` (nur B) und
 Kleinster Abstand: **eine Zeilengruppe in derselben Datei, nie dieselbe Zeile.**
 Worktree-Trennung nach B13 und getrennte Belegordner genügen.
 
-**Was der PO zu takten hat:** Berührt Strang A die `find_package`-Zeilen wider
-Erwarten doch, liegen beide Stränge in `CMakeLists.txt:6–34`. Dann rebased der
-zweite Strang, statt rückwärts zu mergen. Und die Installation nach `/usr`
-taktet wie immer der PO — am Sprint-Ende, einmal, für den Endstand beider
-Stränge.
+**Der Bauplan gehört in diesem Sprint allein Strang B.** Die Vorprüfung zu #100
+hält für **beide** Bearbeiter „kein Build-Eingriff" fest, und die
+Kundenentscheidung vom 07.08.2026 hält `KF_MIN_VERSION` und die Komponentenliste
+frei. Damit entfällt die Klausel, die hier zunächst stand — Strang A und B
+liegen im Bauplan nicht mehr aufeinander, und es gibt nichts zu takten.
+
+Zu takten bleibt allein die **Installation nach `/usr`**: am Sprint-Ende,
+einmal, für den Endstand beider Stränge — durch den PO, nicht durch die Agenten.
 
 ## 3. Was die Vorprüfung gefunden hat
 
