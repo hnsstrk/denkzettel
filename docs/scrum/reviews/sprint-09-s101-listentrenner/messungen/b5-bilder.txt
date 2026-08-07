@@ -1,5 +1,5 @@
 B5/B6 — Bildbelege, Maße und Skalierung
-Stand: 2026-08-07 22:28 CEST, Ganymed. d20ccd7 auf story/101-listentrenner.
+Stand: 2026-08-07 23:08 CEST, Ganymed. f18abe7 auf story/101-listentrenner.
 Offscreen, QT_QPA_PLATFORMTHEME=kde.
 
 skalierung-1/01-normalfall.png: 900x600
