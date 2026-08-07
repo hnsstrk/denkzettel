@@ -488,6 +488,85 @@ Datei mit sich selbst.
 
 ---
 
+## 9. Nachtrag 08.08.2026 — drei Mängel der DoD-Prüfung
+
+### M4 — der Kommentar der Bildreihe · **korrigiert, nicht als Issue**
+
+Der Befund stimmt in der Sache und war in der Menge zu klein gegriffen: Er
+nennt zwei bytegleiche Paare, gemessen sind es **zwei von sechs**. Ich habe
+alle sechs nachgemessen, statt die zwei zu übernehmen:
+
+| Paar | Zustand | Abweichung |
+|---|---|---|
+| 01 / 04 | Theme **mit** `colors`-Datei, leer | **0** von 354.816 Bildpunkten |
+| 02 / 05 | dasselbe, getippt | **0** von 354.816 |
+| 03 / 06 | dasselbe, acht Zeilen | 718, alle in x 592–599 — **der Scrollbalken** |
+| 07 / 10 | Theme **ohne** `colors`-Datei, leer | 1.370, x 45–410 (Textbereiche) |
+| 08 / 11 | dasselbe, getippt | 2.134 |
+| 09 / 12 | dasselbe, acht Zeilen | 2.758 |
+
+Damit ist die Aussage präzise zu machen statt zu streichen: Die Spalten zeigen
+die **Texte**, und zwar nur dort, wo das Desktop-Theme keine eigene
+`colors`-Datei mitbringt — seit #85 entscheidet ein Theme mit einer solchen
+Datei sie selbst. Was der Palette bleibt, ist der Scrollbalken, den der
+Widget-Stil zeichnet. Der Kommentar trägt jetzt diese Zahlen.
+
+**Kein eigenes Issue für die Korrektur.** Wohl aber eine Frage für dich, und
+ich melde sie statt sie zu entscheiden: **Sechs der zwölf Bilder sind unter
+einem Theme mit eigener `colors`-Datei drei redundante Paare.** Welches Theme
+in welche Spalte fällt, entscheidet `installedThemePair()` nach dem
+**Hüllenrand** — die Bildreihe trägt ihre Schema-Achse also je nach Maschine
+oder eben nicht. Das zu heilen hieße, den Läufer sein Farbschema selbst setzen
+zu lassen (über `kdeglobals`, nicht über `QPalette`), und das ändert, was alle
+zwölf Bilder zeigen. Das ist eine Entscheidung über die Belegform und keine
+Kommentarkorrektur.
+
+### M7 und B24 — die Belege nennen ihren Stand · **behoben**
+
+Jede der sieben Messdateien trägt jetzt zwei Kopfzeilen:
+
+```
+Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+```
+
+Geschrieben werden sie von `pruefen.sh`, nicht von Hand — eine von Hand
+gepflegte Kopfzeile veraltet beim ersten Lauf, den jemand ohne sie fährt.
+
+Zwei Entscheidungen darin, beide gemessen begründet:
+
+- **Der Stand wird vor dem ersten Schreiben erhoben.** Der Lauf macht den Baum
+  selbst schmutzig: Er überschreibt jede Datei unter `messungen/` und `bilder/`.
+  Wer die Sauberkeit hinterher prüfte, bekäme sie nie zu sehen.
+- **„Sauber" heißt: außerhalb dieses Belegordners liegt nichts Uncommittetes.**
+  Das ist die Frage, auf die es ankommt — nachfahrbar oder nicht entscheidet
+  der **Code**, nicht die Belegdatei, die der Lauf gerade selbst schreibt.
+  Steht dort etwas offen, sagt die Kopfzeile es in Großbuchstaben.
+
+### M8 — vier Datumsangaben aus der Zukunft · **berichtigt**
+
+Sie tragen jetzt den Zeitpunkt des Commits, den sie beschreiben: **07.08.2026,
+23:03 Uhr** (`f700dfd`). Geschrieben hatte ich sie am 07.08. abends und mit
+dem 08.08. datiert.
+
+### Was dieser Lauf selbst zutage gebracht hat
+
+**Ich hätte um ein Haar gemeldet, die Kopfzeilen funktionierten nicht.** Der
+erste Prüflauf nach dem Umbau schrieb keine — die sieben Dateien trugen die
+Zeitstempel des vorigen Laufs, und der Mechanismus sah aus wie kaputt.
+Ursache war meine eigene Sichtprüfung: `bash pruefen.sh | head -3` schließt die
+Leitung, das Skript bekommt SIGPIPE, und mit `set -o pipefail` endet es mitten
+im Bau. Aufgefallen ist es nur, weil ich die **Änderungszeiten** der Dateien
+angesehen habe statt ihren Inhalt.
+
+Die Regel, die daraus folgt und die ich in dieser Story zum dritten Mal
+aufschreibe: **Ein Lauf, dessen Ausgabe abgeschnitten wird, ist kein Lauf.**
+Und: Bevor man einen Mechanismus für kaputt erklärt, prüft man, ob er
+überhaupt gelaufen ist — hier war die Änderungszeit der Zeuge, so wie es
+vorher die Zahl der angefassten Dateien war.
+
+---
+
 ## Reproduktion
 
 ```

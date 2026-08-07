@@ -1,4 +1,7 @@
-Kopie des Arbeitsbaums nach /tmp/tmp.d9dFEDg27K
+Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+
+Kopie des Arbeitsbaums nach /tmp/tmp.JnpOjhwvC9
 == Ausgangsstand übersetzen ==
 Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
 Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
@@ -6,7 +9,7 @@ Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Ein
 Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
 100% tests passed out of 1
 
-Total Test time (real) =   0.64 sec
+Total Test time (real) =   0.69 sec
 
 ===== Probe 1 — Das Feld wird gar nicht gezeichnet (AK 1, AK 4, AK 6b)
 Erwartet: rot
@@ -63,7 +66,7 @@ ERGEBNIS: rot. Gefallene Prüfsätze:
 
 ===== Probe 8 — Ohne Plasma-Grafik, **unmutiert** — die Lage des öffentlichen Läufers
 Erwartet: 0 Fehlschläge und mehr als 0 Übersprungene; jeder Skip nennt seinen Grund
-ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 277ms
+ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 279ms
   Übersprungene Prüfsätze zum Feld:
     CaptureTest::hullFollowsAnInstalledDesktopTheme
     CaptureTest::paintsTheThemesFieldOntoTheHull
@@ -77,7 +80,7 @@ ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 277ms
 
 ===== Probe 9 — Ohne Plasma-Grafik, **mit** Mutation 1 (Feld nicht zeichnen)
 Erwartet: grün — und das ist keine Lücke, sondern die Kehrseite: wo nichts zu messen ist, fängt der Läufer diese Mutation nicht. Probe 1 fängt sie dort, wo die Grafik da ist.
-ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 254ms
+ERGEBNIS: Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 265ms
   Übersprungene Prüfsätze zum Feld:
     CaptureTest::hullFollowsAnInstalledDesktopTheme
     CaptureTest::paintsTheThemesFieldOntoTheHull

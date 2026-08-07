@@ -1,3 +1,6 @@
+Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+
 === #100, M7: capturetest ohne Plasma-Grafiken auf dem Datenpfad ===
 Nachgestellt wird der öffentliche Lauf 31216657864, der hier am
 07.08.2026 mit 28 passed / 6 failed / 3 skipped rot war.
@@ -51,5 +54,5 @@ PASS   : CaptureTest::wearsNoDecoration()
 PASS   : CaptureTest::bindsAShadowFromTheThemeTiles()
 PASS   : CaptureTest::staysUsableWithoutADesktopTheme()
 PASS   : CaptureTest::cleanupTestCase()
-Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 249ms
+Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 278ms
 ********* Finished testing of CaptureTest *********

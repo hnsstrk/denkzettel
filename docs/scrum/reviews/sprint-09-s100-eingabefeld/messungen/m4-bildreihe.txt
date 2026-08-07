@@ -1,1 +1,4 @@
-Desktop-Themes dieser Bildreihe (installiert): schmal=breeze-dark  breit=CachyOS-Nord-round
+Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+
+Desktop-Themes dieser Bildreihe (installiert): schmal=CachyOS-Nord-round  breit=Ant-Dark

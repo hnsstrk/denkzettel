@@ -1,3 +1,6 @@
+Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+
 === #100, M6: Textnachweis der Bedingung aus AK 6b in SPEC.md ===
 Gesucht wird die Deckungsgrenze, nicht eine Kontrastzahl.
 
