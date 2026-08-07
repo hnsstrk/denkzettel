@@ -201,6 +201,7 @@ class LibraryTest : public QObject
 
 private Q_SLOTS:
     void initTestCase();
+    void cleanupTestCase();
     void init();
     void cleanup();
 
@@ -473,6 +474,20 @@ private:
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<Store> m_store;
     int m_storedNotes = 0;
+
+    /**
+     * `[KDE] frameContrast` as it stood before this run, empty if the key was
+     * absent — so that cleanupTestCase() can put the sandbox back the way it
+     * found it (issue #101, karpathy review of Sprint 9, K7).
+     *
+     * Remembered once for the whole run rather than around the one test that
+     * writes it: that test is data-driven, and a second row would remember its
+     * own value as the one from before. Written back once at the end for the
+     * same reason KConfig makes it necessary at all — its change detection
+     * works in seconds, so a value taken back and set again between two rows
+     * would not arrive (measured 07.08.2026).
+     */
+    QString m_frameContrastBefore;
 };
 
 void LibraryTest::initTestCase()
@@ -494,6 +509,30 @@ void LibraryTest::initTestCase()
     if (QIcon::themeName().isEmpty()) {
         QIcon::setThemeName(QStringLiteral("breeze"));
     }
+
+    // The colour check below writes `[KDE] frameContrast` into the sandbox
+    // configuration, because that is the only place KColorScheme::frameContrast()
+    // reads and setPalette() does not reach it. Test mode puts that file under
+    // `~/.qttest/config/`, where it outlives the process — so what this run
+    // writes would be the starting condition of every later one.
+    m_frameContrastBefore =
+        KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("KDE")).readEntry("frameContrast", QString());
+}
+
+void LibraryTest::cleanupTestCase()
+{
+    // The sandbox goes back the way it was found. Nothing in this process reads
+    // the value after this point, so the change detection of KConfig cannot
+    // catch us out here — and the next run starts from the same ground as this
+    // one did (karpathy review of Sprint 9, K7).
+    KSharedConfigPtr globals = KSharedConfig::openConfig();
+    KConfigGroup kde(globals, QStringLiteral("KDE"));
+    if (m_frameContrastBefore.isEmpty()) {
+        kde.deleteEntry("frameContrast");
+    } else {
+        kde.writeEntry("frameContrast", m_frameContrastBefore);
+    }
+    globals->sync();
 }
 
 void LibraryTest::init()
