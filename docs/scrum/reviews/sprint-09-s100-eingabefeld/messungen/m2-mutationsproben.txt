@@ -1,0 +1,64 @@
+Kopie des Arbeitsbaums nach /tmp/tmp.MTvlcOtRFL
+== Ausgangsstand übersetzen ==
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
+Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
+100% tests passed out of 1
+
+Total Test time (real) =   0.55 sec
+
+===== Probe 1 — Das Feld wird gar nicht gezeichnet (AK 1, AK 4, AK 6b)
+Erwartet: rot
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() Compared values are not the same
+  FAIL!  : CaptureTest::fieldCoverageIsTheThemesOwn() 'picture.pixelColor(surface) == expected.pixelColor(surface)' returned FALSE.
+  FAIL!  : CaptureTest::fieldFollowsADesktopThemeChange() 'narrow != wide' returned FALSE.
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'picture.pixelColor(point) == expected.pixelColor(point)' returned FALSE.
+  FAIL!  : CaptureTest::textSitsInsideTheFieldBorder() 'text->document()->documentMargin() >= border' returned FALSE.
+
+===== Probe 2 — Das Feld bleibt aus der Schleife über das frische ImageSet (AK 4, F5)
+Erwartet: rot — sonst folgt das Feld dem Theme-Wechsel lautlos nicht
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() Compared values are not the same
+  FAIL!  : CaptureTest::fieldCoverageIsTheThemesOwn() 'picture.pixelColor(surface) == expected.pixelColor(surface)' returned FALSE.
+  FAIL!  : CaptureTest::fieldFollowsADesktopThemeChange() 'narrow != wide' returned FALSE.
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'picture.pixelColor(point) == expected.pixelColor(point)' returned FALSE.
+  FAIL!  : CaptureTest::textSitsInsideTheFieldBorder() 'text->document()->documentMargin() >= border' returned FALSE.
+
+===== Probe 3 — Der Feldrand rückt den Text nicht nach innen (AK 5)
+Erwartet: rot
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'differing == 0' returned FALSE.
+  FAIL!  : CaptureTest::textSitsInsideTheFieldBorder() 'text->document()->documentMargin() >= border' returned FALSE.
+
+===== Probe 4 — Der Auswahlpfad opaque fällt weg — am **reparierten** Abgriff (AK 9)
+Erwartet: rot; das ist das Prüfmittel von AK 9
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() 'drawn == opaqueAlpha' returned FALSE.
+
+===== Probe 5 — Derselbe Wegfall am **alten** Abgriff, dem Fenstermittelpunkt (AK 9, Gegenprobe)
+Erwartet: GRÜN — genau das ist der Befund: der alte Abgriff hätte die Mutation durchgelassen
+ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diesen Eingriff.
+
+===== Probe 6 — Das Feld wird über das ganze Fenster gelegt (AK 9, zweiter Abgriff)
+Erwartet: rot — der Abgriff von hullIsCompleteAtFiveAndEightLines() misst wieder die Hülle
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullFollowsTheDesktopTheme() 'wideCorner != narrowCorner' returned FALSE.
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::hullIsCompleteAtFiveAndEightLines() 'picture.pixelColor(clearOfTheField) == hull.pixelColor(clearOfTheField)' returned FALSE.
+  FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'picture.pixelColor(point) == expected.pixelColor(point)' returned FALSE.
+  FAIL!  : CaptureTest::paintsTheThemesOwnHullInOnePiece() Compared values are not the same
+
+===== Probe 7 — Das Feld bekommt das Bildpunktverhältnis des Fensters nicht (F4)
+Erwartet: rot allein über den Lauf bei 1,6 — bei Verhältnis 1 ist der Fehler unsichtbar
+ERGEBNIS: rot. Gefallene Prüfsätze:
+  FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
+  FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'differing == 0' returned FALSE.
+
+Fertig.

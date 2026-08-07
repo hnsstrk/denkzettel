@@ -215,24 +215,40 @@ Text dort tragen soll, ist der Kontrasteffekt des Compositors — der auf diesem
 Stand **nicht vorhanden** ist (3.2, Punkt 10). Dort sichert die Spezifikation
 keine Lesbarkeit zu.
 
-- **Fläche** die des Themes, **eine durchgehende** — kein Kasten im Kasten.
-  Sie deckt nicht notwendig: `default` deckt zu 84,7 %, andere Themes zu 2,7 %
-  bis 100 %. „Geschlossen" heißt hier vollständig, nicht undurchsichtig.
-  **Diese Festlegung steht unter Kundenbefund** (05.08.2026, Issue #100: „Das
-  Erfassungsfenster ist ein Farbblock. Der Eingabebereich ist nicht klar
-  erkennbar"). Sie bleibt gültig, bis eine andere an ihre Stelle tritt; ihre
-  Begründung ist am 06.08.2026 überprüft worden und trägt nur zur Hälfte. Dass
-  **keine Palettenrolle** einen zweiten Kasten konturieren kann, ist über 18
-  Schemata gemessen und bleibt richtig. Dass die KDE HIG einen solchen Kasten
-  **ablehnten**, ist falsch: *Getting input*, Abschnitt *Signaling
-  interactivity*, verlangt das Gegenteil („Use standard controls as much as
-  possible to automatically inherit this style of visual interactivity"), und
-  Plasmas eigenes Eingabefeld — der Maßstab des Kunden, KRunner — zeichnet
-  seine Fläche und seine Kante über `widgets/lineedit`, Vorsatz `base`. Diese
-  Grafik gehört derselben Quelle an wie die Hülle und liegt unter `default`
-  bei 1,39 : 1 Fläche und 1,33 : 1 Kante gegen die Hülle; im Sitzungsbild
-  desselben Fensters neben KRunner sind es 1,41 : 1. Belege und Vorlage:
-  `docs/scrum/reviews/2026-08-06-lesbarkeit/`.
+- **Zwei Flächen, beide aus dem Theme** (Kundenentscheidung 06.08.2026,
+  Issue #100). Die **Fensterfläche** zeichnet `dialogs/background`, das
+  **Textfeld** `widgets/lineedit` mit dem Vorsatz `base` — dieselbe Quelle,
+  eine Grafik tiefer, und dieselbe, aus der KRunners Eingabefeld gezeichnet
+  ist. Keine der beiden deckt notwendig: `default` deckt in der Hülle zu
+  84,7 %, andere Themes zu 2,7 % bis 100 %. „Geschlossen" heißt hier
+  vollständig, nicht undurchsichtig. **Zugesichert ist die Herkunft, nicht
+  eine Farbe und nicht eine Kontrastzahl.**
+  **Grenze, gemessen und benannt** (07.08.2026, Issue #100 AK 6b): Unter
+  `CachyOS-Nord-round`, `Iridescent-round` und den drei
+  `cachyos-emerald`-Themes zeichnet `widgets/lineedit` nur einen Hauch — die
+  Grafik deckt dort zu **15 von 255**, gegen 255 unter `default`,
+  `breeze-dark` und `breeze-light`. Dort bleibt das Feld praktisch
+  unsichtbar, und daran ist nichts zu heilen, ohne „Form und Farbe kommen vom
+  Theme" (#83) aufzugeben. Es ist dieselbe Grenze, die der Absatz darüber für
+  die Schrift benennt; sie wächst hier nicht, sie wiederholt sich.
+  **Geprüft wird die Deckung und keine Kontrastzahl**, und das ist gemessen
+  begründet: Die Abhebung des Feldes gegen die Hülle schwankt unter `default`
+  zwischen 1,08 : 1 über schwarzem und 1,88 : 1 über weißem Grund, weil die
+  Hülle durchscheint — sie hängt am Bildschirmhintergrund des Kunden und ist
+  keine Eigenschaft des Baus.
+  **Bis zum 06.08.2026 galt das Gegenteil:** „eine durchgehende Fläche — kein
+  Kasten im Kasten". Der Kunde hat sie auf seinen Befund vom 05.08.2026 hin
+  aufgehoben („Das Erfassungsfenster ist ein Farbblock. Der Eingabebereich ist
+  nicht klar erkennbar"). Von ihrer Begründung trägt die eine Hälfte weiter:
+  Dass **keine Palettenrolle** einen zweiten Kasten konturieren kann, ist über
+  18 Schemata gemessen und bleibt richtig — sie schließt Palettenrollen aus,
+  nicht die Theme-Grafik. Die andere ist widerlegt: Dass die KDE HIG einen
+  solchen Kasten **ablehnten**, ist falsch — *Getting input*, Abschnitt
+  *Signaling interactivity*, verlangt das Gegenteil („Use standard controls as
+  much as possible to automatically inherit this style of visual
+  interactivity"). Belege und Vorlage:
+  `docs/scrum/reviews/2026-08-06-lesbarkeit/`, Umsetzung
+  `docs/scrum/reviews/sprint-09-s100-eingabefeld/`.
 - **Kontur** ist keine eigene Linie mehr. Die Theme-Grafik zeichnet an ihrem
   Rand dieselbe Farbe wie in der Fläche und unterscheidet sich allein in der
   Deckung (gemessen unter `default`: 235 gegen 216 von 255). Der Rand des
@@ -264,10 +280,18 @@ keine Lesbarkeit zu.
   Grund; keines der drei gehört dem Code. Was sich prüfen lässt, ist, aus
   welcher Quelle die Farbe stammt.
 - **Innenabstände** (12 seitlich, 10 oben, 8 unten) gelten **zuzüglich** des
-  Randes, den das Theme für sich beansprucht — der Text beginnt bei Breeze
+  Randes, den das Theme für sich beansprucht — der Inhalt beginnt bei Breeze
   16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
   mehr Luft (12) als unter dem App-Namen (8); seit dem Entfall der Trennlinie
   ist dieser Unterschied die gesamte Gliederung.
+  **Für den Notiztext kommt seit Issue #100 der Rand des Feldes hinzu** — der
+  Streifen, den `widgets/lineedit` für sich beansprucht (gemessen 6 px
+  ringsum unter allen acht installierten Themes, die darin nicht auseinander
+  gehen). Der Text rückt entsprechend nach innen und der Textbereich wächst um
+  zweimal diesen Rand; **App-Name und Fußzeile stehen unverändert**, denn das
+  Feld umgibt allein den Textbereich. Zugesichert wird auch hier relativ:
+  gegen den Rand, den die Grafik meldet, nicht gegen die Zahl 6 — vier der
+  acht Themes melden 5,99999.
   **Der Halbsatz nach dem Semikolon beschreibt den Zustand, den Issue #100
   beanstandet** (05.08.2026) — die Maßangaben davor gelten unverändert. Der
   Entfall der Trennlinie war am 01.08.2026 mit drei Gründen belegt; der dritte

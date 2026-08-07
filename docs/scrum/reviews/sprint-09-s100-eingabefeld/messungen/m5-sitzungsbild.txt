@@ -1,0 +1,35 @@
+=== #100, Sitzungsbild: das Feld am laufenden Compositor (AK 2, AK 4) ===
+Bildschirm         : 2400x1350 logisch, Verhältnis 2
+
+############ sitzung-1-theme-a (Theme default)
+  Fenster            : 600x186 logisch, Bild 960x298, Verhältnis 1.6
+  Textbereich        : x=16 y=37 568x110
+  Schatten           : vom Compositor angenommen
+  Eckenlauf          : 4
+  Kantenlauf         : 7.4.3.2.1.1.1.0.0.0
+  Fassung durchscheinend: Hülle daneben 32,35,38/a216  Feldfläche 20,22,24/a255  Feldkante 76,78,81/a255
+  Fassung deckend      : Hülle daneben 32,35,38/a216  Feldfläche 20,22,24/a255  Feldkante 76,78,81/a255
+  Gezeichnet         : Hülle daneben 32,35,38/a216  Feldfläche 20,22,24/a255  Feldkante 76,78,81/a255
+  Feld gegen Hülle   : verschieden — das Feld hebt sich ab
+
+############ sitzung-2-theme-b (Theme breeze-light)
+  Fenster            : 600x186 logisch, Bild 960x298, Verhältnis 1.6
+  Textbereich        : x=16 y=37 568x110
+  Schatten           : vom Compositor angenommen
+  Eckenlauf          : 4
+  Kantenlauf         : 7.4.3.2.1.1.1.0.0.0
+  Fassung durchscheinend: Hülle daneben 240,240,241/a216  Feldfläche 255,255,255/a255  Feldkante 198,200,201/a255
+  Fassung deckend      : Hülle daneben 240,240,241/a216  Feldfläche 255,255,255/a255  Feldkante 198,200,201/a255
+  Gezeichnet         : Hülle daneben 240,240,241/a216  Feldfläche 255,255,255/a255  Feldkante 198,200,201/a255
+  Feld gegen Hülle   : verschieden — das Feld hebt sich ab
+
+############ sitzung-3-zurueck (Theme default)
+  Fenster            : 600x186 logisch, Bild 960x298, Verhältnis 1.6
+  Textbereich        : x=16 y=37 568x110
+  Schatten           : vom Compositor angenommen
+  Eckenlauf          : 4
+  Kantenlauf         : 7.4.3.2.1.1.1.0.0.0
+  Fassung durchscheinend: Hülle daneben 32,35,38/a216  Feldfläche 20,22,24/a255  Feldkante 76,78,81/a255
+  Fassung deckend      : Hülle daneben 32,35,38/a216  Feldfläche 20,22,24/a255  Feldkante 76,78,81/a255
+  Gezeichnet         : Hülle daneben 32,35,38/a216  Feldfläche 20,22,24/a255  Feldkante 76,78,81/a255
+  Feld gegen Hülle   : verschieden — das Feld hebt sich ab

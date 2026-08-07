@@ -1,0 +1,9 @@
+=== #100, M6: Textnachweis der Bedingung aus AK 6b in SPEC.md ===
+Gesucht wird die Deckungsgrenze, nicht eine Kontrastzahl.
+
+SPEC.md:229:  Grafik deckt dort zu **15 von 255**, gegen 255 unter `default`,
+
+--- und der Feldrand bei den Innenabständen (AK 5):
+SPEC.md:220:  **Textfeld** `widgets/lineedit` mit dem Vorsatz `base` — dieselbe Quelle,
+SPEC.md:228:  `cachyos-emerald`-Themes zeichnet `widgets/lineedit` nur einen Hauch — die
+SPEC.md:288:  Streifen, den `widgets/lineedit` für sich beansprucht (gemessen 6 px
