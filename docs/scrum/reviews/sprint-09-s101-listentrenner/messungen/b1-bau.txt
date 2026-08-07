@@ -1,0 +1,10 @@
+B1 — vollständiger Neubau, Zahl der Compilerwarnungen
+Stand: 2026-08-07 22:24 CEST, Ganymed. 366b69f auf story/101-listentrenner.
+Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+übersetzte Dateien   : 49
+Compilerwarnungen    : 0
+Fehler               : 0
+
+Die neue Abhängigkeit, wie CMake sie meldet:
+ * KF6ColorScheme (required version >= 6.20)

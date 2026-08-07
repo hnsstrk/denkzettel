@@ -1,0 +1,37 @@
+Mutationsproben zu #101 — kann jeder Prüfsatz fallen?
+Stand: 2026-08-07 22:09 CEST, Ganymed. 366b69f auf story/101-listentrenner.
+
+== 1. Eintragslinie ohne die Ausnahme an der Auswahl (AK 3a) ==
+Eingriff : !isGroupHead(below) && !selected && !isSelectedIn(entry, below)
+     →     !isGroupHead(below)
+Ergebnis : rot — gefallen sind: leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(1200x800) leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(900x600) 
+
+== 2. Eintragslinie auch unter der letzten Notiz einer Gruppe (AK 3a, Doppellinie) ==
+Eingriff : below.isValid() && !isGroupHead(below) &&
+     →     below.isValid() &&
+Ergebnis : rot — gefallen sind: leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(1200x800) leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(900x600) separatesTheSearchResultsLikeTheLibrary() 
+
+== 3. Gruppenlinie auch über dem ersten Kopf (AK 2) ==
+Eingriff : if (index.row() > 0) {
+     →     if (index.row() >= 0) {
+Ergebnis : rot — gefallen sind: drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst(1200x800) drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst(900x600) separatesTheSearchResultsLikeTheLibrary() 
+
+== 4. Eintragslinie über die volle Breite statt eingerückt (AK 1) ==
+Eingriff : QRect(textLeft(entry.rect), entry.rect.bottom(), width, 1)
+     →     QRect(entry.rect.x(), entry.rect.bottom(), entry.rect.width(), 1)
+Ergebnis : rot — gefallen sind: drawsAnInsetHairlineBetweenTwoNotesOfAGroup(1200x800) drawsAnInsetHairlineBetweenTwoNotesOfAGroup(900x600) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(hell) separatesTheSearchResultsLikeTheLibrary() 
+
+== 5. Linienfarbe aus einer Palettenrolle statt aus der Mischung (AK 4) ==
+Eingriff : const qreal share = KColorScheme::frameContrast();
+     →     const qreal share = 0.20;
+Ergebnis : rot — gefallen sind: leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(1200x800) leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(900x600) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(hell) 
+
+== 6. Ohne das Neuzeichnen der oberen Nachbarn (AK 3c) ==
+Eingriff :     repaintTheRowAbove(index);
+    repaintTheRowAbove(previous);
+     →         // Eingriff der Mutationsprobe: hier stand das Neuzeichnen.
+Ergebnis : rot — gefallen sind: paintsBothUpperNeighboursAgainWhenTheSelectionMoves() 
+
+== Gegenprobe: unveränderter Stand ==
+1/1 Test #4: librarytest ......................   Passed    6.47 sec
+100% tests passed out of 1
