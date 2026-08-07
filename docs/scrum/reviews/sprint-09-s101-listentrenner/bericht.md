@@ -213,44 +213,56 @@ Fundstellen außerhalb meiner Dateimenge (`wireframes/…:553`, `:565`, `:813`,
 des PO vom 06. und 07.08.2026 und sind auf dem Stand, den diese Umsetzung
 voraussetzt. Zeichnung 3a habe ich gelesen und nicht angefasst.
 
-**Ein Fund, der dem PO gehört: drei der fünfzehn Szenen von `libraryshots`
-sind nicht bildpunktgleich wiederholbar.** Zweimal derselbe Binärcode, zweimal
-derselbe Ordner, offscreen unter `QT_QPA_PLATFORMTHEME=kde`:
-`02-leerzustand.png`, `10c-schema-dunkel-bearbeiten.png` und
-`10d-schema-hell-bearbeiten.png` unterscheiden sich zwischen zwei Läufen, die
-übrigen zwölf nicht.
+**Ein Fund, der dem PO gehört: Szenen von `libraryshots` sind nicht
+bildpunktgleich wiederholbar.**
 
-~~Zwei davon zeigen den Bearbeitungszustand, also ein blinkendes Textzeichen;
-für den Leerzustand habe ich die Ursache nicht gesucht. **Keine der drei zeigt
-die Notizliste**, mit dieser Story hat es nichts zu tun.~~
+~~Drei der fünfzehn: `02-leerzustand.png`, `10c-schema-dunkel-bearbeiten.png`
+und `10d-schema-hell-bearbeiten.png`. Zwei davon zeigen den
+Bearbeitungszustand, also ein blinkendes Textzeichen; für den Leerzustand habe
+ich die Ursache nicht gesucht. **Keine der drei zeigt die Notizliste**, mit
+dieser Story hat es nichts zu tun.~~
 
-**Berichtigt am 07.08.2026** (karpathy-Review Sprint 9, K4). Der durchgestrichene
-Satz ist am Bild widerlegt: `10c` und `10d` **zeigen** die Notizliste, samt
-beider Gruppenköpfe und der vollen Linie über „Gestern". Ich hatte den Schluss
-richtig und die Begründung erfunden — statt nachzusehen, wo die Bilder sich
-unterscheiden.
+**Zweimal berichtigt am 07.08.2026**, und beide Male, weil zwei Läufe zu wenig
+sind. Der karpathy-Review (K4) hat die Begründung widerlegt, die Nachmessung
+danach die Zahl.
 
-**Nachgemessen ist es jetzt**, mit `magick compare` über die Abweichungsfläche:
+**Es sind vier von fünfzehn, nicht drei.** Über **acht** Läufe desselben
+Binärcodes, offscreen unter `QT_QPA_PLATFORMTHEME=kde`, je sieben Vergleiche
+gegen den ersten:
 
-| Szene | abweichende Fläche | wo das liegt |
-|---|---|---|
-| `02-leerzustand.png` | **1 × 18** bei x = 16, y = 15 | Textcursor im **Suchfeld** der Kopfzeile |
-| `10c-schema-dunkel-bearbeiten.png` | **1 × 18** bei x = 530, y = 106 | Textcursor im **Editor** des Detailbereichs |
-| `10d-schema-hell-bearbeiten.png` | **1 × 18** bei x = 530, y = 106 | ebenda |
+| Szene | wie oft abweichend | Abweichungsfläche | Ursache |
+|---|---|---|---|
+| `10c-schema-dunkel-bearbeiten.png` | 4 von 7 | **1 × 18** bei x = 530, y = 106 | Textcursor im Editor des Detailbereichs |
+| `10d-schema-hell-bearbeiten.png` | 4 von 7 | **1 × 18** bei x = 530, y = 106 | ebenda |
+| `02-leerzustand.png` | 3 von 7 | **1 × 18** bei x = 16, y = 15 | Textcursor im **Suchfeld** der Kopfzeile |
+| **`03-meldungszustand.png`** | 2 von 7 | **900 × 50** bei y = 48 | **das Meldungsband** — es fährt animiert auf und zählt Sekunden herunter |
 
-Dreimal ein ein Bildpunkt breiter, achtzehn Bildpunkte hoher senkrechter
-Balken — ein blinkendes Textzeichen. **Auch im Leerzustand**, denn das Suchfeld
-steht dort ebenso. Die Notizliste liegt bei x < 300; **keine der drei
-Abweichungen liegt in ihr**. Der Schluss trägt also weiter, jetzt aber am
-Gemessenen: mit den Trennlinien aus #101 hat der Befund nichts zu tun.
+**Drei Ursachen sind dieselbe, die vierte ist eine andere.** Der ein Bildpunkt
+breite, achtzehn Bildpunkte hohe senkrechte Balken ist ein blinkendes
+Textzeichen — auch im Leerzustand, denn das Suchfeld steht dort ebenso. Der
+Meldungszustand dagegen weicht über die **volle Breite** und fünfzig
+Bildpunkte Höhe ab, genau dort, wo das Band sitzt. Das ist keine
+Cursorphase, sondern ein Ablauf.
 
-**Und ein zweites, das erst die Wiederholung zeigt:** Über sechs Läufe sind
-dieselben Paare **mal gleich, mal verschieden** — der Unterschied ist
-unstet, nicht ständig. Für #91 heißt das: Sein Kriterium „über mindestens drei
-Läufe bitgleich" kann durch Zufall erfüllt sein.
+**Was das für #91 heißt** (dessen Titel den Textcursor als Ursache nennt):
+
+- Die Frage aus dem Kommentar vom 05.08.2026 — „gibt es eine zweite Ursache?" —
+  ist mit **ja** beantwortet, nur nicht dort, wo sie vermutet wurde. Der
+  Leerzustand hat dieselbe Ursache wie 10c/10d; der **Meldungszustand** hat eine
+  eigene.
+- Das Kriterium „über mindestens drei Läufe bitgleich" **kann durch Zufall
+  erfüllt sein**: Bei 2 von 7 abweichenden Vergleichen ist ein dreifach
+  gleicher Lauf nichts Besonderes. Die Zahl der Läufe gehört höher, oder das
+  Kriterium an die Ursache statt an die Wiederholung.
+
+**Zur Ausgangsfrage:** `10c` und `10d` **zeigen** die Notizliste samt beider
+Gruppenköpfe und der vollen Linie über „Gestern" — mein durchgestrichener Satz
+war falsch. Der Schluss trägt trotzdem, jetzt am Gemessenen: Die Liste liegt
+bei x < 300 und unterhalb von y ≈ 48; **keine der vier Abweichungsflächen liegt
+in ihr**. Mit den Trennlinien aus #101 hat der Befund nichts zu tun.
 
 Es steht hier, weil daraus etwas folgt: **ein Bildpunktvergleich zweier Läufe
-taugt für diese drei Szenen nicht als Regressionsprüfung** — er meldet einen
+taugt für diese vier Szenen nicht als Regressionsprüfung** — er meldet einen
 Unterschied ohne Ursache im Code. Gemeldet, nicht geheilt.
 
 **Ein Hinweis ohne Handlungsbedarf:** Die Textzeichenfunktion des Delegates
