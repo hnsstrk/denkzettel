@@ -27,6 +27,7 @@
 #include <QListView>
 #include <QApplication>
 #include <QLocale>
+#include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
@@ -291,6 +292,7 @@ private Q_SLOTS:
     void mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole_data();
     void mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole();
     void separatesTheSearchResultsLikeTheLibrary();
+    void keepsEverySeparatorOneThicknessUnderTheCustomersScaling();
     void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
     void textsFollowAColourSchemeChange();
@@ -369,6 +371,9 @@ private:
     /** How many pixels of row `y` carry `colour`. */
     static int pixelsOfColour(const QImage &picture, int y, const QColor &colour);
 
+    /** Heights of the runs of `colour` down column `x` of `picture`. */
+    static QList<int> runsOfColour(const QImage &picture, int x, const QColor &colour);
+
     /**
      * The colour the separator lines are meant to have: list ground and text
      * colour mixed in the ratio `share` (wireframe 3a).
@@ -401,6 +406,18 @@ private:
      *     6 Kopf Letzte Woche · 7 Notiz
      */
     void storedThreeGroups();
+
+    /**
+     * Two groups, the second with eight notes — a scene whose line positions
+     * walk through every phase of the device pixel grid.
+     *
+     * At the customer's 1.6 the grid repeats every five logical points, and a
+     * row of 72 shifts the phase by two each time; eight notes therefore cover
+     * all five. The scene of storedThreeGroups() has four lines in three
+     * positions and showed one thickness throughout — it could not have seen
+     * the fault of UI review L9 (issue #101).
+     */
+    void storedALongGroup();
 
     /** Fills in what the analysis run fills in — category, tags and state. */
     void analysed(qint64 id, const QString &category, const QStringList &tags);
@@ -795,6 +812,24 @@ QStringList LibraryTest::readRow(const QImage &picture,
         read << legend.value(picture.pixel(x, y), QStringLiteral("Linie"));
     }
     return read;
+}
+
+QList<int> LibraryTest::runsOfColour(const QImage &picture, int x, const QColor &colour)
+{
+    QList<int> runs;
+    int y = 0;
+    while (y < picture.height()) {
+        if (picture.pixel(x, y) != colour.rgb()) {
+            ++y;
+            continue;
+        }
+        const int start = y;
+        while (y < picture.height() && picture.pixel(x, y) == colour.rgb()) {
+            ++y;
+        }
+        runs << y - start;
+    }
+    return runs;
 }
 
 int LibraryTest::pixelsOfColour(const QImage &picture, int y, const QColor &colour)
@@ -2962,6 +2997,16 @@ void LibraryTest::storedThreeGroups()
                QStringLiteral("2026-07-23T11:30:00"));
 }
 
+void LibraryTest::storedALongGroup()
+{
+    storedNote(QStringLiteral("Heute, eine einzelne\nmit zwei Zeilen darunter"),
+               QStringLiteral("2026-07-31T14:20:00"));
+    for (int hour = 20; hour >= 13; --hour) {
+        storedNote(QStringLiteral("Von gestern, %1 Uhr\nWhisper-Warteschlange bei Suspend prüfen").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+}
+
 void LibraryTest::drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data()
 {
     // Two window sizes, like every other measurement of wireframe 3a: a number
@@ -3308,6 +3353,80 @@ void LibraryTest::separatesTheSearchResultsLikeTheLibrary()
              QStringList({QStringLiteral("Grund"), QStringLiteral("Grund"), QStringLiteral("Linie"),
                           QStringLiteral("Linie"), QStringLiteral("Linie"), QStringLiteral("Grund"),
                           QStringLiteral("Grund")}));
+}
+
+void LibraryTest::keepsEverySeparatorOneThicknessUnderTheCustomersScaling()
+{
+    // The customer's rule is about length, not weight: „gleiche Farbe,
+    // verschiedene Ausdehnung — die Rangfolge entsteht aus der Länge des
+    // Strichs statt aus seiner Stärke" (decision of 06.08.2026). At his scaling
+    // a line of one logical point covers 1.6 device pixel rows, and which whole
+    // rows those are depends on where its row lands in the grid — so the same
+    // line came out one pixel thick here and two there, and a group line could
+    // end up thinner than the entry lines beneath it. Then the weight says the
+    // opposite of what the length says (UI review of Sprint 9, L9).
+    //
+    // The scaling comes out of the process, not out of a data row: QT_SCALE_FACTOR
+    // is read once, before the application exists. `tests/CMakeLists.txt`
+    // therefore starts this one function a second time under 1.6.
+    //
+    // The scene is a long group on purpose: the fault depends on where a row
+    // lands in the device grid, and a scene with four lines in three positions
+    // showed one thickness throughout even at 1.6 — measured. Eight notes in a
+    // row walk through every phase.
+    //
+    // A rebuilt scaling was tried first — render the list through a painter on
+    // an image carrying the ratio — and it was dropped as measured: at 1.25 it
+    // showed the fault, at **1.6 it did not**, while the real 1.6 shows it. The
+    // row heights of a scaled session are not those of an unscaled one, so the
+    // rebuilt version measured rows that never occur. A check that passes where
+    // the fault is, is worse than none.
+    storedALongGroup();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const QColor separator = separatorColor(list->palette(), KColorScheme::frameContrast());
+    const QImage picture = listPicture(list);
+    const qreal ratio = picture.devicePixelRatio();
+
+    // Two columns: one deep inside the indented zone, which both kinds of line
+    // cross, and one at the very edge, which only the full-width group line
+    // reaches.
+    const QList<int> inset = runsOfColour(picture, picture.width() / 2, separator);
+    const QList<int> edge = runsOfColour(picture, 1, separator);
+
+    // Without this the check would pass on a picture carrying no line at all —
+    // the emptiest way to have every thickness agree.
+    QVERIFY2(inset.size() >= 4 && !edge.isEmpty(),
+             qPrintable(QStringLiteral("zu wenige Linien gefunden: %1 eingerückt, %2 am Rand")
+                            .arg(inset.size())
+                            .arg(edge.size())));
+
+    QList<int> thicknesses = inset + edge;
+    std::sort(thicknesses.begin(), thicknesses.end());
+    thicknesses.erase(std::unique(thicknesses.begin(), thicknesses.end()), thicknesses.end());
+
+    auto asText = [](const QList<int> &numbers) {
+        QStringList parts;
+        for (const int number : numbers) {
+            parts << QString::number(number);
+        }
+        return parts.join(QLatin1Char(','));
+    };
+
+    // One thickness for every line, and it is the one logical point rounded to
+    // whole device pixel rows. The message carries every measured run, because
+    // „two thicknesses" without saying which two names the fault and not its
+    // size.
+    QVERIFY2(thicknesses.size() == 1 && thicknesses.first() == qRound(ratio),
+             qPrintable(QStringLiteral("Skalierung %1: Stärken %2, erwartet nur %3 — eingerückt [%4], Rand [%5]")
+                            .arg(QString::number(ratio), asText(thicknesses),
+                                 QString::number(qRound(ratio)), asText(inset), asText(edge))));
 }
 
 void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()
