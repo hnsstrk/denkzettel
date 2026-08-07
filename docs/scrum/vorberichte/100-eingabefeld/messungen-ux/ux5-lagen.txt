@@ -1,0 +1,12 @@
+Lage      A besser  B besser  gleich  A schlechtest  B schlechtest  A <4,5  B <4,5
+----------------------------------------------------------------------------------
+Lage 1           4         1      14        5.70:1        5.70:1       0       0
+Lage 2           4         1      14        4.74:1        4.22:1       0       1
+
+Die Schemata, in denen sich A und B ueberhaupt unterscheiden:
+Schema                   Lage 1: A       B   Lage 2: A       B
+CachyOSNord                   8.80    6.88        8.61    6.73
+CachyOSNordLightly            8.80    6.88        7.93    6.20
+EmeraldDark                   7.98    7.20        7.81    7.04
+KritaBright                  13.05   16.14        9.68   11.98
+KritaNeutral                  8.06    7.18        4.74    4.22

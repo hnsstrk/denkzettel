@@ -1,0 +1,6 @@
+## Prüffrage 3 — Breite des Zeilenrechtecks mit und ohne Rollbalken
+Stil: fusion, Plattformthema-Umgebung: 
+ohne Rollbalken: Ansicht 300 · Sichtfeld 300 · Zeile 300
+mit Rollbalken:  Ansicht 300 · Sichtfeld 286 · Zeile 286 · Rollbalken 14 px
+
+## Prüffrage 4 — stoßen die Zeilenrechtecke aneinander?

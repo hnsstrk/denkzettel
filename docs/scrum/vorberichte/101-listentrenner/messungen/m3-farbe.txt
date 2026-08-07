@@ -1,0 +1,37 @@
+M3 — frameContrast und die daraus gemischte Linienfarbe, 18 Schemata
+Stand: 2026-08-07 20:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+KColorScheme::frameContrast() ohne Konfiguration: 0,2000
+(Das ist der Wert, den der Delegate im laufenden Programm bekäme,
+ hier allerdings in einem leeren XDG-Sandkasten.)
+
+Schema                    KConfig KColorSch nach set   Linie     Kontrast
+------------------------------------------------------------------------------------
+BreezeClassic              0,2000   0,2000   0,2000   #d1d1d1    1,49:1
+BreezeDark                 0,2000   0,2000   0,2000   #424446    1,86:1
+BreezeLight                0,2000   0,2000   0,2000   #d3d4d4    1,49:1
+CachyOSNord                0,2000   0,2000   0,2000   #203749    1,41:1
+CachyOSNordLightly         0,2000   0,2000   0,2000   #203749    1,41:1
+Emerald                    0,2000   0,2000   0,2000   #c8c9ca    1,60:1
+EmeraldDark                0,2000   0,2000   0,2000   #123a39    1,40:1
+EmeraldLight               0,2000   0,2000   0,2000   #c8c9ca    1,60:1
+EmeraldSmooth              0,2000   0,2000   0,2000   #42454a    1,70:1
+IridescentLightly2         0,2000   0,2000   0,2000   #092036    1,24:1
+IridescentLightly3         0,2000   0,2000   0,2000   #05293c    1,29:1
+IridescentLightly          0,2000   0,2000   0,2000   #092036    1,24:1
+KritaBlender               0,2000   0,2000   0,2000   #606060    1,72:1
+KritaBright                0,2000   0,2000   0,2000   #c8c8c8    1,52:1
+KritaDark                  0,2000   0,2000   0,2000   #555555    1,57:1
+KritaDarker                0,2000   0,2000   0,2000   #454545    1,79:1
+KritaDarkOrange            0,2000   0,2000   0,2000   #505050    1,92:1
+KritaNeutral               0,2000   0,2000   0,2000   #8e8e8e    1,41:1
+------------------------------------------------------------------------------------
+Schemata, bei denen die Abfrage OHNE Schema dem gesetzten Schema NICHT folgt: 0 von 18
+ACHTUNG: Diese Zeile trägt nur, wenn die Schemata überhaupt verschiedene Werte
+tragen. Führen alle denselben, ist sie leer richtig — deshalb der Gegenversuch:
+
+== Gegenversuch: ein Schema mit abweichendem frameContrast ==
+frameContrast(Schemadatei)          : 0,2000  (geschrieben: 0,4500)
+frameContrast() nach setPalette     : 0,2000
+→ Eine gesetzte Palette zieht den Wert NICHT mit.
+frameContrast() nach Eintrag in kdeglobals (0,3500): 0,2000

@@ -1,0 +1,24 @@
+Voreinstellung ohne Konfiguration: KColorScheme::frameContrast() = 0.2
+
+Schema                    frameContrast()   [General]  Schluessel da?
+BreezeClassic                       0.200       0.200            nein
+BreezeDark                          0.200       0.200            nein
+BreezeLight                         0.200       0.200            nein
+CachyOSNord                         0.200       0.200            nein
+CachyOSNordLightly                  0.200       0.200            nein
+Emerald                             0.200       0.200            nein
+EmeraldDark                         0.200       0.200            nein
+EmeraldLight                        0.200       0.200            nein
+EmeraldSmooth                       0.200       0.200            nein
+IridescentLightly2                  0.200       0.200            nein
+IridescentLightly3                  0.200       0.200            nein
+IridescentLightly                   0.200       0.200            nein
+KritaBlender                        0.200       0.200            nein
+KritaBright                         0.200       0.200            nein
+KritaDark                           0.200       0.200            nein
+KritaDarker                         0.200       0.200            nein
+KritaDarkOrange                     0.200       0.200            nein
+KritaNeutral                        0.200       0.200            nein
+Ant-Dark                            0.200       0.200            nein
+
+0 von 19 Schemata tragen den Schluessel (in [General] oder [KDE]).

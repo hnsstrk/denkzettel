@@ -1,0 +1,10 @@
+Nach show() und setFocus():
+  text->hasFocus()          true
+  fenster.isActiveWindow()  true
+  ActivationChange bisher   1
+
+Nachdem ein zweites Fenster aufgegangen und aktiviert ist:
+  text->hasFocus()          false
+  fenster.isActiveWindow()  false
+  ActivationChange gesamt   2
+  QApplication::activeWindow() ist das erste Fenster: nein

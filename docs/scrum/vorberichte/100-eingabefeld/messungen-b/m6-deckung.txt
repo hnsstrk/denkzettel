@@ -1,0 +1,4 @@
+default: Huelle Deckung Mitte 216  Feld Deckung Mitte 255
+breeze-dark: Huelle Deckung Mitte 216  Feld Deckung Mitte 255
+CachyOS-Nord-round: Huelle Deckung Mitte 255  Feld Deckung Mitte 15
+cachyos-emerald: Huelle Deckung Mitte 7  Feld Deckung Mitte 15

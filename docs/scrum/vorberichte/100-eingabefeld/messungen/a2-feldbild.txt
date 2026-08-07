@@ -1,0 +1,106 @@
+A2 — Was die Feldgrafik zeichnet, und welcher Weg den Text nach innen rückt.
+Stand: 2026-08-07 20:28 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+== E: Zeichnet die zurückgefallene default-Grafik je Theme verschieden? ==
+
+  (Rohe Bildpunkte der Feldgrafik, ohne Grund darunter.)
+
+  denkzettel-test-schmal: Fläche 20,22,24/a255  Kante 66,68,70/a255
+  denkzettel-test-breit: Fläche 51,34,17/a255  Kante 41,68,14/a255
+  denkzettel-pruef-eckig: Fläche 20,22,24/a255  Kante 66,68,70/a255
+  default: Fläche 20,22,24/a255  Kante 66,68,70/a255
+  breeze-dark: Fläche 20,22,24/a255  Kante 66,68,70/a255
+  breeze-light: Fläche 255,255,255/a255  Kante 211,212,212/a255
+  CachyOS-Nord-round: Fläche 0,0,0/a15  Kante 0,0,0/a15
+  Iridescent-round: Fläche 0,0,0/a15  Kante 0,0,0/a15
+  cachyos-emerald: Fläche 0,0,0/a15  Kante 0,0,0/a15
+  cachyos-emerald-color: Fläche 0,0,0/a15  Kante 0,0,0/a15
+  cachyos-emerald-light: Fläche 0,0,0/a15  Kante 0,0,0/a15
+
+== I: Deckung der Hülle in der Fenstermitte (dort greift capturetest ab) ==
+
+  denkzettel-test-schmal: Mitte 0,0,0/a255
+  denkzettel-test-breit: Mitte 0,0,0/a255
+  denkzettel-pruef-eckig: Mitte 0,0,0/a255
+  default: Mitte 32,35,38/a255
+  breeze-dark: Mitte 32,35,38/a255
+  breeze-light: Mitte 239,240,241/a255
+  CachyOS-Nord-round: Mitte 30,34,51/a255
+  Iridescent-round: Mitte 0,0,0/a51
+  cachyos-emerald: Mitte 227,227,255/a9
+  cachyos-emerald-color: Mitte 227,227,255/a9
+  cachyos-emerald-light: Mitte 227,227,255/a9
+
+== G: Trägt setColorSet(View) etwas? ==
+
+  denkzettel-test-schmal:
+    colorSet View: Fläche 20,22,24/a255
+    colorSet Window: Fläche 20,22,24/a255
+  denkzettel-test-breit:
+    colorSet View: Fläche 51,34,17/a255
+    colorSet Window: Fläche 51,34,17/a255
+  denkzettel-pruef-eckig:
+    colorSet View: Fläche 20,22,24/a255
+    colorSet Window: Fläche 20,22,24/a255
+  default:
+    colorSet View: Fläche 20,22,24/a255
+    colorSet Window: Fläche 20,22,24/a255
+  breeze-dark:
+    colorSet View: Fläche 20,22,24/a255
+    colorSet Window: Fläche 20,22,24/a255
+  breeze-light:
+    colorSet View: Fläche 255,255,255/a255
+    colorSet Window: Fläche 255,255,255/a255
+  CachyOS-Nord-round:
+    colorSet View: Fläche 0,0,0/a15
+    colorSet Window: Fläche 0,0,0/a15
+  Iridescent-round:
+    colorSet View: Fläche 0,0,0/a15
+    colorSet Window: Fläche 0,0,0/a15
+  cachyos-emerald:
+    colorSet View: Fläche 0,0,0/a15
+    colorSet Window: Fläche 0,0,0/a15
+  cachyos-emerald-color:
+    colorSet View: Fläche 0,0,0/a15
+    colorSet Window: Fläche 0,0,0/a15
+  cachyos-emerald-light:
+    colorSet View: Fläche 0,0,0/a15
+    colorSet Window: Fläche 0,0,0/a15
+
+== H: Folgt die Feldgrafik der Skalierung von selbst? ==
+
+  denkzettel-test-schmal: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  denkzettel-test-breit: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  denkzettel-pruef-eckig: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  default: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  breeze-dark: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  breeze-light: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  CachyOS-Nord-round: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  Iridescent-round: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  cachyos-emerald: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  cachyos-emerald-color: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+  cachyos-emerald-light: Vorgabe-Verhältnis 1, framePixmap 560x90
+     nach setDevicePixelRatio(1,6): framePixmap 896x144, Ränder links 6
+
+== F: Die offenen Wege, den Text nach innen zu rücken ==
+
+############ denkzettel-test-schmal
+  Ausgangslage      : Fenster 174, Textbereich 98 hoch, viewport 568x98 bei (0,0)
+  documentMargin +6 : Fenster 186, Textbereich 110 hoch, viewport 568x110 bei (0,0)
+  contentsMargins 6 : Fenster 174, Textbereich 98 hoch, viewport 568x98 bei (0,0)
+
+############ denkzettel-test-breit
+  Ausgangslage      : Fenster 190, Textbereich 98 hoch, viewport 552x98 bei (0,0)
+  documentMargin +6 : Fenster 202, Textbereich 110 hoch, viewport 552x110 bei (0,0)
+  contentsMargins 6 : Fenster 190, Textbereich 98 hoch, viewport 552x98 bei (0,0)
+

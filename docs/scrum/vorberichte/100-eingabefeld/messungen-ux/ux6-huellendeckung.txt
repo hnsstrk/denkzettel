@@ -1,0 +1,9 @@
+Theme | Deckung Huelle Mitte (von 255)
+CachyOS-Nord-round | 255
+Iridescent-round | 51
+breeze-dark | 216
+breeze-light | 216
+cachyos-emerald | 7
+cachyos-emerald-color | 7
+cachyos-emerald-light | 7
+default | 216

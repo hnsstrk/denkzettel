@@ -1,0 +1,29 @@
+## Prüffrage 1 — aus welcher Gruppe liest KColorScheme::frameContrast()?
+ohne Konfiguration (leerer Sandkasten): 0.2000
+Datei mit [General]=0.45 und [KDE]=0.55 → 0.5500
+Datei nur mit [General]=0.45 → 0.2000
+
+## Prüffrage 2 — zwei Werte im selben Lauf über die Anwendungskonfiguration
+ohne Pause: geschrieben 0.85 → gelesen 0.8500
+ohne Pause: geschrieben 0.05 → gelesen 0.8500
+ohne Pause: geschrieben 0.5 → gelesen 0.8500
+mit 1100 ms: geschrieben 0.85 → gelesen 0.8500
+mit 1100 ms: geschrieben 0.05 → gelesen 0.0500
+mit 1100 ms: geschrieben 0.5 → gelesen 0.5000
+
+## Prüffrage 3 — Breite des Zeilenrechtecks mit und ohne Rollbalken
+Stil: breeze, Plattformthema-Umgebung: kde
+ohne Rollbalken: Ansicht 300 · Sichtfeld 300 · Zeile 300
+mit Rollbalken:  Ansicht 300 · Sichtfeld 279 · Zeile 279 · Rollbalken 21 px
+
+## Prüffrage 4 — stoßen die Zeilenrechtecke aneinander?
+spacing(): 0
+Zeile 0 endet bei y=39, Zeile 1 beginnt bei y=40 → Lücke 0
+Zeile 1 endet bei y=79, Zeile 2 beginnt bei y=80 → Lücke 0
+Zeile 2 endet bei y=119, Zeile 3 beginnt bei y=120 → Lücke 0
+
+## Prüffrage 5 — die Höhen 27 / 35 / 72 nachgerechnet
+Kopfschrift Noto Sans 8 pt → 15 px · Fließtext Noto Sans 10 pt → 18 px
+erster Kopf   6 + 15 + 6 = 27
+weiterer Kopf 14 + 15 + 6 = 35
+Notiz      2×9 + 15 + 3 + 2×18 = 72

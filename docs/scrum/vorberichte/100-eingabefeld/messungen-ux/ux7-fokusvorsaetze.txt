@@ -1,0 +1,38 @@
+Je Theme und Vorsatz: was ueber die ganze Flaeche gezeichnet wird.
+hasPrefix = was hasElementPrefix() meldet. maxDeckung/deckende Punkte ueber
+die gesamte Flaeche. Randdicke = Zeilen von oben, bis die Deckung unter 128
+faellt (0 heisst: schon die erste Zeile traegt nichts).
+
+Theme                    Vorsatz      hasPrefix  maxDeck   Pkt>128  Randdicke  Randfarbe
+CachyOS-Nord-round       base                ja       15         0          0          —
+CachyOS-Nord-round       hover               ja      255      2484          0          —
+CachyOS-Nord-round       focus               ja      255      2484          0          —
+CachyOS-Nord-round       focusframe        nein        0         0          0          —
+Iridescent-round         base                ja       15         0          0          —
+Iridescent-round         hover               ja      255      2484          0          —
+Iridescent-round         focus               ja      255      2484          0          —
+Iridescent-round         focusframe        nein        0         0          0          —
+breeze-dark              base                ja      255     48940         90    #4c4e51
+breeze-dark              hover               ja      255      1252          1    #3daee9
+breeze-dark              focus               ja      255      1252          1    #3daee9
+breeze-dark              focusframe          ja      255      1240          0          —
+breeze-light             base                ja      255     48940         90    #c6c8c9
+breeze-light             hover               ja      255      1252          1    #3daee9
+breeze-light             focus               ja      255      1252          1    #3daee9
+breeze-light             focusframe          ja      255      1240          0          —
+cachyos-emerald          base                ja       15         0          0          —
+cachyos-emerald          hover               ja      255      2484          0          —
+cachyos-emerald          focus               ja      255      2484          0          —
+cachyos-emerald          focusframe        nein        0         0          0          —
+cachyos-emerald-color    base                ja       15         0          0          —
+cachyos-emerald-color    hover               ja      255      2484          0          —
+cachyos-emerald-color    focus               ja      255      2484          0          —
+cachyos-emerald-color    focusframe        nein        0         0          0          —
+cachyos-emerald-light    base                ja       15         0          0          —
+cachyos-emerald-light    hover               ja      255      2484          0          —
+cachyos-emerald-light    focus               ja      255      2484          0          —
+cachyos-emerald-light    focusframe        nein        0         0          0          —
+default                  base                ja      255     48940         90    #4c4e51
+default                  hover               ja      255      1252          1    #3daee9
+default                  focus               ja      255      1252          1    #3daee9
+default                  focusframe          ja      255      1240          0          —

@@ -1,0 +1,73 @@
+M1 — Zeilenkanten, Nachbarauswahl und Neuzeichnen (ohne QT_SCALE_FACTOR)
+Stand: 2026-08-07 20:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+== 1. Was der Delegate sehen kann ==
+paint() überhaupt gerufen           : ja
+option.widget gesetzt               : ja (QListView)
+cast auf QAbstractItemView          : ja
+selectionModel() erreichbar         : ja
+Auswahl der Nachbarzeile beantwortet: ja
+QObject-Elter ist die Ansicht       : ja
+
+== 2. Zeilen der Liste ==
+Zeile Art    y        unten    Höhe   Nachbar unten
+0     Kopf   0        26       27      Notiz
+1     Notiz  27       98       72      Kopf
+2     Kopf   99       133      35      Notiz
+3     Notiz  134      205      72      Notiz
+4     Notiz  206      277      72      Notiz
+5     Notiz  278      349      72      Kopf
+6     Kopf   350      384      35      Notiz
+7     Notiz  385      456      72      (Ende)
+
+Lücken zwischen den Zeilenrechtecken (spacing=0):
+  keine — die Rechtecke stoßen lückenlos aneinander
+
+Seitliche Lage: Viewport x=0, Breite=300, Textkante=12 (also 12 px vom linken Rand)
+
+== 3. Wer wird neu gezeichnet, wenn die Auswahl umspringt? ==
+Entscheidend sind die OBEREN NACHBARN von alter und neuer Auswahl: an ihrer
+Unterkante kommt beziehungsweise geht die Linie. Werden sie nicht neu
+gezeichnet, bleibt eine Linie stehen, die verschwinden müsste.
+
+Sprung 1 → 3: neu gezeichnet [1, 2, 3]
+   oberer Nachbar der neuen Auswahl (Zeile 2, innerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 0, außerhalb der Strecke): NICHT gezeichnet
+Sprung 3 → 5: neu gezeichnet [3, 4, 5]
+   oberer Nachbar der neuen Auswahl (Zeile 4, innerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 2, außerhalb der Strecke): NICHT gezeichnet
+Sprung 5 → 3: neu gezeichnet [2, 3, 4, 5]
+   oberer Nachbar der neuen Auswahl (Zeile 2, außerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 4, innerhalb der Strecke): gezeichnet
+Sprung 3 → 7: neu gezeichnet [3, 4, 5, 6, 7]
+   oberer Nachbar der neuen Auswahl (Zeile 6, innerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 2, außerhalb der Strecke): NICHT gezeichnet
+Sprung 4 → 5: neu gezeichnet [4, 5]
+   oberer Nachbar der neuen Auswahl (Zeile 4, innerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 3, außerhalb der Strecke): NICHT gezeichnet
+Sprung 4 → 7: neu gezeichnet [4, 5, 6, 7]
+   oberer Nachbar der neuen Auswahl (Zeile 6, innerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 3, außerhalb der Strecke): NICHT gezeichnet
+Sprung 5 → 4: neu gezeichnet [4, 5]
+   oberer Nachbar der neuen Auswahl (Zeile 3, außerhalb der Strecke): NICHT gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 4, innerhalb der Strecke): gezeichnet
+Sprung 5 → 3: neu gezeichnet [2, 3, 4, 5]
+   oberer Nachbar der neuen Auswahl (Zeile 2, außerhalb der Strecke): gezeichnet
+   oberer Nachbar der alten Auswahl (Zeile 4, innerhalb der Strecke): gezeichnet
+
+Gegenprobe zur Belegform: nach dem Sprung 4 → 5 waren 2 Zeilen neu gezeichnet,
+nach einem zusätzlichen window.grab() sind es 8 von 8.
+→ Ein gegriffenes Standbild VERDECKT die stehengebliebene Linie.
+
+== 4. Wie breit ist „die volle Breite der Liste“? ==
+AK 2 verlangt die Gruppenlinie „über die volle Breite, einschließlich x = 0 und
+x = Breite−1“. Sobald ein Rollbalken steht, sind Listenbreite und Zeilenbreite
+nicht mehr dieselbe Zahl — und in einem gegriffenen Fensterbild ist beides
+wieder etwas anderes.
+Fenster 900×600:            Liste 300 · Viewport 300 · Zeile 300 · Rollbalken aus
+Fenster 900×220:            Liste 300 · Viewport 279 · Zeile 279 · Rollbalken sichtbar
+
+== 5. Skalierung ==
+QT_SCALE_FACTOR=(nicht gesetzt), devicePixelRatio des Bildes: 1,00
+Bild 900×600 Bildpunkte bei 900×600 logischen Punkten Fenster
+Eine Linie von 1 logischem Punkt belegt im Bild 1,00 Bildpunktzeilen.

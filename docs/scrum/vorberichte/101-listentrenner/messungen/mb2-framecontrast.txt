@@ -1,0 +1,20 @@
+## Prüffrage 1 — Testmodus ohne kdeglobals
+kdeglobals vorhanden: nein
+gelesener frameContrast: 0.2 (Vorgabewert 0.20)
+
+## Prüffrage 2 — vier Werte hintereinander, ohne Pause
+geschrieben 0.85 → gelesen 0.85   passt
+geschrieben 0.05 → gelesen 0.85   WEICHT AB
+geschrieben 0.5 → gelesen 0.85   WEICHT AB
+geschrieben 0.33 → gelesen 0.85   WEICHT AB
+
+## Prüffrage 3 — dieselben vier Werte, je 1100 ms Pause vor dem Lesen
+geschrieben 0.85 → gelesen 0.85   passt
+geschrieben 0.05 → gelesen 0.05   passt
+geschrieben 0.5 → gelesen 0.5   passt
+geschrieben 0.33 → gelesen 0.33   passt
+
+## Prüffrage 4 — derselbe Wechsel über eine eigene Konfiguration auf den Pfad
+geschrieben 0.85 → gelesen 0.85   passt
+geschrieben 0.05 → gelesen 0.05   passt
+geschrieben 0.5 → gelesen 0.5   passt

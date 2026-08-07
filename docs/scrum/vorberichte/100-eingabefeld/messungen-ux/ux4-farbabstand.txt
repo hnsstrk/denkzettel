@@ -1,0 +1,27 @@
+# UX4 — wo sich WindowText und Text ueberhaupt unterscheiden.
+# Gelesen aus [Colors:Window] ForegroundNormal gegen [Colors:View]
+# ForegroundNormal der installierten .colors-Dateien. Rechenweg: das
+# Python-Stueck im Kopf des Abschnitts "Messungen" der Entscheidung.
+
+Schema                   WindowText      Text         gleich?  Abstand je Kanal
+BreezeClassic            (35, 38, 39)    (35, 38, 39)    ja      
+BreezeDark               (252, 252, 252) (252, 252, 252) ja      
+BreezeLight              (35, 38, 41)    (35, 38, 41)    ja      
+CachyOSNord              (102, 194, 242) (71, 173, 218)  NEIN    (31, 21, 24)
+CachyOSNordLightly       (102, 194, 242) (71, 173, 218)  NEIN    (31, 21, 24)
+Emerald                  (1, 1, 1)       (1, 1, 1)       ja      
+EmeraldDark              (0, 199, 144)   (2, 189, 136)   NEIN    (2, 10, 8)
+EmeraldLight             (1, 1, 1)       (1, 1, 1)       ja      
+EmeraldSmooth            (211, 218, 227) (211, 218, 227) ja      
+IridescentLightly        (23, 147, 209)  (23, 147, 209)  ja      
+IridescentLightly2       (23, 147, 209)  (23, 147, 209)  ja      
+IridescentLightly3       (23, 147, 209)  (23, 147, 209)  ja      
+KritaBlender             (235, 235, 235) (235, 235, 235) ja      
+KritaBright              (42, 42, 42)    (24, 24, 24)    NEIN    (18, 18, 18)
+KritaDark                (200, 200, 200) (200, 200, 200) ja      
+KritaDarkOrange          (255, 255, 255) (255, 255, 255) ja      
+KritaDarker              (235, 235, 235) (235, 235, 235) ja      
+KritaNeutral             (18, 18, 18)    (30, 30, 30)    NEIN    (12, 12, 12)
+Ant-Dark                 (195, 199, 209) (195, 199, 209) ja      
+
+14 von 19 Schemata setzen fuer beide Farbsaetze denselben Vordergrund.

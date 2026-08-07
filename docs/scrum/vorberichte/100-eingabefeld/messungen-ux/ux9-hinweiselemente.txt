@@ -1,0 +1,9 @@
+Theme                     focusframe-center  hint-focus-over-base  Rand base  Rand focus  Rand focusframe
+CachyOS-Nord-round                     nein                    ja    6/6/6/6     0/0/0/0                —
+Iridescent-round                       nein                    ja    6/6/6/6     0/0/0/0                —
+breeze-dark                              ja                    ja    6/6/6/6     0/0/0/0          2/2/2/2
+breeze-light                             ja                    ja    6/6/6/6     0/0/0/0          2/2/2/2
+cachyos-emerald                        nein                    ja    6/6/6/6     0/0/0/0                —
+cachyos-emerald-color                  nein                    ja    6/6/6/6     0/0/0/0                —
+cachyos-emerald-light                  nein                    ja    6/6/6/6     0/0/0/0                —
+default                                  ja                    ja    6/6/6/6     0/0/0/0          2/2/2/2

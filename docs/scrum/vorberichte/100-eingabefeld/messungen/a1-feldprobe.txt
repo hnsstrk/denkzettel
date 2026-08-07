@@ -1,0 +1,183 @@
+A1 — Auflösung, Ränder und Farbquellen der Feldgrafik je Theme.
+Stand: 2026-08-07 20:28 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+== A/B: Die mitgelieferten Prüf-Themes der Testsuite ==
+
+############ denkzettel-test-schmal
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : nein
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+############ denkzettel-test-breit
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : nein
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 255,0,153/a255
+  KSvg color(ViewText)      : 0,204,0/a255
+  KSvg color(ViewBackground): 51,34,17/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : 255,0,153/a255
+
+############ denkzettel-pruef-eckig
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : nein
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+== A/B: Ein Name, auf den nichts hört (der Bauwirt ohne Plasma-Themes) ==
+
+############ kein-solches-theme
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : nein
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+== A/B: Die auf dieser Maschine installierten Themes ==
+
+############ default
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : ja
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+############ breeze-dark
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : nein
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : 252,252,252/a255
+
+############ breeze-light
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : nein
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 6 unten 6
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 35,38,41/a255
+  KSvg color(ViewText)      : 35,38,41/a255
+  KSvg color(ViewBackground): 255,255,255/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : 35,38,41/a255
+
+############ CachyOS-Nord-round
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : ja
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 5.99999 unten 6.00001
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+############ Iridescent-round
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : ja
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 5.99999 unten 6.00001
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+############ cachyos-emerald
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : ja
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 5.99999 unten 6.00001
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 252,252,252/a255
+  KSvg color(ViewText)      : 252,252,252/a255
+  KSvg color(ViewBackground): 20,22,24/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : ungültig
+
+############ cachyos-emerald-color
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : ja
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 5.99999 unten 6.00001
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 0,199,144/a255
+  KSvg color(ViewText)      : 2,189,136/a255
+  KSvg color(ViewBackground): 22,25,37/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : 0,199,144/a255
+
+############ cachyos-emerald-light
+  dialogs/background gültig : ja
+  widgets/lineedit  gültig : ja
+  eigene lineedit-Grafik    : ja
+  Ränder der Feldgrafik     : links 6 oben 6 rechts 5.99999 unten 6.00001
+  hasElementPrefix(base)    : ja
+  KSvg color(Text)          : 35,38,41/a255
+  KSvg color(ViewText)      : 35,38,41/a255
+  KSvg color(ViewBackground): 255,255,255/a255
+  eigene colors-Datei (KConfig-Weg, [Colors:Window]) : 35,38,41/a255
+
+== C: Welches Paar wählt installedThemePair(), dem captureshots folgt? ==
+
+  CachyOS-Nord-round: Rand 8, eigene lineedit-Grafik ja
+  Iridescent-round: Rand 8, eigene lineedit-Grafik ja
+  breeze-dark: Rand 4, eigene lineedit-Grafik nein
+  -> Paar: schmal=breeze-dark (eigene Grafik nein)  breit=CachyOS-Nord-round (eigene Grafik ja)
+  breeze-light: Rand 4, eigene lineedit-Grafik nein
+  cachyos-emerald: Rand 8, eigene lineedit-Grafik ja
+  cachyos-emerald-color: Rand 8, eigene lineedit-Grafik ja
+  cachyos-emerald-light: Rand 8, eigene lineedit-Grafik ja
+  default: Rand 4, eigene lineedit-Grafik ja
+
+== D: Das gebaute Fenster ==
+
+############ gebautes Fenster unter denkzettel-test-schmal
+  Fenster            : 600x174
+  Textbereich (Rect) : x=16 y=37 568x98
+  Innenränder Layout : 16/14/16/12
+  documentMargin     : 4
+  frameWidth         : 0
+  viewport (Rect)    : x=0 y=0 568x98
+  Palette Base       : 0,0,0/a0
+  Palette Text       : 252,252,252/a255
+  Fenster WindowText : 252,252,252/a255
+  Fenster Text       : 252,252,252/a255
+  documentMargin +6  -> Fenster 186 (vorher 174), Textbereich 110 (vorher 98)
+  contentsMargins 6  -> viewport x=0 y=0 568x98, Fenster 186
+
+############ gebautes Fenster unter denkzettel-test-breit
+  Fenster            : 600x190
+  Textbereich (Rect) : x=24 y=45 552x98
+  Innenränder Layout : 24/22/24/20
+  documentMargin     : 4
+  frameWidth         : 0
+  viewport (Rect)    : x=0 y=0 552x98
+  Palette Base       : 0,0,0/a0
+  Palette Text       : 255,0,153/a255
+  Fenster WindowText : 252,252,252/a255
+  Fenster Text       : 252,252,252/a255
+  documentMargin +6  -> Fenster 202 (vorher 190), Textbereich 110 (vorher 98)
+  contentsMargins 6  -> viewport x=0 y=0 552x98, Fenster 202
+

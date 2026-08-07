@@ -1,0 +1,13 @@
+M4 — Gruppe, Schlüssel und Herkunft des Wertes frameContrast
+Stand: 2026-08-07 20:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+Erster Aufruf überhaupt, mit Schemadatei: 0,5500
+  gegengelesen [General] frameContrast : 0,4500
+  gegengelesen [KDE] frameContrast     : 0,5500
+Ohne Schemadatei                       : 0,4000
+
+Nach Eintrag in die Anwendungskonfiguration ([General] 0,30 · [KDE] 0,40):
+Ohne Schemadatei                       : 0,4000
+
+Tragen die installierten Schemadateien den Schlüssel überhaupt?
+  (nur Dateien mit dem Schlüssel stehen oben; keine Zeile heißt: keine trägt ihn)

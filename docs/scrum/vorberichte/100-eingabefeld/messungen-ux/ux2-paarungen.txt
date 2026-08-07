@@ -1,0 +1,25 @@
+Schema                    WT:Window  Text:View  Text:Window    WT:View
+BreezeClassic                 13.36      14.85        13.36      14.85
+BreezeDark                    15.39      17.68        15.39      17.68
+BreezeLight                   13.33      15.21        13.33      15.21
+CachyOSNord                    8.61       6.88         6.73       8.80
+CachyOSNordLightly             7.93       6.88         6.20       8.80
+Emerald                       20.87      20.15        20.87      20.15
+EmeraldDark                    7.81       7.20         7.04       7.98
+EmeraldLight                  20.87      20.15        20.87      20.15
+EmeraldSmooth                 12.11      11.58        12.11      11.58
+IridescentLightly2             5.91       5.97         5.91       5.97
+IridescentLightly3             5.80       5.70         5.80       5.70
+IridescentLightly              5.91       5.97         5.91       5.97
+KritaBlender                  11.07       9.11        11.07       9.11
+KritaBright                    9.68      16.14        11.98      13.05
+KritaDark                      5.55       7.01         5.55       7.01
+KritaDarker                   10.75      14.30        10.75      14.30
+KritaDarkOrange               16.48      15.52        16.48      15.52
+KritaNeutral                   4.74       7.18         4.22       8.06
+Ant-Dark                       8.90       8.25         8.90       8.25
+
+WindowText auf Window (rein) schlechtester Fall   4.74 : 1   unter 4,5 : 1 -> 0 von 19
+Text auf View (rein)         schlechtester Fall   5.70 : 1   unter 4,5 : 1 -> 0 von 19
+Text auf Window (gemischt)   schlechtester Fall   4.22 : 1   unter 4,5 : 1 -> 1 von 19
+WindowText auf View (gemischt) schlechtester Fall   5.70 : 1   unter 4,5 : 1 -> 0 von 19

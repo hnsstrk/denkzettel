@@ -276,6 +276,12 @@ keine Lesbarkeit zu.
   erste ist zugleich enger als er klang: Er gilt für **Palettenrollen**, nicht
   für jede Farbe. Die Kirigami-Mischung aus Grund und Textfarbe im Verhältnis
   `frameContrast` liegt über 18 Schemata zwischen 1,24 : 1 und 1,93 : 1.
+  *Gemessen nachgetragen am 07.08.2026:* Diese Spanne entsteht aus den **Farben**
+  der Schemata. `frameContrast` selbst ist über alle 19 geprüften Schemata
+  konstant — `KColorScheme::frameContrast()` liest die Gruppe `[KDE]` der
+  Anwendungskonfiguration, kein Schema trägt den Schlüssel, überall gilt die
+  Voreinstellung 0,20. Der Satz oben ließ sich lesen, als variiere der Wert je
+  Schema.
 
 **Rundung und Rand sind keine Zahlen dieser Spezifikation.** Sie gehören dem
 Theme. Zugesichert wird **relativ**: Bei zwei Desktop-Themes mit

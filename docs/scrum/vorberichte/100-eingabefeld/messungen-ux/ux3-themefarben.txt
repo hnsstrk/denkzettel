@@ -1,0 +1,13 @@
+Je Theme: die beiden Textfarben und der Grund, den der Text tatsaechlich traegt.
+Der Grund ist geschichtet gemessen (Huelle, darueber das Feld) ueber mittlerem
+Grau 128,128,128 als Bildschirmhintergrund — teildeckende Grafiken lassen ihn durch.
+
+Theme                     Deckung     Grund  WindowText  ViewText    K(WT)    K(VT)
+CachyOS-Nord-round             15   #1c2030     #fcfcfc   #fcfcfc    15.76    15.76
+Iridescent-round               15   #606060     #fcfcfc   #fcfcfc     6.13     6.13
+breeze-dark                   255   #141618     #fcfcfc   #fcfcfc    17.68    17.68
+breeze-light                  255   #ffffff     #232629   #232629    15.21    15.21
+cachyos-emerald                15   #757575     #fcfcfc   #fcfcfc     4.49     4.49
+cachyos-emerald-color          15   #757575     #00c790   #02bd88     2.10     1.90
+cachyos-emerald-light          15   #757575     #232629   #232629     3.30     3.30
+default                       255   #141618     #fcfcfc   #fcfcfc    17.68    17.68

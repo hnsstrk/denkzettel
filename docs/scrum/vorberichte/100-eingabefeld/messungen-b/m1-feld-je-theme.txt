@@ -1,0 +1,31 @@
+== M1/M2/M3: lineedit-base je Theme ==
+Theme | eigene Grafik | base gueltig | Rand L/T/R/B | Flaeche | Kante | Huelle | K:Fl | K:Ka
+denkzettel-pruef-eckig | nein | ja | 6/6/6/6 | #141618 | #4c4e51 | #000000 | 1.158 | 2.516
+denkzettel-test-breit | nein | ja | 6/6/6/6 | #332211 | #411b47 | #000000 | 1.378 | 1.473
+denkzettel-test-schmal | nein | ja | 6/6/6/6 | #141618 | #4c4e51 | #000000 | 1.158 | 2.516
+CachyOS-Nord-round | ja | ja | 6/6/5.99999/6.00001 | #000000 | #000000 | #1e2233 | 1.332 | 1.332
+Iridescent-round | ja | ja | 6/6/5.99999/6.00001 | #000000 | #000000 | #000000 | 1.000 | 1.000
+breeze-dark | nein | ja | 6/6/6/6 | #141618 | #4c4e51 | #1b1e20 | 1.082 | 2.008
+breeze-light | nein | ja | 6/6/6/6 | #ffffff | #c6c8c9 | #cbcbcc | 1.621 | 1.036
+cachyos-emerald | ja | ja | 6/6/5.99999/6.00001 | #000000 | #000000 | #000000 | 1.000 | 1.000
+cachyos-emerald-color | ja | ja | 6/6/5.99999/6.00001 | #000000 | #000000 | #000000 | 1.000 | 1.000
+cachyos-emerald-light | ja | ja | 6/6/5.99999/6.00001 | #000000 | #000000 | #000000 | 1.000 | 1.000
+default | ja | ja | 6/6/6/6 | #141618 | #4c4e51 | #1b1e20 | 1.082 | 2.008
+
+== M4: Svg::color() je Farbsatz und Theme ==
+Theme | colors-Datei | Window/Text | View/Text | View/ViewText | Window/ViewText | Window/Frame
+denkzettel-pruef-eckig | nein | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+denkzettel-test-breit | ja | #ff0099 | #00cc00 | #00cc00 | #00cc00 | #411b47
+denkzettel-test-schmal | nein | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+CachyOS-Nord-round | nein | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+Iridescent-round | nein | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+breeze-dark | ja | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+breeze-light | ja | #232629 | #232629 | #232629 | #232629 | #c6c8c9
+cachyos-emerald | nein | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+cachyos-emerald-color | ja | #00c790 | #02bd88 | #02bd88 | #02bd88 | #133d3d
+cachyos-emerald-light | ja | #232629 | #232629 | #232629 | #232629 | #c6c8c9
+default | nein | #fcfcfc | #fcfcfc | #fcfcfc | #fcfcfc | #4c4e51
+
+== M5: dritter FrameSvg auf demselben ImageSet, Theme-Wechsel ==
+default: #141618  nach Umbenennen: #141618  nach frischem Set: #000000
+Umbenennen wirkt: NEIN  frisches Set wirkt: ja

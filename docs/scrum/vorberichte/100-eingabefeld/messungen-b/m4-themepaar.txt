@@ -1,0 +1,3 @@
+installedThemePair(): schmal=breeze-dark  breit=CachyOS-Nord-round
+anyInstalledTheme(): CachyOS-Nord-round
+installedThemes(): CachyOS-Nord-round, Iridescent-round, breeze-dark, breeze-light, cachyos-emerald, cachyos-emerald-color, cachyos-emerald-light, default

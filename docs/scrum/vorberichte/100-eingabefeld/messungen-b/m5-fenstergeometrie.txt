@@ -1,0 +1,6 @@
+default: Fenster 600x178  Textbereich 18,39 564x98  Mitte 300,89  Mitte im Textbereich: JA  documentMargin 4  frameWidth 0
+default (acht Zeilen): Fenster 600x232  Textbereich 18,39 564x152  Mitte 300,116  Mitte im Textbereich: JA
+denkzettel-test-schmal: Fenster 600x174  Textbereich 16,37 568x98  Mitte 300,87  Mitte im Textbereich: JA  documentMargin 4  frameWidth 0
+denkzettel-test-schmal (acht Zeilen): Fenster 600x228  Textbereich 16,37 568x152  Mitte 300,114  Mitte im Textbereich: JA
+CachyOS-Nord-round: Fenster 600x182  Textbereich 20,41 560x98  Mitte 300,91  Mitte im Textbereich: JA  documentMargin 4  frameWidth 0
+CachyOS-Nord-round (acht Zeilen): Fenster 600x236  Textbereich 20,41 560x152  Mitte 300,118  Mitte im Textbereich: JA

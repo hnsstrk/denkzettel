@@ -1,0 +1,31 @@
+== V1: Deckung in der Fenstermitte, mit und ohne Auswahlpfad `opaque` ==
+Theme | Huelle ohne | Huelle opaque | Feld opaque | Prüfsatz nach dem Feld
+denkzettel-pruef-eckig | 255 | 255 | 255 | 255 gegen 255 → GRUEN
+denkzettel-test-breit | 255 | 255 | 255 | 255 gegen 255 → GRUEN
+denkzettel-test-schmal | 255 | 255 | 255 | 255 gegen 255 → GRUEN
+CachyOS-Nord-round | 255 | 255 | 15 | 255 gegen 255 → GRUEN
+Iridescent-round | 51 | 51 | 15 | 63 gegen 51 → rot
+breeze-dark | 216 | 255 | 255 | 255 gegen 255 → GRUEN
+breeze-light | 216 | 255 | 255 | 255 gegen 255 → GRUEN
+cachyos-emerald | 7 | 9 | 15 | 23 gegen 9 → rot
+cachyos-emerald-color | 7 | 9 | 15 | 23 gegen 9 → rot
+cachyos-emerald-light | 7 | 9 | 15 | 23 gegen 9 → rot
+default | 216 | 255 | 255 | 255 gegen 255 → GRUEN
+
+== V2: Auflösung unter einem Namen, auf den nichts hört ==
+kein-solches-theme: isValid=ja  hasElementPrefix(base)=ja  Rand 6/6/6/6
+default: isValid=ja  hasElementPrefix(base)=ja  Rand 6/6/6/6
+
+== V3: Fläche und Kante gegen die Hülle über mittlerem Grau (128,128,128) ==
+Theme | Huelle | Flaeche | Kante | K(Fl:Hu) | K(Ka:Hu)
+denkzettel-pruef-eckig | #000000 | #141618 | #4c4e51 | 1.158 | 2.516
+denkzettel-test-breit | #000000 | #332211 | #411b47 | 1.378 | 1.473
+denkzettel-test-schmal | #000000 | #141618 | #4c4e51 | 1.158 | 2.516
+CachyOS-Nord-round | #1e2233 | #1c2030 | #1e2233 | 1.026 | 1.000
+Iridescent-round | #666666 | #606060 | #666666 | 1.095 | 1.000
+breeze-dark | #2f3234 | #141618 | #4c4e51 | 1.405 | 1.547
+breeze-light | #dfdfe0 | #ffffff | #c6c8c9 | 1.332 | 1.261
+cachyos-emerald | #7c7c7c | #757575 | #7c7c7c | 1.104 | 1.000
+cachyos-emerald-color | #7c7c7c | #757575 | #7c7c7c | 1.104 | 1.000
+cachyos-emerald-light | #7c7c7c | #757575 | #7c7c7c | 1.104 | 1.000
+default | #2f3234 | #141618 | #4c4e51 | 1.405 | 1.547

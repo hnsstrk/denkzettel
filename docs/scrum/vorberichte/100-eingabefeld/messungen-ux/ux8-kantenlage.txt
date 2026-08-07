@@ -1,0 +1,35 @@
+Deckungsprofil vom Rand nach innen, je acht Schritte. links = Spalten x=0..7 in
+der Zeilenmitte, oben = Zeilen y=0..7 in der Spaltenmitte.
+
+CachyOS-Nord-round       base        links 0 15 15 15 15 15 15 15           | oben 0 15 15 15 15 15 15 15           | Farbe x=0 #000000
+CachyOS-Nord-round       hover       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+CachyOS-Nord-round       focus       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+CachyOS-Nord-round       focusframe  fehlt in diesem Theme
+Iridescent-round         base        links 0 15 15 15 15 15 15 15           | oben 0 15 15 15 15 15 15 15           | Farbe x=0 #000000
+Iridescent-round         hover       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+Iridescent-round         focus       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+Iridescent-round         focusframe  fehlt in diesem Theme
+breeze-dark              base        links 255 255 255 255 255 255 255 255  | oben 255 255 255 255 255 255 255 255  | Farbe x=0 #4c4e51
+breeze-dark              hover       links 255 0 0 0 0 0 0 0                | oben 255 0 0 0 0 0 0 0                | Farbe x=0 #3daee9
+breeze-dark              focus       links 255 0 0 0 0 0 0 0                | oben 255 0 0 0 0 0 0 0                | Farbe x=0 #3daee9
+breeze-dark              focusframe  links 84 84 255 0 0 0 0 0              | oben 84 84 255 0 0 0 0 0              | Farbe x=0 #3dade7
+breeze-light             base        links 255 255 255 255 255 255 255 255  | oben 255 255 255 255 255 255 255 255  | Farbe x=0 #c6c8c9
+breeze-light             hover       links 255 0 0 0 0 0 0 0                | oben 255 0 0 0 0 0 0 0                | Farbe x=0 #3daee9
+breeze-light             focus       links 255 0 0 0 0 0 0 0                | oben 255 0 0 0 0 0 0 0                | Farbe x=0 #3daee9
+breeze-light             focusframe  links 84 84 255 0 0 0 0 0              | oben 84 84 255 0 0 0 0 0              | Farbe x=0 #3dade7
+cachyos-emerald          base        links 0 15 15 15 15 15 15 15           | oben 0 15 15 15 15 15 15 15           | Farbe x=0 #000000
+cachyos-emerald          hover       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+cachyos-emerald          focus       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+cachyos-emerald          focusframe  fehlt in diesem Theme
+cachyos-emerald-color    base        links 0 15 15 15 15 15 15 15           | oben 0 15 15 15 15 15 15 15           | Farbe x=0 #000000
+cachyos-emerald-color    hover       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+cachyos-emerald-color    focus       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+cachyos-emerald-color    focusframe  fehlt in diesem Theme
+cachyos-emerald-light    base        links 0 15 15 15 15 15 15 15           | oben 0 15 15 15 15 15 15 15           | Farbe x=0 #000000
+cachyos-emerald-light    hover       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+cachyos-emerald-light    focus       links 0 255 255 15 15 15 15 15         | oben 0 255 255 15 15 15 15 15         | Farbe x=0 #000000
+cachyos-emerald-light    focusframe  fehlt in diesem Theme
+default                  base        links 255 255 255 255 255 255 255 255  | oben 255 255 255 255 255 255 255 255  | Farbe x=0 #4c4e51
+default                  hover       links 255 0 0 0 0 0 0 0                | oben 255 0 0 0 0 0 0 0                | Farbe x=0 #3daee9
+default                  focus       links 255 0 0 0 0 0 0 0                | oben 255 0 0 0 0 0 0 0                | Farbe x=0 #3daee9
+default                  focusframe  links 84 84 255 0 0 0 0 0              | oben 84 84 255 0 0 0 0 0              | Farbe x=0 #3dade7

@@ -1,0 +1,15 @@
+### Skalierung 1 — Bild 300×60 Gerätebildpunkte
+  Zeilen mit Linienfarbe (Spalte 150): y=59 #424446  
+  Spalten in der untersten bemalten Zeile: x=12 bis x=287
+  logische 12 px entsprechen 12 Gerätebildpunkten
+
+### Skalierung 1.6 — Bild 480×96 Gerätebildpunkte
+  Zeilen mit Linienfarbe (Spalte 150): y=94 #424446  y=95 #424446  
+  Spalten in der untersten bemalten Zeile: x=19 bis x=460
+  logische 12 px entsprechen 19.2 Gerätebildpunkten
+
+### Skalierung 2 — Bild 600×120 Gerätebildpunkte
+  Zeilen mit Linienfarbe (Spalte 150): y=118 #424446  y=119 #424446  
+  Spalten in der untersten bemalten Zeile: x=24 bis x=575
+  logische 12 px entsprechen 24 Gerätebildpunkten
+

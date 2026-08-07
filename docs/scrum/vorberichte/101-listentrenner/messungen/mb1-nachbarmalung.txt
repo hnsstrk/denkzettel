@@ -1,0 +1,30 @@
+## Prüffrage 1 — option.widget im Delegate
+gesetzt: ja
+mindestens einmal nullptr: nein
+qobject_cast auf QAbstractItemView: prüfbar, siehe unten
+
+## Prüffrage 3 — Rechteck des Delegate gegenüber dem Sichtfeld
+Breite der Ansicht: 300, Breite des Sichtfeldes: 286
+Rollbalken sichtbar: ja
+Rechteck der Zeile 0: x=0 Breite=286 (rechte Kante 285)
+
+## Prüffrage 2 — Neumalung bei Auswahlwechsel
+Sichtfeld 800 px hoch, Zeilen 60 px — es wird nicht gerollt.
+
+Auswahl 2 → 3: gemalt [Zeile 2: 1×  Zeile 3: 1×  ]
+    Zeile über der neuen Auswahl (2) neu gemalt: ja
+    Zeile über der alten Auswahl (1) neu gemalt: NEIN
+Auswahl 3 → 2: gemalt [Zeile 2: 1×  Zeile 3: 1×  ]
+    Zeile über der neuen Auswahl (1) neu gemalt: NEIN
+    Zeile über der alten Auswahl (2) neu gemalt: ja
+Auswahl 1 → 5: gemalt [Zeile 1: 1×  Zeile 2: 1×  Zeile 3: 1×  Zeile 4: 1×  Zeile 5: 1×  ]
+    Zeile über der neuen Auswahl (4) neu gemalt: ja
+    Zeile über der alten Auswahl (0) neu gemalt: NEIN
+Auswahl 5 → 1: gemalt [Zeile 1: 1×  Zeile 2: 1×  Zeile 3: 1×  Zeile 4: 1×  Zeile 5: 1×  ]
+    Zeile über der neuen Auswahl (0) neu gemalt: NEIN
+    Zeile über der alten Auswahl (4) neu gemalt: ja
+
+## Prüffrage 4 — was grab() malt
+nach dem Auswahlwechsel 5 → 1 gemalt: Zeile 1: 1×  Zeile 2: 1×  Zeile 3: 1×  Zeile 4: 1×  Zeile 5: 1×  
+beim anschließenden grab() gemalt:   Zeile 0: 1×  Zeile 1: 1×  Zeile 2: 1×  Zeile 3: 1×  Zeile 4: 1×  Zeile 5: 1×  Zeile 6: 1×  Zeile 7: 1×  Zeile 8: 1×  Zeile 9: 1×  Zeile 10: 1×  Zeile 11: 1×  
+Bildgröße: 300×800

@@ -1,0 +1,24 @@
+Abhebung des Feldbereichs gegen die Huelle daneben.
+Flaeche = die Feldmitte. beste ohne/mit = der groesste Wert, den der
+Feldrand in seinen ersten acht Spalten erreicht — das ist die Groesse, die
+der Kundenbefund meint. Fokuskante = allein die Kante der focus-Schicht.
+ohne = nur Vorsatz base (der Stand nach #100). mit = base, darueber focus.
+Maßstab: KRunners Feld hebt sich im Sitzungsbild mit 1,41 : 1 ab (SPEC 3.1).
+
+Theme                    Grund      Flaeche  beste ohne   beste mit  Fokuskante    Gewinn
+CachyOS-Nord-round       schwarz       1.03        1.03        3.50        3.50      3.41
+CachyOS-Nord-round       weiss         1.03        1.03        3.50        3.50      3.41
+Iridescent-round         schwarz       1.00        1.00        4.66        4.66      4.66
+Iridescent-round         weiss         1.13        1.13        2.81        2.81      2.48
+breeze-dark              schwarz       1.08        2.01        6.73        6.73      3.35
+breeze-dark              weiss         1.88        1.88        3.88        3.88      2.07
+breeze-light             schwarz       1.62        1.62        1.62        1.54      1.00
+breeze-light             weiss         1.12        1.50        2.23        2.23      1.48
+cachyos-emerald          schwarz       1.00        1.00        4.66        4.66      4.66
+cachyos-emerald          weiss         1.14        1.14        4.24        4.24      3.71
+cachyos-emerald-color    schwarz       1.00        1.00        4.66        4.66      4.66
+cachyos-emerald-color    weiss         1.14        1.14        4.24        4.24      3.71
+cachyos-emerald-light    schwarz       1.00        1.00        4.66        4.66      4.66
+cachyos-emerald-light    weiss         1.14        1.14        4.24        4.24      3.71
+default                  schwarz       1.08        2.01        6.73        6.73      3.35
+default                  weiss         1.88        1.88        3.88        3.88      2.07

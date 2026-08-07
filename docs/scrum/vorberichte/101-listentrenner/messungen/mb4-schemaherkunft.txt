@@ -1,0 +1,16 @@
+# Herkunft der beiden in AK 4 genannten Farbschemata
+# Messung B zur Vorprüfung #101, 07.08.2026
+
+/usr/share/color-schemes/KritaDarkOrange.colors ist in krita 6.0.3-2.1 enthalten
+/usr/share/color-schemes/IridescentLightly.colors ist in cachyos-iridescent-kde r2.16aa352-1 enthalten
+
+# Paketliste des öffentlichen Bau- und Testlaufs (.github/workflows/ci.yml:66-73):
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel cmake git gettext \
+            extra-cmake-modules qt6-base \
+            kconfig kcoreaddons kdbusaddons kglobalaccel ki18n knotifications \
+            kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem libplasma \
+            plasma-integration breeze-icons appstream clazy clang
+
+      - uses: actions/checkout@v4

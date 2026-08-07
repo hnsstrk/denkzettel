@@ -1,0 +1,33 @@
+Was AK 3 vertauscht: Notiztext auf der Fensterflaeche gegen Notiztext auf der Feldflaeche.
+Alt = WindowText auf Window (Stand heute), Neu = Text auf View (AK 3).
+
+Schema                        alt WindowText:Window  neu Text:View  Text:Window
+BreezeClassic                                 13.36          14.85        13.36
+BreezeDark                                    15.39          17.68        15.39
+BreezeLight                                   13.33          15.21        13.33
+CachyOSNord                                    8.61           6.88         6.73
+CachyOSNordLightly                             7.93           6.88         6.20
+Emerald                                       20.87          20.15        20.87
+EmeraldDark                                    7.81           7.20         7.04
+EmeraldLight                                  20.87          20.15        20.87
+EmeraldSmooth                                 12.11          11.58        12.11
+IridescentLightly                              5.91           5.97         5.91
+IridescentLightly2                             5.91           5.97         5.91
+IridescentLightly3                             5.80           5.70         5.80
+KritaBlender                                  11.07           9.11        11.07
+KritaBright                                    9.68          16.14        11.98
+KritaDark                                      5.55           7.01         5.55
+KritaDarkOrange                               16.48          15.52        16.48
+KritaDarker                                   10.75          14.30        10.75
+KritaNeutral                                   4.74           7.18         4.22
+Ant-Dark                                       8.90           8.25         8.90
+
+Anzahl Schemata: 19
+schlechtester Fall alt (WindowText auf Window): 4.74 : 1
+schlechtester Fall neu (Text auf View):         5.70 : 1
+schlechtester Fall Text auf Window (der Fall, wenn das Feld unsichtbar bleibt): 4.22 : 1
+
+Nachtrag: der Zwischenzustand, wenn AK 3 abgetrennt wuerde —
+Notiztext weiter auf WindowText, aber schon auf der Feldflaeche (View).
+schlechtester Fall WindowText auf View: 5.70 : 1  (von 19 Schemata)
+unter 4,5 : 1: keines
