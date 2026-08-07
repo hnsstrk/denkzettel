@@ -9,7 +9,11 @@
 #include <QApplication>
 #include <QFontDatabase>
 #include <QItemSelectionModel>
+#include <QPaintDevice>
 #include <QPainter>
+
+#include <algorithm>
+#include <cmath>
 
 namespace
 {
@@ -87,6 +91,36 @@ QColor separatorColor(const QPalette &palette)
     return QColor::fromRgbF(ground.redF() * (1 - share) + text.redF() * share,
                             ground.greenF() * (1 - share) + text.greenF() * share,
                             ground.blueF() * (1 - share) + text.blueF() * share);
+}
+
+/**
+ * The rectangle a hairline of one logical point occupies, laid on the device
+ * pixel grid (issue #101, UI review of Sprint 9, L9).
+ *
+ * `top` is the logical row the line sits in. At the customer's ratio of 1.6 a
+ * logical point covers 1.6 device pixel rows, and which whole rows those become
+ * depends on where `top` falls in the grid: measured on his scaling, the same
+ * line came out one device pixel thick above one entry and two above the next,
+ * and a group line could end up thinner than the entry lines beneath it. Then
+ * the weight says the opposite of the length — while the rule is that the
+ * ranking comes from the length of the stroke and not from its weight
+ * (customer decision of 06.08.2026).
+ *
+ * Hence a whole number of device pixel rows, never fewer than one, and an upper
+ * edge put on a device pixel boundary. Rounded rather than truncated, because
+ * at 1.6 truncation would leave 0.625 logical points — and the worst measured
+ * scheme carries this line at 1.24 : 1 against its ground, where thinning it
+ * further is the one thing that must not happen.
+ *
+ * At ratio 1 both terms come out exactly as they did before, which is why the
+ * pixel checks of AK 1 to AK 3 are untouched by this.
+ */
+QRectF hairline(const QPaintDevice *device, int left, int top, int width)
+{
+    const qreal ratio = device ? device->devicePixelRatioF() : 1.0;
+    const qreal rows = std::max(1.0, std::round(ratio));
+
+    return QRectF(left, std::round(top * ratio) / ratio, width, rows / ratio);
 }
 
 /**
@@ -180,8 +214,9 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         // Drawn on bare list ground — the head branch returns before
         // drawControl() and paints no background of its own.
         if (index.row() > 0) {
-            painter->fillRect(QRect(entry.rect.x(), entry.rect.y(), entry.rect.width(), 1),
-                              separatorColor(entry.palette));
+            painter->fillRect(
+                hairline(painter->device(), entry.rect.x(), entry.rect.y(), entry.rect.width()),
+                separatorColor(entry.palette));
         }
 
         // A head is not selectable, so the view hands it over disabled. Asking
@@ -222,7 +257,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     // stands.
     const QModelIndex below = index.sibling(index.row() + 1, index.column());
     if (below.isValid() && !isGroupHead(below) && !selected && !isSelectedIn(entry, below)) {
-        painter->fillRect(QRect(textLeft(entry.rect), entry.rect.bottom(), width, 1),
+        painter->fillRect(hairline(painter->device(), textLeft(entry.rect), entry.rect.bottom(), width),
                           separatorColor(entry.palette));
     }
 

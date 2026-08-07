@@ -62,13 +62,22 @@ jobs:
         # `default` und `breeze-*` liegen darin. Ohne libplasma fände KSvg hier
         # überhaupt kein Theme, und capturetest prüfte den Randfall statt der
         # Sache.
+        #
+        # kcolorscheme trägt KColorScheme::frameContrast() — das Verhältnis, in
+        # dem die Bibliotheksliste ihre Trennlinien mischt (#101, SPEC 9 und 15).
+        # Es steht hier ausdrücklich, obwohl der Bau auch ohne die Zeile gelänge:
+        # ksvg, libplasma und plasma-integration ziehen das Paket allesamt mit
+        # (gemessen am 07.08.2026). **Transitiv ist keine Zusage** — verliert
+        # eines dieser drei die Abhängigkeit, bricht der Bau an einer Stelle, die
+        # niemand mit dieser Änderung in Verbindung bringt. Die Untergrenze ist
+        # 6.20, im rollenden Arch-Strom liegen 6.28.0.
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel cmake git gettext \
             extra-cmake-modules qt6-base \
-            kconfig kcoreaddons kdbusaddons kglobalaccel ki18n knotifications \
-            kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem libplasma \
-            plasma-integration breeze-icons appstream clazy clang
+            kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
+            knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \
+            libplasma plasma-integration breeze-icons appstream clazy clang
 
       - uses: actions/checkout@v4
 
