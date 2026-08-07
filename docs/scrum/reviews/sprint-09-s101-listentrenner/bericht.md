@@ -13,8 +13,9 @@ seinem Abschnitt 8.
 **Alles hier Behauptete ist wiederholbar:** `bash docs/scrum/reviews/sprint-09-s101-listentrenner/pruefen.sh`
 baut von Grund auf, fährt Prüfsätze, Linter und Bilder; `bash …/mutationsprobe.sh`
 nimmt sechsmal je eine Zusicherung aus dem Produktivcode heraus und zeigt, dass
-sie einzeln bemerkt wird. Beide bauen ausschließlich in eigenen Verzeichnissen
-und installieren nichts nach `/usr`.
+sie einzeln bemerkt wird — **und endet mit einem Rückgabewert ungleich null,
+wenn eine Probe nichts gemessen hat** (3.1). Beide bauen ausschließlich in
+eigenen Verzeichnissen und installieren nichts nach `/usr`.
 
 ---
 
@@ -62,7 +63,7 @@ einem abgebrochenen Wechsel ungezeichnet.
 | **3a** — wo keine Linie steht | ja | `leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt`. Drei Fälle: unter der letzten Notiz jeder Gruppe, unter jedem der drei Köpfe, an beiden Kanten der ausgewählten Zeile. Die Auswahl wird als **Vorher/Nachher derselben zwei Bildpunktzeilen** gemessen — und der Prüfsatz sichert vorher zu, dass ohne Auswahl dort eine Linie steht, sonst misst er nichts. |
 | **3b** — die Ausnahme gilt allein der Eintragslinie | ja | `keepsTheGroupLineOverAHeadUnderTheSelectedNote`: Auswahl auf die letzte Notiz der mittleren Gruppe, die Linie über dem Kopf darunter steht weiter, x = 0 bis Breite−1. |
 | **3c** — der Auswahlwechsel | ja | `paintsBothUpperNeighboursAgainWhenTheSelectionMoves`. **Malzähler, kein Bild** — ein `PaintCounter`, der von `NoteListDelegate` erbt und ihn ruft. Vier Wechsel: 3→5, 5→3, 4→5, 5→4; in dreien liegt ein oberer Nachbar außerhalb der Strecke, die die Ansicht von sich aus malt. Geprüft wird für jeden, dass **beide** oberen Nachbarn neu gezeichnet sind. |
-| **4** — Farbe | ja | `mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole`, zwei Paletten (Breeze hell und dunkel), deren Ergebnis weit auseinanderliegt. Das Verhältnis kommt aus `[KDE]` der Sandkasten-Konfiguration und wird **vor jeder Messung zurückgelesen und zugesichert** (Falle 2.5). Zusätzlich zwei Gegenproben: der gewählte Wert 0,45 muss ein anderes Ergebnis liefern als die Voreinstellung 0,20, und die Linienfarbe wird gegen **alle** `QPalette`-Rollen gehalten. |
+| **4** — Farbe | ja | `mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole`, zwei Paletten (Breeze hell und dunkel), deren Ergebnis weit auseinanderliegt. Das Verhältnis kommt aus `[KDE]` der Sandkasten-Konfiguration und wird **vor jeder Messung zurückgelesen und zugesichert** (Falle 2.5). Zusätzlich zwei Gegenproben: der gewählte Wert 0,45 muss ein anderes Ergebnis liefern als die Voreinstellung 0,20, und die Linienfarbe wird gegen **alle** `QPalette`-Rollen gehalten. Der Sandkasten wird am Ende des Laufs zurückgesetzt (4.3). |
 | **5** — kein Maß ändert sich | ja | `keepsTheMeasuresOfTheGroupedList` (beide Größen) und die fünf #70-Sätze `bringsTheHead…` sind **unverändert** grün, `messungen/b3-pruefsaetze.txt`. Am Code: `sizeHint()` ist nicht angefasst. |
 | **6** — Trefferliste der Suche | ja | `separatesTheSearchResultsLikeTheLibrary`: nach dem Filtern behält „Heute" eine, „Gestern" zwei Notizen. Über dem ersten sichtbaren Kopf keine Linie, über dem zweiten eine volle, unter den letzten sichtbaren Notizen keine, zwischen den zwei verbliebenen Notizen die eingerückte. Bild: `bilder/skalierung-1/2-trefferliste-mit-gruppen.png`. **Kein Eingriff am Produktivcode nötig**, wie die Vorprüfung gemessen hatte. |
 | **7** — Bild unter der Skalierung des Kunden | ja | `bilder/skalierung-1-6/01-normalfall.png`, erzeugt mit `QT_SCALE_FACTOR=1.6`, `QT_QPA_PLATFORMTHEME=kde`, offscreen; 1440×960 Bildpunkte auf 900×600 logischen. Ansichtsbeleg, **keine Bildpunktzusicherung**. Daneben `09-ruhiges-bild-innerhalb-der-gruppe.png` unter derselben Skalierung: **im Normalfall ist die zweite Notiz die ausgewählte**, und damit entfällt gerade die eine eingerückte Linie, die er zeigen könnte — er belegt allein die Gruppenlinie. Die ruhige Liste zeigt beide. |
@@ -82,9 +83,53 @@ nimmt sechsmal je **eine** Zusicherung aus dem Produktivcode, baut und fährt
 | Linie auch unter der letzten Notiz einer Gruppe (die Doppellinie aus Falle 2.7) | rot — derselbe Satz und `separatesTheSearchResultsLikeTheLibrary` |
 | Gruppenlinie auch über dem ersten Kopf | rot — `drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst`, beide Größen |
 | Eintragslinie über die volle Breite statt eingerückt | rot — `drawsAnInsetHairlineBetweenTwoNotesOfAGroup`, beide Größen |
-| `frameContrast()` durch die feste 0,20 ersetzt | rot — `mixesTheSeparator…`, beide Schemata |
+| ~~`frameContrast()` durch die feste 0,20 ersetzt~~ → **berichtigt, siehe 3.1** | ~~rot — `mixesTheSeparator…`, beide Schemata~~ · **richtig ist, nachgefahren am 07.08.2026: rot** — `mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole` in beiden Schemata und `leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt` in beiden Größen |
 | Neuzeichnen der oberen Nachbarn entfernt | rot — `paintsBothUpperNeighboursAgainWhenTheSelectionMoves`, und **nur** dieser Satz |
 | **kein Eingriff** | grün, 124 Prüffunktionen |
+
+### 3.1 Berichtigung vom 07.08.2026 — diese Zeile war falsch, und sie war die wichtigste
+
+**Die Zeile zu Probe 5 stand hier als „rot", gemessen war „ABBRUCH".** Die alte
+Fassung bleibt oben durchgestrichen lesbar (B17); sie ist der Grund für den
+Wächter, den das Skript jetzt trägt.
+
+Gefunden hat es der karpathy-Review zu Sprint 9 (K3, `fail`), nicht ich. Der
+Hergang:
+
+1. Das Skript suchte `const qreal share = KColorScheme::frameContrast();`.
+2. **Meine eigene Heilung von Fund 4.1** machte daraus
+   `const auto share = static_cast<float>(…)` — die Verengungswarnung des
+   Linters. Damit traf das Muster nicht mehr.
+3. Die „genau einmal"-Wache im Skript **hat angeschlagen** und
+   `ABBRUCH: Eingriff ließ sich nicht anbringen` ins Protokoll geschrieben.
+4. Gelesen hat es niemand. Ich habe die Zeile im Bericht nicht gegen die
+   Messdatei gehalten, sondern gegen den Lauf davor.
+
+**Damit war AK 4 die einzige Zusicherung dieser Story ohne Mutationsnachweis —
+ausgerechnet in dem Abschnitt, der „Der Nachweis, der diesen Bericht trägt"
+heißt.** Der Bericht behauptete einen Nachweis, den es nicht gab.
+
+**Das Muster, das der Review vorschlug, hätte erneut abgebrochen.** Er empfahl,
+auf `KColorScheme::frameContrast()` allein zu kürzen. Der Ausdruck steht aber
+**zweimal** in der Datei — einmal im Dokumentationskommentar der Funktion
+(`notelistdelegate.cpp:59`), einmal im Code (`:85`). Gemessen mit `grep -c`,
+bevor das Muster gesetzt wurde. Genommen ist deshalb der volle Ausdruck
+`static_cast<float>(KColorScheme::frameContrast())`, einmalig belegt.
+
+**Was daraus im Skript steht.** `mutationsprobe.sh` endet mit einem
+Rückgabewert ungleich null, sobald eine Probe **abbricht**, **grün bleibt** oder
+der Stand **ohne** Eingriff rot ist — die drei Arten, auf die eine Probe nichts
+misst. Dazu eine Bilanz am Ende des Protokolls (`Proben insgesamt`,
+`davon abgebrochen`, `davon stumm geblieben`). Der Grund des Abbruchs steht
+jetzt im Protokoll statt auf der Standardfehlerausgabe.
+
+**Der Wächter ist selbst geprüft.** Eine Probe mit absichtlich unauffindbarem
+Muster, gefahren am 07.08.2026 im Belegordner: Rückgabewert **1**, Meldung
+`Muster kommt 0-mal vor, erwartet genau einmal`, Bilanz `davon abgebrochen: 1`,
+Gegenprobe ohne Eingriff grün — der Abbruch allein löst also aus. Das Prüfskript
+ist danach gelöscht; es war ein Versuch, kein Artefakt. **Ein Rückgabewert, den
+niemand ausgelöst hat, ist dieselbe Sorte Behauptung wie die Zeile, die dieser
+Abschnitt berichtigt.**
 
 **Der erste Durchgang war selbst ein Befund und steht deshalb im Skript.** Die
 Rücknahme eines Eingriffs geschah mit `cp`/`mv`, und eine schlichte Kopie trägt
@@ -116,6 +161,24 @@ zweiten Lauf von `pruefen.sh` war der Bauplatz schon warm; nichts wurde
 übersetzten Dateien** neben die Zahl der Warnungen — 49. Dasselbe gilt für die
 Linter: 30 angefasste Dateien stehen neben den Nullen, weil ein Lauf über null
 Dateien genauso aussieht.
+
+**4.3 Mein Testwert überlebte den Lauf.** Der Farbprüfsatz schreibt
+`[KDE] frameContrast=0.45` in die Sandkasten-Konfiguration — der einzige Ort,
+den `KColorScheme::frameContrast()` liest. Unter dem Testmodus liegt die Datei
+in `~/.qttest/config/` und **überdauert den Prozess**: Was ein Lauf schreibt,
+wäre die Ausgangslage jedes späteren. Heute fällt nichts darüber, und das ist
+gerade das Unangenehme — es ist die Sorte hinterlassener Zustand, die später
+einen Prüfsatz grün färbt, ohne dass jemand etwas geändert hat. Gefunden hat es
+der karpathy-Review (K7).
+
+Geheilt in `initTestCase()`/`cleanupTestCase()`: der Wert von vorher wird
+gemerkt und am Ende zurückgeschrieben, fehlte er, wird der Schlüssel gelöscht.
+**Einmal je Lauf, nicht je Prüffunktion** — der Satz ist datengetrieben, und
+eine Rücknahme zwischen zwei Zeilen liefe in die Sekunden-Trägheit von KConfig
+(Falle 2.5).
+
+Beide Pfade gemessen: Schlüssel fehlt vorher → fehlt nachher; fremder Wert
+`0.11` vorher → `0.11` nachher.
 
 ---
 
@@ -155,11 +218,39 @@ sind nicht bildpunktgleich wiederholbar.** Zweimal derselbe Binärcode, zweimal
 derselbe Ordner, offscreen unter `QT_QPA_PLATFORMTHEME=kde`:
 `02-leerzustand.png`, `10c-schema-dunkel-bearbeiten.png` und
 `10d-schema-hell-bearbeiten.png` unterscheiden sich zwischen zwei Läufen, die
-übrigen zwölf nicht. Zwei davon zeigen den Bearbeitungszustand, also ein
-blinkendes Textzeichen; für den Leerzustand habe ich die Ursache nicht gesucht.
-**Keine der drei zeigt die Notizliste**, mit dieser Story hat es nichts zu tun.
+übrigen zwölf nicht.
+
+~~Zwei davon zeigen den Bearbeitungszustand, also ein blinkendes Textzeichen;
+für den Leerzustand habe ich die Ursache nicht gesucht. **Keine der drei zeigt
+die Notizliste**, mit dieser Story hat es nichts zu tun.~~
+
+**Berichtigt am 07.08.2026** (karpathy-Review Sprint 9, K4). Der durchgestrichene
+Satz ist am Bild widerlegt: `10c` und `10d` **zeigen** die Notizliste, samt
+beider Gruppenköpfe und der vollen Linie über „Gestern". Ich hatte den Schluss
+richtig und die Begründung erfunden — statt nachzusehen, wo die Bilder sich
+unterscheiden.
+
+**Nachgemessen ist es jetzt**, mit `magick compare` über die Abweichungsfläche:
+
+| Szene | abweichende Fläche | wo das liegt |
+|---|---|---|
+| `02-leerzustand.png` | **1 × 18** bei x = 16, y = 15 | Textcursor im **Suchfeld** der Kopfzeile |
+| `10c-schema-dunkel-bearbeiten.png` | **1 × 18** bei x = 530, y = 106 | Textcursor im **Editor** des Detailbereichs |
+| `10d-schema-hell-bearbeiten.png` | **1 × 18** bei x = 530, y = 106 | ebenda |
+
+Dreimal ein ein Bildpunkt breiter, achtzehn Bildpunkte hoher senkrechter
+Balken — ein blinkendes Textzeichen. **Auch im Leerzustand**, denn das Suchfeld
+steht dort ebenso. Die Notizliste liegt bei x < 300; **keine der drei
+Abweichungen liegt in ihr**. Der Schluss trägt also weiter, jetzt aber am
+Gemessenen: mit den Trennlinien aus #101 hat der Befund nichts zu tun.
+
+**Und ein zweites, das erst die Wiederholung zeigt:** Über sechs Läufe sind
+dieselben Paare **mal gleich, mal verschieden** — der Unterschied ist
+unstet, nicht ständig. Für #91 heißt das: Sein Kriterium „über mindestens drei
+Läufe bitgleich" kann durch Zufall erfüllt sein.
+
 Es steht hier, weil daraus etwas folgt: **ein Bildpunktvergleich zweier Läufe
-taugt für diese drei Szenen nicht als Regressionsprüfung** — er meldete einen
+taugt für diese drei Szenen nicht als Regressionsprüfung** — er meldet einen
 Unterschied ohne Ursache im Code. Gemeldet, nicht geheilt.
 
 **Ein Hinweis ohne Handlungsbedarf:** Die Textzeichenfunktion des Delegates

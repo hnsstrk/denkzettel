@@ -1,5 +1,5 @@
 Mutationsproben zu #101 — kann jeder Prüfsatz fallen?
-Stand: 2026-08-07 22:28 CEST, Ganymed. d20ccd7 auf story/101-listentrenner.
+Stand: 2026-08-07 22:59 CEST, Ganymed. 0b3019b auf story/101-listentrenner.
 
 == 1. Eintragslinie ohne die Ausnahme an der Auswahl (AK 3a) ==
 Eingriff : !isGroupHead(below) && !selected && !isSelectedIn(entry, below)
@@ -21,8 +21,11 @@ Eingriff : QRect(textLeft(entry.rect), entry.rect.bottom(), width, 1)
      →     QRect(entry.rect.x(), entry.rect.bottom(), entry.rect.width(), 1)
 Ergebnis : rot — gefallen sind: drawsAnInsetHairlineBetweenTwoNotesOfAGroup(1200x800) drawsAnInsetHairlineBetweenTwoNotesOfAGroup(900x600) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(hell) separatesTheSearchResultsLikeTheLibrary() 
 
-== 5. Linienfarbe aus einer Palettenrolle statt aus der Mischung (AK 4) ==
-ABBRUCH: Eingriff ließ sich nicht anbringen
+== 5. Linienfarbe aus einem festen Verhältnis statt aus der Konfiguration (AK 4) ==
+Eingriff : static_cast<float>(KColorScheme::frameContrast())
+     →     0.20F
+Ergebnis : rot — gefallen sind: leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(1200x800) leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(900x600) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(hell) 
+
 == 6. Ohne das Neuzeichnen der oberen Nachbarn (AK 3c) ==
 Eingriff :     repaintTheRowAbove(index);
     repaintTheRowAbove(previous);
@@ -30,5 +33,10 @@ Eingriff :     repaintTheRowAbove(index);
 Ergebnis : rot — gefallen sind: paintsBothUpperNeighboursAgainWhenTheSelectionMoves() 
 
 == Gegenprobe: unveränderter Stand ==
-1/1 Test #4: librarytest ......................   Passed    6.51 sec
 100% tests passed out of 1
+
+== Bilanz ==
+Proben insgesamt      : 6
+davon abgebrochen     : 0
+davon stumm geblieben : 0
+Stand ohne Eingriff   : grün
