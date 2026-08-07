@@ -1,6 +1,6 @@
 B7 — Stärke jeder Trennlinie in GERÄTEBILDPUNKTEN, Skalierung 1,6
-Gemessen: 2026-08-08 00:13 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
-Code-Stand: 80e3b7e auf story/101-listentrenner, Arbeitsbaum sauber.
+Gemessen: 2026-08-08 00:29 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 01-normalfall.png
   Eintragslinien: keine in diesem Bild

@@ -411,10 +411,10 @@ etwas schreiben, und setzen ihn samt Zustand des Arbeitsbaums in jeden Kopf:
 
 ```
 Gemessen: 2026-08-08 00:12 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
-Code-Stand: 80e3b7e auf story/101-listentrenner, Arbeitsbaum sauber.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 ```
 
-Bei `80e3b7e` ist `hairline()` vorhanden — gegengeprüft, nicht angenommen.
+Bei `e8b20a6` ist `hairline()` vorhanden — gegengeprüft, nicht angenommen.
 
 *Nachgetragen am 08.08.2026 (Nachlauf N6, unabhängig gefunden):* Der Widerspruch
 war schärfer als „falsche Angabe". **Mutationsprobe 7 tauschte eine Zeile aus

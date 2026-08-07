@@ -1,6 +1,6 @@
 Mutationsproben zu #101 — kann jeder Prüfsatz fallen?
-Gemessen: 2026-08-08 00:24 CEST, Ganymed.
-Code-Stand: 2367b32 auf story/101-listentrenner, Arbeitsbaum MIT UNCOMMITTETEN ÄNDERUNGEN (5 Datei(en): SPEC.md docs/scrum/reviews/sprint-09-s101-listentrenner/mutationsprobe.sh docs/scrum/reviews/sprint-09-s101-listentrenner/pruefen.sh src/ui/notelistdelegate.cpp docs/scrum/reviews/sprint-09-s101-listentrenner/sonden/ ).
+Gemessen: 2026-08-08 00:29 CEST, Ganymed.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 == 1. Eintragslinie ohne die Ausnahme an der Auswahl (AK 3a) ==
 Eingriff : !isGroupHead(below) && !selected && !isSelectedIn(entry, below)
