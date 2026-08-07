@@ -34,6 +34,14 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     WindowSystem
 )
 
+# KColorScheme::frameContrast() — the ratio the list mixes its separator lines
+# in (issue #101, SPEC 9 and 15). It exists since KF 6.20, and it is sought on
+# its own rather than added to the list above: KF_MIN_VERSION feeds both
+# find_package calls of this file, so a 6.20 written there would raise the
+# lower bound for ECM and all ten components at once. Here it rises where the
+# function sits and nowhere else (customer decision of 07.08.2026).
+find_package(KF6ColorScheme 6.20 REQUIRED)
+
 add_subdirectory(src)
 
 install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})

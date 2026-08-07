@@ -1,0 +1,15 @@
+B4 — clang-tidy und clazy, je mit der Zahl der angefassten Dateien
+Stand: 2026-08-07 22:27 CEST, Ganymed. d20ccd7 auf story/101-listentrenner.
+Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+lint-tidy: Rückgabewert 0
+  angefasste Dateien : 30
+  Warnungen          : 0
+  Fehler             : 0
+lint-clazy: Rückgabewert 0
+  angefasste Dateien : 30
+  Warnungen          : 0
+  Fehler             : 0
+
+Die Zahl der angefassten Dateien steht hier, weil ein Werkzeuglauf über NULL
+Dateien dieselbe Null meldet wie ein sauberer Lauf (Sprint 8, #76).

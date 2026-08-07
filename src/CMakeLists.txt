@@ -81,6 +81,10 @@ target_include_directories(denkzettelui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzettelui PUBLIC
     denkzettelstore
     Qt6::Widgets
+    # KColorScheme::frameContrast() — the ratio the separator lines of the list
+    # are mixed in (issue #101, SPEC 9). Sought with a minimum version of its
+    # own in the root CMakeLists; that is where the reason stands.
+    KF6::ColorScheme
     KF6::ConfigCore
     # KStandardShortcut (ConfigGui), KMessageWidget (WidgetsAddons) and
     # KWindowConfig (WindowSystem) — SPEC 15.
