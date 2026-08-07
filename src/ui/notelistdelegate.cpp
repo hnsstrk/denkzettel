@@ -3,8 +3,12 @@
 #include "ui/elidedlines.h"
 #include "ui/notelistmodel.h"
 
+#include <KColorScheme>
+
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QFontDatabase>
+#include <QItemSelectionModel>
 #include <QPainter>
 
 namespace
@@ -48,6 +52,61 @@ int headTopPadding(int row)
 bool isGroupHead(const QModelIndex &index)
 {
     return index.data(NoteListModel::GroupHeaderRole).toBool();
+}
+
+/**
+ * Colour of both separator lines: list ground and text colour mixed in the
+ * ratio KColorScheme::frameContrast() — the way Kirigami colours its own
+ * separators (wireframe 3a, issue #101).
+ *
+ * Deliberately not a palette role. Over the eighteen colour schemes measured on
+ * 06.08.2026 the roles that sit near the ground — AlternateBase above all —
+ * stay between 1.00 : 1 and 1.21 : 1 against it, and at a group boundary
+ * AlternateBase lands at 1.00 : 1 every single time, because the head is a row
+ * of the model and eats a stripe of its own. This mixture lies between
+ * 1.24 : 1 and 1.93 : 1.
+ *
+ * The ratio comes out of the `[KDE]` group of the application configuration and
+ * not out of the colour scheme: no installed scheme carries the key, so it
+ * reads 0.20 everywhere until somebody sets it (measured 07.08.2026). What
+ * pulls the contrasts apart are the colours of the schemes.
+ *
+ * Read from the Normal colour group, because a group head is handed to the
+ * delegate disabled — a line greyed out above one row and not below the next
+ * would be a line of two colours.
+ */
+QColor separatorColor(const QPalette &palette)
+{
+    const QColor ground = palette.color(QPalette::Normal, QPalette::Base);
+    const QColor text = palette.color(QPalette::Normal, QPalette::Text);
+    // In float, because that is what QColor works in: the channels come back as
+    // float and fromRgbF takes float, so a double ratio would narrow three
+    // times over.
+    const auto share = static_cast<float>(KColorScheme::frameContrast());
+
+    return QColor::fromRgbF(ground.redF() * (1 - share) + text.redF() * share,
+                            ground.greenF() * (1 - share) + text.greenF() * share,
+                            ground.blueF() * (1 - share) + text.blueF() * share);
+}
+
+/**
+ * True when `row` is selected in the view the delegate is painting for.
+ *
+ * Asked of the view rather than read out of `option.state`, because the entry
+ * line has to know it of the row *below* as well — and `option.state` only ever
+ * speaks of the row being painted. The cast was measured: `option.widget`
+ * carries the QListView in every paint, and its selection model answers
+ * (issue #101). Where there is no view — nobody builds this list without one —
+ * the answer is „not selected“, and the line stays.
+ */
+bool isSelectedIn(const QStyleOptionViewItem &option, const QModelIndex &row)
+{
+    const auto *view = qobject_cast<const QAbstractItemView *>(option.widget);
+    if (!view || !view->selectionModel()) {
+        return false;
+    }
+
+    return view->selectionModel()->isSelected(row);
 }
 }
 
@@ -107,10 +166,29 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     painter->save();
 
     if (isGroupHead(index)) {
+        // The group line: the topmost pixel row of every head but the first,
+        // over the full width of the row (wireframe 3a, issue #101). Its length
+        // is what tells a group boundary from a note boundary — same colour,
+        // same thickness, the inset line between two notes and the full one
+        // here. It sits in the upper 14 px the head keeps free anyway, so no
+        // row grows.
+        //
+        // It stays even when the note right above is the selected one: the
+        // exception belongs to the entry line, and the wireframe draws this
+        // very case at the head „Gestern“.
+        //
+        // Drawn on bare list ground — the head branch returns before
+        // drawControl() and paints no background of its own.
+        if (index.row() > 0) {
+            painter->fillRect(QRect(entry.rect.x(), entry.rect.y(), entry.rect.width(), 1),
+                              separatorColor(entry.palette));
+        }
+
         // A head is not selectable, so the view hands it over disabled. Asking
         // the palette for its Normal colour keeps it from being greyed out —
-        // it is a heading, not an unavailable entry. No line, no background:
-        // both would weaken the selection mark below it (wireframe 3a).
+        // it is a heading, not an unavailable entry. No background and no
+        // selection: both would weaken the selection mark below it
+        // (wireframe 3a).
         drawLine(painter,
                  entry.rect,
                  headTopPadding(index.row()),
@@ -126,6 +204,28 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     style->drawControl(QStyle::CE_ItemViewItem, &entry, painter, entry.widget);
 
     const bool selected = entry.state.testFlag(QStyle::State_Selected);
+
+    // The entry line: the last pixel row of this note, inset to the text edge —
+    // the same 12 px the timestamp starts at, asked of the same two functions
+    // so that the number exists once (wireframe 3a, issue #101). It sits in the
+    // lower of the 9 px the entry already keeps free, so no row grows.
+    //
+    // Drawn after drawControl(), which fills the whole rectangle and would
+    // paint over it.
+    //
+    // Three cases carry no line. Under the last note of a group, because the
+    // row below is that group's head and the head draws the full-width line
+    // itself — the rectangles touch without a gap, so a line here would make a
+    // double one of two pixel rows. And at either edge of the selected row,
+    // because a second separator there would compete with the selection mark:
+    // that is the one reason of the old „no lines at all“ rule that still
+    // stands.
+    const QModelIndex below = index.sibling(index.row() + 1, index.column());
+    if (below.isValid() && !isGroupHead(below) && !selected && !isSelectedIn(entry, below)) {
+        painter->fillRect(QRect(textLeft(entry.rect), entry.rect.bottom(), width, 1),
+                          separatorColor(entry.palette));
+    }
+
     const QColor textColor = entry.palette.color(selected ? QPalette::HighlightedText : QPalette::Text);
     const QColor dimmedColor = selected ? textColor : entry.palette.color(QPalette::PlaceholderText);
 

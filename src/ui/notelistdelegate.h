@@ -6,8 +6,12 @@
  * Draws the rows of the library list (wireframe 3a): a group head, or a note
  * as a small dimmed timestamp above its subject and preview.
  *
- * A head carries no line, no background and no selection — every one of those
- * would weaken the selection mark of the notes below it.
+ * Two hairlines of one colour separate them, and their length carries the
+ * ranking (issue #101): between two notes of one group an inset one on the
+ * text edge, over every head but the first a full-width one. Neither at an edge
+ * of the selected row — a separator there would compete with the selection
+ * mark, and so would a background or a selectable head, which is why a head has
+ * neither.
  */
 class NoteListDelegate : public QStyledItemDelegate
 {

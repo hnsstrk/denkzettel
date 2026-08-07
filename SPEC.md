@@ -715,6 +715,31 @@ v1 aber nicht gebaut.
   Wochengruppen Wochentag und Datum, in Älter das absolute Datum; im
   Detailbereich die volle Form. Die Gliederung ist fest — kein Umschalter,
   keine einklappbaren Gruppen (Wireframes 3a/3b).
+  **Getrennt wird durch zwei Haarlinien einer Farbe, deren Ausdehnung die
+  Rangfolge trägt** (Wireframe 3a, Kundenentscheidung 06.08.2026 auf Issue
+  #101, nachdem der Weißraum allein die Notizen nicht mehr auseinanderhielt):
+  zwischen zwei aufeinanderfolgenden Notizen **derselben** Gruppe eine auf die
+  Textkante eingerückte Linie (12 px links und rechts, dieselben 12 px, auf
+  denen Zeitstempel und Kopftext beginnen), über jedem Gruppenkopf **außer dem
+  ersten** dieselbe Linie über die volle Breite der Zeile. Keine unter der
+  letzten Notiz einer Gruppe, keine unter einem Kopf, und **keine an einer
+  Kante der ausgewählten Zeile** — eine zweite Trennung dort träte mit der
+  Auswahlmarkierung in Wettbewerb. Die Ausnahme gilt allein der eingerückten
+  Linie: über einem Kopf bleibt die Linie stehen, auch wenn die Notiz darüber
+  die ausgewählte ist. Die Farbe ist **keine Palettenrolle**, sondern die
+  Mischung aus Listengrund und Textfarbe im Verhältnis
+  `KColorScheme::frameContrast()` — das Verfahren, mit dem Kirigami seine
+  Trennlinien färbt; über 18 Schemata liegt sie zwischen 1,24 : 1 und
+  1,93 : 1 gegen den Listengrund, abwechselnde Zeilenfarben dagegen zwischen
+  1,00 : 1 und 1,21 : 1 und an jeder Gruppengrenze bei 1,00 : 1 (gemessen
+  06.08.2026). **Kein Maß ändert sich dadurch**: Beide Linien liegen in
+  Innenabständen, die es schon gibt.
+  **Bedingung, entdeckt bei der Umsetzung (DoD 4/B9): Die Ansicht zeichnet den
+  oberen Nachbarn eines Auswahlwechsels nicht von sich aus neu.** Sie malt nur
+  die Strecke zwischen alter und neuer Auswahl, und die Zeile über beiden Enden
+  liegt außerhalb — ohne ausdrückliche Anmeldung bleibt dort eine Linie stehen
+  oder fehlt eine (Issue #101, sechs Wechsel gemessen am 07.08.2026). Ein
+  Standbild zeigt das nicht: `grab()` zeichnet jede Zeile neu.
   Die Gruppen werden beim Aufbau der Liste und bei jeder Fensteraktivierung
   nachgerechnet — es gibt keinen Mitternachtszeitgeber (Wireframe 3b).
   **Neu gruppiert wird dabei nur, wenn der Kalendertag ein anderer ist als
@@ -979,12 +1004,24 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   `ImageSet` — die Hülle aus `dialogs/background` des Desktop-Themes),
   **KCoreAddons** (`KDirWatch` — die Wache auf `plasmarc`, über die ein
   Theme-Wechsel ein stehendes Fenster erreicht; warum nicht `KConfigWatcher`,
-  steht in 3.2), KI18n (App-Sprache Deutsch;
+  steht in 3.2), **KColorScheme** (`KColorScheme::frameContrast()` — das
+  Verhältnis, in dem die Bibliotheksliste ihre Trennlinien mischt, Abschnitt 9),
+  KI18n (App-Sprache Deutsch;
   `i18n()`-Aufrufe sind KDE-Standardpraxis für alle sichtbaren Strings —
   keine Übersetzungs-Roadmap, nur Konvention). UI-Fließtexte (Platzhalter,
   Hinweise, Dialoge) sprechen den Nutzer in unpersönlicher Infinitivform an
   („Zum Lesen links eine Notiz auswählen.") — einmal app-weit festgelegt
   statt je Fenster (PO-Entscheidung 31.07.2026, Gestaltungsauftrag S8).
+- **Mindestversionen:** Die allgemeine Untergrenze für ECM und die
+  KF6-Komponenten liegt bei **6.0.0**. Eine Ausnahme trägt ihre Version selbst:
+  **KColorScheme wird mit einem eigenen `find_package`-Aufruf und der
+  Mindestversion 6.20 gesucht**, weil `KColorScheme::frameContrast()` erst dort
+  hinzugekommen ist. Der Grund für den eigenen Aufruf ist gemessen (Issue #101,
+  Kundenentscheidung 07.08.2026): Die eine Zahl `KF_MIN_VERSION` speist **beide**
+  `find_package`-Aufrufe der Wurzel-`CMakeLists.txt`, so dass eine 6.20 an
+  dieser Stelle die Untergrenze für ECM und alle zehn Komponenten mit anhöbe —
+  für eine Distribution mit älterem KF6 ohne Not. Die Untergrenze steigt dort,
+  wo die Funktion sitzt.
 - Laufzeit-Abhängigkeiten: `ffmpeg` (Audio-Konvertierung), optional
   `whisper.cpp` (Vulkan) und `task` (Taskwarrior) — beides wird zur Laufzeit
   erkannt; fehlt eines, sind nur die betroffenen Funktionen deaktiviert
