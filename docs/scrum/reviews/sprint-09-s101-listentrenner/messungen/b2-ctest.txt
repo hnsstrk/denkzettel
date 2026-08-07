@@ -1,5 +1,5 @@
 B2 — ctest über alle Prüfprogramme
-Stand: 2026-08-07 22:24 CEST, Ganymed. 366b69f auf story/101-listentrenner.
+Stand: 2026-08-07 22:27 CEST, Ganymed. d20ccd7 auf story/101-listentrenner.
 Offscreen, QT_QPA_PLATFORMTHEME=kde.
 
 Test project /home/hnsstrk/Projekte/denkzettel-101/docs/scrum/reviews/sprint-09-s101-listentrenner/build
@@ -10,7 +10,7 @@ Test project /home/hnsstrk/Projekte/denkzettel-101/docs/scrum/reviews/sprint-09-
     Start 3: capturetest
 3/9 Test #3: capturetest ......................   Passed    0.35 sec
     Start 4: librarytest
-4/9 Test #4: librarytest ......................   Passed    6.45 sec
+4/9 Test #4: librarytest ......................   Passed    6.56 sec
     Start 5: shelltest
 5/9 Test #5: shelltest ........................   Passed    0.07 sec
     Start 6: firstruntest
@@ -24,4 +24,4 @@ Test project /home/hnsstrk/Projekte/denkzettel-101/docs/scrum/reviews/sprint-09-
 
 100% tests passed out of 9
 
-Total Test time (real) =   7.17 sec
+Total Test time (real) =   7.27 sec

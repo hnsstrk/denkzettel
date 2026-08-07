@@ -150,6 +150,18 @@ Fundstellen außerhalb meiner Dateimenge (`wireframes/…:553`, `:565`, `:813`,
 des PO vom 06. und 07.08.2026 und sind auf dem Stand, den diese Umsetzung
 voraussetzt. Zeichnung 3a habe ich gelesen und nicht angefasst.
 
+**Ein Fund, der dem PO gehört: drei der fünfzehn Szenen von `libraryshots`
+sind nicht bildpunktgleich wiederholbar.** Zweimal derselbe Binärcode, zweimal
+derselbe Ordner, offscreen unter `QT_QPA_PLATFORMTHEME=kde`:
+`02-leerzustand.png`, `10c-schema-dunkel-bearbeiten.png` und
+`10d-schema-hell-bearbeiten.png` unterscheiden sich zwischen zwei Läufen, die
+übrigen zwölf nicht. Zwei davon zeigen den Bearbeitungszustand, also ein
+blinkendes Textzeichen; für den Leerzustand habe ich die Ursache nicht gesucht.
+**Keine der drei zeigt die Notizliste**, mit dieser Story hat es nichts zu tun.
+Es steht hier, weil daraus etwas folgt: **ein Bildpunktvergleich zweier Läufe
+taugt für diese drei Szenen nicht als Regressionsprüfung** — er meldete einen
+Unterschied ohne Ursache im Code. Gemeldet, nicht geheilt.
+
 **Ein Hinweis ohne Handlungsbedarf:** Die Textzeichenfunktion des Delegates
 heißt `drawLine()` und zeichnet **Text**; die beiden neuen Trennlinien
 entstehen mit `fillRect()`. Der Name stammt aus Sprint 2 und ist jetzt
