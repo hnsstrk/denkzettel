@@ -688,7 +688,10 @@ void CaptureWindow::bindWindowEffects()
     // and by nothing else.
     //
     // The region is the theme's mask and is given in logical pixels, which is
-    // what the header asks for — measured 600x174 at ratio 1 and at 1,6 alike.
+    // what the header asks for — measured 600x186 under `default` at ratio 1
+    // and at 1,6 alike. (174 until issue #100; the field's own border made the
+    // window twelve pixels taller. What the measurement is about is the word
+    // "logical", and that is unchanged.)
     const QRegion region = m_hull->mask();
     KWindowEffects::enableBlurBehind(windowHandle(), true, region);
 
