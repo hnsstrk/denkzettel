@@ -85,10 +85,16 @@ echo "== M1: Deckung, Rand und Farben der Feldgrafik je Theme (AK 6b, AK 1) =="
 } > "$HIER/messungen/m1-feldgrafik-je-theme.txt"
 
 echo "== M2: Mutationsproben (AK 9 — hier trägt nichts anderes) =="
-{
-    kopf
-    QT_QPA_PLATFORM=offscreen bash "$HIER/mutationsproben.sh" 2>&1
-} > "$HIER/messungen/m2-mutationsproben.txt"
+# Der Rückgabewert wird ausgewertet und nicht verschluckt (B23): Bricht dort
+# eine Probe ab, weil ein Eingriff nichts verändert hat, ist der ganze Lauf kein
+# Beleg. Er endet dann hier, laut und mit einem Verweis auf die Datei — statt
+# mit sechs weiteren Messungen weiterzumachen, die den Abbruch überdecken.
+if ! { kopf; QT_QPA_PLATFORM=offscreen bash "$HIER/mutationsproben.sh" 2>&1; } \
+        > "$HIER/messungen/m2-mutationsproben.txt"; then
+    echo "   ABBRUCH: Mindestens eine Mutationsprobe hat nichts gemessen."
+    echo "   Siehe messungen/m2-mutationsproben.txt — dieser Prüflauf ist unvollständig."
+    exit 1
+fi
 
 echo "== M3: Testlauf des Projekts (AK 1, 4, 5, 6a, 6b, 8, 9) =="
 # Zusammenfassung **und** Einzelausgabe. Die Zusammenfassung allein sagt „100 %"

@@ -1637,12 +1637,6 @@ void CaptureTest::hullHoldsAtTheCustomersScale()
     // ratio is fixed when the platform comes up, and the geometry assertions of
     // the other tests measure spacings at ratio 1.
     //
-    // Offscreen `QT_SCALE_FACTOR=1,6` yields exactly 1,6. Under Wayland it
-    // would **multiply** with the session's own scaling and yield 2,56, which
-    // is why the session evidence of AK 3 sets nothing at all (measured, F4).
-    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
-    environment.insert(QStringLiteral("QT_SCALE_FACTOR"), QStringLiteral("1.6"));
-
     // The field has a run of its own beside this one and does **not** ride
     // along here (karpathy K1). It did for a while, and that was wrong: this is
     // an assertion of #55 and #83 about the hull, and one that goes red because
@@ -1677,6 +1671,9 @@ void CaptureTest::fieldHoldsAtTheCustomersScale()
 
 void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
 {
+    // Offscreen `QT_SCALE_FACTOR=1,6` yields exactly 1,6. Under Wayland it
+    // would **multiply** with the session's own scaling and yield 2,56, which
+    // is why the session evidence sets nothing at all (measured, F10).
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("QT_SCALE_FACTOR"), QStringLiteral("1.6"));
 
@@ -1686,10 +1683,52 @@ void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
     child.start(QCoreApplication::applicationFilePath(), assertions);
 
     QVERIFY(child.waitForFinished(60000));
-    // The child's whole output, not its exit code: a number says that something
-    // failed and never what.
+    const QString output = QString::fromUtf8(child.readAll());
+
+    // The child's whole output and not its exit code: a number says that
+    // something failed and never what.
     QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
-             child.readAll().constData());
+             qPrintable(output));
+
+    // And the exit code is not the whole answer either (karpathy N3): a child
+    // in which every assertion skipped comes back with 0, and this parent would
+    // report green over a run that measured nothing. It is the same gap
+    // fieldColoursComeFromTheThemeBeforeTheScheme() closed by asking its
+    // precondition in the parent — here the preconditions belong to the
+    // assertions themselves, so what is asked instead is what the child
+    // actually did.
+    //
+    // Read per assertion and not off the tally: `Totals` counts initTestCase()
+    // and cleanupTestCase() as well, and a number that has to be corrected by
+    // two is a number that goes wrong when somebody adds a fixture.
+    QStringList ran;
+    QStringList skipped;
+    const QStringList lines = output.split(QLatin1Char('\n'));
+    for (const QString &name : assertions) {
+        const QString needle = QStringLiteral("CaptureTest::%1()").arg(name);
+        for (const QString &line : lines) {
+            if (!line.contains(needle)) {
+                continue;
+            }
+            if (line.startsWith(QStringLiteral("PASS"))) {
+                ran << name;
+            } else if (line.startsWith(QStringLiteral("SKIP"))) {
+                skipped << name;
+            }
+        }
+    }
+
+    // Nothing ran: this run is not green, it is empty. Skipped rather than
+    // failed, because the child said why — and its reason is carried up here
+    // instead of being left in an output nobody reads when the exit code is 0.
+    if (ran.isEmpty()) {
+        QSKIP(qPrintable(
+            QStringLiteral("Kein Prüfsatz ist im Kindprozess bei 1,6 gelaufen (%1 übersprungen: "
+                           "%2). Der Rückgabewert war 0 und hätte grün gemeldet. Ausgabe des "
+                           "Kindes:\n%3")
+                .arg(skipped.size())
+                .arg(skipped.join(QStringLiteral(", ")), output)));
+    }
 }
 
 void CaptureTest::squareThemeKeepsSquareCorners()

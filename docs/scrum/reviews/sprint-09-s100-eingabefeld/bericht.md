@@ -567,6 +567,97 @@ vorher die Zahl der angefassten Dateien war.
 
 ---
 
+## 10. Nachtrag 08.08.2026 — drei Befunde des karpathy-Nachlaufs
+
+### N3 — der Elternteil prüfte nur den Rückgabewert · **behoben**
+
+`runAtTheCustomersScale()` fragt jetzt nicht mehr nur `exitCode() == 0`,
+sondern liest aus der Ausgabe des Kindes, **welcher Prüfsatz dort gelaufen
+ist**. Ist keiner gelaufen, übersprang das Kind alles und kam mit 0 zurück —
+der Elternteil hätte grün gemeldet. Er meldet jetzt einen Übersprung und trägt
+den Grund des Kindes samt dessen Ausgabe nach oben.
+
+Gelesen wird **je Prüfsatz** und nicht aus der `Totals`-Zeile: Die zählt
+`initTestCase()` und `cleanupTestCase()` mit, und eine Zahl, die um zwei
+korrigiert werden muss, geht falsch, sobald jemand eine Vorrichtung hinzufügt.
+
+**Positivprobe, neu als Probe 10:** Ohne Plasma-Grafik und **ohne** die
+Vorbedingung im Elternteil von `fieldHoldsAtTheCustomersScale()` läuft im Kind
+nichts. Vorher wäre das grün gewesen; jetzt meldet der Wächter sich, und die
+Probe zeigt es in einer eigenen Zeile — die Namensliste der Übersprungenen
+sieht in beiden Fällen gleich aus, deshalb steht der Wächter getrennt im
+Protokoll.
+
+### N4 — der Abbruch endete im Text und nicht im Rückgabewert · **behoben (B23)**
+
+`mutationsproben.sh` zählt Abbrüche und endet mit **1**, sobald einer
+stattgefunden hat. `pruefen.sh` wertet den Wert aus und **bricht den ganzen
+Prüflauf ab**, statt mit sechs weiteren Messungen weiterzumachen, die den
+Abbruch überdecken.
+
+Positiv gemessen, nicht nur eingebaut: Ein Lauf mit einem absichtlich blinden
+`sed` endet mit **Rückgabewert 1** und der Zeile „ABGEBROCHEN: 1 Probe(n) haben
+nichts gemessen. Dieser Lauf ist kein Beleg."
+
+### N5 — `ohne_grafik()` hatte keine Eingriffs-Wache · **behoben**
+
+Beide Probenläufer teilen sich jetzt dieselbe Wache (`eingriffe()`), die jeden
+Eingriff einzeln über eine Prüfsumme nachwiegt. Der Befund trifft den
+schwereren Fall genau: **Probe 9 erwartet ausdrücklich grün.** Ein `sed`, das
+nicht mehr trifft, sähe dort aus wie ein geglückter Eingriff, dessen Mutation
+niemand fängt — und das ist die Aussage, die Probe 9 machen soll. Ohne Wache
+ist der Beleg von seinem Gegenteil nicht zu unterscheiden.
+
+### N7 — die Messung, um die gebeten wurde
+
+**Gemessen, nicht geschätzt:**
+
+| Frage | Antwort |
+|---|---|
+| Nennt `ctest --output-on-failure` — was die Wache fährt — die Übersprungenen? | **Nein.** Die Ausgabe lautet „100% tests passed out of 10". Die Zahl 9 kommt nicht vor. |
+| Sagt es der Rückgabewert des Prüfbinärs? | **Nein**, er ist 0 bei neun Übersprungenen. |
+| Steht die Zahl irgendwo zu holen? | **Ja**, in der `Totals`-Zeile jedes Prüfbinärs. `ctest -V` gibt sie durch: `3: Totals: 29 passed, 0 failed, 9 skipped`. |
+| Zu welchem Preis? | `-V` schreibt die volle Ausgabe **aller** zehn Läufe ins Protokoll. Ein zweiter Lauf allein für die Zählung kostete die Testzeit doppelt. |
+
+Aus **einem** Lauf ist die Gesamtzahl mit einer Zeile zu bekommen:
+
+```
+ctest --test-dir build -V 2>&1 \
+  | grep -oE "Totals: [0-9]+ passed, [0-9]+ failed, [0-9]+ skipped" \
+  | awk '{s+=$6} END {print s}'          # ergibt 9
+```
+
+**Die neun, aufgeschlüsselt** — drei bestanden schon vor #100, sechs sind die
+Feldzusicherungen dieser Story:
+
+| | vor #100 | aus #100 |
+|---|---|---|
+| | `hullFollowsAnInstalledDesktopTheme` | `paintsTheThemesFieldOntoTheHull` |
+| | `hullHasNoStairAtTheCorner` | `fieldColoursComeFromTheThemeBeforeTheScheme` |
+| | `takesTheOpaqueVariantWithoutABlurringCompositor` | `fieldFollowsADesktopThemeChange` |
+| | | `textSitsInsideTheFieldBorder` |
+| | | `fieldCoverageIsTheThemesOwn` |
+| | | `fieldHoldsAtTheCustomersScale` |
+
+**Was ich für den billigsten ehrlichen Weg halte** — die Entscheidung liegt beim
+PO: `ctest -V` in der Wache, dazu die Zeile oben und ein Vergleich gegen eine im
+Arbeitsablauf hinterlegte Zahl, die bei Abweichung fehlschlägt. Zwei Gründe:
+
+1. **Nur eine Zahl fängt Drift.** Eine Liste im Protokoll ist lesbar und
+   verhindert nichts; ein Prüfsatz, der morgen zusätzlich überspringt, fiele
+   niemandem auf. Was hier droht, ist keine Fehlmeldung, sondern langsames
+   Verschwinden.
+2. **Die Zahl gehört in den Arbeitsablauf und nicht in den Code.** Sie ist eine
+   Eigenschaft des Läufers — auf Ganymed ist sie 0 —, und der Zwang, sie beim
+   Ändern anzufassen, ist der Sinn der Sache: Was der Läufer *nicht* prüft, soll
+   eine Entscheidung sein und kein Nebeneffekt.
+
+Der Preis ist das größere Protokoll. Wer ihn nicht zahlen will, bekommt die
+Zahl nur über einen zweiten Testlauf — und der kostet die doppelte Zeit für
+dieselbe Auskunft.
+
+---
+
 ## Reproduktion
 
 ```
