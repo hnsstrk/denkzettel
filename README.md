@@ -46,6 +46,13 @@ schiefging, steht offen im Repository —
 
 ![Die Bibliothek: links die nach Tagen gegliederte Notizliste, rechts der Lesebereich](docs/bilder/bibliothek.png)
 
+> **Zu den Bildern:** Sie zeigen den Stand vom 04.08.2026. Seither hat das
+> Erfassungsfenster ein sichtbares Eingabefeld bekommen und die Notizliste
+> Trennlinien zwischen Einträgen und Gruppen. Erneuert werden die Bilder,
+> sobald [#96](https://github.com/hnsstrk/denkzettel/issues/96) behoben ist —
+> der Bildläufer zeichnet Fläche und Schrift derzeit aus zwei Quellen, die
+> nichts voneinander wissen.
+
 Auf der Liste stehen noch: Sprachnotizen mit Transkription, eine KI, die
 sortiert und Vorschläge macht, Export nach Obsidian und Taskwarrior. Was
 gerade ansteht, steht in den
