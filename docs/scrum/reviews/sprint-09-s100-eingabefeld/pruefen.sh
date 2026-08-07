@@ -59,9 +59,19 @@ QT_QPA_PLATFORM=offscreen bash "$HIER/mutationsproben.sh" \
     > "$HIER/messungen/m2-mutationsproben.txt" 2>&1
 
 echo "== M3: Testlauf des Projekts (AK 1, 4, 5, 6a, 6b, 8, 9) =="
-(cd "$BAU/projekt" && QT_QPA_PLATFORM=offscreen ctest --output-on-failure) \
-    > "$HIER/messungen/m3-testlauf.txt" 2>&1 \
-    || echo "   ACHTUNG: ctest war nicht grün — siehe m3-testlauf.txt"
+# Zusammenfassung **und** Einzelausgabe. Die Zusammenfassung allein sagt „100 %"
+# und nennt keinen einzigen Prüfsatz — sie belegt die Zahl, auf die sich der
+# Bericht beruft, nicht (karpathy K8). Darunter steht deshalb der vollständige
+# Lauf von `capturetest`, Prüfsatz für Prüfsatz.
+{
+    echo "=== #100, M3a: ctest über alle neun Prüfläufe ==="
+    (cd "$BAU/projekt" && QT_QPA_PLATFORM=offscreen ctest --output-on-failure) 2>&1 \
+        || echo "   ACHTUNG: ctest war nicht grün."
+    echo
+    echo "=== #100, M3b: capturetest einzeln, Prüfsatz für Prüfsatz ==="
+    QT_QPA_PLATFORM=offscreen "$BAU/projekt/bin/capturetest" 2>&1 | grep -vE "^QWARN" \
+        || echo "   ACHTUNG: capturetest war nicht grün."
+} > "$HIER/messungen/m3-testlauf.txt"
 
 echo "== M4: Bildreihe offscreen, auf der Skalierung des Kunden (AK 1, AK 5) =="
 # 1,6 ist die Einstellung des Kunden, am 07.08.2026 bestätigt. Offscreen liefert

@@ -74,6 +74,7 @@ private Q_SLOTS:
     void hullFollowsTheWindowPixelRatio();
     void hullHasNoStairAtTheCorner();
     void hullHoldsAtTheCustomersScale();
+    void fieldHoldsAtTheCustomersScale();
     void squareThemeKeepsSquareCorners();
     void readsTheContrastEffectOfTheDesktopTheme();
     void takesTheOpaqueVariantWithoutABlurringCompositor();
@@ -139,6 +140,17 @@ private:
     static QImage themeHullWithField(const QString &theme, const QSize &size, const QRect &field);
     /** What the window's field draws at its surface, read off a fresh picture. */
     QColor fieldSurfaceColour();
+    /**
+     * Runs the named assertions again in a process that scales the way the
+     * customer's session does.
+     *
+     * A process of its own, because the pixel ratio is fixed when the platform
+     * comes up and the geometry assertions of the other tests measure spacings
+     * at ratio 1. Offscreen `QT_SCALE_FACTOR=1,6` yields exactly 1,6; under
+     * Wayland it would **multiply** with the session's own scaling and yield
+     * 2,56, which is why the session evidence sets nothing at all (F10).
+     */
+    void runAtTheCustomersScale(const QStringList &assertions);
     static void writePlasmarc(const QString &theme);
     void checkHullDiffersBetween(const QString &narrow, const QString &wide);
 
@@ -241,7 +253,8 @@ QPoint fieldEdge(const QPlainTextEdit *text)
 }
 
 /**
- * A point of the hull the field does not cover: the gap above the text area.
+ * A point of the hull the field does not cover: the middle of the gap between
+ * the application name and the text area.
  *
  * The middle of the window used to serve every assertion that wanted the hull,
  * and it cannot any more — since issue #100 it lies inside the text field
@@ -249,10 +262,28 @@ QPoint fieldEdge(const QPlainTextEdit *text)
  * half is that it would not have turned red: the field covers 255 where the
  * hull covers 255, so the assertions would have kept passing and measured the
  * field from then on.
+ *
+ * Read off the **laid-out widgets** and not counted down from the text area by
+ * a fixed number. Four pixels above the field sat in a gap of eight
+ * (`SpacingBelowAppName`) with four pixels of air on either side; whoever
+ * changed that spacing would have moved this sample onto something else, and no
+ * assertion would have said so (karpathy K9). The midpoint keeps its distance
+ * whatever the spacing is, and where the spacing goes to nothing it lands **in**
+ * the field and the hull assertions fail loudly instead of quietly measuring
+ * the wrong surface. paintsTheThemesOwnHullInOnePiece() says that in an
+ * assertion of its own.
  */
-QPoint besideTheField(const QPlainTextEdit *text, int windowWidth)
+QPoint besideTheField(const QWidget &window, const QPlainTextEdit *text)
 {
-    return QPoint(windowWidth / 2, text->y() - 4);
+    int bottomOfTheLabel = 0;
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (const QLabel *label : labels) {
+        if (label->y() + label->height() <= text->y()) {
+            bottomOfTheLabel = qMax(bottomOfTheLabel, label->y() + label->height());
+        }
+    }
+
+    return QPoint(window.width() / 2, (bottomOfTheLabel + text->y()) / 2);
 }
 
 /** A logical point of the window in the pixels of a grabbed picture. */
@@ -776,8 +807,35 @@ void CaptureTest::paintsTheThemesOwnHullInOnePiece()
 
     // In the gap between application name and text area, and in the wider gap
     // between text area and footer.
-    const QPoint above = inPicture(besideTheField(text, m_window->width()));
+    const QPoint above = inPicture(besideTheField(*m_window, text));
     const QPoint below = inPicture(QPoint(m_window->width() / 2, text->y() + text->height() + 4));
+
+    // Both samples lie **outside** the text field, and this run says so rather
+    // than leaving it to the arithmetic that produced them: every hull
+    // assertion of this file reads its point out of besideTheField(), so if the
+    // grouping of the window ever closes that gap, the sentence "measures the
+    // hull" becomes false everywhere at once (karpathy K9). Named here because
+    // this is the assertion whose subject the gap is.
+    const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+    QCOMPARE(labels.size(), 2);
+    const QLabel *appName = labels.at(0)->y() < labels.at(1)->y() ? labels.at(0) : labels.at(1);
+    const QLabel *footer = appName == labels.at(0) ? labels.at(1) : labels.at(0);
+
+    const int aboveY = besideTheField(*m_window, text).y();
+    QVERIFY2(aboveY > appName->y() + appName->height() && aboveY < text->y(),
+             qPrintable(QStringLiteral("oberer Abgriff %1 liegt nicht zwischen App-Name (bis %2) "
+                                       "und Textbereich (ab %3)")
+                            .arg(aboveY)
+                            .arg(appName->y() + appName->height())
+                            .arg(text->y())));
+
+    const int belowY = text->y() + text->height() + 4;
+    QVERIFY2(belowY > text->y() + text->height() && belowY < footer->y(),
+             qPrintable(QStringLiteral("unterer Abgriff %1 liegt nicht zwischen Textbereich "
+                                       "(bis %2) und Fußzeile (ab %3)")
+                            .arg(belowY)
+                            .arg(text->y() + text->height())
+                            .arg(footer->y())));
 
     QCOMPARE(picture.pixelColor(above), picture.pixelColor(below));
     QCOMPARE(picture.pixelColor(above), hull.pixelColor(above));
@@ -832,7 +890,7 @@ void CaptureTest::paintsTheThemesFieldOntoTheHull()
 
         const QPoint surface = inPicture(fieldSurface(text));
         const QPoint edge = inPicture(fieldEdge(text));
-        const QPoint hull = inPicture(besideTheField(text, m_window->width()));
+        const QPoint hull = inPicture(besideTheField(*m_window, text));
 
         for (const QPoint &point : {surface, edge, hull}) {
             QVERIFY2(picture.pixelColor(point) == expected.pixelColor(point),
@@ -859,7 +917,17 @@ void CaptureTest::paintsTheThemesFieldOntoTheHull()
         const QRect field(inPicture(text->geometry().topLeft()),
                           inPicture(text->geometry().bottomRight()));
         const int ring = qRound(fieldBorderOf(theme) * qApp->devicePixelRatio());
-        QVERIFY(ring > 0);
+        // Not the precondition — that one is asked at the head of the loop and
+        // skips the run. What is left here is a consistency check between two
+        // helpers that measure the same thing on two roads: whyNoFieldGraphic()
+        // demands a border, fieldBorderOf() reports one, and if the two ever
+        // drift apart this is where it shows (karpathy K2).
+        QVERIFY2(ring > 0,
+                 qPrintable(QStringLiteral("%1: Feldrand gemessen %2, Ring %3 — die Vorbedingung "
+                                           "sagt etwas anderes als fieldBorderOf()")
+                                .arg(theme)
+                                .arg(fieldBorderOf(theme))
+                                .arg(ring)));
         int differing = 0;
         int examined = 0;
         for (int y = field.top(); y <= field.bottom(); ++y) {
@@ -1024,8 +1092,14 @@ void CaptureTest::textSitsInsideTheFieldBorder()
             QSKIP(qPrintable(missing));
         }
 
+        // Same as in paintsTheThemesFieldOntoTheHull(): the missing graphic is
+        // handled by the skip above, so what this catches is a disagreement
+        // between the two helpers and not an absent theme (karpathy K2).
         const qreal border = fieldBorderOf(theme);
-        QVERIFY2(border > 0, qPrintable(theme));
+        QVERIFY2(border > 0,
+                 qPrintable(QStringLiteral("%1: die Vorbedingung meldet eine Feldgrafik, "
+                                           "fieldBorderOf() meldet Rand 0")
+                                .arg(theme)));
 
         m_window->reloadDesktopTheme(theme);
         m_window->show();
@@ -1468,7 +1542,7 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
                                         QPoint(picture.width() / 2, picture.height() - 1),
                                         QPoint(0, picture.height() / 2),
                                         QPoint(picture.width() - 1, picture.height() / 2),
-                                        inPicture(besideTheField(text, window.width()))}) {
+                                        inPicture(besideTheField(window, text))}) {
                 QVERIFY2(qAlpha(picture.pixel(point)) > 0,
                          qPrintable(QStringLiteral("%1 bei %2,%3")
                                         .arg(theme)
@@ -1484,7 +1558,7 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
             // murmur (mutation probe 6). The colour tells them apart, and this
             // is the line that makes "measures the hull" a measurable claim
             // rather than a claim about where a point sits.
-            const QPoint clearOfTheField = inPicture(besideTheField(text, window.width()));
+            const QPoint clearOfTheField = inPicture(besideTheField(window, text));
             QVERIFY2(picture.pixelColor(clearOfTheField) == hull.pixelColor(clearOfTheField),
                      qPrintable(QStringLiteral("%1: gezeichnet %2, Hülle %3")
                                     .arg(theme,
@@ -1569,27 +1643,51 @@ void CaptureTest::hullHoldsAtTheCustomersScale()
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("QT_SCALE_FACTOR"), QStringLiteral("1.6"));
 
+    // The field has a run of its own beside this one and does **not** ride
+    // along here (karpathy K1). It did for a while, and that was wrong: this is
+    // an assertion of #55 and #83 about the hull, and one that goes red because
+    // a field graphic moved would say the wrong thing in its own name. A test
+    // is red about its subject or it is a poor messenger.
+    runAtTheCustomersScale({QStringLiteral("hullFollowsTheWindowPixelRatio"),
+                            QStringLiteral("hullHasNoStairAtTheCorner")});
+}
+
+void CaptureTest::fieldHoldsAtTheCustomersScale()
+{
+    // The same machinery for the field, and it needs it for a measured reason:
+    // a FrameSvg stands at ratio 1 whatever the session scales to, and
+    // offscreen the event that would betray a missing hand-over never arrives
+    // (issue #100, F4). At ratio 1 the picture and the reference are wrong in
+    // the same way, so this is the **only** run in which the omission shows —
+    // mutation probe 7 measures exactly that.
+    //
+    // The precondition is asked here, in the parent, before a child is started:
+    // a child that skips everything comes back with 0, and the parent would
+    // report green over a run that measured nothing.
+    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        const QString missing =
+            whyNoFieldGraphic(theme, QStringLiteral("das Feld auf der Kundenskalierung (F4)"));
+        if (!missing.isEmpty()) {
+            QSKIP(qPrintable(missing));
+        }
+    }
+
+    runAtTheCustomersScale({QStringLiteral("paintsTheThemesFieldOntoTheHull")});
+}
+
+void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
+{
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("QT_SCALE_FACTOR"), QStringLiteral("1.6"));
+
     QProcess child;
     child.setProcessEnvironment(environment);
     child.setProcessChannelMode(QProcess::MergedChannels);
-    child.start(QCoreApplication::applicationFilePath(),
-                {QStringLiteral("hullFollowsTheWindowPixelRatio"),
-                 QStringLiteral("hullHasNoStairAtTheCorner"),
-                 // The field goes along, and it is the only place a missing
-                 // ratio on it can show: a FrameSvg stands at 1 whatever the
-                 // session scales to, and offscreen the event that would betray
-                 // the omission never arrives (issue #100, F4). At ratio 1 the
-                 // picture and the reference are wrong in the same way.
-                 //
-                 // Where the theme draws no field it carries its own skip, and
-                 // the child then exits 0 with one test fewer. That leaves no
-                 // hole to overlook: the same assertion runs in **this**
-                 // process too, so the missing precondition is announced at the
-                 // top level of the same run and not only inside a child whose
-                 // output nobody reads when it succeeds.
-                 QStringLiteral("paintsTheThemesFieldOntoTheHull")});
+    child.start(QCoreApplication::applicationFilePath(), assertions);
 
     QVERIFY(child.waitForFinished(60000));
+    // The child's whole output, not its exit code: a number says that something
+    // failed and never what.
     QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
              child.readAll().constData());
 }
@@ -1682,7 +1780,7 @@ void CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor()
     // reading below is taken at the same point on both sides.
     const QPlainTextEdit *narrowText = textArea();
     QVERIFY(narrowText);
-    const QPoint sample = inPicture(besideTheField(narrowText, m_window->width()));
+    const QPoint sample = inPicture(besideTheField(*m_window, narrowText));
 
     QString candidate;
     int translucentAlpha = 0;
