@@ -12,15 +12,18 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QFile>
 #include <QFont>
 #include <QLabel>
 #include <QLayout>
+#include <QPainter>
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextDocument>
+#include <QTextStream>
 
 #include <memory>
 #include <utility>
@@ -55,6 +58,11 @@ private Q_SLOTS:
     void hullFollowsAnInstalledDesktopTheme();
     void readsTheDesktopThemeFromPlasmarc();
     void paintsTheThemesOwnHullInOnePiece();
+    void paintsTheThemesFieldOntoTheHull();
+    void fieldColoursComeFromTheThemeBeforeTheScheme();
+    void fieldFollowsADesktopThemeChange();
+    void textSitsInsideTheFieldBorder();
+    void fieldCoverageIsTheThemesOwn();
     void noteTextUsesTheWindowTextRole();
     void readsTheTextColoursOfTheDesktopTheme();
     void noteTextComesFromTheThemesOwnColours();
@@ -96,6 +104,21 @@ private:
      * takesTheOpaqueVariantWithoutABlurringCompositor() measures.
      */
     static QImage themeHull(const QString &theme, const QSize &size, const QStringList &selectors);
+    /**
+     * The text field the desktop theme itself draws at that size (issue #100).
+     *
+     * The same helper as themeHull() above, one graphic down: `widgets/lineedit`
+     * with the prefix `base`. The selectors are handed in for the same reason —
+     * offscreen nothing blurs, so the window draws the opaque variant, and a
+     * reference rendered without it would compare a different picture.
+     */
+    static QPixmap themeField(const QString &theme, const QSize &size, const QStringList &selectors);
+    /** The border `widgets/lineedit` claims for itself, or 0 if it does not resolve. */
+    static qreal fieldBorderOf(const QString &theme);
+    /** Hull and field composed the way paintEvent() composes them. */
+    static QImage themeHullWithField(const QString &theme, const QSize &size, const QRect &field);
+    /** What the window's field draws at its surface, read off a fresh picture. */
+    QColor fieldSurfaceColour();
     static void writePlasmarc(const QString &theme);
     void checkHullDiffersBetween(const QString &narrow, const QString &wide);
 
@@ -147,6 +170,27 @@ const QColor WideThemeTextColour(255, 0, 153);
 const QColor WideThemeInactiveColour(0, 153, 255);
 
 /**
+ * The surface the wide theme's field graphic draws (issue #100).
+ *
+ * `BackgroundNormal` of that theme's `[Colors:View]` group, and the same kind
+ * of value as the two above: one no colour scheme carries, so a comparison
+ * against it is one about the **origin**. Since this story the group has two
+ * jobs — the mutation probe of #85 and the colour of the field beside it — and
+ * the comment head of the file says so.
+ */
+const QColor WideThemeFieldColour(51, 34, 17);
+
+/**
+ * The view background of the colour scheme the child process of
+ * fieldColoursComeFromTheThemeBeforeTheScheme() writes for itself.
+ *
+ * Again a colour no shipped scheme carries: the assertion is that the field of
+ * a theme **without** its own `colors` file lands on the scheme's value, and a
+ * value that some scheme might hold anyway would not show that.
+ */
+const QColor SecondSchemeViewColour(13, 29, 47);
+
+/**
  * KSvg's own fallback, and the theme the customer's machine runs on: his
  * `plasmarc` names none, so the window lands here.
  */
@@ -163,6 +207,40 @@ QStringList opaqueSelectors()
 
 /** How many rows of the corner the edge walk of AK 4 looks at. */
 constexpr int EdgeWalkRows = 10;
+
+/** The middle of the text area: the field's own surface, clear of its border. */
+QPoint fieldSurface(const QPlainTextEdit *text)
+{
+    return text->geometry().center();
+}
+
+/** The outermost pixel of the field's left border, where the graphic draws its edge. */
+QPoint fieldEdge(const QPlainTextEdit *text)
+{
+    return QPoint(text->x(), text->y() + text->height() / 2);
+}
+
+/**
+ * A point of the hull the field does not cover: the gap above the text area.
+ *
+ * The middle of the window used to serve every assertion that wanted the hull,
+ * and it cannot any more — since issue #100 it lies inside the text field
+ * (measured at both window sizes and under three themes, AK 9). The dangerous
+ * half is that it would not have turned red: the field covers 255 where the
+ * hull covers 255, so the assertions would have kept passing and measured the
+ * field from then on.
+ */
+QPoint besideTheField(const QPlainTextEdit *text, int windowWidth)
+{
+    return QPoint(windowWidth / 2, text->y() - 4);
+}
+
+/** A logical point of the window in the pixels of a grabbed picture. */
+QPoint inPicture(const QPoint &logical)
+{
+    return QPoint(qRound(logical.x() * qApp->devicePixelRatio()),
+                  qRound(logical.y() * qApp->devicePixelRatio()));
+}
 }
 
 void CaptureTest::initTestCase()
@@ -175,6 +253,18 @@ void CaptureTest::initTestCase()
     // test's own, so the developer's desktop theme is never touched.
     QStandardPaths::setTestModeEnabled(true);
     QDir().mkpath(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation));
+
+    // The run that is about a **second** colour scheme brings its own, and it
+    // has to be in place before the first graphic is recoloured: KSvg reads the
+    // scheme when it resolves an image set, and it keeps what it read. Only the
+    // child process of fieldColoursComeFromTheThemeBeforeTheScheme() sets this,
+    // and only that child has a home directory of its own to write it into.
+    if (qEnvironmentVariableIsSet("DENKZETTEL_TEST_COLOUR_SCHEME")) {
+        const QString target = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+            + QStringLiteral("/kdeglobals");
+        QFile::remove(target);
+        QVERIFY(QFile::copy(qEnvironmentVariable("DENKZETTEL_TEST_COLOUR_SCHEME"), target));
+    }
 
     // Before the first theme is resolved: the two themes of the test itself go
     // on the data path, next to the installed ones rather than instead of them.
@@ -464,6 +554,62 @@ QImage CaptureTest::themeHull(const QString &theme, const QSize &size, const QSt
     return frame.framePixmap().toImage();
 }
 
+QPixmap CaptureTest::themeField(const QString &theme, const QSize &size, const QStringList &selectors)
+{
+    KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
+    imageSet.setSelectors(selectors);
+
+    KSvg::FrameSvg frame;
+    // No rendering cache, for the same reason themeHull() switches it off: the
+    // helper is called several times per run with different themes.
+    frame.setUsingRenderingCache(false);
+    frame.setImageSet(&imageSet);
+    frame.setImagePath(QStringLiteral("widgets/lineedit"));
+    frame.setElementPrefix(QStringLiteral("base"));
+    frame.setEnabledBorders(KSvg::FrameSvg::AllBorders);
+    frame.setDevicePixelRatio(qApp->devicePixelRatio());
+    frame.resizeFrame(size);
+
+    return frame.framePixmap();
+}
+
+qreal CaptureTest::fieldBorderOf(const QString &theme)
+{
+    KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
+
+    KSvg::FrameSvg frame;
+    frame.setUsingRenderingCache(false);
+    frame.setImageSet(&imageSet);
+    frame.setImagePath(QStringLiteral("widgets/lineedit"));
+    frame.setElementPrefix(QStringLiteral("base"));
+    frame.setEnabledBorders(KSvg::FrameSvg::AllBorders);
+    frame.resizeFrame(QSizeF(560, 90));
+
+    return frame.isValid() ? frame.marginSize(KSvg::FrameSvg::LeftMargin) : 0;
+}
+
+QImage CaptureTest::themeHullWithField(const QString &theme, const QSize &size, const QRect &field)
+{
+    // The two calls of paintEvent(), in its order and with its coordinates: the
+    // hull over the whole window, the field over the geometry of the text area.
+    // Held against this rather than against a colour, because a colour would be
+    // the colour of one theme and this runs under several.
+    QImage picture = themeHull(theme, size, opaqueSelectors());
+
+    QPainter painter(&picture);
+    painter.drawPixmap(field.topLeft(), themeField(theme, field.size(), opaqueSelectors()));
+    painter.end();
+
+    return picture;
+}
+
+QColor CaptureTest::fieldSurfaceColour()
+{
+    const QPlainTextEdit *text = textArea();
+    Q_ASSERT(text);
+    return shot(*m_window).pixelColor(inPicture(fieldSurface(text)));
+}
+
 void CaptureTest::writePlasmarc(const QString &theme)
 {
     auto config = KSharedConfig::openConfig(QStringLiteral("plasmarc"));
@@ -550,15 +696,21 @@ void CaptureTest::readsTheDesktopThemeFromPlasmarc()
 
 void CaptureTest::paintsTheThemesOwnHullInOnePiece()
 {
-    // One continuous surface, not a box inside a box (wireframe 4b): the ground
-    // behind the text area is the same ground as beside it.
+    // The hull is **one** graphic over the whole window, and it is the theme's,
+    // which is what issue #83 turned around. Until then the window filled the
+    // theme's alpha mask with a colour of the palette; now it draws the theme's
+    // own graphic and adds nothing. The assertion is therefore held against a
+    // second rendering of the same graphic and not against a colour — under
+    // this bundled theme the two differ visibly, so a window that went back to
+    // filling would be caught.
     //
-    // And it is the **theme's** ground, which is what issue #83 turned around.
-    // Until then the window filled the theme's alpha mask with a colour of the
-    // palette; now it draws the theme's own graphic and adds nothing. The
-    // assertion is therefore held against a second rendering of the same
-    // graphic and not against a colour — under this bundled theme the two
-    // differ visibly, so a window that went back to filling would be caught.
+    // What this no longer says is "the ground behind the text is the ground
+    // beside it": since issue #100 the text area carries a second graphic of
+    // the same theme on top, and that one is
+    // paintsTheThemesFieldOntoTheHull(). The two points below therefore lie
+    // above and below the text area — where the hull, and only the hull,
+    // stands. Above and below, and not one of them: a hull drawn in pieces
+    // would pass a single-point check.
     m_window->reloadDesktopTheme(NarrowBorderTheme);
 
     const QPlainTextEdit *text = textArea();
@@ -568,29 +720,359 @@ void CaptureTest::paintsTheThemesOwnHullInOnePiece()
     const QImage hull = themeHull(NarrowBorderTheme, m_window->size(), opaqueSelectors());
     QCOMPARE(hull.size(), picture.size());
 
-    // Inside the text area, in its lower right corner where no text stands.
-    const QPoint behindTheText(text->x() + text->width() - 20, text->y() + text->height() - 6);
-    // Beside it, in the gap between application name and text area.
-    const QPoint besideTheText(m_window->width() / 2, text->y() - 4);
+    // In the gap between application name and text area, and in the wider gap
+    // between text area and footer.
+    const QPoint above = inPicture(besideTheField(text, m_window->width()));
+    const QPoint below = inPicture(QPoint(m_window->width() / 2, text->y() + text->height() + 4));
 
-    QCOMPARE(picture.pixelColor(behindTheText), picture.pixelColor(besideTheText));
-    QCOMPARE(picture.pixelColor(behindTheText), hull.pixelColor(behindTheText));
-    QCOMPARE(picture.pixelColor(besideTheText), hull.pixelColor(besideTheText));
+    QCOMPARE(picture.pixelColor(above), picture.pixelColor(below));
+    QCOMPARE(picture.pixelColor(above), hull.pixelColor(above));
+    QCOMPARE(picture.pixelColor(below), hull.pixelColor(below));
 
     // And it is not the palette's colour any more. Without this line the three
     // comparisons above would still hold if the graphic happened to carry the
     // scheme colour — which under `default` it does, and under this theme it
     // does not (measured: the bundled graphic draws black, the scheme does not).
-    QVERIFY2(picture.pixelColor(besideTheText) != m_window->palette().color(QPalette::Window),
-             qPrintable(picture.pixelColor(besideTheText).name(QColor::HexArgb)));
+    QVERIFY2(picture.pixelColor(above) != m_window->palette().color(QPalette::Window),
+             qPrintable(picture.pixelColor(above).name(QColor::HexArgb)));
+}
+
+void CaptureTest::paintsTheThemesFieldOntoTheHull()
+{
+    // AK 1 and AK 6a: surface and edge of the text field come out of
+    // `widgets/lineedit`, prefix `base`, drawn from the same image set as the
+    // hull — the graphic KRunner's own entry field is drawn from
+    // (`TextField.qml:187–191`), which is the customer's yardstick.
+    //
+    // Held against a second rendering of both graphics, composed the way
+    // paintEvent() composes them. Under two desktop themes, because the graphic
+    // comes from the theme and not from the palette: under the wide bundled one
+    // the field carries that theme's own colour, under the narrow one the
+    // colour scheme's.
+    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        m_window->reloadDesktopTheme(theme);
+
+        const QPlainTextEdit *text = textArea();
+        QVERIFY(text);
+
+        const QImage picture = shot(*m_window);
+        const QImage expected = themeHullWithField(theme, m_window->size(), text->geometry());
+        // The width has to agree, the height to within one row — and that one
+        // row is measured, not tolerated blindly: at the customer's ratio the
+        // window's 202 logical pixels are 323,2 device pixels, and `grab()`
+        // cuts the fraction where `resizeFrame()` rounds it up. It is the
+        // **last** row that differs; the three points below lie far above it,
+        // and the field itself is rendered from the same logical rectangle in
+        // both pictures, so it lands on the same device pixels.
+        QCOMPARE(expected.width(), picture.width());
+        QVERIFY2(qAbs(expected.height() - picture.height()) <= 1,
+                 qPrintable(QStringLiteral("%1: erwartet %2 hoch, gezeichnet %3")
+                                .arg(theme)
+                                .arg(expected.height())
+                                .arg(picture.height())));
+
+        const QPoint surface = inPicture(fieldSurface(text));
+        const QPoint edge = inPicture(fieldEdge(text));
+        const QPoint hull = inPicture(besideTheField(text, m_window->width()));
+
+        for (const QPoint &point : {surface, edge, hull}) {
+            QVERIFY2(picture.pixelColor(point) == expected.pixelColor(point),
+                     qPrintable(QStringLiteral("%1 bei %2,%3: gezeichnet %4, erwartet %5")
+                                    .arg(theme)
+                                    .arg(point.x())
+                                    .arg(point.y())
+                                    .arg(picture.pixelColor(point).name(QColor::HexArgb),
+                                         expected.pixelColor(point).name(QColor::HexArgb))));
+        }
+
+        // The field's whole border ring, pixel for pixel, and not only the
+        // three points. It is what catches a field drawn at the wrong pixel
+        // ratio: a frame left at 1 in a session that scales to 1,6 covers the
+        // same logical area and carries the same colours in its flat middle —
+        // three points would all agree, and only the smeared edge of the
+        // upscaled graphic gives it away (issue #100, F4; mutation probe 7).
+        //
+        // The ring and not the whole field, because the window writes into the
+        // middle and the reference does not: the placeholder of the empty text
+        // area stands there, and measured it is 616 pixels of legitimate
+        // difference. It begins a document margin in, which is wider than the
+        // ring by the margin the field itself does not claim.
+        const QRect field(inPicture(text->geometry().topLeft()),
+                          inPicture(text->geometry().bottomRight()));
+        const int ring = qRound(fieldBorderOf(theme) * qApp->devicePixelRatio());
+        QVERIFY(ring > 0);
+        int differing = 0;
+        int examined = 0;
+        for (int y = field.top(); y <= field.bottom(); ++y) {
+            for (int x = field.left(); x <= field.right(); ++x) {
+                if (x - field.left() >= ring && field.right() - x >= ring
+                    && y - field.top() >= ring && field.bottom() - y >= ring) {
+                    continue;
+                }
+                ++examined;
+                if (picture.pixel(x, y) != expected.pixel(x, y)) {
+                    ++differing;
+                }
+            }
+        }
+        QVERIFY2(differing == 0,
+                 qPrintable(QStringLiteral("%1: %2 von %3 Bildpunkten des Feldrandes weichen ab")
+                                .arg(theme)
+                                .arg(differing)
+                                .arg(examined)));
+
+        // Three counter-checks in the same run, because the comparisons above
+        // would all hold for a window that drew no field at all — the reference
+        // would then be wrong in the same way as the picture.
+        //
+        // There is a field: its surface is not the hull beside it.
+        QVERIFY2(picture.pixelColor(surface) != picture.pixelColor(hull),
+                 qPrintable(QStringLiteral("%1: Feld und Hülle bildpunktgleich (%2)")
+                                .arg(theme, picture.pixelColor(surface).name(QColor::HexArgb))));
+        // It has an edge: the graphic draws its border in another colour than
+        // its surface, which is what makes the field readable as a field.
+        QVERIFY2(picture.pixelColor(edge) != picture.pixelColor(surface),
+                 qPrintable(QStringLiteral("%1: Kante und Fläche bildpunktgleich (%2)")
+                                .arg(theme, picture.pixelColor(edge).name(QColor::HexArgb))));
+    }
+
+    // And the colour is the **theme's**, not one mixed by us or taken from the
+    // palette. The wide bundled theme names a view background no colour scheme
+    // carries; a field filled from `QPalette::Base` would land somewhere else.
+    // Under the narrow theme this could not be told apart — there the graphic
+    // takes the scheme's own view colour, and that is white in this run just
+    // like `QPalette::Base` is.
+    m_window->reloadDesktopTheme(WideBorderTheme);
+    QCOMPARE(fieldSurfaceColour(), WideThemeFieldColour);
+}
+
+void CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme()
+{
+    // The second colour scheme of the belegform, and it earns its process: the
+    // field graphic is recoloured out of `kdeglobals` and not out of
+    // `qApp->palette()` (measured — a palette set on the application moves the
+    // texts and leaves the graphic where it is). A scheme change therefore
+    // cannot be staged inside a running test the way
+    // textsFollowAColourSchemeChange() stages one.
+    //
+    // What the child measures is the order of precedence, and it is the same
+    // one as for the writing since #85: a theme that brings its own `colors`
+    // file decides, and a theme that brings none leaves it to the scheme.
+    if (qEnvironmentVariableIsSet("DENKZETTEL_TEST_COLOUR_SCHEME")) {
+        // No own `colors` file: the scheme the child wrote for itself shows.
+        m_window->reloadDesktopTheme(NarrowBorderTheme);
+        QCOMPARE(fieldSurfaceColour(), SecondSchemeViewColour);
+
+        // Own `colors` file: the theme keeps its say, whatever the scheme says.
+        m_window->reloadDesktopTheme(WideBorderTheme);
+        QCOMPARE(fieldSurfaceColour(), WideThemeFieldColour);
+        return;
+    }
+
+    const QTemporaryDir home;
+    QVERIFY(home.isValid());
+
+    const QString scheme = home.filePath(QStringLiteral("zweites-schema"));
+    {
+        QFile file(scheme);
+        QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Text));
+        QTextStream(&file) << "[Colors:View]\nBackgroundNormal="
+                           << SecondSchemeViewColour.red() << ','
+                           << SecondSchemeViewColour.green() << ','
+                           << SecondSchemeViewColour.blue() << "\n";
+    }
+
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("DENKZETTEL_TEST_COLOUR_SCHEME"), scheme);
+    // A home of the child's own, and that is not tidiness: test mode puts the
+    // config directory under `$HOME/.qttest`, so a scheme written there would
+    // outlive the run and colour every later one — a leftover file nobody wrote
+    // on purpose. With its own home it goes when the directory goes.
+    environment.insert(QStringLiteral("HOME"), home.path());
+
+    QProcess child;
+    child.setProcessEnvironment(environment);
+    child.setProcessChannelMode(QProcess::MergedChannels);
+    child.start(QCoreApplication::applicationFilePath(),
+                {QStringLiteral("fieldColoursComeFromTheThemeBeforeTheScheme")});
+
+    QVERIFY(child.waitForFinished(60000));
+    QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
+             child.readAll().constData());
+}
+
+void CaptureTest::fieldFollowsADesktopThemeChange()
+{
+    // AK 4, and it hangs on the measured trap of #83: a FrameSvg follows only a
+    // **fresh** image set. Left out of the loop in reloadDesktopTheme() the
+    // field would keep drawing the old theme's graphic on a standing window,
+    // and no return value would say so — the daemon builds this window once and
+    // keeps it (SPEC 2.1), so a theme change has to reach a standing one.
+    //
+    // There and back, because a colour that moves once would also be explained
+    // by one that was set once and never cleared.
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    const QColor narrow = fieldSurfaceColour();
+
+    m_window->reloadDesktopTheme(WideBorderTheme);
+    const QColor wide = fieldSurfaceColour();
+
+    m_window->reloadDesktopTheme(NarrowBorderTheme);
+    const QColor back = fieldSurfaceColour();
+
+    QVERIFY2(narrow != wide,
+             qPrintable(QStringLiteral("beide %1").arg(narrow.name(QColor::HexArgb))));
+    QCOMPARE(back, narrow);
+    // And the colour that arrived is the one the new theme names, not merely
+    // another one: without this line a field that fell back to the palette
+    // halfway would pass the two comparisons above.
+    QCOMPARE(wide, WideThemeFieldColour);
+}
+
+void CaptureTest::textSitsInsideTheFieldBorder()
+{
+    // AK 5: the inner spacings of 4b count on top of the strip
+    // `widgets/lineedit` claims for itself, exactly as they already count on
+    // top of the hull's. The text moves inwards — that is wanted — while the
+    // application name and the footer stay where they are.
+    //
+    // Read off the graphic and never against 6: `marginSize()` hands out
+    // 5,99999 under four of the eight installed themes, and a comparison
+    // against a whole number falls over that (issue #100, F9; the same
+    // observation stands for the hull's margin at the head of this file).
+    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        const qreal border = fieldBorderOf(theme);
+        QVERIFY2(border > 0, qPrintable(theme));
+
+        m_window->reloadDesktopTheme(theme);
+        m_window->show();
+        QCoreApplication::processEvents();
+
+        QPlainTextEdit *text = textArea();
+        QVERIFY(text);
+
+        // The text keeps at least the field's own border away from the graphic
+        // that draws the field. Without applyFieldMargin() this is 4 against 6.
+        QVERIFY2(text->document()->documentMargin() >= border,
+                 qPrintable(QStringLiteral("%1: documentMargin %2 < Feldrand %3")
+                                .arg(theme)
+                                .arg(text->document()->documentMargin())
+                                .arg(border)));
+        QVERIFY2(text->cursorRect().left() >= qRound(border),
+                 qPrintable(QStringLiteral("%1: Cursor bei %2, Feldrand %3")
+                                .arg(theme)
+                                .arg(text->cursorRect().left())
+                                .arg(border)));
+
+        // And the five lines survived the inset: the widget grew by the two
+        // borders instead of losing room for text. At both sizes SPEC 3 knows,
+        // as DoD 1 asks.
+        const int chrome = 2 * qRound(text->document()->documentMargin()) + 2 * text->frameWidth();
+        QCOMPARE(text->height() - chrome, capture::MinTextLines * text->fontMetrics().lineSpacing());
+
+        text->setPlainText(QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht"));
+        QCoreApplication::processEvents();
+        QCOMPARE(text->height() - chrome, capture::MaxTextLines * text->fontMetrics().lineSpacing());
+        text->clear();
+        QCoreApplication::processEvents();
+
+        // The other half of the criterion, and it is the half that would go
+        // unnoticed: the field's border reaches the text and nothing else. The
+        // labels stand where the layout puts them, which is the hull's border
+        // plus the inner spacing of 4b and not a pixel more.
+        const QList<QLabel *> labels = m_window->findChildren<QLabel *>();
+        QCOMPARE(labels.size(), 2);
+        for (const QLabel *label : labels) {
+            QCOMPARE(label->x(), m_window->layout()->contentsMargins().left());
+        }
+    }
+}
+
+void CaptureTest::fieldCoverageIsTheThemesOwn()
+{
+    // AK 6b — the limit of this story, and it is measured at the **coverage**
+    // of the graphic rather than at a contrast number. A contrast number holds
+    // for one colour scheme, one selector and one named ground, and the ground
+    // here is the customer's wallpaper: the same graphic measures 1,08:1 over
+    // black and 1,88:1 over white, because the hull above it lets the ground
+    // through (F11).
+    //
+    // The themes are found by measurement and never named, and here that is not
+    // only the usual reason: whether a theme brings a `lineedit` graphic of its
+    // own is **not observable at all**. KSvg falls back to `default` per image,
+    // so every name resolves — an invented one included (F1). What is
+    // observable is what the graphic covers.
+    const QSize size(560, 90);
+    const QPoint centre(size.width() / 2, size.height() / 2);
+
+    QString covering;
+    QString faint;
+    int faintAlpha = 0;
+    const QStringList installed = themes::installedThemes();
+    for (const QString &theme : installed) {
+        const int alpha = qAlpha(themeField(theme, size, opaqueSelectors()).toImage().pixel(centre));
+        if (alpha == 255 && covering.isEmpty()) {
+            covering = theme;
+        }
+        if (alpha <= 15 && faint.isEmpty()) {
+            faint = theme;
+            faintAlpha = alpha;
+        }
+    }
+
+    QVERIFY2(!covering.isEmpty(),
+             "Kein installiertes Theme zeichnet die Feldgrafik deckend — dann ist die "
+             "Gegenklasse aus AK 6b nicht zu messen.");
+
+    if (faint.isEmpty()) {
+        // Spoken out rather than left to a green run: the five themes that draw
+        // a hint only are CachyOS packages. On the public runner there are
+        // `default` and `breeze-*` and nothing else, and every graphic there
+        // covers 255 — the limit is real, it is just not measurable here.
+        QSKIP("Kein installiertes Theme zeichnet die Feldgrafik als Hauch — die Grenze aus "
+              "AK 6b (Deckung 15 gegen 255) ist auf diesem Läufer nicht zu messen.");
+    }
+
+    QVERIFY2(faintAlpha <= 15,
+             qPrintable(QStringLiteral("%1 deckt %2").arg(faint).arg(faintAlpha)));
+
+    // And the window draws what the graphic gives — in **both** classes. That
+    // is the whole of the assurance: where the theme draws a hint, the window
+    // shows a hint, and there is nothing here to repair without giving up the
+    // decision "form and colour come from the theme" (#83).
+    for (const QString &theme : {covering, faint}) {
+        m_window->reloadDesktopTheme(theme);
+
+        const QPlainTextEdit *text = textArea();
+        QVERIFY(text);
+
+        const QImage picture = shot(*m_window);
+        const QImage expected = themeHullWithField(theme, m_window->size(), text->geometry());
+        QCOMPARE(expected.size(), picture.size());
+
+        const QPoint surface = inPicture(fieldSurface(text));
+        QVERIFY2(picture.pixelColor(surface) == expected.pixelColor(surface),
+                 qPrintable(QStringLiteral("%1: gezeichnet %2, erwartet %3")
+                                .arg(theme,
+                                     picture.pixelColor(surface).name(QColor::HexArgb),
+                                     expected.pixelColor(surface).name(QColor::HexArgb))));
+    }
 }
 
 void CaptureTest::noteTextUsesTheWindowTextRole()
 {
-    // On the continuous surface the note text carries `WindowText` and not the
-    // role for entry fields — measured over 18 colour schemes at 4,74:1 against
-    // 4,22:1, above and below the minimum of 4,5:1 (wireframe 4b). Copied on
-    // every palette change, so it follows the scheme instead of freezing (#54).
+    // The note text carries `WindowText` and not the role for entry fields.
+    // Copied on every palette change, so it follows the scheme instead of
+    // freezing (#54).
+    //
+    // Since issue #100 the reason is another one: the text no longer stands on
+    // one ground but on two, depending on the theme — on the field's surface
+    // where `widgets/lineedit` covers, on the hull where it draws a hint only.
+    // `WindowText` stays above 4,5:1 in both, worst case 5,70:1 and 4,74:1 over
+    // 19 colour schemes, while the view role falls to 4,22:1 in the second. The
+    // pair 4,74:1 / 4,22:1 that used to stand here was the number of a ground
+    // that is now one of two (UX decision of 07.08.2026,
+    // `docs/scrum/reviews/2026-08-07-textfarbe/entscheidung.md`).
     const QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
@@ -871,11 +1353,19 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
                                           opaqueSelectors());
             QCOMPARE(hull.size(), picture.size());
 
+            // The fifth point used to be the middle of the window and had to
+            // move (issue #100, AK 9): since the text field draws a graphic of
+            // its own the middle lies **inside the field**, and this run would
+            // have gone on measuring the field while reading like a statement
+            // about the hull. It would not have turned red about it — under
+            // every theme any run of this project reaches, field and hull both
+            // cover 255. The point now sits in the gap above the text area,
+            // which is hull and nothing else.
             for (const QPoint &point : {QPoint(picture.width() / 2, 0),
                                         QPoint(picture.width() / 2, picture.height() - 1),
                                         QPoint(0, picture.height() / 2),
                                         QPoint(picture.width() - 1, picture.height() / 2),
-                                        QPoint(picture.width() / 2, picture.height() / 2)}) {
+                                        inPicture(besideTheField(text, window.width()))}) {
                 QVERIFY2(qAlpha(picture.pixel(point)) > 0,
                          qPrintable(QStringLiteral("%1 bei %2,%3")
                                         .arg(theme)
@@ -883,6 +1373,20 @@ void CaptureTest::hullIsCompleteAtFiveAndEightLines()
                                         .arg(point.y())));
                 QCOMPARE(qAlpha(picture.pixel(point)), qAlpha(hull.pixel(point)));
             }
+
+            // The fifth point once more, and by **colour** this time. Coverage
+            // alone cannot tell the hull from the field: measured, both cover
+            // 255 under every theme a run of this project reaches, so a field
+            // spread over the whole window would pass the loop above without a
+            // murmur (mutation probe 6). The colour tells them apart, and this
+            // is the line that makes "measures the hull" a measurable claim
+            // rather than a claim about where a point sits.
+            const QPoint clearOfTheField = inPicture(besideTheField(text, window.width()));
+            QVERIFY2(picture.pixelColor(clearOfTheField) == hull.pixelColor(clearOfTheField),
+                     qPrintable(QStringLiteral("%1: gezeichnet %2, Hülle %3")
+                                    .arg(theme,
+                                         picture.pixelColor(clearOfTheField).name(QColor::HexArgb),
+                                         hull.pixelColor(clearOfTheField).name(QColor::HexArgb))));
         }
     }
 }
@@ -967,7 +1471,13 @@ void CaptureTest::hullHoldsAtTheCustomersScale()
     child.setProcessChannelMode(QProcess::MergedChannels);
     child.start(QCoreApplication::applicationFilePath(),
                 {QStringLiteral("hullFollowsTheWindowPixelRatio"),
-                 QStringLiteral("hullHasNoStairAtTheCorner")});
+                 QStringLiteral("hullHasNoStairAtTheCorner"),
+                 // The field goes along, and it is the only place a missing
+                 // ratio on it can show: a FrameSvg stands at 1 whatever the
+                 // session scales to, and offscreen the event that would betray
+                 // the omission never arrives (issue #100, F4). At ratio 1 the
+                 // picture and the reference are wrong in the same way.
+                 QStringLiteral("paintsTheThemesFieldOntoTheHull")});
 
     QVERIFY(child.waitForFinished(60000));
     QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
@@ -1045,16 +1555,32 @@ void CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor()
     // (measured, `messungen/m13-ksvg-selektoren.txt`). Held against the theme
     // the window is wearing, the counter-check would compare opaque with opaque.
     m_window->reloadDesktopTheme(NarrowBorderTheme);
+    // Shown before the geometry is read, and that is not a formality: a window
+    // that was never shown has no laid-out layout at all — every child sits at
+    // zero, and the sample point would land four pixels **above** the picture.
+    // Measured on this very run: the search then found no theme at all and the
+    // assertion skipped itself with a plausible reason.
+    m_window->show();
+    QCoreApplication::processEvents();
 
     const QSize size = m_window->size();
-    const QPoint centre(size.width() / 2, size.height() / 2);
+    // Out of the field and into the gap above it (issue #100, AK 9). The middle
+    // of the window stood here until then, and it stopped measuring the hull
+    // the moment the field arrived — **without turning red**: measured, the
+    // reading there is 255 with the selector and 255 without it, so the very
+    // mutation this assertion exists for would have walked through it. The
+    // reading below is taken at the same point on both sides.
+    const QPlainTextEdit *narrowText = textArea();
+    QVERIFY(narrowText);
+    const QPoint sample = inPicture(besideTheField(narrowText, m_window->width()));
+
     QString candidate;
     int translucentAlpha = 0;
     int opaqueAlpha = 0;
     const QStringList installed = themes::installedThemes();
     for (const QString &theme : installed) {
-        const int loose = qAlpha(themeHull(theme, size, {}).pixel(centre));
-        const int tight = qAlpha(themeHull(theme, size, opaqueSelectors()).pixel(centre));
+        const int loose = qAlpha(themeHull(theme, size, {}).pixel(sample));
+        const int tight = qAlpha(themeHull(theme, size, opaqueSelectors()).pixel(sample));
         if (loose != tight) {
             candidate = theme;
             translucentAlpha = loose;
@@ -1071,11 +1597,24 @@ void CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor()
     m_window->reloadDesktopTheme(candidate);
     const QImage picture = shot(*m_window);
 
-    // The coverage in the middle of the surface is the same number at every
-    // window size — the centre piece of the graphic is stretched, not redrawn —
-    // so the two readings above stay comparable even though a wider theme
-    // border makes a taller window.
-    const int drawn = qAlpha(picture.pixel(picture.width() / 2, picture.height() / 2));
+    // The reading is taken where the two variants were held against each other,
+    // and that point has to have stayed out of the field: a wider theme border
+    // pushes the text area down, never up, so it did — and this says so rather
+    // than trusting it. Every installed theme carries at least the 4 px of the
+    // bundled narrow one.
+    const QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+    QVERIFY2(sample.y() < inPicture(QPoint(0, text->y())).y(),
+             qPrintable(QStringLiteral("%1: Abgriff %2 läge im Feld ab %3")
+                            .arg(candidate)
+                            .arg(sample.y())
+                            .arg(inPicture(QPoint(0, text->y())).y())));
+
+    // The coverage in the stretched middle of the graphic is the same number at
+    // every window size — that piece is stretched, not redrawn — so the two
+    // readings above stay comparable even though a wider theme border makes a
+    // taller window.
+    const int drawn = qAlpha(picture.pixel(sample));
     const QString trace = QStringLiteral("%1: gezeichnet %2, opaque %3, durchscheinend %4")
                               .arg(candidate)
                               .arg(drawn)
@@ -1175,6 +1714,15 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
         QCOMPARE(cornerRun(picture), 0);
         QCOMPARE(picture.pixelColor(0, 0), m_window->palette().color(QPalette::Window));
         QCOMPARE(picture.pixelColor(picture.width() / 2, picture.height() / 2),
+                 m_window->palette().color(QPalette::Window));
+
+        // And no field either (issue #100, AK 8). `widgets/lineedit` is as
+        // absent here as `dialogs/background` is, and a build that drew it all
+        // the same would put a graphic on a window that has no theme — the
+        // middle of the text area is where it would stand.
+        QCOMPARE(picture.pixelColor(inPicture(fieldSurface(text))),
+                 m_window->palette().color(QPalette::Window));
+        QCOMPARE(picture.pixelColor(inPicture(fieldEdge(text))),
                  m_window->palette().color(QPalette::Window));
 
         text->setPlainText(QStringLiteral("geht trotzdem"));

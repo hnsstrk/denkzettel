@@ -62,6 +62,26 @@ constexpr QLatin1StringView ShadowPrefix("shadow");
 constexpr QLatin1StringView DefaultDesktopTheme("default");
 
 /**
+ * Where the text field comes from: the same source as the hull, one graphic
+ * down (issue #100, customer decision of 06.08.2026).
+ *
+ * KRunner's entry field is drawn from exactly this image and prefix
+ * (`TextField.qml:187–191`), and KRunner is the customer's yardstick. `base` is
+ * the resting state of the field, not the focused one — that layer is #102.
+ */
+constexpr QLatin1StringView FieldImage("widgets/lineedit");
+constexpr QLatin1StringView FieldPrefix("base");
+
+/**
+ * What a QTextDocument keeps around its text before anything of ours is added.
+ *
+ * Written down rather than read back: the field's border is counted **on top**
+ * of it on every theme change, and a value read back from the document would
+ * carry the last theme's border into the next one and grow without end.
+ */
+constexpr qreal BareDocumentMargin = 4;
+
+/**
  * The variant of the theme's graphic a window without a blurring compositor
  * gets. Plasma picks between `opaque` and `translucent` the same way
  * (`KSvg::ImageSet::setSelectors()`, imageset.h).
@@ -202,6 +222,7 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     , m_plasmaConfig(KSharedConfig::openConfig(QStringLiteral("plasmarc")))
     , m_hull(new KSvg::FrameSvg(this))
     , m_shadowTiles(new KSvg::FrameSvg(this))
+    , m_field(new KSvg::FrameSvg(this))
     , m_blursBehind(capture::sessionBlursBehindWindows())
 {
     setWindowTitle(i18n("Denkzettel"));
@@ -211,24 +232,37 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     // stays see-through; without a theme paintEvent() fills every pixel.
     setAttribute(Qt::WA_TranslucentBackground);
 
-    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles}) {
-        frame->setImagePath(HullImage);
+    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles, m_field}) {
         frame->setEnabledBorders(KSvg::FrameSvg::AllBorders);
         connect(frame, &KSvg::Svg::repaintNeeded, this, qOverload<>(&QWidget::update));
     }
+    m_hull->setImagePath(HullImage);
+    m_shadowTiles->setImagePath(HullImage);
+    m_shadowTiles->setElementPrefix(ShadowPrefix);
     // The colour set of a dialog background, the one Plasma draws this graphic
     // with. Under `default` all seven sets render the same pixels (measured,
     // `native-huelle-breeze.txt`, section B); under a theme that ships more
     // than one they would not, and this is the set the image is meant for.
     m_hull->setColorSet(KSvg::Svg::Window);
-    m_shadowTiles->setElementPrefix(ShadowPrefix);
+
+    // The field carries no colour set of its own, and that is measured rather
+    // than an omission: `setColorSet(View)` renders pixel for pixel what
+    // `Window` renders, under all eleven themes measured (issue #100, F3). The
+    // colour of this graphic comes out of the class names in the SVG
+    // (`ColorScheme-ViewBackground`, `ColorScheme-Frame`), not out of the set.
+    m_field->setImagePath(FieldImage);
+    m_field->setElementPrefix(FieldPrefix);
 
     m_text->setFrameShape(QFrame::NoFrame);
     m_text->setPlaceholderText(i18n("Gedanke festhalten …"));
     m_text->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_text->installEventFilter(this);
-    // One continuous surface, not a box inside a box (wireframe 4b): the text
-    // area draws no ground of its own.
+    // The text area draws no ground of **its own**, and since issue #100 that
+    // is no longer the same sentence as "one continuous surface". There is a
+    // second surface again — it comes out of the theme's own `widgets/lineedit`
+    // and is painted below in paintEvent(). What this line rules out is the
+    // ground Qt would fill in: a rectangle, which would square off the rounded
+    // corners the field graphic draws for itself.
     m_text->viewport()->setAutoFillBackground(false);
     // No applyTextColours() here: since #85 the colours depend on the desktop
     // theme, so they are set where the theme is read. reloadDesktopTheme()
@@ -315,7 +349,10 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     if (!m_blursBehind) {
         imageSet->setSelectors({QString(OpaqueSelector)});
     }
-    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles}) {
+    // The field frame belongs in this loop, and leaving it out would fail
+    // silently: it would keep drawing the old theme's graphic on a window that
+    // has changed theme, and no return value would say so (issue #100, F5).
+    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles, m_field}) {
         frame->setImageSet(imageSet.get());
     }
     m_imageSet = std::move(imageSet);
@@ -329,10 +366,12 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     applyTextColours();
 
     applyHullMargins();
+    applyFieldMargin();
     // The margins are part of the height: a wider theme border makes a taller
-    // window at the same five lines.
+    // window at the same five lines, and so does the field's own border.
     adjustHeight();
     resizeHull();
+    resizeField();
     bindShadow();
     update();
 }
@@ -362,6 +401,15 @@ bool CaptureWindow::eventFilter(QObject *watched, QEvent *event)
     // the road the test takes (measurement 3 of the sprint 6 estimate).
     if (watched == m_text && event->type() == QEvent::FontChange) {
         adjustHeight();
+        return QWidget::eventFilter(watched, event);
+    }
+
+    // The field is drawn on the geometry of the text area, so it has to hear of
+    // every change to it — and the text area changes on its own account, when
+    // the layout hands it a new size after a keystroke. The window's own
+    // resizeEvent() is not that moment: it fires before the layout has run.
+    if (watched == m_text && event->type() == QEvent::Resize) {
+        resizeField();
         return QWidget::eventFilter(watched, event);
     }
 
@@ -413,6 +461,18 @@ void CaptureWindow::paintEvent(QPaintEvent *event)
     // visible only because the hull lets the ground through.
     painter.drawPixmap(0, 0, m_hull->framePixmap());
 
+    // The field on top of the hull and underneath the text (issue #100): the
+    // same image set, one graphic down, drawn the way KRunner draws its own
+    // entry field. Nothing of it is ours either — where the theme's graphic
+    // covers by 15 of 255, the field stays a hint, and that is the limit
+    // SPEC 3.1 names rather than one to repair.
+    //
+    // Guarded, because a theme may resolve the hull and not this graphic: then
+    // no field is drawn, and the window is the one SPEC 3.2 point 4 promises.
+    if (m_field->isValid()) {
+        painter.drawPixmap(m_text->pos(), m_field->framePixmap());
+    }
+
     QWidget::paintEvent(event);
 }
 
@@ -433,6 +493,7 @@ bool CaptureWindow::event(QEvent *event)
     // project would notice the line missing.
     if (event->type() == QEvent::DevicePixelRatioChange) {
         resizeHull();
+        resizeField();
         update();
     }
 
@@ -452,6 +513,18 @@ void CaptureWindow::resizeHull()
 
     // The blur region **is** the hull's mask, and the hull just changed shape.
     bindWindowEffects();
+}
+
+void CaptureWindow::resizeField()
+{
+    // The field wears the geometry of the text area, so it moves and grows with
+    // it — the window grows with every keystroke (SPEC 3).
+    //
+    // The ratio first, for the same measured reason as the hull: a FrameSvg
+    // stands at 1 whatever the session scales to, and offscreen the event that
+    // would betray a missing line never arrives (issue #100, F4).
+    m_field->setDevicePixelRatio(devicePixelRatioF());
+    m_field->resizeFrame(m_text->size());
 }
 
 qreal CaptureWindow::hullDevicePixelRatio() const
@@ -478,6 +551,36 @@ void CaptureWindow::applyHullMargins()
                                  ContentMargins.bottom() + qRound(bottom));
 }
 
+void CaptureWindow::applyFieldMargin()
+{
+    qreal left = 0;
+    qreal top = 0;
+    qreal right = 0;
+    qreal bottom = 0;
+    if (m_field->isValid()) {
+        m_field->getMargins(left, top, right, bottom);
+    }
+
+    // The strip the field graphic claims for itself, counted on top of the
+    // inner spacing of 4b just as the hull's is — the text moves inwards, and
+    // the application name and the footer stay where they are, because the
+    // layout does not hear of this at all.
+    //
+    // One number for four sides, because a document has one margin. The widest
+    // of the four, so no side of the text can end up underneath the border;
+    // measured, the four do not diverge — 6 px all round under all eight
+    // installed themes (issue #100, AK 5).
+    //
+    // `documentMargin` and not `setViewportMargins()`, which is protected, nor
+    // `setContentsMargins()` on the text area, which measurably does nothing
+    // (F7). It has the further property of being right: adjustHeight() already
+    // counts the document margin into the chrome, so the window grows by the
+    // two borders on its own and heightFollowsAFontChange() reads the same two
+    // sources.
+    const qreal border = qMax(qMax(left, right), qMax(top, bottom));
+    m_text->document()->setDocumentMargin(BareDocumentMargin + border);
+}
+
 void CaptureWindow::applyTextColours()
 {
     // The one place both text classes get their colour, and the only place the
@@ -493,10 +596,14 @@ void CaptureWindow::applyTextColours()
     // theme brings a `colors` file the two roads agree — measured over eight
     // themes and three colour schemes, and held together by a test.
     //
-    // On the continuous surface the scheme's half of the note text is
-    // `WindowText` and not the role for entry fields: measured over all 18
-    // colour schemes the former holds 4,74:1 at worst, the latter 4,22:1 and
-    // thus below the minimum of 4,5:1 (wireframe 4b).
+    // The scheme's half of the note text is `WindowText` and not the role for
+    // entry fields, and since issue #100 that holds for a different reason than
+    // it did: the text now stands on two grounds depending on the theme — on
+    // the field's surface where `widgets/lineedit` covers, on the hull where it
+    // draws a hint only. `WindowText` stays above 4,5:1 in both, worst case
+    // 5,70:1 and 4,74:1 over 19 colour schemes; the view role falls to 4,22:1
+    // in the second. Decided by the UX role on the customer's instruction,
+    // 07.08.2026 (`docs/scrum/reviews/2026-08-07-textfarbe/entscheidung.md`).
     const QColor noteColour = m_themeText.normal.isValid()
         ? m_hull->color(KSvg::Svg::Text)
         : this->palette().color(QPalette::WindowText);
@@ -581,7 +688,10 @@ void CaptureWindow::bindWindowEffects()
     // and by nothing else.
     //
     // The region is the theme's mask and is given in logical pixels, which is
-    // what the header asks for — measured 600x174 at ratio 1 and at 1,6 alike.
+    // what the header asks for — measured 600x186 under `default` at ratio 1
+    // and at 1,6 alike. (174 until issue #100; the field's own border made the
+    // window twelve pixels taller. What the measurement is about is the word
+    // "logical", and that is unchanged.)
     const QRegion region = m_hull->mask();
     KWindowEffects::enableBlurBehind(windowHandle(), true, region);
 
