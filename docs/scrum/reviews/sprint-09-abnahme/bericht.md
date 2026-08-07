@@ -1,5 +1,22 @@
 # Sprint 9 — Installation und Hauptwege am installierten Stand
 
+> **Nachtrag vom 08.08.2026, 00:45 — dieser Bericht war überholt (Mangel M9).**
+> Der Durchgang unten lief an `a15470f`. Danach hat der karpathy-Nachlauf einen
+> `fail` gebracht (N1), und seine Heilung änderte **25 Zeilen Produktivcode** in
+> `src/ui/notelistdelegate.cpp` — genau an den Trennlinien, die das Bild in
+> Abschnitt 3 zeigt. Die Änderung verschiebt die Linie in 8 von 280 Lagen um
+> einen Gerätebildpunkt.
+>
+> Damit belegte dieser Bericht einen Stand, den es nicht mehr gab. Gefunden hat
+> es der Scrum Master bei der DoD-Prüfung, an den Prüfsummen:
+> `/usr/bin/denkzetteld` trug `7e23862e…` (Stand `a15470f`), das Bauverzeichnis
+> `b206a483…` (Stand `01e1c6b`).
+>
+> **Das ist B16 eine Ebene höher:** nicht ein laufender Dienst, der die
+> gelöschte Datei weiterhält, sondern eine Abnahme, die einen überholten Stand
+> belegt. Der Durchgang unten bleibt stehen — er war zu seiner Zeit richtig —,
+> und Abschnitt 6 trägt den Wiederholungslauf am wirklichen Endstand.
+
 **Durchgeführt vom Product Owner am 07.08.2026, 23:37–23:39.**
 Stand: `a15470f` (Sprint-Endstand nach allen Review-Behebungen).
 
@@ -83,3 +100,61 @@ Prozessor, Grafikkarte und die lokale Netzadresse; sie sind nach dem Zuschneiden
 gelöscht worden und nicht ins Repositorium gelangt. Das Repositorium ist
 öffentlich, und Systemdetails sind dort nach der Kundenentscheidung vom
 02.08.2026 nicht zugelassen.
+
+---
+
+## 6. Wiederholung am wirklichen Endstand (08.08.2026, 00:45)
+
+Anlass ist der Nachtrag oben. Geprüft wird `01e1c6b`.
+
+### 6.1 Der Stand, an dem geprüft wurde
+
+Diesmal ist die Gleichheit **an der Prüfsumme** belegt und nicht am Pfad allein:
+
+```
+vorher    /usr/bin/denkzetteld     7e23862e745a9381670ca89cae6b3d35   (a15470f)
+          build/bin/denkzetteld    b206a483dd251150dc4598ad3cd4c9f7   (01e1c6b)
+
+nach der Installation
+          /usr/bin/denkzetteld     b206a483dd251150dc4598ad3cd4c9f7
+          build/bin/denkzetteld    b206a483dd251150dc4598ad3cd4c9f7
+```
+
+Dienst beendet, neu gestartet, und die **laufende** Datei gegengeprüft:
+
+```
+readlink /proc/597929/exe   →  /usr/bin/denkzetteld      (ohne "(deleted)")
+md5sum   /proc/597929/exe   →  b206a483dd251150dc4598ad3cd4c9f7
+```
+
+**Die Prüfsumme des laufenden Prozesses ist der Beleg, den der erste Durchgang
+schuldig blieb.** `readlink` sagt, welche Datei läuft; erst die Prüfsumme sagt,
+**welcher Stand** darin steckt. Genau diese Lücke hat M9 möglich gemacht.
+
+### 6.2 Hauptweg #100 am Endstand
+
+![Das Erfassungsfenster am Endstand](bilder/hauptweg-erfassung-endstand.png)
+
+Das Textfeld ist als abgesetzte Fläche mit eigener Kante zu sehen, darin der
+Platzhalter und der Schreibcursor, darunter die Fußzeile.
+
+### 6.3 Hauptweg #101 am Endstand
+
+![Die Bibliothek am Endstand](bilder/hauptweg-bibliothek-endstand.png)
+
+Die Linienregel ist unverändert vollständig abzulesen: über dem ersten Kopf
+keine Linie, zwischen den Notizen eingerückte, unter der letzten Notiz einer
+Gruppe keine, über dem zweiten Kopf eine über die volle Breite.
+
+**Die Bilder aus Abschnitt 2 und 3 bleiben liegen** (B17): Sie zeigen, was der
+vorige Stand zeichnete, und der Unterschied zwischen beiden Paaren ist der
+Gegenstand dieses Nachtrags.
+
+### 6.4 Was auch dieser Durchgang nicht leistet
+
+Unverändert: `Meta+N` bleibt ungedrückt (kein Agent löst unter Wayland ein
+globales Kürzel aus), die Bibliothek wird über D-Bus geöffnet statt über das
+Tray-Menü, und ob die Abhebung das Auge des Kunden erreicht, entscheidet er.
+
+Die Vollbilder sind auch diesmal nach dem Zuschneiden gelöscht worden und nicht
+ins Repositorium gelangt.
