@@ -87,7 +87,7 @@ aus einer Hand. In der *einzigen Quelle der Wahrheit* ist ein doppeldeutiges
 Feld teurer als anderswo. Eine grobe Hausnummer gehört als Freitextsatz ins
 Issue, der nicht wie ein Urteil aussieht. Damit ist der zweimal gerissene
 Punkt (M2 in Sprint 5, K1 in Sprint 6) verankert; die Story-Point-Skala
-selbst ist am 04.08.2026 beendet worden — Gründe, Größenklassen und die
+selbst ist abgeschafft — Gründe, Größenklassen und die
 Falle beim Nachprüfen des Altbestands (die alte Schätzung steht unter der
 **Story-ID**, nicht unter der Issue-Nummer) stehen in `PROZESS.md`.
 
@@ -198,7 +198,7 @@ noch SPEC, und Agenten arbeiten nur in ihrer zugewiesenen Dateimenge.
 - **Gepusht wird nach jedem abgeschlossenen Arbeitsblock, ohne Rückfrage**
   (Kundenentscheidung 02.08.2026). Das Sprint-Ende-Minimum regelt der
   Sprint-Abschluss in `PROZESS.md`.
-  **Seit dem 04.08.2026 löst jeder Push auf `main` einen öffentlichen Bau- und
+  **Jeder Push auf `main` löst einen öffentlichen Bau- und
   Testlauf aus** (`.github/workflows/ci.yml`). Er schlägt bei jeder
   Compiler-Warnung, jedem roten Test **und seit #76 (05.08.2026) bei jedem
   Linterbefund** fehl — `lint-tidy` und `lint-clazy` stehen beide auf Schwelle
