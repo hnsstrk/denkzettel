@@ -106,21 +106,38 @@ QColor separatorColor(const QPalette &palette)
  * ranking comes from the length of the stroke and not from its weight
  * (customer decision of 06.08.2026).
  *
- * Hence a whole number of device pixel rows, never fewer than one, and an upper
- * edge put on a device pixel boundary. Rounded rather than truncated, because
- * at 1.6 truncation would leave 0.625 logical points — and the worst measured
- * scheme carries this line at 1.24 : 1 against its ground, where thinning it
- * further is the one thing that must not happen.
+ * Hence a whole number of device pixel rows, never fewer than one. That single
+ * term carries the whole assurance: two edges that are an integer number of
+ * device pixels apart round to values that are the same integer apart, wherever
+ * they fall. Measured over 280 positions — seven ratios, twenty rows, two
+ * painter origins — the height is the same in every one of them.
  *
- * At ratio 1 both terms come out exactly as they did before, which is why the
- * pixel checks of AK 1 to AK 3 are untouched by this.
+ * Rounded rather than truncated: truncation would leave 0.625 logical points at
+ * 1.6, less than a device pixel row of the unscaled list. Rounding never goes
+ * below one device pixel row, and one device pixel row is exactly what the line
+ * is at ratio 1 — the appearance the customer approved. Below 1.5 that means
+ * fewer than one logical point (1.25 → 1 row → 0.8 points); it is the same ink
+ * on the same screen as at ratio 1, so the line never gets thinner than what
+ * was accepted.
+ *
+ * At ratio 1 the term comes out exactly as before, which is why the pixel
+ * checks of AK 1 to AK 3 are untouched by this.
+ *
+ * **No attempt is made to put the upper edge on a device pixel boundary.** One
+ * stood here until 08.08.2026 (`std::round(top * ratio) / ratio`) and was
+ * removed as measured: it never reached a boundary, because the painter origin
+ * is off the grid itself — the list viewport starts at logical 48, which is
+ * 76.8 device pixels at 1.6, and this function only ever sees widget-local
+ * coordinates. What the term did instead was shift the line by one device pixel
+ * in 8 of those 280 positions, without changing a single height. An arbitrary
+ * shift under the name of an alignment (karpathy follow-up of Sprint 9, N1).
  */
 QRectF hairline(const QPaintDevice *device, int left, int top, int width)
 {
     const qreal ratio = device ? device->devicePixelRatioF() : 1.0;
     const qreal rows = std::max(1.0, std::round(ratio));
 
-    return QRectF(left, std::round(top * ratio) / ratio, width, rows / ratio);
+    return QRectF(left, top, width, rows / ratio);
 }
 
 /**

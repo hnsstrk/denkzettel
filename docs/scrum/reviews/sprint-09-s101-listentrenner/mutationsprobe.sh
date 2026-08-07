@@ -55,9 +55,39 @@ if treffer != 1:
 open(pfad, "w", encoding="utf-8").write(text.replace(alt, neu))
 PY
 
+
+# Der Stand, an dem gemessen wird — EINMAL zu Beginn erhoben, bevor dieser Lauf
+# selbst etwas schreibt, und danach unverändert in jeden Kopf gesetzt.
+#
+# Warum die Zeile über den Arbeitsbaum dazugehört: Am 07.08.2026 trugen alle
+# sieben Belege dieses Ordners den Stand `46bb5b5` — und dort gibt es die
+# gemessene Funktion `hairline()` gar nicht. Gemessen wurde ein Arbeitsbaum mit
+# uncommitteten Änderungen, und `git rev-parse HEAD` nennt davon nur die
+# Vorgeschichte. **Wer den Beleg nachfahren wollte, landete vor der Umsetzung.**
+# Einem Messwert sieht man das nicht an; deshalb steht es jetzt daneben.
+#
+# Ausgenommen sind allein `messungen/` und `bilder/` — die schreibt dieser Lauf
+# selbst voll, und seine eigenen Ausgaben sagen nichts über den gemessenen Code.
+# **Die Skripte dieses Ordners sind NICHT ausgenommen**, obwohl sie danebenliegen:
+# Ein geändertes Prüfskript ist genau die Sorte uncommitteter Änderung, die einen
+# Beleg unnachfahrbar macht. Der erste Anlauf am 08.08.2026 nahm den ganzen
+# Ordner aus und meldete „sauber", während beide Skripte geändert waren.
+STAND="$(cd "$WURZEL" && git rev-parse --short HEAD)"
+ZWEIG="$(cd "$WURZEL" && git rev-parse --abbrev-ref HEAD)"
+ORDNER_REL="${HIER#"$WURZEL"/}"
+SCHMUTZ="$(cd "$WURZEL" && git status --porcelain -- . \
+    ":(exclude)$ORDNER_REL/messungen" ":(exclude)$ORDNER_REL/bilder")"
+
+if [ -z "$SCHMUTZ" ]; then
+    BAUM="sauber"
+else
+    BAUM="MIT UNCOMMITTETEN ÄNDERUNGEN ($(printf '%s\n' "$SCHMUTZ" | wc -l) Datei(en): $(printf '%s\n' "$SCHMUTZ" | awk '{print $NF}' | tr '\n' ' '))"
+fi
+
 {
     echo "Mutationsproben zu #101 — kann jeder Prüfsatz fallen?"
-    echo "Stand: $(date '+%F %H:%M %Z'), Ganymed. $(cd "$WURZEL" && git rev-parse --short HEAD) auf $(cd "$WURZEL" && git rev-parse --abbrev-ref HEAD)."
+    echo "Gemessen: $(date '+%F %H:%M %Z'), Ganymed."
+    echo "Code-Stand: $STAND auf $ZWEIG, Arbeitsbaum $BAUM."
     echo
 } > "$ausgabe"
 
@@ -136,11 +166,17 @@ probe "5. Linienfarbe aus einem festen Verhältnis statt aus der Konfiguration (
     'static_cast<float>(KColorScheme::frameContrast())' \
     '0.20F'
 
-# Die Rücknahme der Rasterausrichtung — genau der Stand vor dem UI-Review-Befund
+# Die Rücknahme der ganzzahligen Höhe — genau der Stand vor dem UI-Review-Befund
 # L9. Sie fällt nur im zweiten, skalierten Lauf; `ctest -R librarytest` fasst ihn
 # mit, weil sein Name den des ersten enthält.
-probe "7. Haarlinie ohne Ausrichtung am Geräteraster (L9)" "$DELEGATE" \
-    'return QRectF(left, std::round(top * ratio) / ratio, width, rows / ratio);' \
+#
+# Getauscht wird **allein die Höhe**, nicht die ganze Rückgabezeile. Bis zum
+# 08.08.2026 stand hier der Tausch der ganzen Zeile, und der änderte zwei Dinge
+# auf einmal — er hätte nicht sagen können, welches von beiden der Prüfsatz
+# bemerkt (karpathy-Nachlauf N1). Eine Mutation, die zwei Zusicherungen zugleich
+# aufhebt, misst keine von beiden.
+probe "7. Haarlinie ohne ganzzahlige Höhe in Gerätebildpunkten (L9)" "$DELEGATE" \
+    'return QRectF(left, top, width, rows / ratio);' \
     'return QRectF(left, top, width, 1);'
 
 probe "6. Ohne das Neuzeichnen der oberen Nachbarn (AK 3c)" "$FENSTER" \

@@ -30,10 +30,39 @@ mkdir -p "$HIER/messungen" "$HIER/bilder/skalierung-1" "$HIER/bilder/skalierung-
 export QT_QPA_PLATFORMTHEME=kde
 export QT_QPA_PLATFORM=offscreen
 
+
+# Der Stand, an dem gemessen wird — EINMAL zu Beginn erhoben, bevor dieser Lauf
+# selbst etwas schreibt, und danach unverändert in jeden Kopf gesetzt.
+#
+# Warum die Zeile über den Arbeitsbaum dazugehört: Am 07.08.2026 trugen alle
+# sieben Belege dieses Ordners den Stand `46bb5b5` — und dort gibt es die
+# gemessene Funktion `hairline()` gar nicht. Gemessen wurde ein Arbeitsbaum mit
+# uncommitteten Änderungen, und `git rev-parse HEAD` nennt davon nur die
+# Vorgeschichte. **Wer den Beleg nachfahren wollte, landete vor der Umsetzung.**
+# Einem Messwert sieht man das nicht an; deshalb steht es jetzt daneben.
+#
+# Ausgenommen sind allein `messungen/` und `bilder/` — die schreibt dieser Lauf
+# selbst voll, und seine eigenen Ausgaben sagen nichts über den gemessenen Code.
+# **Die Skripte dieses Ordners sind NICHT ausgenommen**, obwohl sie danebenliegen:
+# Ein geändertes Prüfskript ist genau die Sorte uncommitteter Änderung, die einen
+# Beleg unnachfahrbar macht. Der erste Anlauf am 08.08.2026 nahm den ganzen
+# Ordner aus und meldete „sauber", während beide Skripte geändert waren.
+STAND="$(cd "$WURZEL" && git rev-parse --short HEAD)"
+ZWEIG="$(cd "$WURZEL" && git rev-parse --abbrev-ref HEAD)"
+ORDNER_REL="${HIER#"$WURZEL"/}"
+SCHMUTZ="$(cd "$WURZEL" && git status --porcelain -- . \
+    ":(exclude)$ORDNER_REL/messungen" ":(exclude)$ORDNER_REL/bilder")"
+
+if [ -z "$SCHMUTZ" ]; then
+    BAUM="sauber"
+else
+    BAUM="MIT UNCOMMITTETEN ÄNDERUNGEN ($(printf '%s\n' "$SCHMUTZ" | wc -l) Datei(en): $(printf '%s\n' "$SCHMUTZ" | awk '{print $NF}' | tr '\n' ' '))"
+fi
+
 kopf() {
     echo "$1"
-    echo "Stand: $(date '+%F %H:%M %Z'), Ganymed. $(cd "$WURZEL" && git rev-parse --short HEAD) auf $(cd "$WURZEL" && git rev-parse --abbrev-ref HEAD)."
-    echo "Offscreen, QT_QPA_PLATFORMTHEME=kde."
+    echo "Gemessen: $(date '+%F %H:%M %Z'), Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde."
+    echo "Code-Stand: $STAND auf $ZWEIG, Arbeitsbaum $BAUM."
     echo
 }
 
@@ -143,5 +172,19 @@ echo "== B7: Strichstärke unter der Skalierung des Kunden (UI-Review L9) =="
     python3 "$HIER/strichstaerke.py" "$HIER/bilder/skalierung-1-6" \
         || echo "(nicht ermittelbar — python3 mit Pillow fehlt)"
 } > "$HIER/messungen/b7-strichstaerke.txt"
+
+echo "== B8: trägt die Ausrichtung der Oberkante etwas? (Nachlauf N1) =="
+# Die Sonde rastert eine Haarlinie mit und ohne den Term, der die Oberkante auf
+# eine Gerätebildpunktgrenze legen sollte — über sieben Verhältnisse, zwanzig
+# Zeilenlagen und zwei Malerursprünge. Der zweite Ursprung ist der Grund, aus
+# dem die Sonde überhaupt zwei kennt: Das Sichtfeld der Liste beginnt bei
+# logisch 48, also bei 76,8 Gerätebildpunkten — wer nur bei Ursprung 0 misst,
+# hält den Term für wirksam.
+cmake -B "$BAU/sonden" -S "$HIER/sonden" -DCMAKE_BUILD_TYPE=Release > /dev/null 2>&1
+cmake --build "$BAU/sonden" -j "$(nproc)" > /dev/null 2>&1
+{
+    kopf "B8 — Rasterlage der Haarlinie, mit und ohne Ausrichtung der Oberkante"
+    "$BAU/sonden/rasterlage"
+} > "$HIER/messungen/b8-rasterlage.txt"
 
 echo "Fertig. Messungen unter $HIER/messungen/, Bilder unter $HIER/bilder/"

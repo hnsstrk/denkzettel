@@ -1,6 +1,6 @@
 B1 — vollständiger Neubau, Zahl der Compilerwarnungen
-Stand: 2026-08-07 23:27 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
-Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Gemessen: 2026-08-08 00:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 übersetzte Dateien   : 49
 Compilerwarnungen    : 0

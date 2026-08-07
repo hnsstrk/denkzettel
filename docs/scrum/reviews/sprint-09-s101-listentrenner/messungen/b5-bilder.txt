@@ -1,6 +1,6 @@
 B5/B6 — Bildbelege, Maße und Skalierung
-Stand: 2026-08-07 23:29 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
-Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Gemessen: 2026-08-08 00:29 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 skalierung-1/01-normalfall.png: 900x600
 skalierung-1-6/01-normalfall.png: 1440x960

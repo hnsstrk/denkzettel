@@ -1,6 +1,6 @@
 B2 — ctest über alle Prüfprogramme
-Stand: 2026-08-07 23:27 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
-Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Gemessen: 2026-08-08 00:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 Test project /home/hnsstrk/Projekte/denkzettel-101/docs/scrum/reviews/sprint-09-s101-listentrenner/build
       Start  1: appstreamtest
@@ -8,9 +8,9 @@ Test project /home/hnsstrk/Projekte/denkzettel-101/docs/scrum/reviews/sprint-09-
       Start  2: storetest
  2/10 Test  #2: storetest ........................   Passed    0.02 sec
       Start  3: capturetest
- 3/10 Test  #3: capturetest ......................   Passed    0.53 sec
+ 3/10 Test  #3: capturetest ......................   Passed    0.64 sec
       Start  4: librarytest
- 4/10 Test  #4: librarytest ......................   Passed    6.54 sec
+ 4/10 Test  #4: librarytest ......................   Passed    6.48 sec
       Start  5: librarytestskaliert
  5/10 Test  #5: librarytestskaliert ..............   Passed    0.06 sec
       Start  6: shelltest
@@ -26,4 +26,4 @@ Test project /home/hnsstrk/Projekte/denkzettel-101/docs/scrum/reviews/sprint-09-
 
 100% tests passed out of 10
 
-Total Test time (real) =   7.51 sec
+Total Test time (real) =   7.57 sec

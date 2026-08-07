@@ -1,6 +1,6 @@
 B4 — clang-tidy und clazy, je mit der Zahl der angefassten Dateien
-Stand: 2026-08-07 23:28 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
-Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Gemessen: 2026-08-08 00:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 lint-tidy: Rückgabewert 0
   angefasste Dateien : 30

@@ -1,6 +1,6 @@
 B3 — die Prüffunktionen dieser Story, mit Namen und Ergebnis
-Stand: 2026-08-07 23:28 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
-Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Gemessen: 2026-08-08 00:27 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: e8b20a6 auf story/101-listentrenner, Arbeitsbaum sauber.
 
 PASS   : LibraryTest::bringsTheHeadOfTheNewGroupIntoView(900x600)
 PASS   : LibraryTest::bringsTheHeadOfTheNewGroupIntoView(so flach wie möglich)
@@ -22,4 +22,4 @@ PASS   : LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPalette
 PASS   : LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel)
 PASS   : LibraryTest::separatesTheSearchResultsLikeTheLibrary()
 PASS   : LibraryTest::keepsEverySeparatorOneThicknessUnderTheCustomersScaling()
-Totals: 125 passed, 0 failed, 0 skipped, 0 blacklisted, 6544ms
+Totals: 125 passed, 0 failed, 0 skipped, 0 blacklisted, 6419ms
