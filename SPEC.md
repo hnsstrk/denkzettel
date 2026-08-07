@@ -280,7 +280,7 @@ keine Lesbarkeit zu.
   Grund; keines der drei gehört dem Code. Was sich prüfen lässt, ist, aus
   welcher Quelle die Farbe stammt.
 - **Innenabstände** (12 seitlich, 10 oben, 8 unten) gelten **zuzüglich** des
-  Randes, den das Theme für sich beansprucht — der Text beginnt bei Breeze
+  Randes, den das Theme für sich beansprucht — der Inhalt beginnt bei Breeze
   16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
   mehr Luft (12) als unter dem App-Namen (8); seit dem Entfall der Trennlinie
   ist dieser Unterschied die gesamte Gliederung.

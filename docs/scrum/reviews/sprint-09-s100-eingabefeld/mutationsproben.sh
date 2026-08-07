@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Mutationsproben zu #100 — und für AK 9 sind sie nicht eine Beigabe, sondern
+# das **einzige** Prüfmittel.
+#
+# Der Grund steht im Vorprüfbericht, §0.1: Die beiden Prüfsätze, die am
+# Fenstermittelpunkt abgreifen, werden vom Feld nicht rot gemacht. Sie bleiben
+# grün — überall, wo sie heute laufen — und messen ab dann das Feld statt der
+# Hülle. Ein grüner Lauf belegt hier also nichts; nur die Frage „findet der
+# reparierte Prüfsatz die Mutation wieder, gegen die er gebaut wurde?" tut es.
+# Probe 5 fährt dieselbe Mutation am **alten** Abgriff und ist die Gegenprobe:
+# Sie muss grün bleiben, sonst hätte die Reparatur nichts repariert.
+#
+# Das Skript arbeitet auf einer Kopie des Arbeitsbaums unter /tmp. Es ändert
+# keine Datei des Repositoriums und hinterlässt keinen halb mutierten Stand,
+# auch wenn es mittendrin abbricht.
+#
+# Aufruf: bash docs/scrum/reviews/sprint-09-s100-eingabefeld/mutationsproben.sh
+
+set -uo pipefail
+
+HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WURZEL="$(cd "$HIER/../../../.." && pwd)"
+ARBEIT="$(mktemp -d)"
+trap 'rm -rf "$ARBEIT"' EXIT
+
+echo "Kopie des Arbeitsbaums nach $ARBEIT"
+git -C "$WURZEL" ls-files -z | xargs -0 -I{} cp --parents "{}" "$ARBEIT/" 2>/dev/null
+cd "$ARBEIT"
+
+FENSTER="src/capture/capturewindow.cpp"
+PRUEFSATZ="tests/capturetest.cpp"
+BAU="$ARBEIT/build"
+
+lauf() {
+    local nummer="$1"
+    local was="$2"
+    local erwartet="$3"
+    shift 3
+    echo
+    echo "===== Probe $nummer — $was"
+    echo "Erwartet: $erwartet"
+    local eingriff
+    for eingriff in "$@"; do
+        eval "$eingriff" || echo "  ACHTUNG: Eingriff schlug fehl: $eingriff"
+    done
+    # Beide Pfade absolut, und das ist der Punkt: `git -C` wechselt zuerst das
+    # Verzeichnis, ein relativer Pfad zeigte danach zweimal auf dieselbe Datei
+    # und die Wache meldete jeden Eingriff als wirkungslos (gemessen, 07.08.2026).
+    if git diff --no-index --quiet "$WURZEL/$FENSTER" "$ARBEIT/$FENSTER" 2>/dev/null \
+       && git diff --no-index --quiet "$WURZEL/$PRUEFSATZ" "$ARBEIT/$PRUEFSATZ" 2>/dev/null; then
+        echo "ERGEBNIS: ABGEBROCHEN — der Eingriff hat keine Datei verändert."
+        return
+    fi
+    if ! cmake --build "$BAU" -j "$(nproc)" > "$ARBEIT/bau.log" 2>&1; then
+        echo "ERGEBNIS: übersetzt nicht mehr — die Zusicherung hängt am Bau selbst."
+        grep -m3 "error" "$ARBEIT/bau.log" | sed 's/^/  /'
+    else
+        local ausgabe
+        ausgabe="$(ctest --test-dir "$BAU" -R capturetest --output-on-failure 2>&1)"
+        if grep -q "100% tests passed" <<< "$ausgabe"; then
+            echo "ERGEBNIS: **GRÜN GEBLIEBEN** — kein Prüfsatz deckt diesen Eingriff."
+        else
+            echo "ERGEBNIS: rot. Gefallene Prüfsätze:"
+            grep -E "^FAIL!" <<< "$ausgabe" | sed -E 's/^/  /; s/ \(.*//' | sort -u
+        fi
+    fi
+    cp "$WURZEL/$FENSTER" "$FENSTER"
+    cp "$WURZEL/$PRUEFSATZ" "$PRUEFSATZ"
+}
+
+echo "== Ausgangsstand übersetzen =="
+cmake -B "$BAU" -S . -DCMAKE_BUILD_TYPE=Debug > /dev/null
+cmake --build "$BAU" -j "$(nproc)" > /dev/null
+ctest --test-dir "$BAU" -R capturetest 2>&1 | tail -3
+
+lauf 1 "Das Feld wird gar nicht gezeichnet (AK 1, AK 4, AK 6b)" \
+    "rot" \
+    'sed -i "s|if (m_field->isValid()) {|if (false) {|" "$FENSTER"'
+
+lauf 2 "Das Feld bleibt aus der Schleife über das frische ImageSet (AK 4, F5)" \
+    "rot — sonst folgt das Feld dem Theme-Wechsel lautlos nicht" \
+    'perl -0pi -e "s/\{m_hull, m_shadowTiles, m_field\}\) \{\n        frame->setImageSet/{m_hull, m_shadowTiles}) {\n        frame->setImageSet/s" "$FENSTER"'
+
+lauf 3 "Der Feldrand rückt den Text nicht nach innen (AK 5)" \
+    "rot" \
+    'sed -i "s|^    applyFieldMargin();$|    // mutiert|" "$FENSTER"'
+
+lauf 4 "Der Auswahlpfad opaque fällt weg — am **reparierten** Abgriff (AK 9)" \
+    "rot; das ist das Prüfmittel von AK 9" \
+    'perl -0pi -e "s/    if \(!m_blursBehind\) \{\n        imageSet->setSelectors\(\{QString\(OpaqueSelector\)\}\);\n    \}/    \/\/ mutiert/s" "$FENSTER"'
+
+lauf 5 "Derselbe Wegfall am **alten** Abgriff, dem Fenstermittelpunkt (AK 9, Gegenprobe)" \
+    "GRÜN — genau das ist der Befund: der alte Abgriff hätte die Mutation durchgelassen" \
+    'perl -0pi -e "s/    if \(!m_blursBehind\) \{\n        imageSet->setSelectors\(\{QString\(OpaqueSelector\)\}\);\n    \}/    \/\/ mutiert/s" "$FENSTER"' \
+    'perl -0pi -e "s/const QPoint sample = inPicture\(besideTheField\(narrowText, m_window->width\(\)\)\);/const QPoint sample = inPicture(QPoint(m_window->width() \/ 2, m_window->height() \/ 2));/" "$PRUEFSATZ"' \
+    'perl -0pi -e "s/    QVERIFY2\(sample\.y\(\) < inPicture.*?\)\)\);\n/    Q_UNUSED(text);\n/s" "$PRUEFSATZ"'
+
+lauf 6 "Das Feld wird über das ganze Fenster gelegt (AK 9, zweiter Abgriff)" \
+    "rot — der Abgriff von hullIsCompleteAtFiveAndEightLines() misst wieder die Hülle" \
+    'sed -i "s|painter.drawPixmap(m_text->pos(), m_field->framePixmap());|painter.drawPixmap(QPoint(0, 0), m_field->framePixmap());|" "$FENSTER"'
+
+lauf 7 "Das Feld bekommt das Bildpunktverhältnis des Fensters nicht (F4)" \
+    "rot allein über den Lauf bei 1,6 — bei Verhältnis 1 ist der Fehler unsichtbar" \
+    'sed -i "s|    m_field->setDevicePixelRatio(devicePixelRatioF());|    // mutiert|" "$FENSTER"'
+
+echo
+echo "Fertig."
