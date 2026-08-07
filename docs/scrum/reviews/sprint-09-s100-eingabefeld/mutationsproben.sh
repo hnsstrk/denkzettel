@@ -44,7 +44,7 @@ lauf() {
     # zwei Eingriffe, und als eine Signatur im Prüfsatz sich änderte, griff der
     # zweite nicht mehr. Der erste griff weiter, die Wache sah eine veränderte
     # Datei und ließ die Probe laufen — sie meldete „rot", wo „grün" der Beleg
-    # gewesen wäre (08.08.2026). Eine Wache über die Summe der Eingriffe wacht
+    # gewesen wäre (07.08.2026). Eine Wache über die Summe der Eingriffe wacht
     # über keinen einzelnen.
     local eingriff
     local vorher

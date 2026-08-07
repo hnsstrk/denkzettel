@@ -184,14 +184,32 @@ int main(int argc, char **argv)
     // has to be right when the window is built, not only after a change.
     //
     // Since issue #100 every one of them shows **two** surfaces: the hull and
-    // the text field on top of it, both out of the desktop theme. What the two
-    // colour-scheme columns show of that is the texts and nothing else —
-    // measured, both graphics are recoloured out of `kdeglobals` and not out of
-    // the palette set below, so the field carries the same colour in the light
-    // and the dark column. That has been true of the hull since #83; the field
-    // joins it. The scheme axis of the field is measured in
-    // `fieldColoursComeFromTheThemeBeforeTheScheme()`, which walks two schemes
-    // in a process of its own.
+    // the text field on top of it, both out of the desktop theme.
+    //
+    // What the two colour-scheme columns are worth is measured, and it is less
+    // than the loop suggests (DoD-Mangel M4, 08.08.2026). Neither graphic
+    // follows the palette set below: both are recoloured out of `kdeglobals`,
+    // the hull since #83 and the field since #100. What is left for the columns
+    // to differ in are the **texts** — and only where the desktop theme brings
+    // no `colors` file of its own, because since #85 a theme that brings one
+    // decides them itself.
+    //
+    // Counted over the twelve pictures of this run, pair by pair:
+    //
+    //   * under a theme **with** a `colors` file the two columns are byte for
+    //     byte the same at five and at the typed size — 0 of 354.816 pixels.
+    //     At eight lines they differ in 718 pixels in an eight-pixel strip at
+    //     the right edge: the scrollbar, which the widget style does draw out
+    //     of the palette.
+    //   * under a theme **without** one they differ in all three states, in the
+    //     text areas — 1.370 to 2.758 pixels.
+    //
+    // Which theme lands in which column is decided by `installedThemePair()`,
+    // and that sorts by hull border. So whether these six pairs carry anything
+    // at all is a property of the machine the run happens on. The scheme axis
+    // of the field itself is measured where it can be:
+    // `fieldColoursComeFromTheThemeBeforeTheScheme()` walks two schemes in a
+    // process of its own.
     int number = 0;
     for (int theme = 0; theme < themeList.size(); ++theme) {
         for (const bool dark : {false, true}) {

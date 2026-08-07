@@ -229,7 +229,7 @@ nachgezogen.
 
 ## 3. Testnachweis
 
-> **Berichtigt am 08.08.2026 (karpathy K1). Der Absatz darunter ist die Fassung
+> **Berichtigt am 07.08.2026, 23:03 Uhr (karpathy K1). Der Absatz darunter ist die Fassung
 > vom 07.08.2026 und war in zwei Punkten falsch.** Er meldet einen grünen Lauf
 > und sagt für den öffentlichen Läufer ein Überspringen voraus — der Lauf zu
 > `70902a4` war **failure**, mit sechs gefallenen Prüfsätzen, und übersprungen
@@ -237,7 +237,7 @@ nachgezogen.
 > vorhergesagt. Was daraus geworden ist, steht in Feld 7; der Wortlaut bleibt
 > stehen, weil die Falschangabe zur Sache gehört (B17).
 >
-> **Der Stand vom 08.08.2026:**
+> **Der Stand vom 07.08.2026, 23:03 Uhr:**
 >
 > ```
 > $ QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde ctest --test-dir build
@@ -413,7 +413,7 @@ Skip-Texten), `messungen/m2-mutationsproben.txt` Proben 8 und 9.
 
 ---
 
-## 8. Nachtrag 08.08.2026 — die vier Befunde des karpathy-Reviews
+## 8. Nachtrag 07.08.2026, 23:03 Uhr — die vier Befunde des karpathy-Reviews
 
 Der Reviewer hat den Stand **vor** der Reparatur vom 07.08.2026 geprüft. Zwei
 Befunde waren damit erledigt, zwei nicht — und einer der beiden erledigten
