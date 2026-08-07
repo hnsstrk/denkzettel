@@ -421,6 +421,63 @@ eigenständige Rastersonde).
 `warn`) — beide Fassungen sind berichtigt, siehe 10.2. Der Nachlauf hat damit
 in einem Zug den Sprint und die Retro geprüft, die ihn auswertet.
 
+### 8.3 Nachtrag 08.08.2026, 00:40 — Nachprüfung am Endstand `01e1c6b`
+
+Alles hier ist am Stand nachgemessen, nicht der Meldung entnommen.
+
+**Geschlossen, je mit eigener Prüfung:**
+
+| | geprüft an | Ergebnis |
+|---|---|---|
+| **N1** | `src/ui/notelistdelegate.cpp` | Der Term ist fort. Einziger Treffer von `round(top …)` ist der Kommentar bei `:127`, der ihn als bis 08.08.2026 bestehend ausweist — die Ankerform, nicht lebender Code. Im Bau steht nur noch `std::max(1.0, std::round(ratio))`, also die Stärke |
+| **N2** | ebenda | kaufmännisch gerundet, Begründung berichtigt statt des Baus — richtig, Aufrunden machte die Linie bei 1,25 dicker als gezeichnet |
+| **N3/N4/N5** | `…-s100-eingabefeld/mutationsproben.sh`, `messungen/m2-…txt` | Proben 8, 9, 10 laufen über `ohne_grafik()`; Probe 10 ist die **Positivprobe** des N3-Wächters („hat angeschlagen"), das Skript endet mit `exit 1`, das Protokoll schließt mit „alle Proben haben gemessen" |
+| **N7** | `.github/workflows/ci.yml:141–148` | Der Lauf zählt die Übersprungenen aus `ctest -V` und vergleicht gegen die hinterlegte 9; bei Abweichung `::error::` und die Liste. Das ist die Wache über den Fall „grün und wertlos" |
+| **M4** | `tests/captureshots.cpp:186–195` | Der Kommentar sagt jetzt das Gemessene, einschließlich der Ursache (#85, eigene `colors`-Datei) |
+| **M6** | Protokollkopf | berichtigt, mit datiertem Vermerk und der Begründung, warum der Tag vorgezogen wurde |
+| **M7** | alle acht #101- und alle #100-Messdateien | Kopfzeile nennt Code-Stand, Zweig **und** Sauberkeit. Die #101-Belege stehen auf `e8b20a6` — **nach** der N1-Heilung `dad9948` —, die #100-Belege auf `230b86c`; beide Angaben treffen zu. B24 wirkt |
+| **M8** | `git grep` nach dem Folgetag | kein Zukunftsdatum mehr im Repositorium |
+
+**DoD 1 am Endstand:** Bau rc=0 und **0 Warnungen** · `ctest` **10/10** ·
+`lint-tidy` und `lint-clazy` je rc=0, **30 Dateien**, 0/0 · öffentlicher Lauf zu
+`01e1c6b` **completed und success**.
+
+**DoD 3 ist damit erreicht.** Kein offener `fail` — weder aus dem ersten
+Review, noch aus dem Nachlauf, noch aus dem UI-Review. K5 bleibt als
+begründete Verweisung an #96 bestehen (Auflage in 9, Punkt 5).
+
+### M9 — DoD 2 ist durch die eigene Heilung ungültig geworden
+
+**Gemessen, nicht vermutet:**
+
+```
+md5  /usr/bin/denkzetteld     7e23862e745a9381670ca89cae6b3d35   (Stand a15470f)
+md5  build/bin/denkzetteld    b206a483dd251150dc4598ad3cd4c9f7   (Stand 01e1c6b)
+readlink /proc/<pid>/exe  →  /usr/bin/denkzetteld, md5 7e23862e…
+```
+
+Der Abnahmebericht belegt Installation und beide Hauptwege am Stand `a15470f`.
+Seither hat sich **Produktivcode geändert** — `src/ui/notelistdelegate.cpp`,
+25 Zeilen, die N1-Heilung. Der laufende Dienst führt weiterhin die **alte**
+Binärdatei aus; mein Neubau übersetzte null Dateien, `build/` steht also auf
+dem Endstand, und die installierte Datei ist es nicht.
+
+**Warum das kein formaler Punkt ist:** Die Änderung verschiebt die Trennlinie
+in 8 von 280 gemessenen Lagen um einen Gerätebildpunkt — und die Trennlinien
+sind genau das, was das Abnahmebild von #101 zeigt. Der Beleg für den Hauptweg
+zeigt damit ein Bild, das der ausgelieferte Stand so nicht mehr zeichnet. Das
+ist der Fall, gegen den B16 geschrieben ist, nur eine Ebene höher: nicht ein
+Dienst, der die gelöschte Datei weiterhält, sondern eine Abnahme, die einen
+überholten Stand belegt.
+
+**Takt 1, Punkt 1 verlangt den Endstand.** Der Endstand ist `01e1c6b`.
+
+*Abhilfe:* einmal installieren, Dienst beenden und neu starten, `readlink`
+belegen, beide Hauptwege erneut ausführen und die zwei Bilder ersetzen — mit
+datiertem Vermerk im Abnahmebericht, nicht durch Überschreiben (B17). Der
+Aufwand ist der eines Durchgangs; ohne ihn ist DoD 2 für den gelieferten Stand
+nicht geführt.
+
 **Beobachtungen ohne Änderungsforderung**
 
 - **B1** — Der README-Bildhinweis erreicht das erste Bild nicht (siehe 7.7).
@@ -457,12 +514,15 @@ DoD 4 mit zweien (M2, M3).
 
 **next:**
 
-1. **N1 vor der Kundenabnahme** — die Zusicherung über die Oberkante hält
-   nicht; drei Artefakte behaupten sie. Entweder der Code löst sie ein oder die
-   Artefakte sagen, was gilt. (M1 selbst ist erledigt, siehe 8.2.)
-2. M6 und M8 berichtigen — zwei Handgriffe, beide am Text. (M2 ist mit
-   `58bd93f` erledigt, siehe 8.1.)
-3. M3 (zweite Hälfte), M4, M5, M7 sowie N4, N5, N7 an ihre Zuständigen.
+1. **M9 vor der Kundenabnahme** — Endstand `01e1c6b` installieren, Dienst neu
+   starten, `readlink` belegen, beide Hauptwege daran ausführen, die zwei
+   Abnahmebilder mit datiertem Vermerk ersetzen. Der einzige noch offene Punkt
+   aus Takt 1 (siehe 8.3 und 11).
+2. M3, zweite Hälfte — die Nachbau-Bedingung in die Prüfmittel-Liste ab
+   `SPEC.md:1130`. *(N1, N2, N3, N4, N5, N7 sowie M1, M2, M4, M6, M7, M8 sind
+   erledigt und in 8.1 bis 8.3 einzeln nachgemessen.)*
+3. M5 — die Zahl aus der Überschrift der Fallenliste ist entfernt, die Fälle
+   11 bis 15 stehen; erledigt mit `da5e448`.
 4. Nach der Abnahme Takt 2: AK-Haken, Issues und Milestone schließen, Journal,
    Push, Zweige und Worktrees räumen, Changelog, **Version erhöht und getaggt**
    (die Aussetzung ist seit #61 beendet — es wird der erste MINOR-Sprung nach
@@ -722,4 +782,33 @@ beste Beleg dafür, dass der frische Kontext trägt.
 
 **Was diese Retro nicht geleistet hat, ausdrücklich:** Die Änderungen an
 `PROZESS.md` sind Prozess-Artefakt-Änderungen und durchlaufen nach der globalen
-Regel den karpathy-Reviewer. Der Aufruf ist Sache des PO und steht noch aus.
+Regel den karpathy-Reviewer. **Der Aufruf ist inzwischen erfolgt — zweimal**,
+und beide Läufe haben `fail` gegen diese Retro gemeldet: B25 zählte Pfade auf,
+statt auszuschließen; B24 schrieb `-uno` fest, das ungetrackte Dateien
+ausblendet; die Modellrevision behauptete eine Zählung, die ihre Grundlage
+nicht hatte. Alle drei sind berichtigt (10.2, 10.4). **Der Beschluss über
+Prüfmittel, die ihren Gegenstand nicht erreichen, ist an seinem eigenen
+Nachbarbeschluss gerissen** — das ist kein Nebenbefund, sondern der beste
+verfügbare Beleg dafür, dass B22 nötig ist.
+
+## 11. Vollzugsvermerk Takt 1
+
+Geführt vom Scrum Master, 08.08.2026, 00:40, am Endstand `01e1c6b`. Jeder Punkt
+mit Beleg abgehakt, wie die Liste in `PROZESS.md` es verlangt.
+
+| Punkt | Stand | Beleg |
+|---|---|---|
+| **1** Endstand installiert, Hauptweg jeder Story daran ausgeführt | **offen — M9** | `/usr/bin/denkzetteld` trägt `7e23862e…` (Stand `a15470f`), der Endstand `b206a483…`. Der Abnahmebericht belegt einen überholten Stand; die Trennlinie hat sich seither bewegt |
+| **2** jeder Prüflauf hat einen Bericht als Datei · Prüfsummen der Bildbelege | **erfüllt** | Fünf Berichte im Repo, Commit-Botschaften dagegengehalten, kein Lauf ohne Bericht. Prüfsummenlauf über vier Ordner, 12 Gruppen einzeln bewertet, kein Mangel (7.6) |
+| **3** DoD 1–4 je Story · Doku-Abgleich · **B25-Griff einmal je Sprint** | **erfüllt** | DoD 1 und 3 in 8.3 am Endstand nachgemessen, DoD 4 mit `58bd93f` und `dad9948`/`01e1c6b` geschlossen; Doku-Abgleich in 7.7, Restpunkte M4 und M5 behoben. Der B25-Griff hat in diesem Sprint gegriffen und den Nachlauf ausgelöst |
+| **4** Mängelliste an den PO | **erfüllt** | Abschnitt 8 samt der Nachträge 8.1 bis 8.3; neun Nummern, acht geschlossen, **M9 offen** |
+
+**Urteil: Takt 1 ist nicht abgeschlossen.** Es fehlt ein einziger Punkt, und es
+ist der erste. Ohne ihn legt der PO dem Kunden einen Stand vor, dessen
+Abnahmebilder ein anderes Bild zeigen als die Anwendung, die auf seiner
+Maschine liegt.
+
+**Takt 2** folgt nach der Kundenabnahme; die offene Arbeit steht in 9, Punkt 4,
+einschließlich des ersten Versionssprungs nach dem Ende der Aussetzung
+(`v0.3.0`) und des Verwalter-Berichts, dessen Datei ich mit `git ls-files`
+prüfe.
