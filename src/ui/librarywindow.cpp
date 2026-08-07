@@ -729,8 +729,25 @@ QModelIndex LibraryWindow::groupHeadOf(const QModelIndex &note) const
     return {};
 }
 
+void LibraryWindow::repaintTheRowAbove(const QModelIndex &row)
+{
+    if (!row.isValid() || row.row() == 0) {
+        return;
+    }
+
+    m_list->update(m_model->index(row.row() - 1));
+}
+
 void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previous)
 {
+    // Both ends of the move first, and before every guard below: the separator
+    // lines have to follow the selection wherever it goes, and one of the ways
+    // out of here is the one that puts it back. Repainting a row asks no
+    // question and costs nothing when there is nothing to change, so it needs
+    // none of the conditions the rest of this function turns on (issue #101).
+    repaintTheRowAbove(index);
+    repaintTheRowAbove(previous);
+
     // The way back out of a cancelled switch runs through here as well, and it
     // must not raise the same question a second time. The mark of the press
     // stays where it is: it belongs to the switch this one is putting back, and
