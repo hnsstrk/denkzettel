@@ -68,6 +68,46 @@ lauf() {
     cp "$WURZEL/$PRUEFSATZ" "$PRUEFSATZ"
 }
 
+# Die Gegenprobe zum Überspringen (Proben 8 und 9). Sie fährt den Prüflauf ohne
+# Plasma-Grafiken auf dem Datenpfad — die Lage des öffentlichen Läufers, der am
+# 07.08.2026 mit sechs gefallenen Prüfsätzen rot war.
+#
+# Zwei Zahlen entscheiden, und beide stehen im Ergebnis: die **Fehlschläge**
+# müssen null sein, und die **Übersprungenen** müssen größer als null sein. Ein
+# Lauf ohne Übersprungene wäre kein Beleg, sondern ein Hinweis darauf, dass die
+# Lage gar nicht hergestellt wurde.
+ohne_grafik() {
+    local nummer="$1"
+    local was="$2"
+    local erwartet="$3"
+    shift 3
+    echo
+    echo "===== Probe $nummer — $was"
+    echo "Erwartet: $erwartet"
+    local eingriff
+    for eingriff in "$@"; do
+        eval "$eingriff" || echo "  ACHTUNG: Eingriff schlug fehl: $eingriff"
+    done
+    if ! cmake --build "$BAU" -j "$(nproc)" > "$ARBEIT/bau.log" 2>&1; then
+        echo "ERGEBNIS: übersetzt nicht mehr."
+        grep -m3 "error" "$ARBEIT/bau.log" | sed 's/^/  /'
+    else
+        local ausgabe
+        # XDG_DATA_DIRS zeigt ins Leere: die mitgelieferten Prüf-Themes kommen
+        # über DENKZETTEL_TEST_THEMES trotzdem auf den Pfad, die Plasma-Grafiken
+        # nicht. Genau das ist der Unterschied zwischen dieser Maschine und dem
+        # Läufer — `ksvg` hängt nicht von `libplasma` ab.
+        ausgabe="$(XDG_DATA_DIRS=/nonexistent QT_QPA_PLATFORM=offscreen \
+                   QT_QPA_PLATFORMTHEME=kde "$BAU/bin/capturetest" 2>&1)"
+        echo "ERGEBNIS: $(grep -E '^Totals' <<< "$ausgabe")"
+        grep -E "^FAIL!" <<< "$ausgabe" | sed -E 's/^/  /; s/ \(.*//' | sort -u
+        echo "  Übersprungene Prüfsätze zum Feld:"
+        grep -E "^SKIP" <<< "$ausgabe" | grep -oE "CaptureTest::[a-zA-Z]+" | sed 's/^/    /'
+    fi
+    cp "$WURZEL/$FENSTER" "$FENSTER"
+    cp "$WURZEL/$PRUEFSATZ" "$PRUEFSATZ"
+}
+
 echo "== Ausgangsstand übersetzen =="
 cmake -B "$BAU" -S . -DCMAKE_BUILD_TYPE=Debug > /dev/null
 cmake --build "$BAU" -j "$(nproc)" > /dev/null
@@ -102,6 +142,14 @@ lauf 6 "Das Feld wird über das ganze Fenster gelegt (AK 9, zweiter Abgriff)" \
 lauf 7 "Das Feld bekommt das Bildpunktverhältnis des Fensters nicht (F4)" \
     "rot allein über den Lauf bei 1,6 — bei Verhältnis 1 ist der Fehler unsichtbar" \
     'sed -i "s|    m_field->setDevicePixelRatio(devicePixelRatioF());|    // mutiert|" "$FENSTER"'
+
+ohne_grafik 8 "Ohne Plasma-Grafik, **unmutiert** — die Lage des öffentlichen Läufers" \
+    "0 Fehlschläge und mehr als 0 Übersprungene; jeder Skip nennt seinen Grund" \
+    'true'
+
+ohne_grafik 9 "Ohne Plasma-Grafik, **mit** Mutation 1 (Feld nicht zeichnen)" \
+    "grün — und das ist keine Lücke, sondern die Kehrseite: wo nichts zu messen ist, fängt der Läufer diese Mutation nicht. Probe 1 fängt sie dort, wo die Grafik da ist." \
+    'sed -i "s|if (m_field->isValid()) {|if (false) {|" "$FENSTER"'
 
 echo
 echo "Fertig."
