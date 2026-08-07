@@ -1,8 +1,12 @@
+Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+
 === #100: Deckung, Rand und Farben von widgets/lineedit je Theme (AK 6b) ===
 Auswahlpfad `opaque`, Rahmen 560x90, Verhältnis 1.
 Fläche = Mitte der Grafik, Kante = äußerster Bildpunkt der linken Seite.
 
 Theme                       gültig   Rand links   Fläche            Kante
+Ant-Dark                    ja       6             23, 34, 37/a 76    0,  0,  0/a  0
 denkzettel-pruef-eckig      ja       6             20, 22, 24/a255   76, 78, 81/a255
 denkzettel-test-breit       ja       6             51, 34, 17/a255   65, 27, 71/a255
 denkzettel-test-schmal      ja       6             20, 22, 24/a255   76, 78, 81/a255

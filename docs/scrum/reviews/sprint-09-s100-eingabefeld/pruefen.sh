@@ -31,6 +31,33 @@ trap 'rm -rf "$FLUECHTIG"' EXIT
 
 mkdir -p "$HIER/messungen" "$HIER/bilder/offscreen" "$HIER/bilder/sitzung"
 
+# Der Stand, an dem gemessen wird — Beschluss B24. Er wird **vor** dem ersten
+# Schreiben erhoben, denn der Lauf macht den Baum selbst schmutzig: Er
+# überschreibt jede Datei unter messungen/ und bilder/.
+#
+# „Sauber" heißt deshalb: außerhalb dieses Belegordners liegt nichts
+# Uncommittetes. Das ist die Frage, auf die es ankommt — ein Messwert von einem
+# Baum mit uncommittetem **Code** ist nicht nachfahrbar, und man sieht es ihm
+# nicht an.
+STAND="$(git -C "$WURZEL" rev-parse --short HEAD)"
+ZWEIG="$(git -C "$WURZEL" rev-parse --abbrev-ref HEAD)"
+OFFEN="$(git -C "$WURZEL" status --porcelain -- . \
+         ":(exclude)docs/scrum/reviews/sprint-09-s100-eingabefeld" | wc -l)"
+if [ "$OFFEN" -eq 0 ]; then
+    BAUM="sauber"
+else
+    BAUM="$OFFEN Datei(en) uncommittet — DIESE MESSUNG IST NICHT NACHFAHRBAR"
+fi
+ZEITPUNKT="$(date '+%d.%m.%Y %H:%M %Z')"
+
+kopf() {
+    echo "Stand: $STAND ($ZWEIG) · Arbeitsbaum außerhalb des Belegordners: $BAUM"
+    echo "Gemessen: $ZEITPUNKT auf $(uname -n), $(uname -sr)"
+    echo
+}
+
+echo "== Stand dieses Laufs: $STAND ($ZWEIG), Arbeitsbaum $BAUM =="
+
 echo "== Denkzettel übersetzen (eigener Bauplatz) =="
 cmake -B "$BAU/projekt" -S "$WURZEL" -DCMAKE_BUILD_TYPE=Debug > /dev/null
 # Alles, kein Zielauswahl: `ctest` unten fährt neun Prüfläufe, und eine Auswahl
@@ -52,11 +79,16 @@ export QT_QPA_PLATFORMTHEME=kde
 export XDG_DATA_DIRS="$WURZEL/tests/themes:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
 echo "== M1: Deckung, Rand und Farben der Feldgrafik je Theme (AK 6b, AK 1) =="
-QT_QPA_PLATFORM=offscreen "$BAU/sonden/feldgrafik" > "$HIER/messungen/m1-feldgrafik-je-theme.txt"
+{
+    kopf
+    QT_QPA_PLATFORM=offscreen "$BAU/sonden/feldgrafik"
+} > "$HIER/messungen/m1-feldgrafik-je-theme.txt"
 
 echo "== M2: Mutationsproben (AK 9 — hier trägt nichts anderes) =="
-QT_QPA_PLATFORM=offscreen bash "$HIER/mutationsproben.sh" \
-    > "$HIER/messungen/m2-mutationsproben.txt" 2>&1
+{
+    kopf
+    QT_QPA_PLATFORM=offscreen bash "$HIER/mutationsproben.sh" 2>&1
+} > "$HIER/messungen/m2-mutationsproben.txt"
 
 echo "== M3: Testlauf des Projekts (AK 1, 4, 5, 6a, 6b, 8, 9) =="
 # Zusammenfassung **und** Einzelausgabe. Die Zusammenfassung allein sagt „100 %"
@@ -64,6 +96,7 @@ echo "== M3: Testlauf des Projekts (AK 1, 4, 5, 6a, 6b, 8, 9) =="
 # Bericht beruft, nicht (karpathy K8). Darunter steht deshalb der vollständige
 # Lauf von `capturetest`, Prüfsatz für Prüfsatz.
 {
+    kopf
     echo "=== #100, M3a: ctest über alle neun Prüfläufe ==="
     (cd "$BAU/projekt" && QT_QPA_PLATFORM=offscreen ctest --output-on-failure) 2>&1 \
         || echo "   ACHTUNG: ctest war nicht grün."
@@ -77,9 +110,11 @@ echo "== M4: Bildreihe offscreen, auf der Skalierung des Kunden (AK 1, AK 5) =="
 # 1,6 ist die Einstellung des Kunden, am 07.08.2026 bestätigt. Offscreen liefert
 # QT_SCALE_FACTOR genau diesen Wert; unter Wayland multiplizierte es sich mit
 # der Sitzungsskalierung, und deshalb steht es hier und nicht bei M5 (F10).
-QT_QPA_PLATFORM=offscreen QT_SCALE_FACTOR=1.6 \
-    "$BAU/projekt/bin/captureshots" "$HIER/bilder/offscreen" \
-    > "$HIER/messungen/m4-bildreihe.txt"
+{
+    kopf
+    QT_QPA_PLATFORM=offscreen QT_SCALE_FACTOR=1.6 \
+        "$BAU/projekt/bin/captureshots" "$HIER/bilder/offscreen"
+} > "$HIER/messungen/m4-bildreihe.txt"
 
 echo "== M5: das Fenster in der angemeldeten Sitzung (AK 2, AK 4 — B21) =="
 GESPERRT="$(loginctl show-session "$(loginctl show-user "$USER" -p Display --value)" \
@@ -91,8 +126,10 @@ elif [ "$GESPERRT" != "no" ]; then
 else
     # **Ohne QT_SCALE_FACTOR** (F10). Zwei Themes, die sich in der Feldgrafik
     # gemessen unterscheiden: `default` zeichnet dunkel, `breeze-light` hell.
-    "$BAU/sonden/sitzungsbild" "$HIER/bilder/sitzung" default breeze-light \
-        > "$HIER/messungen/m5-sitzungsbild.txt"
+    {
+        kopf
+        "$BAU/sonden/sitzungsbild" "$HIER/bilder/sitzung" default breeze-light
+    } > "$HIER/messungen/m5-sitzungsbild.txt"
 fi
 
 echo "== M7: derselbe Prüflauf ohne Plasma-Grafiken (die Lage des Läufers) =="
@@ -105,6 +142,7 @@ echo "== M7: derselbe Prüflauf ohne Plasma-Grafiken (die Lage des Läufers) =="
 # Die Datei ist der Beleg dafür, dass jeder Übersprung seinen Grund nennt.
 # Was zählt, sind zwei Zahlen: **0 failed** und **mehr als 0 skipped**.
 {
+    kopf
     echo "=== #100, M7: capturetest ohne Plasma-Grafiken auf dem Datenpfad ==="
     echo "Nachgestellt wird der öffentliche Lauf 31216657864, der hier am"
     echo "07.08.2026 mit 28 passed / 6 failed / 3 skipped rot war."
@@ -115,6 +153,7 @@ echo "== M7: derselbe Prüflauf ohne Plasma-Grafiken (die Lage des Läufers) =="
 
 echo "== M6: die Grenze steht in SPEC 3.1 (AK 6b, DoD 4/B9) =="
 {
+    kopf
     echo "=== #100, M6: Textnachweis der Bedingung aus AK 6b in SPEC.md ==="
     echo "Gesucht wird die Deckungsgrenze, nicht eine Kontrastzahl."
     echo
