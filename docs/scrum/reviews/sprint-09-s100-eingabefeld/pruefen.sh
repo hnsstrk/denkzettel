@@ -85,6 +85,24 @@ else
         > "$HIER/messungen/m5-sitzungsbild.txt"
 fi
 
+echo "== M7: derselbe Prüflauf ohne Plasma-Grafiken (die Lage des Läufers) =="
+# XDG_DATA_DIRS ins Leere: die mitgelieferten Prüf-Themes kommen über
+# DENKZETTEL_TEST_THEMES trotzdem auf den Pfad, die Plasma-Grafiken nicht.
+# `ksvg` hängt nicht von `libplasma` ab, deshalb hat ein Bauwirt, der nur die
+# KF6-Teile dieses Projekts installiert, kein `widgets/lineedit` — und ohne ein
+# installiertes `default` gibt es auch nichts, worauf KSvg zurückfiele.
+#
+# Die Datei ist der Beleg dafür, dass jeder Übersprung seinen Grund nennt.
+# Was zählt, sind zwei Zahlen: **0 failed** und **mehr als 0 skipped**.
+{
+    echo "=== #100, M7: capturetest ohne Plasma-Grafiken auf dem Datenpfad ==="
+    echo "Nachgestellt wird der öffentliche Lauf 31216657864, der hier am"
+    echo "07.08.2026 mit 28 passed / 6 failed / 3 skipped rot war."
+    echo
+    XDG_DATA_DIRS=/nonexistent QT_QPA_PLATFORM=offscreen \
+        "$BAU/projekt/bin/capturetest" 2>&1 | grep -vE "^QWARN"
+} > "$HIER/messungen/m7-ohne-plasma-grafik.txt" || true
+
 echo "== M6: die Grenze steht in SPEC 3.1 (AK 6b, DoD 4/B9) =="
 {
     echo "=== #100, M6: Textnachweis der Bedingung aus AK 6b in SPEC.md ==="

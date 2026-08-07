@@ -4,20 +4,20 @@ Test project /home/hnsstrk/Projekte/denkzettel-100/docs/scrum/reviews/sprint-09-
     Start 2: storetest
 2/9 Test #2: storetest ........................   Passed    0.02 sec
     Start 3: capturetest
-3/9 Test #3: capturetest ......................   Passed    0.55 sec
+3/9 Test #3: capturetest ......................   Passed    0.53 sec
     Start 4: librarytest
-4/9 Test #4: librarytest ......................   Passed    6.20 sec
+4/9 Test #4: librarytest ......................   Passed    6.60 sec
     Start 5: shelltest
-5/9 Test #5: shelltest ........................   Passed    0.13 sec
+5/9 Test #5: shelltest ........................   Passed    0.07 sec
     Start 6: firstruntest
-6/9 Test #6: firstruntest .....................   Passed    0.02 sec
+6/9 Test #6: firstruntest .....................   Passed    0.01 sec
     Start 7: identitytest
-7/9 Test #7: identitytest .....................   Passed    0.06 sec
+7/9 Test #7: identitytest .....................   Passed    0.04 sec
     Start 8: commandlinetest
-8/9 Test #8: commandlinetest ..................   Passed    0.24 sec
+8/9 Test #8: commandlinetest ..................   Passed    0.20 sec
     Start 9: installtest
-9/9 Test #9: installtest ......................   Passed    0.03 sec
+9/9 Test #9: installtest ......................   Passed    0.02 sec
 
 100% tests passed out of 9
 
-Total Test time (real) =   7.26 sec
+Total Test time (real) =   7.50 sec

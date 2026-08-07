@@ -319,6 +319,77 @@ Nichts außerhalb meiner Fläche angefasst. Zwei Beobachtungen für den PO:
 
 ---
 
+## 7. Nachtrag 07.08.2026 — der öffentliche Lauf war rot, und warum
+
+Lauf `31216657864` auf `70902a4`: `capturetest` **28 passed, 6 failed,
+3 skipped**. Eine Wurzel, und sie ist meine.
+
+**Die Ursache.** Auf dem Läufer liegt `widgets/lineedit` nirgends. `ksvg` hängt
+nicht von `libplasma` ab, ein Bauwirt mit nur den KF6-Teilen dieses Projekts hat
+also keine Plasma-Grafiken — und die mitgelieferten Prüf-Themes bringen allein
+`dialogs/background` mit. Damit fehlt auch das, worauf KSvg zurückfiele. Meine
+Falle F1 („jeder Themename löst auf") gilt nur, **solange die
+`default`-Grafiken installiert sind**; diesen Halbsatz hatte ich nicht
+mitgedacht.
+
+**Der peinlichste der sechs war `fieldCoverageIsTheThemesOwn()`.** Er hat die
+Lage vollständig erkannt und im Fehlertext ausgesprochen — und ist trotzdem
+gefallen, weil das `QVERIFY2` **vor** dem `QSKIP` stand. Ich hatte den Skip
+gemeldet; im Prüfsatz stand er an der falschen Stelle. Eine Vorbedingung wird
+zuerst gefragt, sonst ist sie keine.
+
+**Nachgestellt statt geraten.** `XDG_DATA_DIRS=/nonexistent` liefert auf dieser
+Maschine **28 passed, 6 failed, 3 skipped** — dieselben Zahlen, dieselben sechs
+Prüfsätze, dieselben drei Übersprungenen wie auf dem Läufer. Das ist zugleich
+die Antwort auf die Frage, ob dort noch etwas anderes im Spiel ist: nein.
+
+**Die Reparatur.** Ein Wächter, `whyNoFieldGraphic(theme, kriterium)`, gefragt
+in `paintsTheThemesFieldOntoTheHull()`,
+`fieldColoursComeFromTheThemeBeforeTheScheme()`,
+`fieldFollowsADesktopThemeChange()`, `textSitsInsideTheFieldBorder()` und —
+in seiner Deckungsform — in `fieldCoverageIsTheThemesOwn()`.
+
+Er hängt an der **gemessenen Ursache**: löst `widgets/lineedit` auf, gibt es den
+Vorsatz `base`, meldet die Grafik einen Rand? Das ist dieselbe Frage, die
+`paintEvent()` stellt, bevor es zeichnet. **Nicht** an `CI=true` und nicht an
+einer Variablen von uns — eine solche Bedingung legte den Prüfsatz überall dort
+still, wo jemand die Variable setzt, und ein stillgelegter Prüfsatz liest sich
+wie ein grüner.
+
+Jeder Skip-Text nennt beide Hälften: welche Voraussetzung fehlt (mit den
+gemessenen Werten `isValid`, Vorsatz, Rand) und welches Kriterium damit
+ungeprüft bleibt — dazu den Satz, dass die Lage „kein Theme" selbst nicht
+ungeprüft ist, sondern von `staysUsableWithoutADesktopTheme()` getragen wird.
+
+**Der Gegenversuch, beide Richtungen, in `mutationsproben.sh`:**
+
+| Probe | Lage | Ergebnis |
+|---|---|---|
+| **8** | ohne Grafik, unmutiert | **29 passed, 0 failed, 8 skipped** — jeder Skip mit Grund |
+| **9** | ohne Grafik, mit Mutation 1 | grün, 8 übersprungen — die Kehrseite, ausgesprochen: wo nichts zu messen ist, fängt der Läufer diese Mutation nicht |
+| **1** | **mit** Grafik, dieselbe Mutation 1 | rot, sechs Prüfsätze fallen |
+
+Und die Zahl, die gegen einen zu breiten Skip zeugt: **auf Ganymed 37 passed,
+0 failed, 0 skipped** — der Wächter greift hier bei keinem einzigen Prüfsatz.
+Die Proben 1 bis 7 fallen unverändert wie zuvor.
+
+**Zu den beiden Kindprozessen.** Ihre Rückgabe allein sagt nichts, ihr Text
+sagt es: Beide Eltern reichen `child.readAll()` in die Fehlermeldung, weshalb
+im Läuferprotokoll auch „Compared values are not the same" aus dem Kind stand.
+Die Lücke war der **Übersprung**, nicht der Fehlschlag — ein Kind, das alles
+überspringt, kehrt mit 0 zurück und der Elternteil meldet grün. Deshalb fragt
+`fieldColoursComeFromTheThemeBeforeTheScheme()` die Vorbedingung jetzt im
+Elternteil, **bevor** ein Kind startet. Bei `hullHoldsAtTheCustomersScale()`
+bleibt das Feld in der Liste: Sein Gegenstand ist die Hülle bei 1,6, und die
+Feldzusicherung läuft im selben Lauf auch auf oberster Ebene — die fehlende
+Voraussetzung steht dort und nicht nur in der Ausgabe eines Kindes, die
+niemand liest, wenn es gelingt.
+
+**Beleg:** `messungen/m7-ohne-plasma-grafik.txt` (der ganze Lauf mit allen
+Skip-Texten), `messungen/m2-mutationsproben.txt` Proben 8 und 9.
+
+---
+
 ## Reproduktion
 
 ```

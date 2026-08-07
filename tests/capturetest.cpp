@@ -115,6 +115,26 @@ private:
     static QPixmap themeField(const QString &theme, const QSize &size, const QStringList &selectors);
     /** The border `widgets/lineedit` claims for itself, or 0 if it does not resolve. */
     static qreal fieldBorderOf(const QString &theme);
+    /**
+     * Empty where the theme draws a text field, otherwise the sentence a QSKIP
+     * gets — the one measured precondition every field assertion rests on.
+     *
+     * It exists because that precondition is **not** given everywhere, and the
+     * public runner is the place it is not: `ksvg` does not depend on
+     * `libplasma`, so a build host that installs only this project's KF6 parts
+     * has no `widgets/lineedit` anywhere on the data path. The bundled test
+     * themes do not bring one either — they ship `dialogs/background` and
+     * nothing else — and the fallback KSvg would take needs an installed
+     * `default` to fall back **to**.
+     *
+     * Hung on the measurement and never on the environment: what is asked is
+     * whether the graphic resolves and claims a border, which is the same thing
+     * `CaptureWindow::paintEvent()` asks before it draws. A condition on
+     * `CI=true` or on a variable of ours would silence the assertion wherever
+     * somebody set the variable, and a silenced assertion reads like a green
+     * one.
+     */
+    static QString whyNoFieldGraphic(const QString &theme, const QString &criterion);
     /** Hull and field composed the way paintEvent() composes them. */
     static QImage themeHullWithField(const QString &theme, const QSize &size, const QRect &field);
     /** What the window's field draws at its surface, read off a fresh picture. */
@@ -588,6 +608,40 @@ qreal CaptureTest::fieldBorderOf(const QString &theme)
     return frame.isValid() ? frame.marginSize(KSvg::FrameSvg::LeftMargin) : 0;
 }
 
+QString CaptureTest::whyNoFieldGraphic(const QString &theme, const QString &criterion)
+{
+    KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
+
+    KSvg::FrameSvg frame;
+    frame.setUsingRenderingCache(false);
+    frame.setImageSet(&imageSet);
+    frame.setImagePath(QStringLiteral("widgets/lineedit"));
+    frame.setElementPrefix(QStringLiteral("base"));
+    frame.setEnabledBorders(KSvg::FrameSvg::AllBorders);
+    frame.resizeFrame(QSizeF(560, 90));
+
+    const qreal border = frame.isValid() ? frame.marginSize(KSvg::FrameSvg::LeftMargin) : 0;
+    if (frame.isValid() && frame.hasElementPrefix(QStringLiteral("base")) && border > 0) {
+        return {};
+    }
+
+    // Named in full, both halves: **which** precondition is missing, and
+    // **which** criterion goes unmeasured because of it. A silent skip is the
+    // same thing as a silent NOLINT.
+    return QStringLiteral(
+               "Das Desktop-Theme `%1` löst `widgets/lineedit` nicht auf "
+               "(isValid=%2, Vorsatz base=%3, Rand %4) — ohne Plasma-Grafiken auf dem "
+               "Datenpfad zeichnet der Bau kein Feld, und %5 ist hier nicht zu messen. "
+               "Dass das Fenster ohne Feld brauchbar bleibt, prüft "
+               "staysUsableWithoutADesktopTheme(); ungeprüft bleibt allein das Feld selbst.")
+        .arg(theme,
+             frame.isValid() ? QStringLiteral("ja") : QStringLiteral("nein"),
+             frame.hasElementPrefix(QStringLiteral("base")) ? QStringLiteral("ja")
+                                                            : QStringLiteral("nein"))
+        .arg(border)
+        .arg(criterion);
+}
+
 QImage CaptureTest::themeHullWithField(const QString &theme, const QSize &size, const QRect &field)
 {
     // The two calls of paintEvent(), in its order and with its coordinates: the
@@ -750,6 +804,11 @@ void CaptureTest::paintsTheThemesFieldOntoTheHull()
     // the field carries that theme's own colour, under the narrow one the
     // colour scheme's.
     for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        const QString missing = whyNoFieldGraphic(theme, QStringLiteral("AK 1 (Herkunft)"));
+        if (!missing.isEmpty()) {
+            QSKIP(qPrintable(missing));
+        }
+
         m_window->reloadDesktopTheme(theme);
 
         const QPlainTextEdit *text = textArea();
@@ -858,6 +917,18 @@ void CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme()
     // What the child measures is the order of precedence, and it is the same
     // one as for the writing since #85: a theme that brings its own `colors`
     // file decides, and a theme that brings none leaves it to the scheme.
+    // Asked in **both** halves, and in the parent before the child is started
+    // at all: an exit code says that the child failed and never why. A parent
+    // that let the child run into the missing graphic would report a number and
+    // hide the reason behind it.
+    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        const QString missing =
+            whyNoFieldGraphic(theme, QStringLiteral("die Farbschema-Hälfte von AK 1"));
+        if (!missing.isEmpty()) {
+            QSKIP(qPrintable(missing));
+        }
+    }
+
     if (qEnvironmentVariableIsSet("DENKZETTEL_TEST_COLOUR_SCHEME")) {
         // No own `colors` file: the scheme the child wrote for itself shows.
         m_window->reloadDesktopTheme(NarrowBorderTheme);
@@ -911,6 +982,13 @@ void CaptureTest::fieldFollowsADesktopThemeChange()
     //
     // There and back, because a colour that moves once would also be explained
     // by one that was set once and never cleared.
+    for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        const QString missing = whyNoFieldGraphic(theme, QStringLiteral("AK 4 (Theme-Wechsel)"));
+        if (!missing.isEmpty()) {
+            QSKIP(qPrintable(missing));
+        }
+    }
+
     m_window->reloadDesktopTheme(NarrowBorderTheme);
     const QColor narrow = fieldSurfaceColour();
 
@@ -941,6 +1019,11 @@ void CaptureTest::textSitsInsideTheFieldBorder()
     // against a whole number falls over that (issue #100, F9; the same
     // observation stands for the hull's margin at the head of this file).
     for (const QString &theme : {NarrowBorderTheme, WideBorderTheme}) {
+        const QString missing = whyNoFieldGraphic(theme, QStringLiteral("AK 5 (Innenabstände)"));
+        if (!missing.isEmpty()) {
+            QSKIP(qPrintable(missing));
+        }
+
         const qreal border = fieldBorderOf(theme);
         QVERIFY2(border > 0, qPrintable(theme));
 
@@ -1020,9 +1103,29 @@ void CaptureTest::fieldCoverageIsTheThemesOwn()
         }
     }
 
+    // The order of these two matters, and it was wrong once: the assertion used
+    // to stand **before** the skip, so on a host without Plasma graphics this
+    // run stated the missing precondition in its own failure text and failed
+    // anyway (öffentlicher Lauf 31216657864). A precondition is asked first or
+    // it is not a precondition.
+    if (covering.isEmpty() && faint.isEmpty()) {
+        QSKIP(qPrintable(
+            QStringLiteral("Keines der %1 gefundenen installierten Desktop-Themes zeichnet "
+                           "`widgets/lineedit` — ohne Plasma-Grafiken auf dem Datenpfad sind "
+                           "die beiden Deckungsklassen aus AK 6b nicht zu messen, weder die "
+                           "deckende noch die schwache.")
+                .arg(installed.size())));
+    }
+
+    // Beyond that a machine that has Plasma themes at all has a covering one:
+    // `default` and the two Breeze themes cover 255, and one of the three is on
+    // every such machine. Left as an assertion on purpose — where the graphics
+    // are there, this is a statement about them and not about the host.
     QVERIFY2(!covering.isEmpty(),
-             "Kein installiertes Theme zeichnet die Feldgrafik deckend — dann ist die "
-             "Gegenklasse aus AK 6b nicht zu messen.");
+             qPrintable(QStringLiteral("Themes gefunden (%1), aber keines zeichnet die "
+                                       "Feldgrafik deckend — dann ist die Gegenklasse aus "
+                                       "AK 6b nicht zu messen.")
+                            .arg(installed.join(QStringLiteral(", ")))));
 
     if (faint.isEmpty()) {
         // Spoken out rather than left to a green run: the five themes that draw
@@ -1477,6 +1580,13 @@ void CaptureTest::hullHoldsAtTheCustomersScale()
                  // session scales to, and offscreen the event that would betray
                  // the omission never arrives (issue #100, F4). At ratio 1 the
                  // picture and the reference are wrong in the same way.
+                 //
+                 // Where the theme draws no field it carries its own skip, and
+                 // the child then exits 0 with one test fewer. That leaves no
+                 // hole to overlook: the same assertion runs in **this**
+                 // process too, so the missing precondition is announced at the
+                 // top level of the same run and not only inside a child whose
+                 // output nobody reads when it succeeds.
                  QStringLiteral("paintsTheThemesFieldOntoTheHull")});
 
     QVERIFY(child.waitForFinished(60000));

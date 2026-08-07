@@ -1,0 +1,53 @@
+=== #100, M7: capturetest ohne Plasma-Grafiken auf dem Datenpfad ===
+Nachgestellt wird der öffentliche Lauf 31216657864, der hier am
+07.08.2026 mit 28 passed / 6 failed / 3 skipped rot war.
+
+********* Start testing of CaptureTest *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.1.1 20260430), cachyos unknown
+PASS   : CaptureTest::initTestCase()
+PASS   : CaptureTest::restsAtFiveLines()
+PASS   : CaptureTest::growsWithTheText()
+PASS   : CaptureTest::stopsAtEightLines()
+PASS   : CaptureTest::windowFollowsTheTextHeight()
+PASS   : CaptureTest::heightFollowsAFontChange()
+PASS   : CaptureTest::savesTextOnControlReturn()
+PASS   : CaptureTest::keepsBlankTextOutOfTheStore()
+PASS   : CaptureTest::discardsTextOnEscape()
+PASS   : CaptureTest::textsFollowAColourSchemeChange()
+PASS   : CaptureTest::hullFollowsTheDesktopTheme()
+SKIP   : CaptureTest::hullFollowsAnInstalledDesktopTheme() Kein Paar installierter Desktop-Themes mit verschiedenem Rand gefunden — die mitgelieferten Prüf-Themes tragen die Zusicherung.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(690)]
+PASS   : CaptureTest::readsTheDesktopThemeFromPlasmarc()
+PASS   : CaptureTest::paintsTheThemesOwnHullInOnePiece()
+SKIP   : CaptureTest::paintsTheThemesFieldOntoTheHull() Das Desktop-Theme `denkzettel-test-schmal` löst `widgets/lineedit` nicht auf (isValid=nein, Vorsatz base=nein, Rand 0) — ohne Plasma-Grafiken auf dem Datenpfad zeichnet der Bau kein Feld, und AK 1 (Herkunft) ist hier nicht zu messen. Dass das Fenster ohne Feld brauchbar bleibt, prüft staysUsableWithoutADesktopTheme(); ungeprüft bleibt allein das Feld selbst.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(809)]
+SKIP   : CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme() Das Desktop-Theme `denkzettel-test-schmal` löst `widgets/lineedit` nicht auf (isValid=nein, Vorsatz base=nein, Rand 0) — ohne Plasma-Grafiken auf dem Datenpfad zeichnet der Bau kein Feld, und die Farbschema-Hälfte von AK 1 ist hier nicht zu messen. Dass das Fenster ohne Feld brauchbar bleibt, prüft staysUsableWithoutADesktopTheme(); ungeprüft bleibt allein das Feld selbst.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(928)]
+SKIP   : CaptureTest::fieldFollowsADesktopThemeChange() Das Desktop-Theme `denkzettel-test-schmal` löst `widgets/lineedit` nicht auf (isValid=nein, Vorsatz base=nein, Rand 0) — ohne Plasma-Grafiken auf dem Datenpfad zeichnet der Bau kein Feld, und AK 4 (Theme-Wechsel) ist hier nicht zu messen. Dass das Fenster ohne Feld brauchbar bleibt, prüft staysUsableWithoutADesktopTheme(); ungeprüft bleibt allein das Feld selbst.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(988)]
+SKIP   : CaptureTest::textSitsInsideTheFieldBorder() Das Desktop-Theme `denkzettel-test-schmal` löst `widgets/lineedit` nicht auf (isValid=nein, Vorsatz base=nein, Rand 0) — ohne Plasma-Grafiken auf dem Datenpfad zeichnet der Bau kein Feld, und AK 5 (Innenabstände) ist hier nicht zu messen. Dass das Fenster ohne Feld brauchbar bleibt, prüft staysUsableWithoutADesktopTheme(); ungeprüft bleibt allein das Feld selbst.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1024)]
+SKIP   : CaptureTest::fieldCoverageIsTheThemesOwn() Keines der 0 gefundenen installierten Desktop-Themes zeichnet `widgets/lineedit` — ohne Plasma-Grafiken auf dem Datenpfad sind die beiden Deckungsklassen aus AK 6b nicht zu messen, weder die deckende noch die schwache.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1112)]
+PASS   : CaptureTest::noteTextUsesTheWindowTextRole()
+PASS   : CaptureTest::readsTheTextColoursOfTheDesktopTheme()
+PASS   : CaptureTest::noteTextComesFromTheThemesOwnColours()
+PASS   : CaptureTest::subtleTextsComeFromTheThemesOwnColours()
+PASS   : CaptureTest::textColoursFollowADesktopThemeChange()
+PASS   : CaptureTest::themeTextColoursOutlastAColourSchemeChange()
+PASS   : CaptureTest::footerHasMoreAirThanTheApplicationName()
+PASS   : CaptureTest::hullIsCompleteAtFiveAndEightLines()
+PASS   : CaptureTest::hullFollowsTheWindowPixelRatio()
+SKIP   : CaptureTest::hullHasNoStairAtTheCorner() Das Theme `default` löst hier nicht auf — ohne installierte Plasma-Themes ist der Kantenlauf von AK 4 nicht zu messen.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1539)]
+PASS   : CaptureTest::hullHoldsAtTheCustomersScale()
+PASS   : CaptureTest::squareThemeKeepsSquareCorners()
+PASS   : CaptureTest::readsTheContrastEffectOfTheDesktopTheme()
+SKIP   : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() Kein installiertes Theme unterscheidet opaque von translucent — die Wahl wäre hier nicht messbar. Die mitgelieferten Prüf-Themes bringen keine Auswahlpfade mit.
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1702)]
+PASS   : CaptureTest::wearsNoDecoration()
+PASS   : CaptureTest::bindsAShadowFromTheThemeTiles()
+PASS   : CaptureTest::staysUsableWithoutADesktopTheme()
+PASS   : CaptureTest::cleanupTestCase()
+Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 261ms
+********* Finished testing of CaptureTest *********

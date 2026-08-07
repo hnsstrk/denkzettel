@@ -1,4 +1,4 @@
-Kopie des Arbeitsbaums nach /tmp/tmp.MTvlcOtRFL
+Kopie des Arbeitsbaums nach /tmp/tmp.o42QEA073D
 == Ausgangsstand übersetzen ==
 Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Einhängepunkt /)
 Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
@@ -6,7 +6,7 @@ Schwerwiegend: Kein Git-Repository (oder irgendein Elternverzeichnis bis zum Ein
 Stoppe bei Dateisystemgrenze (GIT_DISCOVERY_ACROSS_FILESYSTEM nicht gesetzt).
 100% tests passed out of 1
 
-Total Test time (real) =   0.55 sec
+Total Test time (real) =   0.56 sec
 
 ===== Probe 1 — Das Feld wird gar nicht gezeichnet (AK 1, AK 4, AK 6b)
 Erwartet: rot
@@ -60,5 +60,31 @@ Erwartet: rot allein über den Lauf bei 1,6 — bei Verhältnis 1 ist der Fehler
 ERGEBNIS: rot. Gefallene Prüfsätze:
   FAIL!  : CaptureTest::hullHoldsAtTheCustomersScale() 'child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0' returned FALSE.
   FAIL!  : CaptureTest::paintsTheThemesFieldOntoTheHull() 'differing == 0' returned FALSE.
+
+===== Probe 8 — Ohne Plasma-Grafik, **unmutiert** — die Lage des öffentlichen Läufers
+Erwartet: 0 Fehlschläge und mehr als 0 Übersprungene; jeder Skip nennt seinen Grund
+ERGEBNIS: Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 274ms
+  Übersprungene Prüfsätze zum Feld:
+    CaptureTest::hullFollowsAnInstalledDesktopTheme
+    CaptureTest::paintsTheThemesFieldOntoTheHull
+    CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme
+    CaptureTest::fieldFollowsADesktopThemeChange
+    CaptureTest::textSitsInsideTheFieldBorder
+    CaptureTest::fieldCoverageIsTheThemesOwn
+    CaptureTest::hullHasNoStairAtTheCorner
+    CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor
+
+===== Probe 9 — Ohne Plasma-Grafik, **mit** Mutation 1 (Feld nicht zeichnen)
+Erwartet: grün — und das ist keine Lücke, sondern die Kehrseite: wo nichts zu messen ist, fängt der Läufer diese Mutation nicht. Probe 1 fängt sie dort, wo die Grafik da ist.
+ERGEBNIS: Totals: 29 passed, 0 failed, 8 skipped, 0 blacklisted, 276ms
+  Übersprungene Prüfsätze zum Feld:
+    CaptureTest::hullFollowsAnInstalledDesktopTheme
+    CaptureTest::paintsTheThemesFieldOntoTheHull
+    CaptureTest::fieldColoursComeFromTheThemeBeforeTheScheme
+    CaptureTest::fieldFollowsADesktopThemeChange
+    CaptureTest::textSitsInsideTheFieldBorder
+    CaptureTest::fieldCoverageIsTheThemesOwn
+    CaptureTest::hullHasNoStairAtTheCorner
+    CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor
 
 Fertig.
