@@ -1,5 +1,6 @@
 Mutationsproben zu #101 — kann jeder Prüfsatz fallen?
-Stand: 2026-08-07 23:25 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
+Gemessen: 2026-08-08 00:13 CEST, Ganymed.
+Code-Stand: 80e3b7e auf story/101-listentrenner, Arbeitsbaum sauber.
 
 == 1. Eintragslinie ohne die Ausnahme an der Auswahl (AK 3a) ==
 Eingriff : !isGroupHead(below) && !selected && !isSelectedIn(entry, below)

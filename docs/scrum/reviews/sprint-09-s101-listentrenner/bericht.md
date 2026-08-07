@@ -391,3 +391,56 @@ Arch-Strom liegt `kcolorscheme` bei **6.28.0**, verlangt sind **6.20**. Der
 die den Abschluss berührt. Was bleibt, ist der allgemeine Vorbehalt aus dem
 Kopf der Datei: Ein Upstream-Sprung kann den Lauf jederzeit rot färben, und das
 ist so gewollt.
+
+
+---
+
+## 9. Nachtrag 08.08.2026 — die Belege nannten einen Stand, an dem es die Sache nicht gibt (M7)
+
+**Der Mangel.** Alle sieben Messdateien dieses Ordners trugen den Stand
+`46bb5b5`. Dort gibt es `hairline()` **nicht** — die Funktion kam erst mit
+`78eeaff`. Wer den Beleg nachfahren wollte, landete vor der Umsetzung.
+
+**Die Ursache ist nicht der Griff, sondern der Zeitpunkt.** `git rev-parse HEAD`
+nennt den letzten Commit; gemessen wurde ein Arbeitsbaum **mit uncommitteten
+Änderungen**, und davon nennt der Griff nur die Vorgeschichte. Einem Messwert
+sieht man das nicht an — das ist der ganze Grund, warum er es sagen muss.
+
+**Behoben.** Beide Skripte erheben den Stand einmal zu Beginn, bevor sie selbst
+etwas schreiben, und setzen ihn samt Zustand des Arbeitsbaums in jeden Kopf:
+
+```
+Gemessen: 2026-08-08 00:12 CEST, Ganymed. Offscreen, QT_QPA_PLATFORMTHEME=kde.
+Code-Stand: 80e3b7e auf story/101-listentrenner, Arbeitsbaum sauber.
+```
+
+Bei `80e3b7e` ist `hairline()` vorhanden — gegengeprüft, nicht angenommen.
+
+**Was ausgenommen ist und was nicht.** Ausgenommen sind allein `messungen/` und
+`bilder/`: Die schreibt der Lauf selbst voll, und seine eigenen Ausgaben sagen
+nichts über den gemessenen Code. **Die Skripte dieses Ordners sind nicht
+ausgenommen** — ein geändertes Prüfskript ist genau die Sorte uncommitteter
+Änderung, die einen Beleg unnachfahrbar macht.
+
+**Der erste Anlauf war wieder der Fehler selbst.** Er nahm den ganzen
+Belegordner aus und meldete `Arbeitsbaum sauber`, während **beide Skripte
+geändert waren** — eine Wache, die genau den Fall nicht sieht, für den sie
+gebaut ist. Gefunden, weil ich sie nach dem Einbau gegen einen Baum gefahren
+habe, von dem ich wusste, dass er schmutzig ist. **Beide Zweige sind belegt:**
+schmutzig nennt zwei Dateien mit Namen, sauber meldet sauber.
+
+### 9.1 Zwei Punkte, die nicht meine Fläche sind
+
+- **Die vier Datumsangaben aus M8 stammen nicht von mir.** `08.08.2026` in
+  `sprint-09-s100-eingabefeld/bericht.md:232, :240, :416` und in
+  `…/mutationsproben.sh:47` gehen laut `git blame` allesamt auf `f700dfd`
+  („Vier Review-Befunde zu #100 abgearbeitet") zurück — den #100-Strang. In
+  meinem Belegordner steht kein einziges Datum nach dem 07.08.2026 (gegriffen
+  über `08.08.2026` und `2026-08-08`).
+- **B24 ist nirgends im Repository verankert.** Der höchste Beschluss in
+  `docs/scrum/PROZESS.md` ist **B21**; `B24` kommt weder dort noch in
+  `CLAUDE.md` oder unter `.claude/` vor. Die Regel steht damit nur im
+  Auftragstext — und das ist genau die Lücke, die `CLAUDE.md` unter
+  „Retrospektiven" beschreibt: *eine Erkenntnis, die nur im Protokoll steht, ist
+  nicht verankert.* Umgesetzt habe ich sie hier trotzdem; das Verankern gehört
+  dem PO, `PROZESS.md` ist nicht meine Fläche.
