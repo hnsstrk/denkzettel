@@ -227,6 +227,37 @@ im selben Zug in die Zeichnung — ein Gerätebildpunkt, nicht ein Layoutpunkt.
 Ich habe die Zeichnung nicht angefasst, weil mein Review keine Festlegung
 ändert.
 
+### Nachtrag vom 07.08.2026 — die Zeichnung ist nachgezogen
+
+Die Korrektur ist gefahren (`78eeaff`, zusammengeführt mit `a15470f`); die
+Zahlen des Stranges zeigen, dass der Befund weiter trug als die Tabelle oben:
+im **Normalfall** waren zwei der vier Gruppenlinien halb so stark wie die
+anderen — in der Ansicht, die der Kunde am häufigsten sieht.
+
+Zeichnung 3a trägt daraufhin zwei Ergänzungen, beide datiert und mit lesbarer
+alter Fassung (B17):
+
+- ein Vermerk am Absatz „Die Rangfolge entsteht aus der Ausdehnung": **Die
+  Stärke ist ein Maß in Gerätebildpunkten** — ganze Zeilen, mindestens eine,
+  Oberkante auf der Gerätebildpunktgrenze, gerundet und nicht abgeschnitten.
+- ein neuer Prüfsatz **P6** samt Belegform: eine zweite Anmeldung bei `ctest`
+  unter `QT_SCALE_FACTOR=1.6`, weil P1 bis P3 in logischen Punkten messen.
+
+**Die seitlichen Kanten bleiben ausdrücklich ungeregelt**, und der Vermerk sagt
+das mit dem Grund: Bei 1,6 landet die eingerückte Kante auf 19,2 und wird bei
+19 gezeichnet — gemessen **0,12 Punkte**, während der Seitenrand der Glyphen
+daneben zwischen 0,5 und 2,4 Punkten schwankt und je Buchstabe verschieden
+ausfällt (Messung an `bilder/offscreen-1/s101-rhythmus-liste.png` gegen
+`bilder/offscreen-1-6/s101-rhythmus-liste.png`). Die Kante trägt keine
+Rangaussage; die Stärke tat es.
+
+**Fällig, außerhalb meiner Fläche:** SPEC 9 beschreibt die Trennung mit
+demselben Schweigen über die Maßeinheit („zwei Haarlinien einer Farbe, deren
+Ausdehnung die Rangfolge trägt", `SPEC.md:718`). Nach DoD 4 gehört die
+Gerätebildpunkt-Bedingung dort ebenso hinein. Der B17-Griff über `Haarlinie`,
+`Strichstärke`, `Stärke` und `Trennlinie` zeigt sonst keine weitere Aussage,
+die nachzuziehen wäre.
+
 ## Belege
 
 ```

@@ -734,6 +734,20 @@ v1 aber nicht gebaut.
   1,00 : 1 und 1,21 : 1 und an jeder Gruppengrenze bei 1,00 : 1 (gemessen
   06.08.2026). **Kein Maß ändert sich dadurch**: Beide Linien liegen in
   Innenabständen, die es schon gibt.
+  **Die Stärke ist ein Maß in Gerätebildpunkten** (entdeckte Bedingung,
+  07.08.2026, DoD 4): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
+  und nicht abgeschnitten, die Oberkante auf der Gerätebildpunktgrenze. Der
+  Satz steht hier, weil sein Fehlen einen Fehler getragen hat: Als logisches
+  Rechteck gefüllt, belegte dieselbe Linie unter der Skalierung 1,6 mal einen
+  und mal zwei Gerätebildpunkte — im Normalfall waren zwei von vier
+  Gruppenlinien halb so stark wie die anderen, und in einem Lauf stand eine
+  Gruppenlinie von einem Punkt über Eintragslinien von zwei. Dort sagte die
+  Stärke das Gegenteil dessen, was die Ausdehnung sagt. **Abschneiden statt
+  Runden** ergäbe bei 1,6 einen Bildpunkt, und im schwächsten Schema trägt die
+  Linie 1,24 : 1 gegen den Grund. Unter Skalierung 1 ändert sich nichts.
+  *Ausdrücklich ungeregelt bleibt die seitliche Kante:* Sie liegt unter 1,6 bei
+  11,88 statt 12,0 Punkten — 0,12 Punkte, während der Seitenrand der Glyphen
+  daneben im selben Bild zwischen 0,5 und 2,4 Punkten schwankt.
   **Bedingung, entdeckt bei der Umsetzung (DoD 4/B9): Die Ansicht zeichnet den
   oberen Nachbarn eines Auswahlwechsels nicht von sich aus neu.** Sie malt nur
   die Strecke zwischen alter und neuer Auswahl, und die Zeile über beiden Enden
