@@ -76,7 +76,7 @@ echo "== B3: die neuen Prüfsätze einzeln =="
     # 178 KB Datei, in der der Nachweis untergeht.
     "$BAU/bin/librarytest" 2>/dev/null \
         | grep -E '^(PASS|FAIL|Totals)' \
-        | grep -E 'Hairline|RankingDoesNotAskForIt|GroupLineOverAHead|UpperNeighbours|SeparatorOutOfGround|SearchResultsLikeTheLibrary|MeasuresOfTheGroupedList|bringsTheHead|^Totals' \
+        | grep -E 'Hairline|RankingDoesNotAskForIt|GroupLineOverAHead|UpperNeighbours|SeparatorOutOfGround|SearchResultsLikeTheLibrary|MeasuresOfTheGroupedList|OneThicknessUnderTheCustomers|bringsTheHead|^Totals' \
         || true
 } > "$HIER/messungen/b3-pruefsaetze.txt"
 
@@ -131,5 +131,17 @@ cp "$SECHZEHNTEL/01-normalfall.png" \
     done
     echo "Trefferliste (AK 6): skalierung-1/2-trefferliste-mit-gruppen.png"
 } > "$HIER/messungen/b5-bilder.txt"
+
+echo "== B7: Strichstärke unter der Skalierung des Kunden (UI-Review L9) =="
+# Die Zusicherung des Kunden lautet, dass die Rangfolge aus der LÄNGE des
+# Strichs kommt und nicht aus seiner Stärke. Unter 1,6 belegt eine Linie von
+# einem logischen Punkt 1,6 Gerätebildpunktzeilen — vor der Ausrichtung am
+# Geräteraster wurden daraus mal eine, mal zwei. Hier wird jede Linie im Bild
+# gezählt, damit die Zusicherung eine Zahl bekommt.
+{
+    kopf "B7 — Stärke jeder Trennlinie in GERÄTEBILDPUNKTEN, Skalierung 1,6"
+    python3 "$HIER/strichstaerke.py" "$HIER/bilder/skalierung-1-6" \
+        || echo "(nicht ermittelbar — python3 mit Pillow fehlt)"
+} > "$HIER/messungen/b7-strichstaerke.txt"
 
 echo "Fertig. Messungen unter $HIER/messungen/, Bilder unter $HIER/bilder/"

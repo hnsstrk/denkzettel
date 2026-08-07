@@ -1,5 +1,5 @@
 B3 — die Prüffunktionen dieser Story, mit Namen und Ergebnis
-Stand: 2026-08-07 22:27 CEST, Ganymed. d20ccd7 auf story/101-listentrenner.
+Stand: 2026-08-07 23:28 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
 Offscreen, QT_QPA_PLATFORMTHEME=kde.
 
 PASS   : LibraryTest::bringsTheHeadOfTheNewGroupIntoView(900x600)
@@ -21,4 +21,5 @@ PASS   : LibraryTest::paintsBothUpperNeighboursAgainWhenTheSelectionMoves()
 PASS   : LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(hell)
 PASS   : LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel)
 PASS   : LibraryTest::separatesTheSearchResultsLikeTheLibrary()
-Totals: 124 passed, 0 failed, 0 skipped, 0 blacklisted, 6612ms
+PASS   : LibraryTest::keepsEverySeparatorOneThicknessUnderTheCustomersScaling()
+Totals: 125 passed, 0 failed, 0 skipped, 0 blacklisted, 6544ms
