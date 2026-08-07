@@ -140,6 +140,22 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   **Gemessen ist die Ausschlussform zugleich vollständiger und leiser:** vier
   einschlägige Zeilen statt sechzig, weil die Belegarchive nicht mitkommen.
 - Ein Testaufbau, in dem der Fehler gar nicht auftreten *kann*, ist kein Test.
+- **Frag vor jedem Griff, dessen Ergebnis in einen Bericht eingeht, was er
+  ausgäbe, wenn sein Gegenstand fehlte.** Ist die Antwort dieselbe Ausgabe,
+  trägt der Griff nichts. Belegform ist die **Positivprobe**: einmal gegen
+  einen Fall fahren, in dem das Gesuchte nachweislich vorhanden ist — dann ist
+  sein Ergebnis lesbar, der Nullbefund wie der Treffer. **Auch ein Griff mit
+  Treffern kann zu eng sein**; der B17-Griff meldete fünf Zeilen und übersah
+  drei Fundstellen. Der Satz steht hier, weil dieselbe Sache dreimal als
+  Einzelfall dastand (ein Testaufbau, in dem der Fehler nicht auftreten kann ·
+  die Zahl der angefassten Linter-Dateien · der Suchraum des B17-Griffs) und in
+  Sprint 9
+  trotzdem **sechsmal** neu erfunden wurde — sie war an ihre Beispiele gebunden
+  und nicht an ihre Eigenschaft. Drei neue Formen von dort: ein **Nachbau**
+  einer Skalierung, der den Fehler bei 1,25 zeigte und bei 1,6 nicht · eine
+  Dateiprüfung, die Pfade **in Anführungszeichen** bekam und jede Datei als
+  binär meldete · ein Zeilenzähler, der 21 von 30 Linter-Dateien fand, weil die
+  Fortschrittsanzeige Zeilen überschreibt.
 - **Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
   Es gibt fünf: `editshots`, `libraryshots`, `searchshots`, `readmeshots`,
   `captureshots`. Ein veralteter Läufer schreibt plausible Bilder eines

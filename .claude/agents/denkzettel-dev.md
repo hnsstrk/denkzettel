@@ -56,7 +56,7 @@ Du bist Entwickler im Denkzettel-Scrum-Team (`~/Projekte/denkzettel`).
 
 ## Rückgabewerte und Läufe, die nichts belegen
 
-Neun gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
+Gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe
 gegen diese Liste, bevor du einen Nachweis in deinen Bericht schreibst — und
 **erweitere sie**: Jeder neue Fund dieser Art gehört hier hinein, mit
 Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
@@ -153,6 +153,37 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
     und kein Nebenbefund. Und: **Ein Fixpunkt bei null Eingriffen sieht aus wie
     ein Fixpunkt nach vollständiger Heilung.** Wo du Stabilität als Nachweis
     benutzt, belege zuerst, dass überhaupt etwas geschehen ist.
+11. **Der Vergleich einer Datei mit sich selbst.** Die Rücknahme eines
+    Eingriffs mit `cp`/`mv` trägt die Uhrzeit des Kopierens — die liegt **vor**
+    dem Eingriff. `make` hält die Quelle danach für älter als das Objekt und
+    baut nicht neu; der nächste Lauf misst den vorigen Eingriff mit, und die
+    Schlussprobe auf dem unveränderten Stand ist rot. `cp -p` plus `touch` beim
+    Zurücknehmen behebt es (Sprint 9,
+    `docs/scrum/reviews/sprint-09-s101-listentrenner/bericht.md` §3.1).
+12. **Eine Wache über die Summe der Eingriffe wacht über keinen einzelnen.**
+    Eine Probe mit drei Eingriffen, von denen der zweite nach einer
+    Signaturänderung ins Leere lief: Die Wache sah eine veränderte Datei, ließ
+    die Probe laufen, und sie meldete „rot" — plausibel, weil die Nachbarprobe
+    dasselbe meldet, und als Beleg wertlos. Die Wache prüft **jeden** Eingriff
+    einzeln über eine Prüfsumme (Sprint 9,
+    `docs/scrum/reviews/sprint-09-s100-eingabefeld/bericht.md` §8).
+13. **Ein Sandkasten ohne `kdeglobals` färbt die Theme-Grafik anders als die
+    Qt-Palette.** Das Bild zeigt dann helle Schrift auf hellem Grund und sieht
+    aus wie ein Fehler des Erzeugnisses. Die Sonde kopiert das Farbschema in
+    ihren Sandkasten. **Das ist zugleich die Ursache von #96** (Sprint 9,
+    `docs/scrum/reviews/sprint-09-ui-review/bericht.md`, „Zwei Fehler der
+    Sonde").
+14. **`show()` statt `showCapture()` liefert ein Fenster ohne Schatten.** Der
+    Schatten wird in `present()` an die frische Wayland-Fläche gebunden; wer am
+    regulären Weg vorbei zeigt, bekommt ein Bild, auf dem ein zugesicherter
+    Zustand fehlt, den das Erzeugnis herstellt (ebenda).
+15. **Ein Lauf, dessen Ausgabe abgeschnitten wird, ist kein Lauf.**
+    `bash pruefen.sh | head -3` schließt die Leitung; das Skript bekommt
+    SIGPIPE und endet unter `set -o pipefail` mitten im Bau. Die Belegdateien
+    sehen danach **unverändert** aus, und der Mechanismus wirkt kaputt — zu
+    sehen ist es allein an den Änderungszeiten, im Inhalt nicht. Bevor du einen
+    Mechanismus für kaputt erklärst, prüfe, ob er überhaupt gelaufen ist
+    (Sprint 9, `docs/scrum/reviews/sprint-09-s100-eingabefeld/bericht.md`).
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 

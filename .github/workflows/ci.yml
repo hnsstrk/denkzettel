@@ -117,7 +117,38 @@ jobs:
           fi
 
       - name: Tests
-        run: ctest --test-dir build --output-on-failure
+        # WARUM -V UND EINE ZAHL DANEBEN (Sprint 9, karpathy-Nachlauf N7).
+        # Auf diesem Läufer liegt keine Plasma-Grafik `widgets/lineedit`; neun
+        # Prüfsätze überspringen sich deshalb mit begründetem QSKIP, sechs davon
+        # die Feldzusicherungen von #100. Das ist richtig so — was fehlt, ist
+        # nicht messbar. Falsch wäre, dass der Lauf danach „100% tests passed"
+        # meldet und die Neun nirgends vorkommt: weder in der Ausgabe von
+        # `--output-on-failure` noch im Rückgabewert, der bei neun
+        # Übersprungenen 0 ist.
+        #
+        # Was hier droht, ist keine Fehlmeldung, sondern langsames
+        # Verschwinden. Ein Prüfsatz, der morgen zusätzlich überspringt, fiele
+        # niemandem auf; eine Liste im Protokoll wäre lesbar und verhinderte
+        # nichts. Die Zahl steht deshalb hier und nicht im Code — sie ist eine
+        # Eigenschaft dieses Läufers (auf der Entwicklungsmaschine ist sie 0),
+        # und der Zwang, sie beim Ändern anzufassen, ist der Sinn: Was der Lauf
+        # NICHT prüft, soll eine Entscheidung sein und kein Nebeneffekt.
+        #
+        # Gezählt wird je Prüfbinär aus der Totals-Zeile, nicht aus der
+        # Zusammenfassung von ctest — die kennt die Übersprungenen nicht.
+        run: |
+          set -o pipefail
+          ctest --test-dir build -V 2>&1 | tee ctest.log | grep -E "^ *[0-9]+: (PASS|FAIL|SKIP)|Totals:|tests passed|Errors" || true
+          uebersprungen=$(grep -oE "Totals: [0-9]+ passed, [0-9]+ failed, [0-9]+ skipped" ctest.log | awk '{s+=$6} END {print s+0}')
+          erwartet=9
+          echo "Übersprungene Prüfsätze: $uebersprungen (erwartet: $erwartet)"
+          if [ "$uebersprungen" -ne "$erwartet" ]; then
+            echo "::error::Die Zahl der übersprungenen Prüfsätze hat sich geändert: $uebersprungen statt $erwartet."
+            echo "Prüfe, welcher Prüfsatz hinzugekommen oder weggefallen ist, und ziehe die Zahl hier nach — mit Begründung."
+            grep -E "^ *[0-9]+: SKIP" ctest.log || true
+            exit 1
+          fi
+          grep -q "100% tests passed" ctest.log
 
       - name: clazy
         # Kundenentscheidung 04.08.2026, Schwelle mit #76 von 3 auf 0 gezogen:
