@@ -166,11 +166,17 @@ probe "5. Linienfarbe aus einem festen Verhältnis statt aus der Konfiguration (
     'static_cast<float>(KColorScheme::frameContrast())' \
     '0.20F'
 
-# Die Rücknahme der Rasterausrichtung — genau der Stand vor dem UI-Review-Befund
+# Die Rücknahme der ganzzahligen Höhe — genau der Stand vor dem UI-Review-Befund
 # L9. Sie fällt nur im zweiten, skalierten Lauf; `ctest -R librarytest` fasst ihn
 # mit, weil sein Name den des ersten enthält.
-probe "7. Haarlinie ohne Ausrichtung am Geräteraster (L9)" "$DELEGATE" \
-    'return QRectF(left, std::round(top * ratio) / ratio, width, rows / ratio);' \
+#
+# Getauscht wird **allein die Höhe**, nicht die ganze Rückgabezeile. Bis zum
+# 08.08.2026 stand hier der Tausch der ganzen Zeile, und der änderte zwei Dinge
+# auf einmal — er hätte nicht sagen können, welches von beiden der Prüfsatz
+# bemerkt (karpathy-Nachlauf N1). Eine Mutation, die zwei Zusicherungen zugleich
+# aufhebt, misst keine von beiden.
+probe "7. Haarlinie ohne ganzzahlige Höhe in Gerätebildpunkten (L9)" "$DELEGATE" \
+    'return QRectF(left, top, width, rows / ratio);' \
     'return QRectF(left, top, width, 1);'
 
 probe "6. Ohne das Neuzeichnen der oberen Nachbarn (AK 3c)" "$FENSTER" \

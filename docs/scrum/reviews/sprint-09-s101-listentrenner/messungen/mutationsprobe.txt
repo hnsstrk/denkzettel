@@ -1,6 +1,6 @@
 Mutationsproben zu #101 — kann jeder Prüfsatz fallen?
-Gemessen: 2026-08-08 00:13 CEST, Ganymed.
-Code-Stand: 80e3b7e auf story/101-listentrenner, Arbeitsbaum sauber.
+Gemessen: 2026-08-08 00:24 CEST, Ganymed.
+Code-Stand: 2367b32 auf story/101-listentrenner, Arbeitsbaum MIT UNCOMMITTETEN ÄNDERUNGEN (5 Datei(en): SPEC.md docs/scrum/reviews/sprint-09-s101-listentrenner/mutationsprobe.sh docs/scrum/reviews/sprint-09-s101-listentrenner/pruefen.sh src/ui/notelistdelegate.cpp docs/scrum/reviews/sprint-09-s101-listentrenner/sonden/ ).
 
 == 1. Eintragslinie ohne die Ausnahme an der Auswahl (AK 3a) ==
 Eingriff : !isGroupHead(below) && !selected && !isSelectedIn(entry, below)
@@ -27,8 +27,8 @@ Eingriff : static_cast<float>(KColorScheme::frameContrast())
      →     0.20F
 Ergebnis : rot — gefallen sind: keepsEverySeparatorOneThicknessUnderTheCustomersScaling() leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(1200x800) leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt(900x600) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(dunkel) mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole(hell) 
 
-== 7. Haarlinie ohne Ausrichtung am Geräteraster (L9) ==
-Eingriff : return QRectF(left, std::round(top * ratio) / ratio, width, rows / ratio);
+== 7. Haarlinie ohne ganzzahlige Höhe in Gerätebildpunkten (L9) ==
+Eingriff : return QRectF(left, top, width, rows / ratio);
      →     return QRectF(left, top, width, 1);
 Ergebnis : rot — gefallen sind: keepsEverySeparatorOneThicknessUnderTheCustomersScaling() 
 

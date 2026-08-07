@@ -416,6 +416,17 @@ Code-Stand: 80e3b7e auf story/101-listentrenner, Arbeitsbaum sauber.
 
 Bei `80e3b7e` ist `hairline()` vorhanden — gegengeprüft, nicht angenommen.
 
+*Nachgetragen am 08.08.2026 (Nachlauf N6, unabhängig gefunden):* Der Widerspruch
+war schärfer als „falsche Angabe". **Mutationsprobe 7 tauschte eine Zeile aus
+`hairline()`, und zu `46bb5b5` gab es diese Funktion nicht** — der Beleg
+behauptete einen Eingriff an Code, den der genannte Stand nicht enthält.
+
+*Und ein zweites Mal getroffen:* Der Rebase auf `origin/main` am 08.08.2026 hat
+meine Commits neu geschrieben, womit auch `80e3b7e` verschwand. Die Belege sind
+danach ein weiteres Mal gefahren worden. **Ein Stand in einer Messdatei altert
+nicht nur durch neue Arbeit, sondern auch durch jedes Umschreiben der
+Geschichte** — wer rebased, fährt seine Belege nach.
+
 **Was ausgenommen ist und was nicht.** Ausgenommen sind allein `messungen/` und
 `bilder/`: Die schreibt der Lauf selbst voll, und seine eigenen Ausgaben sagen
 nichts über den gemessenen Code. **Die Skripte dieses Ordners sind nicht
@@ -444,3 +455,95 @@ schmutzig nennt zwei Dateien mit Namen, sauber meldet sauber.
   „Retrospektiven" beschreibt: *eine Erkenntnis, die nur im Protokoll steht, ist
   nicht verankert.* Umgesetzt habe ich sie hier trotzdem; das Verankern gehört
   dem PO, `PROZESS.md` ist nicht meine Fläche.
+
+
+---
+
+## 10. Nachtrag 08.08.2026 — der karpathy-Nachlauf (N1, N2)
+
+### 10.1 N1 — eine Zusicherung, die nichts zusicherte
+
+**Der Befund.** `hairline()` versprach „die Oberkante auf der
+Gerätebildpunktgrenze", an drei Stellen: im Code, in `SPEC.md` und in
+Zeichnung 3a.
+
+**Selbst nachgemessen**, mit einer eigenen Sonde
+(`sonden/rasterlage.cpp`, Ausgabe `messungen/b8-rasterlage.txt`) über **280
+Lagen**: sieben Verhältnisse × zwanzig Zeilenlagen × zwei Malerursprünge. Der
+zweite Ursprung ist der Grund, aus dem die Sonde überhaupt zwei kennt — das
+Sichtfeld der Liste beginnt bei logisch 48, also bei **76,8**
+Gerätebildpunkten unter 1,6.
+
+| | Ergebnis |
+|---|---|
+| **Höhen mit Term** | in allen 14 Verhältnis/Ursprung-Kombinationen **je genau eine** Höhe |
+| **Höhen ohne Term** | dieselben Höhen, **ausnahmslos** |
+| **Lagen mit Unterschied** | **8 von 280** — alle bei Ursprung 48, Verhältnis 1,4 und 1,6, Zeilenlage ≡ 1 (mod 5) |
+| **Art des Unterschieds** | die Linie steht **einen Gerätebildpunkt höher oder tiefer**, bei gleicher Höhe |
+
+**Der Nachlauf sagt „der Term trägt nichts". Das ist zu stark, und der Unterschied
+ist der Punkt.** Der Term tut etwas — er verschiebt die Linie. Nur tut er nicht
+das, was sein Name sagt: **Er erreicht keine Bildpunktgrenze**, weil er in
+fensterlokalen Koordinaten rundet und der Malerursprung selbst neben dem Raster
+liegt. Bei Ursprung 48 und 1,6 landet die Oberkante mit Term bei 78,8
+Gerätebildpunkten, ohne Term bei 78,4 — **beides keine Grenze**. Was blieb, war
+ein willkürlicher Versatz unter dem Namen einer Ausrichtung.
+
+**Im echten Malweg gegengeprüft:** Mit und ohne Term unterscheiden sich die
+Bilder unter 1,6 (`01-normalfall` auf 446×3 Bildpunkten, `09-ruhiges-bild…` auf
+446×235) — **die Stärken sind in beiden Fassungen `[2]`**. Die Zusicherung aus
+L9 hängt also allein an der ganzzahligen Höhe.
+
+**Warum die Höhe allein genügt, als Satz:** Zwei Kanten, die ganzzahlig viele
+Gerätebildpunkte auseinanderliegen, runden auf Werte, die um dieselbe ganze Zahl
+auseinanderliegen — gleich, wo sie fallen.
+
+**Getan:** Der Term ist aus `hairline()` entfernt, die Zusicherung ist in
+`SPEC.md` gefallen (mit datiertem Vermerk, B17), und der Kommentar der Funktion
+sagt jetzt ausdrücklich, dass keine Ausrichtung der Oberkante versucht wird —
+samt Grund, damit sie niemand als Verbesserung wieder einbaut.
+
+**Mutationsprobe 7 ist mitgezogen.** Sie tauschte die **ganze** Rückgabezeile
+und änderte damit Höhe und Oberkante zugleich; sie hätte nie sagen können,
+welches von beiden der Prüfsatz bemerkt. Jetzt tauscht sie allein die Höhe.
+
+### 10.2 N2 — Zeichnung und Code runden verschieden
+
+**Gemessen** (dieselbe Sonde, Spalte „Höhe … logische Punkte"):
+
+| Verhältnis | Gerätebildpunktzeilen | in logischen Punkten |
+|---|---|---|
+| 1,00 | 1 | 1,00 |
+| **1,25** | **1** | **0,80** |
+| 1,40 | 1 | 0,71 |
+| 1,50 | 2 | 1,33 |
+| 1,60 | 2 | 1,25 |
+| 2,00 | 2 | 1,00 |
+
+**Die Zeichnung sagt „aufgerundet", der Code rundet kaufmännisch.** Unterhalb
+1,5 gehen sie auseinander, und 125 % ist Plasmas nächste Stufe über 100 % — der
+Fall ist nicht theoretisch.
+
+**Falsch ist die Begründung, nicht der Bau.** Das Kriterium, an dem ich es
+entscheide: Die Untergrenze ist **eine Gerätebildpunktzeile**, und genau so
+breit ist die Linie unter Skalierung 1 — dem Zustand, den der Kunde
+abgenommen hat. Bei 1,25 ist eine Zeile dieselbe Tinte auf demselben Schirm wie
+bei 1,0; „0,80 logische Punkte" klingt nach Verdünnung und ist keine.
+**Aufrunden** machte die Linie bei 1,25 auf 1,6 logische Punkte — **dicker als
+gezeichnet**, und das an einer Stelle, an der die Zeichnung von einer Haarlinie
+spricht.
+
+Berichtigt ist deshalb meine eigene Begründung in `SPEC.md`: Sie berief sich
+darauf, dass die Linie nie dünner werden dürfe, und das trifft unterhalb 1,5
+nicht zu.
+
+**Was die Einheitlichkeit angeht — die Sache von L9 — ändert sich nichts:** In
+allen gemessenen Lagen bleibt die Stärke innerhalb eines Bildes gleich.
+
+### 10.3 Was ich nicht angefasst habe
+
+**Zeichnung 3a** (`wireframes/…:567`) trägt beide Sätze — die gefallene
+Zusicherung und das Wort „aufgerundet". `wireframes/` ist nach Feld 1 des
+Vorprüfberichts **ausdrücklich nicht meine Fläche** („Vom Strang nicht
+anzufassen"). Gemeldet, nicht geheilt; die Berichtigung gehört dem PO
+beziehungsweise dem UX-Agenten.

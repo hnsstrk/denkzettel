@@ -173,4 +173,18 @@ echo "== B7: Strichstärke unter der Skalierung des Kunden (UI-Review L9) =="
         || echo "(nicht ermittelbar — python3 mit Pillow fehlt)"
 } > "$HIER/messungen/b7-strichstaerke.txt"
 
+echo "== B8: trägt die Ausrichtung der Oberkante etwas? (Nachlauf N1) =="
+# Die Sonde rastert eine Haarlinie mit und ohne den Term, der die Oberkante auf
+# eine Gerätebildpunktgrenze legen sollte — über sieben Verhältnisse, zwanzig
+# Zeilenlagen und zwei Malerursprünge. Der zweite Ursprung ist der Grund, aus
+# dem die Sonde überhaupt zwei kennt: Das Sichtfeld der Liste beginnt bei
+# logisch 48, also bei 76,8 Gerätebildpunkten — wer nur bei Ursprung 0 misst,
+# hält den Term für wirksam.
+cmake -B "$BAU/sonden" -S "$HIER/sonden" -DCMAKE_BUILD_TYPE=Release > /dev/null 2>&1
+cmake --build "$BAU/sonden" -j "$(nproc)" > /dev/null 2>&1
+{
+    kopf "B8 — Rasterlage der Haarlinie, mit und ohne Ausrichtung der Oberkante"
+    "$BAU/sonden/rasterlage"
+} > "$HIER/messungen/b8-rasterlage.txt"
+
 echo "Fertig. Messungen unter $HIER/messungen/, Bilder unter $HIER/bilder/"
