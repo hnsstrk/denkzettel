@@ -31,21 +31,24 @@ FENSTER="src/capture/capturewindow.cpp"
 PRUEFSATZ="tests/capturetest.cpp"
 BAU="$ARBEIT/build"
 
-lauf() {
-    local nummer="$1"
-    local was="$2"
-    local erwartet="$3"
-    shift 3
-    echo
-    echo "===== Probe $nummer — $was"
-    echo "Erwartet: $erwartet"
-    # **Jeder** Eingriff wird einzeln nachgewogen, nicht die Probe als Ganzes.
-    # Der Unterschied hat einmal ein falsches Ergebnis geliefert: Probe 5 hat
-    # zwei Eingriffe, und als eine Signatur im Prüfsatz sich änderte, griff der
-    # zweite nicht mehr. Der erste griff weiter, die Wache sah eine veränderte
-    # Datei und ließ die Probe laufen — sie meldete „rot", wo „grün" der Beleg
-    # gewesen wäre (07.08.2026). Eine Wache über die Summe der Eingriffe wacht
-    # über keinen einzelnen.
+# Zahl der abgebrochenen Proben. Sie entscheidet über den Rückgabewert des
+# Skripts (Beschluss B23): Ein Abbruch, der nur im Protokolltext steht, wird von
+# jeder Automatik übersehen — und dieses Skript wird von `pruefen.sh` gerufen,
+# das seine Ausgabe in eine Datei schreibt, die niemand liest, solange nichts
+# rot ist. Der Beschluss ist an genau diesem Skript entstanden.
+ABBRUECHE=0
+
+# **Jeder** Eingriff wird einzeln nachgewogen, nicht die Probe als Ganzes.
+# Der Unterschied hat einmal ein falsches Ergebnis geliefert: Probe 5 hat drei
+# Eingriffe, und als eine Signatur im Prüfsatz sich änderte, griff der zweite
+# nicht mehr. Der erste griff weiter, die Wache sah eine veränderte Datei und
+# ließ die Probe laufen — sie meldete „rot", wo „grün" der Beleg gewesen wäre
+# (07.08.2026). Eine Wache über die Summe der Eingriffe wacht über keinen
+# einzelnen.
+#
+# Gibt 1 zurück, wenn ein Eingriff nichts verändert hat, und stellt dann den
+# Ausgangsstand wieder her.
+eingriffe() {
     local eingriff
     local vorher
     local nachher
@@ -58,9 +61,24 @@ lauf() {
             echo "  $eingriff"
             cp "$WURZEL/$FENSTER" "$ARBEIT/$FENSTER"
             cp "$WURZEL/$PRUEFSATZ" "$ARBEIT/$PRUEFSATZ"
-            return
+            ABBRUECHE=$((ABBRUECHE + 1))
+            return 1
         fi
     done
+    return 0
+}
+
+lauf() {
+    local nummer="$1"
+    local was="$2"
+    local erwartet="$3"
+    shift 3
+    echo
+    echo "===== Probe $nummer — $was"
+    echo "Erwartet: $erwartet"
+    if ! eingriffe "$@"; then
+        return
+    fi
     if ! cmake --build "$BAU" -j "$(nproc)" > "$ARBEIT/bau.log" 2>&1; then
         echo "ERGEBNIS: übersetzt nicht mehr — die Zusicherung hängt am Bau selbst."
         grep -m3 "error" "$ARBEIT/bau.log" | sed 's/^/  /'
@@ -94,10 +112,15 @@ ohne_grafik() {
     echo
     echo "===== Probe $nummer — $was"
     echo "Erwartet: $erwartet"
-    local eingriff
-    for eingriff in "$@"; do
-        eval "$eingriff" || echo "  ACHTUNG: Eingriff schlug fehl: $eingriff"
-    done
+    # Dieselbe Wache wie oben, und hier wird sie **dringender** gebraucht:
+    # Probe 9 erwartet ausdrücklich grün. Ein `sed`, das nicht mehr trifft,
+    # sähe dort genau aus wie ein geglückter Eingriff, dessen Mutation nicht
+    # gefangen wird — und das ist die Aussage, die Probe 9 machen soll. Ohne
+    # Wache ist der Beleg von seinem Gegenteil nicht zu unterscheiden
+    # (karpathy N5).
+    if ! eingriffe "$@"; then
+        return
+    fi
     if ! cmake --build "$BAU" -j "$(nproc)" > "$ARBEIT/bau.log" 2>&1; then
         echo "ERGEBNIS: übersetzt nicht mehr."
         grep -m3 "error" "$ARBEIT/bau.log" | sed 's/^/  /'
@@ -113,6 +136,15 @@ ohne_grafik() {
         grep -E "^FAIL!" <<< "$ausgabe" | sed -E 's/^/  /; s/ \(.*//' | sort -u
         echo "  Übersprungene Prüfsätze zum Feld:"
         grep -E "^SKIP" <<< "$ausgabe" | grep -oE "CaptureTest::[a-zA-Z]+" | sed 's/^/    /'
+        # Spricht der N3-Wächter? Er meldet sich nur, wenn im Kindprozess bei
+        # 1,6 **kein** Prüfsatz gelaufen ist — vorher meldete der Elternteil
+        # dort grün. Die Zeile steht getrennt, weil die Namensliste oben in
+        # beiden Fällen gleich aussieht.
+        if grep -q "Kein Prüfsatz ist im Kindprozess" <<< "$ausgabe"; then
+            echo "  N3-Wächter: hat angeschlagen — der Elternteil meldet kein Grün über einem leeren Kind."
+        else
+            echo "  N3-Wächter: schweigt — im Kindprozess ist etwas gelaufen."
+        fi
     fi
     cp "$WURZEL/$FENSTER" "$FENSTER"
     cp "$WURZEL/$PRUEFSATZ" "$PRUEFSATZ"
@@ -161,5 +193,13 @@ ohne_grafik 9 "Ohne Plasma-Grafik, **mit** Mutation 1 (Feld nicht zeichnen)" \
     "grün — und das ist keine Lücke, sondern die Kehrseite: wo nichts zu messen ist, fängt der Läufer diese Mutation nicht. Probe 1 fängt sie dort, wo die Grafik da ist." \
     'sed -i "s|if (m_field->isValid()) {|if (false) {|" "$FENSTER"'
 
+ohne_grafik 10 "Ohne Plasma-Grafik, **ohne** die Vorbedingung im Elternteil (N3)" \
+    "der N3-Wächter schlägt an — sonst meldete der Elternteil grün über einem Kind, in dem kein Prüfsatz lief" \
+    'perl -0pi -e "s/(void CaptureTest::fieldHoldsAtTheCustomersScale.*?)if \(!missing\.isEmpty\(\)\)/\${1}if (false)/s" "$PRUEFSATZ"'
+
 echo
-echo "Fertig."
+if [ "$ABBRUECHE" -gt 0 ]; then
+    echo "ABGEBROCHEN: $ABBRUECHE Probe(n) haben nichts gemessen. Dieser Lauf ist kein Beleg."
+    exit 1
+fi
+echo "Fertig — alle Proben haben gemessen."
