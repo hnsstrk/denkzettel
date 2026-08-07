@@ -6,15 +6,20 @@
 #include "ui/pendingdeletion.h"
 #include "ui/timestampformat.h"
 
+#include <KColorScheme>
+#include <KConfigGroup>
 #include <KLocalizedString>
 #include <KMessageWidget>
+#include <KSharedConfig>
 #include <KStandardShortcut>
 
 #include <QAction>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFontMetrics>
+#include <QHash>
 #include <QIcon>
+#include <QImage>
 #include <KStandardGuiItem>
 #include <QLabel>
 #include <QLayout>
@@ -34,6 +39,7 @@
 #include <QTimer>
 #include <QToolButton>
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 
@@ -130,6 +136,56 @@ QString selectedRows(const QListView *list)
     }
     return rows.join(QLatin1Char(','));
 }
+
+/**
+ * Counts the paints per row, and paints exactly what the production delegate
+ * paints (issue #101, AK 3c).
+ *
+ * Derived from NoteListDelegate rather than built beside it: row heights and
+ * painting paths have to stay the ones of the list under test — what is being
+ * measured is the view, not a stand-in.
+ *
+ * A picture cannot take this measurement. `grab()` repaints every row, so a
+ * line left standing after a selection switch is gone by the time the picture
+ * is taken — measured in the vetting: 2 rows repainted after the switch, 8 of 8
+ * after the grab that followed it.
+ */
+class PaintCounter : public NoteListDelegate
+{
+public:
+    using NoteListDelegate::NoteListDelegate;
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        ++m_paints[index.row()];
+        NoteListDelegate::paint(painter, option, index);
+    }
+
+    void forget() const
+    {
+        m_paints.clear();
+    }
+
+    /** The repainted rows as „2,4" — a failure then names who was left out. */
+    QString painted() const
+    {
+        QList<int> rows = m_paints.keys();
+        std::sort(rows.begin(), rows.end());
+        QStringList names;
+        for (const int row : std::as_const(rows)) {
+            names << QString::number(row);
+        }
+        return names.isEmpty() ? QStringLiteral("keine") : names.join(QLatin1Char(','));
+    }
+
+    bool repainted(int row) const
+    {
+        return m_paints.contains(row);
+    }
+
+private:
+    mutable QHash<int, int> m_paints;
+};
 }
 
 /**
@@ -223,6 +279,17 @@ private Q_SLOTS:
     void keepsTheHeaderAtTheTopAndTheRestForTheNotes();
     void keepsTheMeasuresOfTheGroupedList_data();
     void keepsTheMeasuresOfTheGroupedList();
+    void drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data();
+    void drawsAnInsetHairlineBetweenTwoNotesOfAGroup();
+    void drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst_data();
+    void drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst();
+    void leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt_data();
+    void leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt();
+    void keepsTheGroupLineOverAHeadUnderTheSelectedNote();
+    void paintsBothUpperNeighboursAgainWhenTheSelectionMoves();
+    void mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole_data();
+    void mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole();
+    void separatesTheSearchResultsLikeTheLibrary();
     void putsTheMessageBetweenTheHeaderAndTheNotes();
     void keepsTheWindowSizeForTheNextSession();
     void textsFollowAColourSchemeChange();
@@ -274,6 +341,46 @@ private:
     /** The row the note `noteIndex` sits in, as an index of `list`. */
     static QModelIndex noteRow(const QListView *list, int noteIndex);
 
+    /**
+     * The viewport of `list` as a picture — the only surface whose coordinates
+     * are the ones visualRect() speaks in.
+     *
+     * Not the window: with a scroll bar standing, row rectangle and window
+     * picture no longer share an x axis, and „the full width" would be read at
+     * the wrong place (issue #101, measured in the vetting: list 300, row 279).
+     */
+    static QImage listPicture(const QListView *list);
+
+    /**
+     * Pixel row `y` of `picture`, read at `columns` and named through `legend`;
+     * anything the legend does not know is called „Linie".
+     *
+     * Where a line lies is one question, what colour it has is another (AK 1 to
+     * AK 3 against AK 4). A check that compared against a colour it had worked
+     * out itself would answer both at once and neither of them properly — so
+     * this one only ever asks whether the pixel is the ground it knows.
+     */
+    static QStringList readRow(const QImage &picture,
+                               int y,
+                               const QList<int> &columns,
+                               const QHash<QRgb, QString> &legend);
+
+    /** How many pixels of row `y` carry `colour`. */
+    static int pixelsOfColour(const QImage &picture, int y, const QColor &colour);
+
+    /**
+     * The colour the separator lines are meant to have: list ground and text
+     * colour mixed in the ratio `share` (wireframe 3a).
+     *
+     * Written out a second time here on purpose. The delegate is held to this
+     * formula and to nothing else; a test that asked the delegate for its own
+     * answer would compare it with itself.
+     */
+    static QColor separatorColor(const QPalette &palette, qreal share);
+
+    /** One of the two colour schemes the picture series uses (issue #58). */
+    static QPalette breezePalette(bool dark);
+
     /** Width of ten wide characters — enough for a few words, not for many. */
     static int narrowWidth();
 
@@ -282,6 +389,17 @@ private:
 
     /** Adds a note of a fixed age, for the tests that look at the groups. */
     qint64 storedNote(const QString &content, const QString &isoDateTime);
+
+    /**
+     * Three groups, the middle one of three notes — the smallest scene that
+     * carries a group boundary, a note boundary and a last note of a group all
+     * at once (issue #101). Against the reference time of 16:00 on 31.07.2026
+     * the rows come out as
+     *
+     *     0 Kopf Heute · 1 Notiz · 2 Kopf Gestern · 3 4 5 Notizen ·
+     *     6 Kopf Letzte Woche · 7 Notiz
+     */
+    void storedThreeGroups();
 
     /** Fills in what the analysis run fills in — category, tags and state. */
     void analysed(qint64 id, const QString &category, const QStringList &tags);
@@ -617,6 +735,88 @@ QModelIndex LibraryTest::noteRow(const QListView *list, int noteIndex)
 int LibraryTest::narrowWidth()
 {
     return QFontMetrics(QFont()).horizontalAdvance(QStringLiteral("MMMMMMMMMM"));
+}
+
+QImage LibraryTest::listPicture(const QListView *list)
+{
+    return list->viewport()->grab().toImage();
+}
+
+QStringList LibraryTest::readRow(const QImage &picture,
+                                 int y,
+                                 const QList<int> &columns,
+                                 const QHash<QRgb, QString> &legend)
+{
+    QStringList read;
+    for (const int x : columns) {
+        if (!picture.valid(x, y)) {
+            read << QStringLiteral("außerhalb");
+            continue;
+        }
+        read << legend.value(picture.pixel(x, y), QStringLiteral("Linie"));
+    }
+    return read;
+}
+
+int LibraryTest::pixelsOfColour(const QImage &picture, int y, const QColor &colour)
+{
+    if (y < 0 || y >= picture.height()) {
+        return -1;
+    }
+
+    int found = 0;
+    for (int x = 0; x < picture.width(); ++x) {
+        if (picture.pixelColor(x, y) == colour) {
+            ++found;
+        }
+    }
+    return found;
+}
+
+QColor LibraryTest::separatorColor(const QPalette &palette, qreal share)
+{
+    const QColor ground = palette.color(QPalette::Normal, QPalette::Base);
+    const QColor text = palette.color(QPalette::Normal, QPalette::Text);
+
+    // In float, like the delegate: the channels of QColor are float, and a
+    // double ratio would narrow on the way in.
+    const auto ratio = static_cast<float>(share);
+    const QColor mixed = QColor::fromRgbF(ground.redF() * (1 - ratio) + text.redF() * ratio,
+                                          ground.greenF() * (1 - ratio) + text.greenF() * ratio,
+                                          ground.blueF() * (1 - ratio) + text.blueF() * ratio);
+
+    // Handed back through its 8-bit value, which is the one that lands in the
+    // picture. A colour built from floats keeps its floats, and QColor compares
+    // those: measured, the pixel and the expectation both printed as #9c9d9f
+    // and came out unequal all the same. The comparison against the palette
+    // roles would have been the worse half of it — those are 8-bit too, so it
+    // would have been green without ever comparing anything.
+    return QColor(mixed.rgb());
+}
+
+QPalette LibraryTest::breezePalette(bool dark)
+{
+    // The measured colours of Breeze Light and Breeze Dark, as the picture
+    // series uses them (libraryshots.cpp). Two schemes far enough apart that
+    // the mixed line comes out at opposite ends: what pulls the contrasts of
+    // the separator apart are the colours of a scheme, not its frameContrast —
+    // that one is 0.20 in every installed scheme (measured 07.08.2026).
+    const QColor base = dark ? QColor(0x14, 0x16, 0x18) : QColor(0xff, 0xff, 0xff);
+    const QColor text = dark ? QColor(0xfc, 0xfc, 0xfc) : QColor(0x23, 0x26, 0x29);
+
+    QPalette palette;
+    palette.setColor(QPalette::Window, dark ? QColor(0x20, 0x23, 0x26) : QColor(0xef, 0xf0, 0xf1));
+    palette.setColor(QPalette::WindowText, text);
+    palette.setColor(QPalette::Base, base);
+    palette.setColor(QPalette::AlternateBase, dark ? QColor(0x20, 0x23, 0x26) : QColor(0xef, 0xf0, 0xf1));
+    palette.setColor(QPalette::Text, text);
+    palette.setColor(QPalette::Button, dark ? QColor(0x20, 0x23, 0x26) : QColor(0xef, 0xf0, 0xf1));
+    palette.setColor(QPalette::ButtonText, text);
+    palette.setColor(QPalette::PlaceholderText, dark ? QColor(0xa1, 0xa9, 0xb1) : QColor(0x70, 0x7d, 0x8a));
+    palette.setColor(QPalette::Highlight, QColor(0x3d, 0xae, 0xe9));
+    palette.setColor(QPalette::HighlightedText, dark ? QColor(0xfc, 0xfc, 0xfc) : QColor(0xff, 0xff, 0xff));
+
+    return palette;
 }
 
 void LibraryTest::leavesThePreviewEmptyForASingleLine()
@@ -2707,6 +2907,368 @@ void LibraryTest::keepsTheMeasuresOfTheGroupedList()
 
     // The heads take room of their own — they do not eat into the entries.
     QVERIFY2(entryHeight > headRect.height(), qPrintable(QStringLiteral("Eintrag %1 px").arg(entryHeight)));
+}
+
+void LibraryTest::storedThreeGroups()
+{
+    storedNote(QStringLiteral("Backup prüfen\nprune-Policy, monatliche Snapshots behalten"),
+               QStringLiteral("2026-07-31T14:20:00"));
+    storedNote(QStringLiteral("Zahnarzt anrufen\nTermin für September, am besten vormittags"),
+               QStringLiteral("2026-07-30T21:40:00"));
+    storedNote(QStringLiteral("Mara anrufen\nWochenende, Kuchen nicht vergessen"),
+               QStringLiteral("2026-07-30T18:10:00"));
+    storedNote(QStringLiteral("Idee: Denkzettel-Export\nMarkdown mit Frontmatter, ein Ordner je Monat"),
+               QStringLiteral("2026-07-30T09:00:00"));
+    storedNote(QStringLiteral("Kategorien-Prompt\nBeispiele mitgeben, sonst rät das Modell"),
+               QStringLiteral("2026-07-23T11:30:00"));
+}
+
+void LibraryTest::drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data()
+{
+    // Two window sizes, like every other measurement of wireframe 3a: a number
+    // that only holds at one width holds by accident. Scaling stays at 1 — the
+    // customer's 1.6 turns one logical point into 1.6 device pixel rows and
+    // moves the inset edge from 12 to 19, so a pixel assertion taken there
+    // would be about the scaling and not about the line (issue #101, AK 7).
+    QTest::addColumn<QSize>("windowSize");
+
+    QTest::newRow("900x600") << QSize(900, 600);
+    QTest::newRow("1200x800") << QSize(1200, 800);
+}
+
+void LibraryTest::drawsAnInsetHairlineBetweenTwoNotesOfAGroup()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QSize, windowSize);
+
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(windowSize);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage picture = listPicture(list);
+
+    // „The full width" of AK 2 and the inset of AK 1 are both measured off the
+    // row rectangle, and the viewport is the surface that shares its x axis.
+    const int width = list->visualRect(model->index(3)).width();
+    QCOMPARE(picture.width(), width);
+
+    const QHash<QRgb, QString> legend{
+        {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
+    const QList<int> columns{0, 11, 12, width / 2, width - 13, width - 12, width - 1};
+    const QStringList inset{QStringLiteral("Grund"), QStringLiteral("Grund"),  QStringLiteral("Linie"),
+                            QStringLiteral("Linie"), QStringLiteral("Linie"),  QStringLiteral("Grund"),
+                            QStringLiteral("Grund")};
+
+    // Rows 3, 4 and 5 are the three notes of the middle group, so there are two
+    // note boundaries to look at. The line sits in the last pixel row of the
+    // upper note and stops 12 px short of either edge — the same 12 px the
+    // timestamp starts at (wireframe 3a, P1).
+    for (const int row : {3, 4}) {
+        QCOMPARE(readRow(picture, list->visualRect(model->index(row)).bottom(), columns, legend), inset);
+    }
+}
+
+void LibraryTest::drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst_data()
+{
+    drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data();
+}
+
+void LibraryTest::drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QSize, windowSize);
+
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(windowSize);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage picture = listPicture(list);
+
+    const int width = list->visualRect(model->index(0)).width();
+    QCOMPARE(picture.width(), width);
+
+    const QHash<QRgb, QString> legend{
+        {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
+    // The outermost columns are the point of this one: what tells the group
+    // boundary from the note boundary is that this line runs edge to edge.
+    const QList<int> columns{0, 1, 11, 12, width / 2, width - 13, width - 12, width - 1};
+
+    // Rows 2 and 6 carry the second and the third head (wireframe 3a, P2).
+    for (const int row : {2, 6}) {
+        QVERIFY(model->index(row).data(NoteListModel::GroupHeaderRole).toBool());
+        QCOMPARE(readRow(picture, list->visualRect(model->index(row)).top(), columns, legend),
+                 QStringList(columns.size(), QStringLiteral("Linie")));
+    }
+
+    // Over the first head none — there is no group above it to be told apart.
+    QVERIFY(model->index(0).data(NoteListModel::GroupHeaderRole).toBool());
+    QCOMPARE(readRow(picture, list->visualRect(model->index(0)).top(), columns, legend),
+             QStringList(columns.size(), QStringLiteral("Grund")));
+}
+
+void LibraryTest::leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt_data()
+{
+    drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data();
+}
+
+void LibraryTest::leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QSize, windowSize);
+
+    // This is the one check a wrong build passes nowhere else. „A line on every
+    // row edge" looks right on any picture of full groups without a selection —
+    // and because the row rectangles touch without a gap, it puts two pixel
+    // rows on top of each other at every group boundary (wireframe 3a, P3).
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(windowSize);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage unselected = listPicture(list);
+
+    const int width = list->visualRect(model->index(0)).width();
+    const QHash<QRgb, QString> legend{
+        {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
+    const QList<int> columns{0, 11, 12, width / 2, width - 13, width - 12, width - 1};
+    const QStringList ground(columns.size(), QStringLiteral("Grund"));
+
+    // Under the last note of a group: rows 1 and 5 are followed by a head, and
+    // the head draws the full-width line of its own one pixel row further down.
+    for (const int row : {1, 5}) {
+        QCOMPARE(readRow(unselected, list->visualRect(model->index(row)).bottom(), columns, legend), ground);
+    }
+
+    // Under every head: the group is opened here, not closed.
+    for (const int row : {0, 2, 6}) {
+        QCOMPARE(readRow(unselected, list->visualRect(model->index(row)).bottom(), columns, legend), ground);
+    }
+
+    // Both edges of the selected row. Measured as a before and after of the
+    // same two pixel rows, because that is the only form in which the check can
+    // fail: the ratio is read from the same configuration the delegate reads,
+    // so the colour alone would prove nothing (AK 4 pins that separately).
+    const QColor separator = separatorColor(list->palette(), KColorScheme::frameContrast());
+    const int upperEdge = list->visualRect(model->index(3)).bottom();
+    const int lowerEdge = list->visualRect(model->index(4)).bottom();
+    QVERIFY2(pixelsOfColour(unselected, upperEdge, separator) > 0
+                 && pixelsOfColour(unselected, lowerEdge, separator) > 0,
+             "ohne Auswahl trägt keine der beiden Kanten eine Linie — der Nachweis unten misst nichts");
+
+    list->setCurrentIndex(model->index(4));
+    const QImage selected = listPicture(list);
+
+    QCOMPARE(readRow(selected, upperEdge, columns, legend), ground);
+    QCOMPARE(pixelsOfColour(selected, lowerEdge, separator), 0);
+}
+
+void LibraryTest::keepsTheGroupLineOverAHeadUnderTheSelectedNote()
+{
+    // The exception belongs to the entry line alone: the group line over a head
+    // stays even when the note right above it is the selected one — that is how
+    // wireframe 3a draws the head „Gestern" (AK 3b).
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+
+    // Row 5 is the last note of the middle group, row 6 the head below it.
+    list->setCurrentIndex(model->index(5));
+    const QImage picture = listPicture(list);
+
+    const int width = list->visualRect(model->index(6)).width();
+    const QHash<QRgb, QString> legend{
+        {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
+    const QList<int> columns{0, width / 2, width - 1};
+
+    QCOMPARE(readRow(picture, list->visualRect(model->index(6)).top(), columns, legend),
+             QStringList(columns.size(), QStringLiteral("Linie")));
+}
+
+void LibraryTest::paintsBothUpperNeighboursAgainWhenTheSelectionMoves()
+{
+    // No picture can take this measurement, and AK 3c says so outright: the
+    // view repaints only the stretch between the old and the new selection, and
+    // the row above either end lies outside it. The line under it therefore
+    // stays where it has to go, or is missing where it has to come back — while
+    // grab() repaints everything and hands back a picture in which all is well.
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+
+    auto *counter = new PaintCounter(list);
+    list->setItemDelegate(counter);
+
+    // Up and down, once as a step onto the neighbour and once as a jump across
+    // a head: in three of the four the row above one end lies outside the
+    // stretch the view redraws by itself.
+    const QList<QPair<int, int>> switches{{3, 5}, {5, 3}, {4, 5}, {5, 4}};
+    for (const auto &move : switches) {
+        list->setCurrentIndex(model->index(move.first));
+        QTest::qWait(50);
+
+        counter->forget();
+        list->setCurrentIndex(model->index(move.second));
+        QTest::qWait(50);
+
+        const QString trace = QStringLiteral("Sprung %1 → %2, neu gezeichnet: %3")
+                                  .arg(move.first)
+                                  .arg(move.second)
+                                  .arg(counter->painted());
+        QVERIFY2(counter->repainted(move.second - 1), qPrintable(trace));
+        QVERIFY2(counter->repainted(move.first - 1), qPrintable(trace));
+    }
+}
+
+void LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole_data()
+{
+    // Two schemes whose result lies far apart — 1.93 : 1 against 1.24 : 1 over
+    // the installed ones. Not two frameContrast values: none of the nineteen
+    // schemes carries the key at all, so there are no two to prove anything
+    // with (measured 07.08.2026). What the schemes vary are their colours.
+    QTest::addColumn<bool>("dark");
+
+    QTest::newRow("hell") << false;
+    QTest::newRow("dunkel") << true;
+}
+
+void LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(bool, dark);
+
+    // The ratio comes out of the `[KDE]` group of the application configuration
+    // and not out of a colour scheme; setPalette() does not reach it (measured
+    // 07.08.2026). Written, then read back before anything is measured: the
+    // change detection of KConfig works in seconds, and a second value in the
+    // same run arrives only after a pause of about one. Without this line a
+    // test would work out its expectation from the very value that stayed
+    // behind and be green for nothing.
+    const qreal share = 0.45;
+    KSharedConfigPtr globals = KSharedConfig::openConfig();
+    KConfigGroup(globals, QStringLiteral("KDE")).writeEntry("frameContrast", share);
+    globals->sync();
+    globals->reparseConfiguration();
+    QCOMPARE(KColorScheme::frameContrast(), share);
+
+    const QPalette palette = breezePalette(dark);
+
+    // And it has to be a ratio that changes the outcome: at the built-in 0.20 a
+    // delegate that never asked the configuration at all would pass here.
+    const QColor expected = separatorColor(palette, share);
+    QVERIFY(expected != separatorColor(palette, 0.20));
+
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.setPalette(palette);
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage picture = listPicture(list);
+
+    const QRect upper = list->visualRect(model->index(3));
+    // The scheme has reached the list — otherwise everything below would be
+    // measured against a palette nobody paints with.
+    QCOMPARE(picture.pixelColor(0, upper.bottom()), palette.color(QPalette::Normal, QPalette::Base));
+
+    QCOMPARE(picture.pixelColor(upper.width() / 2, upper.bottom()), expected);
+    QCOMPARE(picture.pixelColor(upper.width() / 2, list->visualRect(model->index(6)).top()), expected);
+
+    // And it is a mixture, not a role. Asked of all of them rather than of the
+    // two that came to mind: AlternateBase is the one the HIG would have used
+    // and the one this decision turned down, but a delegate could as easily
+    // have reached for Mid, Dark or PlaceholderText.
+    for (int role = 0; role < QPalette::NColorRoles; ++role) {
+        const auto named = static_cast<QPalette::ColorRole>(role);
+        QVERIFY2(palette.color(QPalette::Normal, named) != expected,
+                 qPrintable(QStringLiteral("Linienfarbe %1 ist die Palettenrolle %2")
+                                .arg(expected.name())
+                                .arg(role)));
+    }
+}
+
+void LibraryTest::separatesTheSearchResultsLikeTheLibrary()
+{
+    // The result list runs through the same model, the same grouping and the
+    // same delegate, so AK 1 to AK 3 hold there without a line of their own —
+    // what this checks is that dropping groups does not shift the exception:
+    // over the first head that is left no line, under the last note that is
+    // left none either (AK 6, wireframe 2c).
+    storedNote(QStringLiteral("Backup heute früh"), QStringLiteral("2026-07-31T08:00:00"));
+    storedNote(QStringLiteral("Milch kaufen"), QStringLiteral("2026-07-31T07:00:00"));
+    storedNote(QStringLiteral("Backup der Fotos"), QStringLiteral("2026-07-30T20:00:00"));
+    storedNote(QStringLiteral("Backup vom Vortag"), QStringLiteral("2026-07-30T09:00:00"));
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+
+    // „Milch" drops out, so „Heute" keeps one note and „Gestern" keeps two.
+    searchOf(window)->setText(QStringLiteral("Backup"));
+    QCOMPARE(rowsOf(*model),
+             QStringList({QStringLiteral("Kopf: Heute"),
+                          QStringLiteral("Notiz: Backup heute früh"),
+                          QStringLiteral("Kopf: Gestern"),
+                          QStringLiteral("Notiz: Backup der Fotos"),
+                          QStringLiteral("Notiz: Backup vom Vortag")}));
+
+    const QImage picture = listPicture(list);
+    const int width = list->visualRect(model->index(0)).width();
+    const QHash<QRgb, QString> legend{
+        {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
+    const QList<int> columns{0, 11, 12, width / 2, width - 13, width - 12, width - 1};
+    const QStringList ground(columns.size(), QStringLiteral("Grund"));
+
+    QCOMPARE(readRow(picture, list->visualRect(model->index(0)).top(), columns, legend), ground);
+    QCOMPARE(readRow(picture, list->visualRect(model->index(1)).bottom(), columns, legend), ground);
+    QCOMPARE(readRow(picture, list->visualRect(model->index(4)).bottom(), columns, legend), ground);
+
+    QCOMPARE(readRow(picture, list->visualRect(model->index(2)).top(), columns, legend),
+             QStringList(columns.size(), QStringLiteral("Linie")));
+    QCOMPARE(readRow(picture, list->visualRect(model->index(3)).bottom(), columns, legend),
+             QStringList({QStringLiteral("Grund"), QStringLiteral("Grund"), QStringLiteral("Linie"),
+                          QStringLiteral("Linie"), QStringLiteral("Linie"), QStringLiteral("Grund"),
+                          QStringLiteral("Grund")}));
 }
 
 void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()

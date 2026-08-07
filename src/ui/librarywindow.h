@@ -126,6 +126,19 @@ private:
      */
     void showNote(const QModelIndex &index, const QModelIndex &previous = QModelIndex());
 
+    /**
+     * Asks the view to paint the row above `row` again — nothing if there is
+     * none or if `row` is invalid.
+     *
+     * The separator line under a note depends on whether the row below it is
+     * the selected one, so a selection that moves changes the picture of the
+     * row above it as well. The view repaints only the stretch between the old
+     * and the new selection, and the row above either end lies outside it:
+     * measured over six switches, a line stayed where it had to go or was
+     * missing where it had to come back (issue #101).
+     */
+    void repaintTheRowAbove(const QModelIndex &row);
+
     /** Puts the note of `index` into the reading pane, leaving the list alone. */
     void showNoteText(const QModelIndex &index);
 
