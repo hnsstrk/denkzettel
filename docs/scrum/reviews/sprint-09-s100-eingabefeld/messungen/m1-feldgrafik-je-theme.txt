@@ -1,5 +1,5 @@
-Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
-Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+Stand: 230b86c (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:26 CEST auf ganymed, Linux 7.1.6-1-cachyos
 
 === #100: Deckung, Rand und Farben von widgets/lineedit je Theme (AK 6b) ===
 Auswahlpfad `opaque`, Rahmen 560x90, Verhältnis 1.

@@ -1,5 +1,5 @@
-Stand: 3712560 (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
-Gemessen: 08.08.2026 00:10 CEST auf ganymed, Linux 7.1.6-1-cachyos
+Stand: 230b86c (story/100-eingabefeld) · Arbeitsbaum außerhalb des Belegordners: sauber
+Gemessen: 08.08.2026 00:26 CEST auf ganymed, Linux 7.1.6-1-cachyos
 
 === #100, M7: capturetest ohne Plasma-Grafiken auf dem Datenpfad ===
 Nachgestellt wird der öffentliche Lauf 31216657864, der hier am
@@ -45,14 +45,14 @@ SKIP   : CaptureTest::hullHasNoStairAtTheCorner() Das Theme `default` löst hier
    Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1613)]
 PASS   : CaptureTest::hullHoldsAtTheCustomersScale()
 SKIP   : CaptureTest::fieldHoldsAtTheCustomersScale() Das Desktop-Theme `denkzettel-test-schmal` löst `widgets/lineedit` nicht auf (isValid=nein, Vorsatz base=nein, Rand 0) — ohne Plasma-Grafiken auf dem Datenpfad zeichnet der Bau kein Feld, und das Feld auf der Kundenskalierung (F4) ist hier nicht zu messen. Dass das Fenster ohne Feld brauchbar bleibt, prüft staysUsableWithoutADesktopTheme(); ungeprüft bleibt allein das Feld selbst.
-   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1671)]
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1665)]
 PASS   : CaptureTest::squareThemeKeepsSquareCorners()
 PASS   : CaptureTest::readsTheContrastEffectOfTheDesktopTheme()
 SKIP   : CaptureTest::takesTheOpaqueVariantWithoutABlurringCompositor() Kein installiertes Theme unterscheidet opaque von translucent — die Wahl wäre hier nicht messbar. Die mitgelieferten Prüf-Themes bringen keine Auswahlpfade mit.
-   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1800)]
+   Loc: [/home/hnsstrk/Projekte/denkzettel-100/tests/capturetest.cpp(1839)]
 PASS   : CaptureTest::wearsNoDecoration()
 PASS   : CaptureTest::bindsAShadowFromTheThemeTiles()
 PASS   : CaptureTest::staysUsableWithoutADesktopTheme()
 PASS   : CaptureTest::cleanupTestCase()
-Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 278ms
+Totals: 29 passed, 0 failed, 9 skipped, 0 blacklisted, 269ms
 ********* Finished testing of CaptureTest *********
