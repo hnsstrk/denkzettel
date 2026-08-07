@@ -736,15 +736,31 @@ v1 aber nicht gebaut.
   Innenabständen, die es schon gibt.
   **Die Stärke ist ein Maß in Gerätebildpunkten** (entdeckte Bedingung,
   07.08.2026, DoD 4): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
-  und nicht abgeschnitten, die Oberkante auf der Gerätebildpunktgrenze. Der
+  und nicht abgeschnitten. Der
   Satz steht hier, weil sein Fehlen einen Fehler getragen hat: Als logisches
   Rechteck gefüllt, belegte dieselbe Linie unter der Skalierung 1,6 mal einen
   und mal zwei Gerätebildpunkte — im Normalfall waren zwei von vier
   Gruppenlinien halb so stark wie die anderen, und in einem Lauf stand eine
   Gruppenlinie von einem Punkt über Eintragslinien von zwei. Dort sagte die
-  Stärke das Gegenteil dessen, was die Ausdehnung sagt. **Abschneiden statt
-  Runden** ergäbe bei 1,6 einen Bildpunkt, und im schwächsten Schema trägt die
-  Linie 1,24 : 1 gegen den Grund. Unter Skalierung 1 ändert sich nichts.
+  Stärke das Gegenteil dessen, was die Ausdehnung sagt. Unter Skalierung 1
+  ändert sich nichts.
+  *Berichtigt am 08.08.2026 (karpathy-Nachlauf N1 und N2, beides nachgemessen).*
+  Hier stand zusätzlich „**die Oberkante auf der Gerätebildpunktgrenze**". Die
+  Zusicherung ist **gefallen**, und der Term, der sie herstellen sollte, ist aus
+  dem Bau entfernt: Er erreichte keine Grenze, weil der Malerursprung selbst
+  neben dem Raster liegt — das Sichtfeld der Liste beginnt bei logisch 48, also
+  bei 76,8 Gerätebildpunkten unter 1,6. Über 280 gemessene Lagen (sieben
+  Verhältnisse, zwanzig Zeilenlagen, zwei Malerursprünge) verschob er die Linie
+  in 8 Lagen um einen Bildpunkt und änderte **keine einzige Höhe**. Die
+  Einheitlichkeit trägt allein die ganzzahlige Höhe: Zwei Kanten, die ganzzahlig
+  viele Gerätebildpunkte auseinanderliegen, runden auf Werte, die um dieselbe
+  ganze Zahl auseinanderliegen. Ebenfalls berichtigt ist die Begründung des
+  Rundens: Sie berief sich darauf, dass die Linie nie dünner werden dürfe, und
+  das trifft **unterhalb 1,5** nicht zu (1,25 → 1 Bildpunkt → 0,80 logische
+  Punkte). Was gilt: Eine Gerätebildpunktzeile ist die Untergrenze, und genau so
+  breit ist die Linie unter Skalierung 1 — dem Zustand, den der Kunde
+  abgenommen hat. **Aufrunden** statt Runden machte sie bei 1,25 auf 1,6
+  logische Punkte dicker als gezeichnet.
   *Ausdrücklich ungeregelt bleibt die seitliche Kante:* Sie liegt unter 1,6 bei
   11,88 statt 12,0 Punkten — 0,12 Punkte, während der Seitenrand der Glyphen
   daneben im selben Bild zwischen 0,5 und 2,4 Punkten schwankt.
