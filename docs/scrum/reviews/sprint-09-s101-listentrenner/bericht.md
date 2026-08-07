@@ -27,7 +27,8 @@ eigenen Verzeichnissen und installieren nichts nach `/usr`.
 |---|---|
 | `CMakeLists.txt` | `find_package(KF6ColorScheme 6.20 REQUIRED)` als **eigener** Aufruf. `KF_MIN_VERSION` `:6` steht unverändert auf `6.0.0`, die Komponentenliste ist unberührt (Kundenentscheidung 07.08.2026, Falle 2.6). |
 | `src/CMakeLists.txt` | `KF6::ColorScheme` an `denkzettelui`. |
-| `src/ui/notelistdelegate.{h,cpp}` | Zwei Zeichenstellen und zwei Hilfsfunktionen: `separatorColor()` mischt Listengrund und Textfarbe im Verhältnis `KColorScheme::frameContrast()`, `isSelectedIn()` fragt die Ansicht nach der Auswahl einer **anderen** Zeile. Die Gruppenlinie steht im Kopfzweig **vor** dem `return`, die Eintragslinie im Notizzweig **nach** `style->drawControl(...)` (Falle 2.8). |
+| `.github/workflows/ci.yml` | `kcolorscheme` in der Paketliste des öffentlichen Laufs, mit Begründung (8.2). |
+| `src/ui/notelistdelegate.{h,cpp}` | Zwei Zeichenstellen und **drei** Hilfsfunktionen — `hairline()` legt beide Linien aufs Geräteraster (8.1); dazu: `separatorColor()` mischt Listengrund und Textfarbe im Verhältnis `KColorScheme::frameContrast()`, `isSelectedIn()` fragt die Ansicht nach der Auswahl einer **anderen** Zeile. Die Gruppenlinie steht im Kopfzweig **vor** dem `return`, die Eintragslinie im Notizzweig **nach** `style->drawControl(...)` (Falle 2.8). |
 | `src/ui/librarywindow.{h,cpp}` | `repaintTheRowAbove()` und zwei Aufrufe am Anfang von `showNote()` — für `index` und für `previous` (AK 3c, Falle 2.2). |
 
 **Kein neues Maß.** Beide Linien liegen in Innenabständen, die es schon gab:
@@ -85,7 +86,8 @@ nimmt sechsmal je **eine** Zusicherung aus dem Produktivcode, baut und fährt
 | Eintragslinie über die volle Breite statt eingerückt | rot — `drawsAnInsetHairlineBetweenTwoNotesOfAGroup`, beide Größen |
 | ~~`frameContrast()` durch die feste 0,20 ersetzt~~ → **berichtigt, siehe 3.1** | ~~rot — `mixesTheSeparator…`, beide Schemata~~ · **richtig ist, nachgefahren am 07.08.2026: rot** — `mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole` in beiden Schemata und `leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt` in beiden Größen |
 | Neuzeichnen der oberen Nachbarn entfernt | rot — `paintsBothUpperNeighboursAgainWhenTheSelectionMoves`, und **nur** dieser Satz |
-| **kein Eingriff** | grün, 124 Prüffunktionen |
+| Haarlinie ohne Ausrichtung am Geräteraster (der Stand vor L9) | rot — `keepsEverySeparatorOneThicknessUnderTheCustomersScaling`, und **nur** im skalierten Lauf |
+| **kein Eingriff** | grün |
 
 ### 3.1 Berichtigung vom 07.08.2026 — diese Zeile war falsch, und sie war die wichtigste
 
@@ -285,4 +287,107 @@ nicht geheilt.
 | `messungen/mutationsprobe.txt` | die sechs Eingriffe mit ihrem Ergebnis |
 | `bilder/skalierung-1/` | die fünfzehn Szenen von `libraryshots` und die sechs von `searchshots`, Skalierung 1 |
 | `bilder/skalierung-1-6/` | zwei Szenen unter `QT_SCALE_FACTOR=1.6`: der Normalfall (AK 7) und die ruhige Liste — die einzige, in der beide Linien zugleich stehen |
-| `pruefen.sh`, `mutationsprobe.sh` | beide Läufe, wiederholbar |
+| `messungen/b7-strichstaerke.txt` | Stärke jeder Trennlinie in Gerätebildpunkten unter 1,6 |
+| `pruefen.sh`, `mutationsprobe.sh`, `strichstaerke.py` | die Läufe, wiederholbar |
+
+
+---
+
+## 8. Nachtrag 07.08.2026 — zwei Befunde aus den Reviews
+
+### 8.1 L9 — die Strichstärke sagte unter 1,6 das Gegenteil der Länge
+
+**Der Befund.** Unter `QT_SCALE_FACTOR=1.6` belegt eine Linie von einem
+logischen Punkt 1,6 Gerätebildpunktzeilen. Welche ganzen Zeilen daraus werden,
+hängt davon ab, wo die Zeile im Raster landet — dieselbe Linie kam mal einen,
+mal zwei Bildpunkte stark heraus. Damit sagt die **Stärke** etwas anderes als
+die **Länge**, und die Kundenfestlegung lautet ausdrücklich umgekehrt:
+*„Gleiche Farbe, verschiedene Ausdehnung — die Rangfolge entsteht aus der Länge
+des Strichs statt aus seiner Stärke."*
+
+Gefunden hat es der UI-Review, unter anderem **in meinem eigenen Bildmaterial**.
+Nachgemessen an denselben Bildern:
+
+| Szene (Skalierung 1,6) | vorher | nachher |
+|---|---|---|
+| `01-normalfall` — Gruppenlinien | **1, 1, 2, 2** | 2, 2, 2, 2 |
+| `09-ruhiges-bild…` — Eintragslinien | **1, 2, 2, 2** | 2, 2, 2, 2 |
+| `09-ruhiges-bild…` — Gruppenlinie | 2 | 2 |
+
+**Im Normalfall waren zwei von vier Gruppenlinien halb so stark wie die anderen
+beiden** — in der Ansicht, die der Kunde am häufigsten sieht.
+
+**Warum meine Prüfsätze das nicht sahen.** AK 1 bis AK 3 messen auf Skalierung
+1, und dort ist jede Linie genau ein Bildpunkt. Der Fehler kann in dieser Lage
+nicht auftreten. Das ist der Fall, den `CLAUDE.md` als *„ein Testaufbau, in dem
+der Fehler gar nicht auftreten kann, ist kein Test"* führt — er stand hier
+nicht als Nachlässigkeit, sondern weil die Prüflage aus der Bildpunkt-Zusicherung
+folgte und niemand gefragt hat, was sie ausschließt.
+
+**Der Vorschlag des Reviews, geprüft statt übernommen.** Er lautete: Stärke
+`max(1, round(dpr))/dpr`, Oberkante `round(kante · dpr)/dpr`, gefüllt als
+`QRectF`. Der Vorschlag trägt, und er ist umgesetzt. Zwei Punkte habe ich
+nachgerechnet, bevor ich ihn genommen habe:
+
+- **Warum runden und nicht abschneiden.** Abschneiden ergäbe bei 1,6 einen
+  Bildpunkt, also 0,625 logische Punkte. Das schwächste gemessene Schema trägt
+  diese Linie bei **1,24 : 1** gegen den Grund; dünner machen ist genau das,
+  was hier nicht passieren darf. Runden hält zudem die Mehrheitslage von vorher
+  bei und ändert am wenigsten.
+- **Warum die Prüfsätze auf Skalierung 1 unberührt bleiben.** Bei Verhältnis 1
+  ergeben beide Terme wieder ganze Zahlen: `round(1) = 1` und
+  `round(y · 1)/1 = y`. Am Bildpunkt ändert sich dort nichts — belegt dadurch,
+  dass AK 1 bis AK 3 unverändert grün sind.
+
+**Zwei Anläufe für den Prüfsatz, und der erste war der Fehler noch einmal.**
+
+1. Zuerst habe ich die Skalierung **nachgebaut**: die Liste durch einen Maler
+   auf ein Bild mit `devicePixelRatio` 1,6 gezeichnet, im selben Prozess.
+   Gemessen: Bei 1,25 zeigte der Nachbau den Fehler, **bei 1,6 nicht** — während
+   das echte 1,6 ihn zeigt. Die Zeilenhöhen einer skalierten Sitzung sind nicht
+   die einer unskalierten, der Nachbau maß also Zeilenlagen, die es nicht gibt.
+   **Ein Prüfsatz, der gerade dort besteht, wo der Fehler sitzt, ist schlimmer
+   als keiner.** Der Nachbau ist gelöscht.
+2. Danach mit echter Skalierung — und **auch da war er zuerst grün**, weil meine
+   Szene nur vier Linien in drei Lagen hatte. Der Fehler hängt an der Rasterlage;
+   eine Szene, die nur drei Lagen kennt, kann ihn verfehlen. Die Szene hat jetzt
+   eine Gruppe mit **acht** Notizen, die alle fünf Phasen durchläuft
+   (`storedALongGroup()`).
+
+**So ist der Prüfsatz gebaut.** `librarytest` wird in `tests/CMakeLists.txt` ein
+zweites Mal registriert (`librarytestskaliert`), mit `QT_SCALE_FACTOR=1.6` und
+**nur** dieser einen Prüffunktion — die Bildpunktsätze aus AK 1 bis AK 3 messen
+in logischen Punkten und würden unter 1,6 die Skalierung prüfen statt der Linie.
+
+**Gegenversuch, wie verlangt:** Vor der Korrektur, echte Skalierung 1,6:
+
+```
+FAIL!  : keepsEverySeparatorOneThicknessUnderTheCustomersScaling()
+         Skalierung 1.6: Stärken 1,2, erwartet nur 2 — eingerückt [2,2,2,2,1,1], Rand [2]
+```
+
+Nach der Korrektur grün. Zusätzlich als **Mutationsprobe 7** verankert: Nimmt
+man die Rasterausrichtung wieder heraus, fällt genau dieser eine Prüfsatz.
+
+**Was ich nicht angefasst habe:** die **seitlichen** Kanten. Bei 1,6 liegt die
+eingerückte Kante bei 19,2 Gerätebildpunkten und wird auf 19 gerundet. Das ist
+dieselbe Sorte Rasterfrage, betrifft aber die Enden einer langen Linie und nicht
+ihre Stärke — gemessen, nicht geheilt, weil es außerhalb des Befunds liegt.
+
+### 8.2 K6 — `kcolorscheme` fehlte in der Paketliste des öffentlichen Laufs
+
+`KF6ColorScheme` ist seit dieser Story Pflichtabhängigkeit, stand aber nicht in
+`.github/workflows/ci.yml`. **Nachgemessen, warum der Lauf trotzdem grün war:**
+Drei Pakete der Liste ziehen es mit — `ksvg`, `libplasma` und
+`plasma-integration` führen `kcolorscheme` in ihren Abhängigkeiten. Transitiv
+ist keine Zusage: Verliert eines dieser drei die Abhängigkeit, bricht der Bau an
+einer Stelle, die niemand mit dieser Änderung in Verbindung bringt.
+
+Eingetragen mit Begründungszeile, wie es die Nachbarzeilen der Datei tun.
+
+**Zur Version, die du vor dem Sprint-Abschluss wissen wolltest:** Im rollenden
+Arch-Strom liegt `kcolorscheme` bei **6.28.0**, verlangt sind **6.20**. Der
+öffentliche Lauf erfüllt die Untergrenze mit Abstand; hier ist keine Grenze,
+die den Abschluss berührt. Was bleibt, ist der allgemeine Vorbehalt aus dem
+Kopf der Datei: Ein Upstream-Sprung kann den Lauf jederzeit rot färben, und das
+ist so gewollt.

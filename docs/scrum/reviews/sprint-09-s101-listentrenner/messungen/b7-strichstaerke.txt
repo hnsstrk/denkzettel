@@ -1,0 +1,14 @@
+B7 — Stärke jeder Trennlinie in GERÄTEBILDPUNKTEN, Skalierung 1,6
+Stand: 2026-08-07 23:29 CEST, Ganymed. 46bb5b5 auf story/101-listentrenner.
+Offscreen, QT_QPA_PLATFORMTHEME=kde.
+
+01-normalfall.png
+  Eintragslinien: keine in diesem Bild
+  Gruppenlinien : [2]
+  Urteil        : eine einzige Stärke
+09-ruhiges-bild-innerhalb-der-gruppe.png
+  Eintragslinien: [2]
+  Gruppenlinien : [2]
+  Urteil        : eine einzige Stärke
+
+Gefundene Stärkegruppen insgesamt: 3

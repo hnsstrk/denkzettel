@@ -125,8 +125,8 @@ probe "3. Gruppenlinie auch über dem ersten Kopf (AK 2)" "$DELEGATE" \
     'if (index.row() >= 0) {'
 
 probe "4. Eintragslinie über die volle Breite statt eingerückt (AK 1)" "$DELEGATE" \
-    'QRect(textLeft(entry.rect), entry.rect.bottom(), width, 1)' \
-    'QRect(entry.rect.x(), entry.rect.bottom(), entry.rect.width(), 1)'
+    'hairline(painter->device(), textLeft(entry.rect), entry.rect.bottom(), width)' \
+    'hairline(painter->device(), entry.rect.x(), entry.rect.bottom(), entry.rect.width())'
 
 # Der VOLLE Ausdruck, nicht der Aufruf allein: `KColorScheme::frameContrast()`
 # steht auch im Kommentar der Funktion und käme damit zweimal vor. Genau daran
@@ -135,6 +135,13 @@ probe "4. Eintragslinie über die volle Breite statt eingerückt (AK 1)" "$DELEG
 probe "5. Linienfarbe aus einem festen Verhältnis statt aus der Konfiguration (AK 4)" "$DELEGATE" \
     'static_cast<float>(KColorScheme::frameContrast())' \
     '0.20F'
+
+# Die Rücknahme der Rasterausrichtung — genau der Stand vor dem UI-Review-Befund
+# L9. Sie fällt nur im zweiten, skalierten Lauf; `ctest -R librarytest` fasst ihn
+# mit, weil sein Name den des ersten enthält.
+probe "7. Haarlinie ohne Ausrichtung am Geräteraster (L9)" "$DELEGATE" \
+    'return QRectF(left, std::round(top * ratio) / ratio, width, rows / ratio);' \
+    'return QRectF(left, top, width, 1);'
 
 probe "6. Ohne das Neuzeichnen der oberen Nachbarn (AK 3c)" "$FENSTER" \
     '    repaintTheRowAbove(index);
