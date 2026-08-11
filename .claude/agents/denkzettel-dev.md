@@ -184,6 +184,15 @@ Fundstelle. Eine Liste, die niemand fortschreibt, altert zur Anekdote.
     sehen ist es allein an den Änderungszeiten, im Inhalt nicht. Bevor du einen
     Mechanismus für kaputt erklärst, prüfe, ob er überhaupt gelaufen ist
     (Sprint 9, `docs/scrum/reviews/sprint-09-s100-eingabefeld/bericht.md`).
+16. **Eine Wache, die sich selbst mitzählt, wartet auf sich selbst.**
+    `until ! pgrep -f "…/pruefen.sh"; do sleep 15; done` lief endlos: `pgrep -f`
+    durchsucht ganze Kommandozeilen und findet **die Warteschleife selbst**, weil
+    das Suchmuster darin steht. Der Lauf war längst fertig. Dieselbe Klasse wie
+    ein Vergleich, der auf beiden Seiten dieselbe Größe misst — und wie ein
+    Wartegriff, der auf „nicht `in_progress`" prüft und deshalb `queued` für
+    fertig hält (beide Sprint 9, 11.08.2026). **Frag bei jeder Wartebedingung,
+    ob dein eigener Befehl unter sie fällt**, und prüfe auf den Zielzustand
+    (`completed`) statt auf die Abwesenheit eines anderen.
 
 ## Vor der Übergabe — Selbst-Sichtprüfung
 

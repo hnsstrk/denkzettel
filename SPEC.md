@@ -747,9 +747,17 @@ v1 aber nicht gebaut.
   *Berichtigt am 08.08.2026 (karpathy-Nachlauf N1 und N2, beides nachgemessen).*
   Hier stand zusätzlich „**die Oberkante auf der Gerätebildpunktgrenze**". Die
   Zusicherung ist **gefallen**, und der Term, der sie herstellen sollte, ist aus
-  dem Bau entfernt: Er erreichte keine Grenze, weil der Malerursprung selbst
-  neben dem Raster liegt — das Sichtfeld der Liste beginnt bei logisch 48, also
-  bei 76,8 Gerätebildpunkten unter 1,6. Über 280 gemessene Lagen (sieben
+  dem Bau entfernt. **Die Grenze, gegen die er rundete, war nicht die des
+  Bildschirms** — die Funktion sieht allein widget-lokale Koordinaten, während
+  das Sichtfeld der Liste bei logisch 48 beginnt, unter 1,6 also bei 76,8
+  Gerätebildpunkten. *Berichtigt am 11.08.2026 (karpathy-Nachlauf 2, K6):* Hier
+  stand „er erreichte keine Grenze". Das war die falsche Ursache und nicht die
+  halbe — er erreichte sehr wohl eine, nur die des Widgets. Bei den
+  Verhältnissen, unter denen der Ursprung selbst auf dem Geräteraster liegt
+  (1,0 · 1,25 · 1,5 · 2,0 · 2,5 — dort ist logisch 48 gerade 48, 60, 72, 96
+  und 120 Gerätebildpunkte), ändert der Term nichts; **alle acht** gemessenen
+  Verschiebungen liegen bei **1,4 und 1,6**, wo er es nicht tut.
+  Über 280 gemessene Lagen (sieben
   Verhältnisse, zwanzig Zeilenlagen, zwei Malerursprünge) verschob er die Linie
   in 8 Lagen um einen Bildpunkt und änderte **keine einzige Höhe**. Die
   Einheitlichkeit trägt allein die ganzzahlige Höhe: Zwei Kanten, die ganzzahlig

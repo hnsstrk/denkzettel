@@ -164,6 +164,15 @@ jobs:
           # hullHasNoStairAtTheCorner überspringt mangels Plasma-`default`, und
           # der Elternteil meldet das nach oben statt grün.
           #
+          # Der zehnte ist kein zusätzlich Verschwiegenes, sondern das Etikett
+          # eines halb gemessenen Laufs: Bei einem echten Fehler **fällt** der
+          # Prüfsatz, er überspringt nicht (gemessen 11.08.2026 — Übergabe des
+          # Bildpunktverhältnisses an die Hülle entfernt, Elternteil rot,
+          # Rückgabewert 1; Belege in
+          # docs/scrum/reviews/sprint-09-s100-eingabefeld/messungen/m9-kopplung-huellenpruefsatz.txt).
+          # Bei Verhältnis 1 ist dieser Fehler unsichtbar — der Kindlauf bei 1,6
+          # ist in dieser Lage der einzige, der die Übergabe überhaupt prüft.
+          #
           # Die Auswertung nimmt je Binär die LETZTE Totals-Zeile. Grund
           # gemessen: Trägt ein Prüfsatz die Ausgabe eines Kindprozesses nach
           # oben, steht dessen Totals-Zeile mitten in der des Elternteils. Eine
