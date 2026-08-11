@@ -1710,6 +1710,7 @@ void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
     // two is a number that goes wrong when somebody adds a fixture.
     QStringList ran;
     QStringList unmeasured;
+    bool wordless = false;
     const QStringList lines = output.split(QLatin1Char('\n'));
     for (const QString &name : assertions) {
         const QString needle = QStringLiteral("CaptureTest::%1()").arg(name);
@@ -1735,6 +1736,7 @@ void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
         } else if (skipped) {
             unmeasured << QStringLiteral("%1 — %2").arg(name, reason);
         } else {
+            wordless = true;
             unmeasured << QStringLiteral("%1 — weder PASS noch SKIP in der Ausgabe des Kindes")
                               .arg(name);
         }
@@ -1744,14 +1746,23 @@ void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
     // Skipped rather than failed, because the child said why — and its reason is
     // carried up here instead of being left in an output nobody reads when the
     // exit code is 0.
+    //
+    // The child's whole output comes along only where a name carries no reason
+    // with it. Otherwise it repeats what stands right above it and drags its own
+    // `Totals` line into this message — and that line is read as this run's
+    // tally by anything counting skips off the log: the runner's guard in
+    // `ci.yml` as much as `mutationsproben.sh`, which measured "1 skipped"
+    // instead of 10 and thereupon judged nothing at all (11.08.2026).
     if (!unmeasured.isEmpty()) {
+        const QString child =
+            wordless ? QStringLiteral("\nAusgabe des Kindes:\n%1").arg(output) : QString();
         QSKIP(qPrintable(
             QStringLiteral("Im Kindprozess bei 1,6 hat nicht jeder angeforderte Prüfsatz gemessen "
                            "(%1 von %2). Der Rückgabewert war 0 und hätte grün gemeldet. Nicht "
-                           "gemessen:\n  %3\nAusgabe des Kindes:\n%4")
+                           "gemessen:\n  %3%4")
                 .arg(ran.size())
                 .arg(assertions.size())
-                .arg(unmeasured.join(QStringLiteral("\n  ")), output)));
+                .arg(unmeasured.join(QStringLiteral("\n  ")), child)));
     }
 }
 
