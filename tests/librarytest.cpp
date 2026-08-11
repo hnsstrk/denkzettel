@@ -1188,14 +1188,25 @@ void LibraryTest::analysed(qint64 id, const QString &category, const QStringList
     // The analysis run of M3 writes these fields; in M2 nothing does, so the
     // test bench fills them in. That is what the check "unchanged after
     // saving" needs — against empty fields it could never fail (issue #11, K3).
+    //
+    // QVERIFY2 and not Q_ASSERT, measured with issue #99. Qt's CMake package
+    // defines QT_NO_DEBUG for every build type but Debug, and under it
+    // `Q_ASSERT(cond)` expands to `static_cast<void>(false && (cond))`: the
+    // condition is compiled and never evaluated. The two writes below therefore
+    // stopped happening as soon as anyone built Release — and the two checks
+    // that read the category back afterwards reported a data loss that only the
+    // bench had caused. QVERIFY2 is never compiled out and says who failed.
+    //
+    // The same holds for the read above it: without a live check `*stored`
+    // would dereference an empty optional in exactly those builds.
     const std::optional<Note> stored = m_store->note(id);
-    Q_ASSERT(stored.has_value());
+    QVERIFY2(stored.has_value(), qPrintable(m_store->lastError()));
 
     Note note = *stored;
     note.category = category;
     note.state = Note::State::Analysed;
-    Q_ASSERT(m_store->updateNote(note));
-    Q_ASSERT(m_store->setTags(id, tags));
+    QVERIFY2(m_store->updateNote(note), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setTags(id, tags), qPrintable(m_store->lastError()));
 }
 
 QPushButton *LibraryTest::buttonNamed(const QWidget &window, const QString &text)
