@@ -157,18 +157,19 @@ benutzen aber `i18n()`.
 ### Wie hier gearbeitet wird
 
 Denkzettel wird mit KI entwickelt. Den Produktivcode, die Tests und die
-Prüfberichte schreiben Claude-Code-Agenten in festen Rollen — Product Owner,
-Entwicklung, UI/UX, Scrum Master, Verwaltung. Bei mir liegen Ziele,
-Prioritäten, Freigaben und die Abnahme. Die meisten Commits tragen deshalb
-einen `Co-Authored-By: Claude`-Vermerk.
+Den Code schreiben Claude-Code-Agenten in festen Rollen — Product Owner,
+Entwicklung, UI/UX. Bei mir liegen Ziele, Prioritäten, Freigaben und die
+Abnahme. Die meisten Commits tragen deshalb einen
+`Co-Authored-By: Claude`-Vermerk.
 
-Denkzettel entsteht in Sprints. Jede Story wird vor dem Ziehen von zwei
-unabhängigen Bearbeitern am Code vermessen — Dateimenge, gemessene Fallen,
-Prüfmittel und Größenklasse —, und erst dieser Bericht macht sie ziehbar. Sprint-Protokolle, Prüfberichte samt Bildern und die Arbeitsvereinbarung
-liegen offen unter [`docs/scrum/`](docs/scrum/); die bindende Spezifikation ist
-[`SPEC.md`](SPEC.md). Dort stehen auch die Fehlgriffe: grüne Tests, die nichts
-prüften, Bildbelege eines veralteten Standes, Entscheidungen, die gut begründet
-waren und sich beim Nachmessen als falsch herausstellten.
+Der Backlog sind die [Issues](https://github.com/hnsstrk/denkzettel/issues) mit
+ihren Akzeptanzkriterien; die bindende Spezifikation ist [`SPEC.md`](SPEC.md).
+Bis August 2026 lag daneben ein umfangreicher Prozessapparat aus
+Sprint-Protokollen, Vorprüf- und Prüfberichten. Er ist entfernt: Zuletzt standen
+zehn Zeilen Bericht gegen jede Zeile Code, und die meisten Befunde betrafen die
+Prüfung selbst statt das Produkt. Geblieben sind die vier Prüfregeln, die
+tatsächlich Fehler im Programm gefunden haben — sie stehen in
+[`CLAUDE.md`](CLAUDE.md).
 
 Jeder Push auf `main` und jeder Pull Request lösen einen Bau- und Testlauf aus
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Er läuft in einem
@@ -186,7 +187,6 @@ src/store       SQLite-Zugriff, Schema, Volltextindex
 src/ui          Bibliothek
 src/shell       Tray, globale Kürzel, D-Bus
 tests/          Unit-Tests und Bildläufer
-docs/scrum/     Sprint-Protokolle, Prüfberichte, Arbeitsvereinbarung
 wireframes/     die verbindlichen Zeichnungen
 third_party/    Fremdcode (spellfix aus SQLite)
 ```

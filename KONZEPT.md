@@ -101,7 +101,7 @@ drei Spec-Detailfragen. Noch keine verabschiedete Spec.
   echte Sessions) und der **WhisperX-ROCm-Stack aus dem RPG-Audio-Projekt**
   (Whisper large-v3 + pyannote 3.1; die Sprecher-Diarisierung braucht Denkzettel
   nicht). Beide stehen in den Einstellungen zur Auswahl.
-  *(Korrektur 31.07.2026 abends, Befund der Schätzklausur: WhisperX ist auf
+  *(Korrektur 31.07.2026 abends, Befund der Schätzklausur: WhisperX ist auf dem
   Entwicklungsrechner noch **nicht installiert** — geplant im RPG-Audio-Projekt, der PoC
   lief mit whisper.cpp. Die Auswahl bleibt, die Installation ist Vorbedingung;
   Details SPEC 12.)*
