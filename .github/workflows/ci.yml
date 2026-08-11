@@ -193,6 +193,18 @@ jobs:
                   fehler = 1
                 }
               }
+              # Und einmal andersherum über die Erwartungsliste (karpathy-Nachlauf 3,
+              # L1). Die Schleife oben läuft nur über Binäre, die eine Totals-Zeile
+              # hinterlassen haben — ein aus `tests/CMakeLists.txt` **entferntes**
+              # Binär hinterlässt keine, seine Erwartung bliebe ungeprüft und der
+              # Lauf wäre grün. Genau die Frage, die diese Wache an andere stellt:
+              # Was gäbe sie aus, wenn ihr Gegenstand fehlte?
+              for (b in soll) {
+                if (!(b in uebersprungen)) {
+                  printf "::error::%s hat keine Totals-Zeile hinterlassen — das erwartete Prüfbinär ist nicht gelaufen (aus der ctest-Anmeldung entfernt oder umbenannt?). Seine Erwartung von %s Übersprüngen ist damit ungeprüft.\n", b, soll[b]
+                  fehler = 1
+                }
+              }
               if (fehler) {
                 print "Prüfe, welcher Prüfsatz hinzugekommen oder weggefallen ist, und zieh die"
                 print "Erwartung oben nach — mit Begründung. Was der Lauf nicht prüft, soll eine"
