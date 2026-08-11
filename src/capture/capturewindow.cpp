@@ -67,10 +67,18 @@ constexpr QLatin1StringView DefaultDesktopTheme("default");
  *
  * KRunner's entry field is drawn from exactly this image and prefix
  * (`TextField.qml:187–191`), and KRunner is the customer's yardstick. `base` is
- * the resting state of the field, not the focused one — that layer is #102.
+ * the resting state of the field, not the focused one.
+ *
+ * The focused one is the second prefix, and it is Plasma's own layering rather
+ * than a second variant to choose between: the graphic carries an element
+ * `hint-focus-over-base` — present under all eight installed themes, measured —
+ * which says that `focus` belongs **on top of** `base`. Under five of the eight
+ * `base` covers 15 of 255 and the field is a hint at best; the focus layer is
+ * what makes it a field there (issue #102).
  */
 constexpr QLatin1StringView FieldImage("widgets/lineedit");
 constexpr QLatin1StringView FieldPrefix("base");
+constexpr QLatin1StringView FocusPrefix("focus");
 
 /**
  * What a QTextDocument keeps around its text before anything of ours is added.
@@ -223,6 +231,7 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     , m_hull(new KSvg::FrameSvg(this))
     , m_shadowTiles(new KSvg::FrameSvg(this))
     , m_field(new KSvg::FrameSvg(this))
+    , m_focus(new KSvg::FrameSvg(this))
     , m_blursBehind(capture::sessionBlursBehindWindows())
 {
     setWindowTitle(i18n("Denkzettel"));
@@ -232,7 +241,7 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     // stays see-through; without a theme paintEvent() fills every pixel.
     setAttribute(Qt::WA_TranslucentBackground);
 
-    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles, m_field}) {
+    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles, m_field, m_focus}) {
         frame->setEnabledBorders(KSvg::FrameSvg::AllBorders);
         connect(frame, &KSvg::Svg::repaintNeeded, this, qOverload<>(&QWidget::update));
     }
@@ -252,6 +261,13 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     // (`ColorScheme-ViewBackground`, `ColorScheme-Frame`), not out of the set.
     m_field->setImagePath(FieldImage);
     m_field->setElementPrefix(FieldPrefix);
+    // The same image and the same set, one prefix further: what the theme draws
+    // while the field has the keyboard. No colour set here either, for the
+    // reason above — the colour comes out of the class names in the SVG, here
+    // `ColorScheme-ViewFocus` (measured: under the customer's scheme that is his
+    // accent, 61,212,37).
+    m_focus->setImagePath(FieldImage);
+    m_focus->setElementPrefix(FocusPrefix);
 
     m_text->setFrameShape(QFrame::NoFrame);
     m_text->setPlaceholderText(i18n("Gedanke festhalten …"));
@@ -351,8 +367,9 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     }
     // The field frame belongs in this loop, and leaving it out would fail
     // silently: it would keep drawing the old theme's graphic on a window that
-    // has changed theme, and no return value would say so (issue #100, F5).
-    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles, m_field}) {
+    // has changed theme, and no return value would say so (issue #100, F5). The
+    // focus layer beside it is the same trap a fourth time (issue #102, AK 4).
+    for (KSvg::FrameSvg *frame : {m_hull, m_shadowTiles, m_field, m_focus}) {
         frame->setImageSet(imageSet.get());
     }
     m_imageSet = std::move(imageSet);
@@ -473,6 +490,20 @@ void CaptureWindow::paintEvent(QPaintEvent *event)
         painter.drawPixmap(m_text->pos(), m_field->framePixmap());
     }
 
+    // And the focus layer over the resting one, on the same rectangle: Plasma's
+    // own order, written into the graphic as `hint-focus-over-base` (issue
+    // #102, AK 2).
+    //
+    // Drawn while the window is the **active** one, which is Plasma's
+    // `activeFocus` and not Qt's `hasFocus()` alone. A field that kept its edge
+    // in a window the keyboard has left would say something untrue about where
+    // typing goes — and the window does stay standing when the focus leaves it
+    // (SPEC 3). `hasFocus()` resolves through the focus proxy set above, so it
+    // asks about the text area and not about the window's own frame.
+    if (m_focus->isValid() && hasFocus() && isActiveWindow()) {
+        painter.drawPixmap(m_text->pos(), m_focus->framePixmap());
+    }
+
     QWidget::paintEvent(event);
 }
 
@@ -496,6 +527,21 @@ bool CaptureWindow::event(QEvent *event)
         resizeField();
         update();
     }
+
+    // No branch of ours for the activation, and that is measured rather than
+    // forgotten (issue #102). The focus layer hangs on the window's activation,
+    // so the obvious line here is `ActivationChange` → `update()`. It changes
+    // nothing: Qt already repaints a toplevel when it gains or loses the
+    // activation, and the paint arrives before anything can be read back.
+    // Measured on both platforms and with the branch built in and built out —
+    // one repaint on deactivation and one on activation, four runs, the same
+    // four numbers (`sonde5`, `sonde6`, `sonde7` of this story). The variant
+    // with the flattened palette is measured too, because `QWidget::event()`
+    // makes its own repaint conditional on the palette differing between
+    // `Active` and `Inactive`: it repaints there as well.
+    //
+    // What holds the assurance instead is the picture out of the session, and
+    // it is where a repaint that failed to come would be visible at all.
 
     return QWidget::event(event);
 }
@@ -525,6 +571,12 @@ void CaptureWindow::resizeField()
     // would betray a missing line never arrives (issue #100, F4).
     m_field->setDevicePixelRatio(devicePixelRatioF());
     m_field->resizeFrame(m_text->size());
+    // The focus layer lies on the same rectangle, so it takes the same two
+    // lines. Left out, it would be drawn at ratio 1 over a field drawn at 1,6 —
+    // and offscreen that never shows, because the event that hands the second
+    // ratio over does not arrive there (issue #100, F4; issue #83).
+    m_focus->setDevicePixelRatio(devicePixelRatioF());
+    m_focus->resizeFrame(m_text->size());
 }
 
 qreal CaptureWindow::hullDevicePixelRatio() const

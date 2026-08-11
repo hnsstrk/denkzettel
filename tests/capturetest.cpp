@@ -114,6 +114,12 @@ private:
      * reference rendered without it would compare a different picture.
      */
     static QPixmap themeField(const QString &theme, const QSize &size, const QStringList &selectors);
+    /**
+     * The focus layer of the same graphic (issue #102): `widgets/lineedit` with
+     * the prefix `focus`, the layer Plasma puts over `base` while a field has
+     * the keyboard.
+     */
+    static QPixmap themeFocus(const QString &theme, const QSize &size, const QStringList &selectors);
     /** The border `widgets/lineedit` claims for itself, or 0 if it does not resolve. */
     static qreal fieldBorderOf(const QString &theme);
     /**
@@ -136,7 +142,15 @@ private:
      * one.
      */
     static QString whyNoFieldGraphic(const QString &theme, const QString &criterion);
-    /** Hull and field composed the way paintEvent() composes them. */
+    /**
+     * Hull, field and focus layer composed the way paintEvent() composes them
+     * for an **active** window.
+     *
+     * Active and not resting, because that is the state every picture of this
+     * file is taken in: shot() shows the window, and offscreen a plain show()
+     * hands it the activation (measured, issue #102). The two call sites say so
+     * in an assertion of their own rather than trusting the platform.
+     */
     static QImage themeHullWithField(const QString &theme, const QSize &size, const QRect &field);
     /** What the window's field draws at its surface, read off a fresh picture. */
     QColor fieldSurfaceColour();
@@ -624,6 +638,25 @@ QPixmap CaptureTest::themeField(const QString &theme, const QSize &size, const Q
     return frame.framePixmap();
 }
 
+QPixmap CaptureTest::themeFocus(const QString &theme, const QSize &size, const QStringList &selectors)
+{
+    KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
+    imageSet.setSelectors(selectors);
+
+    KSvg::FrameSvg frame;
+    // No rendering cache, for the same reason the two helpers above switch it
+    // off: this one too is called several times per run with different themes.
+    frame.setUsingRenderingCache(false);
+    frame.setImageSet(&imageSet);
+    frame.setImagePath(QStringLiteral("widgets/lineedit"));
+    frame.setElementPrefix(QStringLiteral("focus"));
+    frame.setEnabledBorders(KSvg::FrameSvg::AllBorders);
+    frame.setDevicePixelRatio(qApp->devicePixelRatio());
+    frame.resizeFrame(size);
+
+    return frame.framePixmap();
+}
+
 qreal CaptureTest::fieldBorderOf(const QString &theme)
 {
     KSvg::ImageSet imageSet(theme, QStringLiteral("plasma/desktoptheme"));
@@ -675,14 +708,16 @@ QString CaptureTest::whyNoFieldGraphic(const QString &theme, const QString &crit
 
 QImage CaptureTest::themeHullWithField(const QString &theme, const QSize &size, const QRect &field)
 {
-    // The two calls of paintEvent(), in its order and with its coordinates: the
-    // hull over the whole window, the field over the geometry of the text area.
-    // Held against this rather than against a colour, because a colour would be
-    // the colour of one theme and this runs under several.
+    // The three calls of paintEvent(), in its order and with its coordinates:
+    // the hull over the whole window, the field over the geometry of the text
+    // area, the focus layer over that. Held against this rather than against a
+    // colour, because a colour would be the colour of one theme and this runs
+    // under several.
     QImage picture = themeHull(theme, size, opaqueSelectors());
 
     QPainter painter(&picture);
     painter.drawPixmap(field.topLeft(), themeField(theme, field.size(), opaqueSelectors()));
+    painter.drawPixmap(field.topLeft(), themeFocus(theme, field.size(), opaqueSelectors()));
     painter.end();
 
     return picture;
@@ -873,6 +908,14 @@ void CaptureTest::paintsTheThemesFieldOntoTheHull()
         QVERIFY(text);
 
         const QImage picture = shot(*m_window);
+        // Composed **with** the focus layer, and that is measured rather than
+        // assumed: offscreen a plain show() hands the window the activation, so
+        // the picture above is the one of an active window and carries the layer
+        // (issue #102). The assertion below says so out loud instead of leaving
+        // it to the platform.
+        QVERIFY2(m_window->isActiveWindow() && m_window->hasFocus(),
+                 "Das gezeigte Fenster ist nicht aktiv — dann vergleicht dieser Lauf gegen "
+                 "die falsche der beiden Fassungen des Feldes (#102).");
         const QImage expected = themeHullWithField(theme, m_window->size(), text->geometry());
         // The width has to agree, the height to within one row — and that one
         // row is measured, not tolerated blindly: at the customer's ratio the
@@ -1224,6 +1267,12 @@ void CaptureTest::fieldCoverageIsTheThemesOwn()
         QVERIFY(text);
 
         const QImage picture = shot(*m_window);
+        // With the focus layer, for the reason named in
+        // paintsTheThemesFieldOntoTheHull(): shot() shows the window and
+        // offscreen that activates it. Under the faint themes the layer covers
+        // the surface too — measured, it is what lifts the field there — so the
+        // sample point below is not clear of it.
+        QVERIFY(m_window->isActiveWindow() && m_window->hasFocus());
         const QImage expected = themeHullWithField(theme, m_window->size(), text->geometry());
         QCOMPARE(expected.size(), picture.size());
 
@@ -1998,10 +2047,20 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
         QCOMPARE(picture.pixelColor(picture.width() / 2, picture.height() / 2),
                  m_window->palette().color(QPalette::Window));
 
-        // And no field either (issue #100, AK 8). `widgets/lineedit` is as
-        // absent here as `dialogs/background` is, and a build that drew it all
-        // the same would put a graphic on a window that has no theme — the
-        // middle of the text area is where it would stand.
+        // And the window is the active one while that picture is taken, which
+        // is what makes the two comparisons below say anything about the focus
+        // layer as well (issue #102, AK 6). An inactive window draws no layer
+        // whatever its `isValid()` says, so without this line the guard on the
+        // fourth frame would go unmeasured and the run would read green.
+        QVERIFY2(m_window->isActiveWindow() && m_window->hasFocus(),
+                 "Das Fenster ist nicht aktiv — dann prüfen die beiden Vergleiche unten die "
+                 "isValid()-Wache der Fokusschicht nicht mit.");
+
+        // And no field either (issue #100, AK 8), and no focus layer over it
+        // (issue #102, AK 6). `widgets/lineedit` is as absent here as
+        // `dialogs/background` is, and a build that drew either all the same
+        // would put a graphic on a window that has no theme — the middle of the
+        // text area and its left edge are where the two would stand.
         QCOMPARE(picture.pixelColor(inPicture(fieldSurface(text))),
                  m_window->palette().color(QPalette::Window));
         QCOMPARE(picture.pixelColor(inPicture(fieldEdge(text))),
