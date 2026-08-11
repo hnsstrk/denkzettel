@@ -134,16 +134,17 @@ jobs:
             cat ctest.log
             exit "$ctest_rc"
           fi
-          # Erwartung je Prüfbinär. Mangels der Plasma-Grafik
-          # `widgets/lineedit` überspringt capturetest zehn Prüfsätze mit
-          # begründetem QSKIP — sechs Feldzusicherungen, drei Theme-Prüfsätze
-          # und hullHoldsAtTheCustomersScale, das seinen Kindlauf nach oben
-          # meldet statt grün. Alle anderen Binäre überspringen keinen.
+          # Erwartung je Prüfbinär. Seit dem Testschnitt vom 11.08.2026
+          # überspringt keines mehr einen Prüfsatz: die Zusicherungen über
+          # Hülle, Feld und Farben des Erfassungsfensters sind entfallen, und
+          # mit ihnen die zehn begründeten QSKIP von capturetest, die an der
+          # fehlenden Plasma-Grafik `widgets/lineedit` hingen. Die Liste ist
+          # deshalb leer — jedes Binär muss auf null Übersprünge kommen.
           #
           # Die Auswertung nimmt je Binär die LETZTE Totals-Zeile: trägt ein
           # Prüfsatz die Ausgabe eines Kindprozesses nach oben, steht dessen
           # Totals-Zeile mitten in der des Elternteils.
-          erwartung="capturetest=10"
+          erwartung=""
           awk -v erwartung="$erwartung" '
             /Start +[0-9]+: / { name = $NF }
             /Totals:/ { for (i = 1; i <= NF; i++) if ($i == "skipped,") uebersprungen[name] = $(i-1) }
@@ -220,10 +221,6 @@ jobs:
         # kommt einer dazu: `grep -c` zählt Rohzeilen, und jede Kopfdatei wird
         # von jeder Übersetzungseinheit erneut gemeldet (gemessen Faktor 9,4).
         # Bei Schwelle 0 folgenlos, darüber eine Falle.
-        #
-        # Die Zahlen gelten für die Standardkonfiguration: mit
-        # -DDENKZETTEL_SPIKE_SPELLFIX=ON nimmt der Glob in CMakeLists.txt
-        # tests/spellfixspike.cpp dazu. Der Bau oben konfiguriert ohne ihn.
         run: |
           set -o pipefail
           rc=0

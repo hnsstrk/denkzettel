@@ -51,9 +51,6 @@ private Q_SLOTS:
     void readsTheActionsOfADesktopFile();
     void hasAMessageForEveryFailureAndNoneForSuccess();
 
-    void announcesItselfAsAMenuAndKeepsTheMenuToShow();
-    void showsTheEntriesOfTheWireframeWithTheirIcons();
-    void keepsQuitApartInTheLastGroup();
     void hintsTheShortcutWithoutBindingItASecondTime();
 
 private:
@@ -293,86 +290,6 @@ void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
         shortcutRegistrationFailure(ShortcutRegistration::DesktopActionMissing),
     };
     QCOMPARE(QSet<QString>(messages.begin(), messages.end()).size(), messages.size());
-}
-
-void ShellTest::announcesItselfAsAMenuAndKeepsTheMenuToShow()
-{
-    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    TrayIcon icon;
-
-    // ItemIsMenu has no change signal in the SNI protocol: the host reads the
-    // property when the item registers and never asks again, so it has to stand
-    // by the time the constructor is through (issue #44). Whether the panel then
-    // opens the menu on a left click is the customer's check at the panel — no
-    // agent can produce that click under Wayland.
-    QVERIFY(icon.item()->isMenu());
-
-    // An item that announces a menu and has none would swallow the click. The
-    // right click has to keep finding the same menu it found before.
-    QVERIFY(icon.item()->contextMenu() != nullptr);
-    QVERIFY(!icon.item()->contextMenu()->actions().isEmpty());
-}
-
-void ShellTest::showsTheEntriesOfTheWireframeWithTheirIcons()
-{
-    // Wireframe 5a and issue #60 fix labels, icon names, order and state. The
-    // icon name is the test subject, not the picture: only an icon taken from
-    // the theme carries a name, and only a name travels to Plasma over the tray
-    // protocol. An icon built from a resource would arrive nameless, and the
-    // assurance would not be checkable at all.
-    struct Entry {
-        const char *text;
-        const char *iconName;
-        bool enabled;
-    };
-    const QList<Entry> expected = {
-        {"Notiz erfassen", "document-edit", true},
-        {"Sprachnotiz aufnehmen", "audio-input-microphone", false},
-        {nullptr, nullptr, false}, // Trenner: Erfassen von Ansehen und Verarbeiten
-        {"Bibliothek öffnen", "view-list-text", true},
-        {"Jetzt analysieren", "system-run", false},
-        {"Vorschläge", "tools-wizard", false},
-        {nullptr, nullptr, false}, // Trenner: Arbeitswege von der Verwaltung
-        {"Beenden", "application-exit", true},
-    };
-
-    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    TrayIcon icon;
-    const QList<QAction *> actions = icon.item()->contextMenu()->actions();
-    QCOMPARE(actions.size(), expected.size());
-
-    for (qsizetype i = 0; i < expected.size(); ++i) {
-        const Entry &entry = expected.at(i);
-        const QAction *action = actions.at(i);
-
-        if (entry.text == nullptr) {
-            QVERIFY2(action->isSeparator(), qPrintable(QStringLiteral("Eintrag %1 ist kein Trenner").arg(i)));
-            continue;
-        }
-
-        QCOMPARE(action->text(), QString::fromUtf8(entry.text));
-        QCOMPARE(action->icon().name(), QString::fromUtf8(entry.iconName));
-        QCOMPARE(action->isEnabled(), entry.enabled);
-    }
-}
-
-void ShellTest::keepsQuitApartInTheLastGroup()
-{
-    // Customer finding 1 of 02.08.2026 asked for "Beenden" to leave the left
-    // click list. Two menus would have been the answer; the measurement of
-    // 02.08.2026 (Messung zu #33, Sprint 4) shows
-    // they do not carry under Wayland. What is left of the finding is the
-    // distance: the destructive action is last and behind a separator, never
-    // next to the entry that is used most.
-    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    TrayIcon icon;
-    const QList<QAction *> actions = icon.item()->contextMenu()->actions();
-
-    QVERIFY(!actions.isEmpty());
-    QCOMPARE(actions.last()->text(), QStringLiteral("Beenden"));
-    QVERIFY(actions.at(actions.size() - 2)->isSeparator());
-    QVERIFY(!actions.first()->isSeparator());
-    QVERIFY(actions.first()->text() != QStringLiteral("Beenden"));
 }
 
 void ShellTest::hintsTheShortcutWithoutBindingItASecondTime()

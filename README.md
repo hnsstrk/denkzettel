@@ -117,8 +117,8 @@ ctest --test-dir build
 ```
 
 Die Tests laufen offscreen und brauchen keine laufende Plasma-Sitzung. Die
-fünf Bildläufer (`editshots`, `libraryshots`, `searchshots`, `readmeshots`,
-`captureshots`) baut ein gewöhnlicher Build seit dem 04.08.2026 mit. Sie stehen weiterhin
+drei Bildläufer (`libraryshots`, `captureshots`, `readmeshots`) baut ein
+gewöhnlicher Build seit dem 04.08.2026 mit. Sie stehen weiterhin
 **nicht** in `ctest` — ein kaputter Bildschreiber soll die Suite nicht rot
 färben —, aber ein Läufer, den niemand neu baut, altert unbemerkt und schreibt
 plausible Bilder eines alten Standes.
@@ -145,10 +145,8 @@ cmake --build build --target lint-tidy    # clang-tidy
 cmake --build build --target lint-clazy   # clazy, Qt-Semantik
 ```
 
-Beide sehen nur `src/` und `tests/` und stehen auf **null Befunden** — in der
-Standardkonfiguration, also ohne `-DDENKZETTEL_SPIKE_SPELLFIX=ON`; mit dem
-Spike sind es drei, alle in dessen eigener Datei. Eine Null ohne genannte
-Schalterstellung ist keine Aussage. Der automatische Lauf hält sie dort. Wo ein Befund bewusst stehenbleibt, steht ein
+Beide sehen nur `src/` und `tests/` und stehen auf **null Befunden**. Der
+automatische Lauf hält sie dort. Wo ein Befund bewusst stehenbleibt, steht ein
 `NOLINT` mit der Begründung daneben. Bekannte Lücke: clazy prüft `tr()`, wir
 benutzen aber `i18n()`.
 

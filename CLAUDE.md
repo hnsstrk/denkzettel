@@ -63,8 +63,8 @@ die Grundlage. Wo ein Akzeptanzkriterium über Theme oder Compositor etwas
 behauptet, gehört ein Bild aus der angemeldeten Sitzung dazu.
 
 **4. Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
-Es gibt fünf: `editshots`, `libraryshots`, `searchshots`, `readmeshots`,
-`captureshots`. Ein veralteter Läufer schreibt plausible Bilder eines *alten*
+Es gibt drei: `libraryshots`, `captureshots` und `readmeshots`. Ein
+veralteter Läufer schreibt plausible Bilder eines *alten*
 Standes mit frischem Zeitstempel. Vor jedem Bildbeleg:
 `cmake --build build --target <läufer>`.
 
