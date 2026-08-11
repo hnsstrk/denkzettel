@@ -34,6 +34,7 @@ private Q_SLOTS:
     void cleanup();
 
     void addsNoteAndReturnsItsId();
+    void announcesTheNoteItWrites();
     void keepsBlankTextOutOfTheStore();
     void reportsFailedStorageAsZero();
     void asksForTheLibraryWindow();
@@ -103,6 +104,26 @@ void ShellTest::addsNoteAndReturnsItsId()
     QCOMPARE(stored->type, Note::Type::Text);
     QCOMPARE(stored->state, Note::State::New);
     QVERIFY(stored->createdAt.isValid());
+}
+
+void ShellTest::announcesTheNoteItWrites()
+{
+    // The other half of the road of issue #105: the library hangs on
+    // Store::noteAdded, and a note written from outside over the bus has to
+    // ring the same bell as one written in the capture window. It does because
+    // it goes through the same door — the announcement is the store's, not the
+    // window's, and this is what says so for the D-Bus entry point.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy added(m_store.get(), &Store::noteAdded);
+
+    const qlonglong id = m_service->AddNote(QStringLiteral("Gedanke aus einem Skript"));
+
+    QCOMPARE(added.size(), 1);
+    QCOMPARE(added.first().first().toLongLong(), id);
+
+    // Blank text is no note and announces nothing.
+    QCOMPARE(m_service->AddNote(QStringLiteral("   \n  ")), 0);
+    QCOMPARE(added.size(), 1);
 }
 
 void ShellTest::keepsBlankTextOutOfTheStore()

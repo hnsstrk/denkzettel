@@ -786,6 +786,23 @@ v1 aber nicht gebaut.
   ihr scrollt — ohne Tageswechsel warf ein Alt-Tab den Leser um 459 px auf
   seine Auswahl zurück (Issue #59, gemessen 04.08.2026). Der Kalendertag
   genügt als Bedingung, weil alle vier Gruppengrenzen Tagesgrenzen sind.
+  **Eine Notiz, die entsteht, während die Bibliothek offen steht, erscheint
+  ohne weiteres Zutun in der Liste** (Kundenbefund 11.08.2026, Issue #105).
+  Die Meldung kommt vom Speicher, nicht vom Erfassungsfenster: Der Weg über
+  D-Bus (`AddNote`, 2.3) schreibt ohne jedes Fenster, und beide Wege gehen
+  durch dieselbe Tür. Drei Bedingungen, bei der Umsetzung entdeckt:
+  **(a)** Läuft gerade eine Löschfrist, wartet die neue Notiz auf deren Ende —
+  die gelöschte Notiz steht bis dahin noch im Speicher und käme beim Nachlesen
+  in eine Liste zurück, die sie wegzählt. Die Frist wird dafür **nicht**
+  abgekürzt (anders als beim Suchbegriff, 6, den der Nutzer im Blick auf die
+  Meldung selbst tippt): Was der Nutzer in einem anderen Fenster schreibt, darf
+  das Rückgängig nicht verbrauchen, das ihm hier noch angeboten wird.
+  **(b)** Die Leseposition bleibt: Die Zeile am oberen Rand behält ihren Platz,
+  die gelesene Notiz ihre Auswahl. Ausgenommen ist die Liste, die **am Anfang**
+  steht — dort ist der Anfang der Platz der neuen Notiz, und dort muss sie zu
+  sehen sein.
+  **(c)** Steht ein Suchbegriff im Feld, gilt er auch für die neue Notiz; sie
+  kommt nur in die Liste, wenn sie trifft.
   Springt die Auswahl **per Taste** über eine Gruppengrenze, holt die Liste den
   Kopf der neuen Gruppe ins Bild (Wireframe 3b, Fall 4) — **und ebenso, wenn
   die Auswahl per Taste die erste Notiz einer Gruppe erreicht, ohne eine Grenze

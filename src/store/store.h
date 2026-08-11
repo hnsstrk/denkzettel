@@ -3,6 +3,7 @@
 #include "store/note.h"
 
 #include <QList>
+#include <QObject>
 #include <QSqlDatabase>
 #include <QString>
 #include <QStringList>
@@ -17,9 +18,17 @@
  *
  * All methods report failure through their return value; the reason is
  * available from lastError().
+ *
+ * It announces what it takes in (noteAdded), and that is why it is a QObject:
+ * every road a note travels into the database runs through addNote() — the
+ * capture window and the D-Bus method AddNote() today, whatever comes with the
+ * transcription tomorrow. A window that listens here hears all of them; one
+ * that listened to the capture window would hear one of them (issue #105).
  */
-class Store
+class Store : public QObject
 {
+    Q_OBJECT
+
 public:
     explicit Store(const QString &databasePath);
     ~Store();
@@ -85,6 +94,17 @@ public:
     bool setTags(qint64 noteId, const QStringList &tags);
 
     QStringList tags(qint64 noteId) const;
+
+Q_SIGNALS:
+    /**
+     * A note has been written and carries the id `id` (issue #105).
+     *
+     * Emitted after the insert has succeeded, so a listener that reads the
+     * store again finds the note. It says that something was added, not what:
+     * the library reads its own list back and applies its own search term to
+     * it, and a signal carrying the note would tempt it to skip that.
+     */
+    void noteAdded(qint64 id);
 
 private:
     bool migrate();
