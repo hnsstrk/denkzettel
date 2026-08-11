@@ -47,10 +47,9 @@ entwickelt**, ich bin der Kunde des Teams —
 
 > **Zu den Bildern:** Sie zeigen den Stand vom 04.08.2026. Seither hat das
 > Erfassungsfenster ein sichtbares Eingabefeld bekommen und die Notizliste
-> Trennlinien zwischen Einträgen und Gruppen. Erneuert werden die Bilder,
-> sobald [#96](https://github.com/hnsstrk/denkzettel/issues/96) behoben ist —
-> der Bildläufer zeichnet Fläche und Schrift derzeit aus zwei Quellen, die
-> nichts voneinander wissen.
+> Trennlinien zwischen Einträgen und Gruppen. Erneuert werden sie, sobald der
+> Bildläufer wieder verlässliche Bilder liefert — er zeichnet Fläche und
+> Schrift derzeit aus zwei Quellen, die nichts voneinander wissen.
 
 Auf der Liste stehen noch: Sprachnotizen mit Transkription, eine KI, die
 sortiert und Vorschläge macht, Export nach Obsidian und Taskwarrior. Was
@@ -156,7 +155,7 @@ benutzen aber `i18n()`.
 ### Wie hier gearbeitet wird
 
 Denkzettel wird mit KI entwickelt. Den Produktivcode, die Tests und die
-Den Code schreiben Claude-Code-Agenten in festen Rollen — Product Owner,
+Prüfungen schreiben Claude-Code-Agenten in festen Rollen — Product Owner,
 Entwicklung, UI/UX. Bei mir liegen Ziele, Prioritäten, Freigaben und die
 Abnahme. Die meisten Commits tragen deshalb einen
 `Co-Authored-By: Claude`-Vermerk.
