@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QFont>
 #include <QStyledItemDelegate>
 
 /**
@@ -34,22 +33,6 @@ public:
      * number down — which is what makes the alignment testable at all.
      */
     static int textLeft(const QRect &row);
-
-    /**
-     * The type a group head is set in — the text size of the application, bold,
-     * in plain text colour (issue #104).
-     *
-     * It was the smallest type of the list until 11.08.2026, the size of the
-     * timestamp and therefore smaller than the note text it stands over: a
-     * heading without rank. The rank is one of the two features that tell a
-     * group boundary from a note boundary now.
-     *
-     * Public for the same reason as textLeft(): it is a decision about rank,
-     * and where a delegate puts its ink is invisible to a test that does not
-     * count pixels. Asked here, it can be measured against the sizes the
-     * application itself uses.
-     */
-    static QFont groupHeadFont();
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;

@@ -43,6 +43,22 @@ QFont timestampFont()
     return QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont);
 }
 
+/**
+ * The type a group head is set in — the text size of the application, bold
+ * (issue #104).
+ *
+ * It was the smallest type of the list until 11.08.2026, the size of the
+ * timestamp and therefore smaller than the note text it stands over: a heading
+ * without rank. The rank is one of the two features that tell a group boundary
+ * from a note boundary now, the place of the line being the other.
+ */
+QFont groupHeadFont()
+{
+    QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    font.setWeight(QFont::Bold);
+    return font;
+}
+
 int headTopPadding(int row)
 {
     return row == 0 ? FirstHeadTopPadding : HeadTopPadding;
@@ -92,46 +108,22 @@ QColor separatorColor(const QPalette &palette)
  * The rectangle a hairline of one logical point occupies, laid on the device
  * pixel grid (issue #101, UI review of Sprint 9, L9).
  *
- * `top` is the logical row the line sits in. At the customer's ratio of 1.6 a
- * logical point covers 1.6 device pixel rows, and which whole rows those become
- * depends on where `top` falls in the grid: measured on his scaling, the same
- * line came out one device pixel thick above one entry and two above the next,
- * and a group line could end up thinner than the entry lines beneath it. Then
- * the weight says the opposite of the length — while the rule is that the
- * ranking comes from the length of the stroke and not from its weight
- * (customer decision of 06.08.2026).
+ * A whole number of device pixel rows, never fewer than one. Filled as a
+ * logical rectangle, the same line came out one device pixel thick above one
+ * entry and two above the next, and a group line could end up thinner than the
+ * entry lines beneath it — there the weight said the opposite of the length.
+ * The integer height carries the assurance on its own: two edges an integer
+ * number of device pixels apart round to values that are the same integer
+ * apart, wherever they fall (measured over 280 positions).
  *
- * Hence a whole number of device pixel rows, never fewer than one. That single
- * term carries the whole assurance: two edges that are an integer number of
- * device pixels apart round to values that are the same integer apart, wherever
- * they fall. Measured over 280 positions — seven ratios, twenty rows, two
- * painter origins — the height is the same in every one of them.
+ * **Rounded, not truncated:** one device pixel row is the floor, and that is
+ * exactly what the line is at ratio 1 — the appearance the customer approved.
  *
- * Rounded rather than truncated: truncation would leave 0.625 logical points at
- * 1.6, less than a device pixel row of the unscaled list. Rounding never goes
- * below one device pixel row, and one device pixel row is exactly what the line
- * is at ratio 1 — the appearance the customer approved. Below 1.5 that means
- * fewer than one logical point (1.25 → 1 row → 0.8 points); it is the same ink
- * on the same screen as at ratio 1, so the line never gets thinner than what
- * was accepted.
- *
- * At ratio 1 the term comes out exactly as before, which is why the pixel
- * checks of AK 1 to AK 3 are untouched by this.
- *
- * **No attempt is made to put the upper edge on a device pixel boundary.** One
- * stood here until 08.08.2026 (`std::round(top * ratio) / ratio`) and was
- * removed as measured: over those 280 positions it changed not a single height,
- * and what it did change was the position — by one device pixel in 8 of them.
- * An arbitrary shift under the name of an alignment (karpathy follow-up of
- * Sprint 9, N1).
- *
- * The boundary it rounded to was not the screen's: this function only ever sees
- * widget-local coordinates, and the list viewport starts at logical 48. Where
- * that origin falls on the device grid the term moved nothing — no difference
- * at origin 0 for any of the seven ratios, and none at origin 48 for 1.0, 1.25,
- * 1.5, 2.0 or 2.5, where logical 48 is 48, 60, 72, 96 and 120 device pixels.
- * All 8 differences sit at 1.4 and 1.6, where it is 67.2 and 76.8 (measured,
- * B8).
+ * **No attempt to put the upper edge on a device pixel boundary.** One stood
+ * here until 08.08.2026 and was removed as measured: over those 280 positions
+ * it changed no height and moved the line by a pixel in 8 of them. The boundary
+ * it rounded to was the widget's, not the screen's — this function sees only
+ * widget-local coordinates (Sprint 9, N1; B8).
  */
 QRectF hairline(const QPaintDevice *device, int left, int top, int width)
 {
@@ -199,13 +191,6 @@ int NoteListDelegate::drawLine(QPainter *painter,
 NoteListDelegate::NoteListDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
 {
-}
-
-QFont NoteListDelegate::groupHeadFont()
-{
-    QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
-    font.setWeight(QFont::Bold);
-    return font;
 }
 
 int NoteListDelegate::textLeft(const QRect &row)

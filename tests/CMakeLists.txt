@@ -89,19 +89,22 @@ set_tests_properties(librarytest PROPERTIES
 # the one check that needs it (issue #101, UI review of Sprint 9, L9).
 #
 # QT_SCALE_FACTOR is read once, before the application exists, so no test
-# function can set it; a second run is the only way to reach that state. And it
-# has to be a second run rather than a second suite, because the pixel checks of
-# AK 1 to AK 3 measure in logical points — under 1.6 the indented edge sits at
-# 19 instead of 12, and they would be measuring the scaling instead of the line.
+# function can set it; a second run is the only way to reach that state.
 #
-# What this one measures is the opposite: that a hairline is the same number of
-# DEVICE pixel rows wherever it lands in the grid. At scaling 1 that can never
-# go wrong, which is why the fault stood for a whole story without a red test.
+# What this one measures is that a hairline is the same number of DEVICE pixel
+# rows wherever it lands in the grid. At scaling 1 that can never go wrong,
+# which is why the fault stood for a whole story without a red test — and the
+# eye cannot judge it either, which is why it is a test and not a picture.
+#
+# 1.5 since 11.08.2026 (issue #104). It stood at 1.6 because that was the
+# customer's setting when the check was written; he has changed it since
+# (`kwinrc`, measured 11.08.2026). A check whose own name says „the customer's
+# scaling" and measures another one is a false witness, not a stricter one.
 add_test(NAME librarytestskaliert
     COMMAND librarytest keepsEverySeparatorOneThicknessUnderTheCustomersScaling)
 
 set_tests_properties(librarytestskaliert PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;QT_SCALE_FACTOR=1.6")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;QT_SCALE_FACTOR=1.5")
 
 # Writes the picture series of the search states for the story handover. No
 # add_test(): it produces pictures for a human to look at, and a broken
