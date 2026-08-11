@@ -67,14 +67,10 @@ constexpr QLatin1StringView DefaultDesktopTheme("default");
  *
  * KRunner's entry field is drawn from exactly this image and prefix
  * (`TextField.qml:187–191`), and KRunner is the customer's yardstick. `base` is
- * the resting state of the field, not the focused one.
- *
- * The focused one is the second prefix, and it is Plasma's own layering rather
- * than a second variant to choose between: the graphic carries an element
- * `hint-focus-over-base` — present under all eight installed themes, measured —
- * which says that `focus` belongs **on top of** `base`. Under five of the eight
- * `base` covers 15 of 255 and the field is a hint at best; the focus layer is
- * what makes it a field there (issue #102).
+ * the resting state, `focus` the layer on top of it — Plasma's own layering,
+ * named by the element `hint-focus-over-base` in the graphic itself. Under
+ * several themes `base` barely covers, and the focus layer is what makes it a
+ * field there (issue #102).
  */
 constexpr QLatin1StringView FieldImage("widgets/lineedit");
 constexpr QLatin1StringView FieldPrefix("base");
@@ -529,19 +525,10 @@ bool CaptureWindow::event(QEvent *event)
     }
 
     // No branch of ours for the activation, and that is measured rather than
-    // forgotten (issue #102). The focus layer hangs on the window's activation,
-    // so the obvious line here is `ActivationChange` → `update()`. It changes
-    // nothing: Qt already repaints a toplevel when it gains or loses the
-    // activation, and the paint arrives before anything can be read back.
-    // Measured on both platforms and with the branch built in and built out —
-    // one repaint on deactivation and one on activation, four runs, the same
-    // four numbers (`sonde5`, `sonde6`, `sonde7` of this story). The variant
-    // with the flattened palette is measured too, because `QWidget::event()`
-    // makes its own repaint conditional on the palette differing between
-    // `Active` and `Inactive`: it repaints there as well.
-    //
-    // What holds the assurance instead is the picture out of the session, and
-    // it is where a repaint that failed to come would be visible at all.
+    // forgotten (issue #102). Qt already repaints a toplevel when it gains or
+    // loses the activation, and the paint arrives before anything can be read
+    // back — measured on both platforms, with the branch built in and built
+    // out. What holds the assurance instead is the picture out of the session.
 
     return QWidget::event(event);
 }
@@ -619,16 +606,13 @@ void CaptureWindow::applyFieldMargin()
     // layout does not hear of this at all.
     //
     // One number for four sides, because a document has one margin. The widest
-    // of the four, so no side of the text can end up underneath the border;
-    // measured, the four do not diverge — 6 px all round under all eight
-    // installed themes (issue #100, AK 5).
+    // of the four, so no side of the text can end up underneath the border
+    // (issue #100, AK 5).
     //
     // `documentMargin` and not `setViewportMargins()`, which is protected, nor
     // `setContentsMargins()` on the text area, which measurably does nothing
-    // (F7). It has the further property of being right: adjustHeight() already
-    // counts the document margin into the chrome, so the window grows by the
-    // two borders on its own and heightFollowsAFontChange() reads the same two
-    // sources.
+    // (F7). And adjustHeight() already counts the document margin into the
+    // chrome, so the window grows by the two borders on its own.
     const qreal border = qMax(qMax(left, right), qMax(top, bottom));
     m_text->document()->setDocumentMargin(BareDocumentMargin + border);
 }
@@ -639,23 +623,16 @@ void CaptureWindow::applyTextColours()
     // order of precedence is written down (issue #85). It has to be one place:
     // the two sources move on different occasions — the theme on a theme
     // change, the scheme on a palette change — and a rule spread over two
-    // places would be right at the moment it was written and wrong after the
-    // next change of the other kind. Both occasions come here.
+    // places would be wrong after the next change of the other kind.
     //
     // The note text through KSvg and the dimmed class through the file we read
     // ourselves, and that is not a taste: `KSvg::Svg::StyleSheetColor` has no
-    // counterpart to `ForegroundInactive` (see themeTextColoursOf()). Where the
-    // theme brings a `colors` file the two roads agree — measured over eight
-    // themes and three colour schemes, and held together by a test.
+    // counterpart to `ForegroundInactive` (see themeTextColoursOf()).
     //
     // The scheme's half of the note text is `WindowText` and not the role for
-    // entry fields, and since issue #100 that holds for a different reason than
-    // it did: the text now stands on two grounds depending on the theme — on
-    // the field's surface where `widgets/lineedit` covers, on the hull where it
-    // draws a hint only. `WindowText` stays above 4,5:1 in both, worst case
-    // 5,70:1 and 4,74:1 over 19 colour schemes; the view role falls to 4,22:1
-    // in the second. Decided by the UX role on the customer's instruction,
-    // 07.08.2026 (`Entscheidung Textfarbe`).
+    // entry fields: since issue #100 the text stands on two grounds depending
+    // on the theme, and `WindowText` stays above 4,5:1 in both while the view
+    // role falls to 4,22:1 on the hull. Customer's instruction, 07.08.2026.
     const QColor noteColour = m_themeText.normal.isValid()
         ? m_hull->color(KSvg::Svg::Text)
         : this->palette().color(QPalette::WindowText);

@@ -65,16 +65,13 @@ struct ThemeTextColours {
  * The `[Colors:Window]` group of a desktop theme's own `colors` file.
  *
  * Read ourselves and not through `KSvg::Svg::color()`, for one measured
- * reason: the enumeration `KSvg::Svg::StyleSheetColor` knows `Text`,
- * `Background`, `Highlight`, `HighlightedText` and three signal colours —
- * **no counterpart to `ForegroundInactive`** (`KSvg/ksvg/svg.h`). The dimmed
- * class has no KSvg road, so it takes the road `contrastEffectOf()` above
- * already takes: the theme's own KConfig file beside the graphic.
+ * reason: `KSvg::Svg::StyleSheetColor` has **no counterpart to
+ * `ForegroundInactive`** (`KSvg/ksvg/svg.h`). The dimmed class has no KSvg
+ * road, so it takes the theme's own KConfig file beside the graphic.
  *
  * `normal` is read all the same, and it is not the value the note text is
- * painted with — `KSvg::Svg::color(Text)` is. It is what says whether the
- * theme brings a hand of its own at all, and the tests hold the two against
- * each other so that the two roads cannot drift apart unnoticed.
+ * painted with — `KSvg::Svg::color(Text)` is. It says whether the theme brings
+ * a hand of its own at all.
  */
 ThemeTextColours themeTextColoursOf(const QString &desktopTheme);
 
@@ -83,16 +80,12 @@ ThemeTextColours themeTextColoursOf(const QString &desktopTheme);
  *
  * Asked **before** the first registration, and therefore not through
  * `KWindowEffects::isEffectAvailable(BlurBehind)`: that one answers `false` in
- * the customer's own session until we have registered once and `true` only
- * afterwards (measured, Vorprüfung zu #83). A window built on that value would start
- * out opaque in exactly the session this story is for.
+ * the customer's own session until we have registered once (measured,
+ * Vorprüfung zu #83). A window built on that value would start out opaque in
+ * exactly the session this story is for.
  *
- * Asked instead of KWin itself, over D-Bus. KWin advertises the Wayland
- * interface behind the blur — `ext_background_effect_manager_v1` — only while
- * that effect is loaded, so the two answers are the same answer from two sides;
- * the equivalence is measured in the handover report of the story. A platform
- * without a compositing window server (offscreen, and the CI run with it)
- * answers false without asking anybody.
+ * Asked of KWin itself over D-Bus instead. A platform without a compositing
+ * window server answers false without asking anybody.
  */
 bool sessionBlursBehindWindows();
 

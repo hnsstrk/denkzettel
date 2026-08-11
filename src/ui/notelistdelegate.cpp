@@ -74,17 +74,9 @@ bool isGroupHead(const QModelIndex &index)
  * ratio KColorScheme::frameContrast() — the way Kirigami colours its own
  * separators (wireframe 3a, issue #101).
  *
- * Deliberately not a palette role. Over the eighteen colour schemes measured on
- * 06.08.2026 the roles that sit near the ground — AlternateBase above all —
- * stay between 1.00 : 1 and 1.21 : 1 against it, and at a group boundary
- * AlternateBase lands at 1.00 : 1 every single time, because the head is a row
- * of the model and eats a stripe of its own. This mixture lies between
- * 1.24 : 1 and 1.93 : 1.
- *
- * The ratio comes out of the `[KDE]` group of the application configuration and
- * not out of the colour scheme: no installed scheme carries the key, so it
- * reads 0.20 everywhere until somebody sets it (measured 07.08.2026). What
- * pulls the contrasts apart are the colours of the schemes.
+ * Deliberately not a palette role: measured over eighteen colour schemes, the
+ * roles near the ground stay under 1.21 : 1 against it and AlternateBase lands
+ * at 1.00 : 1 at every group boundary, while this mixture reaches 1.93 : 1.
  *
  * Read from the Normal colour group, because a group head is handed to the
  * delegate disabled — a line greyed out above one row and not below the next
@@ -110,20 +102,15 @@ QColor separatorColor(const QPalette &palette)
  *
  * A whole number of device pixel rows, never fewer than one. Filled as a
  * logical rectangle, the same line came out one device pixel thick above one
- * entry and two above the next, and a group line could end up thinner than the
- * entry lines beneath it — there the weight said the opposite of the length.
- * The integer height carries the assurance on its own: two edges an integer
- * number of device pixels apart round to values that are the same integer
- * apart, wherever they fall (measured over 280 positions).
+ * entry and two above the next.
  *
  * **Rounded, not truncated:** one device pixel row is the floor, and that is
  * exactly what the line is at ratio 1 — the appearance the customer approved.
  *
  * **No attempt to put the upper edge on a device pixel boundary.** One stood
- * here until 08.08.2026 and was removed as measured: over those 280 positions
- * it changed no height and moved the line by a pixel in 8 of them. The boundary
- * it rounded to was the widget's, not the screen's — this function sees only
- * widget-local coordinates (Sprint 9, N1; B8).
+ * here and was removed as measured: it changed no height and only moved the
+ * line. The boundary it rounded to was the widget's, not the screen's — this
+ * function sees only widget-local coordinates (Sprint 9, N1; B8).
  */
 QRectF hairline(const QPaintDevice *device, int left, int top, int width)
 {
@@ -138,10 +125,8 @@ QRectF hairline(const QPaintDevice *device, int left, int top, int width)
  *
  * Asked of the view rather than read out of `option.state`, because the entry
  * line has to know it of the row *below* as well — and `option.state` only ever
- * speaks of the row being painted. The cast was measured: `option.widget`
- * carries the QListView in every paint, and its selection model answers
- * (issue #101). Where there is no view — nobody builds this list without one —
- * the answer is „not selected“, and the line stays.
+ * speaks of the row being painted (issue #101). Where there is no view, the
+ * answer is „not selected“ and the line stays.
  */
 bool isSelectedIn(const QStyleOptionViewItem &option, const QModelIndex &row)
 {
@@ -163,10 +148,8 @@ bool isSelectedIn(const QStyleOptionViewItem &option, const QModelIndex &row)
  * place where it is worked out, so a second one cannot drift away from it.
  *
  * The width is handed back for the head line of issue #104, which begins where
- * the label ends. Worked out here rather than a second time at the call, so
- * that the eliding cannot be forgotten there: a label the list is too narrow
- * for is drawn short, and a line placed after the full text would then start
- * beyond the right edge.
+ * the label ends — worked out here so the eliding cannot be forgotten at the
+ * call site.
  */
 int NoteListDelegate::drawLine(QPainter *painter,
                                const QRect &row,
@@ -240,24 +223,18 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         //
         // It used to run over the whole width in the topmost pixel row of the
         // head, and then the only thing telling a group boundary from a note
-        // boundary was the length of a stroke: 18 device pixels a side, to be
-        // compared over 109 to 159 pixels of distance, in one colour and one
-        // thickness. The customer did not find the boundary (finding of
-        // 11.08.2026). Two features carry it now, and neither is a degree of
-        // the other: the line is somewhere else, and the head has a rank of
-        // type that the note text has not.
+        // boundary was the length of a stroke — the customer did not find the
+        // boundary (finding of 11.08.2026). Two features carry it now, and
+        // neither is a degree of the other: the line is somewhere else, and the
+        // head has a rank of type that the note text has not.
         //
-        // Every head carries it, the first one included. The old line was a
-        // boundary, and over the first head there is no group to bound; this
-        // one is part of the heading itself, and a first head without it would
+        // Every head carries it, the first one included: this line is part of
+        // the heading itself, not a boundary, and a first head without it would
         // read as a fault rather than as an exception.
         //
-        // Where the label fills the line — a list narrowed to its minimum and a
-        // long group name — nothing is drawn: the 8 px of clear ground are what
-        // keeps the line from reading as an underscore of the last letter.
-        //
-        // Drawn on bare list ground: the head branch returns before
-        // drawControl() and paints no background of its own.
+        // Where the label fills the line, nothing is drawn: the 8 px of clear
+        // ground are what keeps the line from reading as an underscore of the
+        // last letter.
         const int left = textLeft(entry.rect) + label + HeadLineGap;
         const int right = textLeft(entry.rect) + width;
         if (left < right) {
@@ -288,13 +265,8 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     // Three cases carry no line. Under the last note of a group, because the
     // row below is that group's head: a line of the note kind at a group
     // boundary would say „note boundary" in the one place where the list has
-    // something else to say. Until issue #104 the reason was a different one —
-    // the head drew a full-width line in its own topmost pixel row, the two
-    // rectangles touch without a gap, and a line here would have made a double
-    // one of two pixel rows. The rule outlived its reason; this is the reason
-    // it has now. And at either edge of the selected row, because a second
-    // separator there would compete with the selection mark: that is the one
-    // reason of the old „no lines at all“ rule that still stands.
+    // something else to say. And at either edge of the selected row, because a
+    // second separator there would compete with the selection mark.
     const QModelIndex below = index.sibling(index.row() + 1, index.column());
     if (below.isValid() && !isGroupHead(below) && !selected && !isSelectedIn(entry, below)) {
         painter->fillRect(hairline(painter->device(), textLeft(entry.rect), entry.rect.bottom(), width),
