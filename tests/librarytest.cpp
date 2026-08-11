@@ -16,6 +16,7 @@
 #include <QAction>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QFontDatabase>
 #include <QFontMetrics>
 #include <QHash>
 #include <QIcon>
@@ -292,11 +293,14 @@ private Q_SLOTS:
     void keepsTheMeasuresOfTheGroupedList();
     void drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data();
     void drawsAnInsetHairlineBetweenTwoNotesOfAGroup();
-    void drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst_data();
-    void drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst();
     void leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt_data();
     void leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt();
-    void keepsTheGroupLineOverAHeadUnderTheSelectedNote();
+    void keepsTheHeadLineUnderTheSelectedNote();
+    void setsTheGroupHeadInTheApplicationTextSizeAndBold();
+    void putsTheHeadLineBesideTheLabelUpToTheRightTextEdge_data();
+    void putsTheHeadLineBesideTheLabelUpToTheRightTextEdge();
+    void putsTheGroupLineInsideTheHeadInsteadOfOnItsUpperEdge();
+    void keepsTheHeadAndItsLineOutOfTheWayOfTheSelection();
     void paintsBothUpperNeighboursAgainWhenTheSelectionMoves();
     void mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole_data();
     void mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole();
@@ -358,8 +362,9 @@ private:
      * are the ones visualRect() speaks in.
      *
      * Not the window: with a scroll bar standing, row rectangle and window
-     * picture no longer share an x axis, and „the full width" would be read at
-     * the wrong place (issue #101, measured in the vetting: list 300, row 279).
+     * picture no longer share an x axis, and the right text edge would be read
+     * at the wrong place (issue #101, measured in the vetting: list 300,
+     * row 279).
      */
     static QImage listPicture(const QListView *list);
 
@@ -382,6 +387,18 @@ private:
 
     /** Heights of the runs of `colour` down column `x` of `picture`. */
     static QList<int> runsOfColour(const QImage &picture, int x, const QColor &colour);
+
+    /**
+     * First and last column of the unbroken run of `colour` in pixel row `y`,
+     * searched from `fromX` on; (-1, -1) where the row carries none.
+     *
+     * Searched from a column instead of from the left edge, because the head
+     * line of issue #104 stands beside its label and the label is drawn in
+     * antialiased type: its edge pixels are mixtures of ground and text
+     * colour, and one of them can be the very mixture the line is painted in.
+     * Read from the left edge, such a pixel would answer for the line.
+     */
+    static QPair<int, int> columnsOfColour(const QImage &picture, int y, const QColor &colour, int fromX);
 
     /**
      * The colour the separator lines are meant to have: list ground and text
@@ -839,6 +856,27 @@ QList<int> LibraryTest::runsOfColour(const QImage &picture, int x, const QColor 
         runs << y - start;
     }
     return runs;
+}
+
+QPair<int, int> LibraryTest::columnsOfColour(const QImage &picture, int y, const QColor &colour, int fromX)
+{
+    if (y < 0 || y >= picture.height()) {
+        return {-1, -1};
+    }
+
+    int start = std::max(0, fromX);
+    while (start < picture.width() && picture.pixelColor(start, y) != colour) {
+        ++start;
+    }
+    if (start >= picture.width()) {
+        return {-1, -1};
+    }
+
+    int end = start;
+    while (end + 1 < picture.width() && picture.pixelColor(end + 1, y) == colour) {
+        ++end;
+    }
+    return {start, end};
 }
 
 int LibraryTest::pixelsOfColour(const QImage &picture, int y, const QColor &colour)
@@ -3310,8 +3348,8 @@ void LibraryTest::drawsAnInsetHairlineBetweenTwoNotesOfAGroup()
     const NoteListModel *model = modelOf(list);
     const QImage picture = listPicture(list);
 
-    // „The full width" of AK 2 and the inset of AK 1 are both measured off the
-    // row rectangle, and the viewport is the surface that shares its x axis.
+    // Both edges of the line are measured off the row rectangle, and the
+    // viewport is the surface that shares its x axis.
     const int width = list->visualRect(model->index(3)).width();
     QCOMPARE(picture.width(), width);
 
@@ -3329,50 +3367,6 @@ void LibraryTest::drawsAnInsetHairlineBetweenTwoNotesOfAGroup()
     for (const int row : {3, 4}) {
         QCOMPARE(readRow(picture, list->visualRect(model->index(row)).bottom(), columns, legend), inset);
     }
-}
-
-void LibraryTest::drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst_data()
-{
-    drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data();
-}
-
-void LibraryTest::drawsAFullWidthHairlineOverEveryGroupHeadButTheFirst()
-{
-    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
-    QFETCH(QSize, windowSize);
-
-    storedThreeGroups();
-
-    LibraryWindow window(m_store.get());
-    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
-    window.resize(windowSize);
-    window.showLibrary();
-    QVERIFY(QTest::qWaitForWindowExposed(&window));
-
-    const QListView *list = listOf(window);
-    const NoteListModel *model = modelOf(list);
-    const QImage picture = listPicture(list);
-
-    const int width = list->visualRect(model->index(0)).width();
-    QCOMPARE(picture.width(), width);
-
-    const QHash<QRgb, QString> legend{
-        {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
-    // The outermost columns are the point of this one: what tells the group
-    // boundary from the note boundary is that this line runs edge to edge.
-    const QList<int> columns{0, 1, 11, 12, width / 2, width - 13, width - 12, width - 1};
-
-    // Rows 2 and 6 carry the second and the third head (wireframe 3a, P2).
-    for (const int row : {2, 6}) {
-        QVERIFY(model->index(row).data(NoteListModel::GroupHeaderRole).toBool());
-        QCOMPARE(readRow(picture, list->visualRect(model->index(row)).top(), columns, legend),
-                 QStringList(columns.size(), QStringLiteral("Linie")));
-    }
-
-    // Over the first head none — there is no group above it to be told apart.
-    QVERIFY(model->index(0).data(NoteListModel::GroupHeaderRole).toBool());
-    QCOMPARE(readRow(picture, list->visualRect(model->index(0)).top(), columns, legend),
-             QStringList(columns.size(), QStringLiteral("Grund")));
 }
 
 void LibraryTest::leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt_data()
@@ -3408,7 +3402,9 @@ void LibraryTest::leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt()
     const QStringList ground(columns.size(), QStringLiteral("Grund"));
 
     // Under the last note of a group: rows 1 and 5 are followed by a head, and
-    // the head draws the full-width line of its own one pixel row further down.
+    // a line of the note kind would say „note boundary" where the list has
+    // something else to say. Until issue #104 the reason was that the head drew
+    // a full-width line of its own one pixel row further down.
     for (const int row : {1, 5}) {
         QCOMPARE(readRow(unselected, list->visualRect(model->index(row)).bottom(), columns, legend), ground);
     }
@@ -3436,11 +3432,13 @@ void LibraryTest::leavesTheEntryLineOutWhereTheRankingDoesNotAskForIt()
     QCOMPARE(pixelsOfColour(selected, lowerEdge, separator), 0);
 }
 
-void LibraryTest::keepsTheGroupLineOverAHeadUnderTheSelectedNote()
+void LibraryTest::keepsTheHeadLineUnderTheSelectedNote()
 {
-    // The exception belongs to the entry line alone: the group line over a head
-    // stays even when the note right above it is the selected one — that is how
-    // wireframe 3a draws the head „Gestern" (AK 3b).
+    // The exception belongs to the entry line alone: the line of a head stays
+    // even when the note right above it is the selected one — that is how
+    // wireframe 3a draws the head „Gestern" (AK 3b), and since issue #104 it is
+    // the plainer case of the two, because the line no longer lies on the edge
+    // the two rows share.
     storedThreeGroups();
 
     LibraryWindow window(m_store.get());
@@ -3456,13 +3454,263 @@ void LibraryTest::keepsTheGroupLineOverAHeadUnderTheSelectedNote()
     list->setCurrentIndex(model->index(5));
     const QImage picture = listPicture(list);
 
-    const int width = list->visualRect(model->index(6)).width();
+    const QRect head = list->visualRect(model->index(6));
+    const QColor separator = separatorColor(list->palette(), KColorScheme::frameContrast());
+    const int width = head.width();
+    const int y = head.top() + 14 + QFontMetrics(NoteListDelegate::groupHeadFont()).height() / 2;
+
+    // Read at the last column the line reaches, which is the one place no label
+    // can stand in — where it begins is the subject of AK 3 and measured there.
+    QCOMPARE(picture.pixelColor(width - 13, y), separator);
+    QVERIFY2(pixelsOfColour(picture, y, separator) > 0,
+             qPrintable(QStringLiteral("Bildzeile %1 trägt keine Kopflinie").arg(y)));
+}
+
+void LibraryTest::setsTheGroupHeadInTheApplicationTextSizeAndBold()
+{
+    // Until issue #104 the head was set in the smallest type of the list — the
+    // size of the timestamp, and so smaller than the note text it stands over.
+    // A heading without rank; the customer read the group boundary off the
+    // length of a stroke alone and did not find it (finding of 11.08.2026).
+    //
+    // This is the first of the two features AK 2 asks for. The second one, the
+    // place of the line, is measured in
+    // putsTheGroupLineInsideTheHeadInsteadOfOnItsUpperEdge().
+    const QFont head = NoteListDelegate::groupHeadFont();
+    const QFont general = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    const QFont smallest = QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont);
+
+    // Without this line the comparison below would be green on a theme that
+    // gives both roles the same size — and green for the old build as well.
+    // What is measured here exists only where the theme tells them apart.
+    QVERIFY2(QFontMetrics(general).height() > QFontMetrics(smallest).height(),
+             qPrintable(QStringLiteral("Thema unterscheidet die beiden Schriftgrößen nicht: %1 px gegen %2 px")
+                            .arg(QFontMetrics(general).height())
+                            .arg(QFontMetrics(smallest).height())));
+
+    QCOMPARE(head.pointSizeF(), general.pointSizeF());
+    QCOMPARE(head.weight(), QFont::Bold);
+
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+
+    // And the list is really set in it. Without this the function above could
+    // be a public answer nobody paints with: the row of a head is its type plus
+    // the 14 px above and 6 px below that wireframe 3a asks for.
+    QCOMPARE(list->visualRect(model->index(2)).height(), 14 + QFontMetrics(head).height() + 6);
+
+    // The rank is a rank against the note text, and that one stays unbolded —
+    // bold there would read as „unread" in a list (wireframe 3b).
+    QCOMPARE(list->font().weight(), QFont::Normal);
+    QVERIFY2(QFontMetrics(head).height() >= QFontMetrics(list->font()).height(),
+             qPrintable(QStringLiteral("Kopf %1 px, Notiztext %2 px")
+                            .arg(QFontMetrics(head).height())
+                            .arg(QFontMetrics(list->font()).height())));
+}
+
+void LibraryTest::putsTheHeadLineBesideTheLabelUpToTheRightTextEdge_data()
+{
+    drawsAnInsetHairlineBetweenTwoNotesOfAGroup_data();
+}
+
+void LibraryTest::putsTheHeadLineBesideTheLabelUpToTheRightTextEdge()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QSize, windowSize);
+
+    // The form of Kirigami.ListSectionHeader (issue #104): the line stands
+    // beside the label instead of over the whole row, 8 px clear of the text
+    // and out to the same right text edge the entry line stops at.
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(windowSize);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage picture = listPicture(list);
+
+    const int width = list->visualRect(model->index(0)).width();
+    QCOMPARE(picture.width(), width);
+
     const QHash<QRgb, QString> legend{
         {list->palette().color(QPalette::Normal, QPalette::Base).rgb(), QStringLiteral("Grund")}};
-    const QList<int> columns{0, width / 2, width - 1};
+    const QColor separator = separatorColor(list->palette(), KColorScheme::frameContrast());
 
-    QCOMPARE(readRow(picture, list->visualRect(model->index(6)).top(), columns, legend),
-             QStringList(columns.size(), QStringLiteral("Linie")));
+    // The type comes from the delegate, which is the one place that knows it.
+    // What keeps this from comparing the build with itself is
+    // setsTheGroupHeadInTheApplicationTextSizeAndBold(), which holds that type
+    // against the sizes the application uses.
+    const QFontMetrics metrics(NoteListDelegate::groupHeadFont());
+
+    for (const int row : {0, 2, 6}) {
+        const QModelIndex head = model->index(row);
+        QVERIFY(head.data(NoteListModel::GroupHeaderRole).toBool());
+
+        const QRect rect = list->visualRect(head);
+        const QString label = head.data(Qt::DisplayRole).toString();
+        const int labelEnd = 12 + metrics.horizontalAdvance(label);
+        // Half the height of the head type, under the 6 px the first head keeps
+        // free and the 14 px of every following one (wireframe 3a).
+        const int y = rect.top() + (row == 0 ? 6 : 14) + metrics.height() / 2;
+        const int start = labelEnd + 8;
+
+        const QString trace =
+            QStringLiteral("Zeile %1 („%2“), Bildzeile %3").arg(QString::number(row), label, QString::number(y));
+
+        // Eight pixels of clear ground between the label and the line …
+        QCOMPARE(readRow(picture, y, {labelEnd, start - 8, start - 1}, legend),
+                 QStringList(3, QStringLiteral("Grund")));
+
+        // … the line itself from there to the right text edge. Searched from
+        // the end of the label rather than from the left edge: the antialiased
+        // rim of the type carries mixtures of ground and text colour, and one
+        // of them can be the very mixture the line is painted in.
+        const QPair<int, int> line = columnsOfColour(picture, y, separator, labelEnd);
+        QVERIFY2(line.first == start && line.second == width - 13,
+                 qPrintable(QStringLiteral("%1: Linie von %2 bis %3, erwartet %4 bis %5")
+                                .arg(trace)
+                                .arg(line.first)
+                                .arg(line.second)
+                                .arg(start)
+                                .arg(width - 13)));
+
+        // … and the same 12 px of ground on the right the entry line stops at.
+        QCOMPARE(readRow(picture, y, {width - 12, width - 1}, legend), QStringList(2, QStringLiteral("Grund")));
+    }
+}
+
+void LibraryTest::putsTheGroupLineInsideTheHeadInsteadOfOnItsUpperEdge()
+{
+    // The second of the two features of AK 2, and both sides of it are read off
+    // one picture: the note line lies in the last pixel row of the note above
+    // it, the group line lies inside the head and touches no row edge at all.
+    //
+    // Until issue #104 both sat on a row edge and differed in length alone —
+    // 18 device pixels a side, to be compared across 109 to 159 pixels of
+    // distance (measurement of 11.08.2026).
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage picture = listPicture(list);
+    const QColor separator = separatorColor(list->palette(), KColorScheme::frameContrast());
+    const QFontMetrics metrics(NoteListDelegate::groupHeadFont());
+
+    // The other side of the comparison, measured and not assumed: between two
+    // notes of one group the line does sit on the row edge.
+    QVERIFY2(pixelsOfColour(picture, list->visualRect(model->index(3)).bottom(), separator) > 0,
+             "zwischen zwei Notizen steht keine Linie — der Vergleich unten misst nichts");
+
+    // All three heads, the first one included: it used to be the one without a
+    // line, because there was no group above it to be bounded. The line beside
+    // the label is not a boundary, so that exception has gone (issue #104) —
+    // and the upper edge of a head carries nothing at all now.
+    for (const int row : {0, 2, 6}) {
+        const QRect rect = list->visualRect(model->index(row));
+        const int y = rect.top() + (row == 0 ? 6 : 14) + metrics.height() / 2;
+
+        QVERIFY2(pixelsOfColour(picture, rect.top(), separator) == 0,
+                 qPrintable(QStringLiteral("Zeile %1: obere Kante trägt %2 Linienpunkte")
+                                .arg(row)
+                                .arg(pixelsOfColour(picture, rect.top(), separator))));
+        QVERIFY2(pixelsOfColour(picture, y, separator) > 0,
+                 qPrintable(QStringLiteral("Zeile %1: Bildzeile %2 trägt keine Linie").arg(row).arg(y)));
+        QVERIFY(y > rect.top());
+    }
+}
+
+void LibraryTest::keepsTheHeadAndItsLineOutOfTheWayOfTheSelection()
+{
+    // Measured against the customer's own selection colour and not against the
+    // Breeze blue the picture series carries: what AK 5 assures is that nothing
+    // here competes with the mark he sees, and his mark is green
+    // (48,155,33 out of `[Colors:Selection]`, read 11.08.2026).
+    QPalette palette = breezePalette(false);
+    palette.setColor(QPalette::Highlight, QColor(48, 155, 33));
+    palette.setColor(QPalette::HighlightedText, QColor(0, 0, 0));
+
+    storedThreeGroups();
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.setPalette(palette);
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const NoteListModel *model = modelOf(list);
+    const QImage unselected = listPicture(list);
+
+    // Row 5 is the last note of the middle group, row 6 the head right below
+    // it — the one place where the mark and a head touch.
+    const QRect selected = list->visualRect(model->index(5));
+    const QRect head = list->visualRect(model->index(6));
+    const QColor ground = palette.color(QPalette::Normal, QPalette::Base);
+    const QColor separator = separatorColor(palette, KColorScheme::frameContrast());
+
+    // The scheme has reached the list, and the row above the selection carries
+    // its entry line while nothing is selected. Both are the ground the checks
+    // below stand on; without them they would pass on an unpainted picture.
+    QCOMPARE(unselected.pixelColor(0, selected.top() + 2), ground);
+    QVERIFY2(pixelsOfColour(unselected, selected.top() - 1, separator) > 0,
+             "ohne Auswahl trägt die obere Kante keine Linie — der Nachweis unten misst nichts");
+
+    list->setCurrentIndex(model->index(5));
+    const QImage picture = listPicture(list);
+
+    QVERIFY2(pixelsOfColour(picture, selected.top() + 2, ground) < picture.width(),
+             "die Auswahl verändert die Zeile nicht — der Nachweis unten misst nichts");
+
+    // The mark stops at the head. Read as a difference between the two
+    // pictures, because that says what „no competition" means without having to
+    // guess how the style paints a selection: the head has to come out of both
+    // runs the same. And its outer columns are bare ground in either — a
+    // surface behind the head would show in both places.
+    const QColor highlight = palette.color(QPalette::Normal, QPalette::Highlight);
+    for (int y = head.top(); y <= head.bottom(); ++y) {
+        int changed = 0;
+        for (int x = 0; x < picture.width(); ++x) {
+            if (picture.pixelColor(x, y) != unselected.pixelColor(x, y)) {
+                ++changed;
+            }
+        }
+        const QString trace = QStringLiteral("Bildzeile %1 des Kopfes").arg(y);
+        QVERIFY2(changed == 0, qPrintable(QStringLiteral("%1: %2 Punkte anders").arg(trace).arg(changed)));
+        QVERIFY2(pixelsOfColour(picture, y, highlight) == 0, qPrintable(trace + QStringLiteral(": Auswahlfarbe")));
+        QCOMPARE(picture.pixelColor(0, y), ground);
+        QCOMPARE(picture.pixelColor(picture.width() - 1, y), ground);
+    }
+
+    // The head line keeps clear of the mark: not on the edge where the two rows
+    // meet, but half a line of type further down.
+    const int lineRow = head.top() + 14 + QFontMetrics(NoteListDelegate::groupHeadFont()).height() / 2;
+    QVERIFY(lineRow > head.top());
+    QCOMPARE(pixelsOfColour(picture, head.top(), separator), 0);
+    QVERIFY2(pixelsOfColour(picture, lineRow, separator) > 0,
+             qPrintable(QStringLiteral("Bildzeile %1 trägt keine Kopflinie").arg(lineRow)));
+
+    // And no entry line at either edge of the selected row (SPEC 9).
+    QCOMPARE(pixelsOfColour(picture, selected.top() - 1, separator), 0);
+    QCOMPARE(pixelsOfColour(picture, selected.bottom(), separator), 0);
 }
 
 void LibraryTest::paintsBothUpperNeighboursAgainWhenTheSelectionMoves()
@@ -3564,7 +3812,12 @@ void LibraryTest::mixesTheSeparatorOutOfGroundAndTextInsteadOfTakingAPaletteRole
     QCOMPARE(picture.pixelColor(0, upper.bottom()), palette.color(QPalette::Normal, QPalette::Base));
 
     QCOMPARE(picture.pixelColor(upper.width() / 2, upper.bottom()), expected);
-    QCOMPARE(picture.pixelColor(upper.width() / 2, list->visualRect(model->index(6)).top()), expected);
+
+    // The head line as well, at the last column it reaches — the one place of
+    // its row that no label can stand in (issue #104).
+    const QRect head = list->visualRect(model->index(6));
+    const int headLine = head.top() + 14 + QFontMetrics(NoteListDelegate::groupHeadFont()).height() / 2;
+    QCOMPARE(picture.pixelColor(head.width() - 13, headLine), expected);
 
     // And it is a mixture, not a role. Asked of all of them rather than of the
     // two that came to mind: AlternateBase is the one the HIG would have used
@@ -3620,8 +3873,14 @@ void LibraryTest::separatesTheSearchResultsLikeTheLibrary()
     QCOMPARE(readRow(picture, list->visualRect(model->index(1)).bottom(), columns, legend), ground);
     QCOMPARE(readRow(picture, list->visualRect(model->index(4)).bottom(), columns, legend), ground);
 
-    QCOMPARE(readRow(picture, list->visualRect(model->index(2)).top(), columns, legend),
-             QStringList(columns.size(), QStringLiteral("Linie")));
+    // The head of the group that is left keeps its line beside the label, and
+    // its upper edge stays bare (issue #104).
+    const QRect head = list->visualRect(model->index(2));
+    const int headLine = head.top() + 14 + QFontMetrics(NoteListDelegate::groupHeadFont()).height() / 2;
+    QCOMPARE(readRow(picture, head.top(), columns, legend), ground);
+    QCOMPARE(picture.pixelColor(width - 13, headLine),
+             separatorColor(list->palette(), KColorScheme::frameContrast()));
+
     QCOMPARE(readRow(picture, list->visualRect(model->index(3)).bottom(), columns, legend),
              QStringList({QStringLiteral("Grund"), QStringLiteral("Grund"), QStringLiteral("Linie"),
                           QStringLiteral("Linie"), QStringLiteral("Linie"), QStringLiteral("Grund"),
@@ -3667,20 +3926,33 @@ void LibraryTest::keepsEverySeparatorOneThicknessUnderTheCustomersScaling()
     const QImage picture = listPicture(list);
     const qreal ratio = picture.devicePixelRatio();
 
-    // Two columns: one deep inside the indented zone, which both kinds of line
-    // cross, and one at the very edge, which only the full-width group line
-    // reaches.
-    const QList<int> inset = runsOfColour(picture, picture.width() / 2, separator);
-    const QList<int> edge = runsOfColour(picture, 1, separator);
+    // Two columns, chosen so that they tell the two kinds of line apart. Both
+    // run out to the same right text edge since issue #104, so the outer column
+    // that used to do it — only the full-width group line reached it — reaches
+    // nothing now. What separates them is the left end: the entry line begins
+    // at the text edge, the head line only after its label.
+    //
+    // Reckoned in device pixels, because that is what the picture is measured
+    // in: at the customer's scaling logical 16 is device 26, and device column
+    // 16 would sit left of the entry line instead of inside it.
+    const int everyLine = picture.width() - qRound(20 * ratio);
+    const int entriesOnly = qRound(16 * ratio);
+    const QList<int> mixed = runsOfColour(picture, everyLine, separator);
+    const QList<int> entries = runsOfColour(picture, entriesOnly, separator);
 
     // Without this the check would pass on a picture carrying no line at all —
-    // the emptiest way to have every thickness agree.
-    QVERIFY2(inset.size() >= 4 && !edge.isEmpty(),
-             qPrintable(QStringLiteral("zu wenige Linien gefunden: %1 eingerückt, %2 am Rand")
-                            .arg(inset.size())
-                            .arg(edge.size())));
+    // the emptiest way to have every thickness agree. And the second half is
+    // what keeps it from measuring one kind twice: the column on the right
+    // carries the head lines on top of the entry lines, so it has to find more
+    // of them than the column on the left.
+    QVERIFY2(entries.size() >= 3 && mixed.size() > entries.size(),
+             qPrintable(QStringLiteral("Spalte %1: %2 Linien, Spalte %3: %4 — erwartet mehr rechts")
+                            .arg(everyLine)
+                            .arg(mixed.size())
+                            .arg(entriesOnly)
+                            .arg(entries.size())));
 
-    QList<int> thicknesses = inset + edge;
+    QList<int> thicknesses = mixed + entries;
     std::sort(thicknesses.begin(), thicknesses.end());
     thicknesses.erase(std::unique(thicknesses.begin(), thicknesses.end()), thicknesses.end());
 
@@ -3697,9 +3969,9 @@ void LibraryTest::keepsEverySeparatorOneThicknessUnderTheCustomersScaling()
     // „two thicknesses" without saying which two names the fault and not its
     // size.
     QVERIFY2(thicknesses.size() == 1 && thicknesses.first() == qRound(ratio),
-             qPrintable(QStringLiteral("Skalierung %1: Stärken %2, erwartet nur %3 — eingerückt [%4], Rand [%5]")
+             qPrintable(QStringLiteral("Skalierung %1: Stärken %2, erwartet nur %3 — beide Arten [%4], nur Einträge [%5]")
                             .arg(QString::number(ratio), asText(thicknesses),
-                                 QString::number(qRound(ratio)), asText(inset), asText(edge))));
+                                 QString::number(qRound(ratio)), asText(mixed), asText(entries))));
 }
 
 void LibraryTest::putsTheMessageBetweenTheHeaderAndTheNotes()

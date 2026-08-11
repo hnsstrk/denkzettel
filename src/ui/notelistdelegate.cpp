@@ -35,17 +35,12 @@ constexpr int FirstHeadTopPadding = 6;
 constexpr int HeadTopPadding = 14;
 constexpr int HeadBottomPadding = 6;
 
+/** Clear ground between the head label and the line beside it (issue #104). */
+constexpr int HeadLineGap = 8;
+
 QFont timestampFont()
 {
     return QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont);
-}
-
-/** Small like the timestamp, half-bold, in plain text colour (wireframe 3a). */
-QFont groupHeadFont()
-{
-    QFont font = timestampFont();
-    font.setWeight(QFont::DemiBold);
-    return font;
 }
 
 int headTopPadding(int row)
@@ -169,32 +164,48 @@ bool isSelectedIn(const QStyleOptionViewItem &option, const QModelIndex &row)
 
 /**
  * Draws one line of text `top` pixels below the upper edge of `row`, elided at
- * the width the line has.
+ * the width the line has, and hands back how wide the text came out.
  *
  * Every text of the list goes through here — head, timestamp, subject and
  * preview alike. That is what keeps them on one left edge: there is a single
  * place where it is worked out, so a second one cannot drift away from it.
+ *
+ * The width is handed back for the head line of issue #104, which begins where
+ * the label ends. Worked out here rather than a second time at the call, so
+ * that the eliding cannot be forgotten there: a label the list is too narrow
+ * for is drawn short, and a line placed after the full text would then start
+ * beyond the right edge.
  */
-void NoteListDelegate::drawLine(QPainter *painter,
-                                const QRect &row,
-                                int top,
-                                const QFont &font,
-                                const QColor &color,
-                                const QString &text)
+int NoteListDelegate::drawLine(QPainter *painter,
+                               const QRect &row,
+                               int top,
+                               const QFont &font,
+                               const QColor &color,
+                               const QString &text)
 {
     const QFontMetrics metrics(font);
     const int width = textWidth(row);
+    const QString drawn = metrics.elidedText(text, Qt::ElideRight, width);
 
     painter->setFont(font);
     painter->setPen(color);
     painter->drawText(QRect(textLeft(row), row.y() + top, width, metrics.height()),
                       Qt::AlignLeft | Qt::AlignVCenter,
-                      metrics.elidedText(text, Qt::ElideRight, width));
+                      drawn);
+
+    return metrics.horizontalAdvance(drawn);
 }
 
 NoteListDelegate::NoteListDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
 {
+}
+
+QFont NoteListDelegate::groupHeadFont()
+{
+    QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    font.setWeight(QFont::Bold);
+    return font;
 }
 
 int NoteListDelegate::textLeft(const QRect &row)
@@ -223,36 +234,54 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     painter->save();
 
     if (isGroupHead(index)) {
-        // The group line: the topmost pixel row of every head but the first,
-        // over the full width of the row (wireframe 3a, issue #101). Its length
-        // is what tells a group boundary from a note boundary — same colour,
-        // same thickness, the inset line between two notes and the full one
-        // here. It sits in the upper 14 px the head keeps free anyway, so no
-        // row grows.
-        //
-        // It stays even when the note right above is the selected one: the
-        // exception belongs to the entry line, and the wireframe draws this
-        // very case at the head „Gestern“.
-        //
-        // Drawn on bare list ground — the head branch returns before
-        // drawControl() and paints no background of its own.
-        if (index.row() > 0) {
-            painter->fillRect(
-                hairline(painter->device(), entry.rect.x(), entry.rect.y(), entry.rect.width()),
-                separatorColor(entry.palette));
-        }
+        const QFont font = groupHeadFont();
+        const int top = headTopPadding(index.row());
 
         // A head is not selectable, so the view hands it over disabled. Asking
         // the palette for its Normal colour keeps it from being greyed out —
         // it is a heading, not an unavailable entry. No background and no
         // selection: both would weaken the selection mark below it
         // (wireframe 3a).
-        drawLine(painter,
-                 entry.rect,
-                 headTopPadding(index.row()),
-                 groupHeadFont(),
-                 entry.palette.color(QPalette::Normal, QPalette::Text),
-                 index.data(Qt::DisplayRole).toString());
+        const int label = drawLine(painter,
+                                   entry.rect,
+                                   top,
+                                   font,
+                                   entry.palette.color(QPalette::Normal, QPalette::Text),
+                                   index.data(Qt::DisplayRole).toString());
+
+        // The group line: beside the label, on half the height of the head
+        // type, 8 px clear of it and out to the same right text edge the entry
+        // line stops at — the form of Kirigami.ListSectionHeader (issue #104).
+        //
+        // It used to run over the whole width in the topmost pixel row of the
+        // head, and then the only thing telling a group boundary from a note
+        // boundary was the length of a stroke: 18 device pixels a side, to be
+        // compared over 109 to 159 pixels of distance, in one colour and one
+        // thickness. The customer did not find the boundary (finding of
+        // 11.08.2026). Two features carry it now, and neither is a degree of
+        // the other: the line is somewhere else, and the head has a rank of
+        // type that the note text has not.
+        //
+        // Every head carries it, the first one included. The old line was a
+        // boundary, and over the first head there is no group to bound; this
+        // one is part of the heading itself, and a first head without it would
+        // read as a fault rather than as an exception.
+        //
+        // Where the label fills the line — a list narrowed to its minimum and a
+        // long group name — nothing is drawn: the 8 px of clear ground are what
+        // keeps the line from reading as an underscore of the last letter.
+        //
+        // Drawn on bare list ground: the head branch returns before
+        // drawControl() and paints no background of its own.
+        const int left = textLeft(entry.rect) + label + HeadLineGap;
+        const int right = textLeft(entry.rect) + width;
+        if (left < right) {
+            painter->fillRect(hairline(painter->device(),
+                                       left,
+                                       entry.rect.y() + top + QFontMetrics(font).height() / 2,
+                                       right - left),
+                              separatorColor(entry.palette));
+        }
 
         painter->restore();
         return;
@@ -272,12 +301,15 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     // paint over it.
     //
     // Three cases carry no line. Under the last note of a group, because the
-    // row below is that group's head and the head draws the full-width line
-    // itself — the rectangles touch without a gap, so a line here would make a
-    // double one of two pixel rows. And at either edge of the selected row,
-    // because a second separator there would compete with the selection mark:
-    // that is the one reason of the old „no lines at all“ rule that still
-    // stands.
+    // row below is that group's head: a line of the note kind at a group
+    // boundary would say „note boundary" in the one place where the list has
+    // something else to say. Until issue #104 the reason was a different one —
+    // the head drew a full-width line in its own topmost pixel row, the two
+    // rectangles touch without a gap, and a line here would have made a double
+    // one of two pixel rows. The rule outlived its reason; this is the reason
+    // it has now. And at either edge of the selected row, because a second
+    // separator there would compete with the selection mark: that is the one
+    // reason of the old „no lines at all“ rule that still stands.
     const QModelIndex below = index.sibling(index.row() + 1, index.column());
     if (below.isValid() && !isGroupHead(below) && !selected && !isSelectedIn(entry, below)) {
         painter->fillRect(hairline(painter->device(), textLeft(entry.rect), entry.rect.bottom(), width),
