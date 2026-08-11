@@ -1691,43 +1691,67 @@ void CaptureTest::runAtTheCustomersScale(const QStringList &assertions)
              qPrintable(output));
 
     // And the exit code is not the whole answer either (karpathy N3): a child
-    // in which every assertion skipped comes back with 0, and this parent would
-    // report green over a run that measured nothing. It is the same gap
+    // in which an assertion skipped comes back with 0, and this parent would
+    // report green over a run that did not measure it. It is the same gap
     // fieldColoursComeFromTheThemeBeforeTheScheme() closed by asking its
     // precondition in the parent — here the preconditions belong to the
     // assertions themselves, so what is asked instead is what the child
     // actually did.
     //
+    // Judged per requested assertion and not over the set (karpathy-Nachlauf 2,
+    // K1). Asking whether *anything* ran leaves the half-skipped run green, and
+    // that run is the runner's standing state: without a Plasma `default` on
+    // the data path hullHasNoStairAtTheCorner skips while
+    // hullFollowsTheWindowPixelRatio measures. A guard over the set watches no
+    // single member of it.
+    //
     // Read per assertion and not off the tally: `Totals` counts initTestCase()
     // and cleanupTestCase() as well, and a number that has to be corrected by
     // two is a number that goes wrong when somebody adds a fixture.
     QStringList ran;
-    QStringList skipped;
+    QStringList unmeasured;
     const QStringList lines = output.split(QLatin1Char('\n'));
     for (const QString &name : assertions) {
         const QString needle = QStringLiteral("CaptureTest::%1()").arg(name);
+        bool passed = false;
+        bool skipped = false;
+        QString reason;
         for (const QString &line : lines) {
-            if (!line.contains(needle)) {
+            const qsizetype at = line.indexOf(needle);
+            if (at < 0) {
                 continue;
             }
             if (line.startsWith(QStringLiteral("PASS"))) {
-                ran << name;
+                passed = true;
             } else if (line.startsWith(QStringLiteral("SKIP"))) {
-                skipped << name;
+                // The child's own reason, carried up by name: a list of names
+                // without their grounds moves the reading, not the knowing.
+                skipped = true;
+                reason = line.mid(at + needle.length()).trimmed();
             }
+        }
+        if (passed) {
+            ran << name;
+        } else if (skipped) {
+            unmeasured << QStringLiteral("%1 — %2").arg(name, reason);
+        } else {
+            unmeasured << QStringLiteral("%1 — weder PASS noch SKIP in der Ausgabe des Kindes")
+                              .arg(name);
         }
     }
 
-    // Nothing ran: this run is not green, it is empty. Skipped rather than
-    // failed, because the child said why — and its reason is carried up here
-    // instead of being left in an output nobody reads when the exit code is 0.
-    if (ran.isEmpty()) {
+    // Not every assertion measured: this run is not green over what is missing.
+    // Skipped rather than failed, because the child said why — and its reason is
+    // carried up here instead of being left in an output nobody reads when the
+    // exit code is 0.
+    if (!unmeasured.isEmpty()) {
         QSKIP(qPrintable(
-            QStringLiteral("Kein Prüfsatz ist im Kindprozess bei 1,6 gelaufen (%1 übersprungen: "
-                           "%2). Der Rückgabewert war 0 und hätte grün gemeldet. Ausgabe des "
-                           "Kindes:\n%3")
-                .arg(skipped.size())
-                .arg(skipped.join(QStringLiteral(", ")), output)));
+            QStringLiteral("Im Kindprozess bei 1,6 hat nicht jeder angeforderte Prüfsatz gemessen "
+                           "(%1 von %2). Der Rückgabewert war 0 und hätte grün gemeldet. Nicht "
+                           "gemessen:\n  %3\nAusgabe des Kindes:\n%4")
+                .arg(ran.size())
+                .arg(assertions.size())
+                .arg(unmeasured.join(QStringLiteral("\n  ")), output)));
     }
 }
 
