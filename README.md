@@ -174,7 +174,11 @@ Jeder Push auf `main` und jeder Pull Request lösen einen Bau- und Testlauf aus
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Er läuft in einem
 Arch-Container und schlägt bei jedem Baufehler, jeder Compiler-Warnung, jedem
 roten Test und **jedem Linterbefund** fehl — `lint-tidy` und `lint-clazy`
-stehen seit dem 05.08.2026 beide auf null. Was er **nicht** prüft, steht im Kopf der Datei: Der
+stehen seit dem 05.08.2026 beide auf null. Gebaut und geprüft wird seit dem
+11.08.2026 in **zwei Bautypen**, `Debug` und `Release`: Qt setzt `QT_NO_DEBUG`
+für jeden Bautyp außer `Debug`, und darunter lässt `Q_ASSERT` seine Bedingung
+ungeprüft — ein Unterschied, den ein Lauf mit nur einem Bautyp nicht sehen kann
+(#99). Was er **nicht** prüft, steht im Kopf der Datei: Der
 Lauf hat keine grafische Sitzung, installiert nichts und erzeugt keine Bilder —
 die Prüfung am installierten Stand und die Bildprüfung bleiben Handarbeit.
 

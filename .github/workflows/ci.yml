@@ -39,8 +39,31 @@ defaults:
 
 jobs:
   bau-und-tests:
+    name: Bau und Tests (${{ matrix.bautyp }})
     runs-on: ubuntu-latest
     container: archlinux:base-devel
+
+    # WARUM ZWEI BAUTYPEN (#99, gemessen 11.08.2026).
+    # Acht Sprints lang baute dieser Lauf nur `Debug` — und der installierte
+    # Stand des Kunden auch. Gefunden hat den Unterschied der Zufall: Ein Strang
+    # baute aus einem anderen Grund mit Optimierung und sah zwei Prüfsätze
+    # fallen, die seit Monaten grün gemeldet wurden.
+    #
+    # Der Unterschied hängt NICHT an -O2, sondern an `QT_NO_DEBUG`: Qt6 setzt es
+    # über sein CMake-Paket für jeden Bautyp außer `Debug`, und darunter lässt
+    # `Q_ASSERT` seine Bedingung ungeprüft. Alles, was in einer Zusicherung
+    # steht, hört dort auf zu geschehen. Das ist eine Fehlerklasse und kein
+    # Einzelfall — deshalb ein zweiter Bautyp und nicht ein zweiter Prüfsatz.
+    #
+    # `Release` und nicht `RelWithDebInfo`: Beide setzen `QT_NO_DEBUG` und
+    # `NDEBUG`, ein dritter Lauf prüfte dieselbe Frage ein zweites Mal.
+    strategy:
+      # Die beiden Bautypen sind verschiedene Fragen. Bricht der eine ab, ist
+      # die Antwort des anderen die Information, die man dann braucht — ein
+      # Abbruch beider verschwiege gerade den Unterschied, um den es hier geht.
+      fail-fast: false
+      matrix:
+        bautyp: [Debug, Release]
 
     env:
       # Kein Compositor im Container. capturetest, librarytest und shelltest
@@ -90,7 +113,7 @@ jobs:
           pacman -Q qt6-base kconfig plasma-integration breeze-icons clang clazy
 
       - name: Konfigurieren
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.bautyp }}
 
       - name: Bauen
         # `set -o pipefail` steht hier ein zweites Mal, obwohl `defaults.run.shell`
@@ -215,6 +238,15 @@ jobs:
           grep -q "100% tests passed" ctest.log
 
       - name: clazy
+        # Nur im Debug-Zweig, und das ist eine Entscheidung mit Preis (#99).
+        # Die Linter lesen die Compile-Datenbank ihres Baus; im Release-Zweig
+        # stünde `QT_NO_DEBUG` darin, und clang-tidy sähe `Q_ASSERT` in seiner
+        # leeren Fassung. Was der Debug-Zweig hier prüft, ist der Quelltext, und
+        # der ist in beiden Zweigen derselbe — ein zweiter Lauf wäre nicht
+        # gründlicher, nur langsamer. **Wer eine Prüfung baut, die tatsächlich
+        # vom Bautyp abhängt, gehört nicht hierher**, sondern in einen Schritt,
+        # der beide Zweige sieht.
+        if: matrix.bautyp == 'Debug'
         # Kundenentscheidung 04.08.2026, Schwelle mit #76 von 3 auf 0 gezogen:
         # die drei Altbefunde (2× range-loop-detach, 1× detaching-temporary)
         # sind geheilt. Eine Schranke, die über dem Ist-Stand hängen bleibt,
@@ -248,6 +280,8 @@ jobs:
           fi
 
       - name: clang-tidy
+        # Nur im Debug-Zweig, Begründung eine Stufe höher bei clazy.
+        if: matrix.bautyp == 'Debug'
         # Neu mit #76. Bis dahin fehlte dieser Schritt, weil clang-tidy bei 81
         # Altbefunden stand und ein Tor unterhalb des Ist-Standes Dauerrot wäre.
         # Die sind geheilt oder tragen ein begründetes NOLINT, also steht das Tor
