@@ -85,18 +85,11 @@ QString tooltipNaming(const QString &activity, const QAction *action)
  *
  * Two calls, because one of them alone does not hold (measured 02.08.2026,
  * issue #66): among buttons that are auto-default — and dialog buttons are —
- * **the default follows the focus**. The KDE build hands the focus to the
- * cancel button the moment the dialog reaches the screen, and the default
- * travels with it; a setDefault() on its own was still in force one turn of
- * the event loop later and gone by the time anyone could see the dialog.
+ * **the default follows the focus**, and the KDE build hands the focus to the
+ * cancel button the moment the dialog reaches the screen.
  *
  * Setting the focus is also the honest half of the pair: the button Return
- * triggers is the button that wears the focus ring. Switching the other two
- * out of auto-default would keep the default as well, but would leave the ring
- * on one answer and Return on another.
- *
- * That it really ends up there is not taken on trust — it is read back off the
- * dialog on screen by `namesTheThreeAnswersOfTheGuardDialog`.
+ * triggers is the button that wears the focus ring.
  */
 void putReturnOnThePrimaryAction(KMessageDialog *dialog)
 {
@@ -889,21 +882,16 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         //
         // The selection was made with a key, not with the mouse. Pressing an
         // arrow key, the user moves through a list and expects it to move with
-        // him; clicking, he points at a place and expects that place to stay —
-        // and the place he pointed at moved by up to 387 px, out from under his
-        // cursor (issue #57, UI review of 01.08.2026, scenes n11a/n11b). What
-        // the head would have told him stands in the reading pane anyway: its
-        // timestamp names the day in full, „Gestern" and the time.
+        // him; clicking, he points at a place and expects that place to stay
+        // (issue #57, UI review of 01.08.2026). What the head would have told
+        // him stands in the reading pane anyway.
         //
-        // It crosses a group boundary — that is what AK 7 and wireframe 3b,
-        // case 4 ask for, and what the first selection after opening or
-        // rebuilding counts as, its predecessor being none — or it reaches the
-        // first note of its group, which needs no boundary to be crossed: the
-        // key can walk up to it from within the same group, and then nothing
-        // fetched the head (issue #70, customer decision of 04.08.2026). Under
-        // „Heute" and „Gestern" an entry carries nothing but the time, so with
-        // the head outside there stands „08:00" and nothing says of which day —
-        // the timestamp rule of SPEC 9 counts on the head being there.
+        // It crosses a group boundary — what AK 7 and wireframe 3b, case 4 ask
+        // for, and what the first selection after opening counts as — or it
+        // reaches the first note of its group, which needs no boundary to be
+        // crossed (issue #70). Under „Heute" and „Gestern" an entry carries
+        // nothing but the time, so with the head outside there stands „08:00"
+        // and nothing says of which day.
         //
         // Otherwise moving within a group fetches nothing: the user has rolled
         // the list to where he wants it, and one arrow key must not throw that
@@ -911,8 +899,7 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         //
         // Whether the entry is in the picture already does not enter into it.
         // A note can stand in full view while its head sits just above the
-        // upper edge — that is the very case this fetches the head for (PO
-        // decision of 01.08.2026, after the case was measured).
+        // upper edge — that is the very case this fetches the head for.
         //
         // And both fit into the list at once. In a group taller than the
         // window the head cannot be shown without pushing the selection out.
@@ -941,14 +928,9 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         // afterwards picks its selection from the rectangle it remembered at
         // the press. Moving the list in between hands that rectangle another
         // row, and the click ends up on the neighbour of what was pointed at
-        // (issue #71, UI review S5, finding B2; Qt shuts its own autoscrolling
-        // off during a press for exactly this reason, and an explicit scrollTo
-        // walks around that guard).
-        //
-        // A row the lower edge cuts through therefore stays cut through. That
-        // is the price of reading 2 and it was weighed: the row would only
-        // become fully visible by moving out from under the cursor, which is
-        // the fault itself (PO decision of 05.08.2026).
+        // (issue #71). A row the lower edge cuts through therefore stays cut
+        // through: it would only become fully visible by moving out from under
+        // the cursor, which is the fault itself (PO decision of 05.08.2026).
         if (!m_selectionFollowsAPress) {
             m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
         }
@@ -1121,27 +1103,18 @@ void LibraryWindow::stopEditing()
 LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
 {
     // KMessageDialog, not QMessageBox: under the KDE platform integration a
-    // built QMessageBox is not the dialog the user gets. The integration
-    // answers with a message box of its own — a second object with buttons of
-    // its own —, and it takes over labels, roles and order but nothing that is
-    // set on our buttons afterwards: symbols, default button, escape button.
-    // Measured on 02.08.2026 for issue #66: activeModalWidget() was a
-    // QMessageBox, but not this one, and its three buttons carried no symbol
-    // name at all. That is what the customer photographed (SPEC 9).
-    //
-    // A KMessageDialog is a plain QDialog and stays ours, symbols included.
+    // built QMessageBox is not the dialog the user gets — the integration
+    // answers with a message box of its own and takes over labels, roles and
+    // order but nothing set on our buttons afterwards (issue #66, measured
+    // 02.08.2026). A KMessageDialog is a plain QDialog and stays ours.
     //
     // The timestamp stands in brackets, not in the middle of the sentence: it
     // comes in the form its group gives it — „Heute 11:05“, „Di, 28.07.“,
     // „19.07.2026“ — and no single German sentence carries all three as an
-    // object („Die Notiz von Heute 11:05 wurde geändert“, UI review of
-    // 02.08.2026, finding 3). The brackets take the grammar out of the
-    // format's hands.
+    // object. The brackets take the grammar out of the format's hands.
     //
     // Both sentences stand in one text because KMessageDialog has no
-    // informative text beside the main one. The blank line keeps the question
-    // in front and the explanation behind it, as the drawing has it
-    // (wireframe 2a, state C).
+    // informative text beside the main one (wireframe 2a, state C).
     KMessageDialog dialog(KMessageDialog::WarningTwoActionsCancel,
                           i18n("Änderungen speichern?\n\nDie bearbeitete Notiz (%1) hat ungespeicherte "
                                "Änderungen. Ohne Speichern gehen sie verloren.",
@@ -1157,27 +1130,21 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     // platform's substitute dialog did have (wireframe 2a, state C).
     dialog.setIcon(QIcon::fromTheme(QStringLiteral("dialog-warning")));
 
-    // Symbols from the system theme; three similarly long German words side by
-    // side are told apart fastest by their picture, and „Verwerfen“ gets the
-    // marking KDE gives a destructive action (UI review of 02.08.2026,
-    // finding 5). Taken from KStandardGuiItem, so they are the ones every
-    // other KDE dialog uses — the icons only: the texts stay under this
-    // application's own i18n() and must not depend on which KF6 catalogue
-    // happens to be installed (wireframe 2a, table „Symbole an den
-    // Schaltflächen“).
+    // Symbols from KStandardGuiItem, so they are the ones every other KDE
+    // dialog uses — the icons only: the texts stay under this application's own
+    // i18n() and must not depend on which KF6 catalogue happens to be installed.
     //
-    // The order the three appear in is the platform's, as before. What this
-    // window fixes is which answer means what: primary saves, secondary
-    // discards, cancel stays.
+    // The order the three appear in is the platform's. What this window fixes
+    // is which answer means what: primary saves, secondary discards, cancel
+    // stays (wireframe 2a, state C).
     dialog.setButtons(KGuiItem(i18n("Speichern"), KStandardGuiItem::save().icon()),
                       KGuiItem(i18n("Verwerfen"), KStandardGuiItem::discard().icon()),
                       KGuiItem(i18n("Abbrechen"), KStandardGuiItem::cancel().icon()));
 
     // „Speichern“ is the default answer, because Return then does what someone
     // who has just been typing most likely means, and it is the one answer
-    // that loses nothing (PO decision F3 of 02.08.2026; both readings are
-    // HIG-conform). It has to be said out loud: the KDE build puts the default
-    // on the cancel button.
+    // that loses nothing (PO decision F3 of 02.08.2026). It has to be said out
+    // loud: the KDE build puts the default on the cancel button.
     //
     // Hence the three lines instead of a plain exec(), each of them measured
     // on 02.08.2026:

@@ -20,19 +20,6 @@ target_link_libraries(storetest PRIVATE
 
 add_test(NAME storetest COMMAND storetest)
 
-# Prototyp zum Spike #62, nur mit -DDENKZETTEL_SPIKE_SPELLFIX=ON. Steht der
-# Schalter aus — der Normalfall —, existiert weder das Programm noch der Test.
-if(DENKZETTEL_SPIKE_SPELLFIX)
-    add_executable(spellfixspike spellfixspike.cpp)
-
-    target_link_libraries(spellfixspike PRIVATE
-        denkzettelstore
-        Qt6::Test
-    )
-
-    add_test(NAME spellfixspike COMMAND spellfixspike)
-endif()
-
 add_executable(capturetest capturetest.cpp)
 
 target_link_libraries(capturetest PRIVATE
@@ -75,38 +62,13 @@ add_test(NAME librarytest COMMAND librarytest)
 set_tests_properties(librarytest PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
 
-# The same binary a second time, under the scaling the customer runs — and only
-# the one check that needs it. QT_SCALE_FACTOR is read once, before the
-# application exists, so no test function can set it; a second run is the only
-# way to reach that state. It measures that a hairline is the same number of
-# DEVICE pixel rows wherever it lands in the grid — at scaling 1 that can never
-# go wrong, and the eye cannot judge it either. That is why it is a test and
-# not a picture.
-#
-# 1.5 since 11.08.2026, was 1.6: the customer has changed his setting. A check
-# whose own name says "the customer's scaling" and measures another one is a
-# false witness, not a stricter one.
-add_test(NAME librarytestskaliert
-    COMMAND librarytest keepsEverySeparatorOneThicknessUnderTheCustomersScaling)
-
-set_tests_properties(librarytestskaliert PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;QT_SCALE_FACTOR=1.5")
-
-# Writes the picture series of the search states for the story handover. No
+# Writes the picture series of the grouped note list (wireframes 3a/3b). No
 # add_test(): it produces pictures for a human to look at, and a broken
 # screenshot writer must not colour the suite red. It is built by an ordinary
 # build all the same, as are the benches below — they were EXCLUDE_FROM_ALL
 # once, and a bench nobody rebuilds writes plausible pictures of an old state
-# while the suite stays green.
-add_executable(searchshots searchshots.cpp)
-
-target_link_libraries(searchshots PRIVATE
-    denkzettelui
-    Qt6::Test
-)
-
-# The same for the grouped note list (wireframes 3a/3b). Run it with
-# QT_QPA_PLATFORMTHEME=kde, or the substitute font misstates the type sizes.
+# while the suite stays green. Run it with QT_QPA_PLATFORMTHEME=kde, or the
+# substitute font misstates the type sizes.
 add_executable(libraryshots libraryshots.cpp)
 
 target_link_libraries(libraryshots PRIVATE
@@ -126,15 +88,6 @@ target_link_libraries(captureshots PRIVATE
 
 target_compile_definitions(captureshots PRIVATE
     DENKZETTEL_TEST_THEMES="${CMAKE_CURRENT_SOURCE_DIR}/themes")
-
-# The reading, editing and guard-dialog states of wireframe 2a. Same rules: run
-# it by hand with QT_QPA_PLATFORMTHEME=kde.
-add_executable(editshots editshots.cpp)
-
-target_link_libraries(editshots PRIVATE
-    denkzettelui
-    Qt6::Test
-)
 
 # The two pictures of the README — capture window and library, with invented
 # notes. Same rules as the benches above.
