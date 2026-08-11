@@ -133,9 +133,10 @@ QColor separatorColor(const QPalette &palette)
  * The boundary it rounded to was not the screen's: this function only ever sees
  * widget-local coordinates, and the list viewport starts at logical 48. Where
  * that origin falls on the device grid the term moved nothing — no difference
- * at origin 0 for any of the seven ratios, and none at 1.25, 1.5, 2.0 or 2.5,
- * where logical 48 is 60, 72, 96 and 120 device pixels. All 8 differences sit
- * at 1.4 and 1.6, where it is 67.2 and 76.8 (measured, B8).
+ * at origin 0 for any of the seven ratios, and none at origin 48 for 1.0, 1.25,
+ * 1.5, 2.0 or 2.5, where logical 48 is 48, 60, 72, 96 and 120 device pixels.
+ * All 8 differences sit at 1.4 and 1.6, where it is 67.2 and 76.8 (measured,
+ * B8).
  */
 QRectF hairline(const QPaintDevice *device, int left, int top, int width)
 {
