@@ -8,6 +8,53 @@ am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
 0.x-SemVer (Festlegung vom 02.08.2026; seit #61 sichtbar über
 `denkzetteld --version`).
 
+## [0.4.0] — 2026-08-11
+
+Sprint 10, an einem Abend. **Vier Fehler**, davon zwei aus der Durchsicht des
+Kunden nach Sprint 9 — und einer, den niemand hätte sehen können, weil er nur
+im Release-Bau auftrat.
+
+### Behoben
+
+- **Eine neue Notiz erscheint jetzt sofort in der offenen Bibliothek.** Wer die
+  Bibliothek offen stehen hatte und mit `Meta+N` etwas erfasste, sah die Notiz
+  bis zum nächsten Öffnen des Fensters nicht. Die Liste hört jetzt auf den
+  Speicher statt aufs Fenster, also gilt es für jeden Weg — auch für
+  `AddNote()` über D-Bus. Läuft gerade eine Löschfrist, wartet die neue Notiz
+  deren fünf Sekunden ab, statt das Rückgängig zu verbrauchen, das die
+  Bibliothek noch anbietet. Die gelesene Notiz bleibt stehen, der Rollbalken
+  springt nicht, und bei laufender Suche kommt die Notiz nur in die Liste, wenn
+  sie trifft (#105)
+- **Die Gruppen der Bibliothek sind auseinanderzuhalten.** „Heute", „Gestern",
+  „Diese Woche" stehen jetzt in der Textgröße der Anwendung und fett, die Linie
+  liegt neben der Beschriftung statt über die volle Breite — die Form, die KDE
+  für Abschnittsköpfe verwendet. Bisher unterschied sich die Gruppengrenze von
+  der Notizgrenze in einem einzigen Merkmal: 18 Gerätepunkte je Seite, 4,3 % der
+  Breite, über 109 bis 159 Punkte Abstand zu vergleichen. Der Kopf war zudem in
+  der kleinsten Schrift der Liste gesetzt und damit kleiner als der Notiztext,
+  den er überschreibt (#104)
+- **Das Eingabefeld zeigt, wann die Tastatur hingeht.** Es trägt jetzt den
+  Fokuszustand seiner Theme-Grafik, solange das Fenster das aktive ist. Unter
+  fünf der acht Desktop-Themes war das Feld im Ruhezustand praktisch unsichtbar
+  (1,00 bis 1,14 : 1 gegen den Grund); mit der Fokusschicht sind es bis zu
+  4,66 : 1. Ein Fenster ohne Tastatur zeigt keine Kante — das ist die andere
+  Hälfte der Auskunft (#102)
+- **Eine Kategorie geht im Release-Bau nicht mehr verloren.** Der Fehler saß im
+  Prüfstand, nicht im Programm: `Q_ASSERT` lässt seine Bedingung unter
+  `QT_NO_DEBUG` ungeprüft, und Qt setzt das für jeden Bautyp außer `Debug`. Wer
+  aus dem Quelltext ein optimiertes Paket baute, bekam Prüfsätze, die einen
+  Datenverlust meldeten, den nur die Testumgebung verursacht hatte. Der
+  öffentliche Lauf baut deshalb künftig beide Bautypen, und der Linter meldet
+  diese Fehlerklasse ab jetzt selbst (#99)
+
+### Bekannte Grenzen
+
+- Im **ruhenden** Zustand — wenn ein anderes Fenster den Fokus hat — fällt das
+  Eingabefeld unter denselben fünf Themes weiter auf 1,00 bis 1,14 : 1 zurück.
+  Das ist Absicht: Ein Fenster, in das die Tastatur nicht geht, soll es auch
+  nicht behaupten.
+- Die Bilder in der README zeigen weiterhin den Stand vom 04.08.2026.
+
 ## [0.3.0] — 2026-08-11
 
 Sprint 9, abgenommen vom Kunden am 11.08.2026 am installierten Stand. **Zwei
