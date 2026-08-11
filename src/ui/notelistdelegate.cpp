@@ -125,12 +125,17 @@ QColor separatorColor(const QPalette &palette)
  *
  * **No attempt is made to put the upper edge on a device pixel boundary.** One
  * stood here until 08.08.2026 (`std::round(top * ratio) / ratio`) and was
- * removed as measured: it never reached a boundary, because the painter origin
- * is off the grid itself — the list viewport starts at logical 48, which is
- * 76.8 device pixels at 1.6, and this function only ever sees widget-local
- * coordinates. What the term did instead was shift the line by one device pixel
- * in 8 of those 280 positions, without changing a single height. An arbitrary
- * shift under the name of an alignment (karpathy follow-up of Sprint 9, N1).
+ * removed as measured: over those 280 positions it changed not a single height,
+ * and what it did change was the position — by one device pixel in 8 of them.
+ * An arbitrary shift under the name of an alignment (karpathy follow-up of
+ * Sprint 9, N1).
+ *
+ * The boundary it rounded to was not the screen's: this function only ever sees
+ * widget-local coordinates, and the list viewport starts at logical 48. Where
+ * that origin falls on the device grid the term moved nothing — no difference
+ * at origin 0 for any of the seven ratios, and none at 1.25, 1.5, 2.0 or 2.5,
+ * where logical 48 is 60, 72, 96 and 120 device pixels. All 8 differences sit
+ * at 1.4 and 1.6, where it is 67.2 and 76.8 (measured, B8).
  */
 QRectF hairline(const QPaintDevice *device, int left, int top, int width)
 {
