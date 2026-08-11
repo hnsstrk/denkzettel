@@ -17,7 +17,7 @@ include(FeatureSummary)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-# The compile database both lint targets below read (issue #45).
+# The compile database both lint targets below read.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS DBus Widgets Sql)
@@ -34,26 +34,21 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     WindowSystem
 )
 
-# KColorScheme::frameContrast() — the ratio the list mixes its separator lines
-# in (issue #101, SPEC 9 and 15). It exists since KF 6.20, and it is sought on
-# its own rather than added to the list above: KF_MIN_VERSION feeds both
-# find_package calls of this file, so a 6.20 written there would raise the
-# lower bound for ECM and all ten components at once. Here it rises where the
-# function sits and nowhere else (customer decision of 07.08.2026).
+# KColorScheme::frameContrast() needs KF 6.20 and is sought on its own rather
+# than added to the list above: KF_MIN_VERSION feeds both find_package calls, so
+# a 6.20 written there would raise the lower bound for ECM and all ten
+# components at once.
 find_package(KF6ColorScheme 6.20 REQUIRED)
 
 add_subdirectory(src)
 
 install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
-# Autostart with the session (SPEC 2.5), deliberately under the same file name:
-# kglobalacceld names the shortcut component after it (SPEC 2.4), and the Plasma
-# autostart module switches a system-wide entry off by shadowing exactly that
-# name in ~/.config/autostart.
-#
-# Only prefix /usr resolves this to /etc/xdg/autostart, the single autostart
-# directory a stock XDG_CONFIG_DIRS lists. Installed to /usr/local the entry
-# lands in /usr/local/etc/xdg/autostart, where no session reads it.
+# Autostart with the session (SPEC 2.5), deliberately under the SAME file name
+# as above: kglobalacceld names the shortcut component after it (SPEC 2.4), and
+# the Plasma autostart module switches a system-wide entry off by shadowing
+# exactly that name in ~/.config/autostart. Only prefix /usr resolves this to
+# /etc/xdg/autostart; installed to /usr/local no session reads the entry.
 install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
 
 ecm_install_icons(ICONS
@@ -68,22 +63,18 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
-# Linting on demand, in its own targets (issue #45). Neither analysis hangs in
-# CMAKE_CXX_CLANG_TIDY: an ordinary build would pay for it on every file.
-#
-# The file list is globbed rather than read back from the targets. A new source
+# Linting on demand, in its own targets. Neither analysis hangs in
+# CMAKE_CXX_CLANG_TIDY: an ordinary build would pay for it on every file. The
+# file list is globbed rather than read back from the targets — a new source
 # file only reaches the build through a CMakeLists, and editing one re-runs the
-# configuration, so the glob cannot fall behind. Generated sources
-# (mocs_compilation.cpp, qrc_*.cpp) live in the build directory and stay out of
-# the list by construction.
+# configuration, so the glob cannot fall behind.
 file(GLOB_RECURSE DENKZETTEL_LINT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 if(BUILD_TESTING)
     file(GLOB DENKZETTEL_LINT_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
     # The one file the glob must not hand on: tests/spellfixspike.cpp includes
-    # spellfixspike.moc, and moc only writes that file when the spike target is
-    # built. With the switch off — the normal case — there is no target, no moc
-    # run and no include, so clazy stops on a fatal error and lint-clazy ends on
-    # rc=2 whatever the code looks like. The file follows its own target.
+    # spellfixspike.moc, which moc only writes when the spike target is built.
+    # With the switch off — the normal case — clazy stops on a fatal error and
+    # lint-clazy ends on rc=2 whatever the code looks like.
     if(NOT DENKZETTEL_SPIKE_SPELLFIX)
         list(REMOVE_ITEM DENKZETTEL_LINT_TEST_SOURCES
              ${CMAKE_CURRENT_SOURCE_DIR}/tests/spellfixspike.cpp)

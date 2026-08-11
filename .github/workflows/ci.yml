@@ -1,25 +1,13 @@
-# Automatischer Bau- und Testlauf (Kundenentscheidung 04.08.2026).
+# Automatischer Bau- und Testlauf.
 #
-# Er ist die Hälfte des PR-Abbruchkriteriums aus Sprint 4, die ohne menschliche
-# Disziplin trägt; die andere Hälfte — Berichte und Befunde am Pull Request —
-# ist genau an dieser Disziplin gerissen.
-#
-# WAS DIESER LAUF NICHT ERSETZT, ausdrücklich:
-#   Die Tests laufen zusätzlich auf dem Entwicklungsrechner — der Container ist
-#   ein zweites Netz, keine Verlegung des Prüfstands.
-#   Die Prüfung am installierten Stand und die Bildprüfung erreicht er
-#   gar nicht: kein Compositor und kein /usr dieses Projekts. Die fünf
-#   Bildläufer (editshots, libraryshots, searchshots, readmeshots,
-#   captureshots) baut er seit dem 04.08.2026 mit — gestartet werden sie hier
-#   nicht, und ohne Compositor entstünde ohnehin kein prüfbares Bild.
-# Wer die grüne Marke für eine erfüllte DoD hält, hat drei ihrer sechs Punkte
-# übersprungen.
+# Die grüne Marke ist KEINE erfüllte DoD: ohne Compositor und ohne das /usr
+# dieses Projekts erreicht der Lauf weder die Prüfung am installierten Stand
+# noch die Bildprüfung.
 #
 # Warum ein Arch-Container: derselbe rollende Paketstrom wie die
-# Entwicklungsmaschine (CachyOS). Ein Fund hier ist auf dem Entwicklungsrechner reproduzierbar.
-# Das heißt umgekehrt, dass ein Upstream-Sprung den Lauf rot färben kann, ohne
-# dass jemand etwas geändert hat — das ist beabsichtigt und die Frühwarnung,
-# die ein festgepinntes Abbild nicht gäbe.
+# Entwicklungsmaschine, ein Fund hier ist dort reproduzierbar. Dass ein
+# Upstream-Sprung den Lauf ohne eigene Änderung rot färben kann, ist die dabei
+# beabsichtigte Frühwarnung.
 
 name: Bau und Tests
 
@@ -30,10 +18,10 @@ on:
   workflow_dispatch:
 
 defaults:
-  # Diese drei Zeilen sind tragend, nicht Geschmack: GitHub startet `shell: bash`
-  # als `bash --noprofile --norc -e -o pipefail`. Ohne sie liefe der Vorgabe-Shell
-  # ohne pipefail, und der Bau unten — durch `tee` geleitet — meldete den
-  # Rückgabewert von tee statt den des Compilers. Ein Baufehler liefe grün durch.
+  # Tragend, nicht Geschmack: GitHub startet `shell: bash` als
+  # `bash --noprofile --norc -e -o pipefail`. Ohne diese Zeilen liefe der
+  # Vorgabe-Shell ohne pipefail, und die durch `tee` geleiteten Schritte unten
+  # meldeten den Rückgabewert von tee. Ein Baufehler liefe grün durch.
   run:
     shell: bash
 
@@ -43,24 +31,16 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base-devel
 
-    # WARUM ZWEI BAUTYPEN (#99, gemessen 11.08.2026).
-    # Acht Sprints lang baute dieser Lauf nur `Debug` — und der installierte
-    # Stand des Kunden auch. Gefunden hat den Unterschied der Zufall: Ein Strang
-    # baute aus einem anderen Grund mit Optimierung und sah zwei Prüfsätze
-    # fallen, die seit Monaten grün gemeldet wurden.
-    #
-    # Der Unterschied hängt NICHT an -O2, sondern an `QT_NO_DEBUG`: Qt6 setzt es
-    # über sein CMake-Paket für jeden Bautyp außer `Debug`, und darunter lässt
-    # `Q_ASSERT` seine Bedingung ungeprüft. Alles, was in einer Zusicherung
-    # steht, hört dort auf zu geschehen. Das ist eine Fehlerklasse und kein
-    # Einzelfall — deshalb ein zweiter Bautyp und nicht ein zweiter Prüfsatz.
-    #
-    # `Release` und nicht `RelWithDebInfo`: Beide setzen `QT_NO_DEBUG` und
-    # `NDEBUG`, ein dritter Lauf prüfte dieselbe Frage ein zweites Mal.
+    # WARUM ZWEI BAUTYPEN: Der Unterschied hängt nicht an -O2, sondern an
+    # `QT_NO_DEBUG` — Qt6 setzt es über sein CMake-Paket für jeden Bautyp außer
+    # `Debug`, und darunter lässt `Q_ASSERT` seine Bedingung ungeprüft. Alles,
+    # was in einer Zusicherung steht, hört dort auf zu geschehen. Das ist eine
+    # Fehlerklasse, deshalb ein zweiter Bautyp und nicht ein zweiter Prüfsatz.
+    # `Release` und nicht `RelWithDebInfo`: beide setzen `QT_NO_DEBUG`, ein
+    # dritter Lauf prüfte dieselbe Frage ein zweites Mal.
     strategy:
       # Die beiden Bautypen sind verschiedene Fragen. Bricht der eine ab, ist
-      # die Antwort des anderen die Information, die man dann braucht — ein
-      # Abbruch beider verschwiege gerade den Unterschied, um den es hier geht.
+      # die Antwort des anderen gerade die Information, die man dann braucht.
       fail-fast: false
       matrix:
         bautyp: [Debug, Release]
@@ -73,27 +53,19 @@ jobs:
 
     steps:
       - name: Bauabhängigkeiten
-        # plasma-integration liefert das kde-Plattformthema, breeze-icons die
-        # Symbole dazu. Ohne beide läse QIcon::fromTheme() leere Namen —
-        # librarytest und shelltest wären dann grün und wertlos (#60, #66, #67).
-        # git wird vor dem Auschecken gebraucht, sonst fällt actions/checkout
-        # auf einen Abzug ohne Historie zurück.
-        #
-        # ksvg und kcoreaddons kommen mit der Fensterhülle (#55): KSvg zeichnet
-        # `dialogs/background` des Desktop-Themes, KDirWatch bewacht den
-        # Themenamen in `plasmarc`. libplasma liefert die Themes selbst —
-        # `default` und `breeze-*` liegen darin. Ohne libplasma fände KSvg hier
-        # überhaupt kein Theme, und capturetest prüfte den Randfall statt der
-        # Sache.
-        #
-        # kcolorscheme trägt KColorScheme::frameContrast() — das Verhältnis, in
-        # dem die Bibliotheksliste ihre Trennlinien mischt (#101, SPEC 9 und 15).
-        # Es steht hier ausdrücklich, obwohl der Bau auch ohne die Zeile gelänge:
-        # ksvg, libplasma und plasma-integration ziehen das Paket allesamt mit
-        # (gemessen am 07.08.2026). **Transitiv ist keine Zusage** — verliert
-        # eines dieser drei die Abhängigkeit, bricht der Bau an einer Stelle, die
-        # niemand mit dieser Änderung in Verbindung bringt. Die Untergrenze ist
-        # 6.20, im rollenden Arch-Strom liegen 6.28.0.
+        # Vier Pakete, die man für entbehrlich halten könnte und die es nicht
+        # sind:
+        #   plasma-integration und breeze-icons — ohne sie läse
+        #   QIcon::fromTheme() leere Namen, librarytest und shelltest wären grün
+        #   und wertlos.
+        #   libplasma — es liefert die Desktop-Themes selbst; ohne fände KSvg
+        #   hier überhaupt kein Theme, und capturetest prüfte den Randfall.
+        #   kcolorscheme — der Bau gelänge auch ohne die Zeile, weil ksvg,
+        #   libplasma und plasma-integration das Paket mitziehen. Transitiv ist
+        #   keine Zusage: verliert eines der drei die Abhängigkeit, bricht der
+        #   Bau an einer Stelle, die niemand damit in Verbindung bringt.
+        # git wird vor dem Auschecken gebraucht, sonst fällt actions/checkout auf
+        # einen Abzug ohne Historie zurück.
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel cmake git gettext \
@@ -125,11 +97,9 @@ jobs:
           cmake --build build -j "$(nproc)" 2>&1 | tee bau.log
 
       - name: Warnungen zählen
-        # Die Schwelle steht auf null, weil sie am 04.08.2026 an einem Neubau
-        # gemessen null war — auf dem Entwicklungsrechner und in diesem Container. Eine Schranke
-        # oberhalb des gemessenen Standes wäre keine.
-        # `|| true` fängt grep ab: ohne Treffer liefert es 1, und unter `set -e`
-        # bräche der Schritt ausgerechnet im Gutfall ab.
+        # Schwelle null, weil der Ist-Stand null ist — eine Schranke darüber
+        # misst nichts. `|| true` fängt grep ab: ohne Treffer liefert es 1, und
+        # unter `set -e` bräche der Schritt ausgerechnet im Gutfall ab.
         run: |
           anzahl=$(grep -c 'warning:' bau.log || true)
           echo "Compiler-Warnungen: ${anzahl}"
@@ -140,33 +110,21 @@ jobs:
           fi
 
       - name: Tests
-        # WARUM -V UND EINE ZAHL DANEBEN (Sprint 9, karpathy-Nachlauf N7).
-        # Auf diesem Läufer liegt keine Plasma-Grafik `widgets/lineedit`;
-        # mehrere Prüfsätze überspringen sich deshalb mit begründetem QSKIP.
-        # Das ist richtig so — was fehlt, ist nicht messbar. Falsch wäre, dass
-        # der Lauf danach „100% tests passed" meldet und die Zahl nirgends
-        # vorkommt: weder in der Ausgabe von `--output-on-failure` noch im
-        # Rückgabewert, der auch bei zehn Übersprungenen 0 ist. Die geltende
-        # Zahl steht unten bei `erwartung` und nur dort — zwei Stellen mit
-        # derselben Zahl gehen beim ersten Ändern auseinander.
-        #
-        # Was hier droht, ist keine Fehlmeldung, sondern langsames
-        # Verschwinden. Ein Prüfsatz, der morgen zusätzlich überspringt, fiele
-        # niemandem auf; eine Liste im Protokoll wäre lesbar und verhinderte
-        # nichts. Die Zahl steht deshalb hier und nicht im Code — sie ist eine
-        # Eigenschaft dieses Läufers (auf der Entwicklungsmaschine ist sie 0),
-        # und der Zwang, sie beim Ändern anzufassen, ist der Sinn: Was der Lauf
-        # NICHT prüft, soll eine Entscheidung sein und kein Nebeneffekt.
+        # WARUM -V UND EINE ZAHL DANEBEN. Auf diesem Läufer fehlt die
+        # Plasma-Grafik `widgets/lineedit`, mehrere Prüfsätze überspringen sich
+        # deshalb mit begründetem QSKIP. Ohne die Wache käme diese Zahl nirgends
+        # vor — weder in der Ausgabe von `--output-on-failure` noch im
+        # Rückgabewert, der auch bei zehn Übersprungenen 0 ist —, und ein
+        # Prüfsatz, der morgen zusätzlich überspringt, fiele niemandem auf. Was
+        # der Lauf NICHT prüft, soll eine Entscheidung sein und kein Nebeneffekt.
         #
         # Gezählt wird je Prüfbinär aus der Totals-Zeile, nicht aus der
-        # Zusammenfassung von ctest — die kennt die Übersprungenen nicht.
-        # JE BINÄR UND NICHT SUMMIERT (karpathy-Nachlauf 2, K4). Eine Summe
-        # über alle Prüfbinäre wacht über keines davon — überspringt eines
-        # eines weniger und ein anderes eines mehr, bleibt die Summe gleich.
-        # Das ist Fall 12 der Liste in `.claude/agents/denkzettel-dev.md`,
-        # aufgeschrieben in diesem Sprint und drei Stunden später hier selbst
-        # gebaut. Zugeordnet wird über den **Namen** des Binärs, nicht seine
-        # Nummer; eine neue Anmeldung verschiebt sonst alle Erwartungen.
+        # Zusammenfassung von ctest — die kennt die Übersprungenen nicht. Und je
+        # Binär statt summiert: eine Summe über alle wacht über keines davon,
+        # denn überspringt eines eines weniger und ein anderes eines mehr,
+        # bleibt sie gleich. Zugeordnet wird über den NAMEN des Binärs, nicht
+        # seine Nummer; eine neue Anmeldung verschöbe sonst alle Erwartungen.
+        # Die geltende Zahl steht unten bei `erwartung` und nur dort.
         run: |
           set -o pipefail
           ctest --test-dir build -V --output-on-failure > ctest.log 2>&1 || ctest_rc=$?
@@ -176,30 +134,15 @@ jobs:
             cat ctest.log
             exit "$ctest_rc"
           fi
-          # Erwartung je Prüfbinär. Auf diesem Läufer liegt keine Plasma-Grafik
-          # `widgets/lineedit`; capturetest überspringt deshalb zehn Prüfsätze
-          # mit begründetem QSKIP, alle anderen Binäre keinen.
+          # Erwartung je Prüfbinär. Mangels der Plasma-Grafik
+          # `widgets/lineedit` überspringt capturetest zehn Prüfsätze mit
+          # begründetem QSKIP — sechs Feldzusicherungen, drei Theme-Prüfsätze
+          # und hullHoldsAtTheCustomersScale, das seinen Kindlauf nach oben
+          # meldet statt grün. Alle anderen Binäre überspringen keinen.
           #
-          # Die zehn: sechs Feldzusicherungen von #100, drei Theme-Prüfsätze,
-          # dazu hullHoldsAtTheCustomersScale, seit sein
-          # Wächter je angefordertem Prüfsatz urteilt (karpathy-Nachlauf 2, K1)
-          # — im Kindprozess misst hullFollowsTheWindowPixelRatio,
-          # hullHasNoStairAtTheCorner überspringt mangels Plasma-`default`, und
-          # der Elternteil meldet das nach oben statt grün.
-          #
-          # Der zehnte ist kein zusätzlich Verschwiegenes, sondern das Etikett
-          # eines halb gemessenen Laufs: Bei einem echten Fehler **fällt** der
-          # Prüfsatz, er überspringt nicht (gemessen 11.08.2026 — Übergabe des
-          # Bildpunktverhältnisses an die Hülle entfernt, Elternteil rot,
-          # Rückgabewert 1; Belege in
-          # Messung zu #100, Sprint 9).
-          # Bei Verhältnis 1 ist dieser Fehler unsichtbar — der Kindlauf bei 1,6
-          # ist in dieser Lage der einzige, der die Übergabe überhaupt prüft.
-          #
-          # Die Auswertung nimmt je Binär die LETZTE Totals-Zeile. Grund
-          # gemessen: Trägt ein Prüfsatz die Ausgabe eines Kindprozesses nach
-          # oben, steht dessen Totals-Zeile mitten in der des Elternteils. Eine
-          # summierende Fassung machte daraus 11.
+          # Die Auswertung nimmt je Binär die LETZTE Totals-Zeile: trägt ein
+          # Prüfsatz die Ausgabe eines Kindprozesses nach oben, steht dessen
+          # Totals-Zeile mitten in der des Elternteils.
           erwartung="capturetest=10"
           awk -v erwartung="$erwartung" '
             /Start +[0-9]+: / { name = $NF }
@@ -216,12 +159,11 @@ jobs:
                   fehler = 1
                 }
               }
-              # Und einmal andersherum über die Erwartungsliste (karpathy-Nachlauf 3,
-              # L1). Die Schleife oben läuft nur über Binäre, die eine Totals-Zeile
-              # hinterlassen haben — ein aus `tests/CMakeLists.txt` **entferntes**
-              # Binär hinterlässt keine, seine Erwartung bliebe ungeprüft und der
-              # Lauf wäre grün. Genau die Frage, die diese Wache an andere stellt:
-              # Was gäbe sie aus, wenn ihr Gegenstand fehlte?
+              # Und einmal andersherum über die Erwartungsliste. Die Schleife
+              # oben läuft nur über Binäre, die eine Totals-Zeile hinterlassen
+              # haben — ein aus `tests/CMakeLists.txt` entferntes Binär
+              # hinterlässt keine, seine Erwartung bliebe ungeprüft und der Lauf
+              # wäre grün.
               for (b in soll) {
                 if (!(b in uebersprungen)) {
                   printf "::error::%s hat keine Totals-Zeile hinterlassen — das erwartete Prüfbinär ist nicht gelaufen (aus der ctest-Anmeldung entfernt oder umbenannt?). Seine Erwartung von %s Übersprüngen ist damit ungeprüft.\n", b, soll[b]
@@ -238,34 +180,26 @@ jobs:
           grep -q "100% tests passed" ctest.log
 
       - name: clazy
-        # Nur im Debug-Zweig, und das ist eine Entscheidung mit Preis (#99).
-        # Die Linter lesen die Compile-Datenbank ihres Baus; im Release-Zweig
-        # stünde `QT_NO_DEBUG` darin, und clang-tidy sähe `Q_ASSERT` in seiner
-        # leeren Fassung. Was der Debug-Zweig hier prüft, ist der Quelltext, und
-        # der ist in beiden Zweigen derselbe — ein zweiter Lauf wäre nicht
-        # gründlicher, nur langsamer. **Wer eine Prüfung baut, die tatsächlich
-        # vom Bautyp abhängt, gehört nicht hierher**, sondern in einen Schritt,
-        # der beide Zweige sieht.
+        # Nur im Debug-Zweig, und das ist eine Entscheidung mit Preis: die
+        # Linter lesen die Compile-Datenbank ihres Baus, im Release-Zweig stünde
+        # `QT_NO_DEBUG` darin und clang-tidy sähe `Q_ASSERT` in seiner leeren
+        # Fassung. Geprüft wird hier der Quelltext, und der ist in beiden
+        # Zweigen derselbe. Wer eine Prüfung baut, die tatsächlich vom Bautyp
+        # abhängt, gehört nicht hierher, sondern in einen Schritt, der beide
+        # Zweige sieht.
         if: matrix.bautyp == 'Debug'
-        # Kundenentscheidung 04.08.2026, Schwelle mit #76 von 3 auf 0 gezogen:
-        # die drei Altbefunde (2× range-loop-detach, 1× detaching-temporary)
-        # sind geheilt. Eine Schranke, die über dem Ist-Stand hängen bleibt,
-        # misst nichts mehr.
-        #
-        # WARUM DREI ZAHLEN UND NICHT EINE (#76, AK 6). Keine von ihnen trägt
-        # allein, beide Lücken sind gemessen:
+        # WARUM DREI ZAHLEN UND NICHT EINE. Keine trägt allein, beide Lücken
+        # sind gemessen:
         #   `rc` allein ist kein Befundurteil — clazy-standalone liefert rc=0
         #   auch mit Befunden.
         #   Eine Zahl allein ist kein Vollständigkeitsurteil — fehlt eine
         #   .moc-Datei, bricht clazy die Übersetzungseinheit mit `fatal error`
-        #   ab, meldet **null** Befunde und rc=2. Der Zähler sähe dann aus wie
-        #   ein sauberer Lauf über Dateien, die nie analysiert wurden
-        #   (Vorprüfung zu #76, Feld 4).
-        # Bei Schwelle 0 fällt die Zeilenzählung mit der Befundzählung zusammen;
-        # `grep -c 'warning:'` zählt aber gemessen auch Compiler-Diagnosen mit
-        # und Kopfdateibefunde mehrfach. **Wer die Schwelle je wieder über null
-        # setzt, muss vorher entdoppeln** — sonst zählt diese Wache etwas
-        # anderes, als ihr Name sagt.
+        #   ab, meldet null Befunde und rc=2. Der Zähler sähe aus wie ein
+        #   sauberer Lauf über Dateien, die nie analysiert wurden.
+        # Bei Schwelle 0 fällt die Zeilenzählung mit der Befundzählung
+        # zusammen; `grep -c 'warning:'` zählt aber auch Compiler-Diagnosen mit
+        # und Kopfdateibefunde mehrfach. Wer die Schwelle je über null setzt,
+        # muss vorher entdoppeln.
         run: |
           set -o pipefail
           rc=0
@@ -282,21 +216,14 @@ jobs:
       - name: clang-tidy
         # Nur im Debug-Zweig, Begründung eine Stufe höher bei clazy.
         if: matrix.bautyp == 'Debug'
-        # Neu mit #76. Bis dahin fehlte dieser Schritt, weil clang-tidy bei 81
-        # Altbefunden stand und ein Tor unterhalb des Ist-Standes Dauerrot wäre.
-        # Die sind geheilt oder tragen ein begründetes NOLINT, also steht das Tor
-        # jetzt auf 0.
+        # Dieselbe Dreizahl wie bei clazy, aus denselben Gründen. Für clang-tidy
+        # kommt einer dazu: `grep -c` zählt Rohzeilen, und jede Kopfdatei wird
+        # von jeder Übersetzungseinheit erneut gemeldet (gemessen Faktor 9,4).
+        # Bei Schwelle 0 folgenlos, darüber eine Falle.
         #
-        # Dieselbe Dreizahl wie bei clazy, aus denselben zwei gemessenen Gründen.
-        # Für clang-tidy kommt ein dritter dazu: `grep -c` zählt **Rohzeilen**,
-        # und jede Kopfdatei wird von jeder Übersetzungseinheit erneut gemeldet —
-        # gemessen Faktor 9,4 bei performance-enum-size (7 Enums, 66 Zeilen).
-        # Bei Schwelle 0 ist das folgenlos; darüber wäre es eine Falle.
-        #
-        # Die Zahlen dieses Schritts gelten für die Standardkonfiguration.
-        # Mit -DDENKZETTEL_SPIKE_SPELLFIX=ON nimmt der Glob in CMakeLists.txt
-        # tests/spellfixspike.cpp dazu, und die Datei folgt ihrem eigenen Ziel
-        # (#76, Entscheidung 5). Der Bau oben konfiguriert ohne den Schalter.
+        # Die Zahlen gelten für die Standardkonfiguration: mit
+        # -DDENKZETTEL_SPIKE_SPELLFIX=ON nimmt der Glob in CMakeLists.txt
+        # tests/spellfixspike.cpp dazu. Der Bau oben konfiguriert ohne ihn.
         run: |
           set -o pipefail
           rc=0
