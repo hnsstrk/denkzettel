@@ -118,13 +118,14 @@ jobs:
 
       - name: Tests
         # WARUM -V UND EINE ZAHL DANEBEN (Sprint 9, karpathy-Nachlauf N7).
-        # Auf diesem Läufer liegt keine Plasma-Grafik `widgets/lineedit`; neun
-        # Prüfsätze überspringen sich deshalb mit begründetem QSKIP, sechs davon
-        # die Feldzusicherungen von #100. Das ist richtig so — was fehlt, ist
-        # nicht messbar. Falsch wäre, dass der Lauf danach „100% tests passed"
-        # meldet und die Neun nirgends vorkommt: weder in der Ausgabe von
-        # `--output-on-failure` noch im Rückgabewert, der bei neun
-        # Übersprungenen 0 ist.
+        # Auf diesem Läufer liegt keine Plasma-Grafik `widgets/lineedit`;
+        # mehrere Prüfsätze überspringen sich deshalb mit begründetem QSKIP.
+        # Das ist richtig so — was fehlt, ist nicht messbar. Falsch wäre, dass
+        # der Lauf danach „100% tests passed" meldet und die Zahl nirgends
+        # vorkommt: weder in der Ausgabe von `--output-on-failure` noch im
+        # Rückgabewert, der auch bei zehn Übersprungenen 0 ist. Die geltende
+        # Zahl steht unten bei `erwartung` und nur dort — zwei Stellen mit
+        # derselben Zahl gehen beim ersten Ändern auseinander.
         #
         # Was hier droht, ist keine Fehlmeldung, sondern langsames
         # Verschwinden. Ein Prüfsatz, der morgen zusätzlich überspringt, fiele
@@ -136,18 +137,60 @@ jobs:
         #
         # Gezählt wird je Prüfbinär aus der Totals-Zeile, nicht aus der
         # Zusammenfassung von ctest — die kennt die Übersprungenen nicht.
+        # JE BINÄR UND NICHT SUMMIERT (karpathy-Nachlauf 2, K4). Eine Summe
+        # über alle Prüfbinäre wacht über keines davon — überspringt eines
+        # eines weniger und ein anderes eines mehr, bleibt die Summe gleich.
+        # Das ist Fall 12 der Liste in `.claude/agents/denkzettel-dev.md`,
+        # aufgeschrieben in diesem Sprint und drei Stunden später hier selbst
+        # gebaut. Zugeordnet wird über den **Namen** des Binärs, nicht seine
+        # Nummer; eine neue Anmeldung verschiebt sonst alle Erwartungen.
         run: |
           set -o pipefail
-          ctest --test-dir build -V 2>&1 | tee ctest.log | grep -E "^ *[0-9]+: (PASS|FAIL|SKIP)|Totals:|tests passed|Errors" || true
-          uebersprungen=$(grep -oE "Totals: [0-9]+ passed, [0-9]+ failed, [0-9]+ skipped" ctest.log | awk '{s+=$6} END {print s+0}')
-          erwartet=9
-          echo "Übersprungene Prüfsätze: $uebersprungen (erwartet: $erwartet)"
-          if [ "$uebersprungen" -ne "$erwartet" ]; then
-            echo "::error::Die Zahl der übersprungenen Prüfsätze hat sich geändert: $uebersprungen statt $erwartet."
-            echo "Prüfe, welcher Prüfsatz hinzugekommen oder weggefallen ist, und ziehe die Zahl hier nach — mit Begründung."
-            grep -E "^ *[0-9]+: SKIP" ctest.log || true
-            exit 1
+          ctest --test-dir build -V --output-on-failure > ctest.log 2>&1 || ctest_rc=$?
+          grep -E "Test +#[0-9]+:|Totals:|tests passed|Errors while" ctest.log || true
+          if [ -n "${ctest_rc:-}" ]; then
+            echo "::error::ctest ist fehlgeschlagen. Vollständige Ausgabe:"
+            cat ctest.log
+            exit "$ctest_rc"
           fi
+          # Erwartung je Prüfbinär. Auf diesem Läufer liegt keine Plasma-Grafik
+          # `widgets/lineedit`; capturetest überspringt deshalb zehn Prüfsätze
+          # mit begründetem QSKIP, alle anderen Binäre keinen.
+          #
+          # Die zehn: sechs Feldzusicherungen von #100, drei Theme-Prüfsätze,
+          # dazu hullHoldsAtTheCustomersScale, seit sein
+          # Wächter je angefordertem Prüfsatz urteilt (karpathy-Nachlauf 2, K1)
+          # — im Kindprozess misst hullFollowsTheWindowPixelRatio,
+          # hullHasNoStairAtTheCorner überspringt mangels Plasma-`default`, und
+          # der Elternteil meldet das nach oben statt grün.
+          #
+          # Die Auswertung nimmt je Binär die LETZTE Totals-Zeile. Grund
+          # gemessen: Trägt ein Prüfsatz die Ausgabe eines Kindprozesses nach
+          # oben, steht dessen Totals-Zeile mitten in der des Elternteils. Eine
+          # summierende Fassung machte daraus 11.
+          erwartung="capturetest=10"
+          awk -v erwartung="$erwartung" '
+            /Start +[0-9]+: / { name = $NF }
+            /Totals:/ { for (i = 1; i <= NF; i++) if ($i == "skipped,") uebersprungen[name] = $(i-1) }
+            END {
+              n = split(erwartung, paare, " ")
+              for (i = 1; i <= n; i++) { split(paare[i], p, "="); soll[p[1]] = p[2] }
+              fehler = 0
+              for (b in uebersprungen) {
+                ist = uebersprungen[b]; darf = (b in soll) ? soll[b] : 0
+                printf "%-24s übersprungen: %s (erwartet: %s)\n", b, ist, darf
+                if (ist != darf) {
+                  printf "::error::%s überspringt %s Prüfsätze, erwartet sind %s.\n", b, ist, darf
+                  fehler = 1
+                }
+              }
+              if (fehler) {
+                print "Prüfe, welcher Prüfsatz hinzugekommen oder weggefallen ist, und zieh die"
+                print "Erwartung oben nach — mit Begründung. Was der Lauf nicht prüft, soll eine"
+                print "Entscheidung sein und kein Nebeneffekt."
+                exit 1
+              }
+            }' ctest.log || { grep -E "SKIP +:" ctest.log || true; exit 1; }
           grep -q "100% tests passed" ctest.log
 
       - name: clazy

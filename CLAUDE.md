@@ -51,6 +51,15 @@ Bild aus der angemeldeten Sitzung dazu.
 **Ein unversionierter Beleg ist kein Beleg** (B7). Prüfberichte und Bilder
 gehören nach `docs/scrum/reviews/`, nicht ins Scratchpad und nicht in einen
 Arbeitsbaum, der mit dem Agenten verschwindet.
+**Auch dann, wenn der geprüfte Stand noch unversioniert ist** (11.08.2026): In
+Sprint 9 hat der PO zwei karpathy-Läufe über uncommittete Prozessänderungen ins
+Scratchpad schreiben lassen — mit der Begründung, ein Review über einen
+Zwischenstand gehöre nicht ins Archiv. Beide Berichte waren drei Tage später
+weg, mitsamt **elf Befunden, davon vier `fail`**, auf denen drei
+Prozessänderungen ruhen. **Der Beleg wird versioniert, nicht sein Gegenstand.**
+Ist der Gegenstand noch nicht committet, wandert der Bericht mit ihm in
+denselben Commit; die Reihenfolge ist kein Grund für eine Ausnahme, und eine
+selbst erfundene Ausnahme von B7 ist keine.
 
 **Melden, nicht heilen.** Wer außerhalb seiner Fläche einen Fehler findet,
 meldet ihn dem PO. Das gilt auch, wenn die Heilung eine Zeile wäre.
@@ -65,6 +74,14 @@ Punkt für Punkt im Sprint-Protokoll abgehakt: vor der Kundenabnahme
 installieren, Belege ablegen, prüfen — nach ihr Issues schließen, Journal,
 Push, Zweige und Worktrees räumen. Acht der neun Mängel aus Sprint 3 waren
 Abschlussmängel.
+**Die Liste regelt die Reihenfolge, nicht nur den Umfang** (11.08.2026): Auf
+„schließ die offenen Arbeiten ab" hat der PO aus dem Gedächtnis gearbeitet und
+die **AK-Haken vor der Kundenabnahme** gesetzt. Sie sind Beweislage und nicht
+umkehrbar; das Issue zeigte damit eine Zustimmung, die es nicht gab. Die Regel
+stand wörtlich in Takt 2, Punkt 5 — sie wurde nicht gebrochen, sondern nicht
+gelesen. **Vor jedem Abschlussschritt wird die Liste aufgeschlagen**, auch wenn
+man meint, sie zu kennen; was in Takt 2 steht, wartet auf die Abnahme, selbst
+wenn es technisch längst ginge.
 
 **Jeder Zugang nach der Sprint-Freigabe wird gebucht** — Issues *und*
 Größenklassen. Berührt er eine der beiden Grenzen (2–4 Stories; kein
@@ -145,8 +162,8 @@ Alle sieben fielen durch Messung, keine durch Nachdenken. Daraus:
   trägt der Griff nichts. Belegform ist die **Positivprobe**: einmal gegen
   einen Fall fahren, in dem das Gesuchte nachweislich vorhanden ist — dann ist
   sein Ergebnis lesbar, der Nullbefund wie der Treffer. **Auch ein Griff mit
-  Treffern kann zu eng sein**; der B17-Griff meldete fünf Zeilen und übersah
-  drei Fundstellen. Der Satz steht hier, weil dieselbe Sache dreimal als
+  Treffern kann zu eng sein** — der Fall des B17-Griffs steht oben. Der Satz
+  steht hier, weil dieselbe Sache dreimal als
   Einzelfall dastand (ein Testaufbau, in dem der Fehler nicht auftreten kann ·
   die Zahl der angefassten Linter-Dateien · der Suchraum des B17-Griffs) und in
   Sprint 9

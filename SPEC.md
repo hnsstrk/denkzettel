@@ -1147,6 +1147,24 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   bei gleichem Bildpunktverhältnis byteweise gleich, ein **gegrabbtes Fenster**
   nicht — die Schriftrasterung weicht ab (1.587 von 154.440 Bildpunkten,
   sämtlich im Textbereich; Ursache Fontconfig, nicht KSvg).
+- **Ein Nachbau der Skalierung im selben Prozess ist keine Prüflage** (entdeckt
+  zu #101 bei L9 — DoD 4/B9): Die Liste durch einen Maler auf ein Bild mit
+  `devicePixelRatio` 1,6 zu zeichnen, misst etwas anderes als eine Sitzung unter
+  `QT_SCALE_FACTOR=1.6`. *Gemessen:* Der Nachbau zeigte den Fehler bei **1,25**
+  und **bei 1,6 nicht** — dort, wo die echte Skalierung ihn zeigt. Die
+  Zeilenhöhen einer skalierten Sitzung sind nicht die einer unskalierten; der
+  Nachbau maß Zeilenlagen, die es gar nicht gibt. **Ein Prüfsatz, der gerade
+  dort besteht, wo der Fehler sitzt, ist schlimmer als keiner.** Die taugliche
+  Form ist eine **eigene Prüflage**: derselbe Prüfsatz ein zweites Mal in
+  `tests/CMakeLists.txt` angemeldet, mit `QT_SCALE_FACTOR` in der Umgebung und
+  **nur** den Prüffunktionen, die unter Skalierung etwas aussagen
+  (`librarytestskaliert`). Die Bildpunktzusicherungen aus AK 1 bis AK 3 messen
+  in logischen Punkten und gehören nicht hinein — unter 1,6 prüften sie die
+  Skalierung statt der Linie.
+  **Die Szene entscheidet mit:** Der Fehler hängt an der Rasterlage. Auch der
+  erste Lauf mit echter Skalierung war grün, weil die Szene nur vier Linien in
+  drei Lagen kannte; sie trägt jetzt eine Gruppe mit **acht** Notizen, die alle
+  fünf Phasen durchläuft (`storedALongGroup()`).
 - **Zustände, die im Prüfprozess selbst nicht herstellbar sind, brauchen einen
   eigenen Prozess** (entdeckt zu #55, AK 8): Das Fenster ohne Desktop-Theme
   lässt sich nicht durch einen erfundenen Theme-Namen erzeugen — KSvg fällt

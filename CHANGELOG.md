@@ -8,6 +8,38 @@ am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
 0.x-SemVer (Festlegung vom 02.08.2026; seit #61 sichtbar über
 `denkzetteld --version`).
 
+## [0.3.0] — noch nicht abgenommen
+
+Sprint 9. **Zwei Befunde des Kunden aus der Durchsicht nach Sprint 8** — beide
+betrafen die Lesbarkeit, und beide sind geheilt.
+
+### Geändert
+
+- **Das Erfassungsfenster zeigt, wo man tippt.** Der Textbereich bekommt Fläche
+  und Kante aus der Grafik des Desktop-Themes (`widgets/lineedit`) — dieselbe
+  Quelle wie die Fensterhülle, eine Ebene tiefer. Bis hierher war das Fenster
+  ein durchgehender Farbblock, in dem der Eingabebereich nicht zu erkennen war.
+  In der Sitzung hebt sich das Feld unter `default` um 1,79 : 1 von der Hülle ab
+  — KRunners Feld liegt bei 1,41 : 1 (#100)
+- **Die Notizliste trennt Einträge und Gruppen.** Zwischen zwei Notizen
+  derselben Gruppe steht eine auf die Textkante eingerückte Haarlinie, über
+  jedem Gruppenkopf außer dem ersten dieselbe Linie über die volle Breite.
+  Gleiche Farbe, verschiedene Länge — die Rangfolge Notiz/Gruppe entsteht aus
+  der Ausdehnung des Strichs. Kein Maß der Liste ändert sich dadurch (#101)
+
+### Bekannte Grenze
+
+- **Unter fünf der acht geprüften Desktop-Themes bleibt das Eingabefeld
+  unsichtbar** — dort zeichnet die Theme-Grafik nur einen Hauch (Deckung 15 von
+  255). Auf der Voreinstellung greift der Rückfall `default`, und dort trägt es.
+  Die Heilung ist als #102 erfasst: Alle acht Themes führen einen Fokuszustand
+  mit sichtbarer Kante, der das Feld unter allen sichtbar machen würde
+
+### Anmerkung
+
+Die Bilder in der README zeigen weiterhin den Stand vom 04.08.2026 — der
+Bildläufer erzeugt seit der nativen Hülle ein unbrauchbares Bild (#96).
+
 ## [0.2.0] — 2026-08-05
 
 Abgenommen am 05.08.2026 (Sprints 6 bis 8; die Abnahme lag beim Product Owner,
