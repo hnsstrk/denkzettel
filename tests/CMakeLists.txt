@@ -78,16 +78,19 @@ set_tests_properties(librarytest PROPERTIES
 # The same binary a second time, under the scaling the customer runs — and only
 # the one check that needs it. QT_SCALE_FACTOR is read once, before the
 # application exists, so no test function can set it; a second run is the only
-# way to reach that state. It cannot be the whole suite either: the other pixel
-# checks measure in logical points and would be measuring the scaling instead.
-# This one measures that a hairline is the same number of DEVICE pixel rows
-# wherever it lands in the grid — at scaling 1 that can never go wrong, which is
-# why the fault stood for a whole story without a red test.
+# way to reach that state. It measures that a hairline is the same number of
+# DEVICE pixel rows wherever it lands in the grid — at scaling 1 that can never
+# go wrong, and the eye cannot judge it either. That is why it is a test and
+# not a picture.
+#
+# 1.5 since 11.08.2026, was 1.6: the customer has changed his setting. A check
+# whose own name says "the customer's scaling" and measures another one is a
+# false witness, not a stricter one.
 add_test(NAME librarytestskaliert
     COMMAND librarytest keepsEverySeparatorOneThicknessUnderTheCustomersScaling)
 
 set_tests_properties(librarytestskaliert PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;QT_SCALE_FACTOR=1.6")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;QT_SCALE_FACTOR=1.5")
 
 # Writes the picture series of the search states for the story handover. No
 # add_test(): it produces pictures for a human to look at, and a broken

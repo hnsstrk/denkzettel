@@ -544,5 +544,61 @@ int main(int argc, char **argv)
         shoot(window, directory, QStringLiteral("12b-nach-der-erfassung.png"));
     }
 
+    // 13 — the group boundary of issue #104: three filled groups, in a light
+    // and a dark scheme, with the head of the last group standing right under
+    // the selected note. That is the one place where the two things AK 5 keeps
+    // apart meet — the mark and a head.
+    //
+    // The selection colour is the customer's own green and not the Breeze blue
+    // of breezePalette(): what these two pictures are to show is that the head
+    // does not compete with the mark he sees, and his mark is not the built-in
+    // one (48,155,33 out of `[Colors:Selection]`, read 11.08.2026).
+    //
+    // Run under QT_SCALE_FACTOR=1.5 — his scaling — or the pictures say nothing
+    // about the sizes he gets to look at.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        addNote(store,
+                QStringLiteral("restic-Backup: prune-Policy prüfen, monatliche Snapshots behalten"),
+                QStringLiteral("2026-07-31T14:32:00"));
+        addNote(store, QStringLiteral("Reifen wechseln lassen — Termin bei der Werkstatt machen"),
+                QStringLiteral("2026-07-31T11:05:00"));
+        addNote(store, QStringLiteral("Mara wegen Wochenende anrufen,\nKuchen nicht vergessen"),
+                QStringLiteral("2026-07-30T21:48:00"));
+        addNote(store, QStringLiteral("journalctl -u whisperd --since today"),
+                QStringLiteral("2026-07-30T18:10:00"));
+        addNote(store,
+                QStringLiteral("Idee für Denkzettel — Bündel-Export erst vorschlagen, wenn fünf "
+                               "Notizen zum selben Thema da sind"),
+                QStringLiteral("2026-07-30T09:00:00"));
+        addNote(store, QStringLiteral("Kategorien-Prompt: Beispiele mitgeben, sonst rät das Modell"),
+                QStringLiteral("2026-07-23T11:30:00"));
+        addNote(store, QStringLiteral("Tray-Icon im dunklen Theme testen"),
+                QStringLiteral("2026-07-23T09:00:00"));
+
+        auto withSelectionOfTheCustomer = [](bool dark) {
+            QPalette palette = breezePalette(dark);
+            palette.setColor(QPalette::Highlight, QColor(48, 155, 33));
+            palette.setColor(QPalette::HighlightedText, QColor(0, 0, 0));
+            return palette;
+        };
+
+        applyScheme(withSelectionOfTheCustomer(false));
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        open(window);
+        // Rows: head „Heute", two notes, head „Gestern", three notes, head
+        // „Letzte Woche", two notes. Row 6 is the last note of the middle
+        // group, so the head below it is the neighbour of the mark.
+        listOf(window)->setCurrentIndex(listOf(window)->model()->index(6, 0));
+        shoot(window, directory, QStringLiteral("13a-gruppengrenze-hell.png"));
+
+        applyScheme(withSelectionOfTheCustomer(true));
+        shoot(window, directory, QStringLiteral("13b-gruppengrenze-dunkel.png"));
+    }
+
     return 0;
 }

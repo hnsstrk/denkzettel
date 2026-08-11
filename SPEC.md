@@ -715,25 +715,62 @@ v1 aber nicht gebaut.
   Wochengruppen Wochentag und Datum, in Älter das absolute Datum; im
   Detailbereich die volle Form. Die Gliederung ist fest — kein Umschalter,
   keine einklappbaren Gruppen (Wireframes 3a/3b).
-  **Getrennt wird durch zwei Haarlinien einer Farbe, deren Ausdehnung die
-  Rangfolge trägt** (Wireframe 3a, Kundenentscheidung 06.08.2026 auf Issue
-  #101, nachdem der Weißraum allein die Notizen nicht mehr auseinanderhielt):
-  zwischen zwei aufeinanderfolgenden Notizen **derselben** Gruppe eine auf die
-  Textkante eingerückte Linie (12 px links und rechts, dieselben 12 px, auf
-  denen Zeitstempel und Kopftext beginnen), über jedem Gruppenkopf **außer dem
-  ersten** dieselbe Linie über die volle Breite der Zeile. Keine unter der
-  letzten Notiz einer Gruppe, keine unter einem Kopf, und **keine an einer
-  Kante der ausgewählten Zeile** — eine zweite Trennung dort träte mit der
-  Auswahlmarkierung in Wettbewerb. Die Ausnahme gilt allein der eingerückten
-  Linie: über einem Kopf bleibt die Linie stehen, auch wenn die Notiz darüber
-  die ausgewählte ist. Die Farbe ist **keine Palettenrolle**, sondern die
+  **Getrennt wird durch zwei Haarlinien einer Farbe. Die Notizgrenze trägt
+  ihre Linie auf der Zeilenkante, die Gruppengrenze trägt sie neben der
+  Beschriftung ihres Kopfes, und der Kopf trägt dazu einen eigenen
+  Schriftrang** (Wireframe 3a, Kundenentscheidung 06.08.2026 auf Issue #101;
+  Ort und Rang seit der Kundenentscheidung vom 11.08.2026 auf Issue #104):
+  - Zwischen zwei aufeinanderfolgenden Notizen **derselben** Gruppe eine auf
+    die Textkante eingerückte Linie (12 px links und rechts, dieselben 12 px,
+    auf denen Zeitstempel und Kopftext beginnen). Keine unter der letzten
+    Notiz einer Gruppe, keine unter einem Kopf, und **keine an einer Kante der
+    ausgewählten Zeile** — eine zweite Trennung dort träte mit der
+    Auswahlmarkierung in Wettbewerb.
+  - Neben der Beschriftung **jedes** Gruppenkopfes eine Linie auf halber Höhe
+    der Kopfschrift, 8 px nach dem Ende der Beschriftung beginnend und bis zur
+    rechten Textkante laufend (dieselben 12 px). Das ist die Form von
+    `Kirigami.ListSectionHeader`. Sie steht auch dann, wenn die Notiz darüber
+    die ausgewählte ist: Die Ausnahme oben gilt allein der Eintragslinie, und
+    diese Linie liegt gar nicht an der Kante, an der die beiden Zeilen sich
+    berühren.
+  - Der **Gruppenkopf ist in der Textgröße der Anwendung gesetzt**
+    (`QFontDatabase::GeneralFont`) und **fett**, der Notiztext bleibt normal.
+  Die Farbe ist **keine Palettenrolle**, sondern die
   Mischung aus Listengrund und Textfarbe im Verhältnis
   `KColorScheme::frameContrast()` — das Verfahren, mit dem Kirigami seine
   Trennlinien färbt; über 18 Schemata liegt sie zwischen 1,24 : 1 und
   1,93 : 1 gegen den Listengrund, abwechselnde Zeilenfarben dagegen zwischen
   1,00 : 1 und 1,21 : 1 und an jeder Gruppengrenze bei 1,00 : 1 (gemessen
-  06.08.2026). **Kein Maß ändert sich dadurch**: Beide Linien liegen in
-  Innenabständen, die es schon gibt.
+  06.08.2026).
+  *Ersetzt am 11.08.2026 die Fassung „zwei Haarlinien einer Farbe, deren
+  **Ausdehnung** die Rangfolge trägt" (Issue #104, Kundenbefund an der
+  Sprint-9-Abnahme: „Ich sehe nicht direkt wo eine endet und die andere
+  anfängt").* Dort lief die Gruppenlinie über die volle Breite der Zeile und
+  über jedem Kopf **außer dem ersten**; der Unterschied zur Notizgrenze war
+  damit **ein** Merkmal und ein gradueller dazu — 18 Gerätebildpunkte je Seite,
+  4,3 % der Breite, bei gleicher Farbe und gleicher Stärke, zu vergleichen über
+  109 bis 159 Gerätebildpunkte Abstand (gemessen 11.08.2026). Der Unterschied
+  ist jetzt **kategorial**: ein anderer Ort der Linie **und** ein anderer
+  Schriftrang, und keines von beidem ist eine Abstufung des anderen. Dass der
+  erste Kopf keine Linie trug, hatte seinen Grund darin, dass über ihm keine
+  Gruppe steht, die abzugrenzen wäre; die Linie neben der Beschriftung grenzt
+  nichts ab, sondern gehört zur Überschrift — deshalb trägt sie **jeder** Kopf,
+  und ein erster Kopf ohne sie sähe nach Fehler und nicht nach Ausnahme aus.
+  **Ein Maß ändert sich dadurch** (die alte Fassung sagte „kein Maß", und für
+  sie stimmte das): Die Kopfschrift wächst von 8 pt / 15 px auf 10 pt / 18 px,
+  also die Kopfzeile von 35 auf 38 px und die erste von 27 auf 30 px (gemessen
+  11.08.2026 unter `QT_QPA_PLATFORMTHEME=kde`). Die Innenabstände 14 · 6 · 6
+  bleiben, ebenso die Zusicherung aus #70 — die Rechnung dahinter ist nur eine
+  andere. Die **Linien** liegen weiterhin in Innenabständen, die es schon gibt:
+  die Eintragslinie im unteren der 9 px, die Kopflinie in der Zeile der
+  Kopfschrift selbst.
+  **Bedingung, bei der Umsetzung entdeckt:** Wo die Beschriftung samt ihren 8 px
+  Abstand die Textbreite ausfüllt, **entfällt die Kopflinie**. Ohne den Abstand
+  läse sie sich als Unterstrich des letzten Buchstabens. Erreichbar ist der Fall
+  in der Liste nicht — die längste Beschriftung („Letzte Woche") misst 87 px,
+  und die schmalste Liste lässt bei stehendem Rollbalken 175 px für den Text
+  (220 px Mindestbreite, Sichtfeld 199, gemessen 11.08.2026) —, aber die Regel
+  steht, weil eine Zusicherung nicht weiter reichen darf als ihr Nachweis.
   **Die Stärke ist ein Maß in Gerätebildpunkten** (entdeckte Bedingung,
   07.08.2026): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
   und nicht abgeschnitten. Der
