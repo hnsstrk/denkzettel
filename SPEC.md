@@ -768,8 +768,9 @@ v1 aber nicht gebaut.
   Abstand die Textbreite ausfüllt, **entfällt die Kopflinie**. Ohne den Abstand
   läse sie sich als Unterstrich des letzten Buchstabens. Erreichbar ist der Fall
   in der Liste nicht — die längste Beschriftung („Letzte Woche") misst 87 px,
-  die schmalste Liste lässt 181 px Textbreite —, aber die Regel steht, weil eine
-  Zusicherung nicht weiter reichen darf als ihr Nachweis.
+  und die schmalste Liste lässt bei stehendem Rollbalken 175 px für den Text
+  (220 px Mindestbreite, Sichtfeld 199, gemessen 11.08.2026) —, aber die Regel
+  steht, weil eine Zusicherung nicht weiter reichen darf als ihr Nachweis.
   **Die Stärke ist ein Maß in Gerätebildpunkten** (entdeckte Bedingung,
   07.08.2026): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
   und nicht abgeschnitten. Der
