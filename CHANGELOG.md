@@ -8,10 +8,12 @@ am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
 0.x-SemVer (Festlegung vom 02.08.2026; seit #61 sichtbar über
 `denkzetteld --version`).
 
-## [0.3.0] — noch nicht abgenommen
+## [0.3.0] — 2026-08-11
 
-Sprint 9. **Zwei Befunde des Kunden aus der Durchsicht nach Sprint 8** — beide
-betrafen die Lesbarkeit, und beide sind geheilt.
+Sprint 9, abgenommen vom Kunden am 11.08.2026 am installierten Stand. **Zwei
+Befunde aus seiner Durchsicht nach Sprint 8**, beide zur Lesbarkeit. Der erste
+ist geheilt, der zweite zur Hälfte: Die Notizen sind auseinanderzuhalten, die
+Gruppen noch nicht.
 
 ### Geändert
 
@@ -27,8 +29,17 @@ betrafen die Lesbarkeit, und beide sind geheilt.
   Gleiche Farbe, verschiedene Länge — die Rangfolge Notiz/Gruppe entsteht aus
   der Ausdehnung des Strichs. Kein Maß der Liste ändert sich dadurch (#101)
 
-### Bekannte Grenze
+### Bekannte Grenzen
 
+- **Wo eine Gruppe endet und die nächste beginnt, ist weiterhin schwer zu
+  sehen.** Die Linie über dem Gruppenkopf läuft über die volle Breite, die
+  zwischen zwei Notizen ist eingerückt — beide haben dieselbe Farbe und dieselbe
+  Stärke, und der Längenunterschied allein trägt die Rangfolge nicht weit
+  genug. Erfasst als #104; dort steht die Gestaltungsfrage offen, statt ein
+  Mittel zu setzen
+- **Eine neu erfasste Notiz erscheint nicht in einer bereits offenen
+  Bibliothek** — die Liste liest erst beim nächsten Anzeigen des Fensters
+  wieder nach. Erfasst als #105
 - **Unter fünf der acht geprüften Desktop-Themes bleibt das Eingabefeld
   unsichtbar** — dort zeichnet die Theme-Grafik nur einen Hauch (Deckung 15 von
   255). Auf der Voreinstellung greift der Rückfall `default`, und dort trägt es.
