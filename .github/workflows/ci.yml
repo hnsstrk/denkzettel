@@ -180,6 +180,11 @@ jobs:
           # `widgets/lineedit`; capturetest überspringt deshalb zehn Prüfsätze
           # mit begründetem QSKIP, alle anderen Binäre keinen.
           #
+          # Durch #102 unverändert, und das ist nachgemessen: Die Fokusschicht
+          # bringt keinen eigenen Prüfsatz mit — was an ihr zu sehen ist,
+          # entscheidet der Kunde am Bild (Kundenentscheidung 11.08.2026). Ein
+          # Lauf mit leerem XDG_DATA_DIRS meldet weiter 10.
+          #
           # Die zehn: sechs Feldzusicherungen von #100, drei Theme-Prüfsätze,
           # dazu hullHoldsAtTheCustomersScale, seit sein
           # Wächter je angefordertem Prüfsatz urteilt (karpathy-Nachlauf 2, K1)

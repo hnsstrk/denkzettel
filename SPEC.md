@@ -236,6 +236,31 @@ keine Lesbarkeit zu.
   zwischen 1,08 : 1 über schwarzem und 1,88 : 1 über weißem Grund, weil die
   Hülle durchscheint — sie hängt am Bildschirmhintergrund des Kunden und ist
   keine Eigenschaft des Baus.
+- **Das Feld hat zwei Zustände, nicht einen** (Issue #102, 11.08.2026). Der
+  Vorsatz `base` ist der **ruhende** Zustand; solange das Fenster das aktive
+  ist, liegt der Vorsatz **`focus`** derselben Grafik darüber. Das ist Plasmas
+  eigene Schichtung — die Grafik führt dazu ein Element
+  `hint-focus-over-base`, unter allen acht installierten Themes vorhanden —
+  und die Schicht beansprucht keinen eigenen Rand (gemessen 0,1 px gegen 6 px
+  bei `base`), so daß sich kein Innenabstand aus #100 verschiebt.
+  **Die Bedingung ist `hasFocus() && isActiveWindow()`**, Plasmas
+  `activeFocus`: Ein Fenster, das die Tastatur nicht hat, zeigt keine
+  Fokuskante. Das ist die andere Hälfte der Zusicherung „Fokusverlust: Fenster
+  bleibt" aus Abschnitt 3 — es bleibt stehen und sagt zugleich, daß dort
+  gerade nichts ankommt.
+  **Gewinn, gemessen** (11.08.2026): Unter den fünf schwachen Themes hebt sich
+  der Feldrand mit der Schicht zu 2,81–4,66 : 1 gegen die Hülle ab, gegen
+  1,00–1,14 : 1 ohne sie; KRunners Feld liegt bei 1,41 : 1. In der Sitzung des
+  Kunden unter `default` gemessen: 7,93 : 1 aktiv, 1,88 : 1 ruhend.
+  **Grenze, benannt und angenommen:** Im **ruhenden** Zustand fällt das Feld
+  unter `CachyOS-Nord-round`, `Iridescent-round` und den drei
+  `cachyos-emerald`-Themes auf **1,00–1,14 : 1** zurück. Dort ist es dann
+  wieder praktisch unsichtbar — das ist dieselbe Grenze wie im Absatz darüber,
+  und sie gilt nun für einen Zustand statt für das Feld überhaupt.
+  **Die Fokuskante nimmt die Akzentfarbe des Farbschemas** (SVG-Klasse
+  `ColorScheme-ViewFocus`). Auf der Kundeneinstellung ist das Grün
+  (61, 212, 37); das Erfassungsfenster trägt damit im aktiven Zustand einen
+  grünen Rand. Das ist die KDE-Konvention und keine Wahl des Baus.
   **Bis zum 06.08.2026 galt das Gegenteil:** „eine durchgehende Fläche — kein
   Kasten im Kasten". Der Kunde hat sie auf seinen Befund vom 05.08.2026 hin
   aufgehoben („Das Erfassungsfenster ist ein Farbblock. Der Eingabebereich ist

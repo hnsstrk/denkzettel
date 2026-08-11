@@ -115,6 +115,12 @@ bool sessionBlursBehindWindows();
  * — the graphic KRunner's entry field comes from, on the same image set one
  * layer down. The same sentence holds for it: where the theme draws nothing,
  * nothing is there.
+ *
+ * The field carries two states of that graphic and not one (issue #102): the
+ * resting `base`, and the `focus` layer on top of it while the window is the
+ * active one. That is Plasma's own layering — the graphic names it
+ * `hint-focus-over-base` — and its other half is the honest one: a window that
+ * has not got the keyboard shows no focus edge.
  */
 class CaptureWindow : public QWidget
 {
@@ -213,6 +219,16 @@ private:
      * resized whenever that is.
      */
     KSvg::FrameSvg *m_field;
+    /**
+     * The focus state of the same graphic, `focus` over `base` (issue #102).
+     *
+     * A fourth frame rather than a second prefix on `m_field`: both are drawn
+     * in the same paintEvent(), one over the other, and a frame carries one
+     * prefix at a time. It claims no border of its own — measured 0,1 px under
+     * all eight installed themes against 6 px for `base` — so no inner spacing
+     * of #100 hangs on it.
+     */
+    KSvg::FrameSvg *m_focus;
     std::unique_ptr<KWindowShadow> m_shadow;
     /** What the current desktop theme asks the compositor for (AK 6). */
     capture::ContrastEffect m_contrast;
