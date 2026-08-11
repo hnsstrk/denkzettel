@@ -247,8 +247,8 @@ keine Lesbarkeit zu.
   *Signaling interactivity*, verlangt das Gegenteil („Use standard controls as
   much as possible to automatically inherit this style of visual
   interactivity"). Belege und Vorlage:
-  `docs/scrum/reviews/2026-08-06-lesbarkeit/`, Umsetzung
-  `docs/scrum/reviews/sprint-09-s100-eingabefeld/`.
+  `Prüfbericht Lesbarkeit`, Umsetzung
+  `Prüfbericht zu #100, Sprint 9`.
 - **Kontur** ist keine eigene Linie mehr. Die Theme-Grafik zeichnet an ihrem
   Rand dieselbe Farbe wie in der Fläche und unterscheidet sich allein in der
   Deckung (gemessen unter `default`: 235 gegen 216 von 255). Der Rand des
@@ -267,7 +267,7 @@ keine Lesbarkeit zu.
 - **Zur gedämpften Klasse gehört auch der Platzhaltertext** des leeren
   Eingabefeldes — drei Stellen, nicht zwei.
 - **Der Textcursor folgt der Schrift, nicht dem Farbschema** (entdeckte
-  Bedingung, 05.08.2026, DoD 4/B9). Qt zeichnet ihn in der Textfarbe des
+  Bedingung, 05.08.2026). Qt zeichnet ihn in der Textfarbe des
   Eingabefeldes; sobald diese aus dem Theme kommt, tut er es mit. **Das ist
   gewollt und darf nicht „zurückgeheilt" werden:** Unter `breeze-light` mit
   dunklem Schema steht er im Bild bei 91,91,90 auf einer Fläche von
@@ -314,11 +314,11 @@ Die Eckform kommt aus den Eckstücken des Themes und ist **nicht** aus dem
 Randmaß abzuleiten — zwei Themes können bei gleichem Rand verschieden gekrümmt
 sein.
 
-### 3.2 Bedingungen der Hülle (entdeckt beim Bau, DoD 4/B9)
+### 3.2 Bedingungen der Hülle (entdeckt beim Bau)
 
 Sie stehen hier, weil eine Umsetzung ohne sie eine Hülle zeichnet, die richtig
-aussieht und falsch ist — belegt in `docs/scrum/reviews/sprint-06-s55-huelle/`
-und `docs/scrum/reviews/sprint-07-s83-native-huelle/`, je samt `pruefen.sh`.
+aussieht und falsch ist — belegt in `Prüfbericht zu #55, Sprint 6`
+und `Prüfbericht zu #83, Sprint 7`, je samt `pruefen.sh`.
 Die meisten widersprechen dem, was der Aufbau nahelegt, und **keine einzige
 meldet ihren Fehlschlag über einen Rückgabewert.**
 
@@ -401,14 +401,14 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
     schwarzem 1,37:1, und **keine Wahl der Schriftfarbe rettet beide
     Richtungen**.
     *Warum das hier so ausdrücklich steht (05.08.2026, UI-Review Sprint 8,
-    Befund P2, DoD 4):* Die erste Fassung dieses Punktes zählte die drei
+    Befund P2):* Die erste Fassung dieses Punktes zählte die drei
     `cachyos-emerald`-Themes auf und begründete den Absturz unter
     `cachyos-emerald-light` damit, das Theme trage „genau dafür seine
     `[ContrastEffect]`-Gruppe". **Es trägt keine.** Die Begründung trug also für
     den einen Fall nicht, für den sie geschrieben war, und ein Theme mit
     demselben Problem fehlte in der Aufzählung. Belege in
-    `docs/scrum/reviews/sprint-08-s85-lesbarkeit/` und
-    `docs/scrum/reviews/sprint-08-ui-review/`. Die Bedingung ist benannt und
+    `Prüfbericht zu #85, Sprint 8` und
+    `UI-Review Sprint 8`. Die Bedingung ist benannt und
     nicht geschlossen.
 11. **Die Vorrangregel für die Textfarben steht an genau einer Stelle.** Die
     beiden Quellen aus 3.1 bewegen sich zu verschiedenen Zeitpunkten — das
@@ -542,7 +542,7 @@ Interview). Syntax-Umfang (damit ist offene Frage 3 des Konzepts beantwortet):
 - Die Trefferliste behält die Ordnung der Bibliothek (neueste zuerst, 9.)
   statt der FTS5-Relevanzsortierung — nur so trägt sie deren Tagesgruppen.
   - **BM25 ist am 04.08.2026 geprüft und verworfen** (Kundenentscheidung;
-    Belege unter `docs/scrum/reviews/2026-08-04-bm25/`). Der Grund ist **nicht**
+    Belege unter `BM25-Messung vom 04.08.2026`). Der Grund ist **nicht**
     der Trigramm-Tokenizer — die Vermutung, ein in Trigramme zerfallender
     Suchbegriff verzerre die Formel, ist widerlegt: FTS5 summiert BM25 über
     **Phrasen**, nicht über Tokens, und die Abfrage ist phrasenweise gebaut.
@@ -735,7 +735,7 @@ v1 aber nicht gebaut.
   06.08.2026). **Kein Maß ändert sich dadurch**: Beide Linien liegen in
   Innenabständen, die es schon gibt.
   **Die Stärke ist ein Maß in Gerätebildpunkten** (entdeckte Bedingung,
-  07.08.2026, DoD 4): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
+  07.08.2026): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
   und nicht abgeschnitten. Der
   Satz steht hier, weil sein Fehlen einen Fehler getragen hat: Als logisches
   Rechteck gefüllt, belegte dieselbe Linie unter der Skalierung 1,6 mal einen
@@ -772,7 +772,7 @@ v1 aber nicht gebaut.
   *Ausdrücklich ungeregelt bleibt die seitliche Kante:* Sie liegt unter 1,6 bei
   11,88 statt 12,0 Punkten — 0,12 Punkte, während der Seitenrand der Glyphen
   daneben im selben Bild zwischen 0,5 und 2,4 Punkten schwankt.
-  **Bedingung, entdeckt bei der Umsetzung (DoD 4/B9): Die Ansicht zeichnet den
+  **Bedingung, entdeckt bei der Umsetzung (beim Bau entdeckt): Die Ansicht zeichnet den
   oberen Nachbarn eines Auswahlwechsels nicht von sich aus neu.** Sie malt nur
   die Strecke zwischen alter und neuer Auswahl, und die Zeile über beiden Enden
   liegt außerhalb — ohne ausdrückliche Anmeldung bleibt dort eine Linie stehen
@@ -781,7 +781,7 @@ v1 aber nicht gebaut.
   Die Gruppen werden beim Aufbau der Liste und bei jeder Fensteraktivierung
   nachgerechnet — es gibt keinen Mitternachtszeitgeber (Wireframe 3b).
   **Neu gruppiert wird dabei nur, wenn der Kalendertag ein anderer ist als
-  beim letzten Aufbau** (entdeckt bei der Umsetzung, DoD 4): Neugruppieren
+  beim letzten Aufbau** (entdeckt bei der Umsetzung): Neugruppieren
   setzt das Modell zurück und stellt die Auswahl wieder her, was die Liste zu
   ihr scrollt — ohne Tageswechsel warf ein Alt-Tab den Leser um 459 px auf
   seine Auswahl zurück (Issue #59, gemessen 04.08.2026). Der Kalendertag
@@ -801,20 +801,20 @@ v1 aber nicht gebaut.
   Auswahl nach: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
   Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
   **Dass auch das Nachrücken zur Auswahl darunterfällt, ist bei der Umsetzung
-  entdeckt worden** (DoD 4): Ein Klick auf eine angeschnittene Zeile rückte das
+  entdeckt worden** : Ein Klick auf eine angeschnittene Zeile rückte das
   Bild um eine Zeilenhöhe, und weil der View seine Auswahl erst danach aus dem
   beim Druck gemerkten Rechteck bestimmt, markierte er die Nachbarzeile — in
   13 von 14 gemessenen Fällen die falsche (Issue #71, gemessen 05.08.2026).
   Der Preis, ausdrücklich: Eine angeschnittene Zeile bleibt nach dem Klick
   angeschnitten. Sie ganz sichtbar zu machen hieße, sie unter dem Zeiger
   wegzuziehen — das ist der Fehler selbst.
-  **Bedingung, entdeckt bei der Sichtprüfung (05.08.2026, DoD 4/B9): „bewegt die
+  **Bedingung, entdeckt bei der Sichtprüfung (05.08.2026): „bewegt die
   Liste überhaupt nicht" gilt für den Druck, nicht für die Sekunde danach.**
   `QAbstractItemView` startet beim Mausdruck einen **verzögerten Autoscroll**
   und holt die angeschnittene Zeile rund eine halbe Sekunde später doch ins
   Bild; die Markierung bleibt dabei auf der geklickten Zeile. Gemessen: Rollwert
   bis 500 ms unverändert, ab 550 ms um eine Zeile gerückt
-  (`docs/scrum/reviews/sprint-07-s71-ruhige-liste/messungen/71-nachlaufender-autoscroll.txt`);
+  (`Messung zu #71, Sprint 7`);
   am Bild bestätigt im UI-Review (11a gegen 11b, 71,9 logische Bildpunkte).
   **Der Absatz oben beschreibt damit, was die Story herstellt, nicht, was der
   Nutzer nach einer Sekunde sieht.** Ob der Nachlauf bleibt oder abgeschaltet
@@ -832,7 +832,7 @@ v1 aber nicht gebaut.
   Konzept: rein client-seitig verzögertes Löschen, kein Soft-Delete-Zustand
   in der DB).
 - **Bedingungen des Bearbeiten-Zustands** (S8; die letzten beiden entdeckt
-  bei der Umsetzung, DoD 4):
+  bei der Umsetzung):
   - Ungespeicherte Änderungen werden **nie ohne Nachfrage** geschrieben oder
     verworfen. Auswahlwechsel, Fensterschließen, Esc und „Abbrechen“ führen
     denselben Dialog mit **Speichern · Verwerfen · Abbrechen**. Das weicht
@@ -852,7 +852,7 @@ v1 aber nicht gebaut.
   - **Bauart des Dialogs (entschieden in Sprint 5, #66):** Der Wächter ist
     ein **`KMessageDialog`** vom Typ `WarningTwoActionsCancel` mit
     `KStandardGuiItem`-Symbolen; **Vorgabeantwort ist „Speichern"**.
-    Grund ist die in Sprint 4 entdeckte Bedingung (DoD 4/B9): Unter der
+    Grund ist die in Sprint 4 entdeckte Bedingung (beim Bau entdeckt): Unter der
     KDE-Plattformintegration (`QT_QPA_PLATFORMTHEME=kde`) beantwortet das
     System einen gebauten `QMessageBox` mit einem **eigenen Meldungsfenster
     samt eigenen Knopfobjekten** — es übernimmt Beschriftung, Rollen und
@@ -863,7 +863,7 @@ v1 aber nicht gebaut.
     (`QApplication::activeModalWidget()`), unter gesetztem Plattform-Thema —
     ein Test ohne Plattform-Thema misst einen Dialog, den kein
     KDE-Sitzungsnutzer sieht.
-  - **Bedingungen dieser Bauart, alle am 02.08.2026 gemessen** (DoD 4/B9):
+  - **Bedingungen dieser Bauart, alle am 02.08.2026 gemessen** (beim Bau entdeckt):
     - `KMessageDialog` kennt **keinen Zweittext** (`informativeText`); Frage
       und Erläuterung stehen in einem Text, durch eine Leerzeile getrennt.
     - Die Antwortrollen sind `Yes` · `No` · `Reject` statt
@@ -954,7 +954,7 @@ v1 aber nicht gebaut.
   beides nicht. Als gewöhnliches Fenster bleibt es stehen, aber die
   gewünschte Lage wird verworfen und KWin setzt es in die Bildschirmmitte.
   Deshalb bleibt es bei einem Menü; der Kunde hat den Rückfall am 02.08.2026
-  entschieden. Beleg: `docs/scrum/reviews/sprint-04-s33-traymenues/`. Von den
+  entschieden. Beleg: `Prüfbericht zu #33, Sprint 4`. Von den
   drei in Wireframe 5a benannten HIG-Abweichungen bleibt damit **nur A1**
   (Linksklick öffnet ein Menü); A2 (zwei verschiedene Menüs) und A3 („Beenden"
   nur über den Rechtsklick) entfallen ersatzlos, weil es die zweite Liste
@@ -1085,7 +1085,7 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
     wenn sonst nichts dazukommt. Ein Datenbestand, der nicht mehr zur
     Vorgängerversion passt, ist keine Kleinigkeit.
 - **Der Tag ist das Siegel:** `vMAJOR.MINOR.PATCH` auf dem abgenommenen Stand.
-  Erhöhung und Tag stehen im Sprint-Abschluss (`docs/scrum/PROZESS.md`,
+  Erhöhung und Tag stehen im Sprint-Abschluss (`CLAUDE.md`,
   Takt 2) und folgen der Abnahme; sie gehen ihr nicht voraus.
 - **Sichtbar wird die Nummer über `denkzetteld --version`** — Ausgabe
   `denkzettel <Nummer>`, Rückgabe 0, auch bei laufendem Dienst und ohne
@@ -1109,7 +1109,7 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
 - **Migrationstest**: Sobald die erste reale Schema-Migration existiert,
   prüft ein Test das Upgrade einer Bestands-DB von Version n auf n+1.
 - **Bedingung für Symbol- und Dialogzusicherungen** (entdeckt bei #60,
-  bestätigt bei #66/#67 — DoD 4/B9): Tests, die Symbolnamen oder das
+  bestätigt bei #66/#67): Tests, die Symbolnamen oder das
   Aussehen eines Meldungsdialogs zusichern, laufen mit
   `QT_QPA_PLATFORM=offscreen` **und `QT_QPA_PLATFORMTHEME=kde`. Ohne das
   Plattform-Thema** löst `QIcon::fromTheme()` nichts auf und liefert ein
@@ -1156,7 +1156,7 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   nicht — die Schriftrasterung weicht ab (1.587 von 154.440 Bildpunkten,
   sämtlich im Textbereich; Ursache Fontconfig, nicht KSvg).
 - **Ein Nachbau der Skalierung im selben Prozess ist keine Prüflage** (entdeckt
-  zu #101 bei L9 — DoD 4/B9): Die Liste durch einen Maler auf ein Bild mit
+  zu #101 bei L9): Die Liste durch einen Maler auf ein Bild mit
   `devicePixelRatio` 1,6 zu zeichnen, misst etwas anderes als eine Sitzung unter
   `QT_SCALE_FACTOR=1.6`. *Gemessen:* Der Nachbau zeigte den Fehler bei **1,25**
   und **bei 1,6 nicht** — dort, wo die echte Skalierung ihn zeigt. Die
@@ -1180,7 +1180,7 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   eintreten kann. `capturetest` startet sich für diese Zusicherung mit
   beschnittenem `XDG_DATA_DIRS` selbst neu.
 - **Keine Zusicherung hängt an einem Namen, den nur diese Maschine kennt**
-  (entdeckt zu #55, DoD 4/B9). Der Prüfsatz zur Hülle hält zwei Desktop-Themes
+  (entdeckt zu #55). Der Prüfsatz zur Hülle hält zwei Desktop-Themes
   mit verschiedenem Rand gegeneinander — und **ein solches Paar gibt es nicht
   überall**: Die drei Themes des offiziellen KDE-Bestands (`default`,
   `breeze-dark`, `breeze-light`) tragen sämtlich 4 px; jedes breitere Theme auf

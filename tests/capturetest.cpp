@@ -1123,7 +1123,7 @@ void CaptureTest::textSitsInsideTheFieldBorder()
 
         // And the five lines survived the inset: the widget grew by the two
         // borders instead of losing room for text. At both sizes SPEC 3 knows,
-        // as DoD 1 asks.
+        // as the acceptance criteria ask.
         const int chrome = 2 * qRound(text->document()->documentMargin()) + 2 * text->frameWidth();
         QCOMPARE(text->height() - chrome, capture::MinTextLines * text->fontMetrics().lineSpacing());
 
@@ -1249,7 +1249,7 @@ void CaptureTest::noteTextUsesTheWindowTextRole()
     // 19 colour schemes, while the view role falls to 4,22:1 in the second. The
     // pair 4,74:1 / 4,22:1 that used to stand here was the number of a ground
     // that is now one of two (UX decision of 07.08.2026,
-    // `docs/scrum/reviews/2026-08-07-textfarbe/entscheidung.md`).
+    // `Entscheidung Textfarbe`).
     const QPlainTextEdit *text = textArea();
     QVERIFY(text);
 
@@ -1437,7 +1437,7 @@ void CaptureTest::footerHasMoreAirThanTheApplicationName()
     // grouping of the window (wireframe 4b) — measured on the laid-out widgets,
     // not on the spacing values that produced them.
     //
-    // At both window sizes SPEC 3 knows, as DoD 1 asks: the window grows in the
+    // At both window sizes SPEC 3 knows, as the acceptance criteria ask: the window grows in the
     // middle, and a spacing that only held at the resting height would pass a
     // single-size check.
     QPlainTextEdit *text = textArea();

@@ -14,8 +14,7 @@ Wenn ich dafür erst eine Datei anlegen muss, ist der Gedanke weg. Was sich
 lohnt, wandert später in den Obsidian-Vault.
 
 Den Code schreibe ich nicht selbst: **Denkzettel wird von Claude-Code-Agenten
-entwickelt**, ich bin der Kunde des Teams. Wie das abläuft und was dabei
-schiefging, steht offen im Repository —
+entwickelt**, ich bin der Kunde des Teams —
 [Wie hier gearbeitet wird](#wie-hier-gearbeitet-wird).
 
 - [Funktionen](#funktionen)

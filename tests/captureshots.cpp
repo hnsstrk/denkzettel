@@ -14,7 +14,7 @@
 
 /**
  * Writes the picture series of the capture window's hull for the handover
- * (DoD 2 and DoD 3, wireframes 4a and 4b, issues #55 and #56).
+ * (wireframes 4a and 4b, issues #55 and #56).
  *
  * Not a test — a picture maker. It is run by hand, so it stays out of
  * `add_test()`: a failing screenshot writer must not colour the suite red.

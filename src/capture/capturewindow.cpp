@@ -603,7 +603,7 @@ void CaptureWindow::applyTextColours()
     // draws a hint only. `WindowText` stays above 4,5:1 in both, worst case
     // 5,70:1 and 4,74:1 over 19 colour schemes; the view role falls to 4,22:1
     // in the second. Decided by the UX role on the customer's instruction,
-    // 07.08.2026 (`docs/scrum/reviews/2026-08-07-textfarbe/entscheidung.md`).
+    // 07.08.2026 (`Entscheidung Textfarbe`).
     const QColor noteColour = m_themeText.normal.isValid()
         ? m_hull->color(KSvg::Svg::Text)
         : this->palette().color(QPalette::WindowText);

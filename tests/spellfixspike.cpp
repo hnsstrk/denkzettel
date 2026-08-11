@@ -7,7 +7,7 @@
  * whether an editdist3 cost table finds the two customer cases (#51, #52).
  *
  * Built only with -DDENKZETTEL_SPIKE_SPELLFIX=ON; the report of the spike lives
- * in docs/scrum/reviews/spike-62-spellfix1/.
+ * in Spike zu #62.
  */
 
 #include "store/store.h"

@@ -2,7 +2,7 @@
 #
 # The KDE guard dialog plays a system sound on every show — fourteen per
 # librarytest run, in the room the customer sits in
-# (docs/scrum/reviews/2026-08-04-testklaenge.md, W1). testsilence.cpp points
+# (Prüfbericht Testklänge, W1). testsilence.cpp points
 # libcanberra at its null driver before main() begins; link_libraries() puts
 # its object into every target this directory creates from here on, tests and
 # benches alike, so nobody has to remember it. A ctest property could not do
@@ -111,7 +111,7 @@ set_tests_properties(librarytestskaliert PROPERTIES
 # They were EXCLUDE_FROM_ALL once, and a bench nobody rebuilds goes stale
 # silently: in sprint 5 a 22 minute old runner wrote plausible pictures of an
 # old state while the suite stayed green
-# (docs/scrum/reviews/sprint-05-s-symbole/, §9.3). Staying out of the suite and
+# (Prüfbericht Symbole, Sprint 5, §9.3). Staying out of the suite and
 # staying out of the build are two different things — only the first one is
 # wanted here.
 add_executable(searchshots searchshots.cpp)

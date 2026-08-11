@@ -339,7 +339,7 @@ void ShellTest::keepsQuitApartInTheLastGroup()
 {
     // Customer finding 1 of 02.08.2026 asked for "Beenden" to leave the left
     // click list. Two menus would have been the answer; the measurement of
-    // 02.08.2026 (docs/scrum/reviews/sprint-04-s33-traymenues/messung.md) shows
+    // 02.08.2026 (Messung zu #33, Sprint 4) shows
     // they do not carry under Wayland. What is left of the finding is the
     // distance: the destructive action is last and behind a separator, never
     // next to the entry that is used most.

@@ -22,7 +22,7 @@
 
 /**
  * Writes the picture series of the edit view for the handover of S8 (#11)
- * and walks its main path once (DoD 2, wireframe 2a).
+ * and walks its main path once (wireframe 2a).
  *
  * Not a test — a picture maker, and the self-check of the story in one. It is
  * built and run by hand and stays out of `add_test()`, like `libraryshots`: a
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 
     // 1 and 2 — states A and B of wireframe 2a, and the main path of the story
     // in between: correct the transcript, save, find it again through the
-    // search (DoD 2).
+    // search.
     {
         const QTemporaryDir dir;
         Store store(dir.filePath(QStringLiteral("denkzettel.db")));

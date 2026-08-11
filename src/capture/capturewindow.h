@@ -52,8 +52,7 @@ ContrastEffect contrastEffectOf(const QString &desktopTheme);
  *
  * Both invalid when the theme ships no such file — the measured majority: of
  * the eight themes on the customer's machine four bring one and four do not
- * (`docs/scrum/vorberichte/85-lesbarkeit-fremde-themes/messungen/`
- * `m1-schriftquelle-je-theme.txt`). That is the fork of the customer decision
+ * (measured, Vorprüfung zu #85). That is the fork of the customer decision
  * of 04.08.2026: the writing comes from the same hand as the surface, and
  * where the theme keeps no hand of its own, the colour scheme keeps it.
  */
@@ -85,9 +84,7 @@ ThemeTextColours themeTextColoursOf(const QString &desktopTheme);
  * Asked **before** the first registration, and therefore not through
  * `KWindowEffects::isEffectAvailable(BlurBehind)`: that one answers `false` in
  * the customer's own session until we have registered once and `true` only
- * afterwards (measured, `docs/scrum/vorberichte/83-native-huelle/messungen/`
- * `sonde2-fensterlauf-wayland-skala-1.txt:50` against
- * `sonde4-weichzeichner-frueh.txt:6`). A window built on that value would start
+ * afterwards (measured, Vorprüfung zu #83). A window built on that value would start
  * out opaque in exactly the session this story is for.
  *
  * Asked instead of KWin itself, over D-Bus. KWin advertises the Wayland

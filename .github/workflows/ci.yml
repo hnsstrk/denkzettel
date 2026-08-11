@@ -2,12 +2,12 @@
 #
 # Er ist die Hälfte des PR-Abbruchkriteriums aus Sprint 4, die ohne menschliche
 # Disziplin trägt; die andere Hälfte — Berichte und Befunde am Pull Request —
-# ist genau an dieser Disziplin gerissen (PROZESS.md, „PR-Probelauf").
+# ist genau an dieser Disziplin gerissen.
 #
 # WAS DIESER LAUF NICHT ERSETZT, ausdrücklich:
-#   DoD 1 verlangt die Tests auf dem Entwicklungsrechner — der Container ist ein zweites Netz,
-#   keine Verlegung des Prüfstands.
-#   DoD 2 (installierter Stand unter /usr) und DoD 3 (Bildprüfung) erreicht er
+#   Die Tests laufen zusätzlich auf dem Entwicklungsrechner — der Container ist
+#   ein zweites Netz, keine Verlegung des Prüfstands.
+#   Die Prüfung am installierten Stand und die Bildprüfung erreicht er
 #   gar nicht: kein Compositor und kein /usr dieses Projekts. Die fünf
 #   Bildläufer (editshots, libraryshots, searchshots, readmeshots,
 #   captureshots) baut er seit dem 04.08.2026 mit — gestartet werden sie hier
@@ -112,7 +112,7 @@ jobs:
           echo "Compiler-Warnungen: ${anzahl}"
           if [ "${anzahl}" -ne 0 ]; then
             grep 'warning:' bau.log
-            echo "::error::${anzahl} Compiler-Warnung(en) — DoD 1 verlangt einen warnungsarmen Bau."
+            echo "::error::${anzahl} Compiler-Warnung(en) — Der Bau muss warnungsarm sein."
             exit 1
           fi
 
@@ -169,7 +169,7 @@ jobs:
           # Prüfsatz, er überspringt nicht (gemessen 11.08.2026 — Übergabe des
           # Bildpunktverhältnisses an die Hülle entfernt, Elternteil rot,
           # Rückgabewert 1; Belege in
-          # docs/scrum/reviews/sprint-09-s100-eingabefeld/messungen/m9-kopplung-huellenpruefsatz.txt).
+          # Messung zu #100, Sprint 9).
           # Bei Verhältnis 1 ist dieser Fehler unsichtbar — der Kindlauf bei 1,6
           # ist in dieser Lage der einzige, der die Übergabe überhaupt prüft.
           #
@@ -228,7 +228,7 @@ jobs:
         #   .moc-Datei, bricht clazy die Übersetzungseinheit mit `fatal error`
         #   ab, meldet **null** Befunde und rc=2. Der Zähler sähe dann aus wie
         #   ein sauberer Lauf über Dateien, die nie analysiert wurden
-        #   (docs/scrum/vorberichte/76-linterbefunde/, Feld 4).
+        #   (Vorprüfung zu #76, Feld 4).
         # Bei Schwelle 0 fällt die Zeilenzählung mit der Befundzählung zusammen;
         # `grep -c 'warning:'` zählt aber gemessen auch Compiler-Diagnosen mit
         # und Kopfdateibefunde mehrfach. **Wer die Schwelle je wieder über null

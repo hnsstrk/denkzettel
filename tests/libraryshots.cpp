@@ -13,7 +13,7 @@
 
 /**
  * Writes the picture series of the grouped note list for the handover
- * (DoD 2, wireframes 3a and 3b).
+ * (wireframes 3a and 3b).
  *
  * Not a test — a picture maker. It is built and run by hand, so it stays out
  * of `add_test()`: a picture nobody looks at proves nothing, and a failing
@@ -77,7 +77,7 @@ QPushButton *buttonNamed(QWidget &window, const QString &text)
  *
  * The four colours that carry the picture are the measured ones of Breeze
  * Light and Breeze Dark, taken from the UX investigation of 01.08.2026
- * (`docs/scrum/reviews/2026-08-01-capture-theme/palette.txt`); the rest is
+ * (`Palettenmessung vom 01.08.2026`); the rest is
  * derived from them, because a picture in which only the text colour changes
  * would show a light window with dark text and prove nothing.
  */

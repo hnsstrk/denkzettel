@@ -58,7 +58,7 @@ TrayIcon::TrayIcon(QObject *parent)
     // measurement of 02.08.2026 shows that it cannot be drawn where it belongs:
     // as a popup it closes two milliseconds after opening, as a window Wayland
     // discards the position and KWin puts it in the middle of the screen
-    // (docs/scrum/reviews/sprint-04-s33-traymenues/messung.md).
+    // (Messung zu #33, Sprint 4).
     m_item->setIsMenu(true);
 }
 

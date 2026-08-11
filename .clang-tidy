@@ -51,7 +51,7 @@ CheckOptions:
   # code does instead - reading the shortcut back off the daemon in
   # registerCaptureShortcut() - is strictly stronger: it catches everything a
   # `false` would have reported, plus the failures `false` cannot report at all
-  # (measured, docs/scrum/vorberichte/76-linterbefunde/, F6). The entry was
+  # (measured, Vorprüfung zu #76, F6). The entry was
   # written eight minutes before that read-back landed, on another branch. The
   # three remaining project entries stay: none of them has a stronger proof
   # beside it.

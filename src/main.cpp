@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     // handling: with a running daemon the single-instance switch hands a second
     // start over to the first process, so --version would open a capture window
     // there instead of writing a line here — and return 0 while doing it
-    // (measured, docs/scrum/vorberichte/61-versionsanzeige/, F2/F3). Without a
+    // (measured, Vorprüfung zu #61, F2/F3). Without a
     // reachable session bus KDBusService ends the process with 1, so the
     // version would not appear in the automated run either.
     processCommandLineArguments(app);

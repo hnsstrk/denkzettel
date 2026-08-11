@@ -7,7 +7,7 @@
  * `dialog-warning` through libcanberra — inside our own process, so the stream
  * carries the name of the test binary. One librarytest run makes fourteen of
  * them, in the room the customer sits in
- * (docs/scrum/reviews/2026-08-04-testklaenge.md).
+ * (Prüfbericht Testklänge).
  *
  * libcanberra reads CANBERRA_DRIVER when it opens its context, which is the
  * moment a sound is first played and therefore long after this file has run.

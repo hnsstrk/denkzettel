@@ -69,15 +69,53 @@ Standes mit frischem Zeitstempel. Vor jedem Bildbeleg:
 
 ## Rollen
 
-| Rolle | Wer |
-|---|---|
-| Kunde | hnsstrk — Ziele, Prioritäten, Freigaben, Abnahme |
-| Product Owner | Claude (Haupt-Session) — Backlog, Story-Schnitt, AK, Kundenkontakt |
-| Entwickler | Agent `denkzettel-dev` |
-| UI/UX | Agent `denkzettel-ux` |
+| Rolle | Wer | Modell |
+|---|---|---|
+| Kunde | hnsstrk — Ziele, Prioritäten, Freigaben, Abnahme | — |
+| Product Owner | Claude (Haupt-Session) — Backlog, Story-Schnitt, AK, Prüfung | Opus 5 |
+| Entwickler | Agent `denkzettel-dev` | Opus 5 · Fable 5 bei Neubau |
+| UI/UX | Agent `denkzettel-ux` | Opus 5 |
+
+**Wann Fable statt Opus:** Der Dev-Agent steht auf Opus — das trägt
+chirurgische Änderungen an bestehendem Code und die Fehlersuche, wofür in
+diesem Projekt die meiste Arbeit anfällt. Baut eine Story ein **neues
+Subsystem** über mehrere Dateien (ein Interface samt erster Implementierung,
+eine neue Ansicht), überschreibt der PO das Modell beim Aufruf mit Fable 5.
+Zwei Agentendateien dafür wären eine Dublette, die auseinanderläuft.
+
+Bei parallelen Strängen laufen mehrere Instanzen desselben Agenten, jede in
+ihrem Worktree.
 
 Der PO schreibt keinen Produktivcode. Agenten arbeiten nur in ihrer
 zugewiesenen Dateimenge.
+
+## So läuft ein Sprint
+
+Bis zum 11.08.2026 stand hier eine 855-Zeilen-Arbeitsvereinbarung mit sechs
+DoD-Punkten, 25 Beschlüssen, Vorprüfberichten und zwei Abschluss-Takten. Sie
+ist abgeschafft — gemessen standen in Sprint 9 auf 1.986 Zeilen Code 19.538
+Zeilen Berichte darüber. Übrig ist das hier:
+
+1. **Ziehen.** Der PO schlägt vor, was ansteht; der Kunde entscheidet. Ein
+   Sprint sind zwei bis vier Issues mit einem benennbaren Ziel.
+2. **Bauen.** Der Dev-Agent setzt die Akzeptanzkriterien des Issues um, mit
+   Tests. Bei UI-Arbeit macht die UX die Bilder. Bei parallelen Strängen je
+   ein eigener Worktree und ein Zweig `story/NN-…`; gemerged wird vom PO.
+3. **Prüfen.** Der PO prüft gegen die Akzeptanzkriterien, nach den vier Regeln
+   oben. Was dabei auffällt und nicht zur Story gehört, wird ein Issue oder
+   ist keins — es gibt keine Mängelliste mehr, in der es liegen bleiben könnte.
+4. **Abnehmen.** Der Kunde sieht sich das Ergebnis an.
+5. **Abschließen.** Changelog-Zeile, Version in `CMakeLists.txt` erhöhen, Tag
+   `vX.Y.Z` setzen, Issues und Milestone schließen, Zweige und Worktrees
+   räumen.
+
+Kein Vorprüfbericht, keine Größenklasse, kein Sprint-Protokoll, kein
+Vollzugsvermerk. Wer eine Lehre zieht, schreibt sie hierher — nicht in ein
+Protokoll, das die nächste Sitzung nicht liest.
+
+**Die Installation nach `/usr` taktet der Kunde**, weil sie sein Passwort
+braucht. Agenten installieren nicht: Es gibt nur ein `/usr`, und installieren
+zwei Stränge gleichzeitig, prüft einer den Stand des anderen.
 
 ## Veröffentlichung
 

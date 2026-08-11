@@ -2,7 +2,7 @@ build/
 compile_commands.json
 .cache/
 
-# Zweiter Bauplatz für die Installation am Sprint-Ende (DoD 2). Er existiert,
+# Zweiter Bauplatz für die Installation am Sprint-Ende. Er existiert,
 # weil "build/" während des Sprints den Agenten gehört: Ein Neukonfigurieren
 # mit -DCMAKE_INSTALL_PREFIX=/usr risse einem laufenden Strang oder Review den
 # Bau weg. Angelegt am 04.08.2026, als der UX-Review noch lief.

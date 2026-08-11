@@ -71,7 +71,7 @@ void addNote(Store &store, const QString &content, const QString &isoDateTime)
  *
  * The four colours that carry the picture are the measured ones of the UX
  * investigation of 01.08.2026
- * (`docs/scrum/reviews/2026-08-01-capture-theme/palette.txt`), as in
+ * (`Palettenmessung vom 01.08.2026`), as in
  * `libraryshots`; the rest is derived from them. Without setting a scheme the
  * bench would draw its own default — the configuration directory is a fresh
  * temporary one on purpose, so there is no kdeglobals to read a scheme from.

@@ -9,7 +9,7 @@
 #include <QTest>
 
 /**
- * Writes the picture series of the search states for the handover (DoD 2).
+ * Writes the picture series of the search states for the handover.
  *
  * Not a test — a picture maker. It is built and run by hand, so it stays out
  * of `add_test()`: a picture nobody looks at proves nothing, and a failing
