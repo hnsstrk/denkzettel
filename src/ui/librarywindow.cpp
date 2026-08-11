@@ -31,6 +31,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScopeGuard>
+#include <QScrollBar>
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QTextBrowser>
@@ -332,9 +333,20 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
         if (!m_deletion->isPending()) {
             m_undoAction->setEnabled(false);
             m_message->animatedHide();
+            // The period is over, so a note that arrived during it can come in
+            // now. A second deletion that has taken over leaves it waiting.
+            if (m_newNoteWaits) {
+                takeUpNewNotes();
+            }
         }
     });
     connect(m_deletion, &PendingDeletion::reverted, this, &LibraryWindow::undoDeletion);
+
+    // The road of issue #105: the store says what it has taken in, and the open
+    // window follows. It hangs on the store rather than on the capture window
+    // because the capture window is one of the doors and not the only one — the
+    // D-Bus method AddNote() writes without any window at all.
+    connect(m_store, &Store::noteAdded, this, &LibraryWindow::takeUpNewNotes);
 
     resize(WindowWidth, WindowHeight);
     // windowHandle() exists only once the window has a platform resource, and
@@ -649,6 +661,69 @@ void LibraryWindow::reload(Selection selection)
     updatePages();
 }
 
+void LibraryWindow::takeUpNewNotes()
+{
+    // A window nobody has on screen has nothing to keep up to date: showLibrary()
+    // reads the store on its way up. A minimized one counts as visible here for
+    // the same reason it does there — the user gets it back as he left it.
+    if (!isVisible()) {
+        m_newNoteWaits = false;
+        return;
+    }
+
+    // The condition showLibrary() names, and it holds for this road just as
+    // much: a note in its grace period is still in the store, and reading the
+    // store now would fetch it back into a list that is counting it down.
+    //
+    // The note waits instead of the deletion being carried out — which is what
+    // the search field does (searchChanged()). Who acted is the difference:
+    // typing a search is an act in this window, in sight of the message and of
+    // the seconds it is counting. Writing a note in the capture window is not,
+    // and it must not spend an undo the user is still being offered here.
+    if (m_deletion->isPending()) {
+        m_newNoteWaits = true;
+        return;
+    }
+
+    m_newNoteWaits = false;
+    reloadKeepingThePlace();
+}
+
+void LibraryWindow::reloadKeepingThePlace()
+{
+    // Where the list stands, held by the note it stands on rather than by the
+    // row number: the new note takes the top row and pushes everything below it
+    // down, so the number would name the neighbour afterwards.
+    const QScrollBar *bar = m_list->verticalScrollBar();
+    const bool standsAtItsBeginning = bar->value() == bar->minimum();
+
+    const QModelIndex top = m_list->indexAt(QPoint(0, 0));
+    // A head carries no note of its own, so the row is held by the note under
+    // it — and put back one row higher, where its head stands again.
+    const bool topIsAHead = top.data(NoteListModel::GroupHeaderRole).toBool();
+    const qint64 anchor = m_model->noteAt(topIsAHead ? top.row() + 1 : top.row()).id;
+
+    reload(Selection::Keep);
+
+    // A list standing at its beginning keeps no place: its beginning is where
+    // the new note goes, and that is where the user has to see it (issue #105).
+    if (standsAtItsBeginning || anchor < 0) {
+        return;
+    }
+
+    int row = m_model->rowOf(anchor);
+    if (topIsAHead && row > 0) {
+        --row;
+    }
+    if (row >= 0) {
+        // The last word on where the list stands, and it has to be: putting the
+        // selection back can move the list by itself — showNote() fetches the
+        // head of the group it finds the selection in, and after a rebuilt list
+        // that counts as a crossed boundary (issue #70).
+        m_list->scrollTo(m_model->index(row), QAbstractItemView::PositionAtTop);
+    }
+}
+
 void LibraryWindow::regroupList()
 {
     const qint64 selected = m_model->noteAt(m_list->currentIndex().row()).id;
@@ -936,6 +1011,12 @@ void LibraryWindow::undoDeletion()
     m_undoAction->setEnabled(false);
     m_message->animatedHide();
     updatePages();
+
+    // Nothing is counting down any more, so a note that arrived meanwhile can
+    // come in — and it finds the undone note already back in the list.
+    if (m_newNoteWaits) {
+        takeUpNewNotes();
+    }
 }
 
 bool LibraryWindow::isEditing() const

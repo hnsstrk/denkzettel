@@ -517,5 +517,32 @@ int main(int argc, char **argv)
         shoot(window, directory, QStringLiteral("11b-nach-dem-nachlaufenden-autoscroll.png"));
     }
 
+    // 12 — the customer's path of issue #105: the library stands open, a note
+    // is captured elsewhere, and nobody asks the window for anything. Between
+    // the two pictures nothing happens but the write into the store.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        store.open();
+        addNote(store, QStringLiteral("Reifen wechseln lassen — Termin bei der Werkstatt machen"),
+                QStringLiteral("2026-07-31T14:32:00"));
+        addNote(store, QStringLiteral("Whisper-Warteschlange bei Suspend prüfen"),
+                QStringLiteral("2026-07-31T11:05:00"));
+        addNote(store, QStringLiteral("Mara wegen Wochenende anrufen,\nKuchen nicht vergessen"),
+                QStringLiteral("2026-07-30T21:48:00"));
+
+        LibraryWindow window(&store);
+        window.setReferenceTime(friday());
+        open(window);
+        listOf(window)->setCurrentIndex(listOf(window)->model()->index(2, 0));
+
+        shoot(window, directory, QStringLiteral("12a-vor-der-erfassung.png"));
+
+        addNote(store, QStringLiteral("Milch, Brot und Hefe holen — der Laden macht um 18 Uhr zu"),
+                QStringLiteral("2026-07-31T15:40:00"));
+
+        shoot(window, directory, QStringLiteral("12b-nach-der-erfassung.png"));
+    }
+
     return 0;
 }

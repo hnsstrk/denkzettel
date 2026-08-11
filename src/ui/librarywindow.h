@@ -93,6 +93,26 @@ private:
     /** Reads the notes matching the search field from the store into the list. */
     void reload(Selection selection);
 
+    /**
+     * Takes a note that has just been written into the open list (issue #105).
+     *
+     * Hangs on Store::noteAdded, so every road into the store leads here: the
+     * capture window, the D-Bus method AddNote(), and whatever comes after
+     * them. Called a second time from the end of a grace period, for the note
+     * that had to wait for it.
+     */
+    void takeUpNewNotes();
+
+    /**
+     * reload(Selection::Keep) that leaves the page the user is reading where
+     * it is (issue #105).
+     *
+     * Only for the reload nobody asked for. The one in showLibrary() answers
+     * an act of the user's and may move the list; this one happens under his
+     * hands while he reads.
+     */
+    void reloadKeepingThePlace();
+
     /** Follows a change of the search text into the list. */
     void searchChanged();
 
@@ -256,6 +276,15 @@ private:
      */
     int m_deletedIndex = -1;
     Note m_deletedNote;
+
+    /**
+     * True while a note written meanwhile waits for a running deletion to end
+     * (issue #105).
+     *
+     * How many arrived does not matter: the list is read from the store as a
+     * whole, and one read brings all of them.
+     */
+    bool m_newNoteWaits = false;
 
     /** Fixed reference time of the grouping; invalid means "ask the clock". */
     QDateTime m_referenceTime;

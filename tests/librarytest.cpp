@@ -31,6 +31,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSignalBlocker>
 #include <QSignalSpy>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -276,6 +277,14 @@ private Q_SLOTS:
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
     void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
     void leavesTheFocusAloneWhenTheOpenWindowIsShownAgain();
+    void showsANoteCapturedWhileTheWindowStoodOpen();
+    void waitsWithTheNewNoteWhileADeletionIsCountingDown();
+    void takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut();
+    void takesUpTheWaitingNoteWhenTheDeletionIsUndone();
+    void keepsTheReadingPlaceWhenANoteArrives();
+    void showsTheNewNoteWhileTheListStandsAtItsBeginning();
+    void takesUpANewNoteOnlyWhenItMatchesTheRunningSearch();
+    void keepsTheEditorWhenANoteArrives();
     void keepsTheListWideEnoughForThePreview();
     void keepsTheHeaderAtTheTopAndTheRestForTheNotes_data();
     void keepsTheHeaderAtTheTopAndTheRestForTheNotes();
@@ -2802,11 +2811,21 @@ void LibraryTest::readsTheStoreAgainWhenTheOpenWindowIsShownAgain()
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 1));
 
-    // Meta+N while the library is open: the note captured meanwhile is the
-    // newest one and takes the top row, so the selected note moves down.
+    // A note that got into the store without announcing itself — the store is
+    // silenced for the length of the write. Since issue #105 the window follows
+    // the announcement by itself, and without the blocker this test would go
+    // through that road and leave the one it is about unmeasured: showLibrary()
+    // on the open window reads the store again, and this says so.
+    //
+    // The note captured meanwhile is the newest one and takes the top row, so
+    // the selected note moves down.
     Note captured = noteWith(QStringLiteral("gerade festgehalten"));
     captured.createdAt = captured.createdAt.addSecs(60);
-    QVERIFY(m_store->addNote(captured).has_value());
+    {
+        const QSignalBlocker silence(m_store.get());
+        QVERIFY(m_store->addNote(captured).has_value());
+    }
+    QCOMPARE(modelOf(list)->noteCount(), 2);
 
     window.showLibrary();
 
@@ -2845,6 +2864,249 @@ void LibraryTest::leavesTheFocusAloneWhenTheOpenWindowIsShownAgain()
     window.showLibrary();
 
     QCOMPARE(window.focusWidget(), reader);
+}
+
+void LibraryTest::showsANoteCapturedWhileTheWindowStoodOpen()
+{
+    storedNote(QStringLiteral("die ältere Notiz"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+
+    // The customer's path (issue #105): Meta+N, type, Strg+Enter — and nothing
+    // else. Nobody asks the library for anything, so nothing here shows it, and
+    // that is the whole point: the note has to arrive on its own.
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    QCOMPARE(modelOf(list)->noteCount(), 2);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
+}
+
+void LibraryTest::waitsWithTheNewNoteWhileADeletionIsCountingDown()
+{
+    const qint64 deleted = storedNote(QStringLiteral("wird gelöscht"));
+    storedNote(QStringLiteral("bleibt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    // The deleted note is still in the store, so reading it back now would
+    // fetch it into a list that is counting it down. The new note waits; the
+    // list stands exactly as the deletion left it.
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
+
+    // And the period is not cut short for it: the note the user wrote
+    // elsewhere must not spend the undo the window is still offering him.
+    QVERIFY(m_store->note(deleted).has_value());
+}
+
+void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut()
+{
+    const qint64 deleted = storedNote(QStringLiteral("wird gelöscht"));
+    storedNote(QStringLiteral("bleibt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    // The full five seconds of SPEC 9, waited out rather than shortened: what
+    // is measured here is that the waiting note is taken up by itself, without
+    // anyone asking the window for anything.
+    const NoteListModel *model = modelOf(list);
+    QVERIFY2(QTest::qWaitFor([model] { return model->noteCount() == 2; }, 8000),
+             qPrintable(QStringLiteral("Liste hat %1 Notizen").arg(model->noteCount())));
+
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
+    QCOMPARE(noteRow(list, 1).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
+    QVERIFY(!m_store->note(deleted).has_value());
+}
+
+void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsUndone()
+{
+    const qint64 deleted = storedNote(QStringLiteral("wird gelöscht"));
+    storedNote(QStringLiteral("bleibt"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+    QTest::keyClick(list, Qt::Key_Delete);
+
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    actionNamed(window, QStringLiteral("Rückgängig"))->trigger();
+
+    // The undone note comes back and the waiting one comes with it — one list
+    // that agrees with the store again.
+    QCOMPARE(modelOf(list)->noteCount(), 3);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
+    QCOMPARE(noteRow(list, 1).data(Qt::DisplayRole).toString(), QStringLiteral("wird gelöscht"));
+    QCOMPARE(noteRow(list, 2).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
+    QVERIFY(m_store->note(deleted).has_value());
+}
+
+void LibraryTest::keepsTheReadingPlaceWhenANoteArrives()
+{
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von gestern, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+
+    // The user has rolled the list down and is reading a note in the middle of
+    // it. Both marks are set from outside — the row he rolled to and the note
+    // he picked —, so neither of them can move along with the fault.
+    //
+    // Picking comes first and rolling second: the selection fetches the head of
+    // its group into the picture by itself (issue #70), and that would set the
+    // starting condition instead of the roll value below.
+    list->setCurrentIndex(noteRow(list, 10));
+    list->verticalScrollBar()->setValue(noteRow(list, 9).row());
+    const QString atTheTop = list->indexAt(QPoint(0, 0)).data(Qt::DisplayRole).toString();
+    QCOMPARE(atTheTop, QStringLiteral("von gestern, 14 Uhr"));
+
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = at(QStringLiteral("2026-07-31T15:30:00"));
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    // The note is in the list …
+    QCOMPARE(modelOf(list)->noteCount(), 17);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
+
+    // … and the page the user was reading has not moved under him: the same
+    // row stands at the upper edge, and the same note is selected.
+    QCOMPARE(list->indexAt(QPoint(0, 0)).data(Qt::DisplayRole).toString(), atTheTop);
+    QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("von gestern, 13 Uhr"));
+}
+
+void LibraryTest::showsTheNewNoteWhileTheListStandsAtItsBeginning()
+{
+    for (int hour = 8; hour < 16; ++hour) {
+        storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
+                   QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
+    }
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 400);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    QCOMPARE(list->verticalScrollBar()->value(), list->verticalScrollBar()->minimum());
+
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = at(QStringLiteral("2026-07-31T15:30:00"));
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    // A list standing at its beginning has no reading place to keep — its
+    // beginning is where the new note goes, and there the customer has to see
+    // it (issue #105, the acceptance criterion).
+    QCOMPARE(list->verticalScrollBar()->value(), list->verticalScrollBar()->minimum());
+    const QModelIndex newest = noteRow(list, 0);
+    QCOMPARE(newest.data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(newest)),
+             qPrintable(QStringLiteral("Zeile bei y=%1, Sichtfeld %2 hoch")
+                            .arg(list->visualRect(newest).y())
+                            .arg(list->viewport()->height())));
+}
+
+void LibraryTest::takesUpANewNoteOnlyWhenItMatchesTheRunningSearch()
+{
+    storedNote(QStringLiteral("Backup der Fotos prüfen"));
+    storedNote(QStringLiteral("Milch kaufen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QListView *list = listOf(window);
+    searchOf(window)->setText(QStringLiteral("Backup"));
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+
+    // A note that does not match the running search does not belong in a
+    // result list — the term stands in the field and still says what it says.
+    Note beside = noteWith(QStringLiteral("Brot holen"));
+    beside.createdAt = beside.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(beside).has_value());
+
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("Backup der Fotos prüfen"));
+
+    // One that matches does, and it takes the top row like anywhere else.
+    Note hit = noteWith(QStringLiteral("Backup vom Vortag kontrollieren"));
+    hit.createdAt = hit.createdAt.addSecs(120);
+    QVERIFY(m_store->addNote(hit).has_value());
+
+    QCOMPARE(modelOf(list)->noteCount(), 2);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(),
+             QStringLiteral("Backup vom Vortag kontrollieren"));
+}
+
+void LibraryTest::keepsTheEditorWhenANoteArrives()
+{
+    storedNote(QStringLiteral("Transkript mit einem Hörfehler"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    // No dialog may turn up here: nothing the user did is being taken away
+    // from him, and a question he did not cause is worse than a stale list.
+    const DialogWatch watch;
+
+    buttonNamed(window, QStringLiteral("Bearbeiten"))->click();
+    editorOf(window)->setPlainText(QStringLiteral("Transkript mit einem Hörfehler, ausgebessert"));
+
+    Note captured = noteWith(QStringLiteral("gerade festgehalten"));
+    captured.createdAt = captured.createdAt.addSecs(60);
+    QVERIFY(m_store->addNote(captured).has_value());
+
+    QVERIFY(editorOf(window)->isVisible());
+    QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("Transkript mit einem Hörfehler, ausgebessert"));
+    QCOMPARE(modelOf(listOf(window))->noteCount(), 2);
+    QVERIFY(!watch.appeared());
 }
 
 void LibraryTest::keepsTheListWideEnoughForThePreview()

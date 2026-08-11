@@ -336,7 +336,10 @@ std::optional<qint64> Store::addNote(const Note &note)
         return std::nullopt;
     }
 
-    return query.lastInsertId().toLongLong();
+    const qint64 id = query.lastInsertId().toLongLong();
+    Q_EMIT noteAdded(id);
+
+    return id;
 }
 
 bool Store::updateNote(const Note &note)
