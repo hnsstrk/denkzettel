@@ -1241,17 +1241,18 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   und **bei 1,6 nicht** — dort, wo die echte Skalierung ihn zeigt. Die
   Zeilenhöhen einer skalierten Sitzung sind nicht die einer unskalierten; der
   Nachbau maß Zeilenlagen, die es gar nicht gibt. **Ein Prüfsatz, der gerade
-  dort besteht, wo der Fehler sitzt, ist schlimmer als keiner.** Die taugliche
-  Form ist eine **eigene Prüflage**: derselbe Prüfsatz ein zweites Mal in
-  `tests/CMakeLists.txt` angemeldet, mit `QT_SCALE_FACTOR` in der Umgebung und
-  **nur** den Prüffunktionen, die unter Skalierung etwas aussagen
-  (`librarytestskaliert`). Die Bildpunktzusicherungen aus AK 1 bis AK 3 messen
-  in logischen Punkten und gehören nicht hinein — unter 1,6 prüften sie die
-  Skalierung statt der Linie.
-  **Die Szene entscheidet mit:** Der Fehler hängt an der Rasterlage. Auch der
-  erste Lauf mit echter Skalierung war grün, weil die Szene nur vier Linien in
-  drei Lagen kannte; sie trägt jetzt eine Gruppe mit **acht** Notizen, die alle
-  fünf Phasen durchläuft (`storedALongGroup()`).
+  dort besteht, wo der Fehler sitzt, ist schlimmer als keiner.** Wer Skalierung
+  prüfen will, meldet dieselbe Prüffunktion ein zweites Mal an, mit
+  `QT_SCALE_FACTOR` in der Umgebung — und nur die Funktionen, die unter
+  Skalierung etwas aussagen. Bildpunktzusicherungen in logischen Punkten
+  gehören nicht hinein; sie prüften sonst die Skalierung statt der Sache.
+  **Die Szene entscheidet mit:** Der Fehler hängt an der Rasterlage, und der
+  erste Lauf mit echter Skalierung war grün, weil die Szene zu wenige Lagen
+  kannte.
+  *Nachtrag 11.08.2026:* Die so gebaute Prüflage ist mit dem Testschnitt
+  entfallen — die Linienstärke sieht der Kunde am Bild, und gefunden hat den
+  Fehler damals das Hinsehen, nicht ein Test. Der Lehrsatz oben gilt
+  unverändert für jede künftige Prüfung unter Skalierung.
 - **Zustände, die im Prüfprozess selbst nicht herstellbar sind, brauchen einen
   eigenen Prozess** (entdeckt zu #55, AK 8): Das Fenster ohne Desktop-Theme
   lässt sich nicht durch einen erfundenen Theme-Namen erzeugen — KSvg fällt
