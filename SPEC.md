@@ -1,9 +1,7 @@
 # Denkzettel — Spezifikation
 
-Stand: 2026-07-31 — abgeleitet aus KONZEPT.md (drei Design-Interviews, alle
-Grundsatzfragen entschieden) und den Wireframes (`wireframes/`). Diese Spec ist
-die Bau-Grundlage; wo sie das Konzept präzisiert oder davon abweicht, ist das
-ausdrücklich als solches markiert.
+Abgeleitet aus drei Design-Interviews und den Wireframes (`wireframes/`). Diese
+Spezifikation ist die Bau-Grundlage und bindend.
 
 ## 1. Ziel
 
@@ -187,150 +185,81 @@ Desktop-Themes**, gezeichnet aus `dialogs/background` — derselben Grafik, aus
 der Plasma seine Popups und KRunner baut. Bibliothek und Dialoge sind davon
 nicht berührt: Sie sind dekorierte Fenster und bekommen ihre Hülle von KWin.
 
-**Zur Hülle gehören drei Anmeldungen beim Fenstersystem, nicht eine.** Am
-Binärcode von `libPlasmaQuick` gemessen meldet Plasma für seine eigenen
-Überlagerungen `KWindowShadow`, `KWindowEffects::enableBlurBehind` und
-`KWindowEffects::enableBackgroundContrast` an. Denkzettel macht dieselben drei;
-die Bedingungen dazu stehen in 3.2.
+**Zur Hülle gehören drei Anmeldungen beim Fenstersystem, nicht eine:**
+`KWindowShadow`, `KWindowEffects::enableBlurBehind` und
+`KWindowEffects::enableBackgroundContrast` — dieselben drei, die
+`libPlasmaQuick` für Plasmas eigene Überlagerungen macht. Die Bedingungen
+stehen in 3.2.
 
 **Form und Farbe kommen vom Theme** (Kundenentscheidung 04.08.2026, Issue #83:
 „dann eine native Plasma-Überlagerung ohne Anpassungen"). Gezeichnet wird die
 Grafik des Themes selbst, **in einem Stück** (`FrameSvg::framePixmap()` beim
 Bildpunktverhältnis des Fensters) — keine Alphamaske, keine eigene Füllfarbe,
-keine selbst gezogene Kontur.
+keine selbst gezogene Kontur. **Zugesichert ist die Herkunft der Farbe, nicht
+ihre Kontrastzahl.** Eine Kontrastzahl gilt für ein Farbschema, einen
+Auswahlpfad und einen benannten Grund; keines der drei gehört dem Code.
 
-Bis Sprint 6 war es umgekehrt: Gezeichnet wurde die Alphamaske des Themes,
-gefüllt mit Palettenfarben, samt einer Konturlinie aus `Window` und
-`WindowText` im Verhältnis 0,20. Der Kunde hat diesen Nachbau abgewählt. Die
-Kehrseite ist benannt und angenommen: Von den acht auf der Kundenmaschine
-installierten Themes richtet nur `default` seine Füllfarbe am Farbschema aus,
-also sind sechs der acht danach schlechter lesbar als zuvor. Auf der
-Kundeneinstellung ändert sich nichts, weil dort mangels `[Theme] name` in
-`plasmarc` der Rückfall `default` greift.
-
-Issue #85 hat das für die vier Themes mit eigener `colors`-Datei geheilt (siehe
-den Spiegelstrich zur Schrift unten) und die Grenze für die übrigen benannt:
-Unter den drei `cachyos-emerald`-Themes deckt die Hülle zu 3,5 %, und was den
-Text dort tragen soll, ist der Kontrasteffekt des Compositors — der auf diesem
-Stand **nicht vorhanden** ist (3.2, Punkt 10). Dort sichert die Spezifikation
-keine Lesbarkeit zu.
+**Grenze, benannt und angenommen:** Von den acht auf der Kundenmaschine
+installierten Themes richtet nur `default` seine Füllfarbe am Farbschema aus.
+Unter `CachyOS-Nord-round`, `Iridescent-round` und den drei
+`cachyos-emerald`-Themes deckt die Hülle fast nicht (bis herab zu 2,7 %), und
+was den Text dort tragen soll, ist der Kontrasteffekt des Compositors — der auf
+diesem Stand **nicht vorhanden** ist (3.2, Punkt 10). Dort sichert die
+Spezifikation keine Lesbarkeit zu.
 
 - **Zwei Flächen, beide aus dem Theme** (Kundenentscheidung 06.08.2026,
   Issue #100). Die **Fensterfläche** zeichnet `dialogs/background`, das
   **Textfeld** `widgets/lineedit` mit dem Vorsatz `base` — dieselbe Quelle,
   eine Grafik tiefer, und dieselbe, aus der KRunners Eingabefeld gezeichnet
-  ist. Keine der beiden deckt notwendig: `default` deckt in der Hülle zu
-  84,7 %, andere Themes zu 2,7 % bis 100 %. „Geschlossen" heißt hier
-  vollständig, nicht undurchsichtig. **Zugesichert ist die Herkunft, nicht
-  eine Farbe und nicht eine Kontrastzahl.**
-  **Grenze, gemessen und benannt** (07.08.2026, Issue #100 AK 6b): Unter
-  `CachyOS-Nord-round`, `Iridescent-round` und den drei
-  `cachyos-emerald`-Themes zeichnet `widgets/lineedit` nur einen Hauch — die
-  Grafik deckt dort zu **15 von 255**, gegen 255 unter `default`,
-  `breeze-dark` und `breeze-light`. Dort bleibt das Feld praktisch
-  unsichtbar, und daran ist nichts zu heilen, ohne „Form und Farbe kommen vom
-  Theme" (#83) aufzugeben. Es ist dieselbe Grenze, die der Absatz darüber für
-  die Schrift benennt; sie wächst hier nicht, sie wiederholt sich.
-  **Geprüft wird die Deckung und keine Kontrastzahl**, und das ist gemessen
-  begründet: Die Abhebung des Feldes gegen die Hülle schwankt unter `default`
-  zwischen 1,08 : 1 über schwarzem und 1,88 : 1 über weißem Grund, weil die
-  Hülle durchscheint — sie hängt am Bildschirmhintergrund des Kunden und ist
-  keine Eigenschaft des Baus.
-- **Das Feld hat zwei Zustände, nicht einen** (Issue #102, 11.08.2026). Der
-  Vorsatz `base` ist der **ruhende** Zustand; solange das Fenster das aktive
-  ist, liegt der Vorsatz **`focus`** derselben Grafik darüber. Das ist Plasmas
-  eigene Schichtung — die Grafik führt dazu ein Element
-  `hint-focus-over-base`, unter allen acht installierten Themes vorhanden —
-  und die Schicht beansprucht keinen eigenen Rand (gemessen 0,1 px gegen 6 px
-  bei `base`), so daß sich kein Innenabstand aus #100 verschiebt.
-  **Die Bedingung ist `hasFocus() && isActiveWindow()`**, Plasmas
-  `activeFocus`: Ein Fenster, das die Tastatur nicht hat, zeigt keine
-  Fokuskante. Das ist die andere Hälfte der Zusicherung „Fokusverlust: Fenster
-  bleibt" aus Abschnitt 3 — es bleibt stehen und sagt zugleich, daß dort
-  gerade nichts ankommt.
-  **Gewinn, gemessen** (11.08.2026): Unter den fünf schwachen Themes hebt sich
-  der Feldrand mit der Schicht zu 2,81–4,66 : 1 gegen die Hülle ab, gegen
-  1,00–1,14 : 1 ohne sie; KRunners Feld liegt bei 1,41 : 1. In der Sitzung des
-  Kunden unter `default` gemessen: 7,93 : 1 aktiv, 1,88 : 1 ruhend.
-  **Grenze, benannt und angenommen:** Im **ruhenden** Zustand fällt das Feld
-  unter `CachyOS-Nord-round`, `Iridescent-round` und den drei
-  `cachyos-emerald`-Themes auf **1,00–1,14 : 1** zurück. Dort ist es dann
-  wieder praktisch unsichtbar — das ist dieselbe Grenze wie im Absatz darüber,
-  und sie gilt nun für einen Zustand statt für das Feld überhaupt.
+  ist. Keine der beiden deckt notwendig; „geschlossen" heißt hier vollständig,
+  nicht undurchsichtig. Unter den fünf schwachen Themes oben zeichnet
+  `widgets/lineedit` nur einen Hauch (Deckung 15 von 255 gegen 255 unter
+  `default`); dort bleibt das Feld praktisch unsichtbar, und daran ist nichts
+  zu heilen, ohne #83 aufzugeben.
+- **Das Feld hat zwei Zustände, nicht einen** (Issue #102). Der Vorsatz `base`
+  ist der **ruhende** Zustand; solange das Fenster das aktive ist, liegt der
+  Vorsatz **`focus`** derselben Grafik darüber — Plasmas eigene Schichtung, in
+  der Grafik `hint-focus-over-base`. Die Schicht beansprucht keinen eigenen
+  Rand (0,1 px gegen 6 px bei `base`), verschiebt also keinen Innenabstand aus
+  #100.
+  **Die Bedingung ist `hasFocus() && isActiveWindow()`**: Ein Fenster, das die
+  Tastatur nicht hat, zeigt keine Fokuskante. Das ist die andere Hälfte der
+  Zusicherung „Fokusverlust: Fenster bleibt" aus Abschnitt 3 — es bleibt stehen
+  und sagt zugleich, daß dort gerade nichts ankommt.
   **Die Fokuskante nimmt die Akzentfarbe des Farbschemas** (SVG-Klasse
-  `ColorScheme-ViewFocus`). Auf der Kundeneinstellung ist das Grün
-  (61, 212, 37); das Erfassungsfenster trägt damit im aktiven Zustand einen
-  grünen Rand. Das ist die KDE-Konvention und keine Wahl des Baus.
-  **Bis zum 06.08.2026 galt das Gegenteil:** „eine durchgehende Fläche — kein
-  Kasten im Kasten". Der Kunde hat sie auf seinen Befund vom 05.08.2026 hin
-  aufgehoben („Das Erfassungsfenster ist ein Farbblock. Der Eingabebereich ist
-  nicht klar erkennbar"). Von ihrer Begründung trägt die eine Hälfte weiter:
-  Dass **keine Palettenrolle** einen zweiten Kasten konturieren kann, ist über
-  18 Schemata gemessen und bleibt richtig — sie schließt Palettenrollen aus,
-  nicht die Theme-Grafik. Die andere ist widerlegt: Dass die KDE HIG einen
-  solchen Kasten **ablehnten**, ist falsch — *Getting input*, Abschnitt
-  *Signaling interactivity*, verlangt das Gegenteil („Use standard controls as
-  much as possible to automatically inherit this style of visual
-  interactivity"). Belege und Vorlage:
-  `Prüfbericht Lesbarkeit`, Umsetzung
-  `Prüfbericht zu #100, Sprint 9`.
-- **Kontur** ist keine eigene Linie mehr. Die Theme-Grafik zeichnet an ihrem
-  Rand dieselbe Farbe wie in der Fläche und unterscheidet sich allein in der
-  Deckung (gemessen unter `default`: 235 gegen 216 von 255). Der Rand des
-  Themes ist ein **Deckungsrand**; sichtbar wird er nur, weil die Hülle
-  durchscheint.
+  `ColorScheme-ViewFocus`); auf der Kundeneinstellung ist das Grün. Das ist die
+  KDE-Konvention und keine Wahl des Baus.
+  **Grenze:** Im ruhenden Zustand fällt das Feld unter den fünf schwachen
+  Themes wieder auf praktisch unsichtbar zurück — dieselbe Grenze wie oben, nun
+  für einen Zustand statt für das Feld überhaupt.
+- **Kontur** ist keine eigene Linie. Die Theme-Grafik zeichnet an ihrem Rand
+  dieselbe Farbe wie in der Fläche und unterscheidet sich allein in der
+  Deckung; sichtbar wird der Rand nur, weil die Hülle durchscheint.
 - **Die Schrift kommt aus derselben Quelle wie die Fläche** (Kundenentscheidung
   04.08.2026, Issue #85), und das gilt für **beide** Textklassen. Bringt das
   Desktop-Theme eine eigene `colors`-Datei mit, gelten deren Farben:
   `ForegroundNormal` für den Notiztext, `ForegroundInactive` für die gedämpfte
   Klasse. Bringt es keine mit, gilt das Farbschema — dann **Notiztext**
-  `WindowText`, **nicht** die Rolle für Eingabefelder (über 18 Schemata
-  schlechtestens 4,74:1 gegen 4,22:1, also über beziehungsweise unter dem
-  Mindestwert von 4,5:1), und **App-Name und Fußzeile** `PlaceholderText`.
-  Von den acht auf der Kundenmaschine installierten Themes bringen vier eine
-  eigene Datei mit und vier nicht (gemessen).
-- **Zur gedämpften Klasse gehört auch der Platzhaltertext** des leeren
-  Eingabefeldes — drei Stellen, nicht zwei.
-- **Der Textcursor folgt der Schrift, nicht dem Farbschema** (entdeckte
-  Bedingung, 05.08.2026). Qt zeichnet ihn in der Textfarbe des
-  Eingabefeldes; sobald diese aus dem Theme kommt, tut er es mit. **Das ist
-  gewollt und darf nicht „zurückgeheilt" werden:** Unter `breeze-light` mit
-  dunklem Schema steht er im Bild bei 91,91,90 auf einer Fläche von
-  242,242,243 — die Schemafarbe wäre 252,252,252 und damit **unsichtbar**.
-  Die Zeichnung sagte bis dahin, Auswahl, Cursor und Scrollbalken kämen
-  unverändert aus der Palette; für den Cursor stimmt das seit #85 nicht mehr,
-  für die **Auswahl** weiterhin schon.
-- **Zugesichert ist die Herkunft der Farbe, nicht ihre Kontrastzahl.** Eine
-  Kontrastzahl gilt für ein Farbschema, einen Auswahlpfad und einen benannten
-  Grund; keines der drei gehört dem Code. Was sich prüfen lässt, ist, aus
-  welcher Quelle die Farbe stammt.
+  `WindowText`, **nicht** die Rolle für Eingabefelder, und **App-Name und
+  Fußzeile** `PlaceholderText`. Zur gedämpften Klasse gehört auch der
+  **Platzhaltertext** des leeren Feldes — drei Stellen, nicht zwei.
+- **Der Textcursor folgt der Schrift, nicht dem Farbschema.** Qt zeichnet ihn
+  in der Textfarbe des Eingabefeldes; sobald diese aus dem Theme kommt, tut er
+  es mit. **Das ist gewollt und darf nicht „zurückgeheilt" werden:** Unter
+  `breeze-light` mit dunklem Schema wäre die Schemafarbe auf der hellen Fläche
+  unsichtbar. Für die **Auswahl** gilt weiterhin die Palette.
 - **Innenabstände** (12 seitlich, 10 oben, 8 unten) gelten **zuzüglich** des
   Randes, den das Theme für sich beansprucht — der Inhalt beginnt bei Breeze
   16 px vom Fensterrand, bei einem 8-px-Theme 20 px. Über der Fußzeile steht
   mehr Luft (12) als unter dem App-Namen (8); seit dem Entfall der Trennlinie
   ist dieser Unterschied die gesamte Gliederung.
-  **Für den Notiztext kommt seit Issue #100 der Rand des Feldes hinzu** — der
-  Streifen, den `widgets/lineedit` für sich beansprucht (gemessen 6 px
-  ringsum unter allen acht installierten Themes, die darin nicht auseinander
-  gehen). Der Text rückt entsprechend nach innen und der Textbereich wächst um
-  zweimal diesen Rand; **App-Name und Fußzeile stehen unverändert**, denn das
-  Feld umgibt allein den Textbereich. Zugesichert wird auch hier relativ:
-  gegen den Rand, den die Grafik meldet, nicht gegen die Zahl 6 — vier der
-  acht Themes melden 5,99999.
-  **Der Halbsatz nach dem Semikolon beschreibt den Zustand, den Issue #100
-  beanstandet** (05.08.2026) — die Maßangaben davor gelten unverändert. Der
-  Entfall der Trennlinie war am 01.08.2026 mit drei Gründen belegt; der dritte
-  berief sich auf eine HIG-Aussage, die es nicht gibt, und ist am 06.08.2026
-  zurückgezogen (Wireframe 4b). Die beiden anderen tragen weiter, und der
-  erste ist zugleich enger als er klang: Er gilt für **Palettenrollen**, nicht
-  für jede Farbe. Die Kirigami-Mischung aus Grund und Textfarbe im Verhältnis
-  `frameContrast` liegt über 18 Schemata zwischen 1,24 : 1 und 1,93 : 1.
-  *Gemessen nachgetragen am 07.08.2026:* Diese Spanne entsteht aus den **Farben**
-  der Schemata. `frameContrast` selbst ist über alle 19 geprüften Schemata
-  konstant — `KColorScheme::frameContrast()` liest die Gruppe `[KDE]` der
-  Anwendungskonfiguration, kein Schema trägt den Schlüssel, überall gilt die
-  Voreinstellung 0,20. Der Satz oben ließ sich lesen, als variiere der Wert je
-  Schema.
+  **Für den Notiztext kommt der Rand des Feldes hinzu** — der Streifen, den
+  `widgets/lineedit` für sich beansprucht (rund 6 px ringsum unter allen acht
+  installierten Themes). Der Text rückt entsprechend nach innen und der
+  Textbereich wächst um zweimal diesen Rand; **App-Name und Fußzeile stehen
+  unverändert**, denn das Feld umgibt allein den Textbereich. Zugesichert wird
+  auch hier relativ: gegen den Rand, den die Grafik meldet, nicht gegen die
+  Zahl 6 — vier der acht Themes melden 5,99999.
 
 **Rundung und Rand sind keine Zahlen dieser Spezifikation.** Sie gehören dem
 Theme. Zugesichert wird **relativ**: Bei zwei Desktop-Themes mit
@@ -342,10 +271,9 @@ sein.
 ### 3.2 Bedingungen der Hülle (entdeckt beim Bau)
 
 Sie stehen hier, weil eine Umsetzung ohne sie eine Hülle zeichnet, die richtig
-aussieht und falsch ist — belegt in `Prüfbericht zu #55, Sprint 6`
-und `Prüfbericht zu #83, Sprint 7`, je samt `pruefen.sh`.
-Die meisten widersprechen dem, was der Aufbau nahelegt, und **keine einzige
-meldet ihren Fehlschlag über einen Rückgabewert.**
+aussieht und falsch ist. Die meisten widersprechen dem, was der Aufbau
+nahelegt, und **keine einzige meldet ihren Fehlschlag über einen
+Rückgabewert.**
 
 1. **KSvg findet das Desktop-Theme nicht selbst.** Der eingestellte Name steht
    in `plasmarc` unter `[Theme] name`; ohne Übergabe bleibt `KSvg::ImageSet`
@@ -361,30 +289,41 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
    weshalb ein `QFileSystemWatcher` seine Beobachtung dabei verlöre.
 4. **Ohne Desktop-Theme keine Hülle, aber ein brauchbares Fenster.** Außerhalb
    einer Plasma-Sitzung fehlt `dialogs/background`. Das Fenster bleibt dann
-   deckend und bedienbar — kein Absturz, keine durchsichtige Fläche. Ein
-   *unbekannter Theme-Name* erzeugt diesen Zustand **nicht**: KSvg fällt dabei
-   auf `default` zurück.
+   deckend und bedienbar — kein Absturz, keine durchsichtige Fläche.
+   **Ein *unbekannter Theme-Name* ist etwas anderes, und die Zusicherung dazu
+   ist widerlegt** (12.08.2026): Hier stand, KSvg falle dabei auf `default`
+   zurück, der Fall sei also harmlos. Gemessen fällt er nicht zurück, sondern
+   stürzt ab — dreimal geprüft, je mit derselben `plasmarc`:
+
+   | `[Theme] name` in `plasmarc` | Ergebnis |
+   |---|---|
+   | Theme, das nicht auf dem Datenpfad liegt | **SIGSEGV** in `KSvg::ImageSet` |
+   | Schlüssel fehlt ganz | Rückfall auf `default`, alles wie zugesichert |
+   | vorhandenes Theme (`breeze-dark`) | alles wie zugesichert |
+
+   Die Lage entsteht ohne Zutun: Wer ein Desktop-Theme einstellt und dessen
+   Paket später entfernt, hat genau diese `plasmarc`. Offen als Issue #107;
+   bis zur Behebung sichert dieser Punkt allein den *fehlenden* Schlüssel zu,
+   nicht den ins Leere zeigenden Namen.
 5. **Der Schatten wird nach jedem Neuzeigen neu gebunden.** Vor jedem Zeigen
    wird das Fenster neu gemappt (oben), und die Wayland-Surface verschwindet
    dabei; ein einmal im Konstruktor gebundener Schatten wäre nach dem ersten
    Verstecken weg. Die Bindung gehört deshalb hinter `show()`.
 6. **Der Weichzeichner wirkt nur, wenn er unmittelbar nach `show()` angemeldet
-   wird.** Über sieben A/B-Läufe gemessen: eine Sekunde später angemeldet
-   bleibt der Grund scharf — mit Maskenregion wie mit leerer Region, ein- wie
-   zweimal gerufen. `enableBlurBehind()` ist `void`, es gibt also keinen
-   Rückgabewert, der den Fehlschlag meldete; sichtbar wird er allein im Bild
-   aus einer angemeldeten Sitzung. Die Anmeldung steht deshalb neben der
-   Schattenbindung. **Und sie darf kein `nullptr`-Fenster bekommen:**
+   wird** — eine Sekunde später bleibt der Grund scharf, mit Maskenregion wie
+   ohne. `enableBlurBehind()` ist `void`, es gibt also keinen Rückgabewert, der
+   den Fehlschlag meldete; sichtbar wird er allein im Bild aus einer
+   angemeldeten Sitzung. Die Anmeldung steht deshalb neben der Schattenbindung.
+   **Und sie darf kein `nullptr`-Fenster bekommen:**
    `enableBlurBehind(nullptr, …)` stürzt unter Wayland ab (SIGSEGV), während
    derselbe Aufruf offscreen zurückkehrt.
 7. **Das Bildpunktverhältnis des Fensters steht nach `show()` noch nicht
-   fest.** Unter Wayland meldet Qt zunächst 2 und rund eine Sekunde später
-   1,6, zugestellt als `QEvent::DevicePixelRatioChange` **ohne begleitendes
-   `QEvent::Resize`**. Ein `KSvg::FrameSvg` folgt dem Bildschirm ohnehin nicht
-   von selbst — sein Verhältnis ist nach dem Bau 1, gleich welche Skalierung
-   gilt. Wer die Hülle nur im `resizeEvent()` nachzieht, zeichnet dauerhaft
-   bei 2 auf einem Fenster, das 1,6 ist. **Offscreen tritt der Fall nicht
-   auf.**
+   fest.** Unter Wayland meldet Qt zunächst 2 und rund eine Sekunde später den
+   wirklichen Wert, zugestellt als `QEvent::DevicePixelRatioChange` **ohne
+   begleitendes `QEvent::Resize`**. Ein `KSvg::FrameSvg` folgt dem Bildschirm
+   ohnehin nicht von selbst — sein Verhältnis ist nach dem Bau 1, gleich welche
+   Skalierung gilt. Wer die Hülle nur im `resizeEvent()` nachzieht, zeichnet
+   dauerhaft falsch. **Offscreen tritt der Fall nicht auf.**
 8. **Ob der Kontrasteffekt angemeldet wird, sagt das Theme.** Die vier Werte
    stehen in der Gruppe `[ContrastEffect]` der Datei `metadata.desktop` des
    Themes; fehlt die Gruppe — wie bei `default` —, wird nichts angemeldet.
@@ -400,41 +339,27 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
    beim Start auf deckend. Denkzettel fragt stattdessen KWin selbst
    (D-Bus, `org.kde.kwin.Effects.isEffectLoaded("blur")`) und antwortet ohne
    Rückfrage mit „nein", wo es gar kein zusammensetzendes Fenstersystem gibt.
-   **Grenze, benannt statt verdeckt (05.08.2026, karpathy-Befund K4 zu Sprint 7):**
-   Dieser Wert wird **einmal beim Anlegen des Fensters** erhoben. Wer den
+   **Grenze, benannt statt verdeckt:** Dieser Wert wird **einmal beim Anlegen
+   des Fensters** erhoben. Wer den
    Weichzeichner **zur Laufzeit** abschaltet, während der Dienst läuft, bekommt
    bis zum Neustart weiter die durchscheinende Fassung — Punkt 4 gilt für den
    Zustand beim Start, nicht für einen Wechsel danach. Der Theme-Wechsel ist
    davon **nicht** betroffen; ihn fängt die Wache auf `plasmarc`. Ob die Grenze
    geschlossen oder festgeschrieben wird, ist offen (Issue #93).
 10. **Der Kontrasteffekt hat auf diesem Stand keinen Empfänger.** KWin 6.7.3
-    führt unter 54 geladenen Effekten **keinen** mit „contrast" im Namen;
-    `isEffectLoaded("backgroundcontrast")` antwortet `false`, `blur` antwortet
-    `true`. Die Anmeldung aus Punkt 8 geht damit ins Leere.
-    **Betroffen sind die drei Themes, die den Effekt anfordern** — an den
-    Dateien selbst nachgezählt (`/usr/share/plasma/desktoptheme/*/metadata.desktop`,
-    Gruppe `[ContrastEffect]`): `cachyos-emerald` und `cachyos-emerald-color`
-    (`intensity=0.40`) sowie **`Iridescent-round`** (`0.45`). Ihre Hülle deckt
-    fast nichts; dort steht der Text auf dem Bildschirmhintergrund und auf
-    nichts sonst. Sie sind darauf gebaut, dass der Compositor den Grund
+    lädt **keinen** Effekt mit „contrast" im Namen; `blur` dagegen ist geladen.
+    Die Anmeldung aus Punkt 8 geht damit ins Leere.
+    **Betroffen sind die drei Themes, die den Effekt anfordern:**
+    `cachyos-emerald`, `cachyos-emerald-color` und `Iridescent-round`. Ihre
+    Hülle deckt fast nichts; dort steht der Text auf dem Bildschirmhintergrund
+    und auf nichts sonst. Sie sind darauf gebaut, dass der Compositor den Grund
     abdunkelt — und genau das tut er auf diesem Stand nicht.
     **`cachyos-emerald-light` ist ein eigener Fall und nicht Teil dieser
-    Bedingung.** Es fordert **keinen** Kontrasteffekt an; nach Punkt 8 meldet
-    Denkzettel dort auch keinen an. Seine dunkle Themeschrift auf einer
-    durchscheinenden Hülle bliebe deshalb **auch auf einem KWin mit geladenem
-    Kontrasteffekt**, wie sie ist — gemessen über weißem Grund 14,32:1, über
-    schwarzem 1,37:1, und **keine Wahl der Schriftfarbe rettet beide
-    Richtungen**.
-    *Warum das hier so ausdrücklich steht (05.08.2026, UI-Review Sprint 8,
-    Befund P2):* Die erste Fassung dieses Punktes zählte die drei
-    `cachyos-emerald`-Themes auf und begründete den Absturz unter
-    `cachyos-emerald-light` damit, das Theme trage „genau dafür seine
-    `[ContrastEffect]`-Gruppe". **Es trägt keine.** Die Begründung trug also für
-    den einen Fall nicht, für den sie geschrieben war, und ein Theme mit
-    demselben Problem fehlte in der Aufzählung. Belege in
-    `Prüfbericht zu #85, Sprint 8` und
-    `UI-Review Sprint 8`. Die Bedingung ist benannt und
-    nicht geschlossen.
+    Bedingung.** Es fordert **keinen** Kontrasteffekt an, also meldet
+    Denkzettel dort nach Punkt 8 auch keinen an. Seine dunkle Themeschrift auf
+    durchscheinender Hülle bliebe deshalb **auch auf einem KWin mit geladenem
+    Kontrasteffekt**, wie sie ist — über weißem Grund 14,32:1, über schwarzem
+    1,37:1, und **keine Wahl der Schriftfarbe rettet beide Richtungen**.
 11. **Die Vorrangregel für die Textfarben steht an genau einer Stelle.** Die
     beiden Quellen aus 3.1 bewegen sich zu verschiedenen Zeitpunkten — das
     Theme beim Theme-Wechsel, das Schema beim Palettenwechsel. Eine Umsetzung,
@@ -446,9 +371,8 @@ meldet ihren Fehlschlag über einen Rückgabewert.**
     `KSvg::Svg::StyleSheetColor` führt je Farbsatz `Text`, `Background`,
     `Highlight`, `HighlightedText` und drei Signalfarben. Der Notiztext kommt
     deshalb über `KSvg::Svg::color(Text)` bei gesetztem `colorSet(Window)` —
-    das **ist** bereits die Regel aus 3.1, über acht Themes und drei Schemata
-    gemessen —, die gedämpfte Klasse dagegen aus der `colors`-Datei des Themes,
-    selbst gelesen wie die Gruppe aus Punkt 8.
+    das **ist** bereits die Regel aus 3.1 —, die gedämpfte Klasse dagegen aus
+    der `colors`-Datei des Themes, selbst gelesen wie die Gruppe aus Punkt 8.
 
 ## 4. Aufnahmefenster (Sprachnotiz)
 
@@ -566,8 +490,8 @@ Interview). Syntax-Umfang (damit ist offene Frage 3 des Konzepts beantwortet):
     kein „Ü"). Betrifft ausschließlich Begriffe mit ein oder zwei Zeichen.
 - Die Trefferliste behält die Ordnung der Bibliothek (neueste zuerst, 9.)
   statt der FTS5-Relevanzsortierung — nur so trägt sie deren Tagesgruppen.
-  - **BM25 ist am 04.08.2026 geprüft und verworfen** (Kundenentscheidung;
-    Belege unter `BM25-Messung vom 04.08.2026`). Der Grund ist **nicht**
+  - **BM25 ist am 04.08.2026 geprüft und verworfen** (Kundenentscheidung). Der
+    Grund ist **nicht**
     der Trigramm-Tokenizer — die Vermutung, ein in Trigramme zerfallender
     Suchbegriff verzerre die Formel, ist widerlegt: FTS5 summiert BM25 über
     **Phrasen**, nicht über Tokens, und die Abfrage ist phrasenweise gebaut.
@@ -743,8 +667,8 @@ v1 aber nicht gebaut.
   **Getrennt wird durch zwei Haarlinien einer Farbe. Die Notizgrenze trägt
   ihre Linie auf der Zeilenkante, die Gruppengrenze trägt sie neben der
   Beschriftung ihres Kopfes, und der Kopf trägt dazu einen eigenen
-  Schriftrang** (Wireframe 3a, Kundenentscheidung 06.08.2026 auf Issue #101;
-  Ort und Rang seit der Kundenentscheidung vom 11.08.2026 auf Issue #104):
+  Schriftrang** (Wireframe 3a, Kundenentscheidungen 06.08.2026 auf Issue #101
+  und 11.08.2026 auf Issue #104):
   - Zwischen zwei aufeinanderfolgenden Notizen **derselben** Gruppe eine auf
     die Textkante eingerückte Linie (12 px links und rechts, dieselben 12 px,
     auf denen Zeitstempel und Kopftext beginnen). Keine unter der letzten
@@ -760,94 +684,43 @@ v1 aber nicht gebaut.
     berühren.
   - Der **Gruppenkopf ist in der Textgröße der Anwendung gesetzt**
     (`QFontDatabase::GeneralFont`) und **fett**, der Notiztext bleibt normal.
-  Die Farbe ist **keine Palettenrolle**, sondern die
-  Mischung aus Listengrund und Textfarbe im Verhältnis
-  `KColorScheme::frameContrast()` — das Verfahren, mit dem Kirigami seine
-  Trennlinien färbt; über 18 Schemata liegt sie zwischen 1,24 : 1 und
-  1,93 : 1 gegen den Listengrund, abwechselnde Zeilenfarben dagegen zwischen
-  1,00 : 1 und 1,21 : 1 und an jeder Gruppengrenze bei 1,00 : 1 (gemessen
-  06.08.2026).
-  *Ersetzt am 11.08.2026 die Fassung „zwei Haarlinien einer Farbe, deren
-  **Ausdehnung** die Rangfolge trägt" (Issue #104, Kundenbefund an der
-  Sprint-9-Abnahme: „Ich sehe nicht direkt wo eine endet und die andere
-  anfängt").* Dort lief die Gruppenlinie über die volle Breite der Zeile und
-  über jedem Kopf **außer dem ersten**; der Unterschied zur Notizgrenze war
-  damit **ein** Merkmal und ein gradueller dazu — 18 Gerätebildpunkte je Seite,
-  4,3 % der Breite, bei gleicher Farbe und gleicher Stärke, zu vergleichen über
-  109 bis 159 Gerätebildpunkte Abstand (gemessen 11.08.2026). Der Unterschied
-  ist jetzt **kategorial**: ein anderer Ort der Linie **und** ein anderer
-  Schriftrang, und keines von beidem ist eine Abstufung des anderen. Dass der
-  erste Kopf keine Linie trug, hatte seinen Grund darin, dass über ihm keine
-  Gruppe steht, die abzugrenzen wäre; die Linie neben der Beschriftung grenzt
-  nichts ab, sondern gehört zur Überschrift — deshalb trägt sie **jeder** Kopf,
-  und ein erster Kopf ohne sie sähe nach Fehler und nicht nach Ausnahme aus.
-  **Ein Maß ändert sich dadurch** (die alte Fassung sagte „kein Maß", und für
-  sie stimmte das): Die Kopfschrift wächst von 8 pt / 15 px auf 10 pt / 18 px,
-  also die Kopfzeile von 35 auf 38 px und die erste von 27 auf 30 px (gemessen
-  11.08.2026 unter `QT_QPA_PLATFORMTHEME=kde`). Die Innenabstände 14 · 6 · 6
-  bleiben, ebenso die Zusicherung aus #70 — die Rechnung dahinter ist nur eine
-  andere. Die **Linien** liegen weiterhin in Innenabständen, die es schon gibt:
-  die Eintragslinie im unteren der 9 px, die Kopflinie in der Zeile der
-  Kopfschrift selbst.
+  Der Unterschied zwischen den beiden Grenzen ist damit **kategorial** — ein
+  anderer Ort der Linie **und** ein anderer Schriftrang, und keines von beidem
+  ist eine Abstufung des anderen. Eine Fassung, in der allein die Ausdehnung
+  der Linien die Rangfolge trug, hat der Kunde an der Sprint-9-Abnahme
+  zurückgewiesen: „Ich sehe nicht direkt wo eine endet und die andere anfängt."
+  Die Farbe ist **keine Palettenrolle**, sondern die Mischung aus Listengrund
+  und Textfarbe im Verhältnis `KColorScheme::frameContrast()` — das Verfahren,
+  mit dem Kirigami seine Trennlinien färbt. Abwechselnde Zeilenfarben taugen
+  dafür nicht: Sie heben sich über 18 Schemata zwischen 1,00 : 1 und 1,21 : 1
+  ab und an jeder Gruppengrenze bei 1,00 : 1.
+  **Die Stärke ist ein Maß in Gerätebildpunkten** (bei der Umsetzung entdeckt):
+  ganze Gerätebildpunktzeilen, mindestens eine, gerundet und nicht
+  abgeschnitten. Als logisches Rechteck gefüllt, belegte dieselbe Linie unter
+  krummen Skalierungen mal einen und mal zwei Gerätebildpunkte — dann sagte die
+  Stärke das Gegenteil dessen, was die Gliederung sagt. Eine Zusicherung über
+  die **Lage** der Oberkante gibt es dagegen nicht: Die Einheitlichkeit trägt
+  allein die ganzzahlige Höhe.
   **Bedingung, bei der Umsetzung entdeckt:** Wo die Beschriftung samt ihren 8 px
   Abstand die Textbreite ausfüllt, **entfällt die Kopflinie**. Ohne den Abstand
   läse sie sich als Unterstrich des letzten Buchstabens. Erreichbar ist der Fall
-  in der Liste nicht — die längste Beschriftung („Letzte Woche") misst 87 px,
-  und die schmalste Liste lässt bei stehendem Rollbalken 175 px für den Text
-  (220 px Mindestbreite, Sichtfeld 199, gemessen 11.08.2026) —, aber die Regel
-  steht, weil eine Zusicherung nicht weiter reichen darf als ihr Nachweis.
-  **Die Stärke ist ein Maß in Gerätebildpunkten** (entdeckte Bedingung,
-  07.08.2026): ganze Gerätebildpunktzeilen, mindestens eine, gerundet
-  und nicht abgeschnitten. Der
-  Satz steht hier, weil sein Fehlen einen Fehler getragen hat: Als logisches
-  Rechteck gefüllt, belegte dieselbe Linie unter der Skalierung 1,6 mal einen
-  und mal zwei Gerätebildpunkte — im Normalfall waren zwei von vier
-  Gruppenlinien halb so stark wie die anderen, und in einem Lauf stand eine
-  Gruppenlinie von einem Punkt über Eintragslinien von zwei. Dort sagte die
-  Stärke das Gegenteil dessen, was die Ausdehnung sagt. Unter Skalierung 1
-  ändert sich nichts.
-  *Berichtigt am 08.08.2026 (karpathy-Nachlauf N1 und N2, beides nachgemessen).*
-  Hier stand zusätzlich „**die Oberkante auf der Gerätebildpunktgrenze**". Die
-  Zusicherung ist **gefallen**, und der Term, der sie herstellen sollte, ist aus
-  dem Bau entfernt. **Die Grenze, gegen die er rundete, war nicht die des
-  Bildschirms** — die Funktion sieht allein widget-lokale Koordinaten, während
-  das Sichtfeld der Liste bei logisch 48 beginnt, unter 1,6 also bei 76,8
-  Gerätebildpunkten. *Berichtigt am 11.08.2026 (karpathy-Nachlauf 2, K6):* Hier
-  stand „er erreichte keine Grenze". Das war die falsche Ursache und nicht die
-  halbe — er erreichte sehr wohl eine, nur die des Widgets. Bei den
-  Verhältnissen, unter denen der Ursprung selbst auf dem Geräteraster liegt
-  (1,0 · 1,25 · 1,5 · 2,0 · 2,5 — dort ist logisch 48 gerade 48, 60, 72, 96
-  und 120 Gerätebildpunkte), ändert der Term nichts; **alle acht** gemessenen
-  Verschiebungen liegen bei **1,4 und 1,6**, wo er es nicht tut.
-  Über 280 gemessene Lagen (sieben
-  Verhältnisse, zwanzig Zeilenlagen, zwei Malerursprünge) verschob er die Linie
-  in 8 Lagen um einen Bildpunkt und änderte **keine einzige Höhe**. Die
-  Einheitlichkeit trägt allein die ganzzahlige Höhe: Zwei Kanten, die ganzzahlig
-  viele Gerätebildpunkte auseinanderliegen, runden auf Werte, die um dieselbe
-  ganze Zahl auseinanderliegen. Ebenfalls berichtigt ist die Begründung des
-  Rundens: Sie berief sich darauf, dass die Linie nie dünner werden dürfe, und
-  das trifft **unterhalb 1,5** nicht zu (1,25 → 1 Bildpunkt → 0,80 logische
-  Punkte). Was gilt: Eine Gerätebildpunktzeile ist die Untergrenze, und genau so
-  breit ist die Linie unter Skalierung 1 — dem Zustand, den der Kunde
-  abgenommen hat. **Aufrunden** statt Runden machte sie bei 1,25 auf 1,6
-  logische Punkte dicker als gezeichnet.
-  *Ausdrücklich ungeregelt bleibt die seitliche Kante:* Sie liegt unter 1,6 bei
-  11,88 statt 12,0 Punkten — 0,12 Punkte, während der Seitenrand der Glyphen
-  daneben im selben Bild zwischen 0,5 und 2,4 Punkten schwankt.
-  **Bedingung, entdeckt bei der Umsetzung (beim Bau entdeckt): Die Ansicht zeichnet den
-  oberen Nachbarn eines Auswahlwechsels nicht von sich aus neu.** Sie malt nur
-  die Strecke zwischen alter und neuer Auswahl, und die Zeile über beiden Enden
+  in der Liste nicht — die längste Beschriftung misst 87 px, die schmalste Liste
+  lässt 175 px —, aber die Regel steht, weil eine Zusicherung nicht weiter
+  reichen darf als ihr Nachweis.
+  **Bedingung, bei der Umsetzung entdeckt: Die Ansicht zeichnet den oberen
+  Nachbarn eines Auswahlwechsels nicht von sich aus neu.** Sie malt nur die
+  Strecke zwischen alter und neuer Auswahl, und die Zeile über beiden Enden
   liegt außerhalb — ohne ausdrückliche Anmeldung bleibt dort eine Linie stehen
-  oder fehlt eine (Issue #101, sechs Wechsel gemessen am 07.08.2026). Ein
-  Standbild zeigt das nicht: `grab()` zeichnet jede Zeile neu.
+  oder fehlt eine (Issue #101). Ein Standbild zeigt das nicht: `grab()`
+  zeichnet jede Zeile neu.
   Die Gruppen werden beim Aufbau der Liste und bei jeder Fensteraktivierung
   nachgerechnet — es gibt keinen Mitternachtszeitgeber (Wireframe 3b).
   **Neu gruppiert wird dabei nur, wenn der Kalendertag ein anderer ist als
-  beim letzten Aufbau** (entdeckt bei der Umsetzung): Neugruppieren
-  setzt das Modell zurück und stellt die Auswahl wieder her, was die Liste zu
-  ihr scrollt — ohne Tageswechsel warf ein Alt-Tab den Leser um 459 px auf
-  seine Auswahl zurück (Issue #59, gemessen 04.08.2026). Der Kalendertag
-  genügt als Bedingung, weil alle vier Gruppengrenzen Tagesgrenzen sind.
+  beim letzten Aufbau** (bei der Umsetzung entdeckt): Neugruppieren setzt das
+  Modell zurück und stellt die Auswahl wieder her, was die Liste zu ihr scrollt
+  — ohne Tageswechsel warf ein Alt-Tab den Leser auf seine Auswahl zurück
+  (Issue #59). Der Kalendertag genügt als Bedingung, weil alle vier
+  Gruppengrenzen Tagesgrenzen sind.
   **Eine Notiz, die entsteht, während die Bibliothek offen steht, erscheint
   ohne weiteres Zutun in der Liste** (Kundenbefund 11.08.2026, Issue #105).
   Die Meldung kommt vom Speicher, nicht vom Erfassungsfenster: Der Weg über
@@ -876,30 +749,23 @@ v1 aber nicht gebaut.
   Fälle: Passen Kopf und Auswahl nicht zusammen ins Bild, bleibt der Kopf
   draußen.
   **Ein Mausklick bewegt die Liste überhaupt nicht** — weder holt er den Kopf,
-  noch rückt er zur
-  Auswahl nach: Wer zeigt, erwartet, dass die gezeigte Stelle bleibt, und ein
-  Vorscrollen risse sie ihm unter dem Zeiger weg (gemessen 387 px, Issue #57).
+  noch rückt er zur Auswahl nach: Wer zeigt, erwartet, dass die gezeigte Stelle
+  bleibt, und ein Vorscrollen risse sie ihm unter dem Zeiger weg (Issue #57).
   **Dass auch das Nachrücken zur Auswahl darunterfällt, ist bei der Umsetzung
-  entdeckt worden** : Ein Klick auf eine angeschnittene Zeile rückte das
-  Bild um eine Zeilenhöhe, und weil der View seine Auswahl erst danach aus dem
-  beim Druck gemerkten Rechteck bestimmt, markierte er die Nachbarzeile — in
-  13 von 14 gemessenen Fällen die falsche (Issue #71, gemessen 05.08.2026).
+  entdeckt worden:** Ein Klick auf eine angeschnittene Zeile rückte das Bild um
+  eine Zeilenhöhe, und weil der View seine Auswahl erst danach aus dem beim
+  Druck gemerkten Rechteck bestimmt, markierte er die Nachbarzeile (Issue #71).
   Der Preis, ausdrücklich: Eine angeschnittene Zeile bleibt nach dem Klick
   angeschnitten. Sie ganz sichtbar zu machen hieße, sie unter dem Zeiger
   wegzuziehen — das ist der Fehler selbst.
-  **Bedingung, entdeckt bei der Sichtprüfung (05.08.2026): „bewegt die
-  Liste überhaupt nicht" gilt für den Druck, nicht für die Sekunde danach.**
+  **Bedingung, bei der Sichtprüfung entdeckt: „bewegt die Liste überhaupt
+  nicht" gilt für den Druck, nicht für die Sekunde danach.**
   `QAbstractItemView` startet beim Mausdruck einen **verzögerten Autoscroll**
   und holt die angeschnittene Zeile rund eine halbe Sekunde später doch ins
-  Bild; die Markierung bleibt dabei auf der geklickten Zeile. Gemessen: Rollwert
-  bis 500 ms unverändert, ab 550 ms um eine Zeile gerückt
-  (`Messung zu #71, Sprint 7`);
-  am Bild bestätigt im UI-Review (11a gegen 11b, 71,9 logische Bildpunkte).
-  **Der Absatz oben beschreibt damit, was die Story herstellt, nicht, was der
-  Nutzer nach einer Sekunde sieht.** Ob der Nachlauf bleibt oder abgeschaltet
-  wird, ist eine Produktentscheidung und offen (Issue #89); bis sie fällt, steht
-  die Bedingung hier — ein Satz, der mehr zusichert, als der Bau hält, ist eine
-  Falle, gleich wie die Entscheidung ausgeht.
+  Bild; die Markierung bleibt dabei auf der geklickten Zeile. Ob der Nachlauf
+  bleibt oder abgeschaltet wird, ist offen (Issue #89); bis die Entscheidung
+  fällt, steht die Bedingung hier — ein Satz, der mehr zusichert, als der Bau
+  hält, ist eine Falle, gleich wie sie ausgeht.
   Der Tag geht dabei nicht verloren — der Detailbereich trägt den vollen
   Zeitstempel.
   Dazu Suchfeld (Abschnitt 6) und Button „Vorschläge" mit Badge.
@@ -928,21 +794,21 @@ v1 aber nicht gebaut.
     Liste neu auf; die Notiz unter dem Editor kann dabei aus ihr
     herausfallen, und dann hat der Dialog keine Zeile mehr, auf die er die
     Auswahl zurücknehmen könnte.
-  - **Bauart des Dialogs (entschieden in Sprint 5, #66):** Der Wächter ist
-    ein **`KMessageDialog`** vom Typ `WarningTwoActionsCancel` mit
-    `KStandardGuiItem`-Symbolen; **Vorgabeantwort ist „Speichern"**.
-    Grund ist die in Sprint 4 entdeckte Bedingung (beim Bau entdeckt): Unter der
-    KDE-Plattformintegration (`QT_QPA_PLATFORMTHEME=kde`) beantwortet das
-    System einen gebauten `QMessageBox` mit einem **eigenen Meldungsfenster
-    samt eigenen Knopfobjekten** — es übernimmt Beschriftung, Rollen und
-    Reihenfolge, aber nichts, was nachträglich am `QPushButton` gesetzt wird
-    (Symbole, Vorgabe-/Escape-Knopf). Ein `KMessageDialog` ist ein
-    gewöhnlicher `QDialog` und bleibt der eigene. Daraus folgt für die
-    Prüfung: Der Dialogtest misst den Dialog, den die Anwendung **zeigt**
+  - **Bauart des Dialogs (#66):** Der Wächter ist ein **`KMessageDialog`** vom
+    Typ `WarningTwoActionsCancel` mit `KStandardGuiItem`-Symbolen;
+    **Vorgabeantwort ist „Speichern"**. Grund ist eine beim Bau entdeckte
+    Bedingung: Unter der KDE-Plattformintegration
+    (`QT_QPA_PLATFORMTHEME=kde`) beantwortet das System einen gebauten
+    `QMessageBox` mit einem **eigenen Meldungsfenster samt eigenen
+    Knopfobjekten** — es übernimmt Beschriftung, Rollen und Reihenfolge, aber
+    nichts, was nachträglich am `QPushButton` gesetzt wird (Symbole,
+    Vorgabe-/Escape-Knopf). Ein `KMessageDialog` ist ein gewöhnlicher `QDialog`
+    und bleibt der eigene. Daraus folgt für die Prüfung: Der Dialogtest misst
+    den Dialog, den die Anwendung **zeigt**
     (`QApplication::activeModalWidget()`), unter gesetztem Plattform-Thema —
     ein Test ohne Plattform-Thema misst einen Dialog, den kein
     KDE-Sitzungsnutzer sieht.
-  - **Bedingungen dieser Bauart, alle am 02.08.2026 gemessen** (beim Bau entdeckt):
+  - **Bedingungen dieser Bauart, alle beim Bau entdeckt:**
     - `KMessageDialog` kennt **keinen Zweittext** (`informativeText`); Frage
       und Erläuterung stehen in einem Text, durch eine Leerzeile getrennt.
     - Die Antwortrollen sind `Yes` · `No` · `Reject` statt
@@ -964,18 +830,15 @@ v1 aber nicht gebaut.
       gar kein Bildetikett. Ein Dialog über drohenden Datenverlust ist der
       Kernfall des Warnsymbols (PO-Entscheidung 02.08.2026; Zeichnung 2a,
       Zustand C nachgezogen).
-    - **Die Bauart klingt** (entdeckt am 04.08.2026): `showEvent()` meldet bei
-      jedem Anzeigen das KNotification-Ereignis `messageWarning`, dem
-      `plasma_workspace.notifyrc` den Systemklang `dialog-warning` zuordnet —
-      abgespielt im eigenen Prozess über libcanberra. Das ist
-      KDE-Plattformstandard und **bleibt so**: Lautstärke und Stummschaltung
-      regelt der Nutzer im System. `KMessageDialog::setNotifyEnabled(false)`
-      würde den Klang abschalten; **genau das ist bewusst unterlassen**
-      (Kundenentscheidung 04.08.2026), damit ihn niemand später für ein
-      Versehen hält und wegmacht. Still sind allein die Test- und Bildläufer:
-      sie lenken libcanberra vor `main()` auf den Null-Treiber
-      (`tests/testsilence.cpp`) — oberhalb des Audiogeräts bleibt alles
-      unverändert, und kein Test misst Klang.
+    - **Die Bauart klingt:** `showEvent()` meldet bei jedem Anzeigen das
+      KNotification-Ereignis `messageWarning`, dem `plasma_workspace.notifyrc`
+      den Systemklang `dialog-warning` zuordnet. Das ist KDE-Plattformstandard
+      und **bleibt so**: Lautstärke und Stummschaltung regelt der Nutzer im
+      System. `KMessageDialog::setNotifyEnabled(false)` würde den Klang
+      abschalten; **genau das ist bewusst unterlassen** (Kundenentscheidung
+      04.08.2026), damit ihn niemand später für ein Versehen hält und wegmacht.
+      Still sind allein die Test- und Bildläufer: sie lenken libcanberra vor
+      `main()` auf den Null-Treiber (`tests/testsilence.cpp`).
 - Steckt die Notiz in einem **offenen Vorschlag**, verwirft Bearbeiten oder
   Löschen diesen Vorschlag (seine Vorschau wäre veraltet); der nächste
   Analyse-Lauf erzeugt ihn auf aktuellem Stand neu.
@@ -1021,9 +884,8 @@ v1 aber nicht gebaut.
   für eine Hauptaktion vorsieht: Denkzettel hat kein Hauptfenster, sondern
   mehrere gleichrangige Wege, und die Recherche zum KDE-Verhalten wurde dem
   Kunden vorgelegt. Kundenentscheidung vom 01.08.2026, belegt in Issue #44, am
-  02.08.2026 nach erneuter Vorlage bestätigt — **bei HIG- oder UI-Reviews kein
-  Befund.**
-- **Entdeckte Bedingung (Messung 02.08.2026, Issue #60): Getrennte Menüs für
+  02.08.2026 nach erneuter Vorlage bestätigt.
+- **Entdeckte Bedingung (Issue #60): Getrennte Menüs für
   Links- und Rechtsklick sind unter Plasma/Wayland nicht zu haben.** Sie
   hießen `ItemIsMenu=false` plus ein eigenes Menü im
   `activateRequested`-Handler; das Menü müsste dann Denkzettel selbst
@@ -1033,7 +895,7 @@ v1 aber nicht gebaut.
   beides nicht. Als gewöhnliches Fenster bleibt es stehen, aber die
   gewünschte Lage wird verworfen und KWin setzt es in die Bildschirmmitte.
   Deshalb bleibt es bei einem Menü; der Kunde hat den Rückfall am 02.08.2026
-  entschieden. Beleg: `Prüfbericht zu #33, Sprint 4`. Von den
+  entschieden. Von den
   drei in Wireframe 5a benannten HIG-Abweichungen bleibt damit **nur A1**
   (Linksklick öffnet ein Menü); A2 (zwei verschiedene Menüs) und A3 („Beenden"
   nur über den Rechtsklick) entfallen ersatzlos, weil es die zweite Liste
@@ -1194,24 +1056,19 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   Plattform-Thema** löst `QIcon::fromTheme()` nichts auf und liefert ein
   Symbol **ohne Namen** — die Zusicherung ist dann rot, ohne dass am Bau
   etwas fehlt —, und die Plattformintegration baut den Meldungsdialog nicht
-  so, wie ein Sitzungsnutzer ihn sieht (Abschnitt 9). Das gilt derzeit für
-  `shelltest`, `librarytest` und — seit der Hülle des Erfassungsfensters
-  (3.1) — `capturetest`: Dessen Geometriezusicherungen messen Abstände, über
-  die die Schrift entscheidet, und unter einer Ersatzschrift maßen sie etwas
-  anderes. **Es ersetzt keine Plasma-Sitzung:** Der Bildnachweis am
+  so, wie ein Sitzungsnutzer ihn sieht (Abschnitt 9). Das gilt für `shelltest`
+  und `librarytest`. **Es ersetzt keine Plasma-Sitzung:** Der Bildnachweis am
   installierten Stand bleibt.
-- **Was offscreen prinzipbedingt nicht zu belegen ist** (gemessen zu #55,
-  nicht abgewogen): Der **Schatten** des Erfassungsfensters. Ohne Compositor
-  gibt es niemanden, dem `KWindowShadow::create()` die Kacheln übergäbe — der
-  Rückgabewert ist dort **immer** falsch, und das ist kein Fehler des Codes.
-  `QWidget::grab()` zeigt ihn ebenfalls nie, weil er außerhalb des Widgets
-  liegt. Ein offscreen entstandenes Bild ohne Schatten ist deshalb **kein
-  Prüfbefund**. An seine Stelle treten zwei benannte Ersatzformen: im Test die
-  Zusicherung, dass ein Schattenobjekt besteht und **seine Kacheln die des
-  Desktop-Themes sind**, und in der Abnahme ein Bild aus der Plasma-Sitzung.
-  Dass der Schatten nach **jedem** Neuzeigen wieder daliegt (3.2, Punkt 5),
-  ist von keiner der beiden Formen gedeckt und gehört in die manuelle
-  Checkliste.
+- **Was offscreen prinzipbedingt nicht zu belegen ist** (gemessen zu #55): Der
+  **Schatten** des Erfassungsfensters. Ohne Compositor gibt es niemanden, dem
+  `KWindowShadow::create()` die Kacheln übergäbe — der Rückgabewert ist dort
+  **immer** falsch, und das ist kein Fehler des Codes. `QWidget::grab()` zeigt
+  ihn ebenfalls nie, weil er außerhalb des Widgets liegt. Ein offscreen
+  entstandenes Bild ohne Schatten ist deshalb **kein Prüfbefund**. Der Nachweis
+  ist das Bild aus der Plasma-Sitzung; einen Ersatz im Test gibt es seit dem
+  Testschnitt nicht mehr, und die Zusicherung, dass der Schatten nach **jedem**
+  Neuzeigen wieder daliegt (3.2, Punkt 5), trägt ohnehin allein die
+  Sichtprüfung.
 - **Und der Weichzeichner, schärfer als der Schatten** (gemessen zu #83): Ihn
   zeigt auch eine **Fensteraufnahme** nicht. `spectacle -a` liefert wie
   `QWidget::grab()` die eigene Fläche des Fensters; was hinter der Hülle liegt,
@@ -1235,24 +1092,19 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   nicht — die Schriftrasterung weicht ab (1.587 von 154.440 Bildpunkten,
   sämtlich im Textbereich; Ursache Fontconfig, nicht KSvg).
 - **Ein Nachbau der Skalierung im selben Prozess ist keine Prüflage** (entdeckt
-  zu #101 bei L9): Die Liste durch einen Maler auf ein Bild mit
-  `devicePixelRatio` 1,6 zu zeichnen, misst etwas anderes als eine Sitzung unter
-  `QT_SCALE_FACTOR=1.6`. *Gemessen:* Der Nachbau zeigte den Fehler bei **1,25**
-  und **bei 1,6 nicht** — dort, wo die echte Skalierung ihn zeigt. Die
-  Zeilenhöhen einer skalierten Sitzung sind nicht die einer unskalierten; der
-  Nachbau maß Zeilenlagen, die es gar nicht gibt. **Ein Prüfsatz, der gerade
-  dort besteht, wo der Fehler sitzt, ist schlimmer als keiner.** Wer Skalierung
-  prüfen will, meldet dieselbe Prüffunktion ein zweites Mal an, mit
-  `QT_SCALE_FACTOR` in der Umgebung — und nur die Funktionen, die unter
-  Skalierung etwas aussagen. Bildpunktzusicherungen in logischen Punkten
-  gehören nicht hinein; sie prüften sonst die Skalierung statt der Sache.
-  **Die Szene entscheidet mit:** Der Fehler hängt an der Rasterlage, und der
-  erste Lauf mit echter Skalierung war grün, weil die Szene zu wenige Lagen
-  kannte.
-  *Nachtrag 11.08.2026:* Die so gebaute Prüflage ist mit dem Testschnitt
-  entfallen — die Linienstärke sieht der Kunde am Bild, und gefunden hat den
-  Fehler damals das Hinsehen, nicht ein Test. Der Lehrsatz oben gilt
-  unverändert für jede künftige Prüfung unter Skalierung.
+  zu #101): Die Liste durch einen Maler auf ein Bild mit `devicePixelRatio` 1,6
+  zu zeichnen, misst etwas anderes als eine Sitzung unter
+  `QT_SCALE_FACTOR=1.6`. Der Nachbau zeigte den Fehler bei **1,25** und **bei
+  1,6 nicht** — dort, wo die echte Skalierung ihn zeigt. Die Zeilenhöhen einer
+  skalierten Sitzung sind nicht die einer unskalierten; der Nachbau maß
+  Zeilenlagen, die es gar nicht gibt. **Ein Prüfsatz, der gerade dort besteht,
+  wo der Fehler sitzt, ist schlimmer als keiner.** Wer Skalierung prüfen will,
+  meldet dieselbe Prüffunktion ein zweites Mal an, mit `QT_SCALE_FACTOR` in der
+  Umgebung — und nur die Funktionen, die unter Skalierung etwas aussagen.
+  Bildpunktzusicherungen in logischen Punkten gehören nicht hinein; sie prüften
+  sonst die Skalierung statt der Sache. **Die Szene entscheidet mit:** Der
+  Fehler hängt an der Rasterlage, und der erste Lauf mit echter Skalierung war
+  grün, weil die Szene zu wenige Lagen kannte.
 - **Zustände, die im Prüfprozess selbst nicht herstellbar sind, brauchen einen
   eigenen Prozess** (entdeckt zu #55, AK 8): Das Fenster ohne Desktop-Theme
   lässt sich nicht durch einen erfundenen Theme-Namen erzeugen — KSvg fällt
@@ -1260,18 +1112,13 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   eintreten kann. `capturetest` startet sich für diese Zusicherung mit
   beschnittenem `XDG_DATA_DIRS` selbst neu.
 - **Keine Zusicherung hängt an einem Namen, den nur diese Maschine kennt**
-  (entdeckt zu #55). Der Prüfsatz zur Hülle hält zwei Desktop-Themes
-  mit verschiedenem Rand gegeneinander — und **ein solches Paar gibt es nicht
-  überall**: Die drei Themes des offiziellen KDE-Bestands (`default`,
-  `breeze-dark`, `breeze-light`) tragen sämtlich 4 px; jedes breitere Theme auf
-  der Entwicklungsmaschine stammt aus einem CachyOS-Paket. Ein Bauplatz, der
-  nur die KF6-Teile dieses Projekts installiert, hat **gar kein**
-  Desktop-Theme — `ksvg` hängt nicht an `libplasma`. Daraus zwei Quellen mit
-  verschiedener Aufgabe, und keine ersetzt die andere:
-  **`tests/themes/`** liefert zwei eigene Themes, damit die Zusicherung überall
-  läuft; sie belegen aber nur, dass der Code *unser* SVG liest. Der Lauf gegen
-  **installierte** Themes belegt das Echte, wird zur Laufzeit **gemessen statt
-  benannt** und übersprungen, wenn kein Paar da ist — mit benanntem Grund.
+  (entdeckt zu #55). Die Themes des offiziellen KDE-Bestands tragen sämtlich
+  4 px Rand; jedes breitere auf der Entwicklungsmaschine stammt aus einem
+  CachyOS-Paket, und ein Bauplatz, der nur die KF6-Teile dieses Projekts
+  installiert, hat **gar kein** Desktop-Theme — `ksvg` hängt nicht an
+  `libplasma`. Wer eine Zusicherung an ein bestimmtes Theme hängt, prüft
+  anderswo etwas anderes oder nichts. Wer sie an mitgelieferte Prüf-Themes
+  hängt, belegt allein, dass der Code *unser* SVG liest.
 - KI-Qualität (Klassifikation/Clustering) wird nicht automatisiert getestet —
   der Vorschlags-Review ist die menschliche Kontrollinstanz.
 

@@ -116,15 +116,14 @@ cmake --build build
 ctest --test-dir build
 ```
 
-Die Tests laufen offscreen und brauchen keine laufende Plasma-Sitzung. Die
-drei Bildläufer (`libraryshots`, `captureshots`, `readmeshots`) baut ein
-gewöhnlicher Build seit dem 04.08.2026 mit. Sie stehen weiterhin
-**nicht** in `ctest` — ein kaputter Bildschreiber soll die Suite nicht rot
-färben —, aber ein Läufer, den niemand neu baut, altert unbemerkt und schreibt
-plausible Bilder eines alten Standes.
+Die Tests laufen offscreen und brauchen keine laufende Plasma-Sitzung. Der
+Bildläufer `readmeshots` wird mitgebaut, steht aber **nicht** in `ctest` — ein
+kaputter Bildschreiber soll die Suite nicht rot färben. Mitgebaut wird er
+trotzdem, weil ein Läufer, den niemand neu baut, unbemerkt altert und plausible
+Bilder eines alten Standes schreibt.
 
-Die beiden Bilder oben in dieser Datei stammen aus `readmeshots` und sind mit
-einem Befehl neu zu erzeugen:
+Die beiden Bilder oben in dieser Datei stammen aus ihm und sind mit einem
+Befehl neu zu erzeugen:
 
 ```
 QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=2 \

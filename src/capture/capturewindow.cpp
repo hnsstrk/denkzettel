@@ -330,11 +330,6 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
 
 CaptureWindow::~CaptureWindow() = default;
 
-const KWindowShadow *CaptureWindow::shadow() const
-{
-    return m_shadow.get();
-}
-
 void CaptureWindow::reloadDesktopTheme(const QString &name)
 {
     QString theme = name;
@@ -564,11 +559,6 @@ void CaptureWindow::resizeField()
     // ratio over does not arrive there (issue #100, F4; issue #83).
     m_focus->setDevicePixelRatio(devicePixelRatioF());
     m_focus->resizeFrame(m_text->size());
-}
-
-qreal CaptureWindow::hullDevicePixelRatio() const
-{
-    return m_hull->devicePixelRatio();
 }
 
 void CaptureWindow::applyHullMargins()

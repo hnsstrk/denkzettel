@@ -124,29 +124,6 @@ public:
     explicit CaptureWindow(Store *store, QWidget *parent = nullptr);
     ~CaptureWindow() override;
 
-    /**
-     * The shadow handed to the compositor, or nullptr if the desktop theme
-     * brought no shadow tiles.
-     *
-     * This is the named substitute for a picture (issue #55, AK 7): offscreen
-     * `KWindowShadow::create()` always fails — there is no compositor to take
-     * the tiles — and `QWidget::grab()` would not show a shadow either, because
-     * the shadow lies outside the widget. What can be shown is the object and
-     * where its tiles come from.
-     */
-    const KWindowShadow *shadow() const;
-
-    /**
-     * The pixel ratio the hull was last drawn at.
-     *
-     * The named substitute for a picture, like shadow() above (issue #83,
-     * AK 3): under Wayland the window's own ratio is not settled after show()
-     * — Qt reports 2 first and 1,6 about a second later — and a picture taken
-     * offscreen cannot show that at all, because offscreen the second value
-     * never arrives. What can be shown is the number the hull is carrying.
-     */
-    qreal hullDevicePixelRatio() const;
-
 public Q_SLOTS:
     /** Brings the window up with the keyboard focus, empty and ready. */
     void showCapture();

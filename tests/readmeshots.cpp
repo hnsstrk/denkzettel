@@ -14,15 +14,15 @@
  * Writes the two pictures the README carries: the capture window and the
  * library.
  *
- * Not a test — a picture maker, like `libraryshots` and `editshots`, and out
- * of `add_test()` for the same reason: a picture nobody looks at proves
- * nothing, and a failing screenshot writer must not turn the suite red.
+ * Not a test — a picture maker, and out of `add_test()` for that reason: a
+ * picture nobody looks at proves nothing, and a failing screenshot writer must
+ * not turn the suite red.
  *
  * Every note in here is invented and about nothing in particular. The
  * repository is public, and the pictures the README shows are the first thing
  * a stranger sees — they must not show anybody's own notes (customer's
- * instruction of 04.08.2026). The store is a temporary one, as in the other
- * benches; the user's database is never opened.
+ * instruction of 04.08.2026). The store is a temporary one; the user's database
+ * is never opened.
  *
  * Run it with QT_QPA_PLATFORMTHEME=kde. Without it Qt falls back to a
  * substitute font whose sizes are not the ones the running application uses —
@@ -38,7 +38,7 @@
  */
 namespace
 {
-/** The Friday the pictures are taken on, as in the other benches. */
+/** The Friday the pictures are taken on. */
 QDateTime friday()
 {
     return QDateTime::fromString(QStringLiteral("2026-07-31T16:00:00"), Qt::ISODate);
@@ -71,9 +71,9 @@ void addNote(Store &store, const QString &content, const QString &isoDateTime)
  *
  * The four colours that carry the picture are the measured ones of the UX
  * investigation of 01.08.2026
- * (`Palettenmessung vom 01.08.2026`), as in
- * `libraryshots`; the rest is derived from them. Without setting a scheme the
- * bench would draw its own default — the configuration directory is a fresh
+ * (`Palettenmessung vom 01.08.2026`); the rest is derived from them. Without
+ * setting a scheme the runner would draw its own default — the configuration
+ * directory is a fresh
  * temporary one on purpose, so there is no kdeglobals to read a scheme from.
  */
 QPalette breezeDark()

@@ -110,21 +110,13 @@ jobs:
           fi
 
       - name: Tests
-        # WARUM -V UND EINE ZAHL DANEBEN. Auf diesem Läufer fehlt die
-        # Plasma-Grafik `widgets/lineedit`, mehrere Prüfsätze überspringen sich
-        # deshalb mit begründetem QSKIP. Ohne die Wache käme diese Zahl nirgends
-        # vor — weder in der Ausgabe von `--output-on-failure` noch im
-        # Rückgabewert, der auch bei zehn Übersprungenen 0 ist —, und ein
-        # Prüfsatz, der morgen zusätzlich überspringt, fiele niemandem auf. Was
-        # der Lauf NICHT prüft, soll eine Entscheidung sein und kein Nebeneffekt.
-        #
-        # Gezählt wird je Prüfbinär aus der Totals-Zeile, nicht aus der
-        # Zusammenfassung von ctest — die kennt die Übersprungenen nicht. Und je
-        # Binär statt summiert: eine Summe über alle wacht über keines davon,
-        # denn überspringt eines eines weniger und ein anderes eines mehr,
-        # bleibt sie gleich. Zugeordnet wird über den NAMEN des Binärs, nicht
-        # seine Nummer; eine neue Anmeldung verschöbe sonst alle Erwartungen.
-        # Die geltende Zahl steht unten bei `erwartung` und nur dort.
+        # WARUM -V UND EINE ZAHL DANEBEN. Ein übersprungener Prüfsatz kommt
+        # sonst nirgends vor — weder in der Ausgabe von `--output-on-failure`
+        # noch im Rückgabewert, der auch bei zehn Übersprungenen 0 ist. Seit dem
+        # Testschnitt überspringt keiner mehr; ein neuer soll eine Entscheidung
+        # sein und kein Nebeneffekt. Gezählt wird aus den Totals-Zeilen, die
+        # `-V` durchreicht: die Zusammenfassung von ctest kennt die
+        # Übersprungenen nicht.
         run: |
           set -o pipefail
           ctest --test-dir build -V --output-on-failure > ctest.log 2>&1 || ctest_rc=$?
@@ -134,50 +126,13 @@ jobs:
             cat ctest.log
             exit "$ctest_rc"
           fi
-          # Erwartung je Prüfbinär. Seit dem Testschnitt vom 11.08.2026
-          # überspringt keines mehr einen Prüfsatz: die Zusicherungen über
-          # Hülle, Feld und Farben des Erfassungsfensters sind entfallen, und
-          # mit ihnen die zehn begründeten QSKIP von capturetest, die an der
-          # fehlenden Plasma-Grafik `widgets/lineedit` hingen. Die Liste ist
-          # deshalb leer — jedes Binär muss auf null Übersprünge kommen.
-          #
-          # Die Auswertung nimmt je Binär die LETZTE Totals-Zeile: trägt ein
-          # Prüfsatz die Ausgabe eines Kindprozesses nach oben, steht dessen
-          # Totals-Zeile mitten in der des Elternteils.
-          erwartung=""
-          awk -v erwartung="$erwartung" '
-            /Start +[0-9]+: / { name = $NF }
-            /Totals:/ { for (i = 1; i <= NF; i++) if ($i == "skipped,") uebersprungen[name] = $(i-1) }
-            END {
-              n = split(erwartung, paare, " ")
-              for (i = 1; i <= n; i++) { split(paare[i], p, "="); soll[p[1]] = p[2] }
-              fehler = 0
-              for (b in uebersprungen) {
-                ist = uebersprungen[b]; darf = (b in soll) ? soll[b] : 0
-                printf "%-24s übersprungen: %s (erwartet: %s)\n", b, ist, darf
-                if (ist != darf) {
-                  printf "::error::%s überspringt %s Prüfsätze, erwartet sind %s.\n", b, ist, darf
-                  fehler = 1
-                }
-              }
-              # Und einmal andersherum über die Erwartungsliste. Die Schleife
-              # oben läuft nur über Binäre, die eine Totals-Zeile hinterlassen
-              # haben — ein aus `tests/CMakeLists.txt` entferntes Binär
-              # hinterlässt keine, seine Erwartung bliebe ungeprüft und der Lauf
-              # wäre grün.
-              for (b in soll) {
-                if (!(b in uebersprungen)) {
-                  printf "::error::%s hat keine Totals-Zeile hinterlassen — das erwartete Prüfbinär ist nicht gelaufen (aus der ctest-Anmeldung entfernt oder umbenannt?). Seine Erwartung von %s Übersprüngen ist damit ungeprüft.\n", b, soll[b]
-                  fehler = 1
-                }
-              }
-              if (fehler) {
-                print "Prüfe, welcher Prüfsatz hinzugekommen oder weggefallen ist, und zieh die"
-                print "Erwartung oben nach — mit Begründung. Was der Lauf nicht prüft, soll eine"
-                print "Entscheidung sein und kein Nebeneffekt."
-                exit 1
-              }
-            }' ctest.log || { grep -E "SKIP +:" ctest.log || true; exit 1; }
+          uebersprungen=$(awk '/Totals:/ { for (i = 1; i <= NF; i++) if ($i == "skipped,") s += $(i-1) } END { print s+0 }' ctest.log)
+          echo "Übersprungene Prüfsätze: ${uebersprungen} (erlaubt: 0)"
+          if [ "${uebersprungen}" -ne 0 ]; then
+            grep -E "SKIP +:" ctest.log || true
+            echo "::error::${uebersprungen} übersprungene(r) Prüfsatz/Prüfsätze — erlaubt ist 0. Was der Lauf nicht prüft, soll eine Entscheidung sein und kein Nebeneffekt."
+            exit 1
+          fi
           grep -q "100% tests passed" ctest.log
 
       - name: clazy

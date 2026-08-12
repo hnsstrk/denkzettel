@@ -24,17 +24,8 @@ add_executable(capturetest capturetest.cpp)
 
 target_link_libraries(capturetest PRIVATE
     denkzettelcapture
-    KF6::Svg
     Qt6::Test
 )
-
-# Two desktop themes of our own, so the hull assertions do not hang on the
-# distribution the tests were written on: a build host that installs only this
-# project's KF6 parts has no desktop theme at all — `ksvg` does not depend on
-# `libplasma`. Installed themes are still measured where they exist;
-# tests/desktopthemes.h explains the division of labour.
-target_compile_definitions(capturetest PRIVATE
-    DENKZETTEL_TEST_THEMES="${CMAKE_CURRENT_SOURCE_DIR}/themes")
 
 add_test(NAME capturetest COMMAND capturetest)
 
@@ -62,35 +53,13 @@ add_test(NAME librarytest COMMAND librarytest)
 set_tests_properties(librarytest PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
 
-# Writes the picture series of the grouped note list (wireframes 3a/3b). No
-# add_test(): it produces pictures for a human to look at, and a broken
-# screenshot writer must not colour the suite red. It is built by an ordinary
-# build all the same, as are the benches below — they were EXCLUDE_FROM_ALL
-# once, and a bench nobody rebuilds writes plausible pictures of an old state
-# while the suite stays green. Run it with QT_QPA_PLATFORMTHEME=kde, or the
-# substitute font misstates the type sizes.
-add_executable(libraryshots libraryshots.cpp)
-
-target_link_libraries(libraryshots PRIVATE
-    denkzettelui
-    Qt6::Test
-)
-
-# The hull of the capture window under two desktop themes and two colour
-# schemes (wireframes 4a/4b). Same rules as the benches above.
-add_executable(captureshots captureshots.cpp)
-
-target_link_libraries(captureshots PRIVATE
-    denkzettelcapture
-    KF6::Svg
-    Qt6::Test
-)
-
-target_compile_definitions(captureshots PRIVATE
-    DENKZETTEL_TEST_THEMES="${CMAKE_CURRENT_SOURCE_DIR}/themes")
-
 # The two pictures of the README — capture window and library, with invented
-# notes. Same rules as the benches above.
+# notes. No add_test(): it produces pictures for a human to look at, and a
+# broken screenshot writer must not colour the suite red. It is built by an
+# ordinary build all the same — it was EXCLUDE_FROM_ALL once, and a runner
+# nobody rebuilds writes plausible pictures of an old state while the suite
+# stays green. Run it with QT_QPA_PLATFORMTHEME=kde, or the substitute font
+# misstates the type sizes.
 add_executable(readmeshots readmeshots.cpp)
 
 target_link_libraries(readmeshots PRIVATE

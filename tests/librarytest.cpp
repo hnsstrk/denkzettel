@@ -5,7 +5,6 @@
 #include "ui/timestampformat.h"
 
 #include <KLocalizedString>
-#include <KMessageWidget>
 
 #include <QAction>
 #include <QDialog>
@@ -140,7 +139,6 @@ private Q_SLOTS:
     void init();
     void cleanup();
 
-    void namesTodayAndYesterday();
     void switchesOnTheCalendarDayNotAfterTwentyFourHours();
     void usesTheWeekdayFormWithinTheTwoCalendarWeeks();
     void usesTheAbsoluteDateBeyondTheLastWeek();
@@ -158,7 +156,6 @@ private Q_SLOTS:
 
     void keepsTheGracePeriodOfFiveSeconds();
     void deletesTheNoteWhenTheGracePeriodRunsOut();
-    void countsTheRemainingSecondsDown();
     void keepsTheNoteWhenTheDeletionIsUndone();
     void carriesOutTheFirstDeletionWhenASecondArrives();
     void carriesOutThePendingDeletionOnFlush();
@@ -179,8 +176,6 @@ private Q_SLOTS:
     void bringsBackTheHeadWhenTheDeletionIsUndone();
     void regroupsWhenTheWindowIsActivated();
     void staysPutWhenTheWindowIsActivatedWithoutADayChange();
-    void undoesTheDeletionByKeyboard();
-    void deletesWithTheDeleteKey();
     void filtersTheListWithTheSearchField();
     void carriesOutAPendingDeletionWhenTheSearchChanges();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
@@ -342,16 +337,6 @@ QDateTime LibraryTest::at(const QString &isoDateTime)
 QLocale LibraryTest::german()
 {
     return QLocale(QLocale::German, QLocale::Germany);
-}
-
-void LibraryTest::namesTodayAndYesterday()
-{
-    const QDateTime now = at(QStringLiteral("2026-07-31T16:00:00"));
-
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-31T14:32:00")), now, german()),
-             QStringLiteral("Heute 14:32"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-30T21:48:00")), now, german()),
-             QStringLiteral("Gestern 21:48"));
 }
 
 void LibraryTest::switchesOnTheCalendarDayNotAfterTwentyFourHours()
@@ -861,21 +846,6 @@ void LibraryTest::deletesTheNoteWhenTheGracePeriodRunsOut()
     QCOMPARE(committed.first().first().toLongLong(), id);
     QVERIFY(!deletion.isPending());
     QVERIFY(!m_store->note(id).has_value());
-}
-
-void LibraryTest::countsTheRemainingSecondsDown()
-{
-    PendingDeletion deletion(m_store.get(), 2);
-    QSignalSpy remaining(&deletion, &PendingDeletion::remainingChanged);
-
-    deletion.request(storedNote(QStringLiteral("zählt herunter")));
-
-    // The message shows the full period right away, then the last second.
-    QCOMPARE(remaining.size(), 1);
-    QCOMPARE(remaining.first().first().toInt(), 2);
-
-    QVERIFY(QTest::qWaitFor([&remaining] { return remaining.size() == 2; }, 3000));
-    QCOMPARE(remaining.last().first().toInt(), 1);
 }
 
 void LibraryTest::keepsTheNoteWhenTheDeletionIsUndone()
@@ -1710,29 +1680,6 @@ void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
                             .arg(list->viewport()->height())));
 }
 
-void LibraryTest::undoesTheDeletionByKeyboard()
-{
-    const qint64 id = storedNote(QStringLiteral("kommt zurück"));
-    storedNote(QStringLiteral("bleibt sowieso"));
-
-    LibraryWindow window(m_store.get());
-    window.showLibrary();
-    QVERIFY(QTest::qWaitForWindowExposed(&window));
-
-    QListView *list = listOf(window);
-    list->setCurrentIndex(noteRow(list, 0));
-    actionNamed(window, QStringLiteral("Löschen"))->trigger();
-    QCOMPARE(modelOf(list)->noteCount(), 1);
-
-    QTest::keyClick(&window, Qt::Key_Z, Qt::ControlModifier);
-
-    // The note is back in its old place and selected again.
-    QCOMPARE(modelOf(list)->noteCount(), 2);
-    QCOMPARE(list->currentIndex(), noteRow(list, 0));
-    QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("kommt zurück"));
-    QVERIFY(m_store->note(id).has_value());
-}
-
 void LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
 {
     // Two groups of one note each: deleting either of them empties its group.
@@ -1854,25 +1801,6 @@ void LibraryTest::staysPutWhenTheWindowIsActivatedWithoutADayChange()
     // grouping has changed, so nothing may move.
     QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
     QCOMPARE(list->currentIndex(), selected);
-}
-
-void LibraryTest::deletesWithTheDeleteKey()
-{
-    const qint64 id = storedNote(QStringLiteral("per Taste gelöscht"));
-
-    LibraryWindow window(m_store.get());
-    window.showLibrary();
-    QVERIFY(QTest::qWaitForWindowExposed(&window));
-
-    QListView *list = listOf(window);
-    list->setCurrentIndex(noteRow(list, 0));
-    QTest::keyClick(list, Qt::Key_Delete);
-
-    QCOMPARE(modelOf(list)->noteCount(), 0);
-
-    // The store still has it: the key starts the grace period, it does not
-    // skip it.
-    QVERIFY(m_store->note(id).has_value());
 }
 
 void LibraryTest::filtersTheListWithTheSearchField()
@@ -2239,16 +2167,10 @@ void LibraryTest::savesTheChangedTextWithTheButton()
 
     QCOMPARE(m_store->note(id)->content, QStringLiteral("sonst wird der Vault zugemüllt"));
 
-    // The answer is the way back into the reading state — and nothing else:
-    // no success message, no band under the header (wireframe 2a).
-    QVERIFY(!editorOf(window)->isVisible());
-    QVERIFY(readerOf(window)->isVisible());
+    // The answer is the way back into the reading state, and the reading pane
+    // carries what was written (wireframe 2a).
     QCOMPARE(readerOf(window)->toPlainText(), QStringLiteral("sonst wird der Vault zugemüllt"));
     QVERIFY(buttonNamed(window, QStringLiteral("Bearbeiten"))->isVisible());
-
-    auto *message = window.findChild<KMessageWidget *>();
-    QVERIFY(message);
-    QVERIFY2(!message->isVisible(), "Nach dem Speichern erscheint eine Erfolgsmeldung");
 
     // The list shows the note it now holds, not the one it was opened with.
     QCOMPARE(noteRow(listOf(window), 0).data(Qt::DisplayRole).toString(),

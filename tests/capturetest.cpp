@@ -1,11 +1,11 @@
 #include "capture/capturewindow.h"
-#include "desktopthemes.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
 
 #include <QApplication>
 #include <QDir>
+#include <QFile>
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QStandardPaths>
@@ -47,16 +47,6 @@ private:
 
 namespace
 {
-/**
- * No desktop theme is named here, and that is the point.
- *
- * A fixed pair of names ties the assertion to the distribution the test was
- * written on. Where the themes come from and why there are two sources stands
- * in `tests/desktopthemes.h`.
- */
-const QString NarrowBorderTheme = themes::bundledNarrow();
-const QString WideBorderTheme = themes::bundledWide();
-
 /** The middle of the text area: the field's own surface, clear of its border. */
 QPoint fieldSurface(const QPlainTextEdit *text)
 {
@@ -82,23 +72,31 @@ void CaptureTest::initTestCase()
     // Without the domain every i18n() call in the window warns.
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
 
-    // The window reads the desktop theme out of `plasmarc`, and one test
-    // writes that file. Test mode points QStandardPaths at a directory of the
-    // test's own, so the developer's desktop theme is never touched.
+    // The window reads its desktop theme out of `plasmarc` and hangs a KDirWatch
+    // on that file. Test mode points QStandardPaths at a directory of the test's
+    // own, so neither road reaches the developer's own configuration; the
+    // directory has to exist before the watch is set.
     QStandardPaths::setTestModeEnabled(true);
-    QDir().mkpath(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation));
+    const QString configDirectory =
+        QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+    QDir().mkpath(configDirectory);
 
-    // Before the first theme is resolved: the two themes of the test itself go
-    // on the data path, next to the installed ones rather than instead of them.
+    // And then the file goes, before the first window reads it. This run writes
+    // no `plasmarc` — measured — so whatever is found there was left by an
+    // earlier one, and until 11.08.2026 a test did leave a theme name behind.
+    // A run whose outcome depends on what an earlier run left lying around
+    // measures the earlier run and not the code.
     //
-    // Except in the one run that is *about* having no theme at all — there the
-    // whole point is an empty data path, and mounting ours would hand it the
-    // very thing it must do without.
-    if (!qEnvironmentVariableIsSet("DENKZETTEL_TEST_WITHOUT_DESKTOP_THEME")) {
-        themes::addBundledThemesToDataPath();
-        QVERIFY2(themes::borderOf(NarrowBorderTheme) > 0 && themes::borderOf(WideBorderTheme) > 0,
-                 "Die mitgelieferten Prüf-Themes lösen nicht auf — steht tests/themes/ am Platz?");
-    }
+    // Cleared rather than filled with a theme of our own, and the difference
+    // matters: a run that writes itself a known theme measures a state it built
+    // for itself, while a cleared one measures the fallback the customer gets —
+    // his own `plasmarc` carries no `[Theme] name` either.
+    //
+    // This is no guard against the fault behind the crash of 12.08.2026, and it
+    // is not meant as one. It keeps left-over state from deciding the run; that
+    // a theme name which no longer resolves takes the process down is a fault
+    // of its own and has an issue of its own.
+    QFile::remove(configDirectory + QStringLiteral("/plasmarc"));
 }
 
 void CaptureTest::init()
@@ -216,8 +214,11 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
 
         // Every road the standing window takes, not only the one it was built
         // on: reading plasmarc, and being handed a name that nothing answers to.
+        // The name below is invented and answers to nothing anywhere — which is
+        // its whole job here, and on the empty data path of this process no name
+        // would resolve anyway.
         m_window->reloadDesktopTheme();
-        m_window->reloadDesktopTheme(NarrowBorderTheme);
+        m_window->reloadDesktopTheme(QStringLiteral("denkzettel-kein-solches-theme"));
         m_window->showCapture();
 
         const QImage picture = shot(*m_window);
