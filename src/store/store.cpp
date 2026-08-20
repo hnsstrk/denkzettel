@@ -47,7 +47,7 @@ const QList<QStringList> &migrations()
         // text exists once and cannot drift between two copies.
         {
             // `trigram` indexes every three-character sequence, which is what
-            // makes „grafieren" find „fotografieren" (customer decision
+            // makes „grafieren" find „fotografieren" (user decision
             // 01.08.2026). It costs index size — measured at roughly six times
             // a unicode61 index — and it cannot represent anything shorter
             // than three characters; Store::search() covers that gap.
@@ -224,7 +224,7 @@ bool Store::open()
 {
     const QString directory = QFileInfo(m_databasePath).absolutePath();
     if (!QDir().mkpath(directory)) {
-        m_lastError = QStringLiteral("Verzeichnis %1 lässt sich nicht anlegen").arg(directory);
+        m_lastError = QStringLiteral("Creating directory %1 failed").arg(directory);
         return false;
     }
 
@@ -518,7 +518,7 @@ bool Store::removeNote(qint64 id)
         const QString file = audioDirectory() + QLatin1Char('/') + stored->audioPath;
         if (QFile::exists(file) && !QFile::remove(file)) {
             // The note is gone either way; deleting it did not fail.
-            qWarning("Audiodatei %s ließ sich nicht löschen", qUtf8Printable(file));
+            qWarning("Deleting the audio file %s failed", qUtf8Printable(file));
         }
     }
 

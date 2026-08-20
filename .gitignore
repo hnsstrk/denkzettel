@@ -2,20 +2,14 @@ build/
 compile_commands.json
 .cache/
 
-# Zweiter Bauplatz für die Installation am Sprint-Ende. Er existiert,
-# weil "build/" während des Sprints den Agenten gehört: Ein Neukonfigurieren
-# mit -DCMAKE_INSTALL_PREFIX=/usr risse einem laufenden Strang oder Review den
-# Bau weg. Angelegt am 04.08.2026, als der UX-Review noch lief.
+# Second build location for the installation. It exists because `build/` is in
+# use while work is going on: reconfiguring it with -DCMAKE_INSTALL_PREFIX=/usr
+# would pull the build out from under a running check. Created on 2026-08-04.
 build-install/
 
-# Arbeitsbäume paralleler Agenten (Sprint 3: vier Stück).
-# Ihr Kompilat deckt "build/" oben bereits ab; ungeschützt waren die
-# Projektkopien darin — vervierfachte Quelldateien, kein Datenberg.
-.claude/worktrees/
-
-# Lokale Werkzeugkonfiguration von Claude Code. Enthält heute nur ein leeres
-# enabledPlugins-Objekt; das semgrep-Plugin hat der Kunde am 01.08.2026
-# deaktiviert (Sprint-2-Retro, 9.6). Lokale Einstellungen gehören nicht ins
-# Projekt -- eine geteilte Konfiguration nähme man bewusst auf.
+# Local tool configuration of Claude Code. Today it holds nothing but an empty
+# enabledPlugins object; the user disabled the semgrep plugin on 2026-08-01.
+# Local settings do not belong in the project — a shared configuration would be
+# taken in deliberately.
 .claude/settings.json
 build-*/

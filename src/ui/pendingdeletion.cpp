@@ -76,7 +76,7 @@ void PendingDeletion::carryOut(qint64 noteId)
         // The note stays; the list no longer shows it. Saying so is all this
         // layer can do — the next time the library opens, it reads the store
         // again and the note is back.
-        qWarning("Löschen der Notiz %lld fehlgeschlagen: %s", noteId, qPrintable(m_store->lastError()));
+        qWarning("Deleting the note %lld failed: %s", noteId, qPrintable(m_store->lastError()));
     }
 
     Q_EMIT committed(noteId);

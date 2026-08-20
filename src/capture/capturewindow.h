@@ -51,8 +51,8 @@ ContrastEffect contrastEffectOf(const QString &desktopTheme);
  * The two text colours a desktop theme brings in its own `colors` file.
  *
  * Both invalid when the theme ships no such file — the measured majority: of
- * the eight themes on the customer's machine four bring one and four do not
- * (measured, Vorprüfung zu #85). That is the fork of the customer decision
+ * the eight themes on the user's machine four bring one and four do not
+ * (measured, pre-check for #85). That is the fork of the user decision
  * of 04.08.2026: the writing comes from the same hand as the surface, and
  * where the theme keeps no hand of its own, the colour scheme keeps it.
  */
@@ -80,8 +80,8 @@ ThemeTextColours themeTextColoursOf(const QString &desktopTheme);
  *
  * Asked **before** the first registration, and therefore not through
  * `KWindowEffects::isEffectAvailable(BlurBehind)`: that one answers `false` in
- * the customer's own session until we have registered once (measured,
- * Vorprüfung zu #83). A window built on that value would start out opaque in
+ * the user's own session until we have registered once (measured,
+ * pre-check for #83). A window built on that value would start out opaque in
  * exactly the session this story is for.
  *
  * Asked of KWin itself over D-Bus instead. A platform without a compositing
@@ -182,7 +182,7 @@ private:
     /**
      * The text field, out of the theme's `widgets/lineedit` (issue #100).
      *
-     * A third frame on the same image set — the customer's finding of
+     * A third frame on the same image set — the user's finding of
      * 05.08.2026 was that the window shows no entry area at all, and the answer
      * is the one KRunner gives: the theme's own graphic, one layer below the
      * hull. It is drawn on the geometry of the text area, so it has to be

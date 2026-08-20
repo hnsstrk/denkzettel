@@ -48,24 +48,23 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration)
     case ShortcutRegistration::Reached:
         return {};
     case ShortcutRegistration::ApplicationNotInstalled:
-        return i18n("Meta+N ist beim Kurzbefehl-Dienst nicht angekommen: Denkzettel ist nicht "
-                    "systemweit installiert, und ohne seine Desktop-Datei legt der Dienst keinen "
-                    "Eintrag an. Nach der Installation steht das Kürzel zur Verfügung; bis dahin "
-                    "bleibt das Erfassungsfenster über das Symbol im Systemabschnitt erreichbar.");
+        return i18n("Meta+N never reached the shortcut service: Denkzettel is not installed "
+                    "system-wide, and without its desktop file the service creates no entry. "
+                    "After the installation the shortcut works; until then the capture window "
+                    "stays reachable through the icon in the system tray.");
     case ShortcutRegistration::DaemonKeptNothing:
         // No process name and no question: whoever does not know what
         // kglobalacceld is knows no more after reading it. What is left is a
         // step that can be carried out and checked (KDE HIG, UI review B9).
-        return i18n("Meta+N ist beim Kurzbefehl-Dienst nicht angekommen — er hat die Registrierung "
-                    "nicht behalten. Die Kurzbefehle lassen sich in den Systemeinstellungen unter "
-                    "„Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst "
-                    "zurück. Das Erfassungsfenster bleibt über das Symbol im Systemabschnitt "
-                    "erreichbar.");
+        return i18n("Meta+N never reached the shortcut service — it did not keep the "
+                    "registration. The shortcuts can be checked in the system settings under "
+                    "“Shortcuts”; if that does not help, logging in anew brings the service back. "
+                    "The capture window stays reachable through the icon in the system tray.");
     case ShortcutRegistration::DesktopActionMissing:
-        return i18n("Meta+N ist eingerichtet, löst aber nichts aus: In der Desktop-Datei von "
-                    "Denkzettel fehlt der Eintrag zu diesem Kürzel. Eine vollständige "
-                    "Neuinstallation bringt ihn zurück. Bis dahin bleibt das Erfassungsfenster "
-                    "über das Symbol im Systemabschnitt erreichbar.");
+        return i18n("Meta+N is set up but triggers nothing: the desktop file of Denkzettel "
+                    "is missing the entry for this shortcut. A complete reinstallation brings it "
+                    "back. Until then the capture window stays reachable through the icon in the "
+                    "system tray.");
     }
 
     return {};

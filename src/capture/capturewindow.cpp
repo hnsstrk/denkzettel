@@ -63,10 +63,10 @@ constexpr QLatin1StringView DefaultDesktopTheme("default");
 
 /**
  * Where the text field comes from: the same source as the hull, one graphic
- * down (issue #100, customer decision of 06.08.2026).
+ * down (issue #100, user decision of 06.08.2026).
  *
  * KRunner's entry field is drawn from exactly this image and prefix
- * (`TextField.qml:187–191`), and KRunner is the customer's yardstick. `base` is
+ * (`TextField.qml:187–191`), and KRunner is the user's yardstick. `base` is
  * the resting state, `focus` the layer on top of it — Plasma's own layering,
  * named by the element `hint-focus-over-base` in the graphic itself. Under
  * several themes `base` barely covers, and the focus layer is what makes it a
@@ -171,9 +171,9 @@ ThemeTextColours themeTextColoursOf(const QString &desktopTheme)
 {
     // Beside the graphic and beside `metadata.desktop`, in the same file kind
     // and read the same way. A theme that ships no `colors` file — four of the
-    // eight on the customer's machine — leaves both colours invalid, and the
+    // eight on the user's machine — leaves both colours invalid, and the
     // window then keeps to the colour scheme, which is the other half of the
-    // customer decision of 04.08.2026.
+    // user decision of 04.08.2026.
     const QString file = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
                                                 QStringLiteral("%1/%2/colors")
                                                     .arg(DesktopThemePath, desktopTheme));
@@ -260,13 +260,13 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     // The same image and the same set, one prefix further: what the theme draws
     // while the field has the keyboard. No colour set here either, for the
     // reason above — the colour comes out of the class names in the SVG, here
-    // `ColorScheme-ViewFocus` (measured: under the customer's scheme that is his
+    // `ColorScheme-ViewFocus` (measured: under the user's scheme that is their
     // accent, 61,212,37).
     m_focus->setImagePath(FieldImage);
     m_focus->setElementPrefix(FocusPrefix);
 
     m_text->setFrameShape(QFrame::NoFrame);
-    m_text->setPlaceholderText(i18n("Gedanke festhalten …"));
+    m_text->setPlaceholderText(i18n("Capture a thought…"));
     m_text->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_text->installEventFilter(this);
     // The text area draws no ground of **its own**, and since issue #100 that
@@ -291,7 +291,7 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     layout->addWidget(m_text);
     layout->addSpacing(SpacingAboveFooter);
 
-    QLabel *hint = subtleLabel(i18n("Esc verwirft · Strg+Enter speichert"), this);
+    QLabel *hint = subtleLabel(i18n("Esc discards · Ctrl+Enter saves"), this);
     hint->setAlignment(Qt::AlignCenter);
     layout->addWidget(hint);
     m_subtleLabels = {appName, hint};
@@ -366,7 +366,7 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     m_imageSet = std::move(imageSet);
     m_contrast = capture::contrastEffectOf(theme);
     // Read here and kept: the writing comes from the same hand as the surface
-    // (customer decision 04.08.2026, issue #85), so it is read where the
+    // (user decision 04.08.2026, issue #85), so it is read where the
     // surface is. Kept rather than asked for again, because the next palette
     // change has to find it — a colour scheme change does not change the
     // theme, and applyTextColours() runs on both occasions.
@@ -657,7 +657,7 @@ void CaptureWindow::bindShadow()
     m_shadow.reset();
 
     // The tiles come from the same image as the hull, under its `shadow`
-    // prefix. All eight desktop themes on the customer's machine bring them
+    // prefix. All eight desktop themes on the user's machine bring them
     // (measured 01.08.2026); a theme without them simply gets no shadow.
     // Before the first show() there is no native window to hang it on; present()
     // comes back here once there is.

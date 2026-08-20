@@ -27,25 +27,25 @@ foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}")
     endif()
 endforeach()
 
-# Bei installierter Anwendung löst ein Kürzel keine D-Bus-Nachricht aus, sondern
-# die gleichnamige Desktop-Action: kglobalacceld behandelt eine Komponente, deren
-# Name auf .desktop endet, als Service-Action-Komponente und startet die Aktion
-# über einen ApplicationLauncherJob. Fehlt die Gruppe, protokolliert der Dienst
-# einen Fehler und der Tastendruck verpufft — genau der Kundenbefund vom
-# 01.08.2026 (SPEC 2.4). Geprüft wird der Anwendungseintrag, denn über ihn löst
-# KService die Komponente auf.
+# With the application installed, a shortcut does not trigger a D-Bus message but
+# the desktop action of the same name: kglobalacceld treats a component whose name
+# ends in .desktop as a service action component and starts the action through an
+# ApplicationLauncherJob. If the group is missing, the service logs an error and
+# the key press fizzles out — exactly the user's finding of 2026-08-01 (SPEC 2.4).
+# What gets checked is the application entry, because KService resolves the
+# component through it.
 file(READ "${STAGING_DIR}${APPLICATION_ENTRY}" application_entry)
 
 if(NOT application_entry MATCHES "\nActions=[^\n]*show-capture;")
     message(FATAL_ERROR
-        "${APPLICATION_ENTRY} führt show-capture nicht in Actions= — "
-        "kglobalacceld findet die Aktion dann nicht.")
+        "${APPLICATION_ENTRY} does not list show-capture in Actions= — "
+        "kglobalacceld will not find the action.")
 endif()
 
 if(NOT application_entry MATCHES "\n\\[Desktop Action show-capture\\]")
     message(FATAL_ERROR
-        "${APPLICATION_ENTRY} hat keine Gruppe [Desktop Action show-capture] — "
-        "der Tastendruck läuft dann ins Leere.")
+        "${APPLICATION_ENTRY} has no [Desktop Action show-capture] group — "
+        "the key press then runs into nothing.")
 endif()
 
 string(FIND "${application_entry}" "[Desktop Action show-capture]" action_group_start)

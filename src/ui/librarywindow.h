@@ -177,7 +177,7 @@ private:
     /** Writes the edited text; keeps category, tags and state (SPEC 9). */
     void saveEdit();
 
-    /** „Abbrechen“ and Esc: leaves the editor, asking first if need be. */
+    /** "Cancel" and Esc: leaves the editor, asking first if need be. */
     void cancelEdit();
 
     /** Leaves the edit state without writing and without asking. */
@@ -222,7 +222,7 @@ private:
 
     /**
      * Buttons and badge share one place in the head row: page 0 carries
-     * „Bearbeiten“ and „Löschen“, page 1 the badge.
+     * "Edit" and "Delete", page 1 the badge.
      *
      * A stack rather than showing and hiding, because its size hint is the
      * largest of its pages — that is what keeps the row, and with it the note

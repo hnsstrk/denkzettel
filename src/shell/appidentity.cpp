@@ -36,7 +36,7 @@ void processCommandLineArguments(const QCoreApplication &app)
 {
     QCommandLineParser parser;
     parser.setApplicationDescription(
-        i18n("Dienst von Denkzettel: nimmt Notizen entgegen und hält die globalen Kürzel bereit."));
+        i18n("Denkzettel service: it receives notes and keeps the global shortcuts ready."));
     parser.addHelpOption();
     parser.addVersionOption();
 

@@ -1,209 +1,223 @@
 # Changelog
 
-Alle nennenswerten Änderungen an Denkzettel stehen in dieser Datei —
-aus Nutzersicht geschrieben, nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/)
-gegliedert. Quelle sind die geschlossenen Issues des jeweiligen
-Sprint-Milestones; rein technische Einträge bleiben draußen, jede Änderung
-am Datenbank-Schema wird immer genannt. Die Versionszählung folgt
-0.x-SemVer (Festlegung vom 02.08.2026; seit #61 sichtbar über
+All notable changes to Denkzettel are recorded in this file — written from the
+user's point of view, structured after
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The source is the
+closed issues of the respective sprint milestone; purely technical entries stay
+out, every change to the database schema is always named. Version numbering
+follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 `denkzetteld --version`).
+
+## [Unreleased]
+
+### Changed
+
+- **The interface speaks English.** The source language of the application is
+  now English; German lives on as a maintained translation in
+  `po/de/denkzettel.po` and is installed along with the program, so a German
+  session sees exactly the wording it saw before. `po/Messages.sh` refreshes the
+  template after every change to a string.
+- **Dates and times follow the locale.** The two date formats were wired to the
+  German arrangement, which showed English-speaking users "Tue, 28. July" and
+  "10.07.2026". They are now derived from the locale — "Tue, July 28" and
+  "7/10/2026" under en_US, unchanged under de_DE.
+- **Documentation and issues are in English.** `README.md` is rewritten for
+  GitHub and carries the note that the interface is English; `README.de.md` is
+  the German counterpart. `SPEC.md`, this changelog, the working instructions
+  and the CI workflow follow, as do the titles and texts of the open issues.
+  The screenshots exist in both languages under `docs/images/`.
+
+**No change to the database schema.**
 
 ## [0.4.0] — 2026-08-11
 
-Sprint 10, an einem Abend. **Vier Fehler**, davon zwei aus der Durchsicht des
-Kunden nach Sprint 9 — und einer, den niemand hätte sehen können, weil er nur
-im Release-Bau auftrat.
+Sprint 10, in a single evening. **Four faults**, two of them from the
+user's review after sprint 9 — and one that nobody could have seen, because
+it only occurred in the release build.
 
-### Behoben
+### Fixed
 
-- **Eine neue Notiz erscheint jetzt sofort in der offenen Bibliothek.** Wer die
-  Bibliothek offen stehen hatte und mit `Meta+N` etwas erfasste, sah die Notiz
-  bis zum nächsten Öffnen des Fensters nicht. Die Liste hört jetzt auf den
-  Speicher statt aufs Fenster, also gilt es für jeden Weg — auch für
-  `AddNote()` über D-Bus. Läuft gerade eine Löschfrist, wartet die neue Notiz
-  deren fünf Sekunden ab, statt das Rückgängig zu verbrauchen, das die
-  Bibliothek noch anbietet. Die gelesene Notiz bleibt stehen, der Rollbalken
-  springt nicht, und bei laufender Suche kommt die Notiz nur in die Liste, wenn
-  sie trifft (#105)
-- **Die Gruppen der Bibliothek sind auseinanderzuhalten.** „Heute", „Gestern",
-  „Diese Woche" stehen jetzt in der Textgröße der Anwendung und fett, die Linie
-  liegt neben der Beschriftung statt über die volle Breite — die Form, die KDE
-  für Abschnittsköpfe verwendet. Bisher unterschied sich die Gruppengrenze von
-  der Notizgrenze in einem einzigen Merkmal: 18 Gerätepunkte je Seite, 4,3 % der
-  Breite, über 109 bis 159 Punkte Abstand zu vergleichen. Der Kopf war zudem in
-  der kleinsten Schrift der Liste gesetzt und damit kleiner als der Notiztext,
-  den er überschreibt (#104)
-- **Das Eingabefeld zeigt, wann die Tastatur hingeht.** Es trägt jetzt den
-  Fokuszustand seiner Theme-Grafik, solange das Fenster das aktive ist. Unter
-  fünf der acht Desktop-Themes war das Feld im Ruhezustand praktisch unsichtbar
-  (1,00 bis 1,14 : 1 gegen den Grund); mit der Fokusschicht sind es bis zu
-  4,66 : 1. Ein Fenster ohne Tastatur zeigt keine Kante — das ist die andere
-  Hälfte der Auskunft (#102)
-- **Eine Kategorie geht im Release-Bau nicht mehr verloren.** Der Fehler saß im
-  Prüfstand, nicht im Programm: `Q_ASSERT` lässt seine Bedingung unter
-  `QT_NO_DEBUG` ungeprüft, und Qt setzt das für jeden Bautyp außer `Debug`. Wer
-  aus dem Quelltext ein optimiertes Paket baute, bekam Prüfsätze, die einen
-  Datenverlust meldeten, den nur die Testumgebung verursacht hatte. Der
-  öffentliche Lauf baut deshalb künftig beide Bautypen, und der Linter meldet
-  diese Fehlerklasse ab jetzt selbst (#99)
+- **A new note now appears in an open library immediately.** Anyone who had the
+  library standing open and captured something with `Meta+N` did not see the
+  note until the next time the window was opened. The list now listens to the
+  store instead of to the window, so it holds for every path — including
+  `AddNote()` over D-Bus. If a deletion grace period is running, the new note
+  waits out its five seconds instead of consuming the undo that the library is
+  still offering. The note being read stays in place, the scrollbar does not
+  jump, and while a search is running the note only enters the list if it
+  matches (#105)
+- **The library's groups can be told apart.** "Today", "Yesterday", "This week"
+  now stand in the application's text size and in bold, and the line sits next
+  to the label instead of running the full width — the shape KDE uses for
+  section headers. Until now the group boundary differed from the note boundary
+  in a single feature: 18 device pixels per side, 4.3% of the width, to be
+  compared across a distance of 109 to 159 pixels. The header was also set in
+  the smallest font of the list and was therefore smaller than the note text it
+  heads (#104)
+- **The input field shows when the keyboard goes there.** It now carries the focus
+  state of its theme graphic as long as the window is the active one. Under
+  five of the eight desktop themes the field was practically invisible at rest
+  (1.00 to 1.14 : 1 against the background); with the focus layer it reaches up
+  to 4.66 : 1. A window without the keyboard shows no edge — that is the other
+  half of the information (#102)
+- **A category is no longer lost in the release build.** The fault sat in the
+  test harness, not in the program: `Q_ASSERT` leaves its condition unchecked
+  under `QT_NO_DEBUG`, and Qt sets that for every build type except `Debug`.
+  Anyone building an optimized package from the source got test cases reporting
+  a data loss that only the test environment had caused. The public run
+  therefore builds both build types from now on, and the linter reports this
+  class of fault itself from here on (#99)
 
-### Bekannte Grenzen
+### Known limitations
 
-- Im **ruhenden** Zustand — wenn ein anderes Fenster den Fokus hat — fällt das
-  Eingabefeld unter denselben fünf Themes weiter auf 1,00 bis 1,14 : 1 zurück.
-  Das ist Absicht: Ein Fenster, in das die Tastatur nicht geht, soll es auch
-  nicht behaupten.
-- Die Bilder in der README zeigen weiterhin den Stand vom 04.08.2026.
+- In the **resting** state — when another window has the focus — the input
+  field falls back to 1.00 to 1.14 : 1 under the same five themes. That is
+  deliberate: a window the keyboard does not go to should not claim otherwise.
+- The images in the README still show the state of 2026-08-04.
 
 ## [0.3.0] — 2026-08-11
 
-Sprint 9, abgenommen vom Kunden am 11.08.2026 am installierten Stand. **Zwei
-Befunde aus seiner Durchsicht nach Sprint 8**, beide zur Lesbarkeit. Der erste
-ist geheilt, der zweite zur Hälfte: Die Notizen sind auseinanderzuhalten, die
-Gruppen noch nicht.
+Sprint 9, accepted by the user on 2026-08-11 on the installed state. **Two
+findings from their review after sprint 8**, both about legibility. The first
+is cured, the second by half: the notes can be told apart, the groups cannot
+yet.
 
-### Geändert
+### Changed
 
-- **Das Erfassungsfenster zeigt, wo man tippt.** Der Textbereich bekommt Fläche
-  und Kante aus der Grafik des Desktop-Themes (`widgets/lineedit`) — dieselbe
-  Quelle wie die Fensterhülle, eine Ebene tiefer. Bis hierher war das Fenster
-  ein durchgehender Farbblock, in dem der Eingabebereich nicht zu erkennen war.
-  In der Sitzung hebt sich das Feld unter `default` um 1,79 : 1 von der Hülle ab
-  — KRunners Feld liegt bei 1,41 : 1 (#100)
-- **Die Notizliste trennt Einträge und Gruppen.** Zwischen zwei Notizen
-  derselben Gruppe steht eine auf die Textkante eingerückte Haarlinie, über
-  jedem Gruppenkopf außer dem ersten dieselbe Linie über die volle Breite.
-  Gleiche Farbe, verschiedene Länge — die Rangfolge Notiz/Gruppe entsteht aus
-  der Ausdehnung des Strichs. Kein Maß der Liste ändert sich dadurch (#101)
+- **The capture window shows where you are typing.** The text area takes
+  surface and edge from the desktop theme's graphics (`widgets/lineedit`) — the
+  same source as the window shell, one layer deeper. Up to here the window was
+  one continuous block of color in which the input area could not be made out.
+  In the session the field stands out from the shell by 1.79 : 1 under
+  `default` — KRunner's field sits at 1.41 : 1 (#100)
+- **The note list separates entries and groups.** Between two notes of the same
+  group there is a hairline indented to the text edge, above every group header
+  except the first the same line across the full width. Same color, different
+  length — the ranking note/group comes out of the extent of the stroke. No
+  measurement of the list changes because of it (#101)
 
-### Bekannte Grenzen
+### Known limitations
 
-- **Wo eine Gruppe endet und die nächste beginnt, ist weiterhin schwer zu
-  sehen.** Die Linie über dem Gruppenkopf läuft über die volle Breite, die
-  zwischen zwei Notizen ist eingerückt — beide haben dieselbe Farbe und dieselbe
-  Stärke, und der Längenunterschied allein trägt die Rangfolge nicht weit
-  genug. Erfasst als #104; dort steht die Gestaltungsfrage offen, statt ein
-  Mittel zu setzen
-- **Eine neu erfasste Notiz erscheint nicht in einer bereits offenen
-  Bibliothek** — die Liste liest erst beim nächsten Anzeigen des Fensters
-  wieder nach. Erfasst als #105
-- **Unter fünf der acht geprüften Desktop-Themes bleibt das Eingabefeld
-  unsichtbar** — dort zeichnet die Theme-Grafik nur einen Hauch (Deckung 15 von
-  255). Auf der Voreinstellung greift der Rückfall `default`, und dort trägt es.
-  Die Heilung ist als #102 erfasst: Alle acht Themes führen einen Fokuszustand
-  mit sichtbarer Kante, der das Feld unter allen sichtbar machen würde
+- **Where one group ends and the next begins is still hard to see.** The line
+  above the group header runs the full width, the one between two notes is
+  indented — both have the same color and the same weight, and the difference
+  in length alone does not carry the ranking far enough. Recorded as #104;
+  there the design question is left open instead of prescribing a means
+- **A newly captured note does not appear in an already open library** — the
+  list only reads again the next time the window is shown. Recorded as #105
+- **Under five of the eight desktop themes examined the input field stays
+  invisible** — there the theme graphic draws no more than a hint (opacity 15
+  of 255). On the default setting the fallback `default` takes hold, and there
+  it carries. The cure is recorded as #102: all eight themes carry a focus
+  state with a visible edge that would make the field visible under all of them
 
-### Anmerkung
+### Note
 
-Die Bilder in der README zeigen weiterhin den Stand vom 04.08.2026 — der
-Bildläufer erzeugt seit der nativen Hülle ein unbrauchbares Bild (#96).
+The images in the README still show the state of 2026-08-04 — the screenshot
+runner has produced an unusable image since the native shell (#96).
 
 ## [0.2.0] — 2026-08-05
 
-Abgenommen am 05.08.2026 (Sprints 6 bis 8; die Abnahme lag beim Product Owner,
-der Kunde sieht das Gesamtergebnis danach an). **Die erste Fassung mit einer
-Versionsnummer** — bis hierher gab es keine, weil die Zahl die Anwendung nicht
-erreichte.
+Accepted on 2026-08-05 (sprints 6 to 8; the acceptance lay with the product
+owner, the user sees the overall result afterwards). **The first release
+with a version number** — up to here there was none, because the number did not
+reach the application.
 
-### Hinzugefügt
+### Added
 
-- **Das Erfassungsfenster ist eine native Plasma-Überlagerung.** Rundung,
-  Kontur und Schatten kommen aus dem Desktop-Theme, nicht aus eingebauten
-  Werten; der Grund dahinter wird weichgezeichnet wie bei KRunner und den
-  Benachrichtigungen. Gemessen ist die Fläche mit KRunner **bildpunktgleich**
-  (#83)
-- **Die Schrift kommt aus derselben Quelle wie die Fläche.** Bringt das
-  Desktop-Theme eigene Farben mit, gelten sie — für den Notiztext und für die
-  gedämpften Texte. Unter `breeze-light` steigt der Kontrast des Notiztextes
-  von 1,1 : 1 auf 13,4 : 1 (#85)
-- **`denkzetteld --version` und `--help`.** Beide antworten auch, während der
-  Dienst läuft (#61)
-- **Tooltips mit Tastenkürzel** an „Bearbeiten", „Löschen" und „Rückgängig"
-  in der Bibliothek (#72)
+- **The capture window is a native Plasma overlay.** Rounding, outline and
+  shadow come from the desktop theme, not from built-in values; the background
+  behind it is blurred as with KRunner and the notifications. Measured, the
+  surface is **pixel-identical** with KRunner (#83)
+- **The type comes from the same source as the surface.** If the desktop theme
+  brings its own colors, they apply — for the note text and for the muted
+  texts. Under `breeze-light` the contrast of the note text rises from 1.1 : 1
+  to 13.4 : 1 (#85)
+- **`denkzetteld --version` and `--help`.** Both answer even while the service
+  is running (#61)
+- **Tooltips with keyboard shortcuts** on "Edit", "Delete" and "Undo" in the
+  library (#72)
 
-### Behoben
+### Fixed
 
-- **Ein Klick auf eine angeschnittene Zeile wählt jetzt diese Zeile.** Vorher
-  rückte das Bild und markierte die Nachbarzeile, während der Lesebereich die
-  geklickte Notiz zeigte — Auswahl und Anzeige gingen auseinander (#71)
-- **Die erste Notiz einer Gruppe holt ihren Tageskopf ins Bild.** Vorher stand
-  bei einer Notiz von gestern „08:00" und nichts sagte, von welchem Tag (#70)
+- **A click on a clipped row now selects that row.** Previously the view
+  scrolled and marked the neighbouring row while the reading pane showed the
+  clicked note — selection and display drifted apart (#71)
+- **The first note of a group brings its day header into view.** Previously a
+  note from yesterday read "08:00" and nothing said which day it was from (#70)
 
-### Geändert
+### Changed
 
-- Die Linterschwelle steht auf null und wird bei jedem öffentlichen Lauf
-  geprüft; 88 Befunde sind geheilt, 37 mit Begründung stehengeblieben (#76)
+- The linter threshold stands at zero and is checked on every public run; 88
+  findings are cured, 37 left standing with a reason (#76)
 
-**Keine Änderung am Datenbank-Schema.**
+**No change to the database schema.**
 
-## [Unveröffentlicht]
+## [Unversioned] — sprints 4 and 5
 
-Stand aus den Sprints 4 und 5, abgenommen am 02.08.2026 (Kundenabnahme). Eine
-Versionsnummer bekamen diese Abnahmen nicht — die Regel wirkt erst ab #61, und
-rückwirkend wird nicht nummeriert.
+State from sprints 4 and 5, accepted on 2026-08-02 (user acceptance). These
+acceptances did not get a version number — the rule only takes effect from #61,
+and numbering is not applied retroactively.
 
-### Hinzugefügt
+### Added
 
-- **Notizen bearbeiten:** In der Bibliothek öffnet „Bearbeiten" oder F2
-  den Editor; Speichern (Strg+Enter) und Abbrechen (Esc) mit Nachfrage
-  bei ungespeicherten Änderungen — nichts wird still verworfen oder
-  geschrieben. Die geänderte Notiz bleibt in der Trefferliste sichtbar,
-  auch wenn sie nicht mehr zum Suchbegriff passt (#11)
-- **Tray-Menü überarbeitet:** Alle Einträge auf Deutsch („Notiz
-  erfassen" statt „Capture öffnen") und mit Symbolen; „Beenden" steht
-  abgesetzt am Ende, getrennt von den Arbeitswegen (#60)
-- **Symbole in der Bibliothek:** „Bearbeiten", „Löschen", „Speichern",
-  „Abbrechen" und „Rückgängig" tragen jetzt Symbole aus dem Systemthema;
-  die Nachfrage vor ungespeicherten Änderungen ebenso, samt Warnsymbol
-  (#66, #67)
+- **Editing notes:** in the library, "Edit" or F2 opens the editor; saving
+  (Ctrl+Enter) and cancelling (Esc) with a prompt on unsaved changes —
+  nothing is silently discarded or written. The edited note stays visible in
+  the result list even when it no longer matches the search term (#11)
+- **Tray menu reworked:** all entries in German ("Notiz erfassen" instead of
+  "Capture öffnen") and with icons; "Beenden" stands set apart at the end,
+  separated from the working paths (#60)
+- **Icons in the library:** "Edit", "Delete", "Save", "Cancel" and "Undo"
+  now carry icons from the system theme; so does the prompt before unsaved
+  changes, including a warning icon (#66, #67)
 
-### Geändert
+### Changed
 
-- Der Menüeintrag zeigt das Tastenkürzel Meta+N an; die Umbenennung gilt
-  überall, auch in den Systemeinstellungen (Kurzbefehle) und im
-  Startermenü (#60)
-- Der Wächterdialog ist auf die KDE-Bauart umgestellt; „Speichern" bleibt
-  die vorausgewählte Antwort (#66)
+- The menu entry displays the keyboard shortcut Meta+N; the rename applies
+  everywhere, including in the system settings (shortcuts) and in the
+  application launcher (#60)
+- The guard dialog is switched to the KDE dialog style; "Save" remains the
+  pre-selected answer (#66)
 
-### Behoben
+### Fixed
 
-- Der Klick auf eine sichtbare Notiz einer anderen Tagesgruppe lässt die
-  Liste nicht mehr springen (#57)
-- Zeitstempel und Hinweise der Bibliothek folgen einem Wechsel des
-  Farbschemas jetzt ohne Neustart (#58)
+- A click on a visible note of another day group no longer makes the list
+  jump (#57)
+- Timestamps and hints in the library now follow a change of color scheme
+  without a restart (#58)
 
 ## [0.1.0] — 2026-08-02
 
-Erster abgenommener Gesamtstand, erarbeitet in den Sprints 1–3
-(Git-Tag `sprint-03-abschluss`).
+First accepted overall state, worked out in sprints 1–3
+(Git tag `sprint-03-abschluss`).
 
-### Hinzugefügt
+### Added
 
-- **Erfassungsfenster:** Ein Tastendruck (Meta+N) öffnet ein schlankes
-  Eingabefeld, Enter speichert, Escape verwirft — keine Dateinamen, keine
-  Dialoge (#4, #5, #42)
-- **Dauerhafte lokale Ablage:** Notizen liegen in einer SQLite-Datenbank
-  im Nutzerprofil — kein Cloud-Zwang, nichts verlässt den Rechner (#3)
-- **Bibliothek:** Fenster mit Notizliste und Lesebereich; Notizen löschen
-  mit Rückgängig-Weg (#7)
-- **Posteingangs-Gliederung:** Die Notizliste gruppiert nach Heute ·
-  Gestern · Diese Woche · Letzte Woche · Älter, die erste Zeile jeder
-  Notiz dient als Betreff (#46)
-- **Volltextsuche:** Das Suchfeld der Bibliothek findet Wortteile auch
-  mitten im Wort und verzeiht fehlende Umlaute — „bucher" findet
-  „Bücher", „grafieren" findet „fotografieren" (#8)
-- **Tray-Symbol** mit eigenem Icon; Linksklick öffnet das Menü wie der
-  Rechtsklick (#2, #43, #44)
-- **Autostart:** Der Hintergrunddienst startet mit der Anmeldung; beim
-  Erststart wird das Tastenkürzel eingerichtet (#6)
+- **Capture window:** one keypress (Meta+N) opens a slim input field, Enter
+  saves, Escape discards — no file names, no dialogs (#4, #5, #42)
+- **Permanent local storage:** notes live in an SQLite database in the user
+  profile — no cloud requirement, nothing leaves the machine (#3)
+- **Library:** window with note list and reading pane; deleting notes with
+  an undo path (#7)
+- **Inbox structure:** the note list groups by Today · Yesterday · This
+  week · Last week · Older, the first line of each note serves as the
+  subject (#46)
+- **Full-text search:** the library's search field finds parts of words
+  even in the middle of a word and forgives missing umlauts — "bucher"
+  finds "Bücher", "grafieren" finds "fotografieren" (#8)
+- **Tray icon** with an icon of its own; left click opens the menu just as
+  the right click does (#2, #43, #44)
+- **Autostart:** the background service starts with the login; on first
+  start the keyboard shortcut is set up (#6)
 
-### Geändert
+### Changed
 
-- **Datenbank-Schema auf Version 2** für die Volltextsuche. Ein
-  bestehender Notizbestand wird beim ersten Start einmalig übernommen;
-  alle Notizen bleiben erhalten (#8, #9)
+- **Database schema at version 2** for the full-text search. An existing
+  stock of notes is migrated once on the first start; all notes are
+  preserved (#8, #9)
 
-### Behoben
+### Fixed
 
-- Kleintexte im Erfassungsfenster folgen jetzt einem Themewechsel, statt
-  in der alten Farbe stehenzubleiben (#54)
+- Small texts in the capture window now follow a theme change instead of
+  staying in the old color (#54)

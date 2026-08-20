@@ -105,7 +105,7 @@ QColor separatorColor(const QPalette &palette)
  * entry and two above the next.
  *
  * **Rounded, not truncated:** one device pixel row is the floor, and that is
- * exactly what the line is at ratio 1 — the appearance the customer approved.
+ * exactly what the line is at ratio 1 — the appearance the user approved.
  *
  * **No attempt to put the upper edge on a device pixel boundary.** One stood
  * here and was removed as measured: it changed no height and only moved the
@@ -223,7 +223,7 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         //
         // It used to run over the whole width in the topmost pixel row of the
         // head, and then the only thing telling a group boundary from a note
-        // boundary was the length of a stroke — the customer did not find the
+        // boundary was the length of a stroke — the user did not find the
         // boundary (finding of 11.08.2026). Two features carry it now, and
         // neither is a degree of the other: the line is somewhere else, and the
         // head has a rank of type that the note text has not.

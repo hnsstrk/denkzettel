@@ -1,15 +1,14 @@
-# Automatischer Bau- und Testlauf.
+# Automated build and test run.
 #
-# Die grüne Marke ist KEINE erfüllte DoD: ohne Compositor und ohne das /usr
-# dieses Projekts erreicht der Lauf weder die Prüfung am installierten Stand
-# noch die Bildprüfung.
+# The green badge is NOT a fulfilled DoD: without a compositor and without this
+# project's /usr the run reaches neither the check on the installed state nor
+# the image check.
 #
-# Warum ein Arch-Container: derselbe rollende Paketstrom wie die
-# Entwicklungsmaschine, ein Fund hier ist dort reproduzierbar. Dass ein
-# Upstream-Sprung den Lauf ohne eigene Änderung rot färben kann, ist die dabei
-# beabsichtigte Frühwarnung.
+# Why an Arch container: the same rolling package stream as the development
+# machine, a find here is reproducible there. That an upstream jump can turn the
+# run red without a change of our own is the early warning intended by it.
 
-name: Bau und Tests
+name: Build and Tests
 
 on:
   push:
@@ -18,54 +17,54 @@ on:
   workflow_dispatch:
 
 defaults:
-  # Tragend, nicht Geschmack: GitHub startet `shell: bash` als
-  # `bash --noprofile --norc -e -o pipefail`. Ohne diese Zeilen liefe der
-  # Vorgabe-Shell ohne pipefail, und die durch `tee` geleiteten Schritte unten
-  # meldeten den Rückgabewert von tee. Ein Baufehler liefe grün durch.
+  # Load-bearing, not taste: GitHub starts `shell: bash` as
+  # `bash --noprofile --norc -e -o pipefail`. Without these lines the default
+  # shell would run without pipefail, and the steps piped through `tee` below
+  # would report the return value of tee. A build error would run through green.
   run:
     shell: bash
 
 jobs:
-  bau-und-tests:
-    name: Bau und Tests (${{ matrix.bautyp }})
+  build-and-tests:
+    name: Build and Tests (${{ matrix.build_type }})
     runs-on: ubuntu-latest
     container: archlinux:base-devel
 
-    # WARUM ZWEI BAUTYPEN: Der Unterschied hängt nicht an -O2, sondern an
-    # `QT_NO_DEBUG` — Qt6 setzt es über sein CMake-Paket für jeden Bautyp außer
-    # `Debug`, und darunter lässt `Q_ASSERT` seine Bedingung ungeprüft. Alles,
-    # was in einer Zusicherung steht, hört dort auf zu geschehen. Das ist eine
-    # Fehlerklasse, deshalb ein zweiter Bautyp und nicht ein zweiter Prüfsatz.
-    # `Release` und nicht `RelWithDebInfo`: beide setzen `QT_NO_DEBUG`, ein
-    # dritter Lauf prüfte dieselbe Frage ein zweites Mal.
+    # WHY TWO BUILD TYPES: The difference does not hang on -O2 but on
+    # `QT_NO_DEBUG` — Qt6 sets it through its CMake package for every build type
+    # except `Debug`, and under it `Q_ASSERT` leaves its condition unchecked.
+    # Everything that stands inside an assertion stops happening there. That is a
+    # class of fault, hence a second build type and not a second test set.
+    # `Release` and not `RelWithDebInfo`: both set `QT_NO_DEBUG`, a third run
+    # would check the same question a second time.
     strategy:
-      # Die beiden Bautypen sind verschiedene Fragen. Bricht der eine ab, ist
-      # die Antwort des anderen gerade die Information, die man dann braucht.
+      # The two build types are different questions. If one aborts, the answer of
+      # the other is exactly the information one needs then.
       fail-fast: false
       matrix:
-        bautyp: [Debug, Release]
+        build_type: [Debug, Release]
 
     env:
-      # Kein Compositor im Container. capturetest, librarytest und shelltest
-      # setzen denselben Wert zusätzlich je Test (tests/CMakeLists.txt); die
-      # Zeile hier deckt die übrigen ab und widerspricht ihnen nicht.
+      # No compositor in the container. capturetest, librarytest and shelltest set
+      # the same value additionally per test (tests/CMakeLists.txt); the line here
+      # covers the remaining ones and does not contradict them.
       QT_QPA_PLATFORM: offscreen
 
     steps:
-      - name: Bauabhängigkeiten
-        # Vier Pakete, die man für entbehrlich halten könnte und die es nicht
-        # sind:
-        #   plasma-integration und breeze-icons — ohne sie läse
-        #   QIcon::fromTheme() leere Namen, librarytest und shelltest wären grün
-        #   und wertlos.
-        #   libplasma — es liefert die Desktop-Themes selbst; ohne fände KSvg
-        #   hier überhaupt kein Theme, und capturetest prüfte den Randfall.
-        #   kcolorscheme — der Bau gelänge auch ohne die Zeile, weil ksvg,
-        #   libplasma und plasma-integration das Paket mitziehen. Transitiv ist
-        #   keine Zusage: verliert eines der drei die Abhängigkeit, bricht der
-        #   Bau an einer Stelle, die niemand damit in Verbindung bringt.
-        # git wird vor dem Auschecken gebraucht, sonst fällt actions/checkout auf
-        # einen Abzug ohne Historie zurück.
+      - name: Build dependencies
+        # Four packages one might hold to be dispensable and which are not:
+        #   plasma-integration and breeze-icons — without them QIcon::fromTheme()
+        #   would read empty names, librarytest and shelltest would be green and
+        #   worthless.
+        #   libplasma — it supplies the desktop themes themselves; without it KSvg
+        #   would find no theme here at all, and capturetest would check the edge
+        #   case.
+        #   kcolorscheme — the build would succeed without the line as well,
+        #   because ksvg, libplasma and plasma-integration pull the package in.
+        #   Transitive is no promise: if one of the three loses the dependency, the
+        #   build breaks at a place nobody connects with it.
+        # git is needed before the checkout, otherwise actions/checkout falls back
+        # to an export without history.
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel cmake git gettext \
@@ -76,115 +75,115 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Werkzeugstand festhalten
-        # Ohne diese Zeilen ist ein roter Lauf nach einem Upstream-Sprung nicht
-        # von einem roten Lauf nach einer Codeänderung zu unterscheiden.
+      - name: Record tool versions
+        # Without these lines a red run after an upstream jump cannot be told
+        # apart from a red run after a code change.
         run: |
           cmake --version | head -1
           gcc --version | head -1
           pacman -Q qt6-base kconfig plasma-integration breeze-icons clang clazy
 
-      - name: Konfigurieren
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.bautyp }}
+      - name: Configure
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-      - name: Bauen
-        # `set -o pipefail` steht hier ein zweites Mal, obwohl `defaults.run.shell`
-        # es oben schon setzt. Absicht: Wer diesen Schritt herauskopiert oder die
-        # defaults-Zeilen entfernt, nimmt sonst still die Wache mit — die Pipe
-        # meldete dann den Rückgabewert von tee statt den des Compilers.
+      - name: Build
+        # `set -o pipefail` stands here a second time although `defaults.run.shell`
+        # already sets it above. Deliberate: whoever copies this step out or
+        # removes the defaults lines otherwise silently takes the guard along — the
+        # pipe would then report the return value of tee instead of that of the
+        # compiler.
         run: |
           set -o pipefail
-          cmake --build build -j "$(nproc)" 2>&1 | tee bau.log
+          cmake --build build -j "$(nproc)" 2>&1 | tee build.log
 
-      - name: Warnungen zählen
-        # Schwelle null, weil der Ist-Stand null ist — eine Schranke darüber
-        # misst nichts. `|| true` fängt grep ab: ohne Treffer liefert es 1, und
-        # unter `set -e` bräche der Schritt ausgerechnet im Gutfall ab.
+      - name: Count warnings
+        # Threshold zero because the current state is zero — a limit above it
+        # measures nothing. `|| true` catches grep: without a hit it returns 1, and
+        # under `set -e` the step would abort in the good case of all cases.
         run: |
-          anzahl=$(grep -c 'warning:' bau.log || true)
-          echo "Compiler-Warnungen: ${anzahl}"
-          if [ "${anzahl}" -ne 0 ]; then
-            grep 'warning:' bau.log
-            echo "::error::${anzahl} Compiler-Warnung(en) — Der Bau muss warnungsarm sein."
+          count=$(grep -c 'warning:' build.log || true)
+          echo "Compiler warnings: ${count}"
+          if [ "${count}" -ne 0 ]; then
+            grep 'warning:' build.log
+            echo "::error::${count} compiler warning(s) — the build must stay free of warnings."
             exit 1
           fi
 
       - name: Tests
-        # WARUM -V UND EINE ZAHL DANEBEN. Ein übersprungener Prüfsatz kommt
-        # sonst nirgends vor — weder in der Ausgabe von `--output-on-failure`
-        # noch im Rückgabewert, der auch bei zehn Übersprungenen 0 ist. Seit dem
-        # Testschnitt überspringt keiner mehr; ein neuer soll eine Entscheidung
-        # sein und kein Nebeneffekt. Gezählt wird aus den Totals-Zeilen, die
-        # `-V` durchreicht: die Zusammenfassung von ctest kennt die
-        # Übersprungenen nicht.
+        # WHY -V AND A NUMBER NEXT TO IT. A skipped test set otherwise appears
+        # nowhere — neither in the output of `--output-on-failure` nor in the
+        # return value, which is 0 even with ten skipped ones. Since the test cut
+        # none is skipped any more; a new one should be a decision and not a side
+        # effect. Counting is done from the Totals lines that `-V` passes through:
+        # the summary of ctest does not know the skipped ones.
         run: |
           set -o pipefail
           ctest --test-dir build -V --output-on-failure > ctest.log 2>&1 || ctest_rc=$?
           grep -E "Test +#[0-9]+:|Totals:|tests passed|Errors while" ctest.log || true
           if [ -n "${ctest_rc:-}" ]; then
-            echo "::error::ctest ist fehlgeschlagen. Vollständige Ausgabe:"
+            echo "::error::ctest failed. Full output:"
             cat ctest.log
             exit "$ctest_rc"
           fi
-          uebersprungen=$(awk '/Totals:/ { for (i = 1; i <= NF; i++) if ($i == "skipped,") s += $(i-1) } END { print s+0 }' ctest.log)
-          echo "Übersprungene Prüfsätze: ${uebersprungen} (erlaubt: 0)"
-          if [ "${uebersprungen}" -ne 0 ]; then
+          skipped=$(awk '/Totals:/ { for (i = 1; i <= NF; i++) if ($i == "skipped,") s += $(i-1) } END { print s+0 }' ctest.log)
+          echo "Skipped test sets: ${skipped} (allowed: 0)"
+          if [ "${skipped}" -ne 0 ]; then
             grep -E "SKIP +:" ctest.log || true
-            echo "::error::${uebersprungen} übersprungene(r) Prüfsatz/Prüfsätze — erlaubt ist 0. Was der Lauf nicht prüft, soll eine Entscheidung sein und kein Nebeneffekt."
+            echo "::error::${skipped} skipped test set(s) — allowed is 0. What the run does not check should be a decision and not a side effect."
             exit 1
           fi
           grep -q "100% tests passed" ctest.log
 
       - name: clazy
-        # Nur im Debug-Zweig, und das ist eine Entscheidung mit Preis: die
-        # Linter lesen die Compile-Datenbank ihres Baus, im Release-Zweig stünde
-        # `QT_NO_DEBUG` darin und clang-tidy sähe `Q_ASSERT` in seiner leeren
-        # Fassung. Geprüft wird hier der Quelltext, und der ist in beiden
-        # Zweigen derselbe. Wer eine Prüfung baut, die tatsächlich vom Bautyp
-        # abhängt, gehört nicht hierher, sondern in einen Schritt, der beide
-        # Zweige sieht.
-        if: matrix.bautyp == 'Debug'
-        # WARUM DREI ZAHLEN UND NICHT EINE. Keine trägt allein, beide Lücken
-        # sind gemessen:
-        #   `rc` allein ist kein Befundurteil — clazy-standalone liefert rc=0
-        #   auch mit Befunden.
-        #   Eine Zahl allein ist kein Vollständigkeitsurteil — fehlt eine
-        #   .moc-Datei, bricht clazy die Übersetzungseinheit mit `fatal error`
-        #   ab, meldet null Befunde und rc=2. Der Zähler sähe aus wie ein
-        #   sauberer Lauf über Dateien, die nie analysiert wurden.
-        # Bei Schwelle 0 fällt die Zeilenzählung mit der Befundzählung
-        # zusammen; `grep -c 'warning:'` zählt aber auch Compiler-Diagnosen mit
-        # und Kopfdateibefunde mehrfach. Wer die Schwelle je über null setzt,
-        # muss vorher entdoppeln.
+        # Only in the Debug branch, and that is a decision with a price: the
+        # linters read the compile database of their build, in the Release branch
+        # `QT_NO_DEBUG` would stand in it and clang-tidy would see `Q_ASSERT` in
+        # its empty form. What is checked here is the source text, and that is the
+        # same in both branches. Whoever builds a check that actually does depend
+        # on the build type does not belong here but in a step that sees both
+        # branches.
+        if: matrix.build_type == 'Debug'
+        # WHY THREE NUMBERS AND NOT ONE. None carries alone, both gaps are
+        # measured:
+        #   `rc` alone is no verdict on findings — clazy-standalone returns rc=0
+        #   even with findings.
+        #   A number alone is no verdict on completeness — if a .moc file is
+        #   missing, clazy aborts the translation unit with `fatal error`, reports
+        #   zero findings and rc=2. The counter would look like a clean run over
+        #   files that were never analysed.
+        # At threshold 0 the line count coincides with the finding count; but
+        # `grep -c 'warning:'` also counts compiler diagnostics along and header
+        # findings several times. Whoever ever sets the threshold above zero must
+        # deduplicate first.
         run: |
           set -o pipefail
           rc=0
           cmake --build build --target lint-clazy 2>&1 | tee clazy.log || rc=$?
-          warnungen=$(grep -c 'warning:' clazy.log || true)
-          fehler=$(grep -c 'error:' clazy.log || true)
-          echo "lint-clazy: rc=${rc} Warnungen=${warnungen} Fehler=${fehler} (Schwelle 0/0/0)"
-          if [ "${rc}" -ne 0 ] || [ "${warnungen}" -ne 0 ] || [ "${fehler}" -ne 0 ]; then
+          warnings=$(grep -c 'warning:' clazy.log || true)
+          errors=$(grep -c 'error:' clazy.log || true)
+          echo "lint-clazy: rc=${rc} warnings=${warnings} errors=${errors} (threshold 0/0/0)"
+          if [ "${rc}" -ne 0 ] || [ "${warnings}" -ne 0 ] || [ "${errors}" -ne 0 ]; then
             grep -E 'warning:|error:' clazy.log || true
-            echo "::error::lint-clazy: rc=${rc}, ${warnungen} Warnung(en), ${fehler} Fehler — erlaubt ist 0/0/0 (#76)."
+            echo "::error::lint-clazy: rc=${rc}, ${warnings} warning(s), ${errors} error(s) — allowed is 0/0/0 (#76)."
             exit 1
           fi
 
       - name: clang-tidy
-        # Nur im Debug-Zweig, Begründung eine Stufe höher bei clazy.
-        if: matrix.bautyp == 'Debug'
-        # Dieselbe Dreizahl wie bei clazy, aus denselben Gründen. Für clang-tidy
-        # kommt einer dazu: `grep -c` zählt Rohzeilen, und jede Kopfdatei wird
-        # von jeder Übersetzungseinheit erneut gemeldet (gemessen Faktor 9,4).
-        # Bei Schwelle 0 folgenlos, darüber eine Falle.
+        # Only in the Debug branch, reason one step above at clazy.
+        if: matrix.build_type == 'Debug'
+        # The same three numbers as with clazy, for the same reasons. For
+        # clang-tidy one more comes along: `grep -c` counts raw lines, and every
+        # header is reported anew by every translation unit (measured factor 9.4).
+        # At threshold 0 without consequence, above it a trap.
         run: |
           set -o pipefail
           rc=0
           cmake --build build --target lint-tidy 2>&1 | tee tidy.log || rc=$?
-          warnungen=$(grep -c 'warning:' tidy.log || true)
-          fehler=$(grep -c 'error:' tidy.log || true)
-          echo "lint-tidy: rc=${rc} Warnungen=${warnungen} Fehler=${fehler} (Schwelle 0/0/0)"
-          if [ "${rc}" -ne 0 ] || [ "${warnungen}" -ne 0 ] || [ "${fehler}" -ne 0 ]; then
+          warnings=$(grep -c 'warning:' tidy.log || true)
+          errors=$(grep -c 'error:' tidy.log || true)
+          echo "lint-tidy: rc=${rc} warnings=${warnings} errors=${errors} (threshold 0/0/0)"
+          if [ "${rc}" -ne 0 ] || [ "${warnings}" -ne 0 ] || [ "${errors}" -ne 0 ]; then
             grep -E 'warning:|error:' tidy.log || true
-            echo "::error::lint-tidy: rc=${rc}, ${warnungen} Warnung(en), ${fehler} Fehler — erlaubt ist 0/0/0 (#76)."
+            echo "::error::lint-tidy: rc=${rc}, ${warnings} warning(s), ${errors} error(s) — allowed is 0/0/0 (#76)."
             exit 1
           fi

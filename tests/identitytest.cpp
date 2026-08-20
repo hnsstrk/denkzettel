@@ -40,7 +40,7 @@ void IdentityTest::initTestCase()
     // derives from it.
     m_databasePathBeforeRegistration = Store::defaultDatabasePath();
     QVERIFY2(m_databasePathBeforeRegistration.contains(QLatin1String("/denkzettel/")),
-             qPrintable(QStringLiteral("Der Ausgangspfad steht nicht unter denkzettel/: %1")
+             qPrintable(QStringLiteral("The starting path does not lie under denkzettel/: %1")
                             .arg(m_databasePathBeforeRegistration)));
 
     registerApplicationIdentity();

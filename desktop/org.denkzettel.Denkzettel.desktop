@@ -1,27 +1,31 @@
 [Desktop Entry]
 Type=Application
 Name=Denkzettel
-GenericName=Gedanken festhalten
-Comment=Gedanken schnell festhalten und später ordnen
+GenericName=Capture thoughts
+GenericName[de]=Gedanken festhalten
+Comment=Capture thoughts quickly and sort them later
+Comment[de]=Gedanken schnell festhalten und später ordnen
 Exec=denkzetteld
 Icon=denkzettel
 Terminal=false
 Categories=Utility;Qt;KDE;
-# Suchbegriffe, keine Beschriftung: "Capture" bleibt hier stehen, obwohl es aus
-# allen sichtbaren Texten verschwunden ist (Issue #60) — wer das Werkzeug unter
-# seinem alten Namen sucht, soll es weiter finden.
-Keywords=Notiz;Notizen;Gedanke;Capture;
+# Search terms, not a label: "Capture" stays in the German line although it has
+# disappeared from every visible German text (issue #60) — whoever looks for the
+# tool under its old name should still find it.
+Keywords=note;notes;thought;capture;
+Keywords[de]=Notiz;Notizen;Gedanke;Capture;
 Actions=show-capture;
 
-# Bei installierter Anwendung löst kglobalacceld ein Kürzel über diese Gruppe
-# aus, nicht über D-Bus: Der Komponentenname endet auf .desktop, damit gilt die
-# Komponente als Service-Action-Komponente und der Tastendruck startet die
-# gleichnamige Aktion. Der Gruppenname ist die Aktions-Id aus
-# GlobalShortcuts (show-capture), Name deckt sich mit dem dort gesetzten
-# Anzeigenamen — beide ändern sich nur gemeinsam, sonst trägt dieselbe Aktion
-# in den Systemeinstellungen und im Startmenü zwei verschiedene Namen. Exec
-# startet denkzetteld; die Einzelinstanz-Weiche des laufenden Dienstes macht
-# daraus ShowCapture() (SPEC 2.3, 2.4).
+# With the application installed, kglobalacceld triggers a shortcut through this
+# group, not through D-Bus: the component name ends in .desktop, so the component
+# counts as a service action component and the key press starts the action of the
+# same name. The group name is the action id from GlobalShortcuts (show-capture),
+# and Name matches the display name set there — the two only ever change
+# together, otherwise the same action carries two different names in the system
+# settings and in the application launcher. Exec starts denkzetteld; the
+# single-instance switch of the running service turns that into ShowCapture()
+# (SPEC 2.3, 2.4).
 [Desktop Action show-capture]
-Name=Notiz erfassen
+Name=Capture note
+Name[de]=Notiz erfassen
 Exec=denkzetteld

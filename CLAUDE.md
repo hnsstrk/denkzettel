@@ -1,175 +1,178 @@
-# Denkzettel — Arbeitsanweisung für Claude Code
+# Denkzettel — working instructions for Claude Code
 
-Quick-Capture-Werkzeug für KDE Plasma (Wayland), C++/Qt6/KF6, CMake, QTest.
+Quick-capture tool for KDE Plasma (Wayland), C++/Qt6/KF6, CMake, QTest.
 
-Bindend ist `SPEC.md`. Der Backlog sind die GitHub Issues mit ihren
-Akzeptanzkriterien — sie sagen, wann eine Story fertig ist.
+`SPEC.md` is binding. The backlog is the GitHub issues with their acceptance
+criteria — they say when a story is done.
 
-## Bauen, prüfen, installieren
+## Build, verify, install
 
 ```
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug && cmake --build build
 ctest --test-dir build
-cmake --build build --target lint-tidy      # bzw. lint-clazy
+cmake --build build --target lint-tidy      # or lint-clazy
 ```
 
-Installieren braucht das Passwort des Nutzers über einen grafischen Dialog:
-`pkexec /usr/bin/cmake --install <Projektpfad>/build`
+Installing needs the user's password through a graphical dialog:
+`pkexec /usr/bin/cmake --install <project-path>/build`
 
-## Was geprüft wird — und was nicht
+## What gets verified — and what does not
 
-**Ein Test bleibt nur, wo das Auge nicht hinkommt** (Entscheidung des Nutzers,
-11.08.2026). Denkzettel ist ein kleines Werkzeug, keine Raketensteuerung, und
-der Nutzer sieht sich das Ergebnis selbst an — Farben, Abstände, Linien,
-Schriftgrößen und ob ein Fenster aufgeht, prüft er besser und schneller als ein
-Pixelvergleich.
+**A test only stays where the eye cannot reach** (the user's decision,
+2026-08-11). Denkzettel is a small tool, not rocket guidance, and the user
+looks at the result themselves — colors, spacing, lines, font sizes and whether
+a window opens are things they judge better and faster than a pixel comparison.
 
-Ein Prüfsatz ist deshalb nur gerechtfertigt für das, was **still kaputtgeht**:
-Schema-Umstellungen und Datenverlust, der Suchindex, Fehlerpfade,
-Zeichenkodierung, Rückgabewerte fremder Dienste, Unterschiede zwischen
-Bautypen. Alles, was man ansehen kann, wird angesehen.
+A test set is therefore only justified for what **breaks silently**: schema
+migrations and data loss, the search index, error paths, character encoding,
+return values of third-party services, differences between build types.
+Everything that can be looked at gets looked at.
 
-Vor jedem neuen Prüfsatz die Frage: *Würde der Nutzer diesen Fehler beim
-Benutzen bemerken?* Wenn ja, ist das Bild der Nachweis und kein Test.
+Before every new test set, the question: *would the user notice this fault
+while using the program?* If yes, the image is the evidence and not a test.
 
-## Die vier Regeln, die Fehler gefunden haben
+## The four rules that have found faults
 
-Alles andere ist Ermessen. Diese vier nicht — jede hat in diesem Projekt
-mindestens einen Fehler aufgedeckt, den sonst der Nutzer gefunden hätte.
+Everything else is judgement. Not these four — each of them has uncovered at
+least one fault in this project that the user would otherwise have found.
 
-**1. Geprüft wird am installierten Stand, und Installieren heißt nicht
-laufen.** Nach `cmake --install` hält ein laufender Dienst die gelöschte alte
-Datei weiter; umgekehrt reicht `KDBusService::Unique` den Start eines
-Debug-Builds an den laufenden Dienst weiter. Beide Male prüft man unbemerkt den
-falschen Stand. Also: Dienst beenden, neu starten, dann
-`readlink /proc/$(pgrep -x denkzetteld)/exe` — ohne `(deleted)`. Wer den
-Debug-Stand prüfen will, beendet vorher den installierten Dienst.
-`readlink` sagt *welche Datei*, erst eine Prüfsumme sagt *welcher Stand*.
+**1. Verification happens on the installed state, and installing does not mean
+running.** After `cmake --install` a running service keeps the deleted old file
+alive; conversely `KDBusService::Unique` hands the start of a debug build on to
+the running service. Both times you verify the wrong state without noticing.
+So: stop the service, start it again, then
+`readlink /proc/$(pgrep -x denkzetteld)/exe` — without `(deleted)`. Whoever
+wants to verify the debug state stops the installed service first.
+`readlink` says *which file*, only a checksum says *which state*.
 
-**2. Ein UI-Review ohne eigenes Bild ist nicht geführt.** Tests ersetzen die
-Bildprüfung nicht, und Bilder ersetzen die Tests nicht:
+**2. A UI review without an image of your own has not been conducted.** Tests
+do not replace the image check, and images do not replace the tests:
 
 > Bei Bewegungen ist der Weg der Prüfgegenstand, nicht das Ziel.
 > Bei Zuständen ist das Bild der Prüfgegenstand, nicht die Zusicherung.
+>
+> (With movements, the path is the object of the check, not the destination.
+> With states, the image is the object of the check, not the assertion.)
 
-Für Bildläufe muss `QT_QPA_PLATFORMTHEME=kde` gesetzt sein, sonst verfälscht
-eine Ersatzschrift die Größenverhältnisse. Ein Bild, das als Beleg dient,
-läuft mit `QT_SCALE_FACTOR` auf der Skalierung des Nutzers.
+For image runs `QT_QPA_PLATFORMTHEME=kde` has to be set, otherwise a substitute
+font distorts the proportions. An image that serves as evidence runs with
+`QT_SCALE_FACTOR` at the user's scaling.
 
-**3. Ein offscreen erzeugtes Bild zeigt nicht, was der Nutzer sieht.** Es belegt
-Geometrie, Textsatz und Farbrollen — nicht Hülle, Rundung, Kontur, Schatten
-oder Dekoration. Die zeichnen Theme und Compositor, und offscreen fehlt beiden
-die Grundlage. Wo ein Akzeptanzkriterium über Theme oder Compositor etwas
-behauptet, gehört ein Bild aus der angemeldeten Sitzung dazu.
+**3. An image produced offscreen does not show what the user sees.** It proves
+geometry, typesetting and color roles — not hull, rounding, outline, shadow or
+decoration. Those are drawn by the theme and the compositor, and offscreen both
+of them lack their basis. Where an acceptance criterion claims something about
+theme or compositor, an image from the logged-in session belongs with it.
 
-**4. Ein Bildbeleg ist erst ein Beleg, wenn sein Läufer frisch gebaut ist.**
-Ein veralteter Läufer schreibt plausible Bilder eines *alten* Standes mit
-frischem Zeitstempel. Vor jedem Bildbeleg:
-`cmake --build build --target readmeshots`. Wo ein Bild aus einer Story einen
-Befund tragen soll, entsteht es aus der angemeldeten Sitzung — einen Läufer
-dafür gibt es nicht mehr.
+**4. An image is only evidence once its runner has been freshly built.** An
+outdated runner writes plausible images of an *old* state with a fresh
+timestamp. Before every image used as evidence:
+`cmake --build build --target readmeshots`. Where an image from a story is to
+carry a finding, it comes from the logged-in session — there is no runner for
+that any more.
 
-## Prüfhaltung
+## Verification stance
 
-- **Frag vor jedem Griff, dessen Ergebnis in einen Bericht eingeht, was er
-  ausgäbe, wenn sein Gegenstand fehlte.** Ist die Antwort dieselbe Ausgabe,
-  trägt der Griff nichts. Ein Testaufbau, in dem der Fehler gar nicht auftreten
-  *kann*, ist kein Test.
-- **Kein Prozess holt sich unter Wayland den Fokus zurück.** Wer eine Prüfung
-  mit Fensterwechsel baut, schließt das obenauf liegende Fenster — dann gibt
-  der Compositor den Fokus von selbst zurück.
+- **Before every step whose result goes into a report, ask what it would output
+  if its subject were missing.** If the answer is the same output, the step
+  carries nothing. A test setup in which the fault cannot even occur is not a
+  test.
+- **No process fetches the focus back for itself under Wayland.** Whoever
+  builds a check with a window switch closes the window lying on top — then the
+  compositor gives the focus back by itself.
 
-## Läufe, die nichts belegen
+## Runs that prove nothing
 
-Gemessene Fälle, in denen etwas nach Beleg aussah und keiner war. Prüfe dagegen,
-bevor du einen Nachweis meldest, und **ergänze die Liste** um jeden neuen Fund.
+Measured cases in which something looked like evidence and was none. Check
+against them before you report a proof, and **extend the list** with every new
+find.
 
-1. **`KGlobalAccel::setGlobalShortcut()` liefert `true`, auch wenn der Daemon
-   nicht erreichbar ist.** Beleg führt nur das Zurücklesen beim Dienst.
-2. **`KWindowShadow::create()` meldet `true`, auch bei achtmal demselben Bild
-   statt acht Kacheln.** Offscreen ist es **immer** `false` — dort belegt weder
-   `true` noch `false` etwas.
-3. **`activateWindow()` holt unter Wayland den Fokus nicht zurück.** Kein
-   Prozess kann sich den Fokus selbst zuteilen. Ein Alt-Tab lässt sich nicht
-   auslösen; der Weg über das obenauf liegende Fenster steht oben.
-4. **Zwei lebende `KSvg::ImageSet` desselben Themes teilen ihre Auswahlpfade.**
-   Jeder Vergleich zweier Fassungen derselben Grafik läuft sonst gegen sich
-   selbst — und ist grün. Für die zweite Fassung ein **anderes** Theme nehmen.
-5. **Ein Prüfsatz, der sich sein Theme nicht aussucht, prüft womöglich an einem,
-   das den Unterschied nicht kennt.** Wähle den Prüfgegenstand danach, dass die
-   Wahl überhaupt etwas ändert.
-6. **Bei gesperrter Sitzung liefert `spectacle -f` ein schwarzes Bild mit
-   Rückgabe 0.** Sperrzustand vorher abfragen und abbrechen, statt zu messen.
-7. **Ein Vollbildfenster als Prüfgrund verdeckt, was du messen willst** — der
-   Compositor legt es über das Erfassungsfenster.
-8. **Ein Sandkasten ohne `kdeglobals` färbt die Theme-Grafik anders als die
-   Qt-Palette** — das Bild sieht dann nach einem Fehler des Erzeugnisses aus.
-9. **`show()` statt `showCapture()` liefert ein Fenster ohne Schatten** — der
-   wird erst in `present()` gebunden.
-10. **Ein Vergleich kann auf beiden Seiten falsch sein und „stimmt" melden.**
-    Vergleichst du zwei Größen, die derselbe Fehler gemeinsam verschiebt, misst
-    du nichts. Halte mindestens eine Seite gegen einen **von außen gesetzten**
-    Wert.
+1. **`KGlobalAccel::setGlobalShortcut()` returns `true` even when the daemon is
+   not reachable.** Only reading the value back from the service proves
+   anything.
+2. **`KWindowShadow::create()` reports `true` even for the same image eight
+   times over instead of eight tiles.** Offscreen it is **always** `false` —
+   there neither `true` nor `false` proves anything.
+3. **`activateWindow()` does not fetch the focus back under Wayland.** No
+   process can assign itself the focus. An Alt+Tab cannot be triggered; the way
+   over the window lying on top stands above.
+4. **Two live `KSvg::ImageSet` of the same theme share their lookup paths.**
+   Otherwise every comparison of two versions of the same graphic runs against
+   itself — and is green. For the second version take a **different** theme.
+5. **A test set that does not choose its theme may well be testing on one that
+   does not know the difference.** Choose the object of the check so that the
+   choice changes anything at all.
+6. **With the session locked, `spectacle -f` delivers a black image with return
+   code 0.** Query the lock state beforehand and abort instead of measuring.
+7. **A fullscreen window as a backdrop for the check covers what you want to
+   measure** — the compositor puts it over the capture window.
+8. **A sandbox without `kdeglobals` colors the theme graphic differently from
+   the Qt palette** — the image then looks like a fault of the product.
+9. **`show()` instead of `showCapture()` delivers a window without a shadow** —
+   it is only bound in `present()`.
+10. **A comparison can be wrong on both sides and report "correct".** If you
+    compare two quantities that the same fault shifts together, you measure
+    nothing. Hold at least one side against a value **set from outside**.
 
-**Der gemeinsame Nenner** ist jedes Mal die erste Regel der Prüfhaltung: Der
-Griff hätte dieselbe Ausgabe geliefert, wenn sein Gegenstand gefehlt hätte.
+**The common denominator** is every time the first rule of the verification
+stance: the step would have delivered the same output if its subject had been
+missing.
 
-## Vor der Übergabe
+## Before handover
 
-Den gebauten Stand starten und den Hauptweg der Story einmal selbst gehen. Für
-Bilder `QT_QPA_PLATFORM=offscreen`, `QT_QPA_PLATFORMTHEME=kde` und
-`QT_SCALE_FACTOR` auf der Skalierung des Nutzers (**1,5**).
+Start the built state and walk the story's main path once yourself. For images
+`QT_QPA_PLATFORM=offscreen`, `QT_QPA_PLATFORMTHEME=kde` and `QT_SCALE_FACTOR`
+at the user's scaling (**1.5**).
 
-Nach dem Start des Daemons ins Journal sehen
-(`journalctl --user -t denkzetteld -n 20`) — stumme Fehler fremder Dienste
-stehen dort und nirgends sonst.
+After starting the daemon, look into the journal
+(`journalctl --user -t denkzetteld -n 20`) — silent faults of third-party
+services stand there and nowhere else.
 
-## UI-Prüfung
+## UI review
 
-Maßstab sind `wireframes/Denkzettel Wireframes.dc.html` als UI-Referenz des
-Projekts und die KDE Human Interface Guidelines (develop.kde.org/hig) —
-Denkzettel ist eine Qt6/KF6-App für KDE Plasma. Die Prüfpunkte kommen aus dem
-Wireframe, nicht aus dem Gedächtnis: Jeder gezeichnete Bereich erzeugt genau
-eine Prüffrage, die Raumaufteilung eingeschlossen. Bilder, die einen Befund
-tragen, liegen unter `docs/bilder/reviews/`.
+The yardstick is `wireframes/Denkzettel Wireframes.dc.html` as the project's UI
+reference and the KDE Human Interface Guidelines (develop.kde.org/hig) —
+Denkzettel is a Qt6/KF6 app for KDE Plasma. The check points come from the
+wireframe, not from memory: every drawn area produces exactly one check
+question, the division of space included. Images that carry a finding live
+under `docs/images/reviews/`.
 
-## Wenn es nicht vorangeht
+## When nothing moves forward
 
-Gleicher Fehler zweimal ohne neue Erkenntnis: aufhören und melden. Widerspruch
-zwischen Issue und SPEC oder eine Entscheidung, die nur der Nutzer treffen
-kann: fragen statt raten.
+The same fault twice without new insight: stop and report. A contradiction
+between issue and SPEC, or a decision only the user can make: ask instead of
+guessing.
 
-## Abschluss
+## Closing out
 
-Changelog-Zeile, Version in `CMakeLists.txt`, Tag `vX.Y.Z`, Issues und
-Milestone schließen.
+Changelog line, version in `CMakeLists.txt`, tag `vX.Y.Z`, close issues and
+milestone.
 
-Wer eine Lehre zieht, schreibt sie hierher. Ein Protokoll liest die nächste
-Sitzung nicht.
+Whoever draws a lesson writes it in here. The next session does not read a log.
 
-**Die Installation nach `/usr` taktet der Nutzer** — sie braucht sein Passwort.
+**The user schedules the installation to `/usr`** — it needs their password.
 
-## Veröffentlichung
+## Publication
 
-Das Repository ist **öffentlich**. Was in Issues und Commits steht, ist
-veröffentlicht. Zugelassen sind Zitate des Nutzers und Messwerte; nicht
-zugelassen sind Systemdetails (Rechnernamen, Kernel-Versionen, Pfade außerhalb
-des Projekts, Interna des Heimnetzes) und personenbezogene Angaben.
+The repository is **public**. What stands in issues and commits is published.
+Permitted are quotes from the user and measurements; not permitted are system
+details (host names, kernel versions, paths outside the project, internals of
+the home network) and personal data.
 
-Gepusht wird nach jedem abgeschlossenen Arbeitsblock, ohne Rückfrage. Jeder
-Push auf `main` löst einen öffentlichen Bau- und Testlauf aus
-(`.github/workflows/ci.yml`); er schlägt bei jeder Compiler-Warnung, jedem
-roten Test und jedem Linterbefund fehl. Wer pusht, sieht nach — **am Lauf des
-eigenen Commits**, nicht am obersten der Liste:
+Pushing happens after every completed block of work, without asking. Every push
+to `main` triggers a public build and test run (`.github/workflows/ci.yml`); it
+fails on every compiler warning, every red test and every linter finding.
+Whoever pushes checks afterwards — **on the run of their own commit**, not on
+the topmost one in the list:
 
 ```
 gh run list --commit $(git rev-parse HEAD) --json status,conclusion \
     --jq '.[]|[.status,.conclusion]|@tsv'
 ```
 
-Erst `completed` **und** `success` ist ein Nachschlag. Umgekehrt ist die grüne
-Marke kein Ersatz für die Prüfung am installierten Stand — der Lauf erreicht
-sie nicht.
+Only `completed` **and** `success` counts as having looked. Conversely, the green
+badge is no substitute for verification on the installed state — the run does
+not reach it.
 
-Code und Kommentare englisch, UI-Zeichenketten deutsch über `i18n()`,
-Commit-Betreffzeilen deutsch.
+Code, comments and UI strings in English; every visible string goes through
+`i18n()`, German is produced in `po/de/denkzettel.po`. Commit subject lines in English.

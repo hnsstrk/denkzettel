@@ -33,7 +33,7 @@ QString ownerDescription(const KGlobalShortcutInfo &info)
     if (info.friendlyName().isEmpty()) {
         return component;
     }
-    return i18nc("Kürzel-Besitzer: Anwendung und ihre Aktion", "%1 — %2", component, info.friendlyName());
+    return i18nc("shortcut owner: application and its action", "%1 — %2", component, info.friendlyName());
 }
 
 /**
@@ -62,7 +62,7 @@ QString desktopFilePath()
 
 GlobalShortcuts::GlobalShortcuts(QObject *parent)
     : QObject(parent)
-    , m_captureAction(new QAction(i18n("Notiz erfassen"), this))
+    , m_captureAction(new QAction(i18n("Capture note"), this))
 {
     // The object name identifies the action across restarts and must not change
     // once it is registered; the component decides where the shortcut shows up
@@ -99,7 +99,7 @@ QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
 
     // So the daemon is asked what it actually holds, and the desktop file it
     // resolves us through is read for the action it starts on the key press.
-    // Both failures are silent otherwise — the customer met each of them once,
+    // Both failures are silent otherwise — the user met each of them once,
     // on 01.08.2026 (retro B5).
     const QString desktopFile = desktopFilePath();
     const ShortcutRegistration registration =
@@ -111,7 +111,7 @@ QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
         // reported at every start rather than on the first one only.
         const QString failure = shortcutRegistrationFailure(registration);
         qWarning("%s", qPrintable(failure));
-        KNotification::event(KNotification::Error, i18n("Kürzel nicht einsatzbereit"), failure);
+        KNotification::event(KNotification::Error, i18n("Shortcut not ready"), failure);
         return {};
     }
 
@@ -127,9 +127,8 @@ void notifyShortcutConflict(const QList<ShortcutOwner> &conflicts)
     }
 
     KNotification::event(KNotification::Warning,
-                         i18n("Kürzel bereits belegt"),
-                         i18n("Meta+N gehört bereits zu: %1. Der Tastendruck erreicht Denkzettel "
-                              "womöglich nicht. Zum Ändern die Systemeinstellungen unter "
-                              "„Kurzbefehle“ öffnen.",
+                         i18n("Shortcut already taken"),
+                         i18n("Meta+N already belongs to: %1. The key press may not reach Denkzettel. "
+                              "To change that, open the system settings under “Shortcuts”.",
                               descriptions.join(QStringLiteral(", "))));
 }

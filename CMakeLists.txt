@@ -42,6 +42,18 @@ find_package(KF6ColorScheme 6.20 REQUIRED)
 
 add_subdirectory(src)
 
+# The message catalogues. ki18n_install() comes with KF6::I18n itself
+# (/usr/lib/cmake/KF6I18n/KF6I18nMacros.cmake, pulled in by KF6I18nConfig.cmake
+# above): it compiles every po/<lang>/denkzettel.po into a .mo with msgfmt and
+# installs it as ${KDE_INSTALL_LOCALEDIR}/<lang>/LC_MESSAGES/denkzettel.mo —
+# the path KLocalizedString::setApplicationDomain("denkzettel") looks in.
+#
+# The directory layout is the macro's, not a preference: it reads the language
+# from the *directory* and the domain from the file name. A po/de.po would
+# install a catalogue named "de" outside any language directory, and no session
+# would ever find it.
+ki18n_install(po)
+
 install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
 # Autostart with the session (SPEC 2.5), deliberately under the SAME file name
@@ -82,7 +94,7 @@ add_custom_target(lint-database
             -DINPUT=${CMAKE_BINARY_DIR}/compile_commands.json
             -DOUTPUT=${DENKZETTEL_LINT_BUILD_PATH}/compile_commands.json
             -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/lint-compile-commands.cmake
-    COMMENT "Compile-Datenbank für die Linter aufbereiten"
+    COMMENT "Preparing the compile database for the linters"
     VERBATIM
 )
 
@@ -93,7 +105,7 @@ if(RUN_CLANG_TIDY_EXECUTABLE)
     add_custom_target(lint-tidy
         COMMAND ${RUN_CLANG_TIDY_EXECUTABLE} -p ${DENKZETTEL_LINT_BUILD_PATH} -quiet ${DENKZETTEL_LINT_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "clang-tidy über src/ und tests/"
+        COMMENT "clang-tidy over src/ and tests/"
         USES_TERMINAL
         VERBATIM
     )
@@ -110,7 +122,7 @@ if(CLAZY_STANDALONE_EXECUTABLE)
         COMMAND ${CLAZY_STANDALONE_EXECUTABLE} -p ${DENKZETTEL_LINT_BUILD_PATH}
                 --checks=level0,level1 ${DENKZETTEL_LINT_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "clazy über src/ und tests/"
+        COMMENT "clazy over src/ and tests/"
         USES_TERMINAL
         VERBATIM
     )

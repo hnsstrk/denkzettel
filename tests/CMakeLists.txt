@@ -1,6 +1,6 @@
 # Silence, and it applies to every executable created BELOW this line — so
 # NOTHING goes above it. The KDE guard dialog plays a system sound on every
-# show, fourteen per librarytest run, in the room the customer sits in.
+# show, fourteen per librarytest run, in the room the user sits in.
 # testsilence.cpp points libcanberra at its null driver before main() begins;
 # link_libraries() puts its object into every target this directory creates from
 # here on, tests and benches alike. A ctest property could not do that: the
@@ -136,7 +136,7 @@ target_compile_definitions(commandlinetest PRIVATE
 find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
 
 # The session of its own is what keeps the started daemon away from the one the
-# customer is logged into: on their bus the name is already taken, and the test
+# user is logged into: on their bus the name is already taken, and the test
 # would measure the running service instead of the built one.
 add_test(NAME commandlinetest
     COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:commandlinetest>)

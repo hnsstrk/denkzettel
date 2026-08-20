@@ -6,8 +6,7 @@
  * `messageWarning` event of plasma_workspace.notifyrc and plays
  * `dialog-warning` through libcanberra — inside our own process, so the stream
  * carries the name of the test binary. One librarytest run makes fourteen of
- * them, in the room the customer sits in
- * (Prüfbericht Testklänge).
+ * them, in the room the user sits in (measured; „Prüfbericht Testklänge“).
  *
  * libcanberra reads CANBERRA_DRIVER when it opens its context, which is the
  * moment a sound is first played and therefore long after this file has run.
@@ -16,7 +15,7 @@
  * event behave exactly as they do for a user. No test measures sound.
  *
  * Deliberately not KMessageDialog::setNotifyEnabled(false) in the application:
- * the sound is KDE platform behaviour and stays in the product (customer
+ * the sound is KDE platform behaviour and stays in the product (user
  * decision of 04.08.2026, SPEC 9).
  *
  * Nobody includes this file. Its object is linked into every executable under

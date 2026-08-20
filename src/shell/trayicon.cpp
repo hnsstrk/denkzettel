@@ -44,11 +44,11 @@ TrayIcon::TrayIcon(QObject *parent)
     }
     m_item->setTitle(i18n("Denkzettel"));
     m_item->setToolTipTitle(i18n("Denkzettel"));
-    m_item->setToolTipSubTitle(i18n("Gedanken schnell festhalten"));
+    m_item->setToolTipSubTitle(i18n("Capture thoughts quickly"));
     m_item->setStandardActionsEnabled(false);
     m_item->setContextMenu(buildMenu());
     // The left click is to open the same menu as the right one (issue #44,
-    // customer decision of 01.08.2026, deliberately unlike the KDE default).
+    // user decision of 01.08.2026, deliberately unlike the KDE default).
     // ItemIsMenu has no change signal in the SNI protocol — the host reads it
     // when the item registers and never asks again, so it belongs here among
     // the other properties and not to some later moment.
@@ -72,7 +72,7 @@ QMenu *TrayIcon::buildMenu()
     auto *menu = new QMenu();
 
     QAction *captureAction =
-        menu->addAction(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Notiz erfassen"));
+        menu->addAction(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Capture note"));
     // A hint, not a second binding: the sequence is drawn beside the entry, and
     // the context keeps it from ever answering. A menu shortcut reaches the
     // window of its menu, and this menu has none — plasmashell draws it. The
@@ -81,26 +81,26 @@ QMenu *TrayIcon::buildMenu()
     captureAction->setShortcutContext(Qt::WidgetShortcut);
     connect(captureAction, &QAction::triggered, this, &TrayIcon::captureRequested);
 
-    addStub(menu, i18n("Sprachnotiz aufnehmen"), QStringLiteral("audio-input-microphone"));
+    addStub(menu, i18n("Record voice note"), QStringLiteral("audio-input-microphone"));
 
     // Separates capturing from looking at and working on — the only grouping
     // among the working paths (wireframe 5a).
     menu->addSeparator();
 
     const QAction *libraryAction =
-        menu->addAction(QIcon::fromTheme(QStringLiteral("view-list-text")), i18n("Bibliothek öffnen"));
+        menu->addAction(QIcon::fromTheme(QStringLiteral("view-list-text")), i18n("Open library"));
     connect(libraryAction, &QAction::triggered, this, &TrayIcon::libraryRequested);
 
-    addStub(menu, i18n("Jetzt analysieren"), QStringLiteral("system-run"));
-    addStub(menu, i18n("Vorschläge"), QStringLiteral("tools-wizard"));
+    addStub(menu, i18n("Analyze now"), QStringLiteral("system-run"));
+    addStub(menu, i18n("Suggestions"), QStringLiteral("tools-wizard"));
 
-    // "Denkzettel einrichten …" joins the group below with the settings dialog
+    // "Configure Denkzettel…" joins the group below with the settings dialog
     // (#16). Until then there is no entry for it: a permanently greyed one does
     // not tell the user why it is greyed (KDE HIG, wireframe 5a).
     menu->addSeparator();
 
     const QAction *quitAction =
-        menu->addAction(QIcon::fromTheme(QStringLiteral("application-exit")), i18n("Beenden"));
+        menu->addAction(QIcon::fromTheme(QStringLiteral("application-exit")), i18n("Quit"));
     connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
 
     return menu;

@@ -1,0 +1,318 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright of the Denkzettel authors.
+# This file is distributed under the same license as the denkzettel package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: denkzettel\n"
+"Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
+"POT-Creation-Date: 2026-08-20 16:59+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/capture/capturewindow.cpp:233 src/capture/capturewindow.cpp:288
+#: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:77
+#: src/shell/trayicon.cpp:45 src/shell/trayicon.cpp:46
+#, kde-format
+msgid "Denkzettel"
+msgstr ""
+
+#: src/capture/capturewindow.cpp:269
+#, kde-format
+msgid "Capture a thought…"
+msgstr ""
+
+#: src/capture/capturewindow.cpp:294
+#, kde-format
+msgid "Esc discards · Ctrl+Enter saves"
+msgstr ""
+
+#: src/shell/appidentity.cpp:39
+#, kde-format
+msgid ""
+"Denkzettel service: it receives notes and keeps the global shortcuts ready."
+msgstr ""
+
+#: src/shell/globalshortcuts.cpp:36
+#, kde-format
+msgctxt "shortcut owner: application and its action"
+msgid "%1 — %2"
+msgstr ""
+
+#: src/shell/globalshortcuts.cpp:65 src/shell/trayicon.cpp:75
+#, kde-format
+msgid "Capture note"
+msgstr ""
+
+#: src/shell/globalshortcuts.cpp:114
+#, kde-format
+msgid "Shortcut not ready"
+msgstr ""
+
+#: src/shell/globalshortcuts.cpp:130
+#, kde-format
+msgid "Shortcut already taken"
+msgstr ""
+
+#: src/shell/globalshortcuts.cpp:131
+#, kde-format
+msgid ""
+"Meta+N already belongs to: %1. The key press may not reach Denkzettel. To "
+"change that, open the system settings under “Shortcuts”."
+msgstr ""
+
+#: src/shell/shortcutregistration.cpp:51
+#, kde-format
+msgid ""
+"Meta+N never reached the shortcut service: Denkzettel is not installed "
+"system-wide, and without its desktop file the service creates no entry. "
+"After the installation the shortcut works; until then the capture window "
+"stays reachable through the icon in the system tray."
+msgstr ""
+
+#: src/shell/shortcutregistration.cpp:59
+#, kde-format
+msgid ""
+"Meta+N never reached the shortcut service — it did not keep the "
+"registration. The shortcuts can be checked in the system settings under "
+"“Shortcuts”; if that does not help, logging in anew brings the service back. "
+"The capture window stays reachable through the icon in the system tray."
+msgstr ""
+
+#: src/shell/shortcutregistration.cpp:64
+#, kde-format
+msgid ""
+"Meta+N is set up but triggers nothing: the desktop file of Denkzettel is "
+"missing the entry for this shortcut. A complete reinstallation brings it "
+"back. Until then the capture window stays reachable through the icon in the "
+"system tray."
+msgstr ""
+
+#: src/shell/trayicon.cpp:47
+#, kde-format
+msgid "Capture thoughts quickly"
+msgstr ""
+
+#: src/shell/trayicon.cpp:84
+#, kde-format
+msgid "Record voice note"
+msgstr ""
+
+#: src/shell/trayicon.cpp:91
+#, kde-format
+msgid "Open library"
+msgstr ""
+
+#: src/shell/trayicon.cpp:94
+#, kde-format
+msgid "Analyze now"
+msgstr ""
+
+#: src/shell/trayicon.cpp:95
+#, kde-format
+msgid "Suggestions"
+msgstr ""
+
+#: src/shell/trayicon.cpp:103
+#, kde-format
+msgid "Quit"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:80
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "%1 (%2)"
+msgstr ""
+
+#. i18n() and must not depend on which KF6
+#. catalogue happens to be installed.
+#: src/ui/librarywindow.cpp:181 src/ui/librarywindow.cpp:403
+#, kde-format
+msgid "Delete"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:186
+#, kde-format
+msgid "Undo"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:187 src/ui/librarywindow.cpp:396
+#, kde-format
+msgid "Edit"
+msgstr ""
+
+#. i18n() and must not depend on which KF6 catalogue happens to be installed.
+#.
+#. The order the three appear in is the platform's. What this window fixes
+#. is which answer means what: primary saves, secondary discards, cancel
+#. stays (wireframe 2a, state C).
+#: src/ui/librarywindow.cpp:188 src/ui/librarywindow.cpp:476
+#: src/ui/librarywindow.cpp:1141
+#, kde-format
+msgid "Save"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:189 src/ui/librarywindow.cpp:479
+#: src/ui/librarywindow.cpp:1143
+#, kde-format
+msgid "Cancel"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:194
+#, kde-format
+msgctxt "@title:window"
+msgid "Denkzettel — Library"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:204
+#, kde-format
+msgid "No notes yet"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:205
+#, kde-format
+msgid "Press Meta+N to capture a thought."
+msgstr ""
+
+#: src/ui/librarywindow.cpp:210
+#, kde-format
+msgid "No matches"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:211
+#, kde-format
+msgid "Change the search term or clear the field."
+msgstr ""
+
+#: src/ui/librarywindow.cpp:220
+#, kde-format
+msgid "No note selected"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:221
+#, kde-format
+msgid "Select a note on the left to read it."
+msgstr ""
+
+#: src/ui/librarywindow.cpp:287
+#, kde-format
+msgctxt "@action"
+msgid "Edit note"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:288
+#, kde-format
+msgctxt "@action"
+msgid "Delete note"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:289
+#, kde-format
+msgctxt "@action"
+msgid "Undo deletion"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:319
+#, kde-format
+msgid "Note deleted — %1 s left"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:361
+#, kde-format
+msgid "Full-text search…"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:384
+#, kde-format
+msgid "Editing"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:467
+#, kde-format
+msgid "Category"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:470
+#, kde-format
+msgid "Tags"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:490
+#, kde-format
+msgid "Esc cancels · Ctrl+Enter saves"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:1120
+#, kde-format
+msgid ""
+"Save changes?\n"
+"\n"
+"The edited note (%1) has unsaved changes. Without saving they are lost."
+msgstr ""
+
+#: src/ui/librarywindow.cpp:1124
+#, kde-format
+msgctxt "@title:window"
+msgid "Unsaved changes"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:1142
+#, kde-format
+msgid "Discard"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:1206
+#, kde-format
+msgid ""
+"Switched off while editing — a search would rebuild the list underneath the "
+"editor."
+msgstr ""
+
+#: src/ui/timestampformat.cpp:187
+#, kde-format
+msgctxt "@title:group notes written today"
+msgid "Today"
+msgstr ""
+
+#: src/ui/timestampformat.cpp:189
+#, kde-format
+msgctxt "@title:group notes written yesterday"
+msgid "Yesterday"
+msgstr ""
+
+#: src/ui/timestampformat.cpp:191
+#, kde-format
+msgctxt "@title:group notes of the current calendar week"
+msgid "This week"
+msgstr ""
+
+#: src/ui/timestampformat.cpp:193
+#, kde-format
+msgctxt "@title:group notes of the previous calendar week"
+msgid "Last week"
+msgstr ""
+
+#: src/ui/timestampformat.cpp:195
+#, kde-format
+msgctxt "@title:group notes older than the previous week"
+msgid "Older"
+msgstr ""
+
+#: src/ui/timestampformat.cpp:231
+#, kde-format
+msgctxt "@item:intext timestamp of a note written today"
+msgid "Today %1"
+msgstr ""
+
+#: src/ui/timestampformat.cpp:233
+#, kde-format
+msgctxt "@item:intext timestamp of a note written yesterday"
+msgid "Yesterday %1"
+msgstr ""

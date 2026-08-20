@@ -69,7 +69,7 @@ void ShellTest::initTestCase()
     // is pinned here so the run does not depend on which one the user has set.
     QIcon::setThemeName(QStringLiteral("breeze"));
     QVERIFY2(QIcon::hasThemeIcon(QStringLiteral("document-edit")),
-             "Breeze fehlt — SPEC 10 holt die Menü-Symbole aus dem Breeze-Bestand.");
+             "Breeze is missing — SPEC 10 takes the menu icons from the Breeze set.");
 }
 
 void ShellTest::init()
@@ -215,7 +215,7 @@ void ShellTest::takesAnyAnswerOfTheDaemonAsRegistered()
 
 void ShellTest::readsAnEmptyAnswerWithoutDesktopFileAsAMissingInstallation()
 {
-    // The customer finding of 01.08.2026: kglobalacceld resolves the component
+    // The user finding of 01.08.2026: kglobalacceld resolves the component
     // through the desktop file and creates none without it, so the answer stays
     // empty however often we register.
     QCOMPARE(shortcutRegistration({}, false, false), ShortcutRegistration::ApplicationNotInstalled);
@@ -230,7 +230,7 @@ void ShellTest::readsAnEmptyAnswerWithDesktopFileAsADaemonThatKeptNothing()
 
 void ShellTest::readsAnUndeclaredDesktopActionAsAFailure()
 {
-    // The second customer finding of 01.08.2026: registration and read-back are
+    // The second user finding of 01.08.2026: registration and read-back are
     // both fine, and the key press still goes nowhere, because with an
     // installed desktop file kglobalacceld starts the desktop action of that
     // name instead of signalling us — and finds none.
@@ -254,13 +254,13 @@ void ShellTest::readsTheActionsOfADesktopFile()
     // Both halves have to be there — kglobalacceld reads the list, then looks
     // for the group with the Exec line it is to start.
     write(entry + QStringLiteral("Actions=show-capture;\n\n[Desktop Action show-capture]\n"
-                                 "Name=Notiz erfassen\nExec=denkzetteld\n"));
+                                 "Name=Capture note\nExec=denkzetteld\n"));
     QVERIFY(desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
 
     write(entry + QStringLiteral("Actions=show-capture;\n"));
     QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
 
-    write(entry + QStringLiteral("\n[Desktop Action show-capture]\nName=Notiz erfassen\n"
+    write(entry + QStringLiteral("\n[Desktop Action show-capture]\nName=Capture note\n"
                                  "Exec=denkzetteld\n"));
     QVERIFY(!desktopFileDeclaresAction(path, QStringLiteral("show-capture")));
 

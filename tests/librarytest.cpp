@@ -104,16 +104,16 @@ int bottomClippedRow(const QListView *list)
 }
 
 /**
- * The rows the selection covers right now, as "3" or "keine" or "3,4".
+ * The rows the selection covers right now, as "3" or "none" or "3,4".
  *
  * Kept as text so a failure names what was marked instead of only that a count
- * came out wrong — after the fault of #71 the answer is sometimes "keine".
+ * came out wrong — after the fault of #71 the answer is sometimes "none".
  */
 QString selectedRows(const QListView *list)
 {
     const QModelIndexList selected = list->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
-        return QStringLiteral("keine");
+        return QStringLiteral("none");
     }
     QStringList rows;
     for (const QModelIndex &index : selected) {
@@ -209,6 +209,7 @@ private Q_SLOTS:
 private:
     static QDateTime at(const QString &isoDateTime);
     static QLocale german();
+    static QLocale american();
     static Note noteWith(const QString &content);
     static Note noteWith(const QString &content, const QString &isoDateTime);
 
@@ -299,6 +300,23 @@ void LibraryTest::initTestCase()
     // that write would land in the user's denkzettelrc.
     QStandardPaths::setTestModeEnabled(true);
 
+    // NoteListModel and LibraryWindow read their locale out of QLocale(), the
+    // system one, so three checks below would compare a different string in
+    // every session: the time reads "14:32" under de_DE and under the C locale
+    // of the CI container, "2:32 PM" under en_US (measured 20.08.2026 - without
+    // this line listsNotesWithTheirTimestamp(), groupsAgainOnTheNewReferenceTime()
+    // and leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked() go
+    // red there). Pinned to German, the form those checks were written for.
+    // Which arrangement which locale produces is not decided here but in the
+    // timestamp checks, which are handed their locale as an argument.
+    //
+    // The English strings expected below need no pin of their own: this test
+    // sets no application domain, so KLocalizedString finds no catalogue and
+    // i18nc() returns the source string whatever LANGUAGE says (measured with
+    // the German catalogue reachable through XDG_DATA_DIRS). Whoever adds a
+    // setApplicationDomain() here takes that protection away.
+    QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
+
     // Symbols come from the system theme, and the bare offscreen platform
     // brings no platform theme that would name one. Test mode rewrites the XDG
     // data locations and the icon loader looks for themes under those, so the
@@ -339,18 +357,28 @@ QLocale LibraryTest::german()
     return QLocale(QLocale::German, QLocale::Germany);
 }
 
+/**
+ * The second locale of the timestamp checks. The date forms are the object of
+ * the check - month before day, no ordinal period, slashes instead of periods
+ * - and the week beginning on Sunday comes with it (leavesTheWeekToTheLocale).
+ */
+QLocale LibraryTest::american()
+{
+    return QLocale(QLocale::English, QLocale::UnitedStates);
+}
+
 void LibraryTest::switchesOnTheCalendarDayNotAfterTwentyFourHours()
 {
     // Twenty minutes old, but written on the previous calendar day.
     const QDateTime now = at(QStringLiteral("2026-07-31T00:10:00"));
 
     QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-30T23:50:00")), now, german()),
-             QStringLiteral("Gestern 23:50"));
+             QStringLiteral("Yesterday 23:50"));
 
     // Almost 24 hours old, but the same calendar day.
     const QDateTime lateEvening = at(QStringLiteral("2026-07-31T23:30:00"));
     QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-31T00:05:00")), lateEvening, german()),
-             QStringLiteral("Heute 00:05"));
+             QStringLiteral("Today 00:05"));
 }
 
 void LibraryTest::usesTheWeekdayFormWithinTheTwoCalendarWeeks()
@@ -369,6 +397,18 @@ void LibraryTest::usesTheWeekdayFormWithinTheTwoCalendarWeeks()
              QStringLiteral("So., 26. Juli"));
     QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-20T09:00:00")), now, german()),
              QStringLiteral("Mo., 20. Juli"));
+
+    // The same days in English, and the arrangement is a different one: the
+    // month stands before the day and no ordinal period stands anywhere. The
+    // American week begins on Sunday, so 26 July falls into this week there
+    // and 20 July into the last one - both groups carry the weekday form, so
+    // what moves is the boundary, not the form.
+    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-29T09:00:00")), now, american()),
+             QStringLiteral("Wed, July 29"));
+    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-26T09:00:00")), now, american()),
+             QStringLiteral("Sun, July 26"));
+    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-20T09:00:00")), now, american()),
+             QStringLiteral("Mon, July 20"));
 }
 
 void LibraryTest::usesTheAbsoluteDateBeyondTheLastWeek()
@@ -382,6 +422,16 @@ void LibraryTest::usesTheAbsoluteDateBeyondTheLastWeek()
              QStringLiteral("19.07.2026"));
     QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2025-07-28T09:00:00")), now, german()),
              QStringLiteral("28.07.2025"));
+
+    // In English the month leads, the day carries no leading zero - and the
+    // year keeps its four digits, which QLocale::ShortFormat alone would not
+    // give: it writes "7/18/26" there and "18.07.26" in German. The English
+    // switching point is one day earlier than the German one, because the
+    // American last week already begins on Sunday, 19 July.
+    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-18T09:00:00")), now, american()),
+             QStringLiteral("7/18/2026"));
+    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2025-07-28T09:00:00")), now, american()),
+             QStringLiteral("7/28/2025"));
 }
 
 void LibraryTest::sortsIntoTheFiveGroupsWithTheFirstMatchWinning()
@@ -406,7 +456,7 @@ void LibraryTest::sortsIntoTheFiveGroupsWithTheFirstMatchWinning()
 
 void LibraryTest::countsTheWeekAsACalendarWeek()
 {
-    // The Monday probe of wireframe 3b: the day before belongs to "Gestern"
+    // The Monday probe of wireframe 3b: the day before belongs to "Yesterday"
     // although it lies in the previous calendar week — the first matching
     // group wins …
     const QDateTime monday = at(QStringLiteral("2026-08-03T10:00:00"));
@@ -414,18 +464,18 @@ void LibraryTest::countsTheWeekAsACalendarWeek()
     QCOMPARE(library::noteGroup(at(QStringLiteral("2026-08-02T18:00:00")), monday, german()),
              library::NoteGroup::Yesterday);
 
-    // … and the Thursday before is three days old and still "Letzte Woche".
+    // … and the Thursday before is three days old and still "Last week".
     // Under the rolling seven days it had read "Do., 30. Juli".
     QCOMPARE(library::noteGroup(at(QStringLiteral("2026-07-30T09:00:00")), monday, german()),
              library::NoteGroup::LastWeek);
 
-    // Nothing can fall into "Diese Woche" on a Monday; the list draws no head
+    // Nothing can fall into "This week" on a Monday; the list draws no head
     // over an empty group.
     for (int hoursBack = 1; hoursBack < 24 * 14; ++hoursBack) {
         const library::NoteGroup group =
             library::noteGroup(monday.addSecs(-3600LL * hoursBack), monday, german());
         QVERIFY2(group != library::NoteGroup::ThisWeek,
-                 qPrintable(QStringLiteral("%1 Stunden zurück fällt in „Diese Woche").arg(hoursBack)));
+                 qPrintable(QStringLiteral("%1 hours back falls into “This week”").arg(hoursBack)));
     }
 }
 
@@ -433,17 +483,16 @@ void LibraryTest::leavesTheWeekToTheLocale()
 {
     // SPEC 9 names Monday because that is what the German locale says; the
     // rule itself is QLocale::firstDayOfWeek. In a locale whose week starts on
-    // Sunday, that Sunday is the first day of "Diese Woche" — otherwise the
+    // Sunday, that Sunday is the first day of "This week" — otherwise the
     // group would contradict the calendar the rest of the system draws.
-    const QLocale american(QLocale::English, QLocale::UnitedStates);
     QCOMPARE(german().firstDayOfWeek(), Qt::Monday);
-    QCOMPARE(american.firstDayOfWeek(), Qt::Sunday);
+    QCOMPARE(american().firstDayOfWeek(), Qt::Sunday);
 
     const QDateTime wednesday = at(QStringLiteral("2026-07-29T16:00:00"));
     const QDateTime sunday = at(QStringLiteral("2026-07-26T09:00:00"));
 
     QCOMPARE(library::noteGroup(sunday, wednesday, german()), library::NoteGroup::LastWeek);
-    QCOMPARE(library::noteGroup(sunday, wednesday, american), library::NoteGroup::ThisWeek);
+    QCOMPARE(library::noteGroup(sunday, wednesday, american()), library::NoteGroup::ThisWeek);
 }
 
 void LibraryTest::shortensTheEntryTimestampToWhatItsGroupLeavesOpen()
@@ -462,13 +511,23 @@ void LibraryTest::shortensTheEntryTimestampToWhatItsGroupLeavesOpen()
     QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-23T09:00:00")), now, german()),
              QStringLiteral("Do., 23. Juli"));
 
-    // … and under "Älter" only the date says anything at all.
+    // … and under "Older" only the date says anything at all.
     QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-19T09:00:00")), now, german()),
              QStringLiteral("19.07.2026"));
 
     // The detail pane stands under no head and keeps the full form.
     QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-31T11:05:00")), now, german()),
-             QStringLiteral("Heute 11:05"));
+             QStringLiteral("Today 11:05"));
+
+    // The English entry says the same three things in the English forms. 18
+    // July instead of 19 July, because the American week begins on Sunday and
+    // 19 July is still the last week there.
+    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-28T09:00:00")), now, american()),
+             QStringLiteral("Tue, July 28"));
+    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-23T09:00:00")), now, american()),
+             QStringLiteral("Thu, July 23"));
+    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-18T09:00:00")), now, american()),
+             QStringLiteral("7/18/2026"));
 }
 
 void LibraryTest::sortsATimestampFromTheFutureIntoToday()
@@ -479,10 +538,12 @@ void LibraryTest::sortsATimestampFromTheFutureIntoToday()
     // A clock jump is no group of its own — the note goes to the top …
     QCOMPARE(library::noteGroup(ahead, now, german()), library::NoteGroup::Today);
 
-    // … but "Heute 09:00" would be a lie, so the date stays absolute in both
+    // … but "Today 09:00" would be a lie, so the date stays absolute in both
     // the list and the detail pane (wireframe 3b).
     QCOMPARE(library::entryTimestamp(ahead, now, german()), QStringLiteral("04.08.2026"));
     QCOMPARE(library::relativeTimestamp(ahead, now, german()), QStringLiteral("04.08.2026"));
+    QCOMPARE(library::entryTimestamp(ahead, now, american()), QStringLiteral("8/4/2026"));
+    QCOMPARE(library::relativeTimestamp(ahead, now, american()), QStringLiteral("8/4/2026"));
 }
 
 Note LibraryTest::noteWith(const QString &content)
@@ -543,7 +604,7 @@ void LibraryTest::listsNotesWithTheirTimestamp()
     QCOMPARE(model.noteCount(), 2);
     QCOMPARE(model.rowCount(), 4);
 
-    QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Heute"));
+    QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
     QCOMPARE(model.index(1).data(Qt::DisplayRole).toString(), QStringLiteral("heute gedacht"));
 
     // The head carries the day, so the entry carries the time alone.
@@ -604,9 +665,9 @@ void LibraryTest::dropsTheHeadWithTheLastNoteOfItsGroup()
     QSignalSpy removed(&model, &QAbstractItemModel::rowsRemoved);
     model.takeNote(1);
 
-    // The last note of "Gestern" takes its head with it — head and note are
+    // The last note of "Yesterday" takes its head with it — head and note are
     // two adjacent rows and go in one removal.
-    QCOMPARE(rowsOf(model), QStringList({QStringLiteral("Kopf: Heute"), QStringLiteral("Notiz: von heute")}));
+    QCOMPARE(rowsOf(model), QStringList({QStringLiteral("Kopf: Today"), QStringLiteral("Notiz: von heute")}));
     QCOMPARE(removed.size(), 1);
     QCOMPARE(removed.first().at(1).toInt(), 2);
     QCOMPARE(removed.first().at(2).toInt(), 3);
@@ -616,9 +677,9 @@ void LibraryTest::dropsTheHeadWithTheLastNoteOfItsGroup()
 
     // Undo brings both back, in the same place.
     QCOMPARE(rowsOf(model),
-             QStringList({QStringLiteral("Kopf: Heute"),
+             QStringList({QStringLiteral("Kopf: Today"),
                           QStringLiteral("Notiz: von heute"),
-                          QStringLiteral("Kopf: Gestern"),
+                          QStringLiteral("Kopf: Yesterday"),
                           QStringLiteral("Notiz: von gestern")}));
     QCOMPARE(inserted.size(), 1);
     QCOMPARE(inserted.first().at(1).toInt(), 2);
@@ -633,12 +694,12 @@ void LibraryTest::groupsAgainOnTheNewReferenceTime()
     model.setNotes({noteWith(QStringLiteral("gestern Abend"), QStringLiteral("2026-07-31T21:48:00"))},
                    at(QStringLiteral("2026-07-31T22:00:00")));
 
-    QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Heute"));
+    QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
     QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("21:48"));
 
     model.regroup(at(QStringLiteral("2026-08-01T09:00:00")));
 
-    QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
     QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("21:48"));
     QCOMPARE(model.noteCount(), 1);
 }
@@ -771,7 +832,7 @@ QDialog *LibraryTest::waitForGuardDialog()
     // is not yet the dialog the user meets: focus is handed out at that later
     // moment, and with the focus goes the default answer. Measured on
     // 02.08.2026 — read one turn of the event loop earlier, the default read
-    // „Speichern“ and settled on „Abbrechen“ afterwards. The assertion on it
+    // „Save“ and settled on „Cancel“ afterwards. The assertion on it
     // was green and meant nothing.
     // A dialog that never reaches the screen is no dialog for the caller
     // either — it gets nullptr and says so through its own assertion.
@@ -813,11 +874,11 @@ void LibraryTest::answerNextDialog(const QString &label)
 {
     QTimer::singleShot(0, qApp, [label] {
         QDialog *dialog = waitForGuardDialog();
-        QVERIFY2(dialog, "Der Wächterdialog ist nicht erschienen");
+        QVERIFY2(dialog, "The guard dialog never appeared");
 
         QAbstractButton *button = dialogButton(dialog, label);
         QVERIFY2(button,
-                 qPrintable(QStringLiteral("Der Wächterdialog bietet keine Antwort „%1“, sondern %2")
+                 qPrintable(QStringLiteral("The guard dialog offers no answer “%1”, but %2")
                                 .arg(label, dialogAnswers(dialog).join(QLatin1Char('|')))));
         button->click();
     });
@@ -932,7 +993,7 @@ void LibraryTest::carriesOutTheDeletionWhenTheWindowCloses()
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
-    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+    actionNamed(window, QStringLiteral("Delete"))->trigger();
 
     // The grace period is still running, the note is still in the store.
     QVERIFY(m_store->note(id).has_value());
@@ -953,7 +1014,7 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView_data()
     QTest::addColumn<QSize>("windowSize");
 
     QTest::newRow("900x600") << QSize(900, 600);
-    QTest::newRow("so flach wie möglich") << QSize(900, 150);
+    QTest::newRow("as flat as possible") << QSize(900, 150);
 }
 
 void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
@@ -985,9 +1046,9 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
     QCOMPARE(modelOf(list)->noteCount(), 17);
     // A list that fits into the window would let this pass without scrolling.
     QVERIFY2(list->verticalScrollBar()->maximum() > 0,
-             qPrintable(QStringLiteral("Liste passt ganz ins Bild, der Fall tritt nicht ein")));
+             qPrintable(QStringLiteral("The list fits into the picture whole — the case does not occur")));
 
-    // From the end of the list upwards across the boundary into "Gestern".
+    // From the end of the list upwards across the boundary into "Yesterday".
     // Going up is what puts the entry against the upper edge — and its head
     // just outside it, unless the window pulls the head along.
     list->setCurrentIndex(noteRow(list, 16));
@@ -1000,36 +1061,36 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
 
     const QModelIndex head = modelOf(list)->index(selected.row() - 1);
     QVERIFY(head.data(NoteListModel::GroupHeaderRole).toBool());
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
     // The head of the new group is in the picture, whole rather than half cut
     // off — the selection never stands without its heading (wireframe 3b,
     // case 4) …
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1, Viewport %2 px hoch")
+             qPrintable(QStringLiteral("Head at y=%1, viewport %2 px high")
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
 
     // … and the selected entry is whole, not cut off at an edge (design decision
     // of 01.08.2026).
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
-             qPrintable(QStringLiteral("Auswahl y=%1 h=%2, Viewport %3 px hoch")
+             qPrintable(QStringLiteral("Selection y=%1 h=%2, viewport %3 px high")
                             .arg(list->visualRect(selected).y())
                             .arg(list->visualRect(selected).height())
                             .arg(list->viewport()->height())));
 
     // The heads scroll with the list rather than sticking to the top: the head
-    // of "Heute" has left the picture at this point.
+    // of "Today" has left the picture at this point.
     const QRect firstHead = list->visualRect(modelOf(list)->index(0));
     QVERIFY2(!list->viewport()->rect().intersects(firstHead),
-             qPrintable(QStringLiteral("Kopf „Heute\" klebt bei y=%1").arg(firstHead.y())));
+             qPrintable(QStringLiteral("Head “Today” sticks at y=%1").arg(firstHead.y())));
 }
 
 void LibraryTest::staysPutWhileTheSelectionMovesWithinItsGroup()
 {
-    // AK 7 and wireframe 3b, case 4 both say "springt die Auswahl über eine
+    // AC 7 and wireframe 3b, case 4 both say „springt die Auswahl über eine
     // Gruppengrenze". Within one group nothing is fetched, however far the
-    // head may have scrolled away: the user rolled the list to where he wanted
+    // head may have scrolled away: the user rolled the list to where they wanted
     // it, and one press of an arrow key must not throw that away — least of
     // all against the direction he is pressing in (UI review of 01.08.2026).
     for (int hour = 8; hour < 16; ++hour) {
@@ -1049,15 +1110,15 @@ void LibraryTest::staysPutWhileTheSelectionMovesWithinItsGroup()
 
     QListView *list = listOf(window);
 
-    // The selection sits in "Gestern", and the user has rolled the list so
+    // The selection sits in "Yesterday", and the user has rolled the list so
     // that the entry stands at the top with its head above the upper edge.
     list->setCurrentIndex(noteRow(list, 9));
     const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
     list->verticalScrollBar()->setValue(noteRow(list, 9).row());
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1 — der Fall verlangt ihn außerhalb")
+             qPrintable(QStringLiteral("Head at y=%1 — the case requires it outside the picture")
                             .arg(list->visualRect(head).y())));
 
     // The next note down is in the picture already …
@@ -1102,21 +1163,21 @@ void LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready()
 
     QListView *list = listOf(window);
 
-    // Selection in "Letzte Woche", then the list rolled so that the last note
-    // of "Gestern" stands in the picture while its head does not.
+    // Selection in "Last week", then the list rolled so that the last note
+    // of "Yesterday" stands in the picture while its head does not.
     list->setCurrentIndex(noteRow(list, 11));
     const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
     list->verticalScrollBar()->setValue(noteRow(list, 8).row());
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1 — der Fall verlangt ihn außerhalb")
+             qPrintable(QStringLiteral("Head at y=%1 — the case requires it outside the picture")
                             .arg(list->visualRect(head).y())));
 
     // The row the selection is about to reach is already in the picture, whole.
     const QModelIndex target = noteRow(list, 10);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(target)),
-             qPrintable(QStringLiteral("Zielzeile y=%1 — der Fall verlangt sie ganz im Bild")
+             qPrintable(QStringLiteral("Target row y=%1 — the case requires it whole in the picture")
                             .arg(list->visualRect(target).y())));
 
     QTest::keyClick(list, Qt::Key_Up);
@@ -1125,7 +1186,7 @@ void LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready()
     // never mind that nothing had to be scrolled for the note itself.
     QCOMPARE(list->currentIndex(), target);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1, Viewport %2 px hoch")
+             qPrintable(QStringLiteral("Head at y=%1, viewport %2 px high")
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
     QVERIFY(list->viewport()->rect().contains(list->visualRect(target)));
@@ -1141,7 +1202,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
     // named the trade — "the user loses the place he was looking at and gains
     // the heading of what he picked" — and ended: "Should it grate in daily
     // use, this is the test that says where the decision was made." It grated,
-    // the customer reported it, and the measurement said why: the row he
+    // the user reported it, and the measurement said why: the row they
     // pointed at slid 387 px out from under the cursor (UI review of
     // 01.08.2026, scenes n11a/n11b).
     //
@@ -1163,7 +1224,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
                    QStringLiteral("2026-07-30T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
     }
     // A third group below, so the list can be rolled far enough for the head
-    // of "Gestern" to leave the picture at all.
+    // of "Yesterday" to leave the picture at all.
     for (int hour = 8; hour < 16; ++hour) {
         storedNote(QStringLiteral("von letzter Woche, %1 Uhr").arg(hour),
                    QStringLiteral("2026-07-23T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));
@@ -1179,7 +1240,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
 
     list->setCurrentIndex(noteRow(list, 2));
     const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
     list->verticalScrollBar()->setValue(noteRow(list, 8).row());
     QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
@@ -1195,7 +1256,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
     QCOMPARE(list->currentIndex(), target);
 
     // The picture has not moved: the roll value is the one the user had rolled
-    // to, and the row he pointed at is still under his finger.
+    // to, and the row they pointed at is still under their finger.
     QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
     QCOMPARE(list->visualRect(target).y(), targetBefore);
 
@@ -1204,8 +1265,8 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
     // so what the head would have said stands in the window anyway (UX note on
     // issue #57).
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
-    QVERIFY(visibleLabels(window).contains(QStringLiteral("Gestern 09:00")));
+             qPrintable(QStringLiteral("Head at y=%1").arg(list->visualRect(head).y())));
+    QVERIFY(visibleLabels(window).contains(QStringLiteral("Yesterday 09:00")));
 }
 
 void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
@@ -1238,11 +1299,11 @@ void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
     QListView *list = listOf(window);
 
     // The same starting point as the arrow-key case: selection in "Letzte
-    // Woche", the head of "Gestern" rolled out of the picture, the row the key
+    // Woche", the head of "Yesterday" rolled out of the picture, the row the key
     // is about to reach already in view.
     list->setCurrentIndex(noteRow(list, 11));
     const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
     list->verticalScrollBar()->setValue(noteRow(list, 8).row());
     QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
@@ -1259,7 +1320,7 @@ void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
             visibleHead = candidate;
         }
     }
-    QVERIFY2(visibleHead.isValid(), "Kein Gruppenkopf im Bild — der Fall tritt nicht ein");
+    QVERIFY2(visibleHead.isValid(), "No group head in the picture — the case does not occur");
 
     const QModelIndex before = list->currentIndex();
     QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(visibleHead).center());
@@ -1271,15 +1332,15 @@ void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()
     // click before it changed nothing and counts for nothing.
     QCOMPARE(list->currentIndex(), target);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1").arg(list->visualRect(head).y())));
+             qPrintable(QStringLiteral("Head at y=%1").arg(list->visualRect(head).y())));
 }
 
 void LibraryTest::bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGroup()
 {
     // Issue #70: the arrow key walks up to the first note of a group without
     // crossing a boundary — the note above it in the same group is where it
-    // comes from — and until now nothing fetched the head. Under "Heute" and
-    // "Gestern" an entry carries nothing but the time, so with the head outside
+    // comes from — and until now nothing fetched the head. Under "Today" and
+    // "Yesterday" an entry carries nothing but the time, so with the head outside
     // there stands „08:00" and nothing says of which day (SPEC 9, timestamps).
     //
     // Measured against the roll value before and after the key, not against a
@@ -1306,18 +1367,18 @@ void LibraryTest::bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGrou
 
     QListView *list = listOf(window);
 
-    // The selection sits on the second note of "Letzte Woche", and the user has
+    // The selection sits on the second note of "Last week", and the user has
     // rolled the list so that the head of the group stands above the upper
     // edge. The note the key is about to reach is in the picture already — the
     // very case in which fetching the head looks like waste and is not.
     const QModelIndex first = noteRow(list, 11);
     list->setCurrentIndex(noteRow(list, 12));
     const QModelIndex head = modelOf(list)->index(first.row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Letzte Woche"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Last week"));
 
     list->verticalScrollBar()->setValue(first.row());
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1 — der Fall verlangt ihn außerhalb")
+             qPrintable(QStringLiteral("Head at y=%1 — the case requires it outside the picture")
                             .arg(list->visualRect(head).y())));
     QVERIFY(list->viewport()->rect().contains(list->visualRect(first)));
 
@@ -1325,11 +1386,11 @@ void LibraryTest::bringsTheHeadAlongWhenTheSelectionReachesTheFirstNoteOfItsGrou
 
     QCOMPARE(list->currentIndex(), first);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1, Bild %2 hoch")
+             qPrintable(QStringLiteral("Head at y=%1, picture %2 high")
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(first)),
-             qPrintable(QStringLiteral("Auswahl bei y=%1, Bild %2 hoch")
+             qPrintable(QStringLiteral("Selection at y=%1, picture %2 high")
                             .arg(list->visualRect(first).y())
                             .arg(list->viewport()->height())));
 }
@@ -1367,7 +1428,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked()
 
     const QModelIndex first = noteRow(list, 11);
     const QModelIndex head = modelOf(list)->index(first.row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Letzte Woche"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Last week"));
 
     // Selection elsewhere, head rolled out of the picture, the note to be
     // clicked fully in it.
@@ -1385,7 +1446,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenTheFirstNoteOfAGroupIsClicked()
     QCOMPARE(list->verticalScrollBar()->value(), rolledTo);
     QCOMPARE(list->visualRect(first).y(), firstBefore);
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1 — für den Mausdruck darf er nicht kommen")
+             qPrintable(QStringLiteral("Head at y=%1 — it must not be fetched for a mouse press")
                             .arg(list->visualRect(head).y())));
 }
 
@@ -1444,14 +1505,14 @@ void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs
         }
         const QModelIndex target = modelOf(list)->index(row);
         QVERIFY2(target != preselected,
-                 qPrintable(QStringLiteral("Rollwert %1: die Zielzeile ist die Vorauswahl").arg(value)));
+                 qPrintable(QStringLiteral("Roll value %1: the target row is the preselected one").arg(value)));
 
         // The point is 5 px below the upper edge of the row, well inside the
         // strip the viewport still shows of it.
         const QRect rect = list->visualRect(target);
         const int visible = list->viewport()->height() - rect.top();
         QVERIFY2(visible >= 2,
-                 qPrintable(QStringLiteral("Rollwert %1: sichtbarer Streifen nur %2 px").arg(value).arg(visible)));
+                 qPrintable(QStringLiteral("Roll value %1: visible strip only %2 px").arg(value).arg(visible)));
         const QPoint point(rect.center().x(), rect.top() + qMin(5, visible - 1));
 
         const int rolledTo = list->verticalScrollBar()->value();
@@ -1483,7 +1544,7 @@ void LibraryTest::selectsTheClippedRowThatWasClickedAndLeavesThePictureWhereItIs
     }
 
     QVERIFY2(checked >= 10,
-             qPrintable(QStringLiteral("Nur %1 angeschnittene Rollwerte geprüft — der Aufbau misst nicht")
+             qPrintable(QStringLiteral("Only %1 clipped roll values checked — the setup measures nothing")
                             .arg(checked)));
 }
 
@@ -1527,10 +1588,10 @@ void LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds()
     QListView *list = listOf(window);
 
     // The same starting point as the arrow-key case: selection in "Letzte
-    // Woche", the head of "Gestern" rolled out of the picture.
+    // Woche", the head of "Yesterday" rolled out of the picture.
     list->setCurrentIndex(noteRow(list, 11));
     const QModelIndex head = modelOf(list)->index(noteRow(list, 8).row() - 1);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
     list->verticalScrollBar()->setValue(noteRow(list, 8).row());
     QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
@@ -1547,7 +1608,7 @@ void LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds()
             visibleHead = candidate;
         }
     }
-    QVERIFY2(visibleHead.isValid(), "Kein Gruppenkopf im Bild — der Fall tritt nicht ein");
+    QVERIFY2(visibleHead.isValid(), "No group head in the picture — the case does not occur");
 
     const QModelIndex before = list->currentIndex();
     QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualRect(visibleHead).center());
@@ -1560,7 +1621,7 @@ void LibraryTest::dropsTheMarkOfAPressThatSelectedNothingWhenItEnds()
     list->setCurrentIndex(noteRow(list, 10));
 
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1, Bild %2 hoch")
+             qPrintable(QStringLiteral("Head at y=%1, picture %2 high")
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
     QVERIFY(list->viewport()->rect().contains(list->visualRect(list->currentIndex())));
@@ -1597,7 +1658,7 @@ void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()
     QVERIFY(list->verticalScrollBar()->maximum() > 0);
 
     // Up from the end of the list into the middle note of the three-note group
-    // "Gestern" — its head is two rows above the selection, not one.
+    // "Yesterday" — its head is two rows above the selection, not one.
     list->setCurrentIndex(noteRow(list, 18));
     for (int step = 0; step < 9; ++step) {
         QTest::keyClick(list, Qt::Key_Up);
@@ -1608,18 +1669,18 @@ void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()
     QCOMPARE(selected.data(Qt::DisplayRole).toString(), QStringLiteral("von gestern, 10 Uhr"));
 
     const QModelIndex head = modelOf(list)->index(selected.row() - 2);
-    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
     QVERIFY2(!modelOf(list)->index(selected.row() - 1).data(NoteListModel::GroupHeaderRole).toBool(),
-             "Der Fall verlangt eine Notiz, über der kein Kopf steht");
+             "The case requires a note with no head above it");
 
     // Head and selection fit into the list together, so both are in the
     // picture, whole.
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(head)),
-             qPrintable(QStringLiteral("Kopf bei y=%1, Viewport %2 px hoch")
+             qPrintable(QStringLiteral("Head at y=%1, viewport %2 px high")
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
-             qPrintable(QStringLiteral("Auswahl y=%1 h=%2, Viewport %3 px hoch")
+             qPrintable(QStringLiteral("Selection y=%1 h=%2, viewport %3 px high")
                             .arg(list->visualRect(selected).y())
                             .arg(list->visualRect(selected).height())
                             .arg(list->viewport()->height())));
@@ -1655,7 +1716,7 @@ void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
     // reading gone (UI review of 01.08.2026).
     const QModelIndex selected = noteRow(list, 28);
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
-             "Der Fall verlangt eine Zielzeile, die schon ganz im Bild steht");
+             "The case requires a target row that already stands whole in the picture");
 
     const int scrolledTo = list->verticalScrollBar()->value();
     QTest::keyClick(list, Qt::Key_Up);
@@ -1666,15 +1727,15 @@ void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
     // The head is further away than the list is tall …
     const int span = list->visualRect(selected).bottom() - list->visualRect(head).top();
     QVERIFY2(span > list->viewport()->height(),
-             qPrintable(QStringLiteral("Kopf und Auswahl umspannen %1 px, Viewport %2 px — der Fall "
-                                       "tritt nicht ein")
+             qPrintable(QStringLiteral("Head and selection span %1 px, viewport %2 px — the case "
+                                       "does not occur")
                             .arg(span)
                             .arg(list->viewport()->height())));
 
     // … so it stays outside, and the selection keeps the picture, whole.
     QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
-             qPrintable(QStringLiteral("Auswahl y=%1 h=%2, Viewport %3 px hoch")
+             qPrintable(QStringLiteral("Selection y=%1 h=%2, viewport %3 px high")
                             .arg(list->visualRect(selected).y())
                             .arg(list->visualRect(selected).height())
                             .arg(list->viewport()->height())));
@@ -1694,16 +1755,16 @@ void LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 1));
     QCOMPARE(rowsOf(*modelOf(list)),
-             QStringList({QStringLiteral("Kopf: Heute"),
+             QStringList({QStringLiteral("Kopf: Today"),
                           QStringLiteral("Notiz: von heute"),
-                          QStringLiteral("Kopf: Gestern"),
+                          QStringLiteral("Kopf: Yesterday"),
                           QStringLiteral("Notiz: von gestern")}));
 
-    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+    actionNamed(window, QStringLiteral("Delete"))->trigger();
 
-    // The head of "Gestern" goes with its last note …
+    // The head of "Yesterday" goes with its last note …
     QCOMPARE(rowsOf(*modelOf(list)),
-             QStringList({QStringLiteral("Kopf: Heute"), QStringLiteral("Notiz: von heute")}));
+             QStringList({QStringLiteral("Kopf: Today"), QStringLiteral("Notiz: von heute")}));
     // … and the selection falls back to the preceding note, never onto a head.
     QCOMPARE(list->currentIndex(), noteRow(list, 0));
 
@@ -1711,9 +1772,9 @@ void LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
 
     // The undo brings note and head back in the same place.
     QCOMPARE(rowsOf(*modelOf(list)),
-             QStringList({QStringLiteral("Kopf: Heute"),
+             QStringList({QStringLiteral("Kopf: Today"),
                           QStringLiteral("Notiz: von heute"),
-                          QStringLiteral("Kopf: Gestern"),
+                          QStringLiteral("Kopf: Yesterday"),
                           QStringLiteral("Notiz: von gestern")}));
     QCOMPARE(list->currentIndex(), noteRow(list, 1));
     QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("von gestern"));
@@ -1730,13 +1791,13 @@ void LibraryTest::regroupsWhenTheWindowIsActivated()
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
-    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Heute"));
+    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
 
     // The window stood open past midnight. Setting the reference time alone
     // changes nothing — there is no timer that regroups on its own
     // (wireframe 3b).
     window.setReferenceTime(at(QStringLiteral("2026-08-01T09:00:00")));
-    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Heute"));
+    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
 
     // Looking at the window again does: the activation regroups the list, and
     // the note keeps its selection across the regrouping.
@@ -1748,7 +1809,7 @@ void LibraryTest::regroupsWhenTheWindowIsActivated()
     window.activateWindow();
     QTRY_VERIFY(window.isActiveWindow());
 
-    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
     QCOMPARE(list->currentIndex(), noteRow(list, 0));
     QCOMPARE(list->currentIndex().data(Qt::DisplayRole).toString(), QStringLiteral("gestern Abend gedacht"));
 }
@@ -1777,7 +1838,7 @@ void LibraryTest::staysPutWhenTheWindowIsActivatedWithoutADayChange()
 
     QListView *list = listOf(window);
 
-    // The selection is in "Gestern", well below row 0 …
+    // The selection is in "Yesterday", well below row 0 …
     const QModelIndex selected = noteRow(list, 12);
     list->setCurrentIndex(selected);
     QVERIFY(selected.row() > 0);
@@ -1785,7 +1846,7 @@ void LibraryTest::staysPutWhenTheWindowIsActivatedWithoutADayChange()
     // … and the user has rolled the list back to the top, away from it.
     list->verticalScrollBar()->setValue(0);
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(selected)),
-             "Der Fall verlangt die Auswahl außerhalb des Bildes");
+             "The case requires the selection outside the picture");
     const int rolledTo = list->verticalScrollBar()->value();
 
     // Alt-Tab away and back, without a day passing in between.
@@ -1932,7 +1993,7 @@ void LibraryTest::showsANoteCapturedWhileTheWindowStoodOpen()
     const QListView *list = listOf(window);
     QCOMPARE(modelOf(list)->noteCount(), 1);
 
-    // The customer's path (issue #105): Meta+N, type, Strg+Enter — and nothing
+    // The user's path (issue #105): Meta+N, type, Ctrl+Enter — and nothing
     // else. Nobody asks the library for anything, so nothing here shows it, and
     // that is the whole point: the note has to arrive on its own.
     Note captured = noteWith(QStringLiteral("gerade festgehalten"));
@@ -1994,7 +2055,7 @@ void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut()
     // anyone asking the window for anything.
     const NoteListModel *model = modelOf(list);
     QVERIFY2(QTest::qWaitFor([model] { return model->noteCount() == 2; }, 8000),
-             qPrintable(QStringLiteral("Liste hat %1 Notizen").arg(model->noteCount())));
+             qPrintable(QStringLiteral("The list has %1 notes").arg(model->noteCount())));
 
     QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
     QCOMPARE(noteRow(list, 1).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
@@ -2018,7 +2079,7 @@ void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsUndone()
     captured.createdAt = captured.createdAt.addSecs(60);
     QVERIFY(m_store->addNote(captured).has_value());
 
-    actionNamed(window, QStringLiteral("Rückgängig"))->trigger();
+    actionNamed(window, QStringLiteral("Undo"))->trigger();
 
     // The undone note comes back and the waiting one comes with it — one list
     // that agrees with the store again.
@@ -2049,7 +2110,7 @@ void LibraryTest::keepsTheReadingPlaceWhenANoteArrives()
     QListView *list = listOf(window);
 
     // The user has rolled the list down and is reading a note in the middle of
-    // it. Both marks are set from outside — the row he rolled to and the note
+    // it. Both marks are set from outside — the row they rolled to and the note
     // he picked —, so neither of them can move along with the fault.
     //
     // Picking comes first and rolling second: the selection fetches the head of
@@ -2119,7 +2180,7 @@ void LibraryTest::keepsTheEditorWhenANoteArrives()
     // from him, and a question he did not cause is worse than a stale list.
     const DialogWatch watch;
 
-    buttonNamed(window, QStringLiteral("Bearbeiten"))->click();
+    buttonNamed(window, QStringLiteral("Edit"))->click();
     editorOf(window)->setPlainText(QStringLiteral("Transkript mit einem Hörfehler, ausgebessert"));
 
     Note captured = noteWith(QStringLiteral("gerade festgehalten"));
@@ -2142,12 +2203,12 @@ void LibraryTest::putsTheCursorAtTheEndWithoutSelectingTheText()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
 
     // Wireframe 2a: the cursor stands at the end and nothing is selected —
     // the first keystroke must not be able to overwrite the note.
     const QTextCursor cursor = editorOf(window)->textCursor();
-    QVERIFY2(!cursor.hasSelection(), "Der ganze Text ist markiert");
+    QVERIFY2(!cursor.hasSelection(), "The whole text is selected");
     QCOMPARE(cursor.position(), static_cast<int>(content.size()));
 }
 
@@ -2160,17 +2221,17 @@ void LibraryTest::savesTheChangedTextWithTheButton()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("sonst wird der Vault zugemüllt"));
 
-    buttonNamed(window, QStringLiteral("Speichern"))->click();
+    buttonNamed(window, QStringLiteral("Save"))->click();
 
     QCOMPARE(m_store->note(id)->content, QStringLiteral("sonst wird der Vault zugemüllt"));
 
     // The answer is the way back into the reading state, and the reading pane
     // carries what was written (wireframe 2a).
     QCOMPARE(readerOf(window)->toPlainText(), QStringLiteral("sonst wird der Vault zugemüllt"));
-    QVERIFY(buttonNamed(window, QStringLiteral("Bearbeiten"))->isVisible());
+    QVERIFY(buttonNamed(window, QStringLiteral("Edit"))->isVisible());
 
     // The list shows the note it now holds, not the one it was opened with.
     QCOMPARE(noteRow(listOf(window), 0).data(Qt::DisplayRole).toString(),
@@ -2186,7 +2247,7 @@ void LibraryTest::savesTheChangedTextWithControlEnter()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     QPlainTextEdit *editor = editorOf(window);
     editor->setPlainText(QStringLiteral("sonst wird der Vault zugemüllt"));
 
@@ -2208,9 +2269,9 @@ void LibraryTest::keepsCategoryTagsAndStateWhileSaving()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("Idee für Denkzettel, überarbeitet"));
-    buttonNamed(window, QStringLiteral("Speichern"))->click();
+    buttonNamed(window, QStringLiteral("Save"))->click();
 
     // SPEC 9: editing keeps category, tags and state — the analysis run keeps
     // those, not the editor.
@@ -2233,13 +2294,13 @@ void LibraryTest::marksTheSavedNoteForANewEmbedding()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("Idee für Denkzettel, überarbeitet"));
-    buttonNamed(window, QStringLiteral("Speichern"))->click();
+    buttonNamed(window, QStringLiteral("Save"))->click();
 
     // SPEC 9 / 7.2: the embedding ages with the text, so the next analysis run
     // renews it — and only it.
-    QVERIFY2(m_store->note(id)->needsReembed, "needs_reembed steht nach dem Speichern nicht auf 1");
+    QVERIFY2(m_store->note(id)->needsReembed, "needs_reembed is not 1 after saving");
 }
 
 void LibraryTest::findsTheSavedTextInTheSearchIndex()
@@ -2251,9 +2312,9 @@ void LibraryTest::findsTheSavedTextInTheSearchIndex()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("sonst wird der Vault zugemüllt"));
-    buttonNamed(window, QStringLiteral("Speichern"))->click();
+    buttonNamed(window, QStringLiteral("Save"))->click();
 
     // The full-text index follows the text; the search of S6 finds the note
     // under its new word and no longer under the old one.
@@ -2275,9 +2336,9 @@ void LibraryTest::keepsTheAudioFileWhenTheTranscriptIsEdited()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("Transkript ohne Hörfehler"));
-    buttonNamed(window, QStringLiteral("Speichern"))->click();
+    buttonNamed(window, QStringLiteral("Save"))->click();
 
     // SPEC 9: only the transcript is edited, never the recording.
     const std::optional<Note> saved = m_store->note(*id);
@@ -2297,23 +2358,23 @@ void LibraryTest::refusesToSaveAnEmptyText()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
     listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     QPlainTextEdit *editor = editorOf(window);
     editor->setPlainText(QStringLiteral("   \n  "));
 
     // Wireframe 2a: an empty field is no valid state to save. Deleting runs
     // over the delete action, not over emptying the field.
-    QVERIFY2(!buttonNamed(window, QStringLiteral("Speichern"))->isEnabled(),
-             "„Speichern“ ist bei leerem Feld auslösbar");
+    QVERIFY2(!buttonNamed(window, QStringLiteral("Save"))->isEnabled(),
+             "“Save” can be triggered with an empty field");
 
     QTest::keyClick(editor, Qt::Key_Return, Qt::ControlModifier);
 
     QCOMPARE(m_store->note(id)->content, QStringLiteral("bleibt so stehen"));
-    QVERIFY2(editor->isVisible(), "Strg+Enter hat den leeren Text gespeichert");
+    QVERIFY2(editor->isVisible(), "Ctrl+Enter saved the empty text");
 
     // Filling it again makes the button live once more.
     editor->setPlainText(QStringLiteral("doch etwas"));
-    QVERIFY(buttonNamed(window, QStringLiteral("Speichern"))->isEnabled());
+    QVERIFY(buttonNamed(window, QStringLiteral("Save"))->isEnabled());
 }
 
 void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
@@ -2327,7 +2388,7 @@ void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
 
     QModelIndex selectedWhileAsking;
@@ -2337,7 +2398,7 @@ void LibraryTest::keepsTheSelectionOnTheEditedNoteWhileTheDialogAsks()
 
         selectedWhileAsking = list->currentIndex();
 
-        QAbstractButton *cancel = dialogButton(dialog, QStringLiteral("Abbrechen"));
+        QAbstractButton *cancel = dialogButton(dialog, QStringLiteral("Cancel"));
         QVERIFY(cancel);
         cancel->click();
     });
@@ -2361,9 +2422,9 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
     // losing a correction unwatched.
     //
     // The answers are named by their label, not by the button role behind them
-    // (issue #66). What the wireframe fixes is their *meaning* — „Speichern“
-    // writes and carries the act out, „Verwerfen“ carries it out without
-    // writing, „Abbrechen“ stays in the editor — while roles and order belong
+    // (issue #66). What the wireframe fixes is their *meaning* — „Save“
+    // writes and carries the act out, „Discard“ carries it out without
+    // writing, „Cancel“ stays in the editor — while roles and order belong
     // to the platform. A matrix that both clicks and expects by role would
     // survive two answers swapping their labels.
     QTest::addColumn<QString>("trigger");
@@ -2372,7 +2433,7 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost_data()
     for (const QString &trigger :
          {QStringLiteral("auswahlwechsel"), QStringLiteral("fensterschliessen"), QStringLiteral("esc")}) {
         for (const QString &answer :
-             {QStringLiteral("Speichern"), QStringLiteral("Verwerfen"), QStringLiteral("Abbrechen")}) {
+             {QStringLiteral("Save"), QStringLiteral("Discard"), QStringLiteral("Cancel")}) {
             QTest::newRow(qPrintable(trigger + QLatin1Char('-') + answer.toLower())) << trigger << answer;
         }
     }
@@ -2394,7 +2455,7 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost()
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("erste Notiz, berichtigt"));
 
     answerNextDialog(answer);
@@ -2407,17 +2468,17 @@ void LibraryTest::asksBeforeUnsavedChangesAreLost()
         QTest::keyClick(editorOf(window), Qt::Key_Escape);
     }
 
-    // „Speichern“ writes, „Verwerfen“ and „Abbrechen“ leave the note alone.
+    // „Save“ writes, „Discard“ and „Cancel“ leave the note alone.
     const QString stored = m_store->note(edited)->content;
-    if (answer == QStringLiteral("Speichern")) {
+    if (answer == QStringLiteral("Save")) {
         QCOMPARE(stored, QStringLiteral("erste Notiz, berichtigt"));
     } else {
         QCOMPARE(stored, QStringLiteral("erste Notiz"));
     }
 
-    // „Speichern“ and „Verwerfen“ carry the triggering act out, „Abbrechen“
+    // „Save“ and „Discard“ carry the triggering act out, „Cancel“
     // stays in the edit state and takes the act back.
-    const bool carriedOut = answer != QStringLiteral("Abbrechen");
+    const bool carriedOut = answer != QStringLiteral("Cancel");
 
     if (trigger == QStringLiteral("auswahlwechsel")) {
         QCOMPARE(list->currentIndex(), noteRow(list, carriedOut ? 1 : 0));
@@ -2452,7 +2513,7 @@ void LibraryTest::keepsTheEditorWhenTheListIsRebuiltUnderIt()
     list->setCurrentIndex(noteRow(list, 0));
     const QModelIndex before = list->currentIndex();
 
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
 
     // Meta+N while the library stands open: the new note takes the top row and
@@ -2470,9 +2531,9 @@ void LibraryTest::keepsTheEditorWhenTheListIsRebuiltUnderIt()
 
     // The row really did move — otherwise this test would prove nothing.
     QCOMPARE(modelOf(list)->noteCount(), 2);
-    QVERIFY2(list->currentIndex() != before, "Die Zeile ist gar nicht verrutscht");
+    QVERIFY2(list->currentIndex() != before, "The row did not move at all");
 
-    QVERIFY2(!watch.appeared(), "Der Wächterdialog kam, obwohl die Notiz dieselbe geblieben ist");
+    QVERIFY2(!watch.appeared(), "The guard dialog came although the note stayed the same");
     QVERIFY(editorOf(window)->isVisible());
     QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("halb getippt"));
 }
@@ -2488,7 +2549,7 @@ void LibraryTest::keepsTheEditorWhenTheWindowIsActivatedAgain()
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
-    actionNamed(window, QStringLiteral("Bearbeiten"))->trigger();
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
     editorOf(window)->setPlainText(QStringLiteral("halb getippt"));
 
     // The window stood open past midnight and is looked at again: the
@@ -2511,9 +2572,9 @@ void LibraryTest::keepsTheEditorWhenTheWindowIsActivatedAgain()
     QTest::qWait(100);
 
     // The regrouping really did happen — otherwise nothing was rebuilt here.
-    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Gestern"));
+    QCOMPARE(modelOf(list)->index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
 
-    QVERIFY2(!watch.appeared(), "Der Wächterdialog kam beim Zurückkommen ans Fenster");
+    QVERIFY2(!watch.appeared(), "The guard dialog came on returning to the window");
     QVERIFY(editorOf(window)->isVisible());
     QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("halb getippt"));
     QCOMPARE(list->currentIndex(), noteRow(list, 0));
@@ -2530,7 +2591,7 @@ void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
-    actionNamed(window, QStringLiteral("Löschen"))->trigger();
+    actionNamed(window, QStringLiteral("Delete"))->trigger();
 
     // The grace period is still running, the note is still in the store.
     QVERIFY(m_store->note(id).has_value());

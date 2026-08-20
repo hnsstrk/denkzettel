@@ -67,7 +67,7 @@ KConfigGroup windowGroup()
 }
 
 /**
- * „Notiz löschen (Entf)" — the wording of a tooltip that names its key.
+ * "Delete note (Del)" — the wording of a tooltip that names its key.
  *
  * The key is read off the action every time rather than written down: „Entf"
  * is what a German session calls it and „Del" what a run without a locale
@@ -178,20 +178,20 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_store(store)
     , m_model(new NoteListModel(this))
     , m_deletion(new PendingDeletion(store, PendingDeletion::DefaultGracePeriodSeconds, this))
-    , m_deleteAction(new QAction(i18n("Löschen"), this))
+    , m_deleteAction(new QAction(i18n("Delete"), this))
     // The fourth labelled control of the library and the only one outside the
     // detail pane: KMessageWidget draws its actions as buttons with the symbol
     // beside the text, so the symbol belongs on the action (wireframe 2b,
     // issue #67).
-    , m_undoAction(new QAction(QIcon::fromTheme(QStringLiteral("edit-undo")), i18n("Rückgängig"), this))
-    , m_editAction(new QAction(i18n("Bearbeiten"), this))
-    , m_saveAction(new QAction(i18n("Speichern"), this))
-    , m_cancelEditAction(new QAction(i18n("Abbrechen"), this))
+    , m_undoAction(new QAction(QIcon::fromTheme(QStringLiteral("edit-undo")), i18n("Undo"), this))
+    , m_editAction(new QAction(i18n("Edit"), this))
+    , m_saveAction(new QAction(i18n("Save"), this))
+    , m_cancelEditAction(new QAction(i18n("Cancel"), this))
     , m_splitter(new QSplitter(Qt::Horizontal, this))
     , m_list(new QListView(this))
     , m_message(new KMessageWidget(this))
 {
-    setWindowTitle(i18nc("@title:window", "Denkzettel — Bibliothek"));
+    setWindowTitle(i18nc("@title:window", "Denkzettel — Library"));
 
     m_list->setModel(m_model);
     m_list->setItemDelegate(new NoteListDelegate(m_list));
@@ -201,14 +201,14 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_list->setFrameShape(QFrame::NoFrame);
 
     m_listPages = new QStackedWidget(this);
-    m_emptyLibraryPage = placeholderPage(i18n("Noch keine Notizen"),
-                                         i18n("Mit Meta+N einen Gedanken festhalten."),
+    m_emptyLibraryPage = placeholderPage(i18n("No notes yet"),
+                                         i18n("Press Meta+N to capture a thought."),
                                          true);
     // A search without a hit is not an empty library: it says something else,
     // and it carries no icon — the icon belongs to the first start, not to a
     // state the user leaves again by typing (wireframe 2c).
-    m_noResultsPage = placeholderPage(i18n("Keine Treffer"),
-                                      i18n("Den Suchbegriff ändern oder das Feld leeren."),
+    m_noResultsPage = placeholderPage(i18n("No matches"),
+                                      i18n("Change the search term or clear the field."),
                                       false);
     m_listPages->addWidget(m_list);
     m_listPages->addWidget(m_emptyLibraryPage);
@@ -217,8 +217,8 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
 
     m_detailPages = new QStackedWidget(this);
     m_detailPage = buildDetail();
-    m_noSelectionPage = placeholderPage(i18n("Keine Notiz ausgewählt"),
-                                        i18n("Zum Lesen links eine Notiz auswählen."),
+    m_noSelectionPage = placeholderPage(i18n("No note selected"),
+                                        i18n("Select a note on the left to read it."),
                                         false);
     // The empty library already says everything there is to say; a second
     // message next to it would say it twice (wireframe 2c).
@@ -281,12 +281,12 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // rather than where the buttons are built: the keys are only fixed by the
     // lines above, and a tooltip written before them would name none.
     //
-    // „Rückgängig" is no button of this code — KMessageWidget makes one out of
+    // „Undo" is no button of this code — KMessageWidget makes one out of
     // the action and passes text, symbol and tooltip on, so the tooltip goes to
     // the action.
-    m_editButton->setToolTip(tooltipNaming(i18nc("@action", "Notiz bearbeiten"), m_editAction));
-    m_deleteButton->setToolTip(tooltipNaming(i18nc("@action", "Notiz löschen"), m_deleteAction));
-    m_undoAction->setToolTip(tooltipNaming(i18nc("@action", "Löschen rückgängig machen"), m_undoAction));
+    m_editButton->setToolTip(tooltipNaming(i18nc("@action", "Edit note"), m_editAction));
+    m_deleteButton->setToolTip(tooltipNaming(i18nc("@action", "Delete note"), m_deleteAction));
+    m_undoAction->setToolTip(tooltipNaming(i18nc("@action", "Undo deletion"), m_undoAction));
 
     // Both Return keys, as in the capture window (SPEC 3).
     m_saveAction->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Return), QKeySequence(Qt::CTRL | Qt::Key_Enter)});
@@ -316,7 +316,7 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_list->installEventFilter(this);
 
     connect(m_deletion, &PendingDeletion::remainingChanged, this, [this](int seconds) {
-        m_message->setText(i18n("Notiz gelöscht — noch %1 s", seconds));
+        m_message->setText(i18n("Note deleted — %1 s left", seconds));
         m_undoAction->setEnabled(true);
         if (!m_message->isVisible()) {
             m_message->animatedShow();
@@ -358,7 +358,7 @@ QWidget *LibraryWindow::buildHeader()
     auto *header = new QWidget(this);
 
     m_search = new QLineEdit(header);
-    m_search->setPlaceholderText(i18n("Volltextsuche …"));
+    m_search->setPlaceholderText(i18n("Full-text search…"));
     // S5 kept the field switched off for a stable layout and said so in a
     // tooltip; this story gives it its function, so both are gone. The clear
     // button is the one-click way back to the full list.
@@ -381,7 +381,7 @@ QWidget *LibraryWindow::buildDetail()
 
     // Wireframe 2a: while editing, the head says so where the two buttons
     // stand while reading.
-    m_editingBadge = smallLabel(i18n("wird bearbeitet"), detail);
+    m_editingBadge = smallLabel(i18n("Editing"), detail);
     // The role rather than a colour taken from the palette once: the window
     // lives as long as the daemon and has to follow a colour scheme changed
     // underneath it (issue #54).
@@ -393,14 +393,14 @@ QWidget *LibraryWindow::buildDetail()
     // menu (#60). The symbol steps beside the label and never in its place:
     // the KDE HIG have symbols explain a label rather than replace it, and a
     // symbol-only button appears nowhere in this window.
-    m_editButton = new QPushButton(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Bearbeiten"), detail);
+    m_editButton = new QPushButton(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Edit"), detail);
     connect(m_editButton, &QPushButton::clicked, m_editAction, &QAction::trigger);
 
-    // „Löschen“ takes its symbol from KStandardGuiItem::del(), so it is the one
+    // „Delete“ takes its symbol from KStandardGuiItem::del(), so it is the one
     // every other KDE window deletes with — the icon only, the wording stays
     // under this application's own i18n() and must not depend on which KF6
     // catalogue happens to be installed.
-    m_deleteButton = new QPushButton(KStandardGuiItem::del().icon(), i18n("Löschen"), detail);
+    m_deleteButton = new QPushButton(KStandardGuiItem::del().icon(), i18n("Delete"), detail);
     connect(m_deleteButton, &QPushButton::clicked, m_deleteAction, &QAction::trigger);
 
     auto *reading = new QWidget(detail);
@@ -464,7 +464,7 @@ QWidget *LibraryWindow::buildDetail()
     m_metaRow = new QWidget(detail);
     auto *meta = new QHBoxLayout(m_metaRow);
     meta->setContentsMargins(0, 0, 0, 0);
-    meta->addWidget(subtleLabel(i18n("Kategorie"), m_metaRow));
+    meta->addWidget(subtleLabel(i18n("Category"), m_metaRow));
     meta->addWidget(m_category);
     meta->addSpacing(12);
     meta->addWidget(subtleLabel(i18n("Tags"), m_metaRow));
@@ -473,10 +473,10 @@ QWidget *LibraryWindow::buildDetail()
 
     // The same two symbols the guard dialog gives the same two answers — the
     // window says the same thing in both places (issue #67).
-    m_saveButton = new QPushButton(KStandardGuiItem::save().icon(), i18n("Speichern"), detail);
+    m_saveButton = new QPushButton(KStandardGuiItem::save().icon(), i18n("Save"), detail);
     connect(m_saveButton, &QPushButton::clicked, m_saveAction, &QAction::trigger);
 
-    auto *cancelButton = new QPushButton(KStandardGuiItem::cancel().icon(), i18n("Abbrechen"), detail);
+    auto *cancelButton = new QPushButton(KStandardGuiItem::cancel().icon(), i18n("Cancel"), detail);
     connect(cancelButton, &QPushButton::clicked, m_cancelEditAction, &QAction::trigger);
 
     // The order of the two is the platform's, not this window's.
@@ -487,7 +487,7 @@ QWidget *LibraryWindow::buildDetail()
     m_editFooter = new QWidget(detail);
     auto *footer = new QHBoxLayout(m_editFooter);
     footer->setContentsMargins(0, 0, 0, 0);
-    footer->addWidget(subtleLabel(i18n("Esc bricht ab · Strg+Enter speichert"), m_editFooter));
+    footer->addWidget(subtleLabel(i18n("Esc cancels · Ctrl+Enter saves"), m_editFooter));
     footer->addStretch();
     footer->addWidget(buttons);
 
@@ -889,7 +889,7 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         // It crosses a group boundary — what AK 7 and wireframe 3b, case 4 ask
         // for, and what the first selection after opening counts as — or it
         // reaches the first note of its group, which needs no boundary to be
-        // crossed (issue #70). Under „Heute" and „Gestern" an entry carries
+        // crossed (issue #70). Under „Today" and „Yesterday" an entry carries
         // nothing but the time, so with the head outside there stands „08:00"
         // and nothing says of which day.
         //
@@ -1055,7 +1055,7 @@ void LibraryWindow::saveEdit()
     if (!m_store->updateNote(note)) {
         // Keep the editor and its text: a lost correction is worse than an
         // editor that stays open, as in the capture window (SPEC 3).
-        qWarning("Speichern der Notiz fehlgeschlagen: %s", qPrintable(m_store->lastError()));
+        qWarning("Saving the note failed: %s", qPrintable(m_store->lastError()));
         return;
     }
 
@@ -1109,18 +1109,19 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     // 02.08.2026). A KMessageDialog is a plain QDialog and stays ours.
     //
     // The timestamp stands in brackets, not in the middle of the sentence: it
-    // comes in the form its group gives it — „Heute 11:05“, „Di, 28.07.“,
-    // „19.07.2026“ — and no single German sentence carries all three as an
-    // object. The brackets take the grammar out of the format's hands.
+    // comes in the form its group gives it — “Today 11:05 AM”, “Tue, July 28”,
+    // “7/19/2026” under en_US — and no single sentence carries all three as an
+    // object.
+    // The brackets take the grammar out of the format's hands.
     //
     // Both sentences stand in one text because KMessageDialog has no
     // informative text beside the main one (wireframe 2a, state C).
     KMessageDialog dialog(KMessageDialog::WarningTwoActionsCancel,
-                          i18n("Änderungen speichern?\n\nDie bearbeitete Notiz (%1) hat ungespeicherte "
-                               "Änderungen. Ohne Speichern gehen sie verloren.",
+                          i18n("Save changes?\n\nThe edited note (%1) has unsaved changes. "
+                               "Without saving they are lost.",
                                library::relativeTimestamp(m_editedNote.createdAt, referenceTime(), QLocale())),
                           this);
-    dialog.setCaption(i18nc("@title:window", "Ungespeicherte Änderungen"));
+    dialog.setCaption(i18nc("@title:window", "Unsaved changes"));
 
     // The warning symbol, set out loud although the dialog type is a warning
     // one. KMessageDialog::setIcon() promises a generic symbol by type for a
@@ -1137,11 +1138,11 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     // The order the three appear in is the platform's. What this window fixes
     // is which answer means what: primary saves, secondary discards, cancel
     // stays (wireframe 2a, state C).
-    dialog.setButtons(KGuiItem(i18n("Speichern"), KStandardGuiItem::save().icon()),
-                      KGuiItem(i18n("Verwerfen"), KStandardGuiItem::discard().icon()),
-                      KGuiItem(i18n("Abbrechen"), KStandardGuiItem::cancel().icon()));
+    dialog.setButtons(KGuiItem(i18n("Save"), KStandardGuiItem::save().icon()),
+                      KGuiItem(i18n("Discard"), KStandardGuiItem::discard().icon()),
+                      KGuiItem(i18n("Cancel"), KStandardGuiItem::cancel().icon()));
 
-    // „Speichern“ is the default answer, because Return then does what someone
+    // „Save“ is the default answer, because Return then does what someone
     // who has just been typing most likely means, and it is the one answer
     // that loses nothing (design decision F3 of 02.08.2026). It has to be said out
     // loud: the KDE build puts the default on the cancel button.
@@ -1202,7 +1203,7 @@ void LibraryWindow::updateEditState()
     // all one could see (UI review of 02.08.2026, finding 4). The hint goes
     // with the state that explains it.
     m_search->setEnabled(!editing);
-    m_search->setToolTip(editing ? i18n("Während des Bearbeitens abgeschaltet — eine Suche würde die "
-                                        "Liste unter dem Editor neu aufbauen.")
+    m_search->setToolTip(editing ? i18n("Switched off while editing — a search would rebuild the "
+                                        "list underneath the editor.")
                                  : QString());
 }

@@ -11,7 +11,7 @@
 //
 // ctest starts this test through dbus-run-session, so every daemon started
 // below gets a session bus of its own and none of them touches the one the
-// customer is logged into.
+// user is logged into.
 //
 // The version case is the exception and points DBUS_SESSION_BUS_ADDRESS at a
 // socket that does not exist, which is what makes it proof rather than
@@ -38,7 +38,7 @@ QProcessEnvironment CommandLineTest::isolatedEnvironment(const QTemporaryDir &ho
 {
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     // Configuration, notes and cache of every run below stay in a directory of
-    // their own; nothing here writes into the customer's.
+    // their own; nothing here writes into the user's.
     environment.insert(QStringLiteral("XDG_DATA_HOME"), home.filePath(QStringLiteral("data")));
     environment.insert(QStringLiteral("XDG_CONFIG_HOME"), home.filePath(QStringLiteral("config")));
     environment.insert(QStringLiteral("XDG_CACHE_HOME"), home.filePath(QStringLiteral("cache")));
@@ -98,13 +98,13 @@ void CommandLineTest::expectRefusal(const QStringList &arguments)
     if (!daemon.waitForFinished(10000)) {
         daemon.kill();
         daemon.waitForFinished(10000);
-        QFAIL(qPrintable(QStringLiteral("%1 wurde angenommen: der Dienst lief damit weiter.")
+        QFAIL(qPrintable(QStringLiteral("%1 was accepted: the daemon kept running with it.")
                              .arg(arguments.join(QLatin1Char(' ')))));
     }
 
     QCOMPARE(daemon.exitStatus(), QProcess::NormalExit);
     QVERIFY2(daemon.exitCode() != 0,
-             qPrintable(QStringLiteral("%1 endete mit 0 statt mit einer Zurückweisung.")
+             qPrintable(QStringLiteral("%1 ended with 0 instead of a rejection.")
                             .arg(arguments.join(QLatin1Char(' ')))));
 }
 
@@ -125,10 +125,10 @@ void CommandLineTest::refusesTheSwitchThatWouldRenameTheApplication()
 void CommandLineTest::startsTheDaemonWithoutAnArgument()
 {
     QVERIFY2(QDBusConnection::sessionBus().isConnected(),
-             "Kein Sitzungsbus — der Test gehört unter dbus-run-session gestartet.");
+             "No session bus — this test belongs under dbus-run-session.");
     QVERIFY2(!QDBusConnection::sessionBus().interface()->isServiceRegistered(
                  QStringLiteral("org.denkzettel.Daemon")),
-             "Auf diesem Bus liegt der Name schon; der Test misst dann einen fremden Dienst.");
+             "The name is taken on this bus already; the test would then measure a foreign service.");
 
     const QTemporaryDir home;
     QVERIFY(home.isValid());
@@ -152,7 +152,7 @@ void CommandLineTest::startsTheDaemonWithoutAnArgument()
     // KAboutData writes along with the version — the reason this assertion
     // exists at all (issue #61).
     QVERIFY2(registered,
-             qPrintable(QStringLiteral("org.denkzettel.Daemon meldete sich nicht an. Ausgabe: %1")
+             qPrintable(QStringLiteral("org.denkzettel.Daemon did not register. Output: %1")
                             .arg(QString::fromLocal8Bit(daemon.readAllStandardError()))));
     QCOMPARE(daemon.state(), QProcess::Running);
 

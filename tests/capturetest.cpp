@@ -89,7 +89,7 @@ void CaptureTest::initTestCase()
     //
     // Cleared rather than filled with a theme of our own, and the difference
     // matters: a run that writes itself a known theme measures a state it built
-    // for itself, while a cleared one measures the fallback the customer gets —
+    // for itself, while a cleared one measures the fallback the user gets —
     // his own `plasmarc` carries no `[Theme] name` either.
     //
     // This is no guard against the fault behind the crash of 12.08.2026, and it
@@ -235,8 +235,8 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
         // whatever its `isValid()` says, so without this line the guard on the
         // fourth frame would go unmeasured and the run would read green.
         QVERIFY2(m_window->isActiveWindow() && m_window->hasFocus(),
-                 "Das Fenster ist nicht aktiv — dann prüfen die beiden Vergleiche unten die "
-                 "isValid()-Wache der Fokusschicht nicht mit.");
+                 "The window is not active — the two comparisons below then do not "
+                 "cover the isValid() guard of the focus layer.");
 
         // And no field either (issue #100, AK 8), and no focus layer over it
         // (issue #102, AK 6). `widgets/lineedit` is as absent here as

@@ -358,7 +358,7 @@ void StoreTest::searchMatchesAnyPartOfAWord()
     QVERIFY(m_store->addNote(meeting).has_value());
 
     // The trigram tokenizer matches a term anywhere inside a word — start,
-    // middle and end (SPEC 6, customer decision 01.08.2026).
+    // middle and end (SPEC 6, user decision 01.08.2026).
     QCOMPARE(searchContents(QStringLiteral("foto")), QStringList({note.content}));
     QCOMPARE(searchContents(QStringLiteral("grafieren")), QStringList({note.content}));
     QCOMPARE(searchContents(QStringLiteral("bahn")), QStringList({note.content}));
