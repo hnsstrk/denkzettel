@@ -930,7 +930,7 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         // row, and the click ends up on the neighbour of what was pointed at
         // (issue #71). A row the lower edge cuts through therefore stays cut
         // through: it would only become fully visible by moving out from under
-        // the cursor, which is the fault itself (PO decision of 05.08.2026).
+        // the cursor, which is the fault itself (design decision of 05.08.2026).
         if (!m_selectionFollowsAPress) {
             m_list->scrollTo(index, QAbstractItemView::EnsureVisible);
         }
@@ -1143,7 +1143,7 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
 
     // „Speichern“ is the default answer, because Return then does what someone
     // who has just been typing most likely means, and it is the one answer
-    // that loses nothing (PO decision F3 of 02.08.2026). It has to be said out
+    // that loses nothing (design decision F3 of 02.08.2026). It has to be said out
     // loud: the KDE build puts the default on the cancel button.
     //
     // Hence the three lines instead of a plain exec(), each of them measured

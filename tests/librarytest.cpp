@@ -1010,7 +1010,7 @@ void LibraryTest::bringsTheHeadOfTheNewGroupIntoView()
                             .arg(list->visualRect(head).y())
                             .arg(list->viewport()->height())));
 
-    // … and the selected entry is whole, not cut off at an edge (PO decision
+    // … and the selected entry is whole, not cut off at an edge (design decision
     // of 01.08.2026).
     QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
              qPrintable(QStringLiteral("Auswahl y=%1 h=%2, Viewport %3 px hoch")
@@ -1080,7 +1080,7 @@ void LibraryTest::bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready()
     // only where the list has to be scrolled anyway — and it would undo the
     // whole heal. A note stands in full view while its head sits just above
     // the upper edge, and that is exactly the case the head is fetched for
-    // (PO decision of 01.08.2026, taken back after the case was measured).
+    // (design decision of 01.08.2026, taken back after the case was measured).
     for (int hour = 8; hour < 16; ++hour) {
         storedNote(QStringLiteral("von heute, %1 Uhr").arg(hour),
                    QStringLiteral("2026-07-31T%1:00:00").arg(hour, 2, 10, QLatin1Char('0')));

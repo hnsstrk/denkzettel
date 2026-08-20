@@ -95,7 +95,7 @@ bool sessionBlursBehindWindows();
  * Frameless window for capturing a text note (SPEC 3).
  *
  * It lives hidden inside the daemon so that it can appear without a process
- * start. Placement is left to KWin (PO decision after the T1 spike); a Wayland
+ * start. Placement is left to KWin (design decision after the T1 spike); a Wayland
  * client cannot position itself anyway.
  *
  * The window wears the hull of the desktop theme — rounding, outline and

@@ -158,7 +158,7 @@ stattdessen `ShowCapture()` (Einzelinstanz).
   frisches Toplevel, das vom Compositor regulär den Fokus erhält. Der
   XDG-Activation-Token-Weg trägt nachweislich nicht (KGlobalAccel liefert
   kein Token, Zeitstempel immer 0) und wird nicht gebaut.
-- **Zentrierung (PO-Entscheidung nach T1):** KWin-Standardplatzierung —
+- **Zentrierung (Entwurfsentscheidung nach T1):** KWin-Standardplatzierung —
   Plasma 6.7 zentriert standardmäßig, auf dem Entwicklungsrechner verifiziert. Ein
   Wayland-Client kann sich nicht selbst positionieren; weicht die
   Platzierungsrichtlinie des Nutzers ab, ist Layer-Shell (Overlay,
@@ -828,7 +828,7 @@ v1 aber nicht gebaut.
       `KMessageDialog::setIcon()` sagt zwar zu, bei leerem Symbol eines nach
       Dialogtyp zu wählen — gemessen kommt keines, und der Dialog trägt dann
       gar kein Bildetikett. Ein Dialog über drohenden Datenverlust ist der
-      Kernfall des Warnsymbols (PO-Entscheidung 02.08.2026; Zeichnung 2a,
+      Kernfall des Warnsymbols (Entwurfsentscheidung 02.08.2026; Zeichnung 2a,
       Zustand C nachgezogen).
     - **Die Bauart klingt:** `showEvent()` meldet bei jedem Anzeigen das
       KNotification-Ereignis `messageWarning`, dem `plasma_workspace.notifyrc`
@@ -990,7 +990,7 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
   keine Übersetzungs-Roadmap, nur Konvention). UI-Fließtexte (Platzhalter,
   Hinweise, Dialoge) sprechen den Nutzer in unpersönlicher Infinitivform an
   („Zum Lesen links eine Notiz auswählen.") — einmal app-weit festgelegt
-  statt je Fenster (PO-Entscheidung 31.07.2026, Gestaltungsauftrag S8).
+  statt je Fenster (Entwurfsentscheidung 31.07.2026, Gestaltungsauftrag S8).
 - **Mindestversionen:** Die allgemeine Untergrenze für ECM und die
   KF6-Komponenten liegt bei **6.0.0**. Eine Ausnahme trägt ihre Version selbst:
   **KColorScheme wird mit einem eigenen `find_package`-Aufruf und der
@@ -1026,8 +1026,8 @@ Meldewege: Tray-Zustand + Tooltip (leise), KNotification (wichtig), Logdatei
     wenn sonst nichts dazukommt. Ein Datenbestand, der nicht mehr zur
     Vorgängerversion passt, ist keine Kleinigkeit.
 - **Der Tag ist das Siegel:** `vMAJOR.MINOR.PATCH` auf dem abgenommenen Stand.
-  Erhöhung und Tag stehen im Sprint-Abschluss (`CLAUDE.md`,
-  Takt 2) und folgen der Abnahme; sie gehen ihr nicht voraus.
+  Erhöhung und Tag stehen im Abschluss-Ablauf (`CLAUDE.md`) und folgen der
+  Abnahme; sie gehen ihr nicht voraus.
 - **Sichtbar wird die Nummer über `denkzetteld --version`** — Ausgabe
   `denkzettel <Nummer>`, Rückgabe 0, auch bei laufendem Dienst und ohne
   Sitzungsbus (Bedingung in 2.3). Ein Über-Dialog ist eine eigene Story (#87).

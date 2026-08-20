@@ -13,8 +13,8 @@ die woanders hingehören: eine Idee, eine offene Frage, ein Kommandozeilen-Fund.
 Wenn ich dafür erst eine Datei anlegen muss, ist der Gedanke weg. Was sich
 lohnt, wandert später in den Obsidian-Vault.
 
-Den Code schreibe ich nicht selbst: **Denkzettel wird von Claude-Code-Agenten
-entwickelt**, ich bin der Kunde des Teams —
+Den Code schreibe ich nicht selbst: **Denkzettel wird mit Claude Code
+entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
 [Wie hier gearbeitet wird](#wie-hier-gearbeitet-wird).
 
 - [Funktionen](#funktionen)
@@ -152,9 +152,8 @@ benutzen aber `i18n()`.
 ### Wie hier gearbeitet wird
 
 Denkzettel wird mit KI entwickelt. Den Produktivcode, die Tests und die
-Prüfungen schreiben Claude-Code-Agenten in festen Rollen — Product Owner,
-Entwicklung, UI/UX. Bei mir liegen Ziele, Prioritäten, Freigaben und die
-Abnahme. Die meisten Commits tragen deshalb einen
+Prüfungen schreibt Claude Code. Bei mir liegen Ziele, Prioritäten, Freigaben
+und die Abnahme. Die meisten Commits tragen deshalb einen
 `Co-Authored-By: Claude`-Vermerk.
 
 Der Backlog sind die [Issues](https://github.com/hnsstrk/denkzettel/issues) mit
