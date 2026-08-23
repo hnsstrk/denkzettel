@@ -5,6 +5,34 @@ Quick-capture tool for KDE Plasma (Wayland), C++/Qt6/KF6, CMake, QTest.
 `SPEC.md` is binding. The backlog is the GitHub issues with their acceptance
 criteria — they say when a story is done.
 
+## How code gets written
+
+The ponytail plugin is enabled here (`.claude/settings.json`) and loads its
+"lazy senior dev" ruleset at every session start: build it only if it has to
+exist, standard library and native platform before custom code, no abstraction
+nobody asked for, the shortest diff you actually understand. That ruleset is
+loaded, not repeated here.
+
+**Where it collides with this file, this file wins.** Three places where it
+does:
+
+1. **Tests.** ponytail wants one runnable check behind every non-trivial piece
+   of logic. Here the first question is the one below — *would the user notice
+   this fault while using the program?* — and only what breaks silently gets a
+   test. Do not write back the 88 test cases cut on purpose in `45df0dc` and
+   `597ecc9`. Where a check is warranted it is a function in an existing QTest
+   set, not a script beside it: the CI allows no skipped test set.
+2. **Evidence.** "Shortest working diff" is about the solution, never about the
+   proof. The installed state, an image of your own, a freshly built runner —
+   ponytail exempts understanding the problem and the calibration real hardware
+   needs, and that is what those rules are.
+3. **Reporting.** ponytail caps explanations at three short lines; the user asks
+   for a closing report of what changed and what was found and left alone. An
+   explicit request outranks the cap, and ponytail says so itself.
+
+Deliberate simplifications with a known ceiling carry a `ponytail:` comment
+naming the ceiling and the upgrade path — in English, like every comment here.
+
 ## Build, verify, install
 
 ```

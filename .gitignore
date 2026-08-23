@@ -7,9 +7,4 @@ compile_commands.json
 # would pull the build out from under a running check. Created on 2026-08-04.
 build-install/
 
-# Local tool configuration of Claude Code. Today it holds nothing but an empty
-# enabledPlugins object; the user disabled the semgrep plugin on 2026-08-01.
-# Local settings do not belong in the project — a shared configuration would be
-# taken in deliberately.
-.claude/settings.json
 build-*/
