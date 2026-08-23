@@ -260,7 +260,12 @@ src/ui          library
 src/shell       tray, global shortcuts, D-Bus
 tests/          unit tests and the screenshot runner
 po/             message catalogues (German)
+icons/          application and tray icons
+desktop/        the desktop entry
+cmake/          helper modules for the lint targets
 wireframes/     the binding drawings
+docs/           the images used in this file
+recherche/      dated research notes behind design decisions
 third_party/    foreign code (spellfix from SQLite)
 ```
 

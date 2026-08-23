@@ -2,9 +2,4 @@ build/
 compile_commands.json
 .cache/
 
-# Second build location for the installation. It exists because `build/` is in
-# use while work is going on: reconfiguring it with -DCMAKE_INSTALL_PREFIX=/usr
-# would pull the build out from under a running check. Created on 2026-08-04.
-build-install/
-
 build-*/

@@ -162,8 +162,8 @@ The yardstick is `wireframes/Denkzettel Wireframes.dc.html` as the project's UI
 reference and the KDE Human Interface Guidelines (develop.kde.org/hig) —
 Denkzettel is a Qt6/KF6 app for KDE Plasma. The check points come from the
 wireframe, not from memory: every drawn area produces exactly one check
-question, the division of space included. Images that carry a finding live
-under `docs/images/reviews/`.
+question, the division of space included. Images that carry a finding go
+under `docs/images/reviews/` — the directory is created with the first one.
 
 ## When nothing moves forward
 

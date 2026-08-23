@@ -269,7 +269,12 @@ src/ui          Bibliothek
 src/shell       Tray, globale Kürzel, D-Bus
 tests/          Unit-Tests und Bildläufer
 po/             Nachrichtenkataloge (Deutsch)
+icons/          Anwendungs- und Tray-Symbole
+desktop/        der Desktop-Eintrag
+cmake/          Hilfsmodule für die Lint-Ziele
 wireframes/     die verbindlichen Zeichnungen
+docs/           die Bilder dieser Datei
+recherche/      datierte Recherchenotizen zu Entwurfsentscheidungen
 third_party/    Fremdcode (spellfix aus SQLite)
 ```
 
