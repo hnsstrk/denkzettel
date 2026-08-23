@@ -267,6 +267,9 @@ src/capture     Erfassungsfenster
 src/store       SQLite-Zugriff, Schema, Volltextindex
 src/ui          Bibliothek
 src/shell       Tray, globale Kürzel, D-Bus
+src/analysis    KI-Pipeline (von SPEC 2.2 reserviert, noch leer)
+src/transcribe  Whisper-Backends (von SPEC 2.2 reserviert, noch leer)
+src/proposals   Vorschlagserzeugung und -ausführung (von SPEC 2.2 reserviert, leer)
 tests/          Unit-Tests und Bildläufer
 po/             Nachrichtenkataloge (Deutsch)
 icons/          Anwendungs- und Tray-Symbole

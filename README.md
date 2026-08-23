@@ -258,6 +258,9 @@ src/capture     capture window
 src/store       SQLite access, schema, full-text index
 src/ui          library
 src/shell       tray, global shortcuts, D-Bus
+src/analysis    AI pipeline (reserved by SPEC 2.2, still empty)
+src/transcribe  Whisper backends (reserved by SPEC 2.2, still empty)
+src/proposals   suggestion generation and execution (reserved by SPEC 2.2, empty)
 tests/          unit tests and the screenshot runner
 po/             message catalogues (German)
 icons/          application and tray icons
