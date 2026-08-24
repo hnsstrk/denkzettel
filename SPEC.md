@@ -247,9 +247,35 @@ legibility.
   desktop theme brings a `colors` file of its own, its colours apply:
   `ForegroundNormal` for the note text, `ForegroundInactive` for the muted
   class. If it brings none, the colour scheme applies — then **note text**
-  `WindowText`, **not** the role for entry fields, and **application name and
-  footer** `PlaceholderText`. The **placeholder text** of the empty field
-  belongs to the muted class as well — three places, not two.
+  `WindowText`, **not** the role for entry fields, and the **footer**
+  `PlaceholderText`. The **placeholder text** of the empty field belongs to the
+  muted class as well.
+- **The application name carries the note text's colour** (user decision
+  2026-08-24, issue #84). It is the heading of the window and not a
+  placeholder; before this the window showed nothing but muted writing until
+  something was typed, and looked as though it were ignoring the scheme even
+  where every colour was right. The muted class therefore has two places, not
+  three: footer and placeholder text.
+- **The note text is never the quieter of the two writings that share the
+  field** (user decision 2026-08-24, issue #97). Under some themes the theme's
+  own muted colour carries more contrast than its normal one, and the
+  placeholder then reads better than the note that replaces it — measured over
+  a light ground 1.91:1 against 4.72:1 under `cachyos-emerald-color`. Where
+  that happens the note takes the muted colour, which is the more legible of
+  the two the theme holds.
+
+  This is a **deliberate exception** to the rule above, and the only one: the
+  colour still comes from the theme, only the choice between its two writings
+  is the window's. It takes hold **only** where the note is the quieter one —
+  a window that always lifted would break the ordinary case to heal the
+  exception. Judged on the poorer of two grounds, because the window lets the
+  screen behind it through and the ranking otherwise depends on the user's
+  wallpaper.
+
+  **Its limit:** it makes the note the louder of the two, not legible. Where it
+  takes hold, both writings are far below 4.5:1 — under `cachyos-emerald-color`
+  the note ends at 3.69:1. What the theme does not hold, the window cannot
+  hand out.
 - **The text cursor follows the type, not the colour scheme.** Qt draws it in
   the text colour of the entry field; as soon as that comes from the theme, it
   goes along. **That is intended and must not be "healed back":** under

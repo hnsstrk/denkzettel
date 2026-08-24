@@ -153,6 +153,7 @@ private:
     void resizeField();
     void applyHullMargins();
     void applyFieldMargin();
+    QColor fieldSurfaceOver(const QColor &backdrop) const;
     void applyTextColours();
     void bindShadow();
     void bindWindowEffects();

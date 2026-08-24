@@ -1,6 +1,7 @@
 #include "capture/capturewindow.h"
 
 #include "capture/textareaheight.h"
+#include "capture/textcontrast.h"
 #include "store/note.h"
 #include "store/store.h"
 
@@ -664,6 +665,42 @@ void CaptureWindow::applyFieldMargin()
     m_text->document()->setDocumentMargin(border);
 }
 
+/**
+ * The colour the note text and the placeholder really stand on, over a backdrop
+ * of the given colour.
+ *
+ * Neither a colour of the scheme nor one of the theme: with a valid hull the
+ * window fills nothing of its own (see paintEvent). It draws the hull, the
+ * field on top of it, and lets whatever the compositor holds behind it show
+ * through both. What lies under the writing is therefore a mixture of backdrop,
+ * hull coverage and field coverage, and under themes whose graphic covers by
+ * 2.7 percent the backdrop is nearly all of it (issue #93).
+ *
+ * So the colour is sampled and not derived: the same two draws paintEvent makes,
+ * into a picture the size of the text area, then the pixel in its middle. The
+ * hull is drawn at that size as well — its middle carries one colour, which is
+ * the one asked for here, and drawing the whole window for one pixel would buy
+ * nothing.
+ */
+QColor CaptureWindow::fieldSurfaceOver(const QColor &backdrop) const
+{
+    const QSize size = m_text->size();
+    if (!m_hull->isValid() || size.isEmpty()) {
+        return backdrop;
+    }
+
+    QImage probe(size, QImage::Format_ARGB32_Premultiplied);
+    probe.fill(backdrop);
+    QPainter painter(&probe);
+    painter.drawPixmap(0, 0, m_hull->framePixmap());
+    if (m_field->isValid()) {
+        painter.drawPixmap(0, 0, m_field->framePixmap());
+    }
+    painter.end();
+
+    return probe.pixelColor(size.width() / 2, size.height() / 2);
+}
+
 void CaptureWindow::applyTextColours()
 {
     // The one place both text classes get their colour, and the only place the
@@ -680,12 +717,48 @@ void CaptureWindow::applyTextColours()
     // entry fields: since issue #100 the text stands on two grounds depending
     // on the theme, and `WindowText` stays above 4,5:1 in both while the view
     // role falls to 4,22:1 on the hull. Customer's instruction, 07.08.2026.
-    const QColor noteColour = m_themeText.normal.isValid()
+    QColor noteColour = m_themeText.normal.isValid()
         ? m_hull->color(KSvg::Svg::Text)
         : this->palette().color(QPalette::WindowText);
     const QColor subtleColour = m_themeText.inactive.isValid()
         ? m_themeText.inactive
         : this->palette().color(QPalette::PlaceholderText);
+
+    // The ranking of the two writings that share a ground. The note text and
+    // the placeholder it replaces both stand on the field, and under two themes
+    // the placeholder read better than the note it makes way for — measured
+    // 05.08.2026, over a light ground 2.06:1 against 4.64:1 and over a dark one
+    // 1.36:1 against 4.62:1 (issue #97). Whoever begins to type then sees their
+    // note worse than the prompt to write it.
+    //
+    // **Judged on the worse of the two cases, because the window lets the
+    // screen through.** What lies under the writing depends on what the user
+    // has behind the window, so each colour is asked over a white and over a
+    // black backdrop and kept at its **poorer** of the two. The note is lifted
+    // where its poorer case is worse than the placeholder's — that is what
+    // "never the quieter of the two" means for a window one cannot see behind.
+    //
+    // Measured 24.08.2026 with a real colour scheme in an isolated
+    // configuration, over the six themes the finding touches: it lifts under
+    // `cachyos-emerald-color` (note 1.91:1 over a light ground against the
+    // placeholder's 3.69:1 poorest) and under `cachyos-emerald-light` (1.32:1
+    // over a dark one against 3.66:1) — the two the issue names, reproduced
+    // almost to the digit. Under `default`, `breeze-dark` and `breeze-light`
+    // the field graphic is opaque, both backdrops give the same ground, and
+    // nothing changes.
+    //
+    // Where it does lift, the note takes the dimmed colour: the more legible of
+    // the two the theme itself holds, so nothing is invented that the theme does
+    // not offer. Where a theme ranks its two writings the right way round this
+    // changes nothing — a window that always lifted would break the ordinary
+    // case to heal the exception (customer's decision of 24.08.2026).
+    const capture::WritingChoice choice{.note = noteColour,
+                                        .placeholder = subtleColour,
+                                        .groundOverWhite = fieldSurfaceOver(QColor(Qt::white)),
+                                        .groundOverBlack = fieldSurfaceOver(QColor(Qt::black))};
+    if (capture::noteIsTheQuieterWriting(choice)) {
+        noteColour = subtleColour;
+    }
 
     QPalette palette = m_text->palette();
     // Written onto the widget on every occasion rather than set once — a

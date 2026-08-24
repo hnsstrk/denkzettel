@@ -35,6 +35,15 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   nothing in it stood in the scheme's ordinary text colour. The name is the
   heading of the window and now says so; the hint below stays dimmed (#84).
 
+- **Under some desktop themes the note was harder to read than the prompt it
+  replaces.** The theme's own muted colour carried more contrast than its
+  normal one, so whoever began to type saw their note worse than the words
+  asking for it — measured over a light desktop background at 1.91 : 1 against
+  the prompt's 4.72 : 1. Where that happens the note now takes the more legible
+  of the two colours the theme holds. Where a theme ranks its two writings the
+  right way round, nothing changes. This makes the note the louder of the two;
+  it cannot make it legible where the theme offers nothing better (#97).
+
 ### Fixed
 
 - **A capture window that is open shrinks back again.** Anyone who wrote eight

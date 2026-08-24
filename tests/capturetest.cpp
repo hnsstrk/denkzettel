@@ -1,5 +1,6 @@
 #include "capture/capturewindow.h"
 #include "capture/textareaheight.h"
+#include "capture/textcontrast.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
@@ -30,6 +31,8 @@ private Q_SLOTS:
     void initTestCase();
     void init();
     void cleanup();
+
+    void ranksTheTwoWritingsOnThePoorerGround();
 
     void savesTextOnControlReturn();
     void keepsBlankTextOutOfTheStore();
@@ -126,6 +129,47 @@ void CaptureTest::cleanup()
 QPlainTextEdit *CaptureTest::textArea() const
 {
     return m_window->findChild<QPlainTextEdit *>();
+}
+
+void CaptureTest::ranksTheTwoWritingsOnThePoorerGround()
+{
+    // Nobody checks a colour formula by looking. Which of the two writings the
+    // window picks depends on the desktop theme and the colour scheme together,
+    // and a user runs one of those combinations — a wrong pick under the others
+    // would never be seen (issue #97).
+    //
+    // The anchors come from outside the formula: WCAG 2.1 fixes black against
+    // white at 21 : 1 and any colour against itself at 1 : 1. Comparing the
+    // formula only against itself would move both sides of every comparison
+    // together.
+    QCOMPARE(qRound(capture::contrastRatio(Qt::black, Qt::white)), 21);
+    QCOMPARE(qRound(capture::contrastRatio(Qt::white, Qt::white)), 1);
+
+    // The measured case of the issue, `cachyos-emerald-color` under a dark
+    // scheme (24.08.2026): the note's green stands well on the dark ground and
+    // almost vanishes on the light one, while the placeholder's grey is
+    // middling on both. Judged on the poorer ground the note is the quieter of
+    // the two, and the window has to say so.
+    const QColor note(QStringLiteral("#00c790"));
+    const QColor placeholder(QStringLiteral("#666a73"));
+    const QColor lightGround(QStringLiteral("#efeff0"));
+    const QColor darkGround(QStringLiteral("#080808"));
+    QVERIFY(capture::contrastRatio(note, darkGround) > capture::contrastRatio(placeholder, darkGround));
+    QVERIFY(capture::noteIsTheQuieterWriting({.note = note,
+                                              .placeholder = placeholder,
+                                              .groundOverWhite = lightGround,
+                                              .groundOverBlack = darkGround}));
+
+    // And an opaque field, where both grounds are the same one: `breeze-dark`
+    // measured on the same day. Nothing to lift there, and a rule that lifted
+    // anyway would break the ordinary case to heal the exception.
+    const QColor brightNote(QStringLiteral("#fcfcfc"));
+    const QColor dimmed(QStringLiteral("#a1a9b1"));
+    const QColor opaqueGround(QStringLiteral("#141618"));
+    QVERIFY(!capture::noteIsTheQuieterWriting({.note = brightNote,
+                                               .placeholder = dimmed,
+                                               .groundOverWhite = opaqueGround,
+                                               .groundOverBlack = opaqueGround}));
 }
 
 void CaptureTest::savesTextOnControlReturn()

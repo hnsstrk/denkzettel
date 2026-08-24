@@ -41,6 +41,7 @@ endif()
 add_library(denkzettelcapture STATIC
     capture/capturewindow.cpp
     capture/textareaheight.cpp
+    capture/textcontrast.cpp
 )
 
 target_include_directories(denkzettelcapture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
