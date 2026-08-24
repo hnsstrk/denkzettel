@@ -160,9 +160,16 @@ private:
     Store *m_store;
     QPlainTextEdit *m_text;
     /**
-     * The application name and the key hint (SPEC 3.1).
+     * The application name, the heading of the window (SPEC 3.1).
      *
-     * Held rather than looked up: since #85 their colour can come from the
+     * Its own member and not in the list below, because it carries the note
+     * text's colour and not the dimmed one (issue #84).
+     */
+    QLabel *m_appName = nullptr;
+    /**
+     * The key hint below the field (SPEC 3.1).
+     *
+     * Held rather than looked up: since #85 its colour can come from the
      * desktop theme, and a colour has to be written onto the widget where a
      * role resolved itself.
      */

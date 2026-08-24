@@ -137,11 +137,19 @@ KWindowShadowTile::Ptr shadowTile(KSvg::FrameSvg *tiles, const QString &element)
     return tile;
 }
 
-/** Small, dimmed label — used for the application name and the key hint. */
-QLabel *subtleLabel(const QString &text, QWidget *parent)
+/** Small label in the smallest readable font — the two texts around the field. */
+QLabel *smallLabel(const QString &text, QWidget *parent)
 {
     auto *label = new QLabel(text, parent);
     label->setFont(QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont));
+
+    return label;
+}
+
+/** Small and dimmed — the key hint below the field. */
+QLabel *subtleLabel(const QString &text, QWidget *parent)
+{
+    QLabel *label = smallLabel(text, parent);
 
     // The role, not the colour: the daemon keeps the window for its whole life
     // (SPEC 2.1), and a colour taken from the palette once would stay put when
@@ -304,7 +312,14 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
 
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(0);
-    QLabel *appName = subtleLabel(i18n("Denkzettel"), this);
+    // Not dimmed, unlike the hint below: the name is the heading of this
+    // window, and at rest it is the only text in it that is not a placeholder.
+    // A window that shows nothing but dimmed text looks foreign to the scheme
+    // under it even where every single colour is right — the customer's finding
+    // of 04.08.2026 on two screenshots of theirs, measured as F6/F7 (issue
+    // #84).
+    QLabel *appName = smallLabel(i18n("Denkzettel"), this);
+    appName->setForegroundRole(QPalette::WindowText);
     layout->addWidget(appName);
     layout->addSpacing(SpacingBelowAppName);
     layout->addWidget(m_text);
@@ -313,7 +328,8 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     QLabel *hint = subtleLabel(i18n("Esc discards · Ctrl+Enter saves"), this);
     hint->setAlignment(Qt::AlignCenter);
     layout->addWidget(hint);
-    m_subtleLabels = {appName, hint};
+    m_appName = appName;
+    m_subtleLabels = {hint};
 
     connect(m_text->document()->documentLayout(),
             &QAbstractTextDocumentLayout::documentSizeChanged,
@@ -682,6 +698,16 @@ void CaptureWindow::applyTextColours()
 
     if (palette != m_text->palette()) {
         m_text->setPalette(palette);
+    }
+
+    // The heading carries the note text's colour, the hint below stays dimmed
+    // (issue #84).
+    if (m_appName) {
+        QPalette namePalette = m_appName->palette();
+        namePalette.setColor(m_appName->foregroundRole(), noteColour);
+        if (namePalette != m_appName->palette()) {
+            m_appName->setPalette(namePalette);
+        }
     }
 
     for (QLabel *label : std::as_const(m_subtleLabels)) {

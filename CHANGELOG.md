@@ -27,6 +27,14 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   points shallower because of it; the field still holds the five lines the
   specification promises (#81).
 
+- **The application name in the capture window is no longer dimmed.** At rest —
+  before anything is typed — the window showed nothing but muted texts: the
+  name, the prompt in the field and the hint below it all carried the colour
+  meant for placeholders. Every one of them was the right colour, and the
+  window still looked as though it were ignoring the colour scheme, because
+  nothing in it stood in the scheme's ordinary text colour. The name is the
+  heading of the window and now says so; the hint below stays dimmed (#84).
+
 ### Fixed
 
 - **A capture window that is open shrinks back again.** Anyone who wrote eight
