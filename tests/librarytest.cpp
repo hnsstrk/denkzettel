@@ -160,6 +160,7 @@ private Q_SLOTS:
     void carriesOutThePendingDeletionOnFlush();
 
     void carriesOutTheDeletionWhenTheWindowCloses();
+    void showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles();
     void bringsTheHeadOfTheNewGroupIntoView_data();
     void bringsTheHeadOfTheNewGroupIntoView();
     void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
@@ -963,6 +964,41 @@ void LibraryTest::carriesOutTheDeletionWhenTheWindowCloses()
     window.close();
 
     QVERIFY(!m_store->note(id).has_value());
+}
+
+void LibraryTest::showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles()
+{
+    // No notes at all — the empty-library placeholder (wireframe 2c),
+    // placeholderPage()'s only call site whose two arguments a mix-up would
+    // make visible: swapped, the hint would stand as the heading and the
+    // heading as the hint, and nothing before this check noticed (issue #88).
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    // Told apart by role, not by which text happens to match: the hint is the
+    // one subtleLabel() gives the placeholder foreground role (issue #58),
+    // the heading is the other visible label. Checking "both texts appear
+    // somewhere" would still pass with the two swapped.
+    const QLabel *heading = nullptr;
+    const QLabel *hint = nullptr;
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (const QLabel *label : labels) {
+        if (!label->isVisible() || label->text().isEmpty()) {
+            continue;
+        }
+        if (label->foregroundRole() == QPalette::PlaceholderText) {
+            QVERIFY2(!hint, "more than one visible hint label");
+            hint = label;
+        } else {
+            QVERIFY2(!heading, "more than one visible heading label");
+            heading = label;
+        }
+    }
+    QVERIFY(heading);
+    QVERIFY(hint);
+    QCOMPARE(heading->text(), QStringLiteral("No notes yet"));
+    QCOMPARE(hint->text(), QStringLiteral("Press Meta+N to capture a thought."));
 }
 
 void LibraryTest::bringsTheHeadOfTheNewGroupIntoView_data()
