@@ -134,6 +134,31 @@ jobs:
           fi
           grep -q "100% tests passed" ctest.log
 
+      - name: Strings
+        # Two ways a visible string escapes translation, and neither of them
+        # turns a test red. A setter handed a literal instead of i18n() never
+        # reaches a catalogue at all; and a string whose domain nobody set finds
+        # no catalogue either, so the window stays English however the session
+        # is set (issue #53, criteria 1 and 4). The first is read out of the
+        # source, the second out of the run that has just happened. Thresholds
+        # are zero because the current state is zero — a limit above it measures
+        # nothing.
+        run: |
+          bare=$(grep -rnE '(setText|setPlaceholderText|setToolTip|setWindowTitle|setTitle|setToolTipTitle|setToolTipSubTitle|setStatusTip|setAccessibleName|setAccessibleDescription)[[:space:]]*\([[:space:]]*(QStringLiteral|")' src || true)
+          if [ -n "${bare}" ]; then
+            echo "${bare}"
+            echo "::error::A visible string does not go through i18n() — it can never be translated."
+            exit 1
+          fi
+          echo "Visible strings past i18n(): 0"
+          domain=$(grep -c 'Domain is not set' ctest.log || true)
+          echo "Strings without a translation domain: ${domain} (allowed: 0)"
+          if [ "${domain}" -ne 0 ]; then
+            grep -m 3 'Domain is not set' ctest.log
+            echo "::error::${domain} string(s) without a translation domain — their translation would never take effect."
+            exit 1
+          fi
+
       - name: clazy
         # Only in the Debug branch, and that is a decision with a price: the
         # linters read the compile database of their build, in the Release branch

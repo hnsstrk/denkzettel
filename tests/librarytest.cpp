@@ -310,11 +310,14 @@ void LibraryTest::initTestCase()
     // Which arrangement which locale produces is not decided here but in the
     // timestamp checks, which are handed their locale as an argument.
     //
-    // The English strings expected below need no pin of their own: this test
-    // sets no application domain, so KLocalizedString finds no catalogue and
-    // i18nc() returns the source string whatever LANGUAGE says (measured with
-    // the German catalogue reachable through XDG_DATA_DIRS). Whoever adds a
-    // setApplicationDomain() here takes that protection away.
+    // The English strings expected below are pinned from two sides. The domain
+    // is set as it is in main.cpp, or every i18nc() call here warns that
+    // translation will not work — 1643 lines of it in one run, enough to bury
+    // any other warning. And LANGUAGE=en_US in tests/CMakeLists.txt names the
+    // source language, for which no catalogue exists, so i18nc() hands back the
+    // msgid. Without that pin an installed German catalogue reaches the checks
+    // through XDG_DATA_DIRS and they compare German against English.
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
     QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
 
     // Symbols come from the system theme, and the bare offscreen platform

@@ -1,6 +1,8 @@
 #include "shell/appidentity.h"
 #include "store/store.h"
 
+#include <KLocalizedString>
+
 #include <QApplication>
 #include <QTest>
 
@@ -33,6 +35,11 @@ private:
 
 void IdentityTest::initTestCase()
 {
+    // As in main.cpp, and before registerApplicationIdentity() below: the
+    // display name it hands to KAboutData goes through i18n(), which warns
+    // without a domain that translation will not work.
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
     // main() below has set the name src/main.cpp starts with, so this is the
     // path the notes lie under before anything registers. Comparing it against
     // itself after the registration is what makes the second half of the trap

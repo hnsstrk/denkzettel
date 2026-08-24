@@ -11,6 +11,13 @@ target_link_libraries(testsilence PRIVATE Qt6::Core)
 
 link_libraries(testsilence)
 
+# LANGUAGE names the source language, for which no catalogue exists, so every
+# i18n() call hands back the msgid the code carries. Without it an installed
+# German catalogue reaches the run through XDG_DATA_DIRS and the checks compare
+# German wording against the English they were written for; the domain the tests
+# set is what makes a catalogue findable in the first place (issue #53).
+# It rides in the ENVIRONMENT of the three sets that render or compare strings.
+
 add_executable(storetest storetest.cpp)
 
 target_link_libraries(storetest PRIVATE
@@ -34,7 +41,7 @@ add_test(NAME capturetest COMMAND capturetest)
 # font decides, and under a substitute font they would measure something else
 # (SPEC 16).
 set_tests_properties(capturetest PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
 
 add_executable(librarytest librarytest.cpp)
 
@@ -51,7 +58,7 @@ add_test(NAME librarytest COMMAND librarytest)
 # integration replaces a built QMessageBox with a substitute dialog of its own,
 # so the guard dialog the test measures is the one a Plasma user sees (SPEC 9).
 set_tests_properties(librarytest PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
 
 # The two pictures of the README — capture window and library, with invented
 # notes. No add_test(): it produces pictures for a human to look at, and a
@@ -82,7 +89,7 @@ add_test(NAME shelltest COMMAND shelltest)
 # because the menu entries are checked for their icon names — without it every
 # name would read empty.
 set_tests_properties(shelltest PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
 
 add_executable(firstruntest firstruntest.cpp)
 

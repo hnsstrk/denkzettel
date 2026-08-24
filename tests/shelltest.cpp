@@ -4,6 +4,7 @@
 #include "shell/trayicon.h"
 #include "store/store.h"
 
+#include <KLocalizedString>
 #include <KStatusNotifierItem>
 
 #include <QFile>
@@ -61,6 +62,13 @@ private:
 
 void ShellTest::initTestCase()
 {
+    // As in main.cpp: without the domain every i18n() call in tray icon and
+    // shortcut messages warns that translation will not work. The source
+    // strings the checks below compare stay in place because
+    // tests/CMakeLists.txt pins LANGUAGE to the source language, for which no
+    // catalogue exists.
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
     // The menu entries name their icons; whether a name comes back out of them
     // depends on an icon theme being resolvable at all. Without one,
     // QIcon::fromTheme() yields a null icon with an empty name — the icon

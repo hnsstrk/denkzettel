@@ -166,6 +166,40 @@ Both see `src/` and `tests/` only and stand at **zero findings**. Where a
 finding deliberately stays, a `NOLINT` with its reason stands next to it. Known
 gap: clazy checks `tr()`, this project uses `i18n()`.
 
+### Translations
+
+The source language is English: the `msgid` is the string standing in the code,
+and every visible string goes through `i18n()` or one of its relatives. German
+lives in `po/de/denkzettel.po`.
+
+After adding, removing or rewording a visible string, run the extraction from
+the project root. It rebuilds `po/denkzettel.pot` from `src/` and merges it into
+every catalogue under `po/<lang>/`:
+
+```sh
+./po/Messages.sh
+```
+
+A new language needs one directory and one file, and no change to the build:
+
+```sh
+mkdir -p po/fr
+msginit --input=po/denkzettel.pot --locale=fr --output-file=po/fr/denkzettel.po
+msgfmt --statistics -o /dev/null po/fr/denkzettel.po   # what is still missing
+```
+
+`ki18n_install(po)` in the root `CMakeLists.txt` reads the language from the
+*directory* name and the domain from the file name, so it picks the new
+catalogue up on the next configure run and installs it as
+`share/locale/fr/LC_MESSAGES/denkzettel.mo` — the path
+`KLocalizedString::setApplicationDomain("denkzettel")` looks in. Hence the
+layout `po/<lang>/denkzettel.po`; a `po/fr.po` would install a catalogue named
+after the domain `fr` and no session would ever find it.
+
+The test suite reads the source strings and not a catalogue: `LANGUAGE=en_US`
+in `tests/CMakeLists.txt` keeps an installed German catalogue from reaching the
+checks that compare English wording.
+
 ### Screenshots
 
 The pictures in both READMEs come from `readmeshots`, which is built with the

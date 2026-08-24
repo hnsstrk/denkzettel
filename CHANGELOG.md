@@ -8,7 +8,11 @@ out, every change to the database schema is always named. Version numbering
 follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 `denkzetteld --version`).
 
-## [Unreleased]
+## [0.5.0] — 2026-08-24
+
+Sprint 11. The application changes its source language. Nothing a German
+session shows changes with it — the wording it had is now a maintained
+translation that ships with the program.
 
 ### Changed
 
@@ -25,7 +29,9 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   GitHub and carries the note that the interface is English; `README.de.md` is
   the German counterpart. `SPEC.md`, this changelog, the working instructions
   and the CI workflow follow, as do the titles and texts of the open issues.
-  The screenshots exist in both languages under `docs/images/`.
+  The screenshots exist in both languages under `docs/images/`. Both READMEs
+  name the way a further language is added — one directory, one file, no change
+  to the build.
 
 **No change to the database schema.**
 

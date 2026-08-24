@@ -172,6 +172,41 @@ Beide sehen nur `src/` und `tests/` und stehen auf **null Befunden**. Wo ein
 Befund bewusst stehenbleibt, steht ein `NOLINT` mit der Begründung daneben.
 Bekannte Lücke: clazy prüft `tr()`, wir benutzen aber `i18n()`.
 
+### Übersetzungen
+
+Die Quellsprache ist Englisch: die `msgid` ist die Zeichenkette, die im Code
+steht, und jede sichtbare Zeichenkette geht durch `i18n()` oder eine seiner
+Verwandten. Deutsch liegt in `po/de/denkzettel.po`.
+
+Wer eine sichtbare Zeichenkette hinzufügt, entfernt oder umformuliert, ruft im
+Projektstamm den Auszug auf. Er baut `po/denkzettel.pot` aus `src/` neu und
+mischt sie in jeden Katalog unter `po/<sprache>/` ein:
+
+```sh
+./po/Messages.sh
+```
+
+Eine neue Sprache braucht ein Verzeichnis und eine Datei, am Bau ändert sich
+nichts:
+
+```sh
+mkdir -p po/fr
+msginit --input=po/denkzettel.pot --locale=fr --output-file=po/fr/denkzettel.po
+msgfmt --statistics -o /dev/null po/fr/denkzettel.po   # was noch fehlt
+```
+
+`ki18n_install(po)` in der obersten `CMakeLists.txt` liest die Sprache aus dem
+*Verzeichnisnamen* und die Domain aus dem Dateinamen. Es nimmt den neuen Katalog
+beim nächsten Konfigurationslauf mit und installiert ihn als
+`share/locale/fr/LC_MESSAGES/denkzettel.mo` — genau der Pfad, in dem
+`KLocalizedString::setApplicationDomain("denkzettel")` sucht. Daher der Aufbau
+`po/<sprache>/denkzettel.po`; ein `po/fr.po` würde einen Katalog namens `fr`
+installieren, den keine Sitzung je fände.
+
+Die Testsätze lesen die Quellzeichenketten und keinen Katalog: `LANGUAGE=en_US`
+in `tests/CMakeLists.txt` hält einen installierten deutschen Katalog von den
+Prüfungen fern, die englische Formulierungen vergleichen.
+
 ### Bilder
 
 Die Bilder beider READMEs stammen aus `readmeshots`. Der Läufer wird mit der

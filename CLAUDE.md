@@ -90,14 +90,25 @@ font distorts the proportions. An image that serves as evidence runs with
 geometry, typesetting and color roles — not hull, rounding, outline, shadow or
 decoration. Those are drawn by the theme and the compositor, and offscreen both
 of them lack their basis. Where an acceptance criterion claims something about
-theme or compositor, an image from the logged-in session belongs with it.
+theme or compositor, the image belongs in a session of its own — a nested
+`kwin_wayland` with its own `HOME`, its own color scheme and invented notes.
+
+**Never a capture of the session the user is working in** (their instruction of
+2026-08-24). Their notes are personal data, this repository is public, and a
+picture that has been taken cannot be untaken: it stands in the transcript
+before anybody decides whether it belongs in a file. The isolated run is not the
+careful variant, it is the only one.
 
 **4. An image is only evidence once its runner has been freshly built.** An
 outdated runner writes plausible images of an *old* state with a fresh
 timestamp. Before every image used as evidence:
-`cmake --build build --target readmeshots`. Where an image from a story is to
-carry a finding, it comes from the logged-in session — there is no runner for
-that any more.
+`cmake --build build --target readmeshots`. And the bare call is not enough:
+take the invocation from the README section "Screenshots", which points
+`XDG_CONFIG_DIRS` at a throwaway `plasmarc`. Without it the runner finds no
+color scheme, draws a light theme shell under the dark palette it sets itself,
+and the picture looks like a fault of the product — that is finding 8 below.
+Measured on 2026-08-24: with that invocation all four committed pictures come
+out byte-identical, without it none of the two capture-window ones does.
 
 ## Verification stance
 
@@ -141,6 +152,13 @@ find.
 10. **A comparison can be wrong on both sides and report "correct".** If you
     compare two quantities that the same fault shifts together, you measure
     nothing. Hold at least one side against a value **set from outside**.
+11. **A red result in a build directory that has been reconfigured proves
+    nothing.** Measured 2026-08-24: `librarytest` died with SIGSEGV in
+    `NoteListModel::insertNote` in six runs out of six — on the changed and on
+    the unchanged state alike, which looked like proof that the fault was older
+    than the change. The same commit built clean in a fresh directory passed on
+    the first try. Before a red result becomes a finding: `rm -rf build`, build
+    again, and only then believe it.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
