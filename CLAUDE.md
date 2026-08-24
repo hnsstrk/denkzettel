@@ -180,6 +180,14 @@ find.
     the window. Whatever depends on the layout gets checked after
     `showCapture()` and `qWaitForWindowExposed()`.
 
+15. **`QDBusConnection::connect()` returns `true` for a signal that does not
+    exist.** Measured 2026-08-24 on #93: the window subscribed to
+    `effectLoaded` and `effectUnloaded` on `org.kde.kwin.Effects`, the call
+    reported success, and nothing ever arrived — the interface of KWin 6.7 has
+    **no signals at all**, only methods. The subscription looked built and was
+    a hole. Whatever a bus hands out, introspect the interface first
+    (`busctl introspect`), and read the state back afterwards.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
