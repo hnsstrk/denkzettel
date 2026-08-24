@@ -8,7 +8,11 @@ out, every change to the database schema is always named. Version numbering
 follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 `denkzetteld --version`).
 
-## [Unreleased]
+## [0.6.0] — 2026-08-24
+
+Sprint 12. **Everything the user sees in the two windows**, and the one crash in
+the stock. Ten of the eleven items of the package; the eleventh is recorded
+below.
 
 ### Changed
 
@@ -67,6 +71,21 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   The window now checks the name before handing it on and falls back to the
   standard theme with a line in the journal. The fault itself is in the KDE
   library `KSvg`; this is the guard against it (#107).
+
+### Known limitations
+
+- **Switching the blur effect off while the program runs still does not reach
+  the capture window.** It keeps the see-through variant of its graphic until
+  the service is restarted, and under themes whose graphic covers almost
+  nothing that costs legibility. The way this was to be built does not exist:
+  KWin's effect interface carries no signals at all, only methods, so there is
+  nothing to listen to. Measured, and recorded with the way that remains
+  (#93).
+- **Where a theme sets its two writings the wrong way round, the note is now
+  the louder of the two but still not legible** — the window can only hand out
+  what the theme holds (#97).
+
+**No change to the database schema.**
 
 ## [0.5.0] — 2026-08-24
 
