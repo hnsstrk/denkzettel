@@ -33,6 +33,7 @@ private Q_SLOTS:
     void discardsTextOnEscape();
 
     void staysUsableWithoutADesktopTheme();
+    void survivesAnUnresolvableDesktopTheme();
 
 private:
     QPlainTextEdit *textArea() const;
@@ -92,10 +93,10 @@ void CaptureTest::initTestCase()
     // for itself, while a cleared one measures the fallback the user gets —
     // his own `plasmarc` carries no `[Theme] name` either.
     //
-    // This is no guard against the fault behind the crash of 12.08.2026, and it
-    // is not meant as one. It keeps left-over state from deciding the run; that
-    // a theme name which no longer resolves takes the process down is a fault
-    // of its own and has an issue of its own.
+    // This is no guard against the crash of 12.08.2026, and it is not meant as
+    // one. It keeps left-over state from deciding the run; a theme name that no
+    // longer resolves is measured by survivesAnUnresolvableDesktopTheme() below,
+    // in a process with a `plasmarc` and a HOME of its own (issue #107).
     QFile::remove(configDirectory + QStringLiteral("/plasmarc"));
 }
 
@@ -202,10 +203,10 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
     // one can still see and type into. Not transparent — which is what a
     // hull-less window with a translucent background would otherwise be.
     //
-    // The state cannot be produced inside this process, and that is measured:
-    // an unknown theme name does **not** leave KSvg empty-handed, it falls back
-    // to `default` and the hull renders as usual. A test that set one would be
-    // a test in which the fault cannot occur. What produces it is an
+    // The state cannot be produced inside this process: an unknown theme name
+    // does not lead there either, it is turned into `default` before KSvg sees
+    // it (issue #107) and the hull renders as usual. A test that set one would
+    // be a test in which the fault cannot occur. What produces it is an
     // environment with no theme files on the data path — hence a process of its
     // own, which the branch below runs.
     if (qEnvironmentVariableIsSet("DENKZETTEL_TEST_WITHOUT_DESKTOP_THEME")) {
@@ -266,6 +267,80 @@ void CaptureTest::staysUsableWithoutADesktopTheme()
     child.setProcessChannelMode(QProcess::MergedChannels);
     child.start(QCoreApplication::applicationFilePath(),
                 {QStringLiteral("staysUsableWithoutADesktopTheme")});
+
+    QVERIFY(child.waitForFinished(60000));
+    QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
+             child.readAll().constData());
+}
+
+void CaptureTest::survivesAnUnresolvableDesktopTheme()
+{
+    // A `plasmarc` that names a desktop theme whose package is gone — the
+    // configuration of everyone who sets a theme and later removes it. Until
+    // issue #107 the window died on the way up, and the place of the crash was
+    // not the place of the fault: KSvg keys its image set by the name it is
+    // **given** and removes it again by the name it **resolved**, so a name it
+    // cannot resolve leaves the table pointing at freed memory and the next
+    // set of that name walks into it. Hence two windows below and not one —
+    // with a single one the fault does not show at all.
+    //
+    // The name stands in the file before either window is built, and that is
+    // the whole point of the setup (AK 3): handed to reloadDesktopTheme() as
+    // an argument the fault measurably does **not** occur, so a test built
+    // that way would stand green over an unfixed bug.
+    //
+    // A process of its own for two reasons: the fixture of this set has
+    // already read `plasmarc` before any test function runs, and a crash here
+    // would take the whole run with it instead of failing one function.
+    if (qEnvironmentVariableIsSet("DENKZETTEL_TEST_UNRESOLVABLE_DESKTOP_THEME")) {
+        const QString plasmarc =
+            QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+            + QStringLiteral("/plasmarc");
+        QFile file(plasmarc);
+        QVERIFY2(file.open(QIODevice::WriteOnly | QIODevice::Truncate), qPrintable(plasmarc));
+        file.write("[Theme]\nname=denkzettel-kein-solches-theme\n");
+        file.close();
+
+        for (int round = 0; round < 2; ++round) {
+            CaptureWindow window(m_store.get());
+            auto *text = window.findChild<QPlainTextEdit *>();
+            QVERIFY(text);
+
+            const QImage picture = shot(window);
+            QVERIFY(window.isVisible());
+            QVERIFY(picture.width() > 0);
+            // Not a see-through ghost: the data path is full here, so the
+            // fallback lands on a theme that draws, and the middle of the
+            // window is covered whatever theme that turns out to be.
+            QCOMPARE(qAlpha(picture.pixel(picture.width() / 2, picture.height() / 2)), 255);
+
+            text->setPlainText(QStringLiteral("geht trotzdem"));
+            QCOMPARE(text->toPlainText(), QStringLiteral("geht trotzdem"));
+
+            // AK 2: the road the watch on `plasmarc` takes, on a window that is
+            // already standing. Same door, same name, no argument.
+            window.reloadDesktopTheme();
+        }
+        return;
+    }
+
+    // A HOME of its own, and not only out of tidiness: QStandardPaths in test
+    // mode hangs its directories under it, so the child writes its `plasmarc`
+    // there and nowhere near the developer's own — and a child that dies leaves
+    // nothing behind that the next run would read.
+    const QTemporaryDir home;
+    QVERIFY(home.isValid());
+
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("DENKZETTEL_TEST_UNRESOLVABLE_DESKTOP_THEME"),
+                       QStringLiteral("1"));
+    environment.insert(QStringLiteral("HOME"), home.path());
+
+    QProcess child;
+    child.setProcessEnvironment(environment);
+    child.setProcessChannelMode(QProcess::MergedChannels);
+    child.start(QCoreApplication::applicationFilePath(),
+                {QStringLiteral("survivesAnUnresolvableDesktopTheme")});
 
     QVERIFY(child.waitForFinished(60000));
     QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,

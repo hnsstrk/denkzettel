@@ -18,6 +18,7 @@
 #include <QDBusMessage>
 #include <QDBusReply>
 #include <QDateTime>
+#include <QFileInfo>
 #include <QFontDatabase>
 #include <QKeyEvent>
 #include <QLabel>
@@ -91,6 +92,33 @@ constexpr qreal BareDocumentMargin = 4;
  * (`KSvg::ImageSet::setSelectors()`, imageset.h).
  */
 constexpr QLatin1StringView OpaqueSelector("opaque");
+
+/**
+ * Whether KSvg will keep this name — asked before the name is handed over.
+ *
+ * `KSvg::ImageSet` keys its shared private by the name it is **given** and
+ * removes it again by the name it has **resolved** (ksvg 6.29, `imageset.cpp`
+ * and `private/imageset_p.cpp`). A name with no image set behind it resolves to
+ * `default`, so the destructor takes the wrong key out of the table and leaves
+ * the given one pointing at freed memory. The next set built under that name
+ * finds the freed pointer, references it and connects to it — measured with
+ * AddressSanitizer as a read through a dangling `d` in the **second**
+ * constructor, and in the product as SIGSEGV or as
+ * `malloc(): unaligned tcache chunk detected` one allocation later (issue
+ * #107). The fault is KSvg's; ours is only not to walk into it.
+ *
+ * The test is the one `metaDataForImageSet()` makes: a directory of that name
+ * on the data path with a metadata file in it.
+ */
+bool desktopThemeResolves(const QString &name)
+{
+    const QString directory = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                     QStringLiteral("%1/%2").arg(DesktopThemePath, name),
+                                                     QStandardPaths::LocateDirectory);
+    return !directory.isEmpty()
+        && (QFileInfo::exists(directory + QStringLiteral("/metadata.json"))
+            || QFileInfo::exists(directory + QStringLiteral("/metadata.desktop")));
+}
 
 /**
  * One shadow tile of the desktop theme, ready for the compositor.
@@ -337,6 +365,17 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
         m_plasmaConfig->reparseConfiguration();
         theme = KConfigGroup(m_plasmaConfig, QStringLiteral("Theme"))
                     .readEntry("name", QString(DefaultDesktopTheme));
+    }
+
+    // KSvg's own fallback, taken here rather than there: handing it a name it
+    // cannot resolve is what corrupts the heap (desktopThemeResolves() above,
+    // issue #107). Whoever sets a desktop theme and later removes its package
+    // has exactly that `plasmarc`, and both roads into this function come past
+    // this line — the constructor and the watch on the file.
+    if (!desktopThemeResolves(theme)) {
+        qWarning("Desktop theme \"%s\" is not on the data path; falling back to \"default\".",
+                 qPrintable(theme));
+        theme = DefaultDesktopTheme;
     }
 
     // Two measured properties of KSvg in one line (measurements 1 and 3 of this

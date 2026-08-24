@@ -288,21 +288,32 @@ right and is wrong. Most of them contradict what the construction suggests, and
 4. **Without a desktop theme no hull, but a usable window.** Outside a Plasma
    session `dialogs/background` is missing. The window then stays opaque and
    operable — no crash, no transparent surface.
-   **An *unknown theme name* is something else, and the guarantee about it is
-   refuted** (2026-08-12): it said here that KSvg falls back to `default` in
-   that case, so the case is harmless. Measured, it does not fall back but
-   crashes — checked three times, each with the same `plasmarc`:
+   **An *unknown theme name* falls back to `default`, and Denkzettel is what
+   makes it do so** (issue #107, 2026-08-24). The fallback KSvg has of its own
+   may not be walked into: `KSvg::ImageSet` keys its shared private by the name
+   it is **given** and removes it again by the name it has **resolved** (ksvg
+   6.29, `imageset.cpp` and `private/imageset_p.cpp`). A name with nothing
+   behind it resolves to `default`, so the destructor takes the wrong key out
+   of the table and leaves the given one pointing at freed memory; the next set
+   built under that name references it and writes through it. That is why the
+   place of the crash is not the place of the fault — the first window comes up
+   and the second one dies, or an allocation after it does. Denkzettel
+   therefore resolves the name itself before it hands it over, and both roads
+   into the theme come past that check: the constructor and the watch on
+   `plasmarc` (item 3).
 
-   | `[Theme] name` in `plasmarc` | Result |
-   |---|---|
-   | theme that is not on the data path | **SIGSEGV** in `KSvg::ImageSet` |
-   | key missing entirely | fallback to `default`, everything as guaranteed |
-   | existing theme (`breeze-dark`) | everything as guaranteed |
+   | `[Theme] name` in `plasmarc` | up to #107 | since #107 |
+   |---|---|---|
+   | theme that is not on the data path | **SIGSEGV** in `KSvg::ImageSet`, at the *second* set of that name | hull of `default`, window usable |
+   | key missing entirely | fallback to `default`, everything as guaranteed | unchanged |
+   | existing theme (`breeze-dark`) | everything as guaranteed | unchanged |
 
-   The situation arises without anyone's doing: whoever sets a desktop theme
-   and later removes its package has exactly this `plasmarc`. Open as
-   issue #107; until it is fixed this item guarantees the *missing* key alone,
-   not the name that points into the void.
+   The left-hand column is measured on the state before the fix
+   (`capturetest`, `survivesAnUnresolvableDesktopTheme`): SIGSEGV in
+   `QString::operator=` on the freed private, and under AddressSanitizer a read
+   through a dangling `d` in the second `ImageSet` constructor. The situation
+   arises without anyone's doing: whoever sets a desktop theme and later
+   removes its package has exactly this `plasmarc`.
 5. **The shadow is bound anew after every re-showing.** Before every showing
    the window is mapped anew (above), and the Wayland surface disappears in the
    process; a shadow bound once in the constructor would be gone after the

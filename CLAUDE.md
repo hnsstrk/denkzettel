@@ -159,6 +159,18 @@ find.
     than the change. The same commit built clean in a fresh directory passed on
     the first try. Before a red result becomes a finding: `rm -rf build`, build
     again, and only then believe it.
+12. **One window is not enough for a fault that lives in a shared table.**
+    Measured 2026-08-24 on #107: with an unresolvable desktop theme in
+    `plasmarc` the **first** capture window comes up without a murmur; only the
+    second one dies, because what the first leaves behind is a freed pointer in
+    KSvg's table of image sets. A check that builds one window stands green over
+    the unfixed bug. Whatever a library keys by name and hands out again gets
+    asked for **twice** in the check.
+13. **`spectacle -m` in a nested `--virtual` session delivers an empty white
+    picture with return code 0.** Measured 2026-08-24, beside the black one the
+    README already names for `-f`. `-a` is the only one that carries anything
+    there — and it refuses with "No active window" if the window under test has
+    not taken the activation, which a frameless one does not always do.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
