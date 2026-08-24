@@ -19,6 +19,17 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   the reading pane adds the weekday and seconds; both follow the arrangement
   of the system language and keep the four-digit year (#108).
 
+### Fixed
+
+- **The capture window no longer crashes when a desktop theme has been
+  removed.** Anyone who set a desktop theme and later uninstalled its package
+  had a configuration naming a theme that no longer exists; the first `Meta+N`
+  then killed the service — sometimes on the spot, sometimes one window later,
+  because the damage was done to memory that something else used afterwards.
+  The window now checks the name before handing it on and falls back to the
+  standard theme with a line in the journal. The fault itself is in the KDE
+  library `KSvg`; this is the guard against it (#107).
+
 ## [0.5.0] — 2026-08-24
 
 Sprint 11. The application changes its source language. Nothing a German

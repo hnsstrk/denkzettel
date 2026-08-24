@@ -3,3 +3,6 @@ compile_commands.json
 .cache/
 
 build-*/
+
+# Arbeitsbaeume der Subagenten — Werkzeug, nicht Projektinhalt.
+.claude/worktrees/
