@@ -268,6 +268,51 @@ den Rahmen, den das Desktop-Theme zeichnet — **nicht** Schatten und Unschärfe
 hinter dem Erfassungsfenster, die vom Compositor kommen und die kein
 Offscreen-Lauf hat.
 
+#### Hülle, Schatten und Titelleiste
+
+Was der Compositor zeichnet, braucht einen Compositor — und es wird nie aus der
+Sitzung genommen, in der jemand arbeitet: Dessen Notizen sind persönliche Daten
+und dieses Repository ist öffentlich. Ein verschachtelter `kwin_wayland` auf
+einem eigenen Bus leistet das, mit einem Wegwerf-`HOME`, dessen Datenbank leer
+beginnt:
+
+```sh
+sand=$(mktemp -d)
+mkdir -p "$sand/.config"
+printf '[Theme]\nname=breeze-dark\n' > "$sand/.config/plasmarc"
+printf '[General]\nColorScheme=BreezeDark\n' > "$sand/.config/kdeglobals"
+
+dest=$(mktemp -d); DESTDIR="$dest" cmake --install build      # für den Katalog
+
+cat > "$sand/run.sh" <<'SCRIPT'
+#!/bin/sh
+"$PWD/build/bin/denkzetteld" &
+sleep 6
+dbus-send --session --dest=org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowLibrary
+sleep 4
+spectacle -a -b -n -o "$SHOT"
+sleep 2
+SCRIPT
+chmod +x "$sand/run.sh"
+
+env SHOT="$PWD/docs/images/reviews/shot.png" \
+    HOME="$sand" XDG_CONFIG_HOME="$sand/.config" \
+    XDG_DATA_HOME="$sand/.local/share" XDG_CACHE_HOME="$sand/.cache" \
+    XDG_DATA_DIRS="$dest/usr/share:/usr/share" LANGUAGE=de LANG=de_DE.UTF-8 \
+    dbus-run-session -- kwin_wayland --virtual --width 1200 --height 800 \
+    --no-lockscreen -- "$sand/run.sh"
+```
+
+`--virtual` hält die verschachtelte Sitzung vom Bildschirm fern, und der eigene
+Bus hält den Dienst darin: `KDBusService::Unique` würde den Start sonst an den
+bereits laufenden weiterreichen. `spectacle -a` nimmt das Fenster und nicht die
+ganze Ausgabe — eine Vollbildaufnahme der virtuellen Ausgabe kommt schwarz
+heraus.
+
+Aus diesem Lauf stammt [`docs/images/reviews/bibliothek-fenstertitel.png`](docs/images/reviews/bibliothek-fenstertitel.png),
+das Bild, auf dem die Titelleiste „Bibliothek — Denkzettel" trägt und nicht
+zweimal den Anwendungsnamen.
+
 ### Wie hier gearbeitet wird
 
 Denkzettel wird mit KI entwickelt. Den Produktivcode, die Tests und die

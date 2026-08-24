@@ -33,6 +33,14 @@ translation that ships with the program.
   name the way a further language is added — one directory, one file, no change
   to the build.
 
+### Fixed
+
+- **The library no longer names the application twice in its title bar.** It
+  read "Denkzettel — Bibliothek — Denkzettel": the window set the name itself
+  and the window decoration appended it a second time out of the application
+  data. The window now says only what it is, and the title bar reads
+  "Bibliothek — Denkzettel".
+
 **No change to the database schema.**
 
 ## [0.4.0] — 2026-08-11

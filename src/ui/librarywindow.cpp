@@ -191,7 +191,11 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_list(new QListView(this))
     , m_message(new KMessageWidget(this))
 {
-    setWindowTitle(i18nc("@title:window", "Denkzettel — Library"));
+    // Only what this window is, not the application name: the window decoration
+    // appends the display name out of KAboutData by itself. Measured 2026-08-24
+    // in a nested kwin_wayland — with "Denkzettel — Library" the title bar reads
+    // "Denkzettel — Library — Denkzettel", with this one "Library — Denkzettel".
+    setWindowTitle(i18nc("@title:window", "Library"));
 
     m_list->setModel(m_model);
     m_list->setItemDelegate(new NoteListDelegate(m_list));

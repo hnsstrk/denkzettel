@@ -260,6 +260,49 @@ roles and the frame the desktop theme draws — it does **not** show the shadow
 and the blur behind the capture window, which the compositor contributes and
 which no offscreen run has.
 
+#### Hull, shadow and title bar
+
+What the compositor draws needs a compositor, and it is never taken from the
+session someone is working in: their notes are personal data and this
+repository is public. A nested `kwin_wayland` on a bus of its own does it,
+with a throwaway `HOME` whose database starts out empty:
+
+```sh
+sand=$(mktemp -d)
+mkdir -p "$sand/.config"
+printf '[Theme]\nname=breeze-dark\n' > "$sand/.config/plasmarc"
+printf '[General]\nColorScheme=BreezeDark\n' > "$sand/.config/kdeglobals"
+
+dest=$(mktemp -d); DESTDIR="$dest" cmake --install build      # for the catalogue
+
+cat > "$sand/run.sh" <<'SCRIPT'
+#!/bin/sh
+"$PWD/build/bin/denkzetteld" &
+sleep 6
+dbus-send --session --dest=org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowLibrary
+sleep 4
+spectacle -a -b -n -o "$SHOT"
+sleep 2
+SCRIPT
+chmod +x "$sand/run.sh"
+
+env SHOT="$PWD/docs/images/reviews/shot.png" \
+    HOME="$sand" XDG_CONFIG_HOME="$sand/.config" \
+    XDG_DATA_HOME="$sand/.local/share" XDG_CACHE_HOME="$sand/.cache" \
+    XDG_DATA_DIRS="$dest/usr/share:/usr/share" LANGUAGE=de LANG=de_DE.UTF-8 \
+    dbus-run-session -- kwin_wayland --virtual --width 1200 --height 800 \
+    --no-lockscreen -- "$sand/run.sh"
+```
+
+`--virtual` keeps the nested session off the screen, and the private bus keeps
+the daemon inside it: `KDBusService::Unique` would otherwise hand the start over
+to the one already running. `spectacle -a` takes the window and not the whole
+output — a full-screen grab of the virtual output comes out black.
+
+That is the run [`docs/images/reviews/bibliothek-fenstertitel.png`](docs/images/reviews/bibliothek-fenstertitel.png)
+comes from, the picture that shows the title bar reading "Bibliothek —
+Denkzettel" and not the application name twice.
+
 ### How this project is run
 
 Denkzettel is developed with AI. Claude Code writes the production code, the
