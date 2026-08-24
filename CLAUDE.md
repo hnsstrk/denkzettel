@@ -171,6 +171,14 @@ find.
     README already names for `-f`. `-a` is the only one that carries anything
     there — and it refuses with "No active window" if the window under test has
     not taken the activation, which a frameless one does not always do.
+14. **A hidden window cannot show a fault that only the layout produces.**
+    Measured 2026-08-24 on #79: emptied from eight lines the window goes back
+    to five while it is hidden and stays at eight while it is shown, because
+    only an activated layout writes a minimum onto the window that `resize()`
+    is then clamped by. The deleted `windowFollowsTheTextHeight()` asserted
+    exactly the right thing and was green for years, because it never showed
+    the window. Whatever depends on the layout gets checked after
+    `showCapture()` and `qWaitForWindowExposed()`.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been

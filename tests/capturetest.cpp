@@ -1,4 +1,5 @@
 #include "capture/capturewindow.h"
+#include "capture/textareaheight.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
@@ -6,6 +7,8 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QFontDatabase>
+#include <QLayout>
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QStandardPaths>
@@ -31,6 +34,8 @@ private Q_SLOTS:
     void savesTextOnControlReturn();
     void keepsBlankTextOutOfTheStore();
     void discardsTextOnEscape();
+
+    void windowShrinksBackOnAShownWindow();
 
     void staysUsableWithoutADesktopTheme();
     void survivesAnUnresolvableDesktopTheme();
@@ -194,6 +199,90 @@ int CaptureTest::cornerRun(const QImage &picture)
         ++x;
     }
     return x;
+}
+
+void CaptureTest::windowShrinksBackOnAShownWindow()
+{
+    // SPEC 3 lets the window grow from five lines to eight — so the way back
+    // belongs to it as well. On a **shown** window it did not happen (issue
+    // #79): when the layout is activated it writes its total minimum onto the
+    // window, `resize()` is clamped by that minimum, and the minimum of the
+    // eight-line state stood until the next activation. From the first longer
+    // note onwards the window then opened at the height of the longest note of
+    // the session for the rest of it.
+    //
+    // The window has to be shown for this, and that is the whole point of the
+    // criterion: on a hidden one no minimum has been applied yet, the fault
+    // cannot occur, and a check built that way is green over the unfixed bug —
+    // which is what the deleted `windowFollowsTheTextHeight()` was.
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    const QString eightLines =
+        QStringLiteral("eins\nzwei\ndrei\nvier\nfünf\nsechs\nsieben\nacht");
+
+    // The control, and it is named as one: hidden, the way back has always
+    // worked. It stands here so that a red run says which of the two roads
+    // broke, not merely that something did.
+    const int hiddenResting = m_window->height();
+    text->setPlainText(eightLines);
+    QVERIFY(m_window->height() > hiddenResting);
+    text->clear();
+    QCOMPARE(m_window->height(), hiddenResting);
+
+    // And now the road the user takes. `showCapture()` and not `show()`:
+    // everything the window binds after the mapping hangs on it.
+    m_window->showCapture();
+    QVERIFY(QTest::qWaitForWindowExposed(m_window.get()));
+
+    const int resting = m_window->height();
+    // The anchor from outside, so the two comparisons below cannot both be
+    // wrong in the same direction: at rest the text area is exactly the five
+    // lines SPEC 3 promises — the guarantee the document margin must not move
+    // either.
+    const int chrome = 2 * qRound(text->document()->documentMargin()) + 2 * text->frameWidth();
+    QCOMPARE(text->height(), capture::MinTextLines * text->fontMetrics().lineSpacing() + chrome);
+
+    text->setPlainText(eightLines);
+    QCoreApplication::processEvents();
+    const int grown = m_window->height();
+    QVERIFY2(grown > resting,
+             qPrintable(QStringLiteral("grown %1 <= resting %2").arg(grown).arg(resting)));
+
+    text->clear();
+    QCoreApplication::processEvents();
+    QCOMPARE(m_window->height(), resting);
+    QCOMPARE(text->height(), capture::MinTextLines * text->fontMetrics().lineSpacing() + chrome);
+
+    // Second face of the finding: after Esc and a second opening the window
+    // stands at the resting height and not at the height of the longest note
+    // ever typed. Esc through the key and not through discard(), because that
+    // is the road the user takes.
+    text->setPlainText(eightLines);
+    QCoreApplication::processEvents();
+    QTest::keyClick(text, Qt::Key_Escape);
+    QVERIFY(!m_window->isVisible());
+    m_window->showCapture();
+    QVERIFY(QTest::qWaitForWindowExposed(m_window.get()));
+    QCOMPARE(m_window->height(), resting);
+
+    // Third face: the window follows a font made **smaller** as well, not only
+    // the text area. The text area was right all along — issue #56 AK 1 speaks
+    // of it and is literally fulfilled — while the window kept the old height
+    // and left a 223 px field standing in a 299 px window.
+    const int systemPointSize = QFontDatabase::systemFont(QFontDatabase::GeneralFont).pointSize();
+    QFont font = text->font();
+    font.setPointSize(24);
+    text->setFont(font);
+    QCoreApplication::processEvents();
+    const int large = m_window->height();
+    QVERIFY2(large > resting,
+             qPrintable(QStringLiteral("large %1 <= resting %2").arg(large).arg(resting)));
+
+    font.setPointSize(systemPointSize);
+    text->setFont(font);
+    QCoreApplication::processEvents();
+    QCOMPARE(m_window->height(), resting);
 }
 
 void CaptureTest::staysUsableWithoutADesktopTheme()

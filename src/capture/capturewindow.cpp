@@ -824,5 +824,17 @@ void CaptureWindow::adjustHeight()
     const int chrome = 2 * qRound(m_text->document()->documentMargin()) + 2 * m_text->frameWidth();
 
     m_text->setFixedHeight(capture::textAreaHeight(documentLines, m_text->fontMetrics().lineSpacing(), chrome));
+    // Both lines before the resize, and only the second one is obvious. On a
+    // **shown** window the layout has written its total minimum onto the window
+    // itself, and `resize()` is clamped by that minimum — so a window that grew
+    // to eight lines keeps the minimum of eight lines and cannot shrink back,
+    // whatever the hint says (issue #79, measured: minimum 244 against a hint
+    // of 190). `activate()` recomputes the minimum and applies it, and it does
+    // nothing at all while the layout still counts as activated, which is why
+    // `invalidate()` stands in front of it. On a hidden window no minimum has
+    // been applied yet — which is why the fault cannot occur there, and why the
+    // check for it has to show the window.
+    layout()->invalidate();
+    layout()->activate();
     resize(width(), sizeHint().height());
 }

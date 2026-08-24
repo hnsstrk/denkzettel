@@ -166,6 +166,15 @@ A second process start recognises the taken D-Bus registration and calls
   "Capture a thought…"), footer "Esc discards · Ctrl+Enter saves".
 - **Growing along**: starting height ~5 lines (sprint 1 acceptance: 3 were too
   few for the user), grows with the text up to ~8 lines, then a scrollbar.
+- **And shrinking back** (issue #79). The way back belongs to the growing: a
+  window emptied by `Ctrl+Enter` or `Esc` stands at the resting height again,
+  and so does one whose font has been made smaller. On a **shown** window that
+  needs a step of its own, and the reason is measured: on activation the layout
+  writes its total minimum onto the window, `resize()` is clamped by it, and
+  the minimum of the eight-line state stands until the next activation — 244 px
+  against a hint of 190. `adjustHeight()` therefore activates the layout anew
+  before it resizes. On a hidden window the fault cannot occur, which is why a
+  check for it has to show the window.
 - Ctrl+Enter: save the note (`store`), hide the window, clear the field.
   Esc: discard, hide the window. Loss of focus: the window stays (no data loss
   through an accidental click beside it).
