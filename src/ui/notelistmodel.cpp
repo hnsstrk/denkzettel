@@ -181,8 +181,7 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
         return head ? row.title : m_notes.at(row.note).content;
     case TimestampRole:
-        return head ? QString()
-                    : library::entryTimestamp(m_notes.at(row.note).createdAt, m_now, QLocale());
+        return head ? QString() : library::entryTimestamp(m_notes.at(row.note).createdAt, QLocale());
     case GroupHeaderRole:
         return head;
     default:

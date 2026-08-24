@@ -659,10 +659,13 @@ conceivable as an optional later additional path, but is not built for v1.
   Germany), newest first within the groups.
   An entry shows the timestamp, the first line as the subject, the following
   text as a preview and tag chips; voice notes additionally ▶ and the duration.
-  The timestamp follows the group: in Today/Yesterday the time of day, in the
-  week groups the weekday and date, in Older the absolute date; in the detail
-  pane the full form. The structure is fixed — no toggle, no collapsible groups
-  (wireframes 3a/3b).
+  The timestamp does not follow the group: an entry shows date and time in
+  every one of the five groups, in the arrangement the locale gives them and
+  with a four-digit year, without seconds. The detail pane carries the same
+  date and time plus weekday and seconds, again the same form whichever group
+  the note falls into — "Today" and "Yesterday" stay group heads and appear
+  nowhere else (issue #108). The structure is fixed — no toggle, no
+  collapsible groups (wireframes 3a/3b).
   **Separation is by two hairlines of one colour. The note boundary carries its
   line on the edge of the row, the group boundary carries it beside the label
   of its head, and the head carries a rank of type of its own on top of that**
@@ -742,8 +745,8 @@ conceivable as an optional later additional path, but is not built for v1.
   when the selection reaches the first note of a group by key without crossing
   a boundary** (issue #70, user decision 2026-08-04): whoever goes upwards from
   the second to the first note would otherwise never get to see the head, and
-  without it there stands nothing but a time of day without a day under "Today"
-  and "Yesterday" — the timestamp rule above presupposes the head. The price is
+  without it nothing says which of the five groups the entry stands in — the
+  entry names its own date and time, never the group (issue #108). The price is
   that the list moves further in this case than before. It still holds for both
   cases: if head and selection do not fit into the view together, the head
   stays outside.

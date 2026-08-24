@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-24 14:58+0200\n"
+"POT-Creation-Date: 2026-08-24 16:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -275,44 +275,32 @@ msgid ""
 "editor."
 msgstr ""
 
-#: src/ui/timestampformat.cpp:187
+#: src/ui/timestampformat.cpp:140
 #, kde-format
 msgctxt "@title:group notes written today"
 msgid "Today"
 msgstr ""
 
-#: src/ui/timestampformat.cpp:189
+#: src/ui/timestampformat.cpp:142
 #, kde-format
 msgctxt "@title:group notes written yesterday"
 msgid "Yesterday"
 msgstr ""
 
-#: src/ui/timestampformat.cpp:191
+#: src/ui/timestampformat.cpp:144
 #, kde-format
 msgctxt "@title:group notes of the current calendar week"
 msgid "This week"
 msgstr ""
 
-#: src/ui/timestampformat.cpp:193
+#: src/ui/timestampformat.cpp:146
 #, kde-format
 msgctxt "@title:group notes of the previous calendar week"
 msgid "Last week"
 msgstr ""
 
-#: src/ui/timestampformat.cpp:195
+#: src/ui/timestampformat.cpp:148
 #, kde-format
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
-msgstr ""
-
-#: src/ui/timestampformat.cpp:231
-#, kde-format
-msgctxt "@item:intext timestamp of a note written today"
-msgid "Today %1"
-msgstr ""
-
-#: src/ui/timestampformat.cpp:233
-#, kde-format
-msgctxt "@item:intext timestamp of a note written yesterday"
-msgid "Yesterday %1"
 msgstr ""

@@ -140,13 +140,12 @@ private Q_SLOTS:
     void cleanup();
 
     void switchesOnTheCalendarDayNotAfterTwentyFourHours();
-    void usesTheWeekdayFormWithinTheTwoCalendarWeeks();
-    void usesTheAbsoluteDateBeyondTheLastWeek();
+    void keepsTheYearFourDigitsAcrossYears();
 
     void sortsIntoTheFiveGroupsWithTheFirstMatchWinning();
     void countsTheWeekAsACalendarWeek();
     void leavesTheWeekToTheLocale();
-    void shortensTheEntryTimestampToWhatItsGroupLeavesOpen();
+    void showsTheSameDateAndTimeFormInEveryGroup();
     void sortsATimestampFromTheFutureIntoToday();
 
     void listsNotesWithTheirTimestamp();
@@ -302,10 +301,11 @@ void LibraryTest::initTestCase()
 
     // NoteListModel and LibraryWindow read their locale out of QLocale(), the
     // system one, so three checks below would compare a different string in
-    // every session: the time reads "14:32" under de_DE and under the C locale
-    // of the CI container, "2:32 PM" under en_US (measured 20.08.2026 - without
-    // this line listsNotesWithTheirTimestamp(), groupsAgainOnTheNewReferenceTime()
-    // and leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked() go
+    // every session: the entry reads "31.07.2026 14:32" under de_DE and under
+    // the C locale of the CI container, "7/31/2026 2:32 PM" under en_US
+    // (measured 20.08.2026 - without this line listsNotesWithTheirTimestamp(),
+    // groupsAgainOnTheNewReferenceTime() and
+    // leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked() go
     // red there). Pinned to German, the form those checks were written for.
     // Which arrangement which locale produces is not decided here but in the
     // timestamp checks, which are handed their locale as an argument.
@@ -374,67 +374,26 @@ void LibraryTest::switchesOnTheCalendarDayNotAfterTwentyFourHours()
 {
     // Twenty minutes old, but written on the previous calendar day.
     const QDateTime now = at(QStringLiteral("2026-07-31T00:10:00"));
-
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-30T23:50:00")), now, german()),
-             QStringLiteral("Yesterday 23:50"));
+    QCOMPARE(library::noteGroup(at(QStringLiteral("2026-07-30T23:50:00")), now, german()),
+             library::NoteGroup::Yesterday);
 
     // Almost 24 hours old, but the same calendar day.
     const QDateTime lateEvening = at(QStringLiteral("2026-07-31T23:30:00"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-31T00:05:00")), lateEvening, german()),
-             QStringLiteral("Today 00:05"));
+    QCOMPARE(library::noteGroup(at(QStringLiteral("2026-07-31T00:05:00")), lateEvening, german()),
+             library::NoteGroup::Today);
 }
 
-void LibraryTest::usesTheWeekdayFormWithinTheTwoCalendarWeeks()
+void LibraryTest::keepsTheYearFourDigitsAcrossYears()
 {
-    // A Friday: its calendar week began on Monday, 27 July.
-    const QDateTime now = at(QStringLiteral("2026-07-31T16:00:00"));
+    // QLocale::ShortFormat alone would not give this: it writes "28.07.25" in
+    // German and "7/28/25" in English, and a note from last year must not
+    // read like one from this year (issue #108).
+    const QDateTime lastYear = at(QStringLiteral("2025-07-28T09:00:45"));
 
-    // Two days back, still this week …
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-29T09:00:00")), now, german()),
-             QStringLiteral("Mi., 29. Juli"));
-    // … the Monday it began on …
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-27T09:00:00")), now, german()),
-             QStringLiteral("Mo., 27. Juli"));
-    // … and the whole week before it, down to its Monday.
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-26T09:00:00")), now, german()),
-             QStringLiteral("So., 26. Juli"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-20T09:00:00")), now, german()),
-             QStringLiteral("Mo., 20. Juli"));
-
-    // The same days in English, and the arrangement is a different one: the
-    // month stands before the day and no ordinal period stands anywhere. The
-    // American week begins on Sunday, so 26 July falls into this week there
-    // and 20 July into the last one - both groups carry the weekday form, so
-    // what moves is the boundary, not the form.
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-29T09:00:00")), now, american()),
-             QStringLiteral("Wed, July 29"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-26T09:00:00")), now, american()),
-             QStringLiteral("Sun, July 26"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-20T09:00:00")), now, american()),
-             QStringLiteral("Mon, July 20"));
-}
-
-void LibraryTest::usesTheAbsoluteDateBeyondTheLastWeek()
-{
-    const QDateTime now = at(QStringLiteral("2026-07-31T16:00:00"));
-
-    // The Sunday before last week is the switching point — under the rolling
-    // seven days it had been twelve days back, now it is one day past the
-    // week boundary. The year stays four-digit.
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-19T09:00:00")), now, german()),
-             QStringLiteral("19.07.2026"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2025-07-28T09:00:00")), now, german()),
-             QStringLiteral("28.07.2025"));
-
-    // In English the month leads, the day carries no leading zero - and the
-    // year keeps its four digits, which QLocale::ShortFormat alone would not
-    // give: it writes "7/18/26" there and "18.07.26" in German. The English
-    // switching point is one day earlier than the German one, because the
-    // American last week already begins on Sunday, 19 July.
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-18T09:00:00")), now, american()),
-             QStringLiteral("7/18/2026"));
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2025-07-28T09:00:00")), now, american()),
-             QStringLiteral("7/28/2025"));
+    QCOMPARE(library::entryTimestamp(lastYear, german()), QStringLiteral("28.07.2025 09:00"));
+    QCOMPARE(library::relativeTimestamp(lastYear, german()), QStringLiteral("Montag, 28.07.2025 09:00:45"));
+    QCOMPARE(library::entryTimestamp(lastYear, american()), QStringLiteral("7/28/2025 9:00 AM"));
+    QCOMPARE(library::relativeTimestamp(lastYear, american()), QStringLiteral("Monday, 7/28/2025 9:00:45 AM"));
 }
 
 void LibraryTest::sortsIntoTheFiveGroupsWithTheFirstMatchWinning()
@@ -498,55 +457,52 @@ void LibraryTest::leavesTheWeekToTheLocale()
     QCOMPARE(library::noteGroup(sunday, wednesday, american()), library::NoteGroup::ThisWeek);
 }
 
-void LibraryTest::shortensTheEntryTimestampToWhatItsGroupLeavesOpen()
+void LibraryTest::showsTheSameDateAndTimeFormInEveryGroup()
 {
-    const QDateTime now = at(QStringLiteral("2026-07-31T16:00:00"));
+    // One timestamp from each of the five groups a Friday, 31 July, sorts
+    // them into (SPEC 9) — entry and detail-pane form no longer depend on
+    // which one a note falls into (issue #108).
+    const QDateTime today = at(QStringLiteral("2026-07-31T14:32:07"));
+    const QDateTime yesterday = at(QStringLiteral("2026-07-30T21:48:19"));
+    const QDateTime thisWeek = at(QStringLiteral("2026-07-29T09:00:33"));
+    const QDateTime lastWeek = at(QStringLiteral("2026-07-23T09:00:45"));
+    const QDateTime older = at(QStringLiteral("2026-07-19T09:00:01"));
 
-    // The head carries the day, so the entry only carries the time …
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-31T14:32:00")), now, german()),
-             QStringLiteral("14:32"));
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-30T21:48:00")), now, german()),
-             QStringLiteral("21:48"));
+    // The list carries date and time, no seconds — the same form whichever
+    // group the note is in.
+    QCOMPARE(library::entryTimestamp(today, german()), QStringLiteral("31.07.2026 14:32"));
+    QCOMPARE(library::entryTimestamp(yesterday, german()), QStringLiteral("30.07.2026 21:48"));
+    QCOMPARE(library::entryTimestamp(thisWeek, german()), QStringLiteral("29.07.2026 09:00"));
+    QCOMPARE(library::entryTimestamp(lastWeek, german()), QStringLiteral("23.07.2026 09:00"));
+    QCOMPARE(library::entryTimestamp(older, german()), QStringLiteral("19.07.2026 09:00"));
 
-    // … in the week groups the head names no day, so the entry does …
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-28T09:00:00")), now, german()),
-             QStringLiteral("Di., 28. Juli"));
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-23T09:00:00")), now, german()),
-             QStringLiteral("Do., 23. Juli"));
+    // The detail pane stands under no head and carries weekday, date and time
+    // with seconds — again the same form in every group, and neither "Today"
+    // nor "Yesterday" appears there any more.
+    QCOMPARE(library::relativeTimestamp(today, german()), QStringLiteral("Freitag, 31.07.2026 14:32:07"));
+    QCOMPARE(library::relativeTimestamp(yesterday, german()), QStringLiteral("Donnerstag, 30.07.2026 21:48:19"));
+    QCOMPARE(library::relativeTimestamp(thisWeek, german()), QStringLiteral("Mittwoch, 29.07.2026 09:00:33"));
+    QCOMPARE(library::relativeTimestamp(lastWeek, german()), QStringLiteral("Donnerstag, 23.07.2026 09:00:45"));
+    QCOMPARE(library::relativeTimestamp(older, german()), QStringLiteral("Sonntag, 19.07.2026 09:00:01"));
 
-    // … and under "Older" only the date says anything at all.
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-19T09:00:00")), now, german()),
-             QStringLiteral("19.07.2026"));
-
-    // The detail pane stands under no head and keeps the full form.
-    QCOMPARE(library::relativeTimestamp(at(QStringLiteral("2026-07-31T11:05:00")), now, german()),
-             QStringLiteral("Today 11:05"));
-
-    // The English entry says the same three things in the English forms. 18
-    // July instead of 19 July, because the American week begins on Sunday and
-    // 19 July is still the last week there.
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-28T09:00:00")), now, american()),
-             QStringLiteral("Tue, July 28"));
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-23T09:00:00")), now, american()),
-             QStringLiteral("Thu, July 23"));
-    QCOMPARE(library::entryTimestamp(at(QStringLiteral("2026-07-18T09:00:00")), now, american()),
-             QStringLiteral("7/18/2026"));
+    // The same in English, on two of the five: month before day, no leading
+    // zero, twelve-hour clock with AM/PM, and the weekday name in English —
+    // the group logic itself is already covered above and in the noteGroup()
+    // checks, so this only has to show the arrangement, not repeat it.
+    QCOMPARE(library::entryTimestamp(today, american()), QStringLiteral("7/31/2026 2:32 PM"));
+    QCOMPARE(library::entryTimestamp(older, american()), QStringLiteral("7/19/2026 9:00 AM"));
+    QCOMPARE(library::relativeTimestamp(today, american()), QStringLiteral("Friday, 7/31/2026 2:32:07 PM"));
+    QCOMPARE(library::relativeTimestamp(older, american()), QStringLiteral("Sunday, 7/19/2026 9:00:01 AM"));
 }
 
 void LibraryTest::sortsATimestampFromTheFutureIntoToday()
 {
+    // A clock jump is no group of its own — the note is the newest one there
+    // is and goes to the top (SPEC 9).
     const QDateTime now = at(QStringLiteral("2026-07-31T16:00:00"));
     const QDateTime ahead = at(QStringLiteral("2026-08-04T09:00:00"));
 
-    // A clock jump is no group of its own — the note goes to the top …
     QCOMPARE(library::noteGroup(ahead, now, german()), library::NoteGroup::Today);
-
-    // … but "Today 09:00" would be a lie, so the date stays absolute in both
-    // the list and the detail pane (wireframe 3b).
-    QCOMPARE(library::entryTimestamp(ahead, now, german()), QStringLiteral("04.08.2026"));
-    QCOMPARE(library::relativeTimestamp(ahead, now, german()), QStringLiteral("04.08.2026"));
-    QCOMPARE(library::entryTimestamp(ahead, now, american()), QStringLiteral("8/4/2026"));
-    QCOMPARE(library::relativeTimestamp(ahead, now, american()), QStringLiteral("8/4/2026"));
 }
 
 Note LibraryTest::noteWith(const QString &content)
@@ -610,9 +566,10 @@ void LibraryTest::listsNotesWithTheirTimestamp()
     QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
     QCOMPARE(model.index(1).data(Qt::DisplayRole).toString(), QStringLiteral("heute gedacht"));
 
-    // The head carries the day, so the entry carries the time alone.
-    QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("14:32"));
-    QCOMPARE(model.index(3).data(NoteListModel::TimestampRole).toString(), QStringLiteral("21:48"));
+    // The entry carries date and time, whichever group its head names
+    // (issue #108) — the default locale is German, set in initTestCase().
+    QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("31.07.2026 14:32"));
+    QCOMPARE(model.index(3).data(NoteListModel::TimestampRole).toString(), QStringLiteral("30.07.2026 21:48"));
     // A head has no timestamp of its own.
     QVERIFY(model.index(0).data(NoteListModel::TimestampRole).toString().isEmpty());
 
@@ -698,12 +655,14 @@ void LibraryTest::groupsAgainOnTheNewReferenceTime()
                    at(QStringLiteral("2026-07-31T22:00:00")));
 
     QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
-    QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("21:48"));
+    QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("31.07.2026 21:48"));
 
     model.regroup(at(QStringLiteral("2026-08-01T09:00:00")));
 
+    // Only the head changes — the entry names its own date and time, not the
+    // group, so regrouping leaves it untouched (issue #108).
     QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
-    QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("21:48"));
+    QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("31.07.2026 21:48"));
     QCOMPARE(model.noteCount(), 1);
 }
 
@@ -1269,7 +1228,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
     // issue #57).
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
              qPrintable(QStringLiteral("Head at y=%1").arg(list->visualRect(head).y())));
-    QVERIFY(visibleLabels(window).contains(QStringLiteral("Yesterday 09:00")));
+    QVERIFY(visibleLabels(window).contains(QStringLiteral("Donnerstag, 30.07.2026 09:00:00")));
 }
 
 void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()

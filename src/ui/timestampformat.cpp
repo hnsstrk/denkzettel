@@ -6,9 +6,6 @@
 #include <QList>
 #include <QLocale>
 
-#include <algorithm>
-#include <utility>
-
 namespace
 {
 /** The day `date`'s calendar week began on, as the locale counts weeks. */
@@ -31,13 +28,16 @@ struct FormatPart {
     bool isField = false;
 };
 
-/** Whether `c` stands for a field of a date format rather than for text. */
+/** Whether `c` stands for a field of a date or time format rather than for text. */
 bool isFieldLetter(QChar c)
 {
-    // Only these three carry meaning in a date format. Every other letter is
-    // text that Qt copies out unchanged — the "de" of "d 'de' MMMM 'de' yyyy"
-    // and the 年 of "yyyy年M月d日" among them.
-    return c == u'd' || c == u'M' || c == u'y';
+    // Only these four carry meaning to the functions below — the day, month
+    // and year fields `withFourDigitYear()` widens, and the minute field
+    // `withSeconds()` extends. Every other letter is text that Qt copies out
+    // unchanged — the "de" of "d 'de' MMMM 'de' yyyy", the 年 of
+    // "yyyy年M月d日" and the hour, am/pm and time-zone letters this file
+    // never touches among them.
+    return c == u'd' || c == u'M' || c == u'y' || c == u'm';
 }
 
 /** `format` taken apart into its fields and the text between them. */
@@ -76,51 +76,6 @@ QList<FormatPart> splitFormat(const QString &format)
     return parts;
 }
 
-/**
- * The pattern of the week form: `longFormat` without its year and with the
- * abbreviated weekday name in place of the written-out one.
- *
- * `QLocale::FormatType` knows three date formats and all three carry a year,
- * so the week form has to be cut out of the long one. What goes with the year
- * is the text next to it, and which side that stands on is a property of the
- * pattern, not of a list of separators: "dddd, MMMM d, yyyy" would leave a
- * hanging comma, "dddd, d 'de' MMMM 'de' yyyy" a hanging "de",
- * "yyyy年M月d日dddd" a hanging 年.
- */
-QString weekPattern(const QString &longFormat)
-{
-    QList<FormatPart> parts = splitFormat(longFormat);
-    const auto year = std::find_if(parts.begin(), parts.end(), [](const FormatPart &part) {
-        return part.isField && part.text.startsWith(u'y');
-    });
-    if (year != parts.end()) {
-        const auto afterYear = year + 1;
-        if (afterYear != parts.end() && !afterYear->isField) {
-            parts.erase(year, afterYear + 1);
-        } else if (year != parts.begin() && !(year - 1)->isField) {
-            parts.erase(year - 1, afterYear);
-        } else {
-            parts.erase(year);
-        }
-    }
-
-    QString pattern;
-    for (const FormatPart &part : std::as_const(parts)) {
-        pattern += part.isField && part.text == QStringLiteral("dddd") ? QStringLiteral("ddd") : part.text;
-    }
-
-    // What the cut leaves standing at an edge is separator, never a name: the
-    // space of "dddd, d. MMMM yyyy" ahead of the year, the period of the
-    // Croatian "dddd, d. MMMM yyyy." behind it.
-    while (!pattern.isEmpty() && !pattern.back().isLetterOrNumber() && pattern.back() != u'\'') {
-        pattern.chop(1);
-    }
-    while (!pattern.isEmpty() && !pattern.front().isLetterOrNumber() && pattern.front() != u'\'') {
-        pattern.remove(0, 1);
-    }
-    return pattern;
-}
-
 /** `format` with its year widened to four digits. */
 QString withFourDigitYear(const QString &format)
 {
@@ -134,22 +89,20 @@ QString withFourDigitYear(const QString &format)
 }
 
 /**
- * "Di., 28. Juli", "Tue, July 28" — day and month in the arrangement of the
- * locale, without the year, which the group already carries.
+ * `format` with its minute field widened by seconds — built the way
+ * `withFourDigitYear()` widens the year. `QLocale::LongFormat` times carry a
+ * time zone name that has no place in this UI (measured with Qt 6.11), so the
+ * short pattern is the one seconds are added to.
  */
-QString weekdayForm(const QDate &date, const QLocale &locale)
+QString withSeconds(const QString &format)
 {
-    return locale.toString(date, weekPattern(locale.dateFormat(QLocale::LongFormat)));
-}
+    const QList<FormatPart> parts = splitFormat(format);
 
-/**
- * "10.07.2026", "7/10/2026" — the short date of the locale, but with a
- * four-digit year: under de_DE the short form writes "10.07.26", and a note
- * from last July must not read like one from this July.
- */
-QString absoluteForm(const QDate &date, const QLocale &locale)
-{
-    return locale.toString(date, withFourDigitYear(locale.dateFormat(QLocale::ShortFormat)));
+    QString pattern;
+    for (const FormatPart &part : parts) {
+        pattern += part.isField && part.text.startsWith(u'm') ? part.text + QStringLiteral(":ss") : part.text;
+    }
+    return pattern;
 }
 }
 
@@ -198,45 +151,14 @@ QString library::groupTitle(NoteGroup group)
     return {};
 }
 
-QString library::entryTimestamp(const QDateTime &when, const QDateTime &now, const QLocale &locale)
+QString library::entryTimestamp(const QDateTime &when, const QLocale &locale)
 {
-    if (when.date() > now.date()) {
-        return absoluteForm(when.date(), locale);
-    }
-
-    switch (noteGroup(when, now, locale)) {
-    case NoteGroup::Today:
-    case NoteGroup::Yesterday:
-        return locale.toString(when.time(), QLocale::ShortFormat);
-    case NoteGroup::ThisWeek:
-    case NoteGroup::LastWeek:
-        return weekdayForm(when.date(), locale);
-    case NoteGroup::Older:
-        break;
-    }
-
-    return absoluteForm(when.date(), locale);
+    return locale.toString(when, withFourDigitYear(locale.dateTimeFormat(QLocale::ShortFormat)));
 }
 
-QString library::relativeTimestamp(const QDateTime &when, const QDateTime &now, const QLocale &locale)
+QString library::relativeTimestamp(const QDateTime &when, const QLocale &locale)
 {
-    if (when.date() > now.date()) {
-        return absoluteForm(when.date(), locale);
-    }
-
-    const QString time = locale.toString(when.time(), QLocale::ShortFormat);
-
-    switch (noteGroup(when, now, locale)) {
-    case NoteGroup::Today:
-        return i18nc("@item:intext timestamp of a note written today", "Today %1", time);
-    case NoteGroup::Yesterday:
-        return i18nc("@item:intext timestamp of a note written yesterday", "Yesterday %1", time);
-    case NoteGroup::ThisWeek:
-    case NoteGroup::LastWeek:
-        return weekdayForm(when.date(), locale);
-    case NoteGroup::Older:
-        break;
-    }
-
-    return absoluteForm(when.date(), locale);
+    const QString pattern = withSeconds(withFourDigitYear(locale.dateTimeFormat(QLocale::ShortFormat)));
+    const QString weekday = locale.toString(when.date(), QStringLiteral("dddd"));
+    return weekday + QStringLiteral(", ") + locale.toString(when, pattern);
 }

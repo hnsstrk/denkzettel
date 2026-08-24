@@ -893,9 +893,9 @@ void LibraryWindow::showNote(const QModelIndex &index, const QModelIndex &previo
         // It crosses a group boundary — what AK 7 and wireframe 3b, case 4 ask
         // for, and what the first selection after opening counts as — or it
         // reaches the first note of its group, which needs no boundary to be
-        // crossed (issue #70). Under „Today" and „Yesterday" an entry carries
-        // nothing but the time, so with the head outside there stands „08:00"
-        // and nothing says of which day.
+        // crossed (issue #70). Without the head in view, nothing says which of
+        // the five groups the entry stands in — the entry names its own date
+        // and time (issue #108), never the group.
         //
         // Otherwise moving within a group fetches nothing: the user has rolled
         // the list to where he wants it, and one arrow key must not throw that
@@ -951,7 +951,7 @@ void LibraryWindow::showNoteText(const QModelIndex &index)
     const Note note = m_model->noteAt(index.row());
 
     // The detail pane stands under no head and keeps the full timestamp.
-    m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, referenceTime(), QLocale()));
+    m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QLocale()));
 
     // Setting the same text again would send the reader back to its first
     // line; a reload of the open window leaves the reader where it was.
@@ -1113,9 +1113,9 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     // 02.08.2026). A KMessageDialog is a plain QDialog and stays ours.
     //
     // The timestamp stands in brackets, not in the middle of the sentence: it
-    // comes in the form its group gives it — “Today 11:05 AM”, “Tue, July 28”,
-    // “7/19/2026” under en_US — and no single sentence carries all three as an
-    // object.
+    // comes in the full detail-pane form — “Monday, 8/24/2026 3:42:07 PM”
+    // under en_US — and no single sentence carries weekday, date and time as
+    // one object.
     // The brackets take the grammar out of the format's hands.
     //
     // Both sentences stand in one text because KMessageDialog has no
@@ -1123,7 +1123,7 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     KMessageDialog dialog(KMessageDialog::WarningTwoActionsCancel,
                           i18n("Save changes?\n\nThe edited note (%1) has unsaved changes. "
                                "Without saving they are lost.",
-                               library::relativeTimestamp(m_editedNote.createdAt, referenceTime(), QLocale())),
+                               library::relativeTimestamp(m_editedNote.createdAt, QLocale())),
                           this);
     dialog.setCaption(i18nc("@title:window", "Unsaved changes"));
 

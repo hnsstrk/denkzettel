@@ -38,30 +38,23 @@ NoteGroup noteGroup(const QDateTime &when, const QDateTime &now, const QLocale &
 QString groupTitle(NoteGroup group);
 
 /**
- * The timestamp a list entry carries (SPEC 9, wireframe 3a). It says what its
- * group leaves open and nothing twice: under "Today" and "Yesterday" the head
- * carries the day, so the entry shows the time alone ("2:32 PM"); the week
- * groups name no day, so the entry does ("Tue, July 28"); under "Older" only
- * the date says anything ("7/28/2026").
+ * The timestamp a list entry carries (SPEC 9, wireframe 3a): date and time,
+ * the same form whichever of the five groups the note falls into — the group
+ * head names none of it any more (issue #108).
  *
- * Names, arrangement and separators all come out of `locale`, none of them out
- * of a pattern written here: under de_DE the same three forms read "14:32",
- * "Di., 28. Juli" and "28.07.2026".
- *
- * A timestamp from the future keeps its absolute date although it sorts into
- * "Today" — "9:00 AM" under today's head would be a lie about a clock jump.
+ * Arrangement, separators and the AM/PM marker all come out of `locale`, none
+ * of them out of a pattern written here: under de_DE this reads
+ * "24.08.2026 15:42", under en_US "8/24/2026 3:42 PM". The year is always
+ * four digits; the list carries no seconds, so it stays narrow.
  */
-QString entryTimestamp(const QDateTime &when, const QDateTime &now, const QLocale &locale);
+QString entryTimestamp(const QDateTime &when, const QLocale &locale);
 
 /**
- * The timestamp of the detail pane, which stands under no group head and
- * therefore keeps the day: "Today 2:32 PM", "Yesterday 9:48 PM",
- * "Tue, July 28" within this and the last calendar week, an absolute date
- * beyond that.
- *
- * The switch happens on the calendar day, not after 24 hours: a note from
- * yesterday at 23:50 reads "Yesterday" at 00:10, not "Today". `now` is a
- * parameter so the rule can be tested against fixed points in time.
+ * The timestamp of the detail pane (SPEC 9): weekday, date and time with
+ * seconds, the same form for every note — no "Today", no "Yesterday". Under
+ * de_DE "Montag, 24.08.2026 15:42:07", under en_US
+ * "Monday, 8/24/2026 3:42:07 PM". The comma after the weekday is the one
+ * literal in the whole form; everything else again comes out of `locale`.
  */
-QString relativeTimestamp(const QDateTime &when, const QDateTime &now, const QLocale &locale);
+QString relativeTimestamp(const QDateTime &when, const QLocale &locale);
 }

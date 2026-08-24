@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-24 14:58+0200\n"
+"POT-Creation-Date: 2026-08-24 16:25+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -301,44 +301,32 @@ msgstr ""
 "Während des Bearbeitens abgeschaltet — eine Suche würde die Liste unter dem "
 "Editor neu aufbauen."
 
-#: src/ui/timestampformat.cpp:187
+#: src/ui/timestampformat.cpp:140
 #, kde-format
 msgctxt "@title:group notes written today"
 msgid "Today"
 msgstr "Heute"
 
-#: src/ui/timestampformat.cpp:189
+#: src/ui/timestampformat.cpp:142
 #, kde-format
 msgctxt "@title:group notes written yesterday"
 msgid "Yesterday"
 msgstr "Gestern"
 
-#: src/ui/timestampformat.cpp:191
+#: src/ui/timestampformat.cpp:144
 #, kde-format
 msgctxt "@title:group notes of the current calendar week"
 msgid "This week"
 msgstr "Diese Woche"
 
-#: src/ui/timestampformat.cpp:193
+#: src/ui/timestampformat.cpp:146
 #, kde-format
 msgctxt "@title:group notes of the previous calendar week"
 msgid "Last week"
 msgstr "Letzte Woche"
 
-#: src/ui/timestampformat.cpp:195
+#: src/ui/timestampformat.cpp:148
 #, kde-format
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
 msgstr "Älter"
-
-#: src/ui/timestampformat.cpp:231
-#, kde-format
-msgctxt "@item:intext timestamp of a note written today"
-msgid "Today %1"
-msgstr "Heute %1"
-
-#: src/ui/timestampformat.cpp:233
-#, kde-format
-msgctxt "@item:intext timestamp of a note written yesterday"
-msgid "Yesterday %1"
-msgstr "Gestern %1"

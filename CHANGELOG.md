@@ -8,6 +8,17 @@ out, every change to the database schema is always named. Version numbering
 follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 `denkzetteld --version`).
 
+## [Unreleased]
+
+### Changed
+
+- **Every note in the library now shows its full date and time.** Before, only
+  notes from today or yesterday carried a time of day, and the week groups
+  showed a weekday instead of a date — a note in "Older" carried no time of
+  day at all, anywhere. The list now shows date and time for every note, and
+  the reading pane adds the weekday and seconds; both follow the arrangement
+  of the system language and keep the four-digit year (#108).
+
 ## [0.5.0] — 2026-08-24
 
 Sprint 11. The application changes its source language. Nothing a German
