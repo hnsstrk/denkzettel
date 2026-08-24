@@ -18,8 +18,23 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   day at all, anywhere. The list now shows date and time for every note, and
   the reading pane adds the weekday and seconds; both follow the arrangement
   of the system language and keep the four-digit year (#108).
+- **The note text sits closer to the edge of its field.** It kept four points
+  of spacing that nothing drew, on top of the border the desktop theme draws
+  around the input area — so it began nine to ten points right of the
+  application name above it, where only six of them were visible as a frame.
+  The text now begins on the inner edge of that frame, and under a theme that
+  draws no frame at all both edges fall together. The resting window is eight
+  points shallower because of it; the field still holds the five lines the
+  specification promises (#81).
 
 ### Fixed
+
+- **A capture window that is open shrinks back again.** Anyone who wrote eight
+  lines, discarded them and immediately started the next note sat in front of a
+  window that had stayed too large — and it stayed too large after Esc and a
+  second `Meta+N` as well, and after a change of the interface font. Only a
+  window nobody was looking at shrank back correctly, which is also why the
+  check that was supposed to hold this stood green for so long (#79).
 
 - **The capture window no longer crashes when a desktop theme has been
   removed.** Anyone who set a desktop theme and later uninstalled its package

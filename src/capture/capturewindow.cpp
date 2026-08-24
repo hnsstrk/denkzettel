@@ -78,15 +78,6 @@ constexpr QLatin1StringView FieldPrefix("base");
 constexpr QLatin1StringView FocusPrefix("focus");
 
 /**
- * What a QTextDocument keeps around its text before anything of ours is added.
- *
- * Written down rather than read back: the field's border is counted **on top**
- * of it on every theme change, and a value read back from the document would
- * carry the last theme's border into the next one and grow without end.
- */
-constexpr qreal BareDocumentMargin = 4;
-
-/**
  * The variant of the theme's graphic a window without a blurring compositor
  * gets. Plasma picks between `opaque` and `translucent` the same way
  * (`KSvg::ImageSet::setSelectors()`, imageset.h).
@@ -629,21 +620,32 @@ void CaptureWindow::applyFieldMargin()
         m_field->getMargins(left, top, right, bottom);
     }
 
-    // The strip the field graphic claims for itself, counted on top of the
-    // inner spacing of 4b just as the hull's is — the text moves inwards, and
-    // the application name and the footer stay where they are, because the
-    // layout does not hear of this at all.
+    // The strip the field graphic claims for itself, and nothing on top of it:
+    // the note text begins on the inner edge of the drawn border and no
+    // further in. The application name and the footer stay where they are,
+    // because the layout does not hear of this at all.
+    //
+    // Qt's own document margin of four used to be added here. That put the
+    // note text nine to ten points right of the application name while only
+    // six of them were drawn by anything — measured 24.08.2026 across all
+    // eight installed themes, whose border is 6.00 on every one of them, and
+    // in the picture at 9.3 points. Four of them belonged to nobody. Where a
+    // theme brings no field graphic the margin is now zero and both edges fall
+    // together, which is the single surface of wireframe 4b (issue #81; the
+    // issue predates the field graphic of #100 and asked for the two edges to
+    // coincide, which with a drawn frame between them is not what a text field
+    // does).
     //
     // One number for four sides, because a document has one margin. The widest
     // of the four, so no side of the text can end up underneath the border
-    // (issue #100, AK 5).
+    // (issue #100, AK 5 — met exactly now, with no slack left over).
     //
     // `documentMargin` and not `setViewportMargins()`, which is protected, nor
     // `setContentsMargins()` on the text area, which measurably does nothing
     // (F7). And adjustHeight() already counts the document margin into the
     // chrome, so the window grows by the two borders on its own.
     const qreal border = qMax(qMax(left, right), qMax(top, bottom));
-    m_text->document()->setDocumentMargin(BareDocumentMargin + border);
+    m_text->document()->setDocumentMargin(border);
 }
 
 void CaptureWindow::applyTextColours()
@@ -824,16 +826,26 @@ void CaptureWindow::adjustHeight()
     const int chrome = 2 * qRound(m_text->document()->documentMargin()) + 2 * m_text->frameWidth();
 
     m_text->setFixedHeight(capture::textAreaHeight(documentLines, m_text->fontMetrics().lineSpacing(), chrome));
-    // Both lines before the resize, and only the second one is obvious. On a
-    // **shown** window the layout has written its total minimum onto the window
-    // itself, and `resize()` is clamped by that minimum — so a window that grew
-    // to eight lines keeps the minimum of eight lines and cannot shrink back,
-    // whatever the hint says (issue #79, measured: minimum 244 against a hint
-    // of 190). `activate()` recomputes the minimum and applies it, and it does
-    // nothing at all while the layout still counts as activated, which is why
-    // `invalidate()` stands in front of it. On a hidden window no minimum has
-    // been applied yet — which is why the fault cannot occur there, and why the
-    // check for it has to show the window.
+    // Both lines before the resize, and only the second one is obvious. The
+    // setFixedHeight() above does not reach the layout at once; it posts a
+    // layout request that is delivered later. Until then the layout hands out
+    // the hint it cached and the window keeps the minimum the layout applied
+    // when it was last activated — and `resize()` is clamped by that minimum.
+    // On a **shown** window the resize therefore takes no effect **in either
+    // direction**. Measured 24.08.2026 on the unfixed state: a window at rest
+    // stays at rest even after eight lines are typed into it, 186 against 186.
+    // Issue #79 describes only the way back — its own measurement of 04.08.2026
+    // shows the window still growing then (174 → 228, and staying at 228 after
+    // clearing). Since then it does not even grow while shown; what changed in
+    // between is not established here.
+    //
+    // `invalidate()` drops the cached hint, `activate()` recomputes it and
+    // applies the minimum at once — and does nothing at all while the layout
+    // still counts as activated, which is why both lines are needed and why
+    // the order is this one.
+    //
+    // On a hidden window no minimum has been applied yet, so the fault cannot
+    // occur there. That is why the check for it has to show the window.
     layout()->invalidate();
     layout()->activate();
     resize(width(), sizeHint().height());
