@@ -46,6 +46,12 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Fixed
 
+- **A change of the system font reaches the running windows.** Plasma does not
+  pass a font change on to an application built with Qt Widgets, and Denkzettel
+  keeps its two windows for the whole session — so until now a font changed in
+  the system settings only took hold at the next login. Both windows now follow
+  it: the note field, the note list and the small texts around them, without a
+  restart (#68).
 - **A capture window that is open shrinks back again.** Anyone who wrote eight
   lines, discarded them and immediately started the next note sat in front of a
   window that had stayed too large — and it stayed too large after Esc and a

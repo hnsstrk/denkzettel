@@ -1,4 +1,5 @@
 #include "capture/capturewindow.h"
+#include "platform/systemfonts.h"
 #include "shell/appidentity.h"
 #include "shell/daemonservice.h"
 #include "shell/firstrun.h"
@@ -20,6 +21,13 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
+    // Plasma does not pass a font change on to a running Qt Widgets
+    // application — measured 24.08.2026: with the KDE platform theme loaded, a
+    // font raised in kdeglobals from 10 pt to 16 pt never arrived. The daemon
+    // keeps its two windows for the whole session (SPEC 2.1), so without this
+    // they would carry the old font until the next login (issue #68).
+    platform::followSystemFonts(&app);
 
     // Name, version, organisation domain and desktop file in one place —
     // shell/appidentity.cpp says why they may not be set anywhere else.

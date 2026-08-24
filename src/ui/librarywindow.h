@@ -66,6 +66,7 @@ protected:
      * QListView::pressed would come too late — it is emitted after
      * currentChanged, and by then the list has already been moved.
      */
+    bool event(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:

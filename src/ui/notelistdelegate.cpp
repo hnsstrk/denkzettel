@@ -1,5 +1,7 @@
 #include "ui/notelistdelegate.h"
 
+#include "platform/systemfonts.h"
+
 #include "ui/elidedlines.h"
 #include "ui/notelistmodel.h"
 
@@ -40,7 +42,7 @@ constexpr int HeadLineGap = 8;
 
 QFont timestampFont()
 {
-    return QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont);
+    return platform::smallestReadableFont();
 }
 
 /**
@@ -54,7 +56,7 @@ QFont timestampFont()
  */
 QFont groupHeadFont()
 {
-    QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    QFont font = platform::generalFont();
     font.setWeight(QFont::Bold);
     return font;
 }

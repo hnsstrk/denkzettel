@@ -1,5 +1,6 @@
 #include "ui/librarywindow.h"
 
+#include "platform/systemfonts.h"
 #include "store/store.h"
 #include "ui/notelistdelegate.h"
 #include "ui/notelistmodel.h"
@@ -112,10 +113,21 @@ void putReturnOnThePrimaryAction(KMessageDialog *dialog)
 }
 
 /** Small label in the regular text colour — the values of the meta row. */
+/**
+ * Marks a label whose font was set by hand, so a font change can find it again.
+ *
+ * A widget that was never given a font of its own follows the application font
+ * by itself; one that was does not. Written on the label rather than kept in a
+ * list beside it — eleven labels are built here, and a list is one place to
+ * forget (issue #68).
+ */
+constexpr QLatin1StringView FontSetByHand("denkzettel_smallFont");
+
 QLabel *smallLabel(const QString &text, QWidget *parent)
 {
     auto *label = new QLabel(text, parent);
-    label->setFont(QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont));
+    label->setFont(platform::smallestReadableFont());
+    label->setProperty(FontSetByHand.data(), true);
 
     return label;
 }
@@ -551,6 +563,26 @@ void LibraryWindow::setReferenceTime(const QDateTime &now)
 QDateTime LibraryWindow::referenceTime() const
 {
     return m_referenceTime.isValid() ? m_referenceTime : QDateTime::currentDateTime();
+}
+
+bool LibraryWindow::event(QEvent *event)
+{
+    // The small labels carry a font of their own and do not follow the
+    // application font; the list's rows are measured from the same fonts by the
+    // delegate, which asks anew on every paint but has to be told to measure
+    // again (issue #68).
+    if (event->type() == QEvent::ApplicationFontChange) {
+        const QFont small = platform::smallestReadableFont();
+        const QList<QLabel *> labels = findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->property(FontSetByHand.data()).toBool()) {
+                label->setFont(small);
+            }
+        }
+        m_list->doItemsLayout();
+    }
+
+    return QWidget::event(event);
 }
 
 bool LibraryWindow::eventFilter(QObject *watched, QEvent *event)

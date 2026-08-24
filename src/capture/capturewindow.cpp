@@ -2,6 +2,7 @@
 
 #include "capture/textareaheight.h"
 #include "capture/textcontrast.h"
+#include "platform/systemfonts.h"
 #include "store/note.h"
 #include "store/store.h"
 
@@ -142,7 +143,7 @@ KWindowShadowTile::Ptr shadowTile(KSvg::FrameSvg *tiles, const QString &element)
 QLabel *smallLabel(const QString &text, QWidget *parent)
 {
     auto *label = new QLabel(text, parent);
-    label->setFont(QFontDatabase::systemFont(QFontDatabase::SmallestReadableFont));
+    label->setFont(platform::smallestReadableFont());
 
     return label;
 }
@@ -560,6 +561,21 @@ bool CaptureWindow::event(QEvent *event)
     // redrawn out of resizeEvent() would keep drawing at 2 on a window that is
     // 1,6, for good. Offscreen this event never arrives — no test of this
     // project would notice the line missing.
+    // The fonts of the two labels were set on them by hand, so they do not
+    // follow the application font by themselves. Everything else in the window
+    // does, and the height has to be recomputed either way — a taller line
+    // makes a taller field (issue #68).
+    if (event->type() == QEvent::ApplicationFontChange) {
+        const QFont small = platform::smallestReadableFont();
+        if (m_appName) {
+            m_appName->setFont(small);
+        }
+        for (QLabel *label : std::as_const(m_subtleLabels)) {
+            label->setFont(small);
+        }
+        adjustHeight();
+    }
+
     if (event->type() == QEvent::DevicePixelRatioChange) {
         resizeHull();
         resizeField();

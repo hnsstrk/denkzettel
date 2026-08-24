@@ -38,6 +38,18 @@ if(DENKZETTEL_SPIKE_SPELLFIX)
     target_link_libraries(denkzettelstore PUBLIC SQLite3::SQLite3)
 endif()
 
+add_library(denkzettelplatform STATIC
+    platform/systemfonts.cpp
+)
+
+target_include_directories(denkzettelplatform PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzettelplatform PUBLIC
+    Qt6::Widgets
+    KF6::ConfigCore
+    KF6::CoreAddons
+)
+
 add_library(denkzettelcapture STATIC
     capture/capturewindow.cpp
     capture/textareaheight.cpp
@@ -47,6 +59,7 @@ add_library(denkzettelcapture STATIC
 target_include_directories(denkzettelcapture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzettelcapture PUBLIC
+    denkzettelplatform
     denkzettelstore
     Qt6::Widgets
     # Whether this session blurs behind windows at all, asked of KWin itself
@@ -80,6 +93,7 @@ add_library(denkzettelui STATIC
 target_include_directories(denkzettelui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzettelui PUBLIC
+    denkzettelplatform
     denkzettelstore
     Qt6::Widgets
     # KColorScheme::frameContrast() — the ratio the separator lines of the list
