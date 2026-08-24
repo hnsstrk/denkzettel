@@ -164,7 +164,8 @@ private Q_SLOTS:
     void bringsTheHeadOfTheNewGroupIntoView_data();
     void bringsTheHeadOfTheNewGroupIntoView();
     void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
-    void leavesTheHeadOutsideWhereItCannotFitWithTheSelection();
+    void staysPutWhileTheSelectionMovesWithinALargeGroup();
+    void entersTheFitConditionOnANonFirstNoteOfALargeGroup();
     void staysPutWhileTheSelectionMovesWithinItsGroup();
     void bringsTheHeadAlongEvenWhenTheNoteIsInViewAlready();
     void leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClicked();
@@ -1684,12 +1685,18 @@ void LibraryTest::bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup()
                             .arg(list->viewport()->height())));
 }
 
-void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
+void LibraryTest::staysPutWhileTheSelectionMovesWithinALargeGroup()
 {
-    // The other side of the same rule: a group taller than the list. Fetching
-    // its head would push the selection out of the picture, so the head stays
-    // where it is — one key press must not scroll away what the user is
-    // looking at.
+    // The other side of the same rule, in a group taller than the list: one
+    // key press must not scroll away what the user is looking at.
+    //
+    // This case never reaches the fit condition at all — the step here stays
+    // inside one group, so neither crossesAGroupBoundary nor isFirstOfItsGroup
+    // holds and the whole head-fetch block is skipped (issue #90; the check
+    // that actually enters the fit condition is
+    // entersTheFitConditionOnANonFirstNoteOfALargeGroup() below). What this
+    // proves instead is the rule the comment above it names: moving within a
+    // group fetches nothing, however far the head has scrolled away.
     for (int minute = 0; minute < 30; ++minute) {
         storedNote(QStringLiteral("von heute, Minute %1").arg(minute),
                    QStringLiteral("2026-07-31T10:%1:00").arg(minute, 2, 10, QLatin1Char('0')));
@@ -1702,8 +1709,6 @@ void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
     QListView *list = listOf(window);
-    const QModelIndex head = modelOf(list)->index(0);
-    QVERIFY(head.data(NoteListModel::GroupHeaderRole).toBool());
 
     // At the end of the list, where the head of the group is far above.
     list->setCurrentIndex(noteRow(list, 29));
@@ -1721,22 +1726,79 @@ void LibraryTest::leavesTheHeadOutsideWhereItCannotFitWithTheSelection()
     QCOMPARE(list->verticalScrollBar()->value(), scrolledTo);
 
     QCOMPARE(list->currentIndex(), selected);
+}
 
-    // The head is further away than the list is tall …
-    const int span = list->visualRect(selected).bottom() - list->visualRect(head).top();
+void LibraryTest::entersTheFitConditionOnANonFirstNoteOfALargeGroup()
+{
+    // Criterion 1 of issue #90, corrected 24.08.2026: the literal wording —
+    // "header and first note together taller than the visible area" — cannot
+    // be built. bringsTheHeadOfTheNewGroupIntoView_data() above already
+    // measures that a head and one entry always fit within the smallest
+    // window the layout allows, and every entry keeps the same height
+    // whatever its note holds (NoteListDelegate::sizeHint()). What the
+    // criterion actually asks for — a case that enters the fit condition — is
+    // a boundary crossing that lands on a note that is *not* the first of its
+    // group, deep enough that the trailing scrollTo(index) in showNote() is a
+    // no-op. That is the case this builds.
+    for (int minute = 0; minute < 20; ++minute) {
+        storedNote(QStringLiteral("von heute, Minute %1").arg(minute),
+                   QStringLiteral("2026-07-31T10:%1:00").arg(minute, 2, 10, QLatin1Char('0')));
+    }
+    storedNote(QStringLiteral("von gestern"), QStringLiteral("2026-07-30T21:48:00"));
+
+    LibraryWindow window(m_store.get());
+    window.setReferenceTime(at(QStringLiteral("2026-07-31T16:00:00")));
+    window.resize(900, 600);
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    QCOMPARE(modelOf(list)->noteCount(), 21);
+
+    const QModelIndex head = modelOf(list)->index(0);
+    QCOMPARE(head.data(Qt::DisplayRole).toString(), QStringLiteral("Today"));
+
+    // The single note of "Yesterday" — selecting it is the first selection
+    // the window makes. That scrolls the list down to it and, along the way,
+    // already leaves the last note of "Today" standing in the picture: it is
+    // only one row above the "Yesterday" head.
+    list->setCurrentIndex(noteRow(list, 20));
+
+    const QModelIndex lastOfToday = noteRow(list, 19);
+    QVERIFY2(list->viewport()->rect().contains(list->visualRect(lastOfToday)),
+             "The case requires the target row to already stand whole in the picture");
+    QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
+             "The case requires the head of \"Today\" to stand outside the picture");
+
+    // Head and target really do not fit together — the object of AK 1.
+    const int span = list->visualRect(lastOfToday).bottom() - list->visualRect(head).top();
     QVERIFY2(span > list->viewport()->height(),
-             qPrintable(QStringLiteral("Head and selection span %1 px, viewport %2 px — the case "
+             qPrintable(QStringLiteral("Head and target span %1 px, viewport %2 px — the case "
                                        "does not occur")
                             .arg(span)
                             .arg(list->viewport()->height())));
 
-    // … so it stays outside, and the selection keeps the picture, whole.
-    QVERIFY(!list->viewport()->rect().intersects(list->visualRect(head)));
-    QVERIFY2(list->viewport()->rect().contains(list->visualRect(selected)),
-             qPrintable(QStringLiteral("Selection y=%1 h=%2, viewport %3 px high")
-                            .arg(list->visualRect(selected).y())
-                            .arg(list->visualRect(selected).height())
-                            .arg(list->viewport()->height())));
+    // Not the first note of "Today" either — nineteen notes stand between it
+    // and the head, so isFirstOfItsGroup does not hold and only the fit
+    // condition decides what happens next.
+    QVERIFY(head.row() != lastOfToday.row() - 1);
+
+    const int scrolledBefore = list->verticalScrollBar()->value();
+
+    // Up from "Yesterday" crosses the boundary into "Today", landing on its
+    // last note — not its first. The head row itself carries no item flags
+    // and the view walks past it (NoteListModel::flags()).
+    QTest::keyClick(list, Qt::Key_Up);
+
+    QCOMPARE(list->currentIndex(), lastOfToday);
+
+    // The target was already in the picture, so honouring the fit condition
+    // costs nothing: the list must not move at all. Measured against the
+    // mutation the condition guards against (M10 of sprint 7, where removing
+    // it left 112 of 112 checks green): with the `if` taken out, the head of
+    // "Today" is scrolled into view first and the bar ends at 14 instead of
+    // 15 — this check goes red, measured 24.08.2026 on issue #90.
+    QCOMPARE(list->verticalScrollBar()->value(), scrolledBefore);
 }
 
 void LibraryTest::bringsBackTheHeadWhenTheDeletionIsUndone()
