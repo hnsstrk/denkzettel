@@ -531,8 +531,9 @@ meta(key TEXT PK, value TEXT)  -- schema version and the like
   word does (see `StoreTest::keepsSearchIndexInSync()`).
 - Audio lies as a file under `audio/` (name = the note's ISO timestamp with the
   colons replaced, section 4), the DB holds the reference. Deleting a note
-  deletes tags, embedding, FTS entry, `proposal_notes` references and the audio
-  file in one transaction plus a file system cleanup.
+  deletes tags, embedding, FTS entry, `proposal_notes` references, an
+  outstanding transcription job and the audio file in one transaction plus a
+  file system cleanup.
 
 ### 5.2 Settings and secrets
 

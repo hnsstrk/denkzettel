@@ -38,6 +38,24 @@ if(DENKZETTEL_SPIKE_SPELLFIX)
     target_link_libraries(denkzettelstore PUBLIC SQLite3::SQLite3)
 endif()
 
+# The transcription queue (SPEC 12). No library of whisper.cpp's is linked
+# here and none is looked for at build time: both programs are subprocesses,
+# their paths are settings, and that is what keeps the automated run — which
+# has neither a graphics card nor a model — building and testing this code.
+add_library(denkzetteltranscribe STATIC
+    transcribe/transcriber.cpp
+)
+
+target_include_directories(denkzetteltranscribe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzetteltranscribe PUBLIC
+    denkzettelstore
+    Qt6::Core
+    # The three settings of SPEC 12 out of denkzettelrc: the two program paths
+    # and the model.
+    KF6::ConfigCore
+)
+
 add_library(denkzettelplatform STATIC
     platform/systemfonts.cpp
 )
@@ -166,6 +184,7 @@ target_include_directories(denkzetteld PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzetteld PRIVATE
     denkzettelcapture
     denkzettelshell
+    denkzetteltranscribe
     denkzettelui
     Qt6::Widgets
     KF6::ConfigCore

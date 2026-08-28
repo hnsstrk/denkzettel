@@ -28,6 +28,8 @@ private Q_SLOTS:
     void createsSchemaOnFirstOpen();
     void defaultPathLivesInApplicationDataDirectory();
     void storesAndReadsNote();
+    void storesAVoiceNoteWithoutATranscript();
+    void forgetsTheErrorOfAnEarlierCall();
     void listsNotesNewestFirst();
     void updatesNote();
     void replacesTags();
@@ -96,7 +98,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 2);
+    QCOMPARE(m_store->schemaVersion(), 3);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -143,6 +145,57 @@ void StoreTest::storesAndReadsNote()
     QCOMPARE(plain->analysisAttempts, 0);
 
     QVERIFY(!m_store->note(4711).has_value());
+}
+
+void StoreTest::storesAVoiceNoteWithoutATranscript()
+{
+    // The state a voice note lives in until its transcription is through, and
+    // it is a lasting one: the note is visible and playable without a
+    // transcript, and it stays that way if the transcription never succeeds
+    // (SPEC 12). Measured 2026-08-28: Qt's SQLite driver binds a default
+    // constructed QString as NULL, so this note ran into the NOT NULL
+    // constraint of `content` and was never stored at all — the recording
+    // would have been made and thrown away with nothing but a line in the
+    // journal.
+    Note note;
+    note.createdAt = QDateTime::currentDateTime();
+    note.type = Note::Type::Audio;
+    note.audioPath = QStringLiteral("2026-08-28T21-07-03.250.ogg");
+    note.audioDurationS = 7;
+
+    const std::optional<qint64> id = m_store->addNote(note);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    const std::optional<Note> stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QVERIFY(stored->content.isEmpty());
+    QCOMPARE(stored->type, Note::Type::Audio);
+    QCOMPARE(stored->state, Note::State::New);
+    QCOMPARE(stored->audioPath, note.audioPath);
+}
+
+void StoreTest::forgetsTheErrorOfAnEarlierCall()
+{
+    // The order is the whole case: a call that fails, then one that succeeds,
+    // then the message. Written the other way round it would be green whether
+    // the store forgets or not.
+    Note missing = sampleNote();
+    missing.id = 4711;
+    QVERIFY(!m_store->updateNote(missing));
+    QVERIFY(!m_store->lastError().isEmpty());
+
+    QVERIFY2(m_store->addNote(sampleNote()).has_value(), qPrintable(m_store->lastError()));
+
+    // What the failed call left in lastError() must not still be standing
+    // here. That string becomes the reason a transcription was given up on
+    // (SPEC 12, `transcribe_jobs.last_error`), and a reason belonging to a
+    // different call is worse than none.
+    QVERIFY2(m_store->lastError().isEmpty(), qPrintable(m_store->lastError()));
+
+    // And a reader that only asks after a failure keeps getting the right
+    // answer — the contract the callers of this class actually go by.
+    QVERIFY(!m_store->updateNote(missing));
+    QCOMPARE(m_store->lastError(), QStringLiteral("Notiz 4711 existiert nicht"));
 }
 
 void StoreTest::listsNotesNewestFirst()
@@ -281,7 +334,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 2);
+    QCOMPARE(m_store->schemaVersion(), 3);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -527,7 +580,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 2);
+    QCOMPARE(m_store->schemaVersion(), 3);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -549,6 +602,17 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     QCOMPARE(searchContents(QStringLiteral("bucher")), QStringList({QStringLiteral("Bücher über Straßenbahnen ansehen")}));
     QCOMPARE(searchContents(QStringLiteral("Fotos")), QStringList({QStringLiteral("Backup der Fotos prüfen")}));
 
+    // And the queue of schema version 3 stands on a database that was written
+    // before it existed — a transcription of a note that is already there is
+    // the case this migration exists for (SPEC 12).
+    QVERIFY2(m_store->enqueueTranscription(1), qPrintable(m_store->lastError()));
+    const std::optional<TranscribeJob> job = m_store->takeTranscribeJob();
+    QVERIFY(job.has_value());
+    QCOMPARE(job->noteId, qint64(1));
+    QVERIFY2(m_store->completeTranscription(1, QStringLiteral("Straßenbahn nach Süden")),
+             qPrintable(m_store->lastError()));
+    QCOMPARE(searchContents(QStringLiteral("Süden")), QStringList({QStringLiteral("Straßenbahn nach Süden")}));
+
     // And it keeps working for notes written after the migration.
     Note added = sampleNote();
     added.content = QStringLiteral("Nach der Migration erfasst");
@@ -559,7 +623,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 2);
+    QCOMPARE(m_store->schemaVersion(), 3);
     QCOMPARE(m_store->notes().size(), 3);
 }
 

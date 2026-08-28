@@ -43,6 +43,24 @@ add_test(NAME capturetest COMMAND capturetest)
 set_tests_properties(capturetest PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
 
+# The transcription queue (SPEC 12, issue #22). It links the recorder as well,
+# because the audio the queue works on is a real Opus recording rather than a
+# file made up for the occasion — written without a device, see the class
+# comment of AudioRecorder.
+#
+# What it does NOT need is whisper.cpp and a model: the set puts a program of
+# its own in that place, which is what SPEC 12 makes the path configurable for.
+# `ffmpeg` on the other hand is the real one and is a dependency of this set.
+add_executable(transcribetest transcribetest.cpp)
+
+target_link_libraries(transcribetest PRIVATE
+    denkzettelcapture
+    denkzetteltranscribe
+    Qt6::Test
+)
+
+add_test(NAME transcribetest COMMAND transcribetest)
+
 add_executable(librarytest librarytest.cpp)
 
 target_link_libraries(librarytest PRIVATE

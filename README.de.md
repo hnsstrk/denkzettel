@@ -86,16 +86,31 @@ Spezifikation ist [`SPEC.md`](SPEC.md).
   Formate als das Opus in OGG, in dem die Sprachnotiz aufgenommen wird
 - KDE Frameworks 6: ColorScheme, Config, CoreAddons, DBusAddons, GlobalAccel,
   I18n, Notifications, StatusNotifierItem, Svg, WidgetsAddons, WindowSystem
+- `ffmpeg`, das Programm — die Transkription wandelt eine Aufnahme damit in ein
+  vorübergehendes WAV mit 16 kHz in Mono um, bevor whisper.cpp sie sieht; der
+  Testlauf tut dasselbe
 - gettext (`msgfmt`) für die Nachrichtenkataloge
 - AppStream (`appstreamcli`) — ohne das Programm bricht die Konfiguration ab:
   der Testlauf prüft die AppStream-Beschreibung, die ein Software-Center liest
 - libplasma zur Laufzeit — von dort kommen die Desktop-Themes, aus denen das
   Erfassungsfenster seine Hülle zeichnet — sowie die Breeze-Symbole
+- Nur für die Transkription und nur zur Laufzeit: `whisper-cpp` mit einem
+  GGML-Backend (`ggml-vulkan`, unter ROCm `ggml-hip`) und ein Modell unter
+  `~/.local/share/denkzettel/models/`. Zum Bauen und Prüfen braucht es beides
+  nicht — der Testlauf setzt an die Stelle von whisper-cli ein eigenes
+  Programm. Beide Pfade sind Einstellungen in `denkzettelrc`:
+
+  ```ini
+  [Transcription]
+  FfmpegProgram=/usr/bin/ffmpeg
+  WhisperProgram=/usr/bin/whisper-cli
+  ModelPath=/home/du/.local/share/denkzettel/models/ggml-small.bin
+  ```
 
 Auf Arch und Ablegern:
 
 ```sh
-sudo pacman -S --needed cmake extra-cmake-modules gettext qt6-base \
+sudo pacman -S --needed cmake extra-cmake-modules gettext ffmpeg qt6-base \
     qt6-multimedia qt6-multimedia-ffmpeg \
     kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
     knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \

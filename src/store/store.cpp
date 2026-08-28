@@ -19,8 +19,8 @@ namespace
 const QList<QStringList> &migrations()
 {
     static const QList<QStringList> steps = {
-        // Version 1 — M1 schema (SPEC 5.1). notes_fts, embeddings, proposals,
-        // proposal_notes and transcribe_jobs arrive with their milestones.
+        // Version 1 — M1 schema (SPEC 5.1). notes_fts, embeddings, proposals
+        // and proposal_notes arrive with their milestones.
         {
             QStringLiteral("CREATE TABLE meta ("
                            "  key TEXT PRIMARY KEY,"
@@ -77,6 +77,29 @@ const QList<QStringList> &migrations()
             // the rebuild they would stay invisible to the search for good.
             QStringLiteral("INSERT INTO notes_fts (notes_fts) VALUES ('rebuild')"),
         },
+        // Version 3 — the transcription queue (SPEC 5.1, 12). The columns are
+        // the ones SPEC 5.1 names and no others; what a reader wants to know
+        // is answered by them together:
+        //   no row, state 'transkribiert'  — done, the transcript is the note
+        //   row, last_error NULL           — outstanding: waiting or running
+        //   row, last_error set            — the last attempt failed; with
+        //                                    attempts at the limit it stays
+        //                                    that way, and the note keeps its
+        //                                    audio without a transcript
+        // A column for "running" would be a fourth state nobody can write
+        // truthfully: a daemon killed mid-run cannot clear it, and the row
+        // would say "running" for ever (SPEC 12: the queue survives restarts).
+        {
+            // ON DELETE CASCADE, and not for tidiness: with `PRAGMA
+            // foreign_keys = ON` a job row still pointing at the note would
+            // make Store::removeNote() fail outright — deleting an audio note
+            // whose transcription is queued is the ordinary case, not an edge.
+            QStringLiteral("CREATE TABLE transcribe_jobs ("
+                           "  note_id INTEGER PRIMARY KEY REFERENCES notes(id) ON DELETE CASCADE,"
+                           "  enqueued_at TEXT NOT NULL,"
+                           "  attempts INTEGER NOT NULL DEFAULT 0,"
+                           "  last_error TEXT)"),
+        },
     };
     return steps;
 }
@@ -113,6 +136,20 @@ Note::State stateFromText(const QString &text)
         return Note::State::Analysed;
     }
     return Note::State::New;
+}
+
+/**
+ * Binds a text that must not be NULL, empty or not.
+ *
+ * Qt's SQLite driver binds a **null** QString as NULL, and a default
+ * constructed QString is null — so a voice note, which carries no text until
+ * its transcript arrives, would run into the NOT NULL constraint of `content`
+ * and never be stored at all (measured 2026-08-28 on issue #22). An empty text
+ * is a text of length nought here, not an absent one.
+ */
+QVariant plainText(const QString &value)
+{
+    return value.isNull() ? QVariant(QString(QLatin1String(""))) : QVariant(value);
 }
 
 /** Binds an empty string as SQL NULL. */
@@ -222,6 +259,7 @@ QString Store::defaultDatabasePath()
 
 bool Store::open()
 {
+    m_lastError.clear();
     const QString directory = QFileInfo(m_databasePath).absolutePath();
     if (!QDir().mkpath(directory)) {
         m_lastError = QStringLiteral("Creating directory %1 failed").arg(directory);
@@ -314,6 +352,7 @@ QString Store::audioDirectory() const
 
 std::optional<qint64> Store::addNote(const Note &note)
 {
+    m_lastError.clear();
     QSqlQuery query(m_db);
     query.prepare(
         QStringLiteral("INSERT INTO notes (created_at, type, content, audio_path, audio_duration_s,"
@@ -322,7 +361,7 @@ std::optional<qint64> Store::addNote(const Note &note)
                        " :category, :state, :needs_reembed, :analysis_attempts, :analysis_last_error)"));
     query.bindValue(QStringLiteral(":created_at"), timestampToText(note.createdAt));
     query.bindValue(QStringLiteral(":type"), typeToText(note.type));
-    query.bindValue(QStringLiteral(":content"), note.content);
+    query.bindValue(QStringLiteral(":content"), plainText(note.content));
     query.bindValue(QStringLiteral(":audio_path"), nullableText(note.audioPath));
     query.bindValue(QStringLiteral(":audio_duration_s"), nullableInt(note.audioDurationS));
     query.bindValue(QStringLiteral(":category"), nullableText(note.category));
@@ -344,6 +383,7 @@ std::optional<qint64> Store::addNote(const Note &note)
 
 bool Store::updateNote(const Note &note)
 {
+    m_lastError.clear();
     QSqlQuery query(m_db);
     query.prepare(
         QStringLiteral("UPDATE notes SET created_at = :created_at, type = :type, content = :content,"
@@ -353,7 +393,7 @@ bool Store::updateNote(const Note &note)
                        " WHERE id = :id"));
     query.bindValue(QStringLiteral(":created_at"), timestampToText(note.createdAt));
     query.bindValue(QStringLiteral(":type"), typeToText(note.type));
-    query.bindValue(QStringLiteral(":content"), note.content);
+    query.bindValue(QStringLiteral(":content"), plainText(note.content));
     query.bindValue(QStringLiteral(":audio_path"), nullableText(note.audioPath));
     query.bindValue(QStringLiteral(":audio_duration_s"), nullableInt(note.audioDurationS));
     query.bindValue(QStringLiteral(":category"), nullableText(note.category));
@@ -378,6 +418,7 @@ bool Store::updateNote(const Note &note)
 
 std::optional<Note> Store::note(qint64 id) const
 {
+    m_lastError.clear();
     QSqlQuery query(m_db);
     query.prepare(QStringLiteral("SELECT %1 FROM notes WHERE id = :id").arg(noteColumns()));
     query.bindValue(QStringLiteral(":id"), id);
@@ -397,6 +438,7 @@ std::optional<Note> Store::note(qint64 id) const
 
 QList<Note> Store::notes() const
 {
+    m_lastError.clear();
     QSqlQuery query(m_db);
     // The id breaks ties: two notes of the same millisecond would otherwise
     // change places between two reads, and the list would jump.
@@ -416,6 +458,7 @@ QList<Note> Store::notes() const
 
 QList<Note> Store::search(const QString &text) const
 {
+    m_lastError.clear();
     const QStringList terms = searchTerms(text);
     if (terms.isEmpty()) {
         return notes();
@@ -474,6 +517,7 @@ QList<Note> Store::search(const QString &text) const
 
 bool Store::removeNote(qint64 id)
 {
+    m_lastError.clear();
     // Read the audio reference while the row still exists, so the file that is
     // removed further down is the one the deleted note pointed at.
     const std::optional<Note> stored = note(id);
@@ -527,6 +571,7 @@ bool Store::removeNote(qint64 id)
 
 bool Store::setTags(qint64 noteId, const QStringList &tags)
 {
+    m_lastError.clear();
     if (!m_db.transaction()) {
         m_lastError = m_db.lastError().text();
         return false;
@@ -562,8 +607,160 @@ bool Store::setTags(qint64 noteId, const QStringList &tags)
     return true;
 }
 
+bool Store::enqueueTranscription(qint64 noteId)
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // A note that is already queued stays as it is, attempts included: the
+    // road into the queue is Store::noteAdded, and a second start of the
+    // daemon must not hand a job that has already failed twice a fresh life.
+    query.prepare(QStringLiteral("INSERT INTO transcribe_jobs (note_id, enqueued_at)"
+                                 " VALUES (:note_id, :enqueued_at)"
+                                 " ON CONFLICT(note_id) DO NOTHING"));
+    query.bindValue(QStringLiteral(":note_id"), noteId);
+    query.bindValue(QStringLiteral(":enqueued_at"), timestampToText(QDateTime::currentDateTime()));
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+std::optional<TranscribeJob> Store::takeTranscribeJob()
+{
+    m_lastError.clear();
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return std::nullopt;
+    }
+
+    QSqlQuery query(m_db);
+    // Oldest first, and the id breaks the tie the way the note list does.
+    query.prepare(QStringLiteral("SELECT note_id, enqueued_at, attempts, last_error FROM transcribe_jobs"
+                                 " WHERE attempts < :limit ORDER BY enqueued_at, note_id LIMIT 1"));
+    query.bindValue(QStringLiteral(":limit"), transcribeAttemptLimit);
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        m_db.rollback();
+        return std::nullopt;
+    }
+    if (!query.next()) {
+        m_db.rollback();
+        return std::nullopt;
+    }
+
+    TranscribeJob job;
+    job.noteId = query.value(0).toLongLong();
+    job.enqueuedAt = timestampFromText(query.value(1).toString());
+    job.attempts = query.value(2).toInt() + 1;
+    job.lastError = query.value(3).toString();
+
+    QSqlQuery count(m_db);
+    count.prepare(QStringLiteral("UPDATE transcribe_jobs SET attempts = :attempts WHERE note_id = :note_id"));
+    count.bindValue(QStringLiteral(":attempts"), job.attempts);
+    count.bindValue(QStringLiteral(":note_id"), job.noteId);
+    if (!count.exec()) {
+        m_lastError = count.lastError().text();
+        m_db.rollback();
+        return std::nullopt;
+    }
+
+    if (!m_db.commit()) {
+        m_lastError = m_db.lastError().text();
+        m_db.rollback();
+        return std::nullopt;
+    }
+
+    return job;
+}
+
+bool Store::completeTranscription(qint64 noteId, const QString &transcript)
+{
+    m_lastError.clear();
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return false;
+    }
+
+    QSqlQuery write(m_db);
+    // The state goes to 'transkribiert' with the text, and the FTS trigger of
+    // schema version 2 carries the transcript into the search index from here.
+    write.prepare(QStringLiteral("UPDATE notes SET content = :content, state = :state WHERE id = :id"));
+    write.bindValue(QStringLiteral(":content"), transcript);
+    write.bindValue(QStringLiteral(":state"), stateToText(Note::State::Transcribed));
+    write.bindValue(QStringLiteral(":id"), noteId);
+    if (!write.exec()) {
+        m_lastError = write.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+    if (write.numRowsAffected() == 0) {
+        m_lastError = QStringLiteral("Notiz %1 existiert nicht").arg(noteId);
+        m_db.rollback();
+        return false;
+    }
+
+    QSqlQuery done(m_db);
+    done.prepare(QStringLiteral("DELETE FROM transcribe_jobs WHERE note_id = :note_id"));
+    done.bindValue(QStringLiteral(":note_id"), noteId);
+    if (!done.exec()) {
+        m_lastError = done.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    if (!m_db.commit()) {
+        m_lastError = m_db.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    return true;
+}
+
+bool Store::failTranscribeJob(qint64 noteId, const QString &error)
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("UPDATE transcribe_jobs SET last_error = :last_error WHERE note_id = :note_id"));
+    query.bindValue(QStringLiteral(":last_error"), error);
+    query.bindValue(QStringLiteral(":note_id"), noteId);
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+std::optional<TranscribeJob> Store::transcribeJob(qint64 noteId) const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("SELECT note_id, enqueued_at, attempts, last_error FROM transcribe_jobs"
+                                 " WHERE note_id = :note_id"));
+    query.bindValue(QStringLiteral(":note_id"), noteId);
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return std::nullopt;
+    }
+    if (!query.next()) {
+        return std::nullopt;
+    }
+
+    TranscribeJob job;
+    job.noteId = query.value(0).toLongLong();
+    job.enqueuedAt = timestampFromText(query.value(1).toString());
+    job.attempts = query.value(2).toInt();
+    job.lastError = query.value(3).toString();
+    return job;
+}
+
 QStringList Store::tags(qint64 noteId) const
 {
+    m_lastError.clear();
     QSqlQuery query(m_db);
     query.prepare(QStringLiteral("SELECT tag FROM tags WHERE note_id = :note_id ORDER BY tag"));
     query.bindValue(QStringLiteral(":note_id"), noteId);
