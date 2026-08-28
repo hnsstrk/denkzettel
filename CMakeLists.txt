@@ -63,6 +63,12 @@ install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTAL
 # /etc/xdg/autostart; installed to /usr/local no session reads the entry.
 install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
 
+# The AppStream description, without which a software centre shows the program
+# as a bare name without a text and without a picture. ECM's own appstreamtest
+# reads the install manifest of a real installation into the prefix; the check
+# that runs everywhere is installtest below (issue #73).
+install(FILES desktop/org.denkzettel.Denkzettel.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+
 ecm_install_icons(ICONS
     icons/sc-apps-denkzettel.svg
     icons/sc-status-denkzettel-tray.svg

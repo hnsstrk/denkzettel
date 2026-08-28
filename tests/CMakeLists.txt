@@ -158,13 +158,27 @@ add_test(NAME commandlinetest
 set_tests_properties(commandlinetest PROPERTIES
     ENVIRONMENT "XDG_DATA_DIRS=${CMAKE_CURRENT_BINARY_DIR}/commandlinetest-ohne-dienste")
 
+# REQUIRED, and the same reasoning as for dbus-run-session above: without
+# appstreamcli the metainfo check below would fall away silently, and a metainfo
+# file nobody validates is exactly the state issue #73 describes. The name is
+# the cache entry KDECMakeSettings already fills; where it found the program
+# this call is a no-op.
+find_program(APPSTREAMCLI appstreamcli REQUIRED)
+
 # The autostart entry only exists once the project is installed, so its rule has
-# no other test that would notice it disappearing (SPEC 2.5).
+# no other test that would notice it disappearing (SPEC 2.5). The metainfo file
+# is checked from here for a second reason: ECM's own appstreamtest validates at
+# the *installed* location out of the install manifest, so it only ever comes
+# alive after an installation into the prefix with root — in the automated run
+# it keeps skipping itself and is green either way (#73). This one installs into
+# a staging directory via DESTDIR and validates there, without root.
 add_test(NAME installtest
     COMMAND ${CMAKE_COMMAND}
         -DBINARY_DIR=${CMAKE_BINARY_DIR}
         -DSTAGING_DIR=${CMAKE_CURRENT_BINARY_DIR}/installtest-root
         -DAPPLICATION_ENTRY=${KDE_INSTALL_FULL_APPDIR}/org.denkzettel.Denkzettel.desktop
         -DAUTOSTART_ENTRY=${KDE_INSTALL_FULL_AUTOSTARTDIR}/org.denkzettel.Denkzettel.desktop
+        -DMETAINFO_ENTRY=${KDE_INSTALL_FULL_METAINFODIR}/org.denkzettel.Denkzettel.metainfo.xml
+        -DAPPSTREAMCLI=${APPSTREAMCLI}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/installtest.cmake
 )

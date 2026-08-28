@@ -84,6 +84,8 @@ Spezifikation ist [`SPEC.md`](SPEC.md).
 - KDE Frameworks 6: ColorScheme, Config, CoreAddons, DBusAddons, GlobalAccel,
   I18n, Notifications, StatusNotifierItem, Svg, WidgetsAddons, WindowSystem
 - gettext (`msgfmt`) für die Nachrichtenkataloge
+- AppStream (`appstreamcli`) — ohne das Programm bricht die Konfiguration ab:
+  der Testlauf prüft die AppStream-Beschreibung, die ein Software-Center liest
 - libplasma zur Laufzeit — von dort kommen die Desktop-Themes, aus denen das
   Erfassungsfenster seine Hülle zeichnet — sowie die Breeze-Symbole
 
@@ -93,7 +95,7 @@ Auf Arch und Ablegern:
 sudo pacman -S --needed cmake extra-cmake-modules gettext qt6-base \
     kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
     knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \
-    libplasma breeze-icons
+    libplasma breeze-icons appstream
 ```
 
 ## Bauen und installieren

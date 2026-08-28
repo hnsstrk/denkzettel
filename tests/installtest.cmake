@@ -2,7 +2,9 @@
 # the application entry and once as the XDG autostart entry that starts the
 # daemon with the session. Whether the session then honours it can only be seen
 # by logging out and in (manual M1 checklist, sprint-02 3.3) — that the install
-# rules exist at all is checked here.
+# rules exist at all is checked here. The AppStream metainfo rides along, and it
+# is validated as well: an invalid one costs the software centre its text and
+# its pictures without anything in the program going wrong (#73).
 #
 # The installation goes into a staging directory via DESTDIR, so the test never
 # writes outside the build tree.
@@ -21,7 +23,7 @@ if(NOT install_result EQUAL 0)
     message(FATAL_ERROR "Die Installation schlug fehl:\n${install_output}")
 endif()
 
-foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}")
+foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}" "${METAINFO_ENTRY}")
     if(NOT EXISTS "${STAGING_DIR}${entry}")
         message(FATAL_ERROR "Die Installation legte ${entry} nicht an:\n${install_output}")
     endif()
@@ -56,3 +58,22 @@ if(NOT action_group MATCHES "\nExec=[^\n]+")
         "Die Gruppe [Desktop Action show-capture] in ${APPLICATION_ENTRY} hat keine "
         "Exec-Zeile — ohne sie hat der Dienst nichts zu starten.")
 endif()
+
+# The metainfo is validated at its installed location, not in the source tree:
+# what a software centre reads is what the installation put down. --no-net keeps
+# the run independent of the network — the screenshot URLs point into the
+# repository and a check that fetches them would go red on a GitHub outage.
+# --explain, because "validation failed" on its own names no line and no rule.
+execute_process(
+    COMMAND ${APPSTREAMCLI} validate --no-net --explain "${STAGING_DIR}${METAINFO_ENTRY}"
+    RESULT_VARIABLE validate_result
+    OUTPUT_VARIABLE validate_output
+    ERROR_VARIABLE validate_output
+)
+
+if(NOT validate_result EQUAL 0)
+    message(FATAL_ERROR
+        "${METAINFO_ENTRY} is not valid AppStream:\n${validate_output}")
+endif()
+
+message(STATUS "${validate_output}")
