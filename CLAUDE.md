@@ -157,6 +157,12 @@ find.
 4. **Two live `KSvg::ImageSet` of the same theme share their lookup paths.**
    Otherwise every comparison of two versions of the same graphic runs against
    itself — and is green. For the second version take a **different** theme.
+   `ImageSet(name, …)` looks its private up in a table keyed by that name and
+   reference-counts it, so **the selectors travel with it too**: a set built
+   later inherits what an earlier one selected. Measured 2026-08-28 on #93 —
+   `setSelectors({"opaque"})` set only in the no-blur case stayed behind when
+   the blur came back, and the window kept the opaque graphic. Whatever a set
+   selects gets selected on **every** branch, the empty one included.
 5. **A test set that does not choose its theme may well be testing on one that
    does not know the difference.** Choose the object of the check so that the
    choice changes anything at all.
@@ -227,6 +233,27 @@ find.
     difference" would have said the backend does nothing. The control that
     works is `whisper-cli -ng` — 2633 ms on the CPU. Before a run is used to
     switch something off, read in the source that the lever is connected.
+
+18. **`emits-change` in an introspection is a promise, not a signal.**
+    Measured 2026-08-28 on #93: `busctl introspect org.kde.KWin /Effects` marks
+    the properties `activeEffects`, `listOfEffects` and `loadedEffects` as
+    `emits-change`, which reads like the way out of finding 15. In a nested
+    session `blur` was unloaded — `isEffectLoaded` went from `true` to `false`,
+    `loadedEffects` no longer held it — and `dbus-monitor` recorded **not one**
+    `PropertiesChanged` in that window, only the bus daemon's own name signals.
+    The annotation is written by the adaptor, the emission is written by the
+    service, and here the second half is missing. What the introspection
+    promises is checked with `dbus-monitor` before anything is hung on it.
+
+19. **A KSvg graphic changes 100 ms after the call, not within it.**
+    Measured 2026-08-28 on #93: `ImageSet::setSelectors()` writes the
+    selectors and then only calls `scheduleImageSetChangeNotification()` —
+    a 100 ms timer, after which `discoveries.clear()` runs and
+    `imageSetChanged` is emitted, and only that makes every attached `Svg`
+    re-resolve its file. Whoever calls `reloadDesktopTheme()` and grabs the
+    window in the same turn measures the **old** graphic and reads it as proof
+    that the switch does not work; a check without a running event loop never
+    sees the new one at all. Let the loop run before the picture.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been

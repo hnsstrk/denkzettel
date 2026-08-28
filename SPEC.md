@@ -384,13 +384,47 @@ right and is wrong. Most of them contradict what the construction suggests, and
    of all times at the start. Denkzettel asks KWin itself instead
    (D-Bus, `org.kde.kwin.Effects.isEffectLoaded("blur")`) and answers "no"
    without asking where there is no compositing window system at all.
-   **Limit, named rather than covered up:** this value is obtained **once when
-   the window is created**. Whoever switches the
-   blur off **at runtime** while the service is running keeps getting the
-   translucent variant until the restart — item 4 holds for the state at the
-   start, not for a switch after it. The theme switch is **not** affected by
-   this; the watch on `plasmarc` catches that one. Whether the limit is closed
-   or written down is open (issue #93).
+   **The value is asked again when the session changes it** (issue #93,
+   2026-08-28): whoever switches the blur off while the service is running gets
+   the opaque variant on the standing window, without a restart and without
+   closing it, and switching it back on brings the translucent one back — item 4
+   holds for a switch after the start as well, not only for the state at it.
+   Measured in a nested session under `default`, one process, two windows, the
+   theme name unchanged throughout: hull pixel alpha 216 → **255** → 216, and
+   the resolved file `dialogs/background.svgz` →
+   `opaque/dialogs/background.svgz` → back. On the unchanged state the same run
+   switches the effect just the same and moves nothing: 0 of 240.300 pixels,
+   with a start picture byte-identical to the changed run's — so the runner did
+   grab a window, and only the code told the two runs apart. The switch in the
+   system settings writes `[Plugins] blurEnabled` into `kwinrc` and tells KWin
+   over D-Bus; a `KDirWatch` on that file carries the change to the standing
+   window, exactly as item 3 carries the theme switch.
+   Four measured properties of that road:
+   **the file announces the change and does not answer it** — its value says
+   what the user *wants*, not whether anything blurs: outside a Plasma session
+   the same `blurEnabled=true` stands in it and nothing is blurred, which is
+   the case item 4 is written for. KWin is therefore asked again, and the hull
+   is rebuilt only when the answer has changed. That the file is not even a
+   reliable account of KWin's own state is the smaller reason beside it,
+   measured all the same: `reconfigure()` after `blurEnabled=false` leaves the
+   effect loaded;
+   **there is no race** — `KDirWatch` delivers the change 500 ms after the
+   write, KWin has switched over after 20 ms;
+   **the selectors have to be set on both branches**, because
+   `KSvg::ImageSet` keys its private by the theme name and every live set of
+   that name shares it, the selectors included — set only in the opaque case,
+   they stay behind and the window never comes back (`CLAUDE.md`, finding 4);
+   **and the new graphic arrives about 100 ms later**, on KSvg's own
+   notification timer, not within the call (`CLAUDE.md`, finding 19).
+   A signal of KWin's would be the shorter road and there is none:
+   `org.kde.kwin.Effects` carries no signals at all, and the
+   `PropertiesChanged` its `emits-change` annotation promises for
+   `loadedEffects` never reaches the bus (`CLAUDE.md`, findings 15 and 18).
+   **What this does not cover:** the hull follows both ways, the blur
+   *registration* of item 6 is not renewed with it. Whether KWin still blurs
+   behind a window that was already standing when the effect came back is not
+   measured — the next showing settles it in any case, because `present()`
+   registers anew after every mapping.
 10. **The contrast effect has no recipient on this state.** KWin 6.7.3 loads
     **no** effect with "contrast" in its name; `blur` on the other hand is
     loaded. The registration from item 8 thereby goes into the void.

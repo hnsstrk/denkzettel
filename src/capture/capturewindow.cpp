@@ -344,21 +344,56 @@ CaptureWindow::CaptureWindow(Store *store, QWidget *parent)
     // that omits `KConfig::Notify` reaches KConfigWatcher not at all, while
     // KDirWatch sees both kinds (measurement 2 of this story). KConfig replaces
     // the file rather than rewriting it, which is why `created` counts too.
-    const QString plasmarc = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
-        + QStringLiteral("/plasmarc");
+    const QString configDirectory =
+        QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+    const QString plasmarc = configDirectory + QStringLiteral("/plasmarc");
     KDirWatch::self()->addFile(plasmarc);
+    // The blur being switched off takes the same road (issue #93). The switch
+    // in the system settings writes `[Plugins] blurEnabled` into `kwinrc` and
+    // tells KWin over D-Bus; `org.kde.kwin.Effects` carries no signal to listen
+    // to instead — neither one of its own (finding 15) nor the
+    // `PropertiesChanged` its `emits-change` annotation promises (finding 18).
+    // So the file announces the change, and it does not answer it. Its value is
+    // deliberately not read: it says what the user *wants*, not whether
+    // anything blurs — outside a Plasma session the same `blurEnabled=true`
+    // stands in it and nothing is blurred, which is the case SPEC 3.2 point 4
+    // is written for. And it is not even a reliable account of KWin's own
+    // state: measured 2026-08-28 in a nested session, `reconfigure()` after
+    // `blurEnabled=false` leaves the effect loaded for good. KWin itself is
+    // asked again below, and its answer is the new one by then: KDirWatch
+    // delivers the change 500 ms after the write, KWin has switched over after
+    // 20 ms (same measurement).
+    const QString kwinrc = configDirectory + QStringLiteral("/kwinrc");
+    KDirWatch::self()->addFile(kwinrc);
     // Both connections spelled out rather than looped over the two signals:
     // clazy cannot see through a loop variable that a pointer-to-member is a
     // signal and reports the pair as a non-signal connect. Two lines are
     // shorter than the loop plus a suppression, and the next reader gets them
     // for free.
-    auto onPlasmarcChanged = [this, plasmarc](const QString &path) {
+    auto onConfigChanged = [this, plasmarc, kwinrc](const QString &path) {
         if (path == plasmarc) {
             reloadDesktopTheme();
+        } else if (path == kwinrc) {
+            // Only when the answer has really changed: KWin writes into
+            // `kwinrc` for its own reasons — a tiling layout, a virtual desktop
+            // — and rebuilding the hull on each of them would throw the image
+            // set away for nothing.
+            //
+            // ponytail: the question is a blocking D-Bus call, so a KWin that
+            // hangs holds this event loop for as long as the call waits, up to
+            // one second. Against a KWin that answers, twenty of these calls
+            // take 1 to 2 ms (measured 2026-08-28), and `kwinrc` is written
+            // seldom. If that ever stops holding, the way out is
+            // QDBusConnection::asyncCall() with the comparison in its watcher.
+            const bool blursBehind = capture::sessionBlursBehindWindows();
+            if (blursBehind != m_blursBehind) {
+                m_blursBehind = blursBehind;
+                reloadDesktopTheme();
+            }
         }
     };
-    connect(KDirWatch::self(), &KDirWatch::dirty, this, onPlasmarcChanged);
-    connect(KDirWatch::self(), &KDirWatch::created, this, onPlasmarcChanged);
+    connect(KDirWatch::self(), &KDirWatch::dirty, this, onConfigChanged);
+    connect(KDirWatch::self(), &KDirWatch::created, this, onConfigChanged);
 
     reloadDesktopTheme();
     adjustHeight();
@@ -401,9 +436,15 @@ void CaptureWindow::reloadDesktopTheme(const QString &name)
     // point 4 promises the opposite. `opaque` is the theme's own answer to
     // that, and picking it is what Plasma does, not an adjustment of ours. A
     // theme that ships no such variant simply keeps the one it has.
-    if (!m_blursBehind) {
-        imageSet->setSelectors({QString(OpaqueSelector)});
-    }
+    //
+    // Set on both branches, and that is measured rather than tidiness: KSvg
+    // keys its private by the theme name and every live set of that name shares
+    // it — the selectors with it (finding 4). A set built later inherits what an
+    // earlier one selected, so leaving the empty case out kept the window opaque
+    // when the blur came back (measured 2026-08-28, `blur on again`: selectors
+    // still `[opaque]`, hull pixel alpha 255 instead of 216).
+    imageSet->setSelectors(m_blursBehind ? QStringList()
+                                         : QStringList{QString(OpaqueSelector)});
     // The field frame belongs in this loop, and leaving it out would fail
     // silently: it would keep drawing the old theme's graphic on a window that
     // has changed theme, and no return value would say so (issue #100, F5). The
