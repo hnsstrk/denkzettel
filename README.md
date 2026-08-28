@@ -116,6 +116,40 @@ read from `/etc/xdg/autostart`, which is where the prefix `/usr` puts it.
 Afterwards start `denkzetteld` once or log in again; from then on the autostart
 entry does it.
 
+### Updating from an older version
+
+The application id is `io.github.hnsstrk.denkzettel` — the desktop entry, the
+AppStream component and the shortcut component in Plasma all read it. Installing
+writes the new files **beside** the old ones instead of replacing them, and the
+two that stay behind have to go:
+
+```sh
+sudo rm -f /usr/share/applications/org.denkzettel.Denkzettel.desktop \
+           /etc/xdg/autostart/org.denkzettel.Denkzettel.desktop
+```
+
+Skip that and the session reads **two** autostart entries, because XDG shadows
+them by file name and the names now differ. It starts `denkzetteld` twice, the
+second start is handed to the running one as an activation, and that is bound to
+the capture window — **so the capture window pops up at every login.** Beside
+that, two components then hold `Meta+N` and the shortcut settings list
+*Denkzettel* twice. The key press itself keeps working throughout: both entries
+carry the same `Exec=denkzetteld` and the same action, and whichever of the two
+the press reaches ends at the same window. The conflict warning stays silent —
+it is only ever shown on a first start, and an installation being updated has
+that behind it.
+
+Both symptoms are gone with the two files. The group
+`[services][org.denkzettel.Denkzettel.desktop]` stays behind in
+`~/.config/kglobalshortcutsrc`, and it can stay: measured on 28.08.2026 in a
+session of its own, with the desktop entry unreachable the shortcut service
+loads no component from it at all and `Meta+N` has exactly one holder, the new
+one. Editing that file by hand is pointless anyway — the running service writes
+it back.
+
+A key sequence changed by hand does not travel with the rename: it stands in the
+old component's group, and the new one starts on `Meta+N` again.
+
 ## Everyday use
 
 `Meta+N` opens the capture window, `Ctrl+Enter` saves, `Esc` discards. The

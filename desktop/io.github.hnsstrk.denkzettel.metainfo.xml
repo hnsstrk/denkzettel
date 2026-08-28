@@ -3,10 +3,23 @@
   The AppStream description a software centre shows. The component id is the
   file name of the desktop entry without .desktop, and it has to stay that way:
   <launchable> below binds the two, and only through that binding does the
-  centre know which entry its "Start" button runs. appstreamcli notes the
-  capital letters in the id at its pedantic level; renaming the desktop entry
-  is not an option, kglobalacceld names the shortcut component after it
-  (SPEC 2.4).
+  centre know which entry its "Start" button runs.
+
+  The id is io.github.hnsstrk.denkzettel since the customer's decision of
+  28.08.2026 (issue #109). Reverse-DNS naming asks for a domain the project
+  controls and denkzettel.org is not one, so the io.github.<user>.<app> form of
+  a project hosted on GitHub applies. It is all lowercase, which is what
+  appstreamcli asks for at its pedantic level. Changing it again is not free:
+  the id is the file name of the desktop entry and of the autostart entry, so
+  installing writes both beside the old ones instead of replacing them — until
+  someone deletes the old ones the session starts the daemon twice and the
+  capture window pops up at every login (SPEC 2.4).
+
+  That denkzettel.org is no domain of the project does not make it removable
+  from the code: appidentity.cpp keeps it as organizationDomain because
+  KDBusService builds the bus name org.denkzettel.Daemon out of it (SPEC 2.3,
+  2.4). It is not a leftover of this rename and tidying it away would take the
+  bus name with it.
 
   Every text exists twice, English unmarked and German as xml:lang="de" — the
   user's decision of 2026-08-04. AppStream reads unmarked text as English, so
@@ -24,7 +37,7 @@
   none of it is built, so none of it stands here.
 -->
 <component type="desktop-application">
-  <id>org.denkzettel.Denkzettel</id>
+  <id>io.github.hnsstrk.denkzettel</id>
 
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
@@ -61,7 +74,7 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">org.denkzettel.Denkzettel.desktop</launchable>
+  <launchable type="desktop-id">io.github.hnsstrk.denkzettel.desktop</launchable>
 
   <categories>
     <category>Utility</category>

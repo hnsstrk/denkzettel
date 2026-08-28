@@ -228,6 +228,48 @@ find.
     works is `whisper-cli -ng` — 2633 ms on the CPU. Before a run is used to
     switch something off, read in the source that the lever is connected.
 
+20. **`org.kde.KGlobalAccel.shortcut()` answers an empty list for a wrong
+    action id, exactly as it does for a component that holds nothing.**
+    Measured 2026-08-28 on #109: the action id is a list of **four** strings
+    (component id, action id, component display name, action display name);
+    called with two, the service returns `ai 0` and nothing says why. The
+    neighbouring trap in the same interface: `setShortcut` with the flag
+    `IsDefault` (8) returns the keys handed to it while the **active** shortcut
+    stays empty — the return value looks like a registration and is none. Only
+    `SetPresent` (2) sets what a key press finds. Prove a readback by making it
+    come out **different** at least once.
+
+21. **A nested session with its own `HOME` looks isolated and is not — the
+    installed program lies beside it and the run finds it there.** A throwaway
+    `HOME` separates *configuration*: `XDG_CONFIG_HOME`, `XDG_DATA_HOME`,
+    `XDG_CACHE_HOME`. It separates nothing that the system directories carry,
+    and `XDG_DATA_DIRS` keeps pointing at `/usr/share`, `XDG_CONFIG_DIRS` at
+    `/etc/xdg` — where this project's own installation lies. So every run that
+    measures **what an installation does** is measuring the installed copy as
+    much as the one it staged: desktop and autostart entries, D-Bus service
+    files, KService and MIME data, icon themes, message catalogues, KPackage
+    and KCM plugins.
+
+    Measured 2026-08-28 on #109: the run was to show what the shortcut service
+    does once the desktop entry of the old name is gone, so that entry was left
+    out of the staging root — while `XDG_DATA_DIRS` still ended in
+    `/usr/share`, where the installed copy of that very file lies. The service
+    resolved it from there, and the run "proved" that a stale component
+    survives without its desktop entry. It does not: with the entry truly
+    unreachable, `getGlobalShortcutsByKey` returns **no** holder for the key,
+    although the group still stands in `kglobalshortcutsrc`. The opposite
+    conclusion, from a run that could not have come out any other way.
+
+    Before such a run, name the paths the object of the check can arrive
+    through, and take it away from **every** one of them. Never by deleting it
+    from the machine the user works on — mirror the system directory instead:
+    symlink every entry of `/usr/share` into a directory of the run's own,
+    rebuild the one subdirectory that holds the file by hand, and leave that
+    file out. Dropping `/usr/share` from the list altogether is no shortcut,
+    the session dies without its GSettings schemas. And the control that makes
+    the run evidence is the same one as everywhere: it has to come out
+    **different** once — with the file reachable and without.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

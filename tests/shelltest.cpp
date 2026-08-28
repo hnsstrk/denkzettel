@@ -160,7 +160,7 @@ void ShellTest::asksForTheLibraryWindow()
 
 void ShellTest::findsNoConflictWithoutOwners()
 {
-    QVERIFY(foreignShortcutOwners({}, QStringLiteral("org.denkzettel.Denkzettel.desktop")).isEmpty());
+    QVERIFY(foreignShortcutOwners({}, QStringLiteral("io.github.hnsstrk.denkzettel.desktop")).isEmpty());
 }
 
 void ShellTest::ignoresOurOwnRegistration()
@@ -168,10 +168,10 @@ void ShellTest::ignoresOurOwnRegistration()
     // From the second start on kglobalacceld reports our own registration back
     // to us; treating that as a conflict would warn at every session start.
     const QList<ShortcutOwner> owners = {
-        {QStringLiteral("org.denkzettel.Denkzettel.desktop"), QStringLiteral("Denkzettel")},
+        {QStringLiteral("io.github.hnsstrk.denkzettel.desktop"), QStringLiteral("Denkzettel")},
     };
 
-    QVERIFY(foreignShortcutOwners(owners, QStringLiteral("org.denkzettel.Denkzettel.desktop")).isEmpty());
+    QVERIFY(foreignShortcutOwners(owners, QStringLiteral("io.github.hnsstrk.denkzettel.desktop")).isEmpty());
 }
 
 void ShellTest::reportsForeignOwner()
@@ -181,7 +181,7 @@ void ShellTest::reportsForeignOwner()
     };
 
     const QList<ShortcutOwner> conflicts =
-        foreignShortcutOwners(owners, QStringLiteral("org.denkzettel.Denkzettel.desktop"));
+        foreignShortcutOwners(owners, QStringLiteral("io.github.hnsstrk.denkzettel.desktop"));
     QCOMPARE(conflicts.size(), 1);
     QCOMPARE(conflicts.first().component, QStringLiteral("kwin"));
     QCOMPARE(conflicts.first().description, QStringLiteral("KWin"));
@@ -193,12 +193,12 @@ void ShellTest::reportsEveryForeignOwnerOfAMultipleAssignment()
     // sequence held by another component while ours looked registered.
     const QList<ShortcutOwner> owners = {
         {QStringLiteral("kwin"), QStringLiteral("KWin")},
-        {QStringLiteral("org.denkzettel.Denkzettel.desktop"), QStringLiteral("Denkzettel")},
+        {QStringLiteral("io.github.hnsstrk.denkzettel.desktop"), QStringLiteral("Denkzettel")},
         {QStringLiteral("org.kde.spectacle.desktop"), QStringLiteral("Spectacle")},
     };
 
     const QList<ShortcutOwner> conflicts =
-        foreignShortcutOwners(owners, QStringLiteral("org.denkzettel.Denkzettel.desktop"));
+        foreignShortcutOwners(owners, QStringLiteral("io.github.hnsstrk.denkzettel.desktop"));
     QCOMPARE(conflicts.size(), 2);
     QCOMPARE(conflicts.at(0).component, QStringLiteral("kwin"));
     QCOMPARE(conflicts.at(1).component, QStringLiteral("org.kde.spectacle.desktop"));
@@ -249,7 +249,7 @@ void ShellTest::readsAnUndeclaredDesktopActionAsAFailure()
 
 void ShellTest::readsTheActionsOfADesktopFile()
 {
-    const QString path = m_dir->filePath(QStringLiteral("org.denkzettel.Denkzettel.desktop"));
+    const QString path = m_dir->filePath(QStringLiteral("io.github.hnsstrk.denkzettel.desktop"));
     const QString entry = QStringLiteral("[Desktop Entry]\nType=Application\nName=Denkzettel\n"
                                          "Exec=denkzetteld\n");
 

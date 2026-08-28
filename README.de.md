@@ -121,6 +121,41 @@ wird nur aus `/etc/xdg/autostart` gelesen — dorthin legt ihn das Präfix `/usr
 Danach `denkzetteld` einmal starten oder neu anmelden; künftig übernimmt das
 der Autostart-Eintrag.
 
+### Umstieg von einer älteren Fassung
+
+Die Kennung der Anwendung lautet `io.github.hnsstrk.denkzettel` — der
+Desktop-Eintrag, die AppStream-Komponente und die Kürzel-Komponente in Plasma
+tragen sie alle. Die Installation legt die neuen Dateien **neben** die alten,
+statt sie zu ersetzen; die beiden, die stehen bleiben, müssen weg:
+
+```sh
+sudo rm -f /usr/share/applications/org.denkzettel.Denkzettel.desktop \
+           /etc/xdg/autostart/org.denkzettel.Denkzettel.desktop
+```
+
+Unterlässt man das, liest die Sitzung **zwei** Autostart-Einträge — XDG
+verschattet sie über den Dateinamen, und die Namen unterscheiden sich jetzt. Sie
+startet `denkzetteld` zweimal, der zweite Start wird dem laufenden als
+Aktivierung übergeben, und die hängt am Erfassungsfenster: **bei jeder Anmeldung
+springt das Erfassungsfenster auf.** Daneben halten dann zwei Komponenten
+`Meta+N`, und die Kürzel-Einstellungen führen *Denkzettel* zweimal auf. Der
+Tastendruck selbst funktioniert die ganze Zeit: beide Einträge tragen dasselbe
+`Exec=denkzetteld` und dieselbe Aktion, und welchen der beiden er erreicht, endet
+am selben Fenster. Die Konfliktmeldung bleibt aus — sie erscheint nur beim
+Erststart, und den hat eine Installation, die aktualisiert wird, hinter sich.
+
+Mit den beiden Dateien sind beide Erscheinungen weg. Die Gruppe
+`[services][org.denkzettel.Denkzettel.desktop]` bleibt in
+`~/.config/kglobalshortcutsrc` stehen, und sie darf das: gemessen am 28.08.2026
+in einer eigenen Sitzung lädt der Kürzeldienst daraus überhaupt keine Komponente
+mehr, sobald der Desktop-Eintrag nicht mehr auffindbar ist, und `Meta+N` hat
+genau einen Halter, den neuen. Die Datei von Hand zu ändern bringt ohnehin
+nichts — der laufende Dienst schreibt sie zurück.
+
+Eine von Hand geänderte Tastenfolge wandert bei der Umbenennung nicht mit: sie
+steht in der Gruppe der alten Komponente, und die neue startet wieder auf
+`Meta+N`.
+
 ## Bedienung
 
 `Meta+N` öffnet das Erfassungsfenster, `Strg+Enter` speichert, `Esc` verwirft.
