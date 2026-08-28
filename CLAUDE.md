@@ -5,6 +5,17 @@ Quick-capture tool for KDE Plasma (Wayland), C++/Qt6/KF6, CMake, QTest.
 `SPEC.md` is binding. The backlog is the GitHub issues with their acceptance
 criteria — they say when a story is done.
 
+**An issue also says whether it may be started, and it says it in its comments
+as often as in its body.** Read every comment, oldest to newest, before the
+first line of code: the newest one beats the body, and it may have retired an
+approach that was built and measured and failed. Then look for the sentences
+that mean stop — "Not ready", "before it is pulled", "a second estimate is
+due", a decision the text reserves for the customer, a visible change with no
+drawing. Measured on 28.08.2026: #87 was built although its own text said "Not
+ready, and without the user's decision not even checkable in advance", and #19
+was pulled with its second estimate outstanding. Both were readable in ten
+seconds and neither was read.
+
 ## How code gets written
 
 The ponytail plugin is enabled here (`.claude/settings.json`) and loads its
