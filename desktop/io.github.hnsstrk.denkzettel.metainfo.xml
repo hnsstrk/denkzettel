@@ -114,6 +114,9 @@
     line and the version in CMakeLists.txt (CLAUDE.md, "Closing out").
   -->
   <releases>
+    <release version="0.7.0" date="2026-08-28">
+      <url type="details">https://github.com/hnsstrk/denkzettel/blob/main/CHANGELOG.md</url>
+    </release>
     <release version="0.6.0" date="2026-08-24">
       <url type="details">https://github.com/hnsstrk/denkzettel/blob/main/CHANGELOG.md</url>
     </release>

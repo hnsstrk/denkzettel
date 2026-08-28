@@ -8,6 +8,59 @@ out, every change to the database schema is always named. Version numbering
 follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 `denkzetteld --version`).
 
+## [0.7.0] — 2026-08-28
+
+**The window follows what the session does**, the version becomes visible, and
+the library stops re-reading a configuration file once per row. Six issues, all
+of them measured rather than assumed.
+
+### Fixed
+
+- **The capture window now follows the blur.** Whoever switched the desktop
+  effects off while the program ran kept the translucent variant of the theme
+  graphic over a compositor that no longer blurred anything — with themes whose
+  graphic fills almost nothing, that went as far as illegibility. The window now
+  changes to the opaque variant without a restart, and back when the effect
+  returns (#93).
+- **The library was slow at a size nobody had measured.** It read `kdeglobals`
+  anew for every row of the list — 20,005 times per list build, 3.7 s for
+  20,000 notes, and already 0.38 s per keystroke at 2,000. Now 0.13 s. The
+  guarantee that both windows follow a change of the system font while they run
+  stays untouched (#110).
+
+### Added
+
+- **"Über Denkzettel" in the tray menu**, above "Beenden": name, version,
+  short description, license and copyright holder, in the platform dialog KDE
+  brings for it. A second click brings it forward when it is covered (#87).
+- **AppStream metainfo**, so software centres can show what Denkzettel is —
+  and so the check for it can fail. It could not before: the test looked below
+  `/usr` and found nothing there without a real installation (#73).
+
+### Changed
+
+- **The application identity is now `io.github.hnsstrk.denkzettel`.**
+  Reverse-DNS naming asks for a domain the project controls, and
+  `denkzettel.org` is not one. **When updating from an older version, delete the
+  three files of the old name** — otherwise two autostart entries stand in
+  `/etc/xdg/autostart` and the capture window pops up at every login. Both
+  READMEs say how, first thing in the section on updating (#109).
+- **The result list keeps no upper bound.** Measured at 20,000 notes: a term
+  matching every note costs 120 ms and 26 MiB, the same corpus with 50 hits
+  0.4 ms. A limit would have bought some 95 ms per keystroke and cost a rule to
+  learn (#78).
+- **whisper.cpp comes from the `whisper-cpp` package now**, not the AUR, with
+  `ggml-vulkan` beside it — 371 ms against 409 ms for ROCm at 52 MB instead of
+  1.2 GB. Nothing of the voice notes themselves is built yet; this settles the
+  ground they stand on (#19).
+
+### For those building it
+
+`kxmlgui`, `appstream` and `qt6-multimedia-ffmpeg` are new dependencies; both
+READMEs carry them. The list "Runs that prove nothing" in `CLAUDE.md` grew from
+15 entries to 22 — every one of them a measurement from this sprint that looked
+like evidence and was none.
+
 ## [0.6.0] — 2026-08-24
 
 Sprint 12. **Everything the user sees in the two windows**, and the one crash in
