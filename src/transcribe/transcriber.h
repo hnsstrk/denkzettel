@@ -1,0 +1,123 @@
+#pragma once
+
+#include <QObject>
+#include <QProcess>
+#include <QString>
+
+#include <cstdint>
+#include <memory>
+
+class QTemporaryDir;
+class Store;
+
+/**
+ * The transcription queue and the two programs it runs (SPEC 12).
+ *
+ * One job at a time — there is one graphics card, and two whisper.cpp runs
+ * beside each other would share it. The queue itself is the table
+ * `transcribe_jobs` and nothing is held in memory: whatever a crash interrupts
+ * is in the database when the next start reads it, and start() picks it up.
+ *
+ * Each job runs `ffmpeg` over the recording into a temporary 16 kHz mono WAV
+ * and hands that to `whisper-cli`; the JSON it writes becomes the note's
+ * content and its state 'transkribiert'. The conversion stays even though the
+ * packaged whisper-cli reads Opus by itself — it does so only because the
+ * packager linked it against libavformat, and SPEC 12 says why that must not
+ * be depended on.
+ *
+ * **Nothing here reports to the user.** A routine run is silent (SPEC 14: no
+ * notification for routine runs); what a failed job does to the tray is issue
+ * #24, and failed() is the road it will take.
+ */
+class Transcriber : public QObject
+{
+    Q_OBJECT
+
+public:
+    /** `store` outlives the transcriber and is not owned by it. */
+    explicit Transcriber(Store *store, QObject *parent = nullptr);
+    ~Transcriber() override;
+
+    Transcriber(const Transcriber &) = delete;
+    Transcriber &operator=(const Transcriber &) = delete;
+
+    /** `~/.local/share/denkzettel/models/ggml-small.bin` (SPEC 12). */
+    static QString defaultModelPath();
+
+    /**
+     * Where the temporary WAV of a job lies, and where start() sweeps up what
+     * a killed run left behind.
+     *
+     * The runtime directory and not `/tmp`: it belongs to one user and one
+     * session (`/run/user/<uid>`), so the sweep cannot reach the files of
+     * another user or another login. `/tmp` is shared by everybody on the
+     * machine, and a sweep there took a directory away from a run beside it
+     * (measured 2026-08-29).
+     *
+     * A container without `XDG_RUNTIME_DIR` has none — there `/tmp` has to do,
+     * and that is the automated run, which shares the machine with nobody.
+     */
+    static QString workingRoot();
+
+    /**
+     * The three settings of SPEC 12, read from `denkzettelrc` at construction
+     * and settable afterwards.
+     *
+     * The program paths are settable for the reason SPEC 12 gives them: the
+     * automated run has no graphics card and no model, and puts a program of
+     * its own in that place.
+     */
+    void setFfmpegProgram(const QString &program);
+    void setWhisperProgram(const QString &program);
+    void setModelPath(const QString &path);
+
+    /**
+     * Takes up the queue and returns at once — the work runs in the event loop.
+     *
+     * Calling it while a job is running does nothing: the next job is taken
+     * when the running one is answered for.
+     */
+    void start();
+
+    /** Whether a job is being worked on right now. */
+    bool isBusy() const;
+
+Q_SIGNALS:
+    /** The transcript is written and the job is out of the queue. */
+    void transcribed(qint64 noteId);
+
+    /**
+     * The attempt failed; the note keeps its audio and no transcript, and the
+     * job row keeps the reason (SPEC 12).
+     */
+    void failed(qint64 noteId, const QString &reason);
+
+private:
+    /** Which of the two programs the running process is. */
+    enum class Step : std::uint8_t {
+        Idle,
+        Converting,
+        Transcribing,
+    };
+
+    /** Removes what a killed run of an earlier daemon left under /tmp. */
+    void sweepAbandonedWork();
+    void takeNextJob();
+    void convert(const QString &audioFile);
+    void transcribe();
+    /** Reads the JSON whisper-cli wrote and finishes the job with it. */
+    void collectTranscript();
+    void fail(const QString &reason);
+    /** Ends the job, drops the temporary files and goes on to the next one. */
+    void endJob();
+
+    Store *m_store;
+    QProcess m_process;
+    /** Holds the WAV and the JSON of the running job, and only of that one. */
+    std::unique_ptr<QTemporaryDir> m_work;
+    QString m_ffmpegProgram;
+    QString m_whisperProgram;
+    QString m_modelPath;
+    qint64 m_noteId = -1;
+    Step m_step = Step::Idle;
+};

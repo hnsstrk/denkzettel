@@ -81,16 +81,31 @@ specification is [`SPEC.md`](SPEC.md).
   formats than the Opus in OGG the voice note is recorded in
 - KDE Frameworks 6: ColorScheme, Config, CoreAddons, DBusAddons, GlobalAccel,
   I18n, Notifications, StatusNotifierItem, Svg, WidgetsAddons, WindowSystem
+- `ffmpeg`, the program — the transcription converts a recording into a
+  temporary 16 kHz mono WAV with it before whisper.cpp sees it, and the test
+  run does the same
 - gettext (`msgfmt`) for the message catalogues
 - AppStream (`appstreamcli`) — the configuration stops without it: the test run
   validates the AppStream description a software centre reads
 - libplasma at runtime — it ships the desktop themes the capture window draws
   its shell from — plus Breeze icons
+- For the transcription only, and only at runtime: `whisper-cpp` with a GGML
+  backend (`ggml-vulkan`, or `ggml-hip` on ROCm) and a model under
+  `~/.local/share/denkzettel/models/`. Neither is needed to build or to test —
+  the test run puts a program of its own in whisper-cli's place. Both paths are
+  settings in `denkzettelrc`:
+
+  ```ini
+  [Transcription]
+  FfmpegProgram=/usr/bin/ffmpeg
+  WhisperProgram=/usr/bin/whisper-cli
+  ModelPath=/home/you/.local/share/denkzettel/models/ggml-small.bin
+  ```
 
 On Arch and derivatives:
 
 ```sh
-sudo pacman -S --needed cmake extra-cmake-modules gettext qt6-base \
+sudo pacman -S --needed cmake extra-cmake-modules gettext ffmpeg qt6-base \
     qt6-multimedia qt6-multimedia-ffmpeg \
     kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
     knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \

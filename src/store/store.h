@@ -11,13 +11,31 @@
 #include <optional>
 
 /**
+ * One row of `transcribe_jobs` (SPEC 5.1, 12).
+ *
+ * `lastError` empty means no attempt has reported a failure yet — that is what
+ * tells a note whose transcription is still outstanding from one whose
+ * transcription has given up (the note keeps its audio either way).
+ */
+struct TranscribeJob {
+    qint64 noteId = -1;
+    QDateTime enqueuedAt;
+    int attempts = 0;
+    QString lastError;
+};
+
+/**
  * Access to the SQLite database (SPEC 5.1).
  *
  * One instance owns one database connection; the path is passed in so tests
  * can work on a temporary file instead of the user's database.
  *
  * All methods report failure through their return value; the reason is
- * available from lastError().
+ * available from lastError(). **Every call clears it first**, so what stands
+ * there belongs to the call that has just returned and never to an older one
+ * — measured 2026-08-28: without that, a successful addNote() left the message
+ * of a failed call standing, and whoever wrote it into a job line or a tooltip
+ * would show a reason that has nothing to do with what went wrong.
  *
  * It announces what it takes in (noteAdded), and that is why it is a QObject:
  * every road a note travels into the database runs through addNote() — the
@@ -94,6 +112,44 @@ public:
     bool setTags(qint64 noteId, const QStringList &tags);
 
     QStringList tags(qint64 noteId) const;
+
+    /**
+     * How often one note is handed out for transcription before the job pauses
+     * (SPEC 12). Counted on the way out, see takeTranscribeJob().
+     */
+    static constexpr int transcribeAttemptLimit = 2;
+
+    /** Puts a note into the transcription queue (SPEC 12). */
+    bool enqueueTranscription(qint64 noteId);
+
+    /**
+     * The oldest job still worth an attempt, **counting that attempt**, or
+     * nothing if the queue holds none.
+     *
+     * The count happens here and not on failure, and that is what makes the
+     * queue survive a crash: a daemon killed while whisper.cpp was running
+     * leaves the row behind with the attempt already counted. Counted on
+     * failure, the same row would come back untouched after every restart and
+     * be retried for ever — the "stays 'running' for ever" of the other kind.
+     */
+    std::optional<TranscribeJob> takeTranscribeJob();
+
+    /**
+     * Writes the transcript onto the note and takes the job out of the queue,
+     * in one transaction: an interruption in between would otherwise leave a
+     * transcribed note in the queue and transcribe it a second time.
+     */
+    bool completeTranscription(qint64 noteId, const QString &transcript);
+
+    /**
+     * Notes why the attempt failed. **The row stays**, including after the
+     * last attempt: it is the only place that tells a note whose transcription
+     * is still outstanding from one that has been given up on — `notes.state`
+     * reads 'neu' in both cases (SPEC 5.1).
+     */
+    bool failTranscribeJob(qint64 noteId, const QString &error);
+
+    std::optional<TranscribeJob> transcribeJob(qint64 noteId) const;
 
 Q_SIGNALS:
     /**

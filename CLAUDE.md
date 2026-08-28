@@ -389,6 +389,30 @@ find.
     from the middle for a plain `QFrame`, 240 of 240 for `QFrame::Box` and for
     a `QTextBrowser` of the same shape.
 
+29. **A check that clears up before it looks measures its own tidying.**
+    Measured 2026-08-28 on #22: three cases asserted that no temporary working
+    directory survives a transcription job, and the cleanup was deliberately
+    taken out to see them go red. Two did; the third stayed green, because it
+    called `Transcriber::start()` one line earlier — and that sweeps abandoned
+    directories away before it takes up the queue. The same trap sits in
+    `QTemporaryDir`: it deletes what it holds in its **destructor**, so a
+    leftover check made after the owning object has gone is green whatever the
+    code does. Both were only visible because the check was run against the
+    unfixed state. Assert what has to be gone **before** anything that could
+    remove it — and while its owner is still alive.
+
+30. **`pgrep -f <path>` finds the shell that is running the check.** Measured
+    2026-08-29 on #22: a run was to show that a child process dies with its
+    daemon, and it looked up the daemon with `pgrep -f` on its path and took
+    the first hit. That hit was the harness's own shell, whose command line
+    holds that path because the command does — so the signal went to the shell,
+    the real daemon lived on, and the run reported "the child survived its
+    daemon", the exact opposite of what the code does. With the parent taken
+    from the child instead (`ps -o ppid=`), the same run came out the other way
+    round on the same binary. A process is identified by what the kernel says
+    it is — `pgrep -x`, `readlink /proc/<pid>/exe`, or the parentage — never by
+    a string that the measuring command itself contains.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

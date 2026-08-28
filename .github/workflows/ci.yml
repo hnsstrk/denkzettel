@@ -65,6 +65,15 @@ jobs:
         #   project. The gstreamer one supports a different set of formats;
         #   naming the ffmpeg one is what makes the recording of SPEC 4 the same
         #   here as on the development machine.
+        #   ffmpeg — the program, not the libraries. transcribetest converts a
+        #   recording to 16 kHz mono WAV with it (SPEC 12), and that step is
+        #   the one this project may not do without: the packaged whisper-cli
+        #   reads Opus only because its packager linked it against libavformat.
+        #   qt6-multimedia-ffmpeg pulls the package in today; transitive is no
+        #   promise, and without /usr/bin/ffmpeg the set goes red.
+        #   Neither whisper-cpp nor a model is here on purpose: the container
+        #   has no graphics card, and the set puts a program of its own in
+        #   whisper-cli's place.
         #   kcolorscheme — the build would succeed without the line as well,
         #   because ksvg, libplasma and plasma-integration pull the package in.
         #   Transitive is no promise: if one of the three loses the dependency, the
@@ -73,7 +82,7 @@ jobs:
         # to an export without history.
         run: |
           pacman -Syu --noconfirm --needed \
-            base-devel cmake git gettext \
+            base-devel cmake git gettext ffmpeg \
             extra-cmake-modules qt6-base qt6-multimedia qt6-multimedia-ffmpeg \
             kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
             knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \

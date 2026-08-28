@@ -6,6 +6,7 @@
 #include "shell/globalshortcuts.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
+#include "transcribe/transcriber.h"
 #include "ui/librarywindow.h"
 
 #include <KConfigGroup>
@@ -64,6 +65,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // Built before the first window and started at the end of this function:
+    // it listens on Store::noteAdded for the audio notes to come, and its
+    // start() picks up what an earlier run left in the queue (SPEC 12).
+    Transcriber transcriber(&store);
+
     CaptureWindow capture(&store);
 
     // SPEC 2.3: a second process start must surface the capture window in the
@@ -101,6 +107,10 @@ int main(int argc, char *argv[])
     if (firstRun && !conflicts.isEmpty()) {
         notifyShortcutConflict(conflicts);
     }
+
+    // Last, and after the first start above: the queue may hold a job from a
+    // run that was killed, and working it off is the same road as a fresh one.
+    transcriber.start();
 
     return app.exec();
 }
