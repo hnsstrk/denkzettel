@@ -95,7 +95,7 @@ Auf Arch und Ablegern:
 sudo pacman -S --needed cmake extra-cmake-modules gettext qt6-base \
     kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
     knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \
-    libplasma breeze-icons appstream
+    kxmlgui libplasma breeze-icons appstream
 ```
 
 ## Bauen und installieren

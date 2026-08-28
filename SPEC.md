@@ -926,6 +926,7 @@ conceivable as an optional later additional path, but is not built for v1.
   | Suggestions (counter) | `tools-wizard` | inactive until M5 | — |
   | *— separator —* | | | |
   | Configure Denkzettel… | `configure` | **only with #16** | — |
+  | About Denkzettel | `help-about` | active | — |
   | Quit | `application-exit` | active | — |
 
   **"Quit" stands set apart in the last group** and never beside the most
@@ -933,6 +934,15 @@ conceivable as an optional later additional path, but is not built for v1.
   settings dialog (#16) exists, "Configure Denkzettel…" is **no entry at all**
   — a permanently greyed-out one does not explain to the user why it is grey
   (KDE HIG).
+- **"About Denkzettel" opens `KAboutApplicationDialog`** with the global
+  `KAboutData` (issue #87) and stands in the last group, above "Quit". That is
+  the place, not the library window: the library is one route among several of
+  equal rank (2.1), and a statement about the whole application must not hang
+  off one of them. The daemon has no menu bar and no main window, so the tray
+  menu is the only application-wide menu there is. The dialog is not written by
+  hand — `KAboutApplicationDialog` out of **KXmlGui** is the same dialog every
+  KDE application shows, and it is the one thing this project uses out of that
+  framework.
 - **The shortcut hint is a hint.** Meta+N stands as text on the entry and must
   not duplicate the registration with KGlobalAccel; the shortcut of the menu
   action therefore carries `Qt::WidgetShortcut` and reaches only the window of
@@ -1046,6 +1056,8 @@ file `~/.local/share/denkzettel/denkzettel.log` (details, with rotation).
   whether this session blurs at all — 3.2, item 9).
   KF6: KGlobalAccel,
   KConfig, KNotifications, KStatusNotifierItem, KWallet (framework: KWallet),
+  **KXmlGui** (`KAboutApplicationDialog` — the about dialog behind the tray
+  entry of the same name, section 10; nothing else of that framework is used),
   **KDBusAddons** (KDBusService/single instance), **KWidgetsAddons**
   (KMessageWidget — messages inside the window; KMessageDialog together with
   KStandardGuiItem — the guard dialog, section 9), **KWindowSystem**
@@ -1112,7 +1124,13 @@ file `~/.local/share/denkzettel/denkzettel.log` (details, with rotation).
   the acceptance; they do not precede it.
 - **The number becomes visible through `denkzetteld --version`** — output
   `denkzettel <number>`, return 0, with a running service as well and without a
-  session bus (condition in 2.3). An about dialog is a story of its own (#87).
+  session bus (condition in 2.3) — and in the running application through the
+  tray entry "About Denkzettel" (#87, section 10). `KAboutData` carries beside
+  the number the short description, the licence (MIT) and the copyright holder
+  — both taken word for word from `LICENSE` in the project root; the dialog
+  reads all four out of it and out of no second place. Authors stay empty:
+  without them the dialog leaves out a tab, and there is nobody to list beside
+  the holder.
 - **Unknown switches are rejected** (return ≠ 0). The start without arguments
   stays the start of the service — both `Exec=` lines of the desktop file call
   without an argument.

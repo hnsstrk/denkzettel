@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QObject>
+#include <QPointer>
 
 class KStatusNotifierItem;
+class QDialog;
 class QMenu;
 
 /**
@@ -30,4 +32,11 @@ private:
     QMenu *buildMenu();
 
     KStatusNotifierItem *m_item;
+    /**
+     * The open about dialog, or nothing.
+     *
+     * It deletes itself on close, so the pointer has to notice that by itself;
+     * a raw one would be dangling the second time the entry is used.
+     */
+    QPointer<QDialog> m_about;
 };

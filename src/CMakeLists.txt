@@ -134,6 +134,10 @@ target_link_libraries(denkzettelshell PUBLIC
     KF6::I18n
     KF6::Notifications
     KF6::StatusNotifierItem
+    # KAboutApplicationDialog — the about dialog behind the tray entry of the
+    # same name (issue #87, SPEC 10 and 15). The only thing this project uses
+    # out of KXmlGui; writing the dialog by hand would be a copy of it.
+    KF6::XmlGui
 )
 
 # The one road the version number takes from CMake into the code. It stands in

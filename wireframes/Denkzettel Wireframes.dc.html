@@ -926,6 +926,15 @@
 
           <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
             <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:1.5px;top:1.5px;width:13px;height:13px;border:1.5px solid #333;border-radius:50%"></span>
+              <span style="position:absolute;left:7.25px;top:4px;width:1.5px;height:1.5px;background:#333;border-radius:50%"></span>
+              <span style="position:absolute;left:7.25px;top:6.5px;width:1.5px;height:5px;background:#333"></span>
+            </span>
+            <span>Über Denkzettel</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none">
               <span style="position:absolute;left:2px;top:4px;width:12px;height:9px;border:1.5px solid #333;border-radius:2px"></span>
               <span style="position:absolute;left:5px;top:7.5px;width:6px;height:1.5px;background:#333"></span>
             </span>
@@ -937,7 +946,7 @@
           <span style="width:13px;height:13px;flex:none;border:1.5px solid #555;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#555">✎</span>
           Systemabschnitt der Plasma-Leiste
         </div>
-        <div style="font-size:11.5px;color:#777;line-height:1.5;margin-top:6px"><b style="color:#555">Beide Maustasten zeigen dieses Menü</b> — der Linksklick, weil das Tray-Symbol sich als Menü anmeldet (<a href="#1e" style="color:#2a78d6">1e</a>, Entscheidung aus #44), der Rechtsklick ohnehin. Sechs Einträge, zwei Trenner: erfassen · ansehen und verarbeiten · <b style="color:#555">verwalten</b>.</div>
+        <div style="font-size:11.5px;color:#777;line-height:1.5;margin-top:6px"><b style="color:#555">Beide Maustasten zeigen dieses Menü</b> — der Linksklick, weil das Tray-Symbol sich als Menü anmeldet (<a href="#1e" style="color:#2a78d6">1e</a>, Entscheidung aus #44), der Rechtsklick ohnehin. Sieben Einträge, zwei Trenner: erfassen · ansehen und verarbeiten · <b style="color:#555">verwalten</b>.</div>
       </div>
 
       <!-- Verwaltungsgruppe mit dem Einstellungs-Dialog -->
@@ -961,6 +970,15 @@
 
           <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
             <span style="position:relative;width:16px;height:16px;flex:none">
+              <span style="position:absolute;left:1.5px;top:1.5px;width:13px;height:13px;border:1.5px solid #333;border-radius:50%"></span>
+              <span style="position:absolute;left:7.25px;top:4px;width:1.5px;height:1.5px;background:#333;border-radius:50%"></span>
+              <span style="position:absolute;left:7.25px;top:6.5px;width:1.5px;height:5px;background:#333"></span>
+            </span>
+            <span>Über Denkzettel</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 13px">
+            <span style="position:relative;width:16px;height:16px;flex:none">
               <span style="position:absolute;left:2px;top:4px;width:12px;height:9px;border:1.5px solid #333;border-radius:2px"></span>
               <span style="position:absolute;left:5px;top:7.5px;width:6px;height:1.5px;background:#333"></span>
             </span>
@@ -968,7 +986,7 @@
           </div>
 
         </div>
-        <div style="font-size:11.5px;color:#b3701f;line-height:1.5;margin-top:7px"><b style="color:#b3701f">„Denkzettel einrichten …“ erscheint erst mit dem Einstellungs-Dialog (#16)</b> — dann <b style="color:#b3701f">vor</b> „Beenden“ in derselben Verwaltungsgruppe. Bis dahin steht dort nur „Beenden“: <b style="color:#b3701f">kein ausgegrauter Platzhalter</b>, denn ein dauerhaft grauer Eintrag erklärt dem Nutzer nicht, warum er grau ist.</div>
+        <div style="font-size:11.5px;color:#b3701f;line-height:1.5;margin-top:7px"><b style="color:#b3701f">„Denkzettel einrichten …“ erscheint erst mit dem Einstellungs-Dialog (#16)</b> — dann <b style="color:#b3701f">vor</b> „Über Denkzettel“ in derselben Verwaltungsgruppe. Bis dahin stehen dort nur „Über Denkzettel“ und „Beenden“: <b style="color:#b3701f">kein ausgegrauter Platzhalter</b>, denn ein dauerhaft grauer Eintrag erklärt dem Nutzer nicht, warum er grau ist.</div>
 
         <div style="font-size:11.5px;color:#777;line-height:1.5;margin-top:10px">Die Verwaltungsgruppe wächst also nach oben. <b style="color:#555">Der letzte Eintrag bleibt „Beenden“</b>, und der Trenner darüber bleibt die einzige Trennung zwischen Arbeit und Verwaltung.</div>
       </div>
@@ -979,7 +997,7 @@
         „Beenden“ beendet den Dienst und mit ihm das Kürzel — eine zerstörerische Aktion neben der häufigsten. Ein <b style="color:#555">eigenes</b> Rechtsklick-Menü wäre der sauberste Schutz gewesen; es ist unter Wayland nicht zu haben (siehe unten). Was bleibt, ist die <b style="color:#555">eigene Gruppe hinter einem Trenner</b>: Der Zeiger muss über eine Lücke, und das Auge sieht, dass hier etwas anderes anfängt. Das ist weniger als eine Trennung, aber es ist die Trennung, die das Protokoll hergibt.<br><br>
         <b style="color:#555">Gemessen, nicht geschlossen: die Menütrennung trägt nicht.</b> Am echten Panel der laufenden Sitzung geprüft (02.08.2026): Meldet sich das Symbol nicht als Menü an und baut die Anwendung ihr Menü selbst, wird das Popup <b style="color:#555">zwei Millisekunden nach dem Anzeigen wieder geschlossen</b> — ein Klient mit nur einem Tray-Symbol hat weder Elternfläche noch Eingabe-Grab. Die Gegenprobe als gewöhnliches Fenster bleibt zwar stehen, landet aber in der <b style="color:#555">Bildschirmmitte</b>: Unter Wayland platziert der Klient sich nicht selbst. Belege unter <span style="font-family:ui-monospace,monospace;font-size:11px">Prüfbericht zu #33, Sprint 4</span>.<br><br>
         <b style="color:#555">Das Vorbild bleibt unerreichbar, nicht unverstanden.</b> Die vier Applets, die der Kunde am 02.08.2026 gezeigt hat (Benachrichtigungen, Kontakt, Wetterbericht, Energieverwaltung), trennen Inhalt und Verwaltung auf zwei Maustasten — sie sind aber Teil von Plasma und zeichnen ihre Popups selbst. Eine fremde Anwendung am Tray-Protokoll kann das nicht nachbauen. Das Muster „… einrichten …“ und die Symbole übernehmen wir trotzdem.<br><br>
-        <b style="color:#555">Die Symbole sind hier Platzhalter.</b> Verbindlich ist der <b style="color:#555">Name</b>, nicht die gezeichnete Form — die Grafik kommt aus dem Symbol-Thema und ändert sich mit ihm, genau wie die Fensterhülle in <a href="#4a" style="color:#2a78d6">4a</a>. Nachgesehen im Bestand von Breeze am 02.08.2026: alle sieben Namen sind in <span style="font-family:ui-monospace,monospace;font-size:11px">breeze</span> und <span style="font-family:ui-monospace,monospace;font-size:11px">breeze-dark</span> vorhanden.<br><br>
+        <b style="color:#555">Die Symbole sind hier Platzhalter.</b> Verbindlich ist der <b style="color:#555">Name</b>, nicht die gezeichnete Form — die Grafik kommt aus dem Symbol-Thema und ändert sich mit ihm, genau wie die Fensterhülle in <a href="#4a" style="color:#2a78d6">4a</a>. Nachgesehen im Bestand von Breeze am 02.08.2026: alle acht Namen sind in <span style="font-family:ui-monospace,monospace;font-size:11px">breeze</span> und <span style="font-family:ui-monospace,monospace;font-size:11px">breeze-dark</span> vorhanden — <span style="font-family:ui-monospace,monospace;font-size:11px">help-about</span> am 28.08.2026 nachgesehen und in beiden Themen in vier Größen vorhanden (#87).<br><br>
         <b style="color:#555">Kein Maßbild.</b> Breite, Abstände, Schrift und Position dieses Menüs bestimmt <span style="font-family:ui-monospace,monospace;font-size:11px">plasmashell</span>, nicht Denkzettel: Über das Tray-Protokoll geht nur die <b style="color:#555">Struktur</b> — Beschriftung, Symbolname, Zustand, Trenner, Kürzel-Hinweis. Genau das und nichts anderes zeigt diese Zeichnung, und genau das ist prüfbar.
       </div>
 
@@ -997,6 +1015,7 @@
           <div><b style="color:#555">Jetzt analysieren</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">system-run</span> · inaktiv<br>Nicht <span style="font-family:ui-monospace,monospace;font-size:11px">view-refresh</span>: die Kreispfeile heißen „aktualisieren“, hier wird etwas ausgeführt.</div>
           <div><b style="color:#555">Vorschläge</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">tools-wizard</span> · inaktiv<br>Als Einziges eine Nominalform, weil der Zähler an die Beschriftung tritt, sobald es Vorschläge gibt (<a href="#1e" style="color:#2a78d6">1e</a>). Über das Tray-Protokoll gibt es keine Plakette, nur Text.</div>
           <div><b style="color:#555">Denkzettel einrichten …</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">configure</span> · <b style="color:#555">erst mit #16</b>, dann vor „Beenden“<br>Muster und Symbol aus dem Vorbild des Kunden („Energieverwaltung einrichten …“). Auslassungspunkte, weil der Dialog weitere Eingaben verlangt — die Arbeitswege tragen deshalb keine.</div>
+          <div><b style="color:#555">Über Denkzettel</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">help-about</span> · aktiv<br>Öffnet <span style="font-family:ui-monospace,monospace;font-size:11px">KAboutApplicationDialog</span> mit Name, Version, Kurzbeschreibung und Lizenz (#87). <b style="color:#555">Keine Auslassungspunkte</b> — spiegelbildlich zu „einrichten …“: der Dialog verlangt keine weitere Eingabe, er zeigt nur an. Der Ort ist das Tray-Menü und nicht die Bibliothek, weil der Dienst weder Menüleiste noch Hauptfenster hat und die Bibliothek nur einer von mehreren gleichrangigen Wegen ist (SPEC 2.1).</div>
           <div><b style="color:#555">Beenden</b> · <span style="font-family:ui-monospace,monospace;font-size:11px">application-exit</span> · aktiv<br>Letzter Eintrag, hinter dem Trenner.</div>
         </div>
       </div>
@@ -1006,7 +1025,7 @@
         <div style="border-left:3px solid #ddd;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:9px">
           <div><b style="color:#555">„Beenden“ steht abgesetzt am Fuß</b><br>Prüfsatz: „Beenden“ ist der <b style="color:#555">letzte</b> Eintrag des Menüs, und unmittelbar davor steht ein Trenner. Kein Arbeitsweg steht hinter ihm.</div>
           <div><b style="color:#555">Symbole kommen aus dem Thema, nicht aus einer Ressource</b><br>Prüfsatz: Jede Aktion trägt ein Symbol, dessen Name der Tabelle entspricht. Wird das Symbol nicht aus dem Thema geholt, hat es keinen Namen — dann geht über das Tray-Protokoll kein Name an Plasma, und die Zusicherung ist nicht prüfbar. <b style="color:#555">Der Name ist das Prüfmerkmal, nicht das Bild.</b></div>
-          <div><b style="color:#555">Reihenfolge und Trenner</b><br>Prüfsatz: Die sechs Einträge stehen in der gezeichneten Reihenfolge, mit genau zwei Trennern — nach „Sprachnotiz aufnehmen“ und nach „Vorschläge“.</div>
+          <div><b style="color:#555">Reihenfolge und Trenner</b><br>Prüfsatz: Die sieben Einträge stehen in der gezeichneten Reihenfolge, mit genau zwei Trennern — nach „Sprachnotiz aufnehmen“ und nach „Vorschläge“.</div>
           <div><b style="color:#555">Kein englisches Wort im Sichtbaren</b><br>Der Wortlaut gilt an allen Stellen zugleich — Menü, Kürzel-Aktion, Desktop-Aktion, Meldungstexte. „Capture-Fenster“ heißt künftig <b style="color:#555">Erfassungsfenster</b>. Die Aktions-Id <span style="font-family:ui-monospace,monospace;font-size:11px">show-capture</span> ist keine Beschriftung und bleibt.</div>
           <div><b style="color:#555">Kürzel-Hinweis ist ein Hinweis</b><br>Meta+N steht als Text am Eintrag. Er darf die bestehende Kürzel-Registrierung nicht doppeln — das ist zu messen, nicht anzunehmen.</div>
           <div><b style="color:#555">Ein Menü, gemessen — keine Zusicherung über die Lage</b><br>Wo das Menü aufgeht, sichert diese Zeichnung nicht zu: Das übernimmt <span style="font-family:ui-monospace,monospace;font-size:11px">plasmashell</span>, und genau daran ist die getrennte Lösung gescheitert (Messung vom 02.08.2026). Zugesichert ist allein, dass beide Maustasten <b style="color:#555">dieses</b> Menü zeigen.</div>
