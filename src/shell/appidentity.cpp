@@ -20,13 +20,18 @@ void registerApplicationIdentity()
     // KDE's own: kde.org and org.kde.denkzettel. Two names of the specification
     // hang off exactly those. KDBusService builds its bus name from the
     // reversed domain plus the application name, so the default would register
-    // org.kde.Daemon instead of org.denkzettel.Daemon (SPEC 2.3); and
-    // kglobalacceld names the shortcut component after the desktop file, which
-    // Wayland also uses as the application id (SPEC 2.4, the file itself is
-    // installed from desktop/). Neither breakage reaches a return value and
+    // org.kde.denkzettel instead of io.github.hnsstrk.denkzettel (SPEC 2.3);
+    // and kglobalacceld names the shortcut component after the desktop file,
+    // which Wayland also uses as the application id (SPEC 2.4, the file itself
+    // is installed from desktop/). Neither breakage reaches a return value and
     // neither shows up in a test that does not start a bus, so both values are
     // set here rather than left to the default (issue #61).
-    about.setOrganizationDomain(QByteArrayLiteral("denkzettel.org"));
+    //
+    // The domain is the application id read backwards: hnsstrk.github.io
+    // reversed gives io.github.hnsstrk, and the application name "denkzettel"
+    // completes the bus name to the id itself, so the program carries one
+    // identity instead of two (issue #112).
+    about.setOrganizationDomain(QByteArrayLiteral("hnsstrk.github.io"));
     about.setDesktopFileName(QStringLiteral("io.github.hnsstrk.denkzettel"));
 
     // What the about dialog of issue #87 has to show beside the version. The

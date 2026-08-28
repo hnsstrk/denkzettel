@@ -49,14 +49,12 @@ int main(int argc, char *argv[])
                                        QIcon(QStringLiteral(":/icons/denkzettel.svg"))));
 
     // KDBusService builds the bus name from the reversed organization domain
-    // plus the application name (see kdbusservice.h). SPEC 2.3 fixes that name
-    // to org.denkzettel.Daemon, so the application name has to be "Daemon" for
-    // the registration and is restored right after: config and data paths
-    // derive from it.
-    app.setApplicationName(QStringLiteral("Daemon"));
+    // plus the application name (see kdbusservice.h): hnsstrk.github.io and
+    // denkzettel give io.github.hnsstrk.denkzettel, which SPEC 2.3 fixes as the
+    // name. Both values come from registerApplicationIdentity() above, so
+    // nothing has to be renamed around the registration any more (issue #112).
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     KDBusService service(KDBusService::Unique);
-    app.setApplicationName(QStringLiteral("denkzettel"));
 
     Store store(Store::defaultDatabasePath());
     if (!store.open()) {
@@ -86,12 +84,11 @@ int main(int argc, char *argv[])
     QObject::connect(&daemon, &DaemonService::libraryRequested, &library, &LibraryWindow::showLibrary);
     QObject::connect(&daemon, &DaemonService::quitRequested, &app, &QApplication::quit);
     if (!daemon.registerOnSessionBus()) {
-        qWarning("Exporting org.denkzettel.Daemon failed; the D-Bus entry points are unavailable.");
+        qWarning("Exporting io.github.hnsstrk.denkzettel.Daemon failed; the D-Bus entry points are unavailable.");
     }
 
-    // The application name is back to "denkzettel" here, so the configuration
-    // is denkzettelrc and not Daemonrc. Store::open() above has created data
-    // directory and database; this completes the first start of SPEC 2.5.
+    // Store::open() above has created data directory and database; this
+    // completes the first start of SPEC 2.5.
     KConfigGroup general(KSharedConfig::openConfig(), QStringLiteral("General"));
     const bool firstRun = runFirstStart(general);
 

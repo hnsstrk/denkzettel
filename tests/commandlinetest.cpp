@@ -70,9 +70,10 @@ void CommandLineTest::writesTheVersionOfTheBuildAndEndsWithoutASessionBus()
     QCOMPARE(daemon.exitCode(), 0);
 
     // The name, not the bus name: QCommandLineParser composes the line from
-    // applicationName and applicationVersion, and src/main.cpp turns the name
-    // into "Daemon" for the registration further down. A line beginning with
-    // "Daemon" would mean the option is answered inside that window.
+    // applicationName and applicationVersion, and the version is answered
+    // before KDBusService registers anything. The name is set once, by
+    // KAboutData, and nothing changes it afterwards — a line that read
+    // anything but "denkzettel" would mean somebody had.
     QCOMPARE(QString::fromLocal8Bit(daemon.readAllStandardOutput()).trimmed(),
              QStringLiteral("denkzettel " DENKZETTEL_VERSION));
 }
@@ -127,7 +128,7 @@ void CommandLineTest::startsTheDaemonWithoutAnArgument()
     QVERIFY2(QDBusConnection::sessionBus().isConnected(),
              "No session bus — this test belongs under dbus-run-session.");
     QVERIFY2(!QDBusConnection::sessionBus().interface()->isServiceRegistered(
-                 QStringLiteral("org.denkzettel.Daemon")),
+                 QStringLiteral("io.github.hnsstrk.denkzettel")),
              "The name is taken on this bus already; the test would then measure a foreign service.");
 
     const QTemporaryDir home;
@@ -145,14 +146,14 @@ void CommandLineTest::startsTheDaemonWithoutAnArgument()
     for (int attempt = 0; attempt < 100 && !registered; ++attempt) {
         QTest::qWait(100);
         registered = QDBusConnection::sessionBus().interface()->isServiceRegistered(
-            QStringLiteral("org.denkzettel.Daemon"));
+            QStringLiteral("io.github.hnsstrk.denkzettel"));
     }
 
     // SPEC 2.3 fixes the name. It is built from the organisation domain, which
     // KAboutData writes along with the version — the reason this assertion
     // exists at all (issue #61).
     QVERIFY2(registered,
-             qPrintable(QStringLiteral("org.denkzettel.Daemon did not register. Output: %1")
+             qPrintable(QStringLiteral("io.github.hnsstrk.denkzettel did not register. Output: %1")
                             .arg(QString::fromLocal8Bit(daemon.readAllStandardError()))));
     QCOMPARE(daemon.state(), QProcess::Running);
 

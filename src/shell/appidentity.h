@@ -4,8 +4,9 @@ class QCoreApplication;
 
 /**
  * Registers name, version and the two identities the session hangs the daemon
- * on: the domain KDBusService builds org.denkzettel.Daemon from (SPEC 2.3) and
- * the desktop file kglobalacceld names the shortcut component after (SPEC 2.4).
+ * on: the domain KDBusService builds io.github.hnsstrk.denkzettel from (SPEC
+ * 2.3) and the desktop file kglobalacceld names the shortcut component after
+ * (SPEC 2.4).
  *
  * Has to run before KDBusService, and nothing beside it may set
  * applicationName, organizationDomain or desktopFileName: KAboutData writes all

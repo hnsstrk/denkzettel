@@ -154,6 +154,9 @@ it back.
 A key sequence changed by hand does not travel with the rename: it stands in the
 old component's group, and the new one starts on `Meta+N` again.
 
+The D-Bus service name changed with it — scripts calling `org.denkzettel.Daemon`
+need one line altered, see [Everyday use](#everyday-use) below.
+
 ## Everyday use
 
 `Meta+N` opens the capture window, `Ctrl+Enter` saves, `Esc` discards. The
@@ -162,16 +165,25 @@ library is reached from the tray icon.
 `denkzetteld --version` says which version is running, `denkzetteld --help`
 lists the switches. Both answer while the service is already running.
 
-For scripts there is a D-Bus interface, `org.denkzettel.Daemon` at `/Daemon`:
+For scripts there is a D-Bus interface, `io.github.hnsstrk.denkzettel` at
+`/Daemon`:
 
 ```sh
-qdbus6 org.denkzettel.Daemon /Daemon AddNote "text of the note"
-qdbus6 org.denkzettel.Daemon /Daemon ShowCapture
-qdbus6 org.denkzettel.Daemon /Daemon ShowLibrary
-qdbus6 org.denkzettel.Daemon /Daemon Quit
+qdbus6 io.github.hnsstrk.denkzettel /Daemon AddNote "text of the note"
+qdbus6 io.github.hnsstrk.denkzettel /Daemon ShowCapture
+qdbus6 io.github.hnsstrk.denkzettel /Daemon ShowLibrary
+qdbus6 io.github.hnsstrk.denkzettel /Daemon Quit
 ```
 
 `AddNote` returns the id of the new note, or 0 when nothing was stored.
+
+**Up to version 0.7.0 the service was called `org.denkzettel.Daemon`.** The
+daemon now registers this one name and nothing else, so a script written against
+the old one gets an error from `qdbus6` or `dbus-send` — and in a background job
+nobody reads it. What such a script has to change is the service name; the
+object path `/Daemon` and all four method names stay as they are. Where the call
+names the interface as well, as `dbus-send --dest=… /Daemon <interface>.<method>`
+does, that becomes `io.github.hnsstrk.denkzettel.Daemon`.
 
 The notes live in `~/.local/share/denkzettel/denkzettel.db`. If an update
 changes the schema, the existing database is migrated on the first start; what
@@ -319,7 +331,7 @@ cat > "$sand/run.sh" <<'SCRIPT'
 #!/bin/sh
 "$PWD/build/bin/denkzetteld" &
 sleep 6
-dbus-send --session --dest=org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowLibrary
+dbus-send --session --dest=io.github.hnsstrk.denkzettel /Daemon io.github.hnsstrk.denkzettel.Daemon.ShowLibrary
 sleep 4
 spectacle -a -b -n -o "$SHOT"
 sleep 2

@@ -5,7 +5,8 @@
 class Store;
 
 /**
- * The `org.denkzettel.Daemon` interface on the session bus (SPEC 2.3).
+ * The `io.github.hnsstrk.denkzettel.Daemon` interface on the session bus
+ * (SPEC 2.3).
  *
  * The remaining methods arrive with the stories that implement them. Method
  * names follow the D-Bus interface, not the C++ naming style.
@@ -13,7 +14,7 @@ class Store;
 class DaemonService : public QObject
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.denkzettel.Daemon")
+    Q_CLASSINFO("D-Bus Interface", "io.github.hnsstrk.denkzettel.Daemon")
 
 public:
     /** `store` outlives the service and is not owned by it. */
