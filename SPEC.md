@@ -535,6 +535,17 @@ the concept):
     finds „KI"), but folds no diacritics („u" does not find „ü") and no case
     beyond that („ü" does not find „Ü"). Affects terms of one or two
     characters exclusively.
+- **No upper bound on the result list** (user decision 2026-08-28, measured in
+  issue #78). At the 20,000 notes this section sizes the index for, a term that
+  matches every note costs **120 ms** in `Store::search()` and **26 MiB** for
+  the list; the same corpus with 50 hits costs 0.4 ms. Fetching the rows is
+  where the time goes — the same query with `LIMIT 200` takes 26 ms — so a
+  limit would buy some 95 ms per keystroke and cost a number, a hint line, an
+  entry in the drawing and a rule the user has to learn. The 3.7 s the window
+  needed at that size were not the unbounded list: they were one re-read of
+  `kdeglobals` per row out of `NoteListDelegate::sizeHint()` (issue #110). The
+  bench that produced these figures is `tests/searchbench.cpp`; it builds its
+  own corpus in a temporary directory and is deliberately not an `add_test()`.
 - The result list keeps the order of the library (newest first, 9.) instead of
   the FTS5 relevance sorting — only that way does it carry the library's day
   groups.
