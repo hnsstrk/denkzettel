@@ -38,6 +38,14 @@ public:
         TimestampRole = Qt::UserRole,
         /** True on the rows that carry a group heading rather than a note. */
         GroupHeaderRole,
+        /**
+         * What a voice note writes opposite its timestamp — the play symbol and
+         * the length of the recording, "▶ 0:41" (wireframe 2b, 3a).
+         *
+         * Empty on a text note and on a group head: only a voice note carries
+         * anything there.
+         */
+        AudioRole,
     };
 
     explicit NoteListModel(QObject *parent = nullptr);

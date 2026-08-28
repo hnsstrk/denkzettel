@@ -4,7 +4,8 @@
 
 /**
  * Draws the rows of the library list (wireframe 3a): a group head, or a note
- * as a small dimmed timestamp above its subject and preview.
+ * as a small dimmed timestamp above its subject and preview. A voice note adds
+ * the play symbol and its length opposite the timestamp, a text note nothing.
  *
  * Two hairlines of one colour separate them, and where they lie carries the
  * ranking (issue #104): between two notes of one group an inset one on the

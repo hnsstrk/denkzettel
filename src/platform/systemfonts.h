@@ -1,11 +1,25 @@
 #pragma once
 
 #include <QFont>
+#include <QLatin1StringView>
 
 class QObject;
 
 namespace platform
 {
+
+/**
+ * The property a widget whose font was set by hand carries, so that a font
+ * change can find it again (issue #68).
+ *
+ * A widget that was never given a font of its own follows the application font
+ * by itself; one that was does not. The library window marks its small labels
+ * with this and collects them again out of `findChildren()`; the audio player
+ * builds one of those labels and lives in another file, which is why the name
+ * stands here rather than in `librarywindow.cpp`. The capture window solves the
+ * same problem with a list of its own (`m_subtleLabels`) and does not read this.
+ */
+constexpr QLatin1StringView FontSetByHand("denkzettel_smallFont");
 
 /**
  * The general interface font as `kdeglobals` names it **now**.

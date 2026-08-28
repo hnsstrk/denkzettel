@@ -24,6 +24,10 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextBrowser>
+#include <QDataStream>
+#include <QDir>
+#include <QFile>
+#include <QMediaPlayer>
 #include <QTimer>
 
 #include <memory>
@@ -141,6 +145,7 @@ private Q_SLOTS:
 
     void switchesOnTheCalendarDayNotAfterTwentyFourHours();
     void keepsTheYearFourDigitsAcrossYears();
+    void countsTheRunningTimeInWholeSecondsWithoutRounding();
 
     void sortsIntoTheFiveGroupsWithTheFirstMatchWinning();
     void countsTheWeekAsACalendarWeek();
@@ -203,6 +208,8 @@ private Q_SLOTS:
     void keepsTheEditorWhenTheListIsRebuiltUnderIt();
     void keepsTheEditorWhenTheWindowIsActivatedAgain();
 
+    void fallsSilentWhenTheNoteLeavesTheReadingPane();
+
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
     void carriesOutTheDeletionWhenTheApplicationQuits();
@@ -219,6 +226,20 @@ private:
 
     /** The row the note `noteIndex` sits in, as an index of `list`. */
     static QModelIndex noteRow(const QListView *list, int noteIndex);
+
+    /**
+     * Writes `seconds` of silence as a WAV into the store's audio directory and
+     * hands back the file name a note refers to it by.
+     *
+     * A file of the check's own, never a recording of the user's. WAV rather
+     * than the Opus of SPEC 4 because what is under test here is the window and
+     * not the codec: a header and zeroes are written in one go, where an encoder
+     * would bring a second asynchronous run into a check that is about closing a
+     * window. Long enough that it cannot reach its end by itself while the check
+     * runs — a playback that stopped on its own would let the assertion pass
+     * without the code under test doing anything.
+     */
+    QString storedSilence(int seconds);
 
     /** Adds a note to the store; the first one added is the newest. */
     qint64 storedNote(const QString &content);
@@ -396,6 +417,36 @@ void LibraryTest::keepsTheYearFourDigitsAcrossYears()
     QCOMPARE(library::relativeTimestamp(lastYear, german()), QStringLiteral("Montag, 28.07.2025 09:00:45"));
     QCOMPARE(library::entryTimestamp(lastYear, american()), QStringLiteral("7/28/2025 9:00 AM"));
     QCOMPARE(library::relativeTimestamp(lastYear, american()), QStringLiteral("Monday, 7/28/2025 9:00:45 AM"));
+}
+
+void LibraryTest::countsTheRunningTimeInWholeSecondsWithoutRounding()
+{
+    // "0:14 / 0:41" is what the wireframe writes and what the player builds out
+    // of milliseconds — QMediaPlayer counts in nothing else. A division that
+    // rounds, a minute lost at the sixtieth second or a seconds field without
+    // its leading zero all read as plausible times, and nobody looking at the
+    // window would see which of the two numbers is the wrong one.
+    QCOMPARE(library::clockTime(0), QStringLiteral("0:00"));
+    QCOMPARE(library::clockTime(41'000), QStringLiteral("0:41"));
+
+    // Truncated, not rounded, like every media player: the display steps to
+    // 0:14 when the fourteenth second begins, not when it is half over.
+    QCOMPARE(library::clockTime(14'001), QStringLiteral("0:14"));
+    QCOMPARE(library::clockTime(14'999), QStringLiteral("0:14"));
+
+    // The minute boundary from both sides, and the leading zero of the seconds.
+    QCOMPARE(library::clockTime(59'999), QStringLiteral("0:59"));
+    QCOMPARE(library::clockTime(60'000), QStringLiteral("1:00"));
+    QCOMPARE(library::clockTime(69'000), QStringLiteral("1:09"));
+
+    // The upper bound of SPEC 4, and past it: the minutes run on rather than
+    // starting an hours field the wireframe does not draw.
+    QCOMPARE(library::clockTime(15LL * 60 * 1000), QStringLiteral("15:00"));
+    QCOMPARE(library::clockTime(60LL * 60 * 1000), QStringLiteral("60:00"));
+
+    // What QMediaPlayer answers for a length it does not know yet. "-1:-1"
+    // would be a time.
+    QCOMPARE(library::clockTime(-1), QStringLiteral("0:00"));
 }
 
 void LibraryTest::sortsIntoTheFiveGroupsWithTheFirstMatchWinning()
@@ -666,6 +717,38 @@ void LibraryTest::groupsAgainOnTheNewReferenceTime()
     QCOMPARE(model.index(0).data(Qt::DisplayRole).toString(), QStringLiteral("Yesterday"));
     QCOMPARE(model.index(1).data(NoteListModel::TimestampRole).toString(), QStringLiteral("31.07.2026 21:48"));
     QCOMPARE(model.noteCount(), 1);
+}
+
+QString LibraryTest::storedSilence(int seconds)
+{
+    constexpr int SampleRate = 48000;
+    constexpr int Channels = 1;
+    constexpr int BytesPerSample = 2;
+
+    const qint32 payload = seconds * SampleRate * Channels * BytesPerSample;
+    QByteArray file;
+    QDataStream out(&file, QIODevice::WriteOnly);
+    out.setByteOrder(QDataStream::LittleEndian);
+
+    out.writeRawData("RIFF", 4);
+    out << qint32(36 + payload);
+    out.writeRawData("WAVEfmt ", 8);
+    out << qint32(16) << qint16(1) << qint16(Channels) << qint32(SampleRate);
+    out << qint32(SampleRate * Channels * BytesPerSample) << qint16(Channels * BytesPerSample);
+    out << qint16(8 * BytesPerSample);
+    out.writeRawData("data", 4);
+    out << payload;
+    file.append(QByteArray(payload, '\0'));
+
+    const QString name = QStringLiteral("stille.wav");
+    QDir().mkpath(m_store->audioDirectory());
+    QFile handle(m_store->audioDirectory() + QLatin1Char('/') + name);
+    const bool opened = handle.open(QIODevice::WriteOnly);
+    Q_ASSERT(opened);
+    handle.write(file);
+    handle.close();
+
+    return name;
 }
 
 qint64 LibraryTest::storedNote(const QString &content)
@@ -2638,6 +2721,49 @@ void LibraryTest::keepsTheEditorWhenTheWindowIsActivatedAgain()
     QVERIFY(editorOf(window)->isVisible());
     QCOMPARE(editorOf(window)->toPlainText(), QStringLiteral("halb getippt"));
     QCOMPARE(list->currentIndex(), noteRow(list, 0));
+}
+
+void LibraryTest::fallsSilentWhenTheNoteLeavesTheReadingPane()
+{
+    // The one fault of this window that has nothing to look at: a voice note
+    // that plays on has no mark anywhere in the picture, and the library window
+    // is an object on the daemon's stack (main.cpp) — closing it hides it and
+    // destroys nothing, so nothing stops the playback by itself.
+    Note spoken = noteWith(QStringLiteral("Transkript der Sprachnotiz"));
+    spoken.type = Note::Type::Audio;
+    spoken.audioPath = storedSilence(30);
+    spoken.audioDurationS = 30;
+    QVERIFY(m_store->addNote(spoken).has_value());
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    auto *player = window.findChild<QMediaPlayer *>();
+    QVERIFY2(player, "The reading pane holds no player");
+
+    // Whether the playback runs at all is the precondition of both checks
+    // below, so it is asserted and not assumed: a player that never started
+    // reads as stopped whether the window stops it or not. It does not depend
+    // on a sound card — measured 2026-08-29 with PipeWire and PulseAudio both
+    // refused and `QMediaDevices::audioOutputs()` empty, QMediaPlayer reaches
+    // PlayingState all the same and its position runs.
+    player->play();
+    QTRY_COMPARE(player->playbackState(), QMediaPlayer::PlayingState);
+
+    // Editing (wireframe 2a, state B): the player is dimmed, and a dimmed
+    // player that keeps sounding is a recording nobody can stop.
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
+    QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
+
+    actionNamed(window, QStringLiteral("Cancel"))->trigger();
+    player->play();
+    QTRY_COMPARE(player->playbackState(), QMediaPlayer::PlayingState);
+
+    // And closing the window, the way out that leaves nothing on screen at all.
+    window.close();
+    QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()

@@ -2,6 +2,7 @@
 
 #include "platform/systemfonts.h"
 #include "store/store.h"
+#include "ui/audioplayer.h"
 #include "ui/notelistdelegate.h"
 #include "ui/notelistmodel.h"
 #include "ui/pendingdeletion.h"
@@ -113,21 +114,11 @@ void putReturnOnThePrimaryAction(KMessageDialog *dialog)
 }
 
 /** Small label in the regular text colour — the values of the meta row. */
-/**
- * Marks a label whose font was set by hand, so a font change can find it again.
- *
- * A widget that was never given a font of its own follows the application font
- * by itself; one that was does not. Written on the label rather than kept in a
- * list beside it — eleven labels are built here, and a list is one place to
- * forget (issue #68).
- */
-constexpr QLatin1StringView FontSetByHand("denkzettel_smallFont");
-
 QLabel *smallLabel(const QString &text, QWidget *parent)
 {
     auto *label = new QLabel(text, parent);
     label->setFont(platform::smallestReadableFont());
-    label->setProperty(FontSetByHand.data(), true);
+    label->setProperty(platform::FontSetByHand.data(), true);
 
     return label;
 }
@@ -461,6 +452,11 @@ QWidget *LibraryWindow::buildDetail()
     head->addStretch();
     head->addWidget(m_headPages);
 
+    // Above the transcript and below the head row, and only for a voice note
+    // (SPEC 9, wireframe 1b). showNoteText() shows and fills it.
+    m_audioPlayer = new AudioPlayer(detail);
+    m_audioPlayer->hide();
+
     m_detailText = new QTextBrowser(detail);
     m_detailText->setFrameShape(QFrame::NoFrame);
 
@@ -511,6 +507,7 @@ QWidget *LibraryWindow::buildDetail()
     layout->setContentsMargins(12, 10, 12, 12);
     layout->setSpacing(10);
     layout->addLayout(head);
+    layout->addWidget(m_audioPlayer);
     // The surplus height belongs to the note text, said out loud rather than
     // left to Qt's distribution rules. Measured on 02.08.2026: at both tested
     // window sizes the layout holds without the factor as well, so this is a
@@ -575,7 +572,7 @@ bool LibraryWindow::event(QEvent *event)
         const QFont small = platform::smallestReadableFont();
         const QList<QLabel *> labels = findChildren<QLabel *>();
         for (QLabel *label : labels) {
-            if (label->property(FontSetByHand.data()).toBool()) {
+            if (label->property(platform::FontSetByHand.data()).toBool()) {
                 label->setFont(small);
             }
         }
@@ -659,6 +656,13 @@ void LibraryWindow::closeEvent(QCloseEvent *event)
     // SPEC 9: the grace period ends with the window — a deletion the user
     // walked away from is a deletion.
     m_deletion->flush();
+
+    // The fourth way out of the playback, and the only one that leaves nothing
+    // to see: this window is an object on the daemon's stack (main.cpp), so
+    // closing it hides it and destroys nothing. Without this line a voice note
+    // plays on behind a window that is gone — up to the fifteen minutes of
+    // SPEC 4 — and the only way to stop it is to open the library again.
+    m_audioPlayer->stop();
 
     KConfigGroup group = windowGroup();
     KWindowConfig::saveWindowSize(windowHandle(), group);
@@ -810,6 +814,13 @@ void LibraryWindow::updatePages()
         m_detailPages->setCurrentWidget(m_detailPage);
     } else {
         m_detailPages->setCurrentWidget(m_noSelectionPage);
+    }
+
+    // A note that leaves the pane takes its sound with it. Deleting one selects
+    // nothing, and a hidden player would otherwise play the deleted note to the
+    // end.
+    if (m_detailPages->currentWidget() != m_detailPage) {
+        m_audioPlayer->stop();
     }
 }
 
@@ -996,6 +1007,15 @@ void LibraryWindow::showNoteText(const QModelIndex &index)
 
     // The detail pane stands under no head and keeps the full timestamp.
     m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QLocale()));
+
+    // The player belongs to a voice note and to no other, and it is set even
+    // when it stays hidden — an empty source is what stops the file of the note
+    // just left from playing on.
+    const bool spoken = note.type == Note::Type::Audio && !note.audioPath.isEmpty();
+    m_audioPlayer->setSource(spoken ? m_store->audioDirectory() + QLatin1Char('/') + note.audioPath
+                                    : QString(),
+                             note.audioDurationS.value_or(0));
+    m_audioPlayer->setVisible(spoken);
 
     // Setting the same text again would send the reader back to its first
     // line; a reload of the open window leaves the reader where it was.
@@ -1231,6 +1251,15 @@ void LibraryWindow::updateEditState()
     m_headPages->setCurrentIndex(editing ? 1 : 0);
     m_metaRow->setVisible(editing);
     m_editFooter->setVisible(editing);
+
+    // Dimmed while the transcript is edited (wireframe 2a, state B): the audio
+    // file is never changed, only its transcript. And it falls silent as it is
+    // dimmed — a player that keeps playing under a button the same act has just
+    // switched off is a recording nobody can stop.
+    m_audioPlayer->setEnabled(!editing);
+    if (editing) {
+        m_audioPlayer->stop();
+    }
 
     // The note under the editor is not up for deletion — the button is gone,
     // and so is the key behind it.

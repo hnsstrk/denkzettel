@@ -92,6 +92,7 @@ target_link_libraries(denkzettelcapture PUBLIC
 )
 
 add_library(denkzettelui STATIC
+    ui/audioplayer.cpp
     ui/elidedlines.cpp
     ui/librarywindow.cpp
     ui/notelistdelegate.cpp
@@ -106,6 +107,10 @@ target_link_libraries(denkzettelui PUBLIC
     denkzettelplatform
     denkzettelstore
     Qt6::Widgets
+    # QMediaPlayer and QAudioOutput — the player of the reading pane (SPEC 9,
+    # issue #26). The same module the recording of SPEC 4 writes its file with;
+    # playing it back needs no second dependency.
+    Qt6::Multimedia
     # KColorScheme::frameContrast() — the ratio the separator lines of the list
     # are mixed in (issue #101, SPEC 9). Sought with a minimum version of its
     # own in the root CMakeLists; that is where the reason stands.

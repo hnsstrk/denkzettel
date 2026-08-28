@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <optional>
 
+class AudioPlayer;
 class NoteListModel;
 class PendingDeletion;
 class Store;
@@ -215,6 +216,17 @@ private:
     QWidget *m_blankPage;
 
     QLabel *m_detailTimestamp;
+
+    /**
+     * The player of a voice note, between the head row and the transcript
+     * (SPEC 9, wireframe 1b); hidden for a text note.
+     *
+     * It does not depend on what stands below it: a voice note whose
+     * transcription is still running or has failed is a regular state, and the
+     * player then stands alone under the head row (SPEC 12, error path).
+     */
+    AudioPlayer *m_audioPlayer;
+
     QTextBrowser *m_detailText;
 
     /** Reader and editor share one place in the pane (wireframe 2a). */

@@ -358,6 +358,37 @@ find.
     second, or a cancelled recording would stay on disk under a name nobody
     looked for.
 
+27. **A player that was never started looks stopped.** Measured 2026-08-29 on
+    #26: the picture delivered as evidence for "the player is muted **and
+    stopped** while editing" was taken from a player that had never played —
+    it read `0:00 / 0:41`, which is what a paused, a stopped and an untouched
+    player all look like. The same trap in a check: an assertion on
+    `StoppedState` that is not preceded by an asserted `PlayingState` is green
+    whether the code stops anything or not. The evidence is the transition, so
+    assert the loud state first — and let the counter-run come out different:
+    without `stop()` the same picture shows the pause symbol, a bar at 35% and
+    `0:14 / 0:41`. A file long enough not to end by itself is part of it; a
+    player that finishes on its own passes the assertion without the code
+    doing anything.
+
+28. **`QT_QPA_PLATFORMTHEME=kde` selects the platform theme, not a font —
+    without it the run measures a different style.** Measured 2026-08-29 on
+    #26: with the variable, `QApplication::style()->objectName()` is `breeze`
+    (`Breeze::Style`) and `PM_DefaultFrameWidth` is 0; without it, `fusion`
+    and 1. The substitute font that rule 2 names is one consequence among
+    several — `QIcon::fromTheme()` hands back an empty icon without a
+    resolvable theme, and the platform integration replaces a built
+    `QMessageBox` with a substitute dialog of its own (both already noted in
+    `tests/CMakeLists.txt`). So **every** number that comes out of the style is
+    affected — `pixelMetric`, `sizeHint`, `frameWidth` and any geometry
+    assertion built on them — including in a run that never draws anything.
+    The proof is the style name read back inside the run, not the variable
+    being set: the variable can be set and the plugin still missing. And
+    `frameWidth() == 0` alone still only says "no space reserved": that Breeze
+    draws nothing there was settled by counting border pixels — 0 of 240 differ
+    from the middle for a plain `QFrame`, 240 of 240 for `QFrame::Box` and for
+    a `QTextBrowser` of the same shape.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

@@ -6,6 +6,8 @@
 #include <QList>
 #include <QLocale>
 
+#include <algorithm>
+
 namespace
 {
 /** The day `date`'s calendar week began on, as the locale counts weeks. */
@@ -161,4 +163,11 @@ QString library::relativeTimestamp(const QDateTime &when, const QLocale &locale)
     const QString pattern = withSeconds(withFourDigitYear(locale.dateTimeFormat(QLocale::ShortFormat)));
     const QString weekday = locale.toString(when.date(), QStringLiteral("dddd"));
     return weekday + QStringLiteral(", ") + locale.toString(when, pattern);
+}
+
+QString library::clockTime(qint64 milliseconds)
+{
+    const qint64 seconds = std::max(qint64(0), milliseconds) / 1000;
+
+    return QStringLiteral("%1:%2").arg(seconds / 60).arg(seconds % 60, 2, 10, QLatin1Char('0'));
 }
