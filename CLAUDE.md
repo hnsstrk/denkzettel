@@ -119,6 +119,14 @@ out byte-identical, without it none of the two capture-window ones does.
 - **No process fetches the focus back for itself under Wayland.** Whoever
   builds a check with a window switch closes the window lying on top — then the
   compositor gives the focus back by itself.
+- **Where the evidence is kept** (the user's decision, 2026-08-28). Older
+  acceptance criteria ask for it "under version control in
+  `docs/scrum/reviews/`". That directory is gone with the scrum apparatus and
+  is not coming back. The wording of a mutation probe, a measurement or a
+  verification run goes into the project page in the user's Obsidian vault, and
+  its result into the commit message. What stays in the repository is what the
+  next reader of the code needs: images that carry a finding, under
+  `docs/images/reviews/`.
 
 ## Runs that prove nothing
 
@@ -187,6 +195,16 @@ find.
     **no signals at all**, only methods. The subscription looked built and was
     a hole. Whatever a bus hands out, introspect the interface first
     (`busctl introspect`), and read the state back afterwards.
+
+16. **A check that reads an installed path proves nothing about the source
+    tree.** Measured 2026-08-28 on #73: the ECM `appstreamtest` validates the
+    `/usr` path out of `install_manifest.txt`, which a run without root never
+    writes — so with no metainfo at all it printed `Could not find …` and
+    reported `Passed`, and with a deliberately broken file it passed just the
+    same. Once somebody does install to `/usr`, it validates the **installed**
+    copy, which can lag behind the source. A check of the installed state
+    belongs on a staging directory the run creates itself (`DESTDIR`), or it
+    measures the wrong file or none.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
