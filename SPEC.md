@@ -34,8 +34,8 @@ capture ↔ service is preserved as a **module boundary in the code** (its own
 directory, no dependency of the capture module on analysis code).
 
 The **D-Bus coupling** decided in the third interview stays real: the process
-exports `org.denkzettel.Daemon` as an external interface (see 2.3) — usable
-from the CLI, from scripts and to enforce a single instance.
+exports `io.github.hnsstrk.denkzettel` as an external interface (see 2.3) —
+usable from the CLI, from scripts and to enforce a single instance.
 
 ### 2.2 Modules
 
@@ -49,7 +49,10 @@ from the CLI, from scripts and to enforce a single instance.
 | `ui` | Library, suggestion review, settings |
 | `shell` | Tray (KStatusNotifierItem), KGlobalAccel registration, KNotifications, D-Bus adaptor |
 
-### 2.3 D-Bus interface `org.denkzettel.Daemon`
+### 2.3 D-Bus interface `io.github.hnsstrk.denkzettel`
+
+Service name `io.github.hnsstrk.denkzettel`, object `/Daemon`, interface
+`io.github.hnsstrk.denkzettel.Daemon`.
 
 | Method | Effect |
 |---|---|
@@ -67,7 +70,7 @@ A second process start recognises the taken D-Bus registration and calls
   finding 2026-08-04, issue #61):** KDBusService assembles it out of the
   reversed domain and the application name. `KAboutData::setApplicationData()`
   overwrites both fields with its own defaults — the domain with
-  `kde.org` —, and the service then registers as `org.kde.Daemon`.
+  `kde.org` —, and the service then registers as `org.kde.denkzettel`.
   Measured on the name actually registered, not derived from the header.
   **Denkzettel therefore sets the domain and the desktop file name on the
   `KAboutData` object before it is registered, and in no second place** — two
@@ -134,9 +137,12 @@ A second process start recognises the taken D-Bus registration and calls
   `io.github.hnsstrk.denkzettel.desktop`. Reverse-DNS naming asks for a domain
   the project controls and `denkzettel.org` is not one; the
   `io.github.<user>.<app>` form is what a project hosted on GitHub uses and what
-  Flathub requires. The D-Bus name `org.denkzettel.Daemon` (2.3) is a different
-  name and stays as it is; the domain `denkzettel.org` therefore stays in the
-  `KAboutData` as well, because that name is built out of it. **A rename of the
+  Flathub requires. **The bus name follows the id (decision 2026-08-29, issue
+  #112):** the organisation domain in the `KAboutData` is `hnsstrk.github.io`,
+  which reversed and followed by the application name `denkzettel` gives the
+  service `io.github.hnsstrk.denkzettel` of 2.3. The old name
+  `org.denkzettel.Daemon` is withdrawn and registered nowhere beside it — the
+  customer confirmed on 2026-08-29 that no script calls it. **A rename of the
   id is not free:** installing writes the entries of the new name beside those
   of the old one instead of replacing them, so until the old ones are deleted
   the session reads two autostart entries and starts the daemon twice — the

@@ -12,10 +12,10 @@
 // KAboutData::setApplicationData() writes applicationName, organizationDomain
 // and desktopFileName along with the version, and the defaults it brings along
 // are kde.org and org.kde.denkzettel. With them the daemon registers as
-// org.kde.Daemon, the shortcut component is called org.kde.denkzettel.desktop
-// and the notes move to another directory. None of the three reaches a return
-// value, and before this test none of them reached a test either: the bus name
-// showed up in the session and nowhere else.
+// org.kde.denkzettel on the bus, the shortcut component is called
+// org.kde.denkzettel.desktop and the notes move to another directory. None of
+// the three reaches a return value, and before this test none of them reached a
+// test either: the bus name showed up in the session and nowhere else.
 //
 // What this test cannot show is the name actually registered on a bus — that is
 // commandlinetest, which starts the daemon in a session of its own.
@@ -56,8 +56,8 @@ void IdentityTest::initTestCase()
 void IdentityTest::keepsTheDomainTheBusNameIsBuiltFrom()
 {
     // KDBusService reverses this domain and appends the application name; SPEC
-    // 2.3 fixes the result to org.denkzettel.Daemon.
-    QCOMPARE(QCoreApplication::organizationDomain(), QStringLiteral("denkzettel.org"));
+    // 2.3 fixes the result to io.github.hnsstrk.denkzettel, the application id.
+    QCOMPARE(QCoreApplication::organizationDomain(), QStringLiteral("hnsstrk.github.io"));
 }
 
 void IdentityTest::keepsTheDesktopFileTheShortcutComponentIsNamedAfter()

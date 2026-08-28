@@ -49,14 +49,16 @@ sleep 4
 DAEMON=$!
 sleep 8
 dbus-send --session --print-reply --reply-timeout=5000 \
-    --dest=org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowCapture \
+    --dest=io.github.hnsstrk.denkzettel /Daemon \
+    io.github.hnsstrk.denkzettel.Daemon.ShowCapture \
     > "$O/showcapture1.txt" 2>&1
 sleep 5
 
 kdialog --title "Fenster D" --msgbox "D" > /dev/null 2>&1 &
 sleep 5
 dbus-send --session --print-reply --reply-timeout=5000 \
-    --dest=org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowCapture \
+    --dest=io.github.hnsstrk.denkzettel /Daemon \
+    io.github.hnsstrk.denkzettel.Daemon.ShowCapture \
     > "$O/showcapture2.txt" 2>&1
 sleep 5
 

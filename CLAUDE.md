@@ -413,6 +413,19 @@ find.
     it is — `pgrep -x`, `readlink /proc/<pid>/exe`, or the parentage — never by
     a string that the measuring command itself contains.
 
+31. **`gh issue view <n> --comments` prints nothing at all for an issue that
+    has none, and exits 0.** The flag shows the comments and *only* the
+    comments, so a blank screen means "no comments" and looks exactly like a
+    call that failed, an expired login or a network that was not there.
+    Measured 2026-08-29 on #112: the command came back empty four times over —
+    sandboxed and not, with and without `--repo`, redirected into a file of 0
+    bytes — while the issue had a full body and `gh api` answered normally. The
+    first step of every issue here is reading the body and every comment, and
+    that step's output cannot say whether it read anything. Read the issue with
+    `gh issue view <n>`: it prints the body and a `comments: N` line, and that
+    number is the readback which says whether `--comments` has anything to
+    show.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

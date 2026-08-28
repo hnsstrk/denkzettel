@@ -15,11 +15,11 @@
   someone deletes the old ones the session starts the daemon twice and the
   capture window pops up at every login (SPEC 2.4).
 
-  That denkzettel.org is no domain of the project does not make it removable
-  from the code: appidentity.cpp keeps it as organizationDomain because
-  KDBusService builds the bus name org.denkzettel.Daemon out of it (SPEC 2.3,
-  2.4). It is not a leftover of this rename and tidying it away would take the
-  bus name with it.
+  The D-Bus service carries the same id since 29.08.2026 (issue #112):
+  appidentity.cpp sets hnsstrk.github.io as organizationDomain, and
+  KDBusService reverses it and appends the application name, which gives
+  io.github.hnsstrk.denkzettel (SPEC 2.3, 2.4). denkzettel.org has left the
+  code with it.
 
   Every text exists twice, English unmarked and German as xml:lang="de" — the
   user's decision of 2026-08-04. AppStream reads unmarked text as English, so

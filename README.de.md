@@ -175,6 +175,9 @@ Eine von Hand geänderte Tastenfolge wandert bei der Umbenennung nicht mit: sie
 steht in der Gruppe der alten Komponente, und die neue startet wieder auf
 `Meta+N`.
 
+Der D-Bus-Dienstname ist mitgewandert — Skripte, die `org.denkzettel.Daemon`
+rufen, brauchen eine geänderte Zeile, siehe [Bedienung](#bedienung) weiter unten.
+
 ## Bedienung
 
 `Meta+N` öffnet das Erfassungsfenster, `Strg+Enter` speichert, `Esc` verwirft.
@@ -183,17 +186,25 @@ Die Bibliothek erreicht man über das Tray-Symbol.
 `denkzetteld --version` sagt, welche Fassung läuft, `denkzetteld --help` listet
 die Schalter. Beide antworten auch, während der Dienst schon läuft.
 
-Für Skripte gibt es eine D-Bus-Schnittstelle, `org.denkzettel.Daemon` unter
-`/Daemon`:
+Für Skripte gibt es eine D-Bus-Schnittstelle, `io.github.hnsstrk.denkzettel`
+unter `/Daemon`:
 
 ```sh
-qdbus6 org.denkzettel.Daemon /Daemon AddNote "Text der Notiz"
-qdbus6 org.denkzettel.Daemon /Daemon ShowCapture
-qdbus6 org.denkzettel.Daemon /Daemon ShowLibrary
-qdbus6 org.denkzettel.Daemon /Daemon Quit
+qdbus6 io.github.hnsstrk.denkzettel /Daemon AddNote "Text der Notiz"
+qdbus6 io.github.hnsstrk.denkzettel /Daemon ShowCapture
+qdbus6 io.github.hnsstrk.denkzettel /Daemon ShowLibrary
+qdbus6 io.github.hnsstrk.denkzettel /Daemon Quit
 ```
 
 `AddNote` gibt die Id der neuen Notiz zurück, 0, wenn nichts gespeichert wurde.
+
+**Bis Fassung 0.7.0 hieß der Dienst `org.denkzettel.Daemon`.** Der Daemon meldet
+jetzt allein diesen einen Namen an; ein Skript gegen den alten bekommt von
+`qdbus6` oder `dbus-send` einen Fehler zurück, den im Hintergrundlauf niemand
+liest. Zu ändern ist der Dienstname; der Objektpfad `/Daemon` und alle vier
+Methodennamen bleiben, wie sie sind. Wo der Aufruf zusätzlich die Schnittstelle
+nennt, wie `dbus-send --dest=… /Daemon <Schnittstelle>.<Methode>`, heißt sie
+künftig `io.github.hnsstrk.denkzettel.Daemon`.
 
 Die Notizen liegen in `~/.local/share/denkzettel/denkzettel.db`. Ändert ein
 Update das Schema, wird der Bestand beim ersten Start umgewandelt; was sich
@@ -344,7 +355,7 @@ cat > "$sand/run.sh" <<'SCRIPT'
 #!/bin/sh
 "$PWD/build/bin/denkzetteld" &
 sleep 6
-dbus-send --session --dest=org.denkzettel.Daemon /Daemon org.denkzettel.Daemon.ShowLibrary
+dbus-send --session --dest=io.github.hnsstrk.denkzettel /Daemon io.github.hnsstrk.denkzettel.Daemon.ShowLibrary
 sleep 4
 spectacle -a -b -n -o "$SHOT"
 sleep 2
