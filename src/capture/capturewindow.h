@@ -219,8 +219,11 @@ private:
      */
     capture::ThemeTextColours m_themeText;
     /**
-     * Asked once and kept: the answer decides which variant of the theme's
-     * graphic the window draws, and it is needed before the first frame.
+     * Which variant of the theme's graphic the window draws — needed before
+     * the first frame, and asked again whenever `kwinrc` changes (issue #93):
+     * the blur can be switched off while this window already stands, and the
+     * translucent variant over a compositor that no longer blurs is what
+     * SPEC 3.2 item 4 promises not to happen.
      */
-    const bool m_blursBehind;
+    bool m_blursBehind;
 };
