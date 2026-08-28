@@ -182,3 +182,40 @@ add_test(NAME installtest
         -DAPPSTREAMCLI=${APPSTREAMCLI}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/installtest.cmake
 )
+
+# That a change of the system font still reaches both windows while they are
+# running (issues #68 and #110). A set of its own because it rewrites
+# `kdeglobals` under the running process: its main() puts a HOME of its own in
+# place before QApplication, which no test function could do afterwards — the
+# platform theme has opened the file by then and KSharedConfig hands that same
+# instance out to everything. Nothing here touches the user's configuration.
+add_executable(systemfontstest systemfontstest.cpp)
+
+target_link_libraries(systemfontstest PRIVATE
+    denkzettelcapture
+    denkzettelplatform
+    denkzettelui
+    Qt6::Test
+)
+
+add_test(NAME systemfontstest COMMAND systemfontstest)
+
+# Offscreen so the run needs no compositor, and the KDE platform theme on top of
+# it: without it a substitute font stands in and the point sizes this set
+# compares are no longer the ones kdeglobals names.
+set_tests_properties(systemfontstest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
+
+# What a broad search costs at a large corpus (issue #78), and where the time of
+# a list build goes (issue #110). No add_test(): it measures, it does not
+# assert, and its numbers belong in a report, not in a suite that goes red on a
+# busy machine.
+add_executable(searchbench searchbench.cpp)
+
+target_link_libraries(searchbench PRIVATE
+    denkzettelplatform
+    denkzettelstore
+    denkzettelui
+    Qt6::Sql
+    Qt6::Test
+)

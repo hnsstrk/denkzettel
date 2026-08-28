@@ -17,6 +17,11 @@ namespace platform
  * platform theme's answer stays as the fallback for everything this cannot
  * decide — a missing key, a value that does not parse, a session that is no
  * Plasma session.
+ *
+ * Cheap to call in a loop **once `followSystemFonts()` has run**, and only
+ * then: the answer is held from one change of the file to the next, and that
+ * watch is what lets go of it. A process that does not call it reads the file
+ * on every call (issue #110).
  */
 QFont generalFont();
 
@@ -36,6 +41,12 @@ QFont smallestReadableFont();
  * by themselves. Whoever did set one — the small labels, the note list's
  * delegate — has to ask again, and gets a `QEvent::ApplicationFontChange` for
  * it.
+ *
+ * This is also what turns the two functions above into cheap ones: what they
+ * hold is thrown away here, so nothing may be held before this call
+ * (issue #110). **`owner` has to live as long as the process does** — the two
+ * connections die with it, and what the two functions hold would then be held
+ * for good. Every caller hands over `qApp`.
  */
 void followSystemFonts(QObject *owner);
 
