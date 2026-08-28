@@ -128,6 +128,26 @@ A second process start recognises the taken D-Bus registration and calls
   `org.kde.<component name>`; the shortcuts then ran under a component to which
   no installed desktop file belongs. Denkzettel therefore sets the name on the
   `KAboutData` object before the registration (see 2.3).
+- **The application id is `io.github.hnsstrk.denkzettel` (decision 2026-08-28,
+  issue #109):** desktop entry, AppStream component id and Wayland application
+  id all read that, and the shortcut component is
+  `io.github.hnsstrk.denkzettel.desktop`. Reverse-DNS naming asks for a domain
+  the project controls and `denkzettel.org` is not one; the
+  `io.github.<user>.<app>` form is what a project hosted on GitHub uses and what
+  Flathub requires. The D-Bus name `org.denkzettel.Daemon` (2.3) is a different
+  name and stays as it is; the domain `denkzettel.org` therefore stays in the
+  `KAboutData` as well, because that name is built out of it. **A rename of the
+  id is not free:** installing writes the entries of the new name beside those
+  of the old one instead of replacing them, so until the old ones are deleted
+  the session reads two autostart entries and starts the daemon twice — the
+  second start arrives as an activation and shows the capture window (2.3), at
+  every login. Two shortcut components then hold `Meta+N` as well, and
+  `foreignShortcutOwners()` reports the older of the two as a foreign owner —
+  unseen, because `main()` only notifies about a conflict on the first start.
+  The key press keeps working, both entries carry the same `Exec` and the same
+  action. Only deleting the entries of the old name ends it; the group left in
+  `kglobalshortcutsrc` is inert once its desktop entry is gone (measured
+  2026-08-28), and the running service writes that file back anyway.
 - **The application id is not a command line value (decision 2026-08-05):**
   `KAboutData::setupCommandLine()` would bring the option `--desktopfile
   <file name>` with it, which overwrites precisely this value at runtime.

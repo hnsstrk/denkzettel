@@ -27,7 +27,7 @@ void registerApplicationIdentity()
     // neither shows up in a test that does not start a bus, so both values are
     // set here rather than left to the default (issue #61).
     about.setOrganizationDomain(QByteArrayLiteral("denkzettel.org"));
-    about.setDesktopFileName(QStringLiteral("org.denkzettel.Denkzettel"));
+    about.setDesktopFileName(QStringLiteral("io.github.hnsstrk.denkzettel"));
 
     // What the about dialog of issue #87 has to show beside the version. The
     // sentence is the one the tray tooltip already carries, so it needs no

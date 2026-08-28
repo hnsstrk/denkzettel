@@ -176,9 +176,9 @@ add_test(NAME installtest
     COMMAND ${CMAKE_COMMAND}
         -DBINARY_DIR=${CMAKE_BINARY_DIR}
         -DSTAGING_DIR=${CMAKE_CURRENT_BINARY_DIR}/installtest-root
-        -DAPPLICATION_ENTRY=${KDE_INSTALL_FULL_APPDIR}/org.denkzettel.Denkzettel.desktop
-        -DAUTOSTART_ENTRY=${KDE_INSTALL_FULL_AUTOSTARTDIR}/org.denkzettel.Denkzettel.desktop
-        -DMETAINFO_ENTRY=${KDE_INSTALL_FULL_METAINFODIR}/org.denkzettel.Denkzettel.metainfo.xml
+        -DAPPLICATION_ENTRY=${KDE_INSTALL_FULL_APPDIR}/io.github.hnsstrk.denkzettel.desktop
+        -DAUTOSTART_ENTRY=${KDE_INSTALL_FULL_AUTOSTARTDIR}/io.github.hnsstrk.denkzettel.desktop
+        -DMETAINFO_ENTRY=${KDE_INSTALL_FULL_METAINFODIR}/io.github.hnsstrk.denkzettel.metainfo.xml
         -DAPPSTREAMCLI=${APPSTREAMCLI}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/installtest.cmake
 )

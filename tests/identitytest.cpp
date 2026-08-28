@@ -64,7 +64,7 @@ void IdentityTest::keepsTheDesktopFileTheShortcutComponentIsNamedAfter()
 {
     // src/shell/globalshortcuts.cpp reads exactly this property and appends
     // ".desktop" to it (SPEC 2.4). Wayland uses it as the application id.
-    QCOMPARE(QGuiApplication::desktopFileName(), QStringLiteral("org.denkzettel.Denkzettel"));
+    QCOMPARE(QGuiApplication::desktopFileName(), QStringLiteral("io.github.hnsstrk.denkzettel"));
 }
 
 void IdentityTest::keepsTheNameTheConfigurationAndTheNotesHangOn()

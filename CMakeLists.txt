@@ -55,20 +55,20 @@ add_subdirectory(src)
 # would ever find it.
 ki18n_install(po)
 
-install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+install(FILES desktop/io.github.hnsstrk.denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
 # Autostart with the session (SPEC 2.5), deliberately under the SAME file name
 # as above: kglobalacceld names the shortcut component after it (SPEC 2.4), and
 # the Plasma autostart module switches a system-wide entry off by shadowing
 # exactly that name in ~/.config/autostart. Only prefix /usr resolves this to
 # /etc/xdg/autostart; installed to /usr/local no session reads the entry.
-install(FILES desktop/org.denkzettel.Denkzettel.desktop DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
+install(FILES desktop/io.github.hnsstrk.denkzettel.desktop DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
 
 # The AppStream description, without which a software centre shows the program
 # as a bare name without a text and without a picture. ECM's own appstreamtest
 # reads the install manifest of a real installation into the prefix; the check
 # that runs everywhere is installtest below (issue #73).
-install(FILES desktop/org.denkzettel.Denkzettel.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+install(FILES desktop/io.github.hnsstrk.denkzettel.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
 
 ecm_install_icons(ICONS
     icons/sc-apps-denkzettel.svg
