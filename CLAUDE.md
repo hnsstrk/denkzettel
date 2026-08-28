@@ -312,6 +312,15 @@ find.
     arrives. Whatever a check rewrites for a file watch to notice gets replaced,
     not overwritten — that is the road the real writer takes anyway.
 
+23. **`kwin_wayland` hangs without a word when the program behind its `--` is
+    not executable.** Measured 2026-08-28 on #50: the nested session came up
+    complete — the socket was there and `wayland-info` against it listed all 65
+    globals — but the measurement never started, and every step after it timed
+    out. Nothing in the output says so; three runs in a row looked like two
+    nested compositors getting in each other's way. Before every nested run:
+    `chmod +x` on the session program, and if nothing comes back, ask the
+    compositor over its socket whether it is up rather than guessing.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
