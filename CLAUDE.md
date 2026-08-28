@@ -217,6 +217,17 @@ find.
     belongs on a staging directory the run creates itself (`DESTDIR`), or it
     measures the wrong file or none.
 
+17. **`GGML_BACKEND_PATH` does not switch a backend off — it adds one.**
+    Measured 2026-08-28 on #19: the plan was to prove the Vulkan backend by
+    running whisper-cli a second time with that variable pointing at an empty
+    directory. `ggml-backend-reg.cpp` reads it only **after**
+    `ggml_backend_load_best("vulkan", …)` has already loaded the backend from
+    the default path, so the control run loaded Vulkan just the same and took
+    the identical 371 ms. Read as the comparison it was meant to be, "no
+    difference" would have said the backend does nothing. The control that
+    works is `whisper-cli -ng` — 2633 ms on the CPU. Before a run is used to
+    switch something off, read in the source that the lever is connected.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

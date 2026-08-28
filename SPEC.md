@@ -971,13 +971,30 @@ conceivable as an optional later additional path, but is not built for v1.
 
 - Job queue (`transcribe_jobs`), worked off serially (one GPU); survives
   restarts (queue in the DB).
-- **whisper.cpp** (default): Vulkan build from the AUR (`whisper.cpp-vulkan`
-  or similar; check the package name at implementation time). Called as a
-  subprocess: audio through `ffmpeg` to 16 kHz mono WAV (temporary), then
-  `whisper-cli -m <model> -f <wav> -l de -oj` → JSON transcript.
+- **whisper.cpp** (default): the package `whisper-cpp` from Arch `extra`, not
+  the AUR — since 1.9.1-2 it is the only one, it replaces `whisper-cpp-rocm`
+  and `whisper-cpp-vulkan`. The GPU backend is a package of its own that ggml
+  loads at runtime (`ggml_backend_load_all`), so the choice between the two
+  costs a package installation and neither a rebuild nor a line here:
+  `ggml-vulkan` (52 MB installed) is the one set up, `ggml-hip` (1.2 GB) the
+  way back. Measured 2026-08-28 on the RX 7900 XTX, model `small`, 7.3 s of
+  audio: Vulkan 371 ms, HIP/ROCm 409 ms, CPU 2633 ms.
+  Called as a subprocess `/usr/bin/whisper-cli`. **The program path is
+  configurable** — the CI has no graphics card and does not transcribe there;
+  what it checks of the queue and the error path, it checks with a program of
+  its own put in that place.
+  Audio goes through `ffmpeg` to 16 kHz mono WAV (temporary), then
+  `whisper-cli -m <model> -f <wav> -l de -oj` → JSON transcript. That
+  conversion stays explicit although this package reads Opus by itself: it does
+  so only because the packager linked it against libavformat, and a build
+  without that option refuses Opus-in-OGG — the recording format of §4 —
+  outright (both measured 2026-08-28; counter-checked with Vorbis-in-OGG, which
+  the same build does read, so the refusal is the codec and not the container).
   Model size configurable (default `small`, choice tiny–large-v3; download of
   the GGML models at first use with progress, kept under
-  `~/.local/share/denkzettel/models/`).
+  `~/.local/share/denkzettel/models/`. The SHA-1 per model stands in the
+  upstream `models/README.md` — that is what an aborted download is recognised
+  by, no checksum of our own).
 - **WhisperX (ROCm/GPU)**: configurable call path, subprocess with
   `--language de`, JSON evaluation, without diarisation. **Precondition**
   (finding of the estimation session 2026-07-31): WhisperX is not yet installed
