@@ -755,6 +755,19 @@ QColor CaptureWindow::fieldSurfaceOver(const QColor &backdrop) const
     }
     painter.end();
 
+    // ponytail: one pixel stands for the whole ground the writing sits on.
+    // Ceiling: it holds as long as the field graphic carries one colour across
+    // the text area. Under a theme that runs a gradient there the answer is
+    // right in the middle of the field and wrong at its upper and lower edge,
+    // and noteIsTheQuieterWriting() then ranks the two writings on a ground
+    // that only the middle line stands on. The way up is to read the two ends
+    // as well — the same probe at a quarter and at three quarters of its height
+    // — and keep the poorest of the six contrasts each writing then has: three
+    // heights on each of the two backdrops the white-and-black pair in
+    // applyTextColours() already holds it against. That costs two signatures:
+    // fieldSurfaceOver() takes the height it probes at, and WritingChoice
+    // carries two grounds, so either it grows to six or the poorest of each
+    // triple is picked before the struct is filled.
     return probe.pixelColor(size.width() / 2, size.height() / 2);
 }
 

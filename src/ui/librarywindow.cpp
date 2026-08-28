@@ -774,6 +774,18 @@ void LibraryWindow::searchChanged()
     // second deletion and the closing window already follow (SPEC 9).
     m_deletion->flush();
 
+    // ponytail: one keystroke, one whole query — nothing waits between the key
+    // and the store, and Store::search() runs on the thread that draws.
+    // Ceiling: at the 20,000 notes SPEC 6 sizes the index for, a term that
+    // matches every note costs 120 ms in the query and 26 MiB for the list, and
+    // the window stands still for that long under every further key; the same
+    // corpus with 50 hits costs 0.4 ms (measured in issue #78, the bench is
+    // `tests/searchbench.cpp`). The way up is a restartable QTimer of some
+    // 150 ms in front of reload(), so that only the pause in the typing reaches
+    // the store. Not a LIMIT on the result list: that was measured as well
+    // (26 ms instead of 120) and the customer turned it down on 2026-08-28 — it
+    // costs a number, a hint line and a rule the user has to learn (SPEC 6).
+
     // The note the user was reading stays selected if it is among the hits.
     reload(Selection::Keep);
 }
