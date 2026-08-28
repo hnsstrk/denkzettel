@@ -1,10 +1,13 @@
 #include "shell/trayicon.h"
 
+#include <KAboutApplicationDialog>
+#include <KAboutData>
 #include <KLocalizedString>
 #include <KStatusNotifierItem>
 
 #include <QAction>
 #include <QApplication>
+#include <QDialog>
 #include <QIcon>
 #include <QMenu>
 
@@ -98,6 +101,44 @@ QMenu *TrayIcon::buildMenu()
     // (#16). Until then there is no entry for it: a permanently greyed one does
     // not tell the user why it is greyed (KDE HIG, wireframe 5a).
     menu->addSeparator();
+
+    // Where the version becomes visible in the running application (issue #87,
+    // SPEC 15.1). It stands in the last group, which is the administrative one,
+    // and above "Quit", which stays the last entry — the same order a KDE
+    // application menu has. The tray menu and not the library window: the
+    // library is one route among several of equal rank (SPEC 2.1), and a
+    // statement about the whole application must not hang off one of them.
+    const QAction *aboutAction =
+        menu->addAction(QIcon::fromTheme(QStringLiteral("help-about")), i18n("About Denkzettel"));
+    connect(aboutAction, &QAction::triggered, this, [this] {
+        if (!m_about) {
+            // KAboutData::applicationData() is what registerApplicationIdentity()
+            // filled — name, version, description and licence live there and in
+            // no second place (SPEC 15.1).
+            auto *dialog = new KAboutApplicationDialog(KAboutData::applicationData());
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            m_about = dialog;
+        } else if (m_about->isVisible()) {
+            // THE ONE LINE THAT BRINGS THE STANDING DIALOG BACK TO THE FRONT,
+            // and it is a measurement, not a preference. Measured 28.08.2026 in
+            // a nested kwin_wayland with WAYLAND_DEBUG=1: between two title
+            // markers, show() on a visible widget together with raise() sent
+            // NOT ONE request over the wire — show() returns at once on a
+            // visible widget, and xdg-shell has no restacking request a client
+            // could use, so raise() has nothing to send (activateWindow() is
+            // the same dead end, CLAUDE.md "Runs that prove nothing", 3). The
+            // hide() below is what makes the following show() build the surface
+            // anew, and only that carries an xdg-activation token to the
+            // compositor.
+            //
+            // The price is visible and the user decided to pay it (28.08.2026):
+            // surface and decoration are destroyed and built again, so the
+            // dialog blinks. Only when it really stands — on the first click
+            // there is nothing to hide.
+            m_about->hide();
+        }
+        m_about->show();
+    });
 
     const QAction *quitAction =
         menu->addAction(QIcon::fromTheme(QStringLiteral("application-exit")), i18n("Quit"));

@@ -29,6 +29,19 @@ void registerApplicationIdentity()
     about.setOrganizationDomain(QByteArrayLiteral("denkzettel.org"));
     about.setDesktopFileName(QStringLiteral("org.denkzettel.Denkzettel"));
 
+    // What the about dialog of issue #87 has to show beside the version. The
+    // sentence is the one the tray tooltip already carries, so it needs no
+    // second entry in the catalogue; the licence is the one of LICENSE in the
+    // project root, and KAboutLicense turns the identifier into the text the
+    // dialog links to.
+    about.setShortDescription(i18n("Capture thoughts quickly"));
+    about.setLicense(KAboutLicense::MIT);
+    // Word for word the line of LICENSE in the project root — the dialog is
+    // where the MIT licence names its holder, and the repository is public
+    // anyway. Authors stay empty: without them the dialog leaves out a tab, and
+    // there is nobody to list beside the holder.
+    about.setCopyrightStatement(i18n("Copyright (c) 2026 hnsstrk"));
+
     KAboutData::setApplicationData(about);
 }
 

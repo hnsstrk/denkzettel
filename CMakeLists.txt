@@ -32,6 +32,7 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     Svg
     WidgetsAddons
     WindowSystem
+    XmlGui
 )
 
 # KColorScheme::frameContrast() needs KF 6.20 and is sought on its own rather

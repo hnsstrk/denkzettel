@@ -71,6 +71,7 @@ jobs:
             extra-cmake-modules qt6-base \
             kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
             knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \
+            kxmlgui \
             libplasma plasma-integration breeze-icons appstream clazy clang
 
       - uses: actions/checkout@v4
