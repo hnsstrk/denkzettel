@@ -291,6 +291,20 @@ void NoteListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     drawLine(painter, entry.rect, y, timestampFont(), dimmedColor,
              index.data(NoteListModel::TimestampRole).toString());
 
+    // A voice note writes "▶ 0:41" opposite its timestamp, on the same line and
+    // out to the same right text edge (wireframe 2b, 3a); a text note writes
+    // nothing there. Not through drawLine(), which is the left edge of this
+    // list and elides against it — this one is the right edge and is short
+    // enough never to meet the timestamp.
+    const QString spoken = index.data(NoteListModel::AudioRole).toString();
+    if (!spoken.isEmpty()) {
+        painter->setFont(timestampFont());
+        painter->setPen(dimmedColor);
+        painter->drawText(QRect(textLeft(entry.rect), entry.rect.y() + y, width, timestampHeight),
+                          Qt::AlignRight | Qt::AlignVCenter,
+                          spoken);
+    }
+
     y += timestampHeight + Gap;
     drawLine(painter, entry.rect, y, entry.font, textColor, text.subject);
 

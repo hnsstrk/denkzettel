@@ -57,4 +57,21 @@ QString entryTimestamp(const QDateTime &when, const QLocale &locale);
  * literal in the whole form; everything else again comes out of `locale`.
  */
 QString relativeTimestamp(const QDateTime &when, const QLocale &locale);
+
+/**
+ * A running time as the audio player and the list entry of a voice note write
+ * it (SPEC 9, wireframe 1b): minutes, a colon, seconds with two digits —
+ * "0:41", "12:07".
+ *
+ * Milliseconds in, because that is what QMediaPlayer counts in and because the
+ * step from 0:13 to 0:14 is the one thing a division by a thousand can get
+ * wrong. Truncated, not rounded, like every media player: 14.9 seconds are
+ * 0:14, and a file of 41.4 seconds is 0:41 both while it is standing and while
+ * it is playing.
+ *
+ * The minutes run on past sixty — an hour reads "60:00", not "1:00:00". SPEC 4
+ * ends a recording after fifteen minutes, so no note of this application
+ * reaches that; an hour written as "1:00" would be the reading that misleads.
+ */
+QString clockTime(qint64 milliseconds);
 }

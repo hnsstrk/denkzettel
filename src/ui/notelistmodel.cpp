@@ -2,6 +2,8 @@
 
 #include "ui/timestampformat.h"
 
+#include <KLocalizedString>
+
 #include <QLocale>
 #include <optional>
 
@@ -184,6 +186,21 @@ QVariant NoteListModel::data(const QModelIndex &index, int role) const
         return head ? QString() : library::entryTimestamp(m_notes.at(row.note).createdAt, QLocale());
     case GroupHeaderRole:
         return head;
+    case AudioRole: {
+        if (head || m_notes.at(row.note).type != Note::Type::Audio) {
+            return QString();
+        }
+
+        // Without a length the symbol stands alone. "0:41" comes out of the
+        // note, and a note that carries none would otherwise read "0:00" — a
+        // number the user could believe.
+        const Note &note = m_notes.at(row.note);
+        return note.audioDurationS
+            ? i18nc("@item:inlistbox play symbol and length of a voice note",
+                    "▶ %1",
+                    library::clockTime(qint64(*note.audioDurationS) * 1000))
+            : QStringLiteral("▶");
+    }
     default:
         return {};
     }
