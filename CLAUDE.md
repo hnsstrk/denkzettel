@@ -255,6 +255,21 @@ find.
     that the switch does not work; a check without a running event loop never
     sees the new one at all. Let the loop run before the picture.
 
+22. **`KDirWatch` swallows an overwrite in place inside the same second — a
+    replacement it always reports.** For a watched file it compares
+    `qMax(st_ctime, st_mtime)` in whole seconds, and beside it `st_ino` and
+    `st_nlink` (`kdirwatch.cpp:1279–1281`, `kdirwatch_p.h:111`). So a new inode
+    is a change whatever the clock says, and only a rewrite of the same inode
+    within one second goes unreported. Measured 2026-08-28 on #110: `kdeglobals`
+    rewritten in place twice inside one second — inotify logged `MODIFY` four
+    times over (`QT_LOGGING_RULES=kf.coreaddons.kdirwatch.debug=true`), `dirty`
+    was never emitted, and the check stood red with the fix in place and red
+    without it, so its red said nothing about the code. The same check writing
+    through `QSaveFile` runs in 80 ms and needs no waiting at all. **This is no
+    lost save:** KConfig replaces the file, so what Plasma writes always
+    arrives. Whatever a check rewrites for a file watch to notice gets replaced,
+    not overwritten — that is the road the real writer takes anyway.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
