@@ -425,6 +425,28 @@ QList<Note> Store::search(const QString &text) const
     // ones cannot be in it — a trigram is three characters by definition — and
     // take a plain substring comparison instead, so that „KI" or „PO" find
     // something instead of silently nothing (SPEC 6).
+    //
+    // ponytail: that comparison is a `LIKE '%…%'`, which no index can serve.
+    // Ceiling: a query in which **not one** term reaches three characters reads
+    // every row of `notes` — 3 ms at 20,000 notes against the index route's
+    // 9 ms (SPEC 6), and it grows with the corpus rather than with the number
+    // of hits. A query that carries a long term as well does not pay it:
+    // EXPLAIN QUERY PLAN on SQLite 3.53.4 gives `SEARCH notes USING INTEGER
+    // PRIMARY KEY` under the FTS subquery for the mixed query and a bare
+    // `SCAN notes` only for the all-short one, so there the LIKE sees the rows
+    // the index has already picked. The way up is not a second index: FTS5
+    // brings no tokenizer that holds anything shorter than three characters,
+    // and `trigram` takes no size argument (`tokenize='trigram 2'` dies in the
+    // tokenizer constructor). It would be a tokenizer of our own, registered
+    // with `xCreateTokenizer_v2()` on the `fts5_api` that `SELECT fts5(?1)`
+    // hands out to a pointer bound as `fts5_api_ptr` — on the `sqlite3*` from
+    // `QSqlDriver::handle()` — plus a second index and a migration for it, and
+    // plus a build dependency this project does not have today: `fts5_api` is
+    // declared in `sqlite3.h`, and SQLite arrives here only through Qt's
+    // driver. That the path is walkable at all rests on that driver linking the
+    // system library rather than a copy of its own, so the tokenizer would be
+    // registered in the same instance the queries run in. Measure before
+    // building that.
     QStringList phrases;
     QStringList shortTerms;
     for (const QString &term : terms) {
