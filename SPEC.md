@@ -485,6 +485,13 @@ right and is wrong. Most of them contradict what the construction suggests, and
   recording (delete the file).
 - Technology: QtMultimedia (PipeWire backend), format **Opus in OGG**
   (`audio/*.ogg`), mono, 48 kHz — small and directly playable by Qt.
+- **The file is named after the note's ISO timestamp with the colons of the
+  hour replaced by hyphens** — `2026-08-28T22-10-48.526.ogg` for a note stored
+  as `2026-08-28T22:10:48.526` (user decision 2026-08-28, issue #20). Not a
+  cosmetic departure from the database: FAT and exFAT forbid `:` in a file
+  name, and the full export of section 8.3 copies the audio files to wherever
+  the user points it — a USB stick is the case that path exists for. Milliseconds
+  stay, and settle the only collision two recordings could have.
 - Upper bound 15 minutes (protection against a forgotten recording); hint in
   the time display from minute 14.
 
@@ -522,10 +529,10 @@ meta(key TEXT PK, value TEXT)  -- schema version and the like
   `old.content`). With the new text the old words stay findable, and neither an
   error nor FTS5's `integrity-check` shows that — only a search for the old
   word does (see `StoreTest::keepsSearchIndexInSync()`).
-- Audio lies as a file under `audio/` (name = the note's ISO timestamp), the DB
-  holds the reference. Deleting a note deletes tags, embedding, FTS entry,
-  `proposal_notes` references and the audio file in one transaction plus a
-  file system cleanup.
+- Audio lies as a file under `audio/` (name = the note's ISO timestamp with the
+  colons replaced, section 4), the DB holds the reference. Deleting a note
+  deletes tags, embedding, FTS entry, `proposal_notes` references and the audio
+  file in one transaction plus a file system cleanup.
 
 ### 5.2 Settings and secrets
 

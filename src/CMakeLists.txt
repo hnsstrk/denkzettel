@@ -51,6 +51,7 @@ target_link_libraries(denkzettelplatform PUBLIC
 )
 
 add_library(denkzettelcapture STATIC
+    capture/audiorecorder.cpp
     capture/capturewindow.cpp
     capture/textareaheight.cpp
     capture/textcontrast.cpp
@@ -62,6 +63,15 @@ target_link_libraries(denkzettelcapture PUBLIC
     denkzettelplatform
     denkzettelstore
     Qt6::Widgets
+    # The recording pipeline of the voice note (SPEC 4): QAudioSource reads the
+    # device, QMediaRecorder writes Opus into OGG. Nothing here talks to
+    # PipeWire itself.
+    #
+    # Which backend does the encoding is NOT decided here and not by the Qt
+    # package either: qt6-multimedia depends on the virtual qt6-multimedia-backend
+    # with two providers, ffmpeg and gstreamer. Opus in OGG is what the ffmpeg
+    # one writes; the READMEs and the CI name it explicitly for that reason.
+    Qt6::Multimedia
     # Whether this session blurs behind windows at all, asked of KWin itself
     # (issue #83, AK 7). No new dependency of the project: Qt6::DBus is already
     # required for the daemon's entry points, and libPlasma — the other road to

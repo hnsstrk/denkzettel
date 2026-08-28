@@ -75,7 +75,10 @@ specification is [`SPEC.md`](SPEC.md).
 ## Requirements
 
 - CMake 3.20 or newer, a C++20 compiler, `extra-cmake-modules`
-- Qt 6.7 (DBus, Widgets, Sql)
+- Qt 6.7 (DBus, Multimedia, Widgets, Sql) — QtMultimedia needs the **ffmpeg**
+  backend (`qt6-multimedia-ffmpeg`); its package dependency is a virtual one
+  with two providers, and the gstreamer provider writes a different set of
+  formats than the Opus in OGG the voice note is recorded in
 - KDE Frameworks 6: ColorScheme, Config, CoreAddons, DBusAddons, GlobalAccel,
   I18n, Notifications, StatusNotifierItem, Svg, WidgetsAddons, WindowSystem
 - gettext (`msgfmt`) for the message catalogues
@@ -88,6 +91,7 @@ On Arch and derivatives:
 
 ```sh
 sudo pacman -S --needed cmake extra-cmake-modules gettext qt6-base \
+    qt6-multimedia qt6-multimedia-ffmpeg \
     kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
     knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \
     kxmlgui libplasma breeze-icons appstream

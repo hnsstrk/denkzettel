@@ -59,6 +59,12 @@ jobs:
         #   libplasma — it supplies the desktop themes themselves; without it KSvg
         #   would find no theme here at all, and capturetest would check the edge
         #   case.
+        #   qt6-multimedia-ffmpeg — qt6-multimedia depends on the VIRTUAL package
+        #   qt6-multimedia-backend, and which of its two providers pacman picks
+        #   under --noconfirm follows the order of the sync database, not this
+        #   project. The gstreamer one supports a different set of formats;
+        #   naming the ffmpeg one is what makes the recording of SPEC 4 the same
+        #   here as on the development machine.
         #   kcolorscheme — the build would succeed without the line as well,
         #   because ksvg, libplasma and plasma-integration pull the package in.
         #   Transitive is no promise: if one of the three loses the dependency, the
@@ -68,7 +74,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel cmake git gettext \
-            extra-cmake-modules qt6-base \
+            extra-cmake-modules qt6-base qt6-multimedia qt6-multimedia-ffmpeg \
             kcolorscheme kconfig kcoreaddons kdbusaddons kglobalaccel ki18n \
             knotifications kstatusnotifieritem ksvg kwidgetsaddons kwindowsystem \
             kxmlgui \

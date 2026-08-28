@@ -1,3 +1,4 @@
+#include "capture/audiorecorder.h"
 #include "capture/capturewindow.h"
 #include "capture/textareaheight.h"
 #include "capture/textcontrast.h"
@@ -6,17 +7,22 @@
 #include <KLocalizedString>
 
 #include <QApplication>
+#include <QAudioBuffer>
+#include <QAudioFormat>
 #include <QDir>
 #include <QFile>
 #include <QFontDatabase>
 #include <QLayout>
 #include <QPlainTextEdit>
 #include <QProcess>
+#include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <cmath>
 #include <memory>
+#include <numbers>
 
 /**
  * Unit tests of the growth logic and of the saving path of the capture window
@@ -43,8 +49,37 @@ private Q_SLOTS:
     void staysUsableWithoutADesktopTheme();
     void survivesAnUnresolvableDesktopTheme();
 
+    void writesOpusIntoOgg();
+    void stopsAtTheLimit();
+    void stopsAtTheLimitOnTheClockAlone();
+    void keepsTheTailOfTheRecording();
+    void cancellingDeletesTheFile();
+    void dropsWhatItCannotSaveOnTheWayOut();
+    void dropsARecordingStoppedButNotYetClosed();
+    void cancellingOvertakesAStopInFlight();
+    void stopsAtTheLimitWithNoBufferAtAll();
+    void announcesAFailedRecording();
+
 private:
     QPlainTextEdit *textArea() const;
+    /**
+     * Hands the recorder `milliseconds` of a tone of the test's own, in buffers
+     * of 100 ms, and returns early once the recorder has stopped itself.
+     *
+     * Never the microphone (the user's instruction of 28.08.2026): this machine
+     * is the one they work at, this repository is public, and a recording that
+     * has been made cannot be unmade. The measurement brings its own signal.
+     *
+     * **No case below calls AudioRecorder::start()**, only startEncoder() and
+     * encode() — that is what keeps the device shut, and it is a property to
+     * keep, not an accident. The counter-probe: with `PULSE_SERVER`,
+     * `PIPEWIRE_REMOTE` and `XDG_RUNTIME_DIR` pointed at paths that do not
+     * exist, all seven cases stay green (measured 2026-08-28). A run that
+     * opened a device would go out differently.
+     */
+    static void feedTone(AudioRecorder &recorder, int milliseconds);
+    /** One buffer of `frames` samples of that tone, continuing at `phase`. */
+    static QAudioBuffer tone(qint64 &phase, int frames);
     static QImage shot(QWidget &window);
     /** How far into the top row of the picture the hull is still transparent. */
     static int cornerRun(const QImage &picture);
@@ -478,6 +513,265 @@ void CaptureTest::survivesAnUnresolvableDesktopTheme()
     QVERIFY(child.waitForFinished(60000));
     QVERIFY2(child.exitStatus() == QProcess::NormalExit && child.exitCode() == 0,
              child.readAll().constData());
+}
+
+QAudioBuffer CaptureTest::tone(qint64 &phase, int frames)
+{
+    QAudioFormat format;
+    format.setSampleRate(48000);
+    format.setChannelConfig(QAudioFormat::ChannelConfigMono);
+    format.setSampleFormat(QAudioFormat::Int16);
+
+    QByteArray samples(static_cast<qsizetype>(frames) * 2, Qt::Uninitialized);
+    auto *value = reinterpret_cast<qint16 *>(samples.data());
+    for (int i = 0; i < frames; ++i, ++phase) {
+        const double t = static_cast<double>(phase) / 48000.0;
+        value[i] = static_cast<qint16>(12000.0 * std::sin(2.0 * std::numbers::pi * 440.0 * t));
+    }
+    return {samples, format};
+}
+
+void CaptureTest::feedTone(AudioRecorder &recorder, int milliseconds)
+{
+    qint64 phase = 0;
+    for (int buffers = milliseconds / 100; buffers > 0 && recorder.isRecording(); --buffers) {
+        recorder.encode(tone(phase, 4800)); // 100 ms at 48 kHz
+        // The encoder takes one buffer at a time. Without the pause between two
+        // of them it refuses the second, and the recording would be short of it
+        // — which is what the duration comparisons in the cases below measure.
+        QTest::qWait(10);
+    }
+}
+
+void CaptureTest::writesOpusIntoOgg()
+{
+    const QString directory = m_dir->filePath(QStringLiteral("audio"));
+    AudioRecorder recorder(directory);
+    const QDateTime createdAt =
+        QDateTime::fromString(QStringLiteral("2026-08-28T21:07:03.250"), Qt::ISODateWithMs);
+    QSignalSpy finished(&recorder, &AudioRecorder::finished);
+
+    QVERIFY2(recorder.startEncoder(createdAt), qPrintable(recorder.lastError()));
+    feedTone(recorder, 1000);
+    QCOMPARE(recorder.duration(), 1000);
+    recorder.stop();
+    QTRY_COMPARE(finished.count(), 1);
+
+    // The name is the timestamp of the note in the form the store writes into
+    // `created_at`, with the colons of the hour replaced (SPEC 4 and 5.1
+    // together). A second rendering of the same moment would look right and
+    // point somewhere else; a colon would fail on the FAT stick the full
+    // export of SPEC 8.3 writes to.
+    QCOMPARE(finished.first().at(0).toString(), QStringLiteral("2026-08-28T21-07-03.250.ogg"));
+    QCOMPARE(finished.first().at(1).toInt(), 1);
+
+    QFile file(directory + QStringLiteral("/2026-08-28T21-07-03.250.ogg"));
+    QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(file.fileName()));
+    const QByteArray head = file.read(64);
+    // What the file is, read out of the file. "The recorder wrote something"
+    // is the same output for a WAV, for a Vorbis stream and for the 127-byte
+    // header an encoder leaves behind that never took a sample.
+    QVERIFY(head.startsWith(QByteArrayLiteral("OggS")));
+    QVERIFY(head.contains(QByteArrayLiteral("OpusHead")));
+    QVERIFY(file.size() > 1000);
+}
+
+void CaptureTest::stopsAtTheLimit()
+{
+    AudioRecorder recorder(m_dir->filePath(QStringLiteral("audio")));
+    // The bound of SPEC 4 stands as the default; the run reaches it in half a
+    // second, because a check that sat out the real quarter of an hour would
+    // not be run.
+    QCOMPARE(recorder.maximumDuration(), 15 * 60 * 1000);
+    recorder.setMaximumDuration(500);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&recorder, &AudioRecorder::finished);
+
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+    feedTone(recorder, 2000);
+
+    QCOMPARE(recorder.isRecording(), false);
+    QCOMPARE(recorder.duration(), 500);
+    QTRY_COMPARE(finished.count(), 1);
+}
+
+void CaptureTest::cancellingDeletesTheFile()
+{
+    const QString directory = m_dir->filePath(QStringLiteral("audio"));
+    AudioRecorder recorder(directory);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy cancelled(&recorder, &AudioRecorder::cancelled);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&recorder, &AudioRecorder::finished);
+
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+    feedTone(recorder, 300);
+    const QString file = directory + QLatin1Char('/') + recorder.fileName();
+    QVERIFY(QFile::exists(file));
+
+    recorder.cancel();
+    QTRY_COMPARE(cancelled.count(), 1);
+    QCOMPARE(finished.count(), 0);
+    QVERIFY(!QFile::exists(file));
+}
+
+void CaptureTest::stopsAtTheLimitOnTheClockAlone()
+{
+    AudioRecorder recorder(m_dir->filePath(QStringLiteral("audio")));
+    recorder.setMaximumDuration(300);
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+
+    // Buffers of 20 ms handed over every 60 ms: the clock passes the bound
+    // long before that much audio has been recorded. That is the forgotten
+    // recording of SPEC 4 in miniature, and the case a bound on the frame
+    // count alone would never reach — an encoder that takes nothing lets it
+    // run for ever.
+    qint64 phase = 0;
+    for (int buffers = 12; buffers > 0 && recorder.isRecording(); --buffers) {
+        recorder.encode(tone(phase, 960));
+        QTest::qWait(60);
+    }
+
+    QCOMPARE(recorder.isRecording(), false);
+    QVERIFY2(recorder.duration() < 300, qPrintable(QString::number(recorder.duration())));
+}
+
+void CaptureTest::keepsTheTailOfTheRecording()
+{
+    AudioRecorder recorder(m_dir->filePath(QStringLiteral("audio")));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&recorder, &AudioRecorder::finished);
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+
+    // Five buffers with no pause at all: the encoder takes one at a time, so
+    // four of them are still queued when the stop comes. They are the end of
+    // the recording, not surplus — the last word spoken lies in there.
+    qint64 phase = 0;
+    for (int buffers = 5; buffers > 0; --buffers) {
+        recorder.encode(tone(phase, 4800));
+    }
+    recorder.stop();
+
+    QTRY_COMPARE(finished.count(), 1);
+    QCOMPARE(recorder.duration(), 500);
+    QCOMPARE(finished.first().at(1).toInt(), 0);
+}
+
+void CaptureTest::dropsWhatItCannotSaveOnTheWayOut()
+{
+    const QString directory = m_dir->filePath(QStringLiteral("audio"));
+    QString file;
+    {
+        AudioRecorder recorder(directory);
+        QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+        feedTone(recorder, 300);
+        file = directory + QLatin1Char('/') + recorder.fileName();
+        QVERIFY(QFile::exists(file));
+    }
+    // Esc closes the window, and the window takes the recorder with it in the
+    // same turn of the event loop — the deletion that waits for the muxer
+    // would then never run. And a recording still going when the window goes
+    // is one nobody will ever make a note for either.
+    QVERIFY(!QFile::exists(file));
+}
+
+void CaptureTest::dropsARecordingStoppedButNotYetClosed()
+{
+    const QString directory = m_dir->filePath(QStringLiteral("audio"));
+    QString file;
+    {
+        AudioRecorder recorder(directory);
+        QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+        // Five buffers with no pause: four of them are still queued, so stop()
+        // returns with the muxer still open. Ctrl+Enter and a window that
+        // closes in the same turn is exactly this.
+        qint64 phase = 0;
+        for (int buffers = 5; buffers > 0; --buffers) {
+            recorder.encode(tone(phase, 4800));
+        }
+        file = directory + QLatin1Char('/') + recorder.fileName();
+        recorder.stop();
+        QVERIFY(QFile::exists(file));
+    }
+    // Nobody is left to hear finished(), so nobody will make a note out of
+    // that file either — and a file no note points at is an orphan.
+    QVERIFY(!QFile::exists(file));
+}
+
+void CaptureTest::cancellingOvertakesAStopInFlight()
+{
+    const QString directory = m_dir->filePath(QStringLiteral("audio"));
+    AudioRecorder recorder(directory);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy cancelled(&recorder, &AudioRecorder::cancelled);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&recorder, &AudioRecorder::finished);
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+
+    qint64 phase = 0;
+    for (int buffers = 5; buffers > 0; --buffers) {
+        recorder.encode(tone(phase, 4800));
+    }
+    const QString file = directory + QLatin1Char('/') + recorder.fileName();
+
+    // Esc right after Ctrl+Enter. stop() returns while the muxer is still
+    // closing, so the discard lands in a state the recorder used to ignore —
+    // and the recording the user threw away was saved instead.
+    recorder.stop();
+    recorder.cancel();
+
+    QTRY_COMPARE(cancelled.count(), 1);
+    QCOMPARE(finished.count(), 0);
+    QVERIFY(!QFile::exists(file));
+}
+
+void CaptureTest::stopsAtTheLimitWithNoBufferAtAll()
+{
+    AudioRecorder recorder(m_dir->filePath(QStringLiteral("audio")));
+    recorder.setMaximumDuration(200);
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+
+    // Not one buffer, the whole way. A device that goes silent without an
+    // error delivers none — and the bound that is only read when a buffer
+    // arrives would never be read again. The forgotten recording of SPEC 4 is
+    // that case and no other.
+    QTest::qWait(600);
+    QCOMPARE(recorder.isRecording(), false);
+}
+
+void CaptureTest::announcesAFailedRecording()
+{
+    const QDateTime createdAt = QDateTime::currentDateTime();
+
+    // `/proc` exists, so the recorder gets past creating its directory, and
+    // nothing can be written into it — not even by root, which is how the CI
+    // runs. A write-protected directory of our own would let root straight
+    // through, and a directory in place of the file name does not stop the
+    // muxer either: it makes up a name inside it (measured 2026-08-28).
+    AudioRecorder recorder(QStringLiteral("/proc"));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&recorder, &AudioRecorder::failed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&recorder, &AudioRecorder::finished);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy cancelled(&recorder, &AudioRecorder::cancelled);
+
+    QVERIFY2(recorder.startEncoder(createdAt), qPrintable(recorder.lastError()));
+    feedTone(recorder, 300);
+
+    // Exactly one of the three signals follows a started recording. A recorder
+    // that only wrote the reason into lastError() would leave the window of
+    // S13b waiting on Ctrl+Enter and on Esc alike, with nothing on either.
+    QTRY_COMPARE(failed.count(), 1);
+    QVERIFY(!failed.first().at(0).toString().isEmpty());
+    QCOMPARE(recorder.isRecording(), false);
+
+    recorder.stop();
+    recorder.cancel();
+    QTest::qWait(200);
+    QCOMPARE(failed.count(), 1);
+    QCOMPARE(finished.count(), 0);
+    QCOMPARE(cancelled.count(), 0);
 }
 
 QTEST_MAIN(CaptureTest)

@@ -321,6 +321,43 @@ find.
     `chmod +x` on the session program, and if nothing comes back, ask the
     compositor over its socket whether it is up rather than guessing.
 
+24. **`QAudioBufferInput` constructed with a format refuses every buffer, and
+    reports it nowhere.** Measured 2026-08-28 on #20 with Qt 6.11.2:
+    `sendAudioBuffer()` returned `false` for all ten buffers of the run,
+    `readyToSendAudioBuffer()` never fired once, `QMediaRecorder` stayed in
+    `RecordingState` without an error, and what stood on disk afterwards was a
+    valid 127-byte OGG header with return code 0. The default constructor takes
+    the format from the first buffer and works — and `QAudioBufferInput` has no
+    `setFormat()`, so construction is the only place the trap can be laid.
+    **Reproducing it needs a format that is already finished:** written as a
+    member initialiser, `QAudioBufferInput m_input{m_format}` does *not* trip
+    it, because `m_format` is still empty at that point and the setters only
+    run in the constructor body — a mutation probe built that way passes and
+    proves nothing. So: a recording is proven by the duration and the codec of
+    the file, never by the file existing.
+
+25. **Qt's own warnings do not reach a pipe — outside QTest.** Measured
+    2026-08-28: for an ordinary Qt program with stderr not a terminal (every
+    `2>&1 |`, every redirect into a log) the default message handler writes to
+    the journal instead — 0 hits through a pipe, 0 into a file, 4 in the
+    journal, and 1 back on stderr with `QT_FORCE_STDERR_LOGGING=1`. A run
+    grepped for a warning then looks clean because it is mute, not because it
+    is quiet. **QTest binaries are not affected**: QTest installs a message
+    handler of its own, and the same probes came through identically with and
+    without the variable (3 to 3). The rule is for `denkzetteld` and helper
+    programs, not for `ctest` runs.
+
+26. **`QMediaRecorder` invents a file name when the output is a directory.**
+    Measured 2026-08-28 on #20: to force an encoder error the check put a
+    directory where the file should go — `audio/<timestamp>.ogg/`. The muxer
+    neither refused nor complained; it wrote `record_0001.ogv` **inside** that
+    directory and reported a running recording. Same make as finding 24: a file
+    comes into being, the return value is right, and what was checked is not
+    what was meant. `outputLocation()` is what was ordered, `actualLocation()`
+    is what was written — `AudioRecorder::removeFile()` therefore deletes the
+    second, or a cancelled recording would stay on disk under a name nobody
+    looked for.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
