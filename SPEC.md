@@ -1240,6 +1240,15 @@ conceivable as an optional later additional path, but is not built for v1.
 - Error path: 2 failed attempts → the job pauses, tray error state **and one
   KNotification** (§10, §14), the note stays visible/playable as an `audio`
   note without a transcript (nothing is lost).
+- **A missing model is not a failed attempt** (decision 29.08.2026, issue #23).
+  It is not a job that went wrong but a precondition not yet met — the note did
+  nothing wrong, and the model may be arriving at this very moment, because the
+  size can be chosen in the settings while its download is still running. The
+  job stays in the queue, the counter stays where it is, and the tooltip says
+  what is missing and where to get it. Without that rule the two attempts of a
+  note can be spent on the gap between choosing a size and its file arriving —
+  and at 1.5 GB for `medium` that gap is minutes, after which the note stands
+  in the error state with the model long since in place.
 
 ## 13. Settings (dialog)
 
