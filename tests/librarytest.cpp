@@ -2,6 +2,7 @@
 #include "ui/librarywindow.h"
 #include "ui/notelistmodel.h"
 #include "ui/pendingdeletion.h"
+#include "ui/searchmarks.h"
 #include "ui/timestampformat.h"
 
 #include <KLocalizedString>
@@ -32,7 +33,7 @@
 
 #include <memory>
 
-// Why eight QFETCH lines below carry NOLINTNEXTLINE(misc-const-correctness),
+// Why six QFETCH lines below carry NOLINTNEXTLINE(misc-const-correctness),
 // the one reason for all of them (issue #76): QFETCH is a macro that declares
 // the variable itself -
 //
@@ -192,6 +193,8 @@ private Q_SLOTS:
     void takesUpTheWaitingNoteWhenTheDeletionIsUndone();
     void keepsTheReadingPlaceWhenANoteArrives();
     void takesUpANewNoteOnlyWhenItMatchesTheRunningSearch();
+    void marksTheTermsWhereTheyStandInTheText_data();
+    void marksTheTermsWhereTheyStandInTheText();
     void keepsTheEditorWhenANoteArrives();
 
     void putsTheCursorAtTheEndWithoutSelectingTheText();
@@ -2321,6 +2324,114 @@ void LibraryTest::takesUpANewNoteOnlyWhenItMatchesTheRunningSearch()
     QCOMPARE(modelOf(list)->noteCount(), 2);
     QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(),
              QStringLiteral("Backup vom Vortag kontrollieren"));
+}
+
+/**
+ * The one thing about the highlighting that breaks without being seen: where
+ * the mark sits (issue #77).
+ *
+ * The comparison runs on a folded text — decomposed, combining marks dropped,
+ * case folded — and that text has a different length from the one on screen.
+ * „Mühe" written with a combining diaeresis is five characters and folds to
+ * four, so a mark taken straight from the folded text stands one character too
+ * far to the left, and every word behind it with it. That does not look like a
+ * fault; it looks like a mark.
+ *
+ * Colour, ground and spacing of the mark are not asserted here — they are
+ * looked at (`docs/images/reviews/`).
+ */
+void LibraryTest::marksTheTermsWhereTheyStandInTheText_data()
+{
+    QTest::addColumn<QString>("text");
+    QTest::addColumn<QStringList>("terms");
+    QTest::addColumn<QString>("marks");
+
+    // „Mühe" with u and a combining diaeresis: five characters, four after
+    // folding. Written from the code point rather than typed, so that no editor
+    // can quietly compose it back into the four-character form and take the
+    // case away.
+    const QString combining = QStringLiteral("Mu") + QChar(0x0308) + QStringLiteral("he");
+
+    QTest::newRow("at the beginning of the line")
+        << QStringLiteral("Kuchen für Sonntag") << QStringList{QStringLiteral("kuchen")}
+        << QStringLiteral("0:6");
+    QTest::newRow("at the end of the line")
+        << QStringLiteral("Sonntag Kuchen") << QStringList{QStringLiteral("KUCHEN")}
+        << QStringLiteral("8:6");
+    QTest::newRow("nothing of the term in the text")
+        << QStringLiteral("Kuchen für Sonntag") << QStringList{QStringLiteral("Brot")} << QString();
+    QTest::newRow("no term at all")
+        << QStringLiteral("Kuchen für Sonntag") << QStringList{} << QString();
+
+    // The umlaut is one character on both sides, so the mark is as long as the
+    // word is on screen and not as long as its folded copy.
+    QTest::newRow("umlaut in the text, plain term")
+        << QStringLiteral("Mühe geben") << QStringList{QStringLiteral("muhe")} << QStringLiteral("0:4");
+    QTest::newRow("umlaut in the term, plain text")
+        << QStringLiteral("Muhe geben") << QStringList{QStringLiteral("Mühe")} << QStringLiteral("0:4");
+
+    // Two characters on screen, one in the folded copy: the mark covers both,
+    // or it ends inside the letter it belongs to.
+    QTest::newRow("combining diaeresis in the text")
+        << combining << QStringList{QStringLiteral("muhe")} << QStringLiteral("0:5");
+    QTest::newRow("combining diaeresis in the term")
+        << QStringLiteral("Mühe") << QStringList{QStringLiteral("Mu") + QChar(0x0308) + QStringLiteral("he")}
+        << QStringLiteral("0:4");
+
+    // What the mapping exists for: a match behind a character that folds
+    // shorter. Read straight off the folded text the mark would begin at 6 —
+    // one letter early, which here is the space in front of „Kuchen".
+    QTest::newRow("a match behind a combining mark")
+        << combining + QStringLiteral(": Kuchen") << QStringList{QStringLiteral("kuchen")}
+        << QStringLiteral("7:6");
+
+    // „ß" folds to itself in the index as well, and „ss" is not it (measured
+    // against SQLite as the outside value on 29.08.2026): no hit, no mark.
+    QTest::newRow("sharp s is not two s")
+        << QStringLiteral("Straße kehren") << QStringList{QStringLiteral("strasse")} << QString();
+    QTest::newRow("sharp s against itself")
+        << QStringLiteral("Straße kehren") << QStringList{QStringLiteral("STRASSE")} << QString();
+    QTest::newRow("sharp s in both")
+        << QStringLiteral("Straße kehren") << QStringList{QStringLiteral("STRAßE")}
+        << QStringLiteral("0:6");
+
+    QTest::newRow("both terms of the query")
+        << QStringLiteral("Kuchen für Sonntag")
+        << QStringList{QStringLiteral("kuchen"), QStringLiteral("sonntag")} << QStringLiteral("0:6,11:7");
+    // Sorted and merged. Drawn as two marks the overlap would stand out as a
+    // seam, and the second box would darken the letters of the first.
+    QTest::newRow("two terms overlapping in one word")
+        << QStringLiteral("Kuchenteig") << QStringList{QStringLiteral("chente"), QStringLiteral("kuchen")}
+        << QStringLiteral("0:8");
+    // A phrase carries its space and is one term (SPEC 6).
+    QTest::newRow("a phrase with its space")
+        << QStringLiteral("heute Backup prüfen") << QStringList{QStringLiteral("backup prufen")}
+        << QStringLiteral("6:13");
+    QTest::newRow("the same term twice in the line")
+        << QStringLiteral("Kuchen und Kuchen") << QStringList{QStringLiteral("kuchen")}
+        << QStringLiteral("0:6,11:6");
+}
+
+void LibraryTest::marksTheTermsWhereTheyStandInTheText()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QString, text);
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QStringList, terms);
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QString, marks);
+
+    QStringList found;
+    const QList<library::SearchMark> result = library::searchMarks(text, terms);
+    for (const library::SearchMark &mark : result) {
+        found.append(QStringLiteral("%1:%2").arg(mark.start).arg(mark.length));
+        // And what the mark covers has to hold the term itself: a start and a
+        // length that are wrong together would satisfy a comparison of numbers
+        // alone.
+        QVERIFY(!library::searchMarks(text.mid(mark.start, mark.length), terms).isEmpty());
+    }
+
+    QCOMPARE(found.join(QLatin1Char(',')), marks);
 }
 
 void LibraryTest::keepsTheEditorWhenANoteArrives()

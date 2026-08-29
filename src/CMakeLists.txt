@@ -121,6 +121,7 @@ add_library(denkzettelui STATIC
     ui/notelistdelegate.cpp
     ui/notelistmodel.cpp
     ui/pendingdeletion.cpp
+    ui/searchmarks.cpp
     ui/timestampformat.cpp
 )
 

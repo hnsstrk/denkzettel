@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QStringList>
 #include <QStyledItemDelegate>
 
 /**
@@ -24,6 +25,18 @@ class NoteListDelegate : public QStyledItemDelegate
 
 public:
     explicit NoteListDelegate(QObject *parent = nullptr);
+
+    /**
+     * The terms of the running search — what a hit is marked by (issue #77).
+     *
+     * `SearchQuery::terms`, not the raw text of the search field: `tag:` and
+     * the other operators pick the notes but stand in none of them, and a mark
+     * on their value would point at a word the user never searched for.
+     *
+     * Empty while nothing is being searched for, and then the list looks as it
+     * always did.
+     */
+    void setSearchTerms(const QStringList &terms);
 
     /**
      * Left edge of every text of the list: the timestamp, subject and preview
@@ -51,11 +64,19 @@ private:
      * drift away from it, and the alignment the wireframe asks for cannot be
      * broken by writing the number down twice. The width is what the head line
      * of issue #104 begins after.
+     *
+     * `terms` are marked wherever they stand in the text that is actually
+     * drawn — after the eliding, because a mark outside the line would be a
+     * mark nobody sees (issue #77). The timestamp and the group head hand none
+     * over: they are not what was searched in.
      */
     static int drawLine(QPainter *painter,
                         const QRect &row,
                         int top,
                         const QFont &font,
                         const QColor &color,
-                        const QString &text);
+                        const QString &text,
+                        const QStringList &terms = {});
+
+    QStringList m_terms;
 };
