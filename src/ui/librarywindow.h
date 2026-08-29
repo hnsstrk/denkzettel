@@ -232,8 +232,8 @@ private:
     void restoreOrigin();
 
     /**
-     * Writes the origin onto its line under the head row, elided to the width
-     * of the reading pane.
+     * Writes the origin onto its line under the head row — the application in
+     * front of the window title — elided to the width of the reading pane.
      *
      * A QLabel does not elide by itself, and left to it the pane would claim
      * the width of the longest title ever shown as its minimum. So the label
@@ -364,7 +364,8 @@ private:
     /**
      * The origin on a line of its own under the head row, in the same type and
      * the same colour role (customer decision 29.08.2026, second pass;
-     * issue #47).
+     * issue #47): the application it was written in and the title of its
+     * window, in that order.
      *
      * Hidden while the note carries none, so it then takes no height at all.
      */
@@ -455,7 +456,12 @@ private:
 
     /**
      * The note the pane is reading, as the origin label needs it: the full
-     * text to elide, and the id and the two values to write back.
+     * line to elide, and the id and the two values to write back.
+     *
+     * The line is the application and the window title together, made by
+     * `originLine()` in the .cpp — not the stored title, which is only one of
+     * the two things the note carries (issue #47, customer report 29.08.2026).
+     * Empty means the note has no origin at all, and the label is then hidden.
      *
      * The id is below zero while nothing has been removed — that is what the
      * band's "Undo" asks.
