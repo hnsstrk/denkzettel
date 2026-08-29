@@ -1,6 +1,8 @@
 #include "analysis/analysisscheduler.h"
 #include "analysis/classifier.h"
+#include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/suggester.h"
 #include "capture/capturewindow.h"
 #include "platform/optionaltools.h"
 #include "platform/systemfonts.h"
@@ -181,7 +183,14 @@ int main(int argc, char *argv[])
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     Classifier classifier(&store, &provider);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    AnalysisScheduler analysis(&classifier);
+    Embedder embedder(&store, &provider);
+    // The model of the vectors comes from the run that writes them and is not
+    // read out of denkzettelrc a second time: two spellings would be two models,
+    // and the clustering would find an empty corpus (Embedder::model()).
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    Suggester suggester(&store, &provider, embedder.model());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    AnalysisScheduler analysis(&classifier, &embedder, &suggester);
 
     // The two roads that mean "a note is ready" under the trigger "at once"
     // (SPEC 7.2): a note that is written, and a voice note whose transcript has
@@ -255,6 +264,19 @@ int main(int argc, char *argv[])
     // service the sentence never reaches a pipe (CLAUDE.md, finding 25).
     QObject::connect(&classifier, &Classifier::paused, &app, [](qint64 noteId, const QString &reason) {
         qWarning("Note %lld is left without a category: %s", noteId, qUtf8Printable(reason));
+    });
+
+    // The same for step 2: a note the backend refuses twice gets no vector and
+    // is in no bundle from then on (SPEC 7.2, Embedder::paused).
+    QObject::connect(&embedder, &Embedder::paused, &app, [](qint64 noteId, const QString &reason) {
+        qWarning("Note %lld is left without an embedding: %s", noteId, qUtf8Printable(reason));
+    });
+
+    // And for step 3, where nothing is counted against a note: a cluster the
+    // model could not name is taken up again by the next run, so the log is the
+    // only place it is visible at all (SPEC 14, Suggester).
+    QObject::connect(&suggester, &Suggester::failed, &app, [](const QString &reason) {
+        qWarning("A bundle suggestion came to nothing: %s", qUtf8Printable(reason));
     });
 
     DaemonService daemon(&store);

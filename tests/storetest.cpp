@@ -53,6 +53,9 @@ private Q_SLOTS:
     void keepsSearchIndexInSync();
     void storesTheEmbeddingAsAFloat32Array();
     void listsWhatHasNoCurrentVector();
+    void storesASuggestionWithItsNotes();
+    void aSuggestionLeavesNoReferenceBehindItWhenEitherSideGoes();
+    void listsOnlyTheTaskNotesThatCarryNoSuggestion();
     void migratesDatabaseFromSchemaVersion1();
 
 private:
@@ -61,8 +64,8 @@ private:
     /** Writes a database in the M1 schema (version 1) with two notes and a tag. */
     static bool writeSchemaVersion1Database(const QString &path, QString *error);
     /**
-     * What SQLite itself says about the `embeddings` table, over a connection
-     * of this check's own: `SELECT ...` answered as one number.
+     * What SQLite itself says, over a connection of this check's own:
+     * `SELECT ...` answered as one number.
      *
      * The one side of the comparison that is not written by the code under
      * check (CLAUDE.md, finding 10). A vector written and read back by the same
@@ -70,7 +73,7 @@ private:
      * should count elements — `LENGTH(vector)` is counted by the database, and
      * it counts bytes.
      */
-    qint64 embeddingNumber(const QString &select) const;
+    qint64 databaseNumber(const QString &select) const;
     /** Contents of the notes a search returns, in the order it returned them. */
     QStringList searchContents(const QString &text) const;
 
@@ -118,7 +121,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 5);
+    QCOMPARE(m_store->schemaVersion(), 6);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -518,7 +521,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 5);
+    QCOMPARE(m_store->schemaVersion(), 6);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -701,7 +704,7 @@ void StoreTest::keepsSearchIndexInSync()
     QVERIFY(m_store->search(QString()).isEmpty());
 }
 
-qint64 StoreTest::embeddingNumber(const QString &select) const
+qint64 StoreTest::databaseNumber(const QString &select) const
 {
     const QString connection = QStringLiteral("blob-%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
     qint64 answer = -1;
@@ -738,7 +741,7 @@ void StoreTest::storesTheEmbeddingAsAFloat32Array()
     // The number the database counts, and it counts bytes: five float32 are
     // twenty of them. Read as doubles the same BLOB is two values and a half,
     // and the round-trip below would still be green (finding 10).
-    QCOMPARE(embeddingNumber(QStringLiteral("SELECT LENGTH(vector) FROM embeddings")), 20);
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT LENGTH(vector) FROM embeddings")), 20);
 
     const QList<NoteEmbedding> stored = m_store->embeddings(QStringLiteral("bge-m3"));
     QCOMPARE(stored.size(), 1);
@@ -753,7 +756,7 @@ void StoreTest::storesTheEmbeddingAsAFloat32Array()
     // Deleting the note takes its embedding with it (SPEC 5.1): left behind, it
     // would be clustered into a bundle carrying a note that is not there.
     QVERIFY2(m_store->removeNote(*id), qPrintable(m_store->lastError()));
-    QCOMPARE(embeddingNumber(QStringLiteral("SELECT COUNT(*) FROM embeddings")), 0);
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT COUNT(*) FROM embeddings")), 0);
 }
 
 void StoreTest::listsWhatHasNoCurrentVector()
@@ -858,6 +861,169 @@ bool StoreTest::writeSchemaVersion1Database(const QString &path, QString *error)
     return ok;
 }
 
+void StoreTest::storesASuggestionWithItsNotes()
+{
+    // SPEC 5.1: `proposals(id, kind, created_at, status, payload)` and
+    // `proposal_notes(proposal_id, note_id)`; issue #29 writes them.
+    Note first = sampleNote();
+    first.state = Note::State::Analysed;
+    Note second = sampleNote();
+    second.content = QStringLiteral("Fahrplan der Straßenbahn ansehen");
+    second.state = Note::State::Analysed;
+    const std::optional<qint64> left = m_store->addNote(first);
+    const std::optional<qint64> right = m_store->addNote(second);
+    QVERIFY2(left.has_value() && right.has_value(), qPrintable(m_store->lastError()));
+
+    Proposal bundle;
+    bundle.kind = Proposal::Kind::Bundle;
+    bundle.createdAt = QDateTime::fromString(QStringLiteral("2026-08-01T10:00:00.000"), Qt::ISODateWithMs);
+    bundle.status = Proposal::Status::Open;
+    bundle.payload = QStringLiteral(R"({"title":"Straßenbahnen","markdown":"# Straßenbahnen\n"})");
+    bundle.noteIds = {*left, *right};
+    const std::optional<qint64> bundleId = m_store->addProposal(bundle);
+    QVERIFY2(bundleId.has_value(), qPrintable(m_store->lastError()));
+
+    // A second one of the other kind and the other status, and later. **The
+    // two differ in every field on purpose**: with one suggestion, or with two
+    // that agree, a reader that answered the first row for both, or that wrote
+    // one fixed kind or status, would come out right (CLAUDE.md, finding 34).
+    Proposal task;
+    task.kind = Proposal::Kind::Task;
+    task.createdAt = QDateTime::fromString(QStringLiteral("2026-08-02T10:00:00.000"), Qt::ISODateWithMs);
+    task.status = Proposal::Status::Deferred;
+    task.payload = QStringLiteral(R"({"description":"Fahrplan ansehen","priority":"M"})");
+    task.noteIds = {*right};
+    const std::optional<qint64> taskId = m_store->addProposal(task);
+    QVERIFY2(taskId.has_value(), qPrintable(m_store->lastError()));
+
+    const QList<Proposal> proposals = m_store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(2));
+
+    QCOMPARE(proposals.at(0).id, *bundleId);
+    QCOMPARE(proposals.at(0).kind, Proposal::Kind::Bundle);
+    QCOMPARE(proposals.at(0).status, Proposal::Status::Open);
+    QCOMPARE(proposals.at(0).createdAt, bundle.createdAt);
+    QCOMPARE(proposals.at(0).payload, bundle.payload);
+    QCOMPARE(proposals.at(0).noteIds, QList<qint64>({*left, *right}));
+
+    QCOMPARE(proposals.at(1).id, *taskId);
+    QCOMPARE(proposals.at(1).kind, Proposal::Kind::Task);
+    // The status is the whole of criterion three of issue #29: read back as
+    // "open", a deferred suggestion would hold its notes out of the corpus for
+    // good, and nothing in the program would ever say so.
+    QCOMPARE(proposals.at(1).status, Proposal::Status::Deferred);
+    QCOMPARE(proposals.at(1).payload, task.payload);
+    QCOMPARE(proposals.at(1).noteIds, QList<qint64>({*right}));
+
+    // A suggestion pointing at a note that is not there is written **whole or
+    // not at all**: the reference is refused by the foreign key, and half a
+    // suggestion would stand in the review with a note nobody can open.
+    Proposal broken = bundle;
+    broken.noteIds = {*left, *right + 1000};
+    QVERIFY(!m_store->addProposal(broken).has_value());
+    QCOMPARE(m_store->proposals().size(), qsizetype(2));
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT COUNT(*) FROM proposals")), qint64(2));
+}
+
+void StoreTest::aSuggestionLeavesNoReferenceBehindItWhenEitherSideGoes()
+{
+    // Both directions of migration 6, and both by a real deletion: the
+    // declaration says ON DELETE CASCADE whether the pragma that makes it work
+    // is on or not, and with `PRAGMA foreign_keys` off the same schema keeps
+    // every link row (SPEC 5.1, 8.1).
+    Note first = sampleNote();
+    first.state = Note::State::Analysed;
+    Note second = sampleNote();
+    second.content = QStringLiteral("Fahrplan der Straßenbahn ansehen");
+    second.state = Note::State::Analysed;
+    const std::optional<qint64> left = m_store->addNote(first);
+    const std::optional<qint64> right = m_store->addNote(second);
+    QVERIFY2(left.has_value() && right.has_value(), qPrintable(m_store->lastError()));
+
+    Proposal bundle;
+    bundle.kind = Proposal::Kind::Bundle;
+    bundle.createdAt = QDateTime::currentDateTime();
+    bundle.status = Proposal::Status::Open;
+    bundle.payload = QStringLiteral(R"({"title":"Straßenbahnen"})");
+    bundle.noteIds = {*left, *right};
+    const std::optional<qint64> keep = m_store->addProposal(bundle);
+    bundle.noteIds = {*left};
+    const std::optional<qint64> go = m_store->addProposal(bundle);
+    QVERIFY2(keep.has_value() && go.has_value(), qPrintable(m_store->lastError()));
+
+    // Counted by the database and not by proposals(), which is the reader under
+    // check here: a row left behind would drop out of its own answer and the
+    // comparison would be green on both sides at once (CLAUDE.md, finding 10).
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT COUNT(*) FROM proposal_notes")), qint64(3));
+
+    // The suggestion goes: its references go with it, the other suggestion's
+    // stay, and the notes are untouched — SPEC 8.1 removes the suggestion, not
+    // what it stood for.
+    QVERIFY2(m_store->removeProposal(*go), qPrintable(m_store->lastError()));
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT COUNT(*) FROM proposal_notes")), qint64(2));
+    QCOMPARE(m_store->notes().size(), qsizetype(2));
+
+    // The note goes: deleting it **succeeds** although a suggestion points at
+    // it — without the cascade the foreign key would refuse the delete, and the
+    // user would meet a note that cannot be got rid of (SPEC 5.1).
+    QVERIFY2(m_store->removeNote(*right), qPrintable(m_store->lastError()));
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT COUNT(*) FROM proposal_notes")), qint64(1));
+    const QList<Proposal> left_over = m_store->proposals();
+    QCOMPARE(left_over.size(), qsizetype(1));
+    QCOMPARE(left_over.constFirst().id, *keep);
+    QCOMPARE(left_over.constFirst().noteIds, QList<qint64>({*left}));
+}
+
+void StoreTest::listsOnlyTheTaskNotesThatCarryNoSuggestion()
+{
+    // SPEC 7.4, and SPEC 5.1 for what says a note is a task: `task IS NOT
+    // NULL`, there is no `is_todo` column.
+    Note plain = sampleNote();
+    plain.state = Note::State::Analysed;
+    Note todo = sampleNote();
+    todo.content = QStringLiteral("Wasserfilter tauschen, die Anzeige blinkt");
+    todo.state = Note::State::Analysed;
+    todo.task = QStringLiteral(R"({"description":"Wasserfilter tauschen"})");
+    Note fresh = sampleNote();
+    fresh.content = QStringLiteral("Noch nicht eingeordnet, aber mit Aufgabe");
+    fresh.state = Note::State::New;
+    fresh.task = QStringLiteral(R"({"description":"Kommt erst nach der Einordnung"})");
+    const std::optional<qint64> plainId = m_store->addNote(plain);
+    const std::optional<qint64> todoId = m_store->addNote(todo);
+    QVERIFY2(plainId.has_value() && todoId.has_value() && m_store->addNote(fresh).has_value(),
+             qPrintable(m_store->lastError()));
+
+    // The note without task fields is no task, and the one that has not been
+    // classified yet is not offered either — its fields are not final.
+    QList<Note> waiting = m_store->notesForTaskProposals();
+    QCOMPARE(waiting.size(), qsizetype(1));
+    QCOMPARE(waiting.constFirst().id, *todoId);
+
+    // A **deferred** task suggestion takes it out just as an open one does: a
+    // task is the note's own fields, not something recomputed out of a corpus,
+    // so "later" has nothing to come back to (issue #29).
+    Proposal task;
+    task.kind = Proposal::Kind::Task;
+    task.createdAt = QDateTime::currentDateTime();
+    task.status = Proposal::Status::Deferred;
+    task.payload = todo.task;
+    task.noteIds = {*todoId};
+    QVERIFY2(m_store->addProposal(task).has_value(), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->notesForTaskProposals().isEmpty());
+
+    // And a suggestion of the **other** kind over the same note does not: a
+    // note can stand in a bundle and carry a task at the same time, and the
+    // task would be lost if the bundle counted.
+    QVERIFY2(m_store->removeProposal(m_store->proposals().constFirst().id), qPrintable(m_store->lastError()));
+    Proposal bundle = task;
+    bundle.kind = Proposal::Kind::Bundle;
+    bundle.status = Proposal::Status::Open;
+    QVERIFY2(m_store->addProposal(bundle).has_value(), qPrintable(m_store->lastError()));
+    waiting = m_store->notesForTaskProposals();
+    QCOMPARE(waiting.size(), qsizetype(1));
+    QCOMPARE(waiting.constFirst().id, *todoId);
+}
+
 void StoreTest::migratesDatabaseFromSchemaVersion1()
 {
     // T3 (issue #9): the first real migration of an existing database.
@@ -870,7 +1036,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 5);
+    QCOMPARE(m_store->schemaVersion(), 6);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -928,6 +1094,19 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     QCOMPARE(embedded.constFirst().noteId, qint64(1));
     QCOMPARE(embedded.constFirst().vector, QList<float>({0.5F, -0.5F}));
 
+    // And the suggestions of schema version 6 stand for a note that was written
+    // before their tables existed (SPEC 5.1, 7.3, issue #29).
+    Proposal bundle;
+    bundle.kind = Proposal::Kind::Bundle;
+    bundle.createdAt = QDateTime::fromString(QStringLiteral("2026-08-05T12:00:00.000"), Qt::ISODateWithMs);
+    bundle.status = Proposal::Status::Open;
+    bundle.payload = QStringLiteral(R"({"title":"Bahn","markdown":"# Bahn\n"})");
+    bundle.noteIds = {1, 2};
+    QVERIFY2(m_store->addProposal(bundle).has_value(), qPrintable(m_store->lastError()));
+    const QList<Proposal> migrated = m_store->proposals();
+    QCOMPARE(migrated.size(), qsizetype(1));
+    QCOMPARE(migrated.constFirst().noteIds, QList<qint64>({1, 2}));
+
     // And it keeps working for notes written after the migration.
     Note added = sampleNote();
     added.content = QStringLiteral("Nach der Migration erfasst");
@@ -938,7 +1117,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 5);
+    QCOMPARE(m_store->schemaVersion(), 6);
     QCOMPARE(m_store->notes().size(), 3);
 }
 

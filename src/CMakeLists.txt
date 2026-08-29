@@ -68,6 +68,10 @@ target_link_libraries(denkzetteltranscribe PUBLIC
 # the mapping of a reply onto an answer or an error, of an answer onto a
 # category, and of made-up vectors onto clusters.
 #
+# Suggester beside them is step 3: the bundle and task suggestions of SPEC 7.3
+# and 7.4 (issue #29). The Markdown of a bundle is written here and not by the
+# model, so nothing in that step needs a server either.
+#
 # AnalysisScheduler beside them is what starts a run — at once, at an interval
 # or on demand (SPEC 7.2, issue #15). It reads the trigger out of denkzettelrc
 # and knows neither the store nor the transcription queue: both roads that mean
@@ -78,7 +82,9 @@ add_library(denkzettelanalysis STATIC
     analysis/classifier.cpp
     analysis/clustering.cpp
     analysis/embedder.cpp
+    analysis/modelanswer.cpp
     analysis/ollamaprovider.cpp
+    analysis/suggester.cpp
 )
 
 target_include_directories(denkzettelanalysis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -160,6 +160,47 @@ const QList<QStringList> &migrations()
                            "  model TEXT NOT NULL,"
                            "  vector BLOB NOT NULL)"),
         },
+        // Version 6 — the suggestions of SPEC 5.1, which step 3 of the analysis
+        // run writes and the review of SPEC 9 reads (issue #29). The columns are
+        // the ones SPEC 5.1 names and no others.
+        //
+        // **One payload column and not a set of columns per kind**: the two
+        // kinds carry different things — a bundle a title and the Markdown of
+        // the collective note (SPEC 8.1), a task the five fields of SPEC 7.2 —
+        // and the task text is handed on from `notes.task`, which migration 4
+        // writes as one JSON object for exactly this. Columns for both would
+        // leave half of them NULL in every row and would need a second column
+        // saying which half means anything.
+        //
+        // **There is no 'accepted' status**, and SPEC 8.1 says why: accepting
+        // and discarding both end with the suggestion deleted, the difference
+        // being that accepting exports first. A suggestion is a pass-through,
+        // not a history — so the two values SPEC 5.1 names are the two there
+        // are.
+        //
+        // ON DELETE CASCADE on **both** sides of proposal_notes. Towards the
+        // note for the reason the transcription queue and the embeddings carry
+        // it: with `PRAGMA foreign_keys = ON` a link row still pointing at the
+        // note would make Store::removeNote() fail outright, and SPEC 5.1 asks
+        // for the references to go with the note in the same transaction.
+        // Towards the proposal because SPEC 8.1 removes a suggestion together
+        // with its references, and a link left behind would hold a note in a
+        // bundle nobody can open any more.
+        {
+            QStringLiteral("CREATE TABLE proposals ("
+                           "  id INTEGER PRIMARY KEY,"
+                           "  kind TEXT NOT NULL CHECK (kind IN ('bundle', 'task')),"
+                           "  created_at TEXT NOT NULL,"
+                           "  status TEXT NOT NULL CHECK (status IN ('offen', 'zurueckgestellt')),"
+                           "  payload TEXT NOT NULL)"),
+            // The pair is the primary key, as it is in `tags`: a note stands in
+            // one suggestion once, and a run that linked it twice would put the
+            // same note twice into the same collective note.
+            QStringLiteral("CREATE TABLE proposal_notes ("
+                           "  proposal_id INTEGER NOT NULL REFERENCES proposals(id) ON DELETE CASCADE,"
+                           "  note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,"
+                           "  PRIMARY KEY (proposal_id, note_id))"),
+        },
     };
     return steps;
 }
@@ -225,6 +266,27 @@ Note::State stateFromText(const QString &text)
         return Note::State::Analysed;
     }
     return Note::State::New;
+}
+
+QString kindToText(Proposal::Kind kind)
+{
+    return kind == Proposal::Kind::Task ? QStringLiteral("task") : QStringLiteral("bundle");
+}
+
+Proposal::Kind kindFromText(const QString &text)
+{
+    return text == QLatin1String("task") ? Proposal::Kind::Task : Proposal::Kind::Bundle;
+}
+
+/** The two German values SPEC 5.1 writes, as `notes.state` writes its own. */
+QString statusToText(Proposal::Status status)
+{
+    return status == Proposal::Status::Deferred ? QStringLiteral("zurueckgestellt") : QStringLiteral("offen");
+}
+
+Proposal::Status statusFromText(const QString &text)
+{
+    return text == QLatin1String("zurueckgestellt") ? Proposal::Status::Deferred : Proposal::Status::Open;
 }
 
 /**
@@ -999,6 +1061,130 @@ QList<NoteEmbedding> Store::embeddings(const QString &model) const
         embeddings.append({query.value(0).toLongLong(), vectorFromBlob(query.value(1).toByteArray())});
     }
     return embeddings;
+}
+
+std::optional<qint64> Store::addProposal(const Proposal &proposal)
+{
+    m_lastError.clear();
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return std::nullopt;
+    }
+
+    QSqlQuery write(m_db);
+    write.prepare(QStringLiteral("INSERT INTO proposals (kind, created_at, status, payload)"
+                                 " VALUES (:kind, :created_at, :status, :payload)"));
+    write.bindValue(QStringLiteral(":kind"), kindToText(proposal.kind));
+    write.bindValue(QStringLiteral(":created_at"), timestampToText(proposal.createdAt));
+    write.bindValue(QStringLiteral(":status"), statusToText(proposal.status));
+    write.bindValue(QStringLiteral(":payload"), plainText(proposal.payload));
+    if (!write.exec()) {
+        m_lastError = write.lastError().text();
+        m_db.rollback();
+        return std::nullopt;
+    }
+
+    const qint64 id = write.lastInsertId().toLongLong();
+    for (const qint64 noteId : proposal.noteIds) {
+        QSqlQuery link(m_db);
+        link.prepare(QStringLiteral("INSERT INTO proposal_notes (proposal_id, note_id)"
+                                    " VALUES (:proposal_id, :note_id)"));
+        link.bindValue(QStringLiteral(":proposal_id"), id);
+        link.bindValue(QStringLiteral(":note_id"), noteId);
+        if (!link.exec()) {
+            m_lastError = link.lastError().text();
+            m_db.rollback();
+            return std::nullopt;
+        }
+    }
+
+    if (!m_db.commit()) {
+        m_lastError = m_db.lastError().text();
+        m_db.rollback();
+        return std::nullopt;
+    }
+
+    return id;
+}
+
+QList<Note> Store::notesForTaskProposals() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // TRIM(task) != '' beside IS NOT NULL: completeAnalysis() binds an empty
+    // task as NULL, and this is the condition that says "the note is a task"
+    // (SPEC 5.1) — a text of nought length reaching it from anywhere else must
+    // not become a suggestion carrying no description.
+    query.prepare(QStringLiteral("SELECT %1 FROM notes"
+                                 " WHERE state = :state AND task IS NOT NULL AND TRIM(task) != ''"
+                                 " AND NOT EXISTS ("
+                                 "   SELECT 1 FROM proposal_notes"
+                                 "   JOIN proposals ON proposals.id = proposal_notes.proposal_id"
+                                 "   WHERE proposal_notes.note_id = notes.id AND proposals.kind = 'task')"
+                                 " ORDER BY created_at, id")
+                      .arg(noteColumns()));
+    query.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<Note> notes;
+    while (query.next()) {
+        notes.append(noteFromQuery(query));
+    }
+    return notes;
+}
+
+QList<Proposal> Store::proposals() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // One query with the links joined on, and the rows read in one pass: the
+    // suggestions of a run are a handful, and a second query per suggestion
+    // would be one round trip each for a list nobody scrolls.
+    if (!query.exec(QStringLiteral("SELECT proposals.id, kind, created_at, status, payload, note_id"
+                                   " FROM proposals"
+                                   " LEFT JOIN proposal_notes ON proposal_notes.proposal_id = proposals.id"
+                                   " ORDER BY proposals.created_at, proposals.id, note_id"))) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<Proposal> proposals;
+    while (query.next()) {
+        const qint64 id = query.value(0).toLongLong();
+        if (proposals.isEmpty() || proposals.constLast().id != id) {
+            Proposal proposal;
+            proposal.id = id;
+            proposal.kind = kindFromText(query.value(1).toString());
+            proposal.createdAt = timestampFromText(query.value(2).toString());
+            proposal.status = statusFromText(query.value(3).toString());
+            proposal.payload = query.value(4).toString();
+            proposals.append(proposal);
+        }
+        // NULL for a suggestion without a single note — what the LEFT JOIN is
+        // there for. It cannot come out of addProposal(), and a row hand-written
+        // into the database must not make the whole list unreadable.
+        if (!query.value(5).isNull()) {
+            proposals.last().noteIds.append(query.value(5).toLongLong());
+        }
+    }
+    return proposals;
+}
+
+bool Store::removeProposal(qint64 id)
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("DELETE FROM proposals WHERE id = :id"));
+    query.bindValue(QStringLiteral(":id"), id);
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return false;
+    }
+    return true;
 }
 
 bool Store::enqueueTranscription(qint64 noteId)

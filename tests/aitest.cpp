@@ -5,6 +5,7 @@
 #include "analysis/clustering.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/suggester.h"
 #include "store/store.h"
 
 #include <KConfigGroup>
@@ -102,6 +103,11 @@ private Q_SLOTS:
     void everyNoteGetsItsOwnVector();
     void aRefusedNoteDoesNotBlockTheOthers();
     void anUnreachableBackendCostsNoAttempt();
+
+    void aClusterBecomesAnOpenBundleSuggestion();
+    void theModelMayDropAnOutlier();
+    void aNoteWithTaskFieldsBecomesATaskSuggestion();
+    void aDeferredBundleIsClusteredAgainAndReplaced();
 };
 
 void AiTest::initTestCase()
@@ -495,6 +501,65 @@ qint64 addAnalysedNote(Store &store, const QString &content, const QDateTime &cr
     note.category = QStringLiteral("ideen");
     const std::optional<qint64> id = store.addNote(note);
     return id.value_or(-1);
+}
+
+/**
+ * The embedding model these checks write beside their vectors and hand to the
+ * suggester.
+ *
+ * Named here rather than read out of Embedder::model(), because the point of
+ * that parameter is that the two sides say the same thing: a suggester asking
+ * for another model finds an empty corpus and reports nothing at all.
+ */
+QString testEmbeddingModel()
+{
+    return QStringLiteral("bge-m3");
+}
+
+/**
+ * A note that has been through both steps of the run, its vector pointing at
+ * `degrees` in the plane — what step 3 finds in the database.
+ *
+ * The angle rather than made-up numbers, for the reason corpusAt() below uses
+ * one: the threshold of 0.60 is 53.1°, so two notes 20° apart belong together
+ * and two 110° apart do not.
+ */
+qint64 addEmbeddedNote(Store &store, const QString &content, const QDateTime &createdAt, double degrees,
+                       const QString &task = {})
+{
+    Note note;
+    note.createdAt = createdAt;
+    note.content = content;
+    note.state = Note::State::Analysed;
+    note.category = QStringLiteral("ideen");
+    note.task = task;
+    const std::optional<qint64> id = store.addNote(note);
+    if (!id.has_value()) {
+        return -1;
+    }
+    const double radians = qDegreesToRadians(degrees);
+    const QList<float> vector = {float(std::cos(radians)), float(std::sin(radians))};
+    return store.setEmbedding(*id, testEmbeddingModel(), vector) ? *id : -1;
+}
+
+/** A suggestion already standing when a run begins. */
+qint64 addStandingProposal(Store &store, Proposal::Kind kind, Proposal::Status status, const QList<qint64> &noteIds)
+{
+    Proposal proposal;
+    proposal.kind = kind;
+    proposal.status = status;
+    // Older than anything the run writes, so the order proposals() answers in
+    // is the order these checks read them in.
+    proposal.createdAt = QDateTime::fromString(QStringLiteral("2026-07-01T08:00:00.000"), Qt::ISODateWithMs);
+    proposal.payload = QStringLiteral(R"({"title": "Aus einem frueheren Lauf"})");
+    proposal.noteIds = noteIds;
+    return store.addProposal(proposal).value_or(-1);
+}
+
+/** The `title` and `markdown` of a bundle payload, as the review reads them. */
+QJsonObject payloadOf(const Proposal &proposal)
+{
+    return QJsonDocument::fromJson(proposal.payload.toUtf8()).object();
 }
 
 /**
@@ -995,7 +1060,13 @@ void AiTest::theTriggerFollowsTheSetting()
     // "on demand only": a note that is written sets nothing going, and no timer
     // stands either.
     group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerOnDemand));
-    AnalysisScheduler scheduler(&classifier);
+    // The two steps behind the classification, because a run is all three
+    // (SPEC 7.2). Nothing here reaches them: with fewer notes than the bundle
+    // threshold no cluster comes out, so the prompts counted below are the
+    // classification's alone.
+    Embedder embedder(store.get(), &provider);
+    Suggester suggester(store.get(), &provider, embedder.model());
+    AnalysisScheduler scheduler(&classifier, &embedder, &suggester);
     QCOMPARE(scheduler.interval(), std::chrono::milliseconds(0));
 
     QVERIFY(addNote(*store, QStringLiteral("Eine Notiz auf Abruf."), when) > 0);
@@ -1006,8 +1077,14 @@ void AiTest::theTriggerFollowsTheSetting()
 
     // ... and the road the tray entry and AnalyzeNow() take runs it all the same.
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    QSignalSpy done(&classifier, &Classifier::finished);
+    QSignalSpy done(&suggester, &Suggester::finished);
     scheduler.analyzeNow();
+    // **The end of a run is the end of its LAST step**, not of its first: the
+    // classification hands on to the embedding and that to the suggestions
+    // (SPEC 7.2), and the scheduler declines a second run until all three are
+    // through. Waited for on Classifier::finished, the noteIsReady() below
+    // would find the run still going and be remembered instead of started —
+    // measured here as 0 prompts against 1 (CLAUDE.md, finding 32).
     QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
     QCOMPARE(provider.prompts.size(), 1);
 
@@ -1062,12 +1139,21 @@ void AiTest::aNoteWrittenDuringARunIsNotLost()
     // answer coming back at once the run would be over before it was written,
     // and the case could not come out red.
     provider.chatDelay = std::chrono::milliseconds(50);
+    // Three vectors pointing in three directions, so that step 3 of the run
+    // finds no cluster and asks the model nothing: with the stand-in's one
+    // default vector all three notes are identical, they chain into a bundle at
+    // the threshold of 3, and the prompt count below counts a call this case is
+    // not about — measured as 4 against 3, and only when the event loop got far
+    // enough between the two, which is worse than wrong (SPEC 7.3).
+    provider.embedVectors = {{1.0, 0.0}, {0.0, 1.0}, {-1.0, 0.0}};
 
     KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Analysis"));
     group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerAfterSaving));
 
     Classifier classifier(store.get(), &provider);
-    AnalysisScheduler scheduler(&classifier);
+    Embedder embedder(store.get(), &provider);
+    Suggester suggester(store.get(), &provider, embedder.model());
+    AnalysisScheduler scheduler(&classifier, &embedder, &suggester);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy done(&classifier, &Classifier::finished);
 
@@ -1378,6 +1464,212 @@ void AiTest::anUnreachableBackendCostsNoAttempt()
     // Ollama is unreachable.
     QVERIFY(store->embeddings(embedder.model()).isEmpty());
     QCOMPARE(store->notesToEmbed(embedder.model()).size(), 2);
+}
+
+void AiTest::aClusterBecomesAnOpenBundleSuggestion()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // Three invented notes of one topic, written on two days: the second day
+    // is what makes the collective note of SPEC 8.1 checkable at all. With all
+    // three on one day a builder that writes a single heading, and one that
+    // takes the notes newest first, would come out the same as the right one
+    // (CLAUDE.md, finding 34).
+    const QDateTime firstDay = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    const QDateTime secondDay = QDateTime::fromString(QStringLiteral("2026-08-02T18:30:00.000"), Qt::ISODateWithMs);
+    const qint64 mirror =
+        addEmbeddedNote(*store, QStringLiteral("Die Fotos vom Sommer auf die zweite Platte spiegeln."), firstDay, 0.0);
+    const qint64 rsync = addEmbeddedNote(*store,
+                                         QStringLiteral("rsync mit --delete probieren, damit die Kopie nicht wächst."),
+                                         firstDay.addSecs(3600),
+                                         20.0);
+    const qint64 offsite = addEmbeddedNote(*store,
+                                           QStringLiteral("Eine Platte auswärts lagern, sonst nützt das Backup nichts."),
+                                           secondDay,
+                                           40.0);
+    QVERIFY(mirror > 0 && rsync > 0 && offsite > 0);
+
+    AiProviderMock provider;
+    // A reasoning block with a draft object of its own inside it, and prose
+    // around the real answer. **Ollama delivers none of that** — it hands the
+    // reasoning over in a field of its own — so this case exists for what
+    // SPEC 7.1 puts beside it, openrouter and OpenAI, and it is the only place
+    // the shape can be produced at all (CLAUDE.md, finding 45).
+    provider.chatAnswer = QStringLiteral(
+        "<think>Alle drei drehen sich ums Sichern. {\"title\": \"Entwurf\", \"notes\": [1]}</think>\n"
+        "Here is the JSON you asked for:\n"
+        "{\"title\": \"Backup der Fotos\", \"notes\": [1, 2, 3]}");
+
+    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    const QList<Proposal> proposals = store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(1));
+    QCOMPARE(proposals.constFirst().kind, Proposal::Kind::Bundle);
+    QCOMPARE(proposals.constFirst().status, Proposal::Status::Open);
+    QCOMPARE(proposals.constFirst().noteIds, QList<qint64>({mirror, rsync, offsite}));
+
+    const QJsonObject payload = payloadOf(proposals.constFirst());
+    QCOMPARE(payload.value(QLatin1String("title")).toString(), QStringLiteral("Backup der Fotos"));
+
+    // The whole Markdown and not a substring of it: the form of SPEC 8.1 is
+    // the topic as the heading, a section per day in order, and **the note
+    // texts as they were typed**. That last part is what the model is not
+    // asked for (SPEC 7.3 since 29.08.2026) — a check on the title alone would
+    // be green over a note that came back paraphrased.
+    QCOMPARE(payload.value(QLatin1String("markdown")).toString(),
+             QStringLiteral("# Backup der Fotos\n"
+                            "\n## 2026-08-01\n"
+                            "\nDie Fotos vom Sommer auf die zweite Platte spiegeln.\n"
+                            "\nrsync mit --delete probieren, damit die Kopie nicht wächst.\n"
+                            "\n## 2026-08-02\n"
+                            "\nEine Platte auswärts lagern, sonst nützt das Backup nichts.\n"));
+}
+
+void AiTest::theModelMayDropAnOutlier()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // Four notes chained into one cluster, and the model keeps the first, the
+    // third and the fourth. **The dropped one is the second on purpose**: a
+    // run that ignored the answer's list would keep four, and one that simply
+    // took the first three would keep the wrong three — with the last one
+    // dropped both mistakes would come out right (CLAUDE.md, finding 34).
+    const QDateTime day = QDateTime::fromString(QStringLiteral("2026-08-03T10:00:00.000"), Qt::ISODateWithMs);
+    const qint64 seeds = addEmbeddedNote(*store, QStringLiteral("Tomatensamen vorziehen, das Fenster nach Süden."), day, 0.0);
+    const qint64 stranger =
+        addEmbeddedNote(*store, QStringLiteral("Die Rechnung der Werkstatt liegt seit Freitag da."), day.addSecs(60), 20.0);
+    const qint64 water = addEmbeddedNote(*store, QStringLiteral("Eine Regentonne an das Fallrohr hängen."), day.addSecs(120), 40.0);
+    const qint64 soil = addEmbeddedNote(*store, QStringLiteral("Erde für die Hochbeete bestellen, vier Säcke."), day.addSecs(180), 60.0);
+    QVERIFY(seeds > 0 && stranger > 0 && water > 0 && soil > 0);
+
+    AiProviderMock provider;
+    provider.chatAnswer = QStringLiteral(R"({"title": "Garten im Frühjahr", "notes": [1, 3, 4]})");
+
+    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    const QList<Proposal> proposals = store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(1));
+    QCOMPARE(proposals.constFirst().noteIds, QList<qint64>({seeds, water, soil}));
+    // And the text of the note that was dropped is in no part of the collective
+    // note either: the references and the Markdown are two writes, and only one
+    // of them was asked about above.
+    QVERIFY(!payloadOf(proposals.constFirst()).value(QLatin1String("markdown")).toString().contains(
+        QStringLiteral("Werkstatt")));
+}
+
+void AiTest::aNoteWithTaskFieldsBecomesATaskSuggestion()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // Only the fields the note carried, which is what the classification
+    // already decided (SPEC 7.2): a description and a due date, no project, no
+    // tags and no priority.
+    const QString task = QStringLiteral(R"({"description":"Wasserfilter tauschen","due":"2026-08-05"})");
+    const QDateTime day = QDateTime::fromString(QStringLiteral("2026-08-04T07:15:00.000"), Qt::ISODateWithMs);
+    const qint64 filter = addEmbeddedNote(*store,
+                                          QStringLiteral("Wasserfilter der Kaffeemaschine tauschen, die Anzeige blinkt."),
+                                          day,
+                                          0.0,
+                                          task);
+    QVERIFY(filter > 0);
+
+    AiProviderMock provider;
+    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    const QList<Proposal> proposals = store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(1));
+    QCOMPARE(proposals.constFirst().kind, Proposal::Kind::Task);
+    QCOMPARE(proposals.constFirst().status, Proposal::Status::Open);
+    QCOMPARE(proposals.constFirst().noteIds, QList<qint64>({filter}));
+    // The text of `notes.task` handed on, character for character: assembled a
+    // second time it would be a second place for the same fact, and a field
+    // could go missing on the way without anything saying so.
+    QCOMPARE(proposals.constFirst().payload, task);
+
+    // No model was asked, because there is nothing to ask: the fields were
+    // extracted by step 1 (SPEC 7.4).
+    QVERIFY(provider.prompts.isEmpty());
+
+    // And the next run does not offer the same task a second time. Without
+    // that the review would fill up with one card per half hour (SPEC 7.2).
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 5000);
+    QCOMPARE(store->proposals().size(), qsizetype(1));
+}
+
+void AiTest::aDeferredBundleIsClusteredAgainAndReplaced()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // Two clusters far apart — 110° between the nearest members of the two, so
+    // no note of one chains into the other. One of them was put aside for
+    // later, the other one is a question still standing.
+    const QDateTime day = QDateTime::fromString(QStringLiteral("2026-08-05T09:00:00.000"), Qt::ISODateWithMs);
+    const qint64 chain = addEmbeddedNote(*store, QStringLiteral("Die Kette des Rades ölen, sie quietscht."), day, 0.0);
+    const qint64 tyre = addEmbeddedNote(*store, QStringLiteral("Vorderreifen aufpumpen, drei Bar."), day.addSecs(60), 20.0);
+    const qint64 light = addEmbeddedNote(*store, QStringLiteral("Das Rücklicht am Rad hält nicht mehr."), day.addSecs(120), 40.0);
+    const qint64 pasta = addEmbeddedNote(*store, QStringLiteral("Nudeln und Passata sind alle."), day.addSecs(180), 150.0);
+    const qint64 bread = addEmbeddedNote(*store, QStringLiteral("Brot beim Bäcker am Markt holen."), day.addSecs(240), 170.0);
+    const qint64 coffee = addEmbeddedNote(*store, QStringLiteral("Kaffeebohnen für die nächste Woche."), day.addSecs(300), 190.0);
+    QVERIFY(chain > 0 && tyre > 0 && light > 0 && pasta > 0 && bread > 0 && coffee > 0);
+
+    const qint64 deferred = addStandingProposal(*store, Proposal::Kind::Bundle, Proposal::Status::Deferred,
+                                                {chain, tyre, light});
+    const qint64 open = addStandingProposal(*store, Proposal::Kind::Bundle, Proposal::Status::Open,
+                                            {pasta, bread, coffee});
+    QVERIFY(deferred > 0 && open > 0);
+
+    AiProviderMock provider;
+    provider.chatAnswer = QStringLiteral(R"({"title": "Das Rad", "notes": [1, 2, 3]})");
+
+    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    // **One call, and that is both halves of the criterion**: the deferred
+    // notes went back into the corpus, and the notes of the open suggestion
+    // did not — asked about again they would have made a second card over the
+    // same three notes, every run. Held out both ways the number would be 0,
+    // held out neither way it would be 2.
+    QCOMPARE(provider.prompts.size(), qsizetype(1));
+    QVERIFY(provider.prompts.constFirst().contains(QStringLiteral("Die Kette des Rades")));
+
+    const QList<Proposal> proposals = store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(2));
+
+    // The one that was standing keeps standing, unasked and untouched.
+    QCOMPARE(proposals.constFirst().id, open);
+    QCOMPARE(proposals.constFirst().noteIds, QList<qint64>({pasta, bread, coffee}));
+
+    // The deferred one is gone and the new one has its place: two cards over
+    // the same notes would be the same decision put twice (UX decision of
+    // 29.08.2026).
+    QCOMPARE(proposals.constLast().status, Proposal::Status::Open);
+    QVERIFY(proposals.constLast().id != deferred);
+    QCOMPARE(proposals.constLast().noteIds, QList<qint64>({chain, tyre, light}));
+    QCOMPARE(payloadOf(proposals.constLast()).value(QLatin1String("title")).toString(), QStringLiteral("Das Rad"));
 }
 
 QTEST_GUILESS_MAIN(AiTest)

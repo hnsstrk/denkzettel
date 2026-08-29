@@ -1,17 +1,29 @@
 #include "analysis/analysisscheduler.h"
 
 #include "analysis/classifier.h"
+#include "analysis/embedder.h"
+#include "analysis/suggester.h"
 
 #include <KConfigGroup>
 #include <KSharedConfig>
 
 #include <algorithm>
 
-AnalysisScheduler::AnalysisScheduler(Classifier *classifier, QObject *parent)
+AnalysisScheduler::AnalysisScheduler(Classifier *classifier, Embedder *embedder, Suggester *suggester,
+                                     QObject *parent)
     : QObject(parent)
     , m_classifier(classifier)
+    , m_embedder(embedder)
+    , m_suggester(suggester)
 {
-    connect(m_classifier, &Classifier::finished, this, [this] {
+    // The three steps of SPEC 7.2 in the order the data takes them, and the
+    // chain lives here rather than in the steps: each of them would otherwise
+    // have to know the one after it, and the classification would link the
+    // clustering to start it.
+    connect(m_classifier, &Classifier::finished, m_embedder, &Embedder::start);
+    connect(m_embedder, &Embedder::finished, m_suggester, &Suggester::start);
+
+    connect(m_suggester, &Suggester::finished, this, [this] {
         if (!m_runWhenIdle) {
             return;
         }
@@ -61,11 +73,18 @@ void AnalysisScheduler::applySettings()
 
 void AnalysisScheduler::analyzeNow()
 {
-    if (m_classifier->isBusy()) {
+    if (isBusy()) {
         m_runWhenIdle = true;
         return;
     }
     m_classifier->start();
+}
+
+bool AnalysisScheduler::isBusy() const
+{
+    // All three, and not the classification alone: between two steps of one run
+    // the first one is through and the run is not (CLAUDE.md, finding 32).
+    return m_classifier->isBusy() || m_embedder->isBusy() || m_suggester->isBusy();
 }
 
 void AnalysisScheduler::noteIsReady()
