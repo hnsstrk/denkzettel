@@ -1068,6 +1068,16 @@ conceivable as an optional later additional path, but is not built for v1.
   drawn as an overlay) — no graphics work of our own.
 - **KNotification** on: a new package of suggestions, an overflow reminder, a
   repeated error. No notification for routine runs.
+- **A transcription that has finally failed is one of those repeated errors**
+  (customer decision 29.08.2026, issue #115). Where the attempts of §12 are
+  used up, **one** notification goes out — once per note and not once per
+  attempt, and not again at the next start for a job that was already given up
+  on: the tray state carries that, the notification is for the moment it
+  happens. Its text names the note by the moment it was recorded and the reason
+  it failed, and carries **no path**: the program path is configurable (§12)
+  and may lie in the user's home, and a notification travels further than a
+  tooltip because it can be forwarded. What the program said last and the paths
+  stay in the log (§14).
 
 ## 11. Overflow guard
 
@@ -1120,9 +1130,9 @@ conceivable as an optional later additional path, but is not built for v1.
   in `last_error` and the queue goes on to the next one. Same ground as the
   15-minute bound of §4: Denkzettel takes down short notes and is no audio
   recorder.
-- Error path: 2 failed attempts → the job pauses, tray error state, the note
-  stays visible/playable as an `audio` note without a transcript (nothing is
-  lost).
+- Error path: 2 failed attempts → the job pauses, tray error state **and one
+  KNotification** (§10, §14), the note stays visible/playable as an `audio`
+  note without a transcript (nothing is lost).
 
 ## 13. Settings (dialog)
 
@@ -1144,6 +1154,13 @@ The periodic analysis run is a loop in the sense of the loop conventions:
 
 Reporting channels: tray state + tooltip (quiet), KNotification (important), log
 file `~/.local/share/denkzettel/denkzettel.log` (details, with rotation).
+
+**A transcription that has finally failed uses all three**, and that is what
+the split means in practice (§10, §12): the tray state and the tooltip stand as
+long as the queue holds the job that was given up on, a restart included; one
+KNotification goes out at the moment the attempts are used up, once per note;
+and the log keeps the full reason, including the program path and the last line
+the program wrote, which neither visible channel carries.
 
 ## 15. Build, dependencies, packaging
 

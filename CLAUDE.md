@@ -520,6 +520,22 @@ find.
     the same run reads `NeedsAttention` at the start and `Active` after the
     transcript — different twice on the same binary.
 
+37. **A `KNotification` on a bus with no notification server sends nothing at
+    all — not a failed call, not a warning, nothing.** Measured 2026-08-29 on
+    #115 in a `dbus-run-session`: the same binary that writes one `Notify` with
+    a stand-in on `org.freedesktop.Notifications` wrote **zero** with the name
+    unowned — `dbus-monitor "interface='org.freedesktop.Notifications'"`
+    recorded not one call, and the daemon's own log said nothing about it. The
+    output is identical to the build that never had the feature, so a run
+    watching for a notification is quiet for a reason that has nothing to do
+    with the code. This is finding 36's family for the other channel, and
+    finding 21's for the road it takes: `XDG_DATA_DIRS` still points at
+    `/usr/share`, where `org.kde.plasma.Notifications.service` maps that name
+    to `/usr/bin/plasma_waitforname` — the bus dutifully activates a program
+    that only waits for the name to appear, and the call stays in that wait. So
+    a stand-in owning the name is part of the run, and it is what the "already
+    activated" line in the daemon's output is really reporting.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

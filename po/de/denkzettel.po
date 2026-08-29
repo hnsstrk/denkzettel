@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 10:08+0200\n"
+"POT-Creation-Date: 2026-08-29 10:47+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -37,7 +37,17 @@ msgstr "Gedanke festhalten …"
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr "Esc verwirft · Strg+Enter speichert"
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:86
+#: src/main.cpp:141
+#, kde-format
+msgid "Transcription failed"
+msgstr "Transkription fehlgeschlagen"
+
+#: src/main.cpp:142
+#, kde-format
+msgid "The voice note of %1 could not be transcribed: %2"
+msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
+
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:87
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr "Gedanken schnell festhalten"
@@ -70,7 +80,7 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr "%1 — %2"
 
-#: src/shell/globalshortcuts.cpp:65 src/shell/trayicon.cpp:95
+#: src/shell/globalshortcuts.cpp:65 src/shell/trayicon.cpp:96
 #, kde-format
 msgid "Capture note"
 msgstr "Notiz erfassen"
@@ -134,97 +144,97 @@ msgstr ""
 "Neuinstallation bringt ihn zurück. Bis dahin bleibt das Erfassungsfenster "
 "über das Symbol im Systemabschnitt erreichbar."
 
-#: src/shell/trayicon.cpp:87
+#: src/shell/trayicon.cpp:88
 #, kde-format
 msgid "Transcription failed: %1"
 msgstr "Transkription fehlgeschlagen: %1"
 
-#: src/shell/trayicon.cpp:104
+#: src/shell/trayicon.cpp:105
 #, kde-format
 msgid "Record voice note"
 msgstr "Sprachnotiz aufnehmen"
 
-#: src/shell/trayicon.cpp:111
+#: src/shell/trayicon.cpp:112
 #, kde-format
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:114
+#: src/shell/trayicon.cpp:115
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:115
+#: src/shell/trayicon.cpp:116
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:129
+#: src/shell/trayicon.cpp:130
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:161
+#: src/shell/trayicon.cpp:162
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"
 
-#: src/transcribe/transcriber.cpp:115
+#: src/transcribe/transcriber.cpp:122
 #, kde-format
 msgid "%1 was killed"
 msgstr "%1 wurde abgebrochen"
 
-#: src/transcribe/transcriber.cpp:137
+#: src/transcribe/transcriber.cpp:144
 #, kde-format
 msgid "%1 ended with code %2"
 msgstr "%1 endete mit Code %2"
 
-#: src/transcribe/transcriber.cpp:156
+#: src/transcribe/transcriber.cpp:163
 #, kde-format
 msgid "%1 could not be started"
 msgstr "%1 ließ sich nicht starten"
 
-#: src/transcribe/transcriber.cpp:236
+#: src/transcribe/transcriber.cpp:243
 #, kde-format
 msgid "The run was interrupted"
 msgstr "Der Lauf wurde unterbrochen"
 
-#: src/transcribe/transcriber.cpp:290
+#: src/transcribe/transcriber.cpp:297
 #, kde-format
 msgid "The note carries no audio file"
 msgstr "Die Notiz trägt keine Audiodatei"
 
-#: src/transcribe/transcriber.cpp:295
+#: src/transcribe/transcriber.cpp:302
 #, kde-format
 msgid "The audio file %1 is missing"
 msgstr "Die Audiodatei %1 fehlt"
 
-#: src/transcribe/transcriber.cpp:309
+#: src/transcribe/transcriber.cpp:316
 #, kde-format
 msgid "No working directory could be created"
 msgstr "Es ließ sich kein Arbeitsverzeichnis anlegen"
 
-#: src/transcribe/transcriber.cpp:366
+#: src/transcribe/transcriber.cpp:373
 #, kde-format
 msgid "%1 wrote no transcript"
 msgstr "%1 hat kein Transkript geschrieben"
 
-#: src/transcribe/transcriber.cpp:373
+#: src/transcribe/transcriber.cpp:380
 #, kde-format
 msgid "The transcript is no JSON: %1"
 msgstr "Das Transkript ist kein JSON: %1"
 
-#: src/transcribe/transcriber.cpp:388
+#: src/transcribe/transcriber.cpp:395
 #, kde-format
 msgid "%1 returned no text"
 msgstr "%1 hat keinen Text geliefert"
 
-#: src/transcribe/transcriber.cpp:396
+#: src/transcribe/transcriber.cpp:403
 #, kde-format
 msgid "The transcript could not be saved"
 msgstr "Das Transkript ließ sich nicht speichern"
 
-#: src/transcribe/transcriber.cpp:422
+#: src/transcribe/transcriber.cpp:429
 #, kde-format
 msgid "%1 did not finish within %2 seconds"
 msgstr "%1 wurde in %2 Sekunden nicht fertig"

@@ -163,3 +163,27 @@ private:
     int m_attempts = 0;
     Step m_step = Step::Idle;
 };
+
+/**
+ * The reason a job failed with, as it may leave the machine (SPEC 10, issue
+ * #115).
+ *
+ * The job records the program with its full path, and the log and the tray
+ * tooltip show it that way — a notification is a different matter, because it
+ * can be forwarded, and the program path is a setting (SPEC 12) that may lie
+ * in the user's home. The name of the program carries the whole statement; the
+ * directory says only where this machine keeps it.
+ *
+ * ponytail: a filter over the finished sentence, not a reason built from parts.
+ * It takes the directories off a run without blanks that begins with `/`, so
+ * "/home/<name>/tools/whisper-cli ended with code 2" comes out as "whisper-cli
+ * ended with code 2". **The ceiling is the blank**: a program path with one in
+ * it keeps what stands after the last blank ("…/my tools/whisper-cli ended
+ * with code 2" → "my tools/whisper-cli ended with code 2"), and a relative
+ * path stays whole, because it names no home. Neither is the ordinary case —
+ * the programs of SPEC 12 are packaged ones under `/usr/bin` — and both leave
+ * the statement readable. Where that stops being enough, the way up is to
+ * carry the program name beside the reason instead of parsing the sentence
+ * apart again.
+ */
+QString reasonWithoutDirectories(QString reason);
