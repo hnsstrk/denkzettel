@@ -2034,6 +2034,19 @@ void LibraryTest::filtersTheListWithTheSearchField()
 
     searchOf(window)->setText(QStringLiteral("bucher"));
     QCOMPARE(modelOf(list)->noteCount(), 1);
+
+    // The operators of SPEC 6 travel the same road: the window hands the field
+    // on untouched, and the parser of S7 takes it apart inside the store. The
+    // phrase is the one operator this set can show without a second note type
+    // or a date of its own — and it shows more than that the query arrives,
+    // because both of its words stand in the note and only one of the two
+    // orders is in it.
+    searchOf(window)->setText(QStringLiteral("\"Fotos prüfen\""));
+    QCOMPARE(modelOf(list)->noteCount(), 1);
+    QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("Backup der Fotos prüfen"));
+
+    searchOf(window)->setText(QStringLiteral("\"prüfen Fotos\""));
+    QCOMPARE(modelOf(list)->noteCount(), 0);
 }
 
 void LibraryTest::carriesOutAPendingDeletionWhenTheSearchChanges()

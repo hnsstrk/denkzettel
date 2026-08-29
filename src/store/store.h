@@ -99,9 +99,13 @@ public:
      * returns the same list as notes(): clearing the search field restores the
      * full list.
      *
-     * The search operators of SPEC 6 (`tag:`, `kat:`, phrases …) are not part
-     * of this method; they arrive with the search parser (S7). Until then
-     * every character the user types is plain search text.
+     * The operators of SPEC 6 are taken out by parseSearchQuery() and every
+     * one of them narrows the same query further: `tag:` and `kat:` and `typ:`
+     * against the columns of that name, `vor:` and `nach:` against the day,
+     * and quoted phrases against the text beside the loose words. Two of them
+     * inherit the ASCII-only case folding of the short-term route: `tag:` and
+     * `kat:` compare COLLATE NOCASE, so `tag:BACKUP` finds `backup` and
+     * `tag:BÜCHER` does not find `bücher`.
      */
     QList<Note> search(const QString &text) const;
 

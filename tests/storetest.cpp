@@ -1,3 +1,4 @@
+#include "store/searchquery.h"
 #include "store/store.h"
 
 #include <QCoreApplication>
@@ -43,6 +44,9 @@ private Q_SLOTS:
     void searchFindsTermsShorterThanThreeCharacters();
     void searchTakesQueryTextLiterally();
     void searchWithoutTermsListsAllNotes();
+    void parsesSearchOperators();
+    void parsesUnknownOperatorsAsText();
+    void searchAppliesOperatorsBesideFreeText();
     void keepsSearchIndexInSync();
     void migratesDatabaseFromSchemaVersion1();
 
@@ -460,12 +464,12 @@ void StoreTest::searchTakesQueryTextLiterally()
 
     // Adding AND in between finds nothing — and that is the point: AND is
     // searched for as a word, and the note has none starting with „and". Were
-    // it read as an FTS5 operator, the note would still show up. Operators
-    // arrive with the search parser (S7).
+    // it read as an FTS5 operator, the note would still show up. The parser of
+    // S7 knows five operators and AND is not one of them.
     QVERIFY(m_store->search(QStringLiteral("Backup AND Notizen")).isEmpty());
 
     // Punctuation that is FTS5 syntax must not raise a search error either;
-    // it separates terms like any other character.
+    // outside a phrase it separates terms like any other character.
     QCOMPARE(searchContents(QStringLiteral("\"Backup\"")), QStringList({note.content}));
     QCOMPARE(searchContents(QStringLiteral("Backup (Notizen)")), QStringList({note.content}));
     QCOMPARE(searchContents(QStringLiteral("Backup -Notizen")), QStringList({note.content}));
@@ -473,7 +477,13 @@ void StoreTest::searchTakesQueryTextLiterally()
 
     // A query of pure punctuation carries no term and must not be a syntax
     // error either.
-    QCOMPARE(m_store->search(QStringLiteral("\"*()")).size(), 1);
+    QCOMPARE(m_store->search(QStringLiteral("*()")).size(), 1);
+    QVERIFY2(m_store->lastError().isEmpty(), qPrintable(m_store->lastError()));
+
+    // The same characters behind a quotation mark are a phrase, and there they
+    // are searched for as they stand: the note does not carry them. An empty
+    // list is the answer, an FTS5 syntax error would not be.
+    QVERIFY(m_store->search(QStringLiteral("\"*()")).isEmpty());
     QVERIFY2(m_store->lastError().isEmpty(), qPrintable(m_store->lastError()));
 }
 
@@ -625,6 +635,168 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
     QCOMPARE(m_store->schemaVersion(), 3);
     QCOMPARE(m_store->notes().size(), 3);
+}
+
+void StoreTest::parsesSearchOperators()
+{
+    // The five operators of SPEC 6, one at a time, and the prefix in whatever
+    // case it was typed.
+    QCOMPARE(parseSearchQuery(QStringLiteral("tag:backup")).tags, QStringList({QStringLiteral("backup")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral("TAG:backup")).tags, QStringList({QStringLiteral("backup")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral("kat:todos")).categories, QStringList({QStringLiteral("todos")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral("typ:audio")).types, QStringList({QStringLiteral("audio")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral("Typ:TEXT")).types, QStringList({QStringLiteral("text")}));
+
+    // German special characters reach the operator as themselves — the tags
+    // and categories of this application are written with them.
+    QCOMPARE(parseSearchQuery(QStringLiteral("tag:straßenbahn")).tags, QStringList({QStringLiteral("straßenbahn")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral("kat:persönlich")).categories,
+             QStringList({QStringLiteral("persönlich")}));
+
+    // Month and day come out as one boundary, and `nach:` answers the day
+    // after the period it names — otherwise a note written on the named day
+    // would be before and after it at once.
+    QCOMPARE(parseSearchQuery(QStringLiteral("vor:2026-07")).before, QDate(2026, 7, 1));
+    QCOMPARE(parseSearchQuery(QStringLiteral("vor:2026-07-15")).before, QDate(2026, 7, 15));
+    QCOMPARE(parseSearchQuery(QStringLiteral("nach:2026-06")).after, QDate(2026, 7, 1));
+    QCOMPARE(parseSearchQuery(QStringLiteral("nach:2026-06-15")).after, QDate(2026, 6, 16));
+
+    // Everything is ANDed, so two boundaries pointing the same way keep the
+    // narrower one. The narrower one stands **first** here on purpose: written
+    // the other way round the case would come out the same whether the parser
+    // narrows or simply keeps the last value it read.
+    const SearchQuery narrowed =
+        parseSearchQuery(QStringLiteral("vor:2026-01 vor:2026-06 nach:2026-04 nach:2026-02"));
+    QCOMPARE(narrowed.before, QDate(2026, 1, 1));
+    QCOMPARE(narrowed.after, QDate(2026, 5, 1));
+
+    // Operators and free text in one query, each in its own place.
+    const SearchQuery mixed = parseSearchQuery(QStringLiteral("tag:ki tag:backup Bücher \"zwei Wörter\" typ:text"));
+    QCOMPARE(mixed.tags, QStringList({QStringLiteral("ki"), QStringLiteral("backup")}));
+    QCOMPARE(mixed.types, QStringList({QStringLiteral("text")}));
+    QCOMPARE(mixed.terms, QStringList({QStringLiteral("Bücher"), QStringLiteral("zwei Wörter")}));
+
+    // Nothing to search for — the library answers that with the whole list.
+    QVERIFY(parseSearchQuery(QString()).isEmpty());
+    QVERIFY(parseSearchQuery(QStringLiteral("   ")).isEmpty());
+    QVERIFY(!parseSearchQuery(QStringLiteral("typ:text")).isEmpty());
+}
+
+void StoreTest::parsesUnknownOperatorsAsText()
+{
+    // An unknown prefix is full text and no error (SPEC 6) — and a known
+    // prefix whose value the parser cannot use is the same: no value at all, a
+    // note type that does not exist, a date that does not exist. Every one of
+    // them would otherwise answer with an empty list where the user meant to
+    // search for the words.
+    QCOMPARE(parseSearchQuery(QStringLiteral("foo:bar")).terms,
+             QStringList({QStringLiteral("foo"), QStringLiteral("bar")}));
+    QVERIFY(parseSearchQuery(QStringLiteral("foo:bar")).tags.isEmpty());
+    QCOMPARE(parseSearchQuery(QStringLiteral("tag:")).terms, QStringList({QStringLiteral("tag")}));
+    QVERIFY(parseSearchQuery(QStringLiteral("tag:")).tags.isEmpty());
+    QCOMPARE(parseSearchQuery(QStringLiteral("typ:bild")).terms,
+             QStringList({QStringLiteral("typ"), QStringLiteral("bild")}));
+    QVERIFY(parseSearchQuery(QStringLiteral("typ:bild")).types.isEmpty());
+
+    const SearchQuery impossible = parseSearchQuery(QStringLiteral("vor:2026-02-31"));
+    QVERIFY(!impossible.before.isValid());
+    QCOMPARE(impossible.terms,
+             QStringList({QStringLiteral("vor"), QStringLiteral("2026"), QStringLiteral("02"), QStringLiteral("31")}));
+
+    // A colon inside a word is no operator, and one at the front has no prefix
+    // in front of it.
+    QCOMPARE(parseSearchQuery(QStringLiteral("https://kde.org")).terms,
+             QStringList({QStringLiteral("https"), QStringLiteral("kde"), QStringLiteral("org")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral(":backup")).terms, QStringList({QStringLiteral("backup")}));
+
+    // Quotation marks make one term out of several words, and where they stand
+    // decides what they hold together: in front of the prefix they quote the
+    // operator away, behind it they quote its value.
+    QCOMPARE(parseSearchQuery(QStringLiteral("\"Backup prüfen\"")).terms,
+             QStringList({QStringLiteral("Backup prüfen")}));
+    QCOMPARE(parseSearchQuery(QStringLiteral("\"tag:backup\"")).terms, QStringList({QStringLiteral("tag:backup")}));
+    QVERIFY(parseSearchQuery(QStringLiteral("\"tag:backup\"")).tags.isEmpty());
+    QCOMPARE(parseSearchQuery(QStringLiteral("tag:\"zwei wörter\"")).tags,
+             QStringList({QStringLiteral("zwei wörter")}));
+
+    // A quotation mark nobody closed reaches to the end of the input — the
+    // state every phrase passes through while it is being typed.
+    QCOMPARE(parseSearchQuery(QStringLiteral("Backup \"prüfen und")).terms,
+             QStringList({QStringLiteral("Backup"), QStringLiteral("prüfen und")}));
+
+    // A pair of quotes around nothing carries no term. Kept as a phrase it
+    // would be a search for spaces and would find nearly every note.
+    QVERIFY(parseSearchQuery(QStringLiteral("\"\"")).isEmpty());
+    QVERIFY(parseSearchQuery(QStringLiteral("\"   \"")).isEmpty());
+}
+
+void StoreTest::searchAppliesOperatorsBesideFreeText()
+{
+    Note books = sampleNote();
+    books.content = QStringLiteral("Backup der Bücher-Datenbank prüfen");
+    books.category = QStringLiteral("todos");
+    books.createdAt = QDateTime::fromString(QStringLiteral("2026-07-15T10:00:00.000"), Qt::ISODateWithMs);
+    const std::optional<qint64> booksId = m_store->addNote(books);
+    QVERIFY2(booksId.has_value(), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->setTags(*booksId, {QStringLiteral("backup"), QStringLiteral("ki")}));
+
+    Note tram = sampleNote();
+    tram.content = QStringLiteral("Straßenbahnen fotografieren");
+    tram.type = Note::Type::Audio;
+    tram.category = QStringLiteral("ideen");
+    tram.createdAt = QDateTime::fromString(QStringLiteral("2026-06-20T10:00:00.000"), Qt::ISODateWithMs);
+    const std::optional<qint64> tramId = m_store->addNote(tram);
+    QVERIFY2(tramId.has_value(), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->setTags(*tramId, {QStringLiteral("backup"), QStringLiteral("straßenbahn")}));
+
+    Note milk = sampleNote();
+    milk.content = QStringLiteral("Milch kaufen, Version 2026 planen");
+    milk.createdAt = QDateTime::fromString(QStringLiteral("2026-08-05T10:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(milk).has_value());
+
+    Note progress = sampleNote();
+    progress.content = QStringLiteral("Fortschritt 100% erreicht");
+    progress.createdAt = QDateTime::fromString(QStringLiteral("2026-05-01T10:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(progress).has_value());
+
+    // A tag filter, and the result list is the library's order (SPEC 9).
+    QCOMPARE(searchContents(QStringLiteral("tag:backup")), QStringList({books.content, tram.content}));
+    QCOMPARE(searchContents(QStringLiteral("tag:backup tag:ki")), QStringList({books.content}));
+
+    // A tag of two characters is a tag and not a search term: the three
+    // character boundary of the trigram index is a rule of the full text and
+    // has nothing to do with this road.
+    QCOMPARE(searchContents(QStringLiteral("tag:ki")), QStringList({books.content}));
+
+    // ASCII case does not matter, and ß reaches the comparison as itself.
+    QCOMPARE(searchContents(QStringLiteral("tag:BACKUP tag:straßenbahn")), QStringList({tram.content}));
+
+    QCOMPARE(searchContents(QStringLiteral("kat:todos")), QStringList({books.content}));
+    QCOMPARE(searchContents(QStringLiteral("typ:audio")), QStringList({tram.content}));
+    QCOMPARE(searchContents(QStringLiteral("typ:text")).size(), 3);
+
+    // The month is the whole month: before July leaves out the 15th of July,
+    // and after July starts with August.
+    QCOMPARE(searchContents(QStringLiteral("vor:2026-07")), QStringList({tram.content, progress.content}));
+    QCOMPARE(searchContents(QStringLiteral("nach:2026-07")), QStringList({milk.content}));
+    QCOMPARE(searchContents(QStringLiteral("nach:2026-07-14 vor:2026-07-16")), QStringList({books.content}));
+
+    // Operators and free text together — the second acceptance criterion of
+    // the story.
+    QCOMPARE(searchContents(QStringLiteral("tag:backup fotografieren")), QStringList({tram.content}));
+    QVERIFY(m_store->search(QStringLiteral("tag:ki fotografieren")).isEmpty());
+    QCOMPARE(searchContents(QStringLiteral("typ:text vor:2026-06 100")), QStringList({progress.content}));
+
+    // A phrase is one sequence, two words are two conditions: both words stand
+    // in the note, in the other order.
+    QCOMPARE(searchContents(QStringLiteral("\"Bücher-Datenbank prüfen\"")), QStringList({books.content}));
+    QVERIFY(m_store->search(QStringLiteral("\"prüfen Bücher\"")).isEmpty());
+    QCOMPARE(searchContents(QStringLiteral("prüfen Bücher")), QStringList({books.content}));
+
+    // A phrase under three characters takes the substring route, and there its
+    // wildcards are text: „0%" finds the percentage and not the year 2026,
+    // which carries a nought as well.
+    QCOMPARE(searchContents(QStringLiteral("\"0%\"")), QStringList({progress.content}));
 }
 
 QTEST_GUILESS_MAIN(StoreTest)
