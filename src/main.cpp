@@ -8,14 +8,17 @@
 #include "store/store.h"
 #include "transcribe/transcriber.h"
 #include "ui/librarywindow.h"
+#include "ui/timestampformat.h"
 
 #include <KConfigGroup>
 #include <KDBusService>
 #include <KLocalizedString>
+#include <KNotification>
 #include <KSharedConfig>
 
 #include <QApplication>
 #include <QIcon>
+#include <QLocale>
 
 #include <optional>
 
@@ -104,6 +107,43 @@ int main(int argc, char *argv[])
     QObject::connect(&transcriber, &Transcriber::paused, &tray, showWhereTheQueueStands);
     QObject::connect(&transcriber, &Transcriber::transcribed, &tray, showWhereTheQueueStands);
 
+    // And the loud channel beside it (SPEC 10 and 14, issue #115): a voice note
+    // whose transcription has finally failed is the case the user otherwise
+    // notices nothing of for weeks, so it says so — once per note, because
+    // paused() is emitted where the attempts are used up and failed() is the
+    // one that fires per attempt.
+    //
+    // Armed only after start() below, and that is the whole of acceptance
+    // criterion 3: start() emits paused() for a job that was already given up
+    // on before this process began, so that the tray stands where the queue
+    // stands after a restart. Announced, it would greet every login with last
+    // week's failure. A note that is gone says nothing either — deleting it
+    // takes its job row with it (ON DELETE CASCADE), and there is nothing left
+    // to tell the user about.
+    bool announceGivingUp = false;
+    QObject::connect(&transcriber, &Transcriber::paused, &app,
+                     [&store, &announceGivingUp](qint64 noteId, const QString &reason) {
+                         if (!announceGivingUp) {
+                             return;
+                         }
+                         const std::optional<Note> note = store.note(noteId);
+                         if (!note.has_value()) {
+                             return;
+                         }
+                         // The moment it was recorded is what names the note:
+                         // that is the handle the library lists it under (SPEC
+                         // 9), and one without a transcript has no other. It is
+                         // written in the form the library writes it in, out of
+                         // the same function — a second form of the same
+                         // timestamp would be a second thing to look for.
+                         KNotification::event(
+                             KNotification::Warning,
+                             i18n("Transcription failed"),
+                             i18n("The voice note of %1 could not be transcribed: %2",
+                                  library::entryTimestamp(note->createdAt, QLocale()),
+                                  reasonWithoutDirectories(reason)));
+                     });
+
     DaemonService daemon(&store);
     QObject::connect(&daemon, &DaemonService::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&daemon, &DaemonService::libraryRequested, &library, &LibraryWindow::showLibrary);
@@ -127,6 +167,9 @@ int main(int argc, char *argv[])
     // Last, and after the first start above: the queue may hold a job from a
     // run that was killed, and working it off is the same road as a fresh one.
     transcriber.start();
+    // Everything given up on from here on happened while the user was watching,
+    // and only that is worth a notification (issue #115).
+    announceGivingUp = true;
 
     return app.exec();
 }

@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QStringList>
 #include <QTemporaryDir>
@@ -47,6 +48,12 @@ QString lastLineOf(const QByteArray &output)
     }
     return lines.constLast().trimmed().left(limit);
 }
+}
+
+QString reasonWithoutDirectories(QString reason)
+{
+    static const QRegularExpression directories(QStringLiteral("(?:^|(?<=\\s))/\\S*/"));
+    return reason.remove(directories);
 }
 
 Transcriber::Transcriber(Store *store, QObject *parent)

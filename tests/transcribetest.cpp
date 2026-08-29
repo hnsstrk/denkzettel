@@ -52,6 +52,7 @@ private Q_SLOTS:
     void namesAReasonForARunThatWasNeverAnsweredFor();
     void givesUpOnARunThatHangs();
     void namesTheProgramWhenItIsNotInstalledAtAll();
+    void stripsTheDirectoriesOffAReasonBeforeItIsForwarded();
     void clearsTheWorkingDirectoryOfAKilledRun();
     void deletingANoteTakesItsJobWithIt();
 
@@ -707,6 +708,36 @@ void TranscribeTest::namesTheProgramWhenItIsNotInstalledAtAll()
     QVERIFY(note->content.isEmpty());
     QCOMPARE(note->state, Note::State::New);
     QVERIFY(QFile::exists(m_store->audioDirectory() + QLatin1Char('/') + note->audioPath));
+}
+
+void TranscribeTest::stripsTheDirectoriesOffAReasonBeforeItIsForwarded()
+{
+    // The job records the program with its whole path and the case above
+    // asserts that it does; a notification carries the same statement without
+    // it (SPEC 10, issue #115), because it can be forwarded and the path is a
+    // setting that may lie in the user's home. This is a filter over the error
+    // texts of somebody else's programs, and it failing is nothing anybody sees
+    // but the user, on their own machine, with their own configured path.
+    QCOMPARE(reasonWithoutDirectories(QStringLiteral("/home/someone/tools/whisper-cli ended with code 2")),
+             QStringLiteral("whisper-cli ended with code 2"));
+    QCOMPARE(reasonWithoutDirectories(QStringLiteral("/usr/bin/ffmpeg could not be started")),
+             QStringLiteral("ffmpeg could not be started"));
+
+    // A reason that never carried a path is handed on word for word — the
+    // other failure paths of SPEC 12 are not to be nibbled at.
+    QCOMPARE(reasonWithoutDirectories(QStringLiteral("The audio file 20260829-091500.ogg is missing")),
+             QStringLiteral("The audio file 20260829-091500.ogg is missing"));
+    QCOMPARE(reasonWithoutDirectories(QStringLiteral("The run was interrupted")),
+             QStringLiteral("The run was interrupted"));
+
+    // And the ceiling the declaration names, written down so that it stays a
+    // decision instead of becoming a surprise: a blank inside the path leaves
+    // what follows the last one standing, and a relative path stays whole
+    // because it names no home. Both keep the statement readable.
+    QCOMPARE(reasonWithoutDirectories(QStringLiteral("/home/someone/my tools/whisper-cli ended with code 2")),
+             QStringLiteral("my tools/whisper-cli ended with code 2"));
+    QCOMPARE(reasonWithoutDirectories(QStringLiteral("bin/whisper-cli could not be started")),
+             QStringLiteral("bin/whisper-cli could not be started"));
 }
 
 void TranscribeTest::clearsTheWorkingDirectoryOfAKilledRun()

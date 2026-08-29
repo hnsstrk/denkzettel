@@ -77,12 +77,13 @@ void TrayIcon::setTranscriptionError(const QString &reason)
     m_item->setStatus(reason.isEmpty() ? KStatusNotifierItem::Active
                                        : KStatusNotifierItem::NeedsAttention);
     // This is the quiet channel of SPEC 14 — tray state and tooltip — and it
-    // is all this class serves. The loud one is owed and not written off: the
-    // customer decided on 29.08.2026 that a transcription given up on shall
-    // notify, which is the "repeated error" SPEC 10 lists among the
-    // KNotification triggers. It carries acceptance criteria of its own and
-    // comes in an issue of its own; whoever builds it puts the KNotification
-    // beside these two lines, not instead of them.
+    // is all this class serves. The loud one stands beside these two lines and
+    // not in here: a transcription that has finally failed also sends one
+    // KNotification, wired in main.cpp where the error path of the queue
+    // reaches the user (SPEC 10, issue #115). The two carry different things.
+    // The notification is for the moment it happens and goes out once; this
+    // state stands as long as the queue holds a job that was given up on, a
+    // restart included.
     m_item->setToolTipSubTitle(reason.isEmpty() ? i18n("Capture thoughts quickly")
                                                 : i18n("Transcription failed: %1", reason));
 }
