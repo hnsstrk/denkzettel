@@ -68,6 +68,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // The cleanup check of SPEC 2.5, and here is the only place it may stand:
+    // a recording writes its file before the note that points at it exists, so
+    // the sweep has to be over before the first window can record. Nothing
+    // else in this process touches that directory yet.
+    store.sweepOrphanedAudio();
+
     // Built before the first window and started at the end of this function:
     // it listens on Store::noteAdded for the audio notes to come, and its
     // start() picks up what an earlier run left in the queue (SPEC 12).

@@ -116,6 +116,29 @@ public:
     /** Deletes note and tags in one transaction, then its audio file. */
     bool removeNote(qint64 id);
 
+    /**
+     * Deletes the files in audioDirectory() that no note points at, one log
+     * line each (SPEC 2.5).
+     *
+     * That is the one piece of self-healing the specification allows, and what
+     * it heals is the gap removeNote() leaves open by design: the database is
+     * the authority, so the file goes after the commit, and an interruption in
+     * between leaves a recording nobody can reach any more. An aborted
+     * recording is the other road to the same state.
+     *
+     * **For the service start, and only for it.** A recording writes its file
+     * before the note exists (AudioRecorder::startEncoder()), so a sweep while
+     * the program runs would take the recording in progress; at the start of
+     * the single-instance daemon (SPEC 2.3) nothing of ours has recorded yet.
+     * An outstanding transcription is no such case: a queued, a paused and a
+     * given-up note all keep their `audio_path`, and this reads that column,
+     * not the state.
+     *
+     * If the referenced names cannot be read, nothing is deleted — without
+     * that list every file looks orphaned.
+     */
+    void sweepOrphanedAudio();
+
     /** Replaces all tags of a note. */
     bool setTags(qint64 noteId, const QStringList &tags);
 

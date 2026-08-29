@@ -36,6 +36,7 @@ private Q_SLOTS:
     void replacesTags();
     void removesNoteWithItsTags();
     void removesAudioFileAfterDeletingNote();
+    void removesOrphanedAudioFilesButKeepsReferencedOnes();
     void reopensExistingDatabaseWithoutMigrating();
 
     void findsNotesByFullText();
@@ -323,6 +324,48 @@ void StoreTest::removesAudioFileAfterDeletingNote()
 
     QVERIFY(!m_store->note(*id).has_value());
     QVERIFY2(!QFile::exists(audioFile), qPrintable(audioFile));
+}
+
+void StoreTest::removesOrphanedAudioFilesButKeepsReferencedOnes()
+{
+    // SPEC 2.5, the one permissible piece of self-healing: a recording nothing
+    // points at any more — an aborted recording, a deletion cut off between
+    // commit and unlink — goes at the service start.
+    const QDir audio(m_store->audioDirectory());
+    QVERIFY(QDir().mkpath(audio.path()));
+    const QString transcribed = QStringLiteral("2026-07-31T14-05-23.123.ogg");
+    const QString queued = QStringLiteral("2026-07-31T15-11-02.004.ogg");
+    const QString orphan = QStringLiteral("2026-07-31T16-42-19.900.ogg");
+    for (const QString &name : {transcribed, queued, orphan}) {
+        QFile file(audio.filePath(name));
+        QVERIFY2(file.open(QIODevice::WriteOnly), qPrintable(name));
+        file.write("ogg");
+    }
+
+    Note note = sampleNote();
+    note.type = Note::Type::Audio;
+    note.audioPath = transcribed;
+    note.audioDurationS = 12;
+    note.state = Note::State::Transcribed;
+    QVERIFY2(m_store->addNote(note).has_value(), qPrintable(m_store->lastError()));
+
+    // The second one is what the question "and while a transcription is still
+    // outstanding?" comes down to: the note keeps its audio through the whole
+    // queue, so it is referenced like any other. A sweep that went by the
+    // state instead of by the column would take the recording out from under
+    // the job.
+    note.audioPath = queued;
+    note.content.clear();
+    note.state = Note::State::New;
+    const std::optional<qint64> queuedId = m_store->addNote(note);
+    QVERIFY2(queuedId.has_value(), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->enqueueTranscription(*queuedId));
+
+    m_store->sweepOrphanedAudio();
+
+    QVERIFY2(!QFile::exists(audio.filePath(orphan)), qPrintable(orphan));
+    QVERIFY2(QFile::exists(audio.filePath(transcribed)), qPrintable(transcribed));
+    QVERIFY2(QFile::exists(audio.filePath(queued)), qPrintable(queued));
 }
 
 void StoreTest::reopensExistingDatabaseWithoutMigrating()

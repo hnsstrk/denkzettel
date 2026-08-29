@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QStandardPaths>
@@ -638,6 +639,42 @@ bool Store::removeNote(qint64 id)
     }
 
     return true;
+}
+
+void Store::sweepOrphanedAudio()
+{
+    m_lastError.clear();
+
+    QSqlQuery referencedQuery(m_db);
+    // IS NOT NULL and not `<> ''`: a note without audio binds the column as
+    // NULL (nullableText() above), and every comparison against NULL is NULL.
+    if (!referencedQuery.exec(
+            QStringLiteral("SELECT audio_path FROM notes WHERE audio_path IS NOT NULL"))) {
+        // Without the list of what is referenced every file looks orphaned, so
+        // nothing goes. Self-healing may cost a stray file, never a recording.
+        m_lastError = referencedQuery.lastError().text();
+        qWarning("Reading the referenced audio files failed, nothing swept: %s",
+                 qUtf8Printable(m_lastError));
+        return;
+    }
+
+    QSet<QString> referenced;
+    while (referencedQuery.next()) {
+        referenced.insert(referencedQuery.value(0).toString());
+    }
+
+    const QDir directory(audioDirectory());
+    const QStringList present = directory.entryList(QDir::Files);
+    for (const QString &name : present) {
+        if (referenced.contains(name)) {
+            continue;
+        }
+        if (QFile::remove(directory.filePath(name))) {
+            qInfo("Removed the orphaned audio file %s", qUtf8Printable(name));
+        } else {
+            qWarning("Deleting the orphaned audio file %s failed", qUtf8Printable(name));
+        }
+    }
 }
 
 bool Store::setTags(qint64 noteId, const QStringList &tags)
