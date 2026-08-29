@@ -57,9 +57,18 @@ Embedder::Embedder(Store *store, AiProvider *provider, QObject *parent)
             components.append(float(component));
         }
 
+        // **Stored under the model it was sent with, not under the one standing
+        // now.** reloadSettings() can land between the request and its answer,
+        // and m_model read here would write a vector of the OLD model under the
+        // NEW name — the very mixing this class re-reads the setting to avoid
+        // (issue #119), and permanent, because notesToEmbed() sees a note that
+        // already has a vector for the new name and never asks again. Measured:
+        // with the setting changed 50 ms into a 300 ms call, embeddings(old)
+        // came out 0 against 1.
+        //
         // A database that will not take the vector is no fault of the note's
         // and none of the backend's, and the next note would meet it too.
-        if (!m_store->setEmbedding(m_noteId, m_model, components)) {
+        if (!m_store->setEmbedding(m_noteId, m_sentModel, components)) {
             stop(m_store->lastError());
             return;
         }
@@ -118,6 +127,7 @@ void Embedder::takeNextNote()
 
     const Note note = m_queue.takeFirst();
     m_noteId = note.id;
+    m_sentModel = m_model;
     m_requestId = m_provider->embed(note.content);
 }
 

@@ -122,9 +122,17 @@ public:
      * Neither `store` nor `provider` is owned; both outlive the suggester.
      *
      * `embeddingModel` is the model the vectors were made with —
-     * Embedder::model(), and not the setting read a second time: what is
-     * clustered has to be what that run wrote, or the corpus comes out empty
-     * and nothing says why.
+     * Embedder::model() at the moment this is built: what is clustered has to
+     * be what the embedding run wrote, or the corpus comes out empty and
+     * nothing says why.
+     *
+     * Since issue #119 the value can change while the daemon runs, and then
+     * reloadSettings() below reads it again — out of the same
+     * ollama::configuredEmbeddingModel() the embedder reads, on the same
+     * signal, so the two still say the same thing. That is not "the setting
+     * read a second time" as the older wording here forbade: the second place
+     * that read the key on its own has gone, and what is left is one function
+     * two objects ask.
      */
     Suggester(Store *store, AiProvider *provider, const QString &embeddingModel, QObject *parent = nullptr);
 

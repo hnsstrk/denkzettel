@@ -105,6 +105,7 @@ private Q_SLOTS:
     void bundleThresholdIsClampedToWhatTheDialogAllows();
 
     void everyNoteGetsItsOwnVector();
+    void aVectorIsStoredUnderTheModelItWasAskedOf();
     void aRefusedNoteDoesNotBlockTheOthers();
     void anUnreachableBackendCostsNoAttempt();
 
@@ -1542,6 +1543,72 @@ void AiTest::everyNoteGetsItsOwnVector()
     embedder.start();
     QCOMPARE(again.count(), 1);
     QVERIFY(provider.texts.isEmpty());
+}
+
+void AiTest::aVectorIsStoredUnderTheModelItWasAskedOf()
+{
+    // The settings dialog can write while an `embed` call is on its way, and
+    // the answer arrives after the change. Read at that moment, the model would
+    // be the NEW one while the vector was made by the OLD — which is exactly
+    // the mixing this class re-reads the setting to avoid (issue #119), and
+    // permanent: notesToEmbed(new) sees a note that already has a vector under
+    // that name and never asks again, so nothing ever puts the row right.
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
+    group.writeEntry("EmbeddingModel", QStringLiteral("model-asked"));
+
+    AiProviderMock provider;
+    // Long enough for the change to fall between the request and the answer,
+    // short enough not to slow the set down.
+    provider.embedDelay = std::chrono::milliseconds(300);
+
+    Embedder embedder(store.get(), &provider);
+    QCOMPARE(embedder.model(), QStringLiteral("model-asked"));
+
+    const QDateTime when = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    const qint64 note = addAnalysedNote(*store, QStringLiteral("Regentonne an die Fallrohre hängen."), when);
+    QVERIFY(note > 0);
+
+    QSignalSpy done(&embedder, &Embedder::finished);
+    embedder.start();
+
+    // Mid-call, the way the dialog reaches the running daemon.
+    QTest::qWait(50);
+    group.writeEntry("EmbeddingModel", QStringLiteral("model-set-meanwhile"));
+    embedder.reloadSettings();
+    QCOMPARE(embedder.model(), QStringLiteral("model-set-meanwhile"));
+
+    QVERIFY(done.wait(std::chrono::seconds(5)));
+
+    // The vector belongs to the model that made it. Both sides are asked, so
+    // that a run storing under neither name cannot pass the first line alone.
+    QCOMPARE(store->embeddings(QStringLiteral("model-asked")).size(), 1);
+    QCOMPARE(store->embeddings(QStringLiteral("model-asked")).constFirst().noteId, note);
+    QVERIFY(store->embeddings(QStringLiteral("model-set-meanwhile")).isEmpty());
+
+    // The reload is not undone by this: from the next request on the new model
+    // is what is asked and what is stored. And the note above is asked **again**
+    // — it has no vector for the new name, so notesToEmbed() hands it over and
+    // the corpus becomes whole under one model. That repair is what the wrong
+    // name would have cost: written under `model-set-meanwhile`, the row would
+    // have looked current and this run would have skipped it, leaving a vector
+    // of one model in the corpus of another for good.
+    const qint64 later = addAnalysedNote(*store, QStringLiteral("Hochbeet im Frühjahr neu schichten."), when.addSecs(60));
+    QVERIFY(later > 0);
+    embedder.start();
+    QVERIFY(done.wait(std::chrono::seconds(5)));
+    QCOMPARE(store->embeddings(QStringLiteral("model-set-meanwhile")).size(), 2);
+    // A note carries exactly one vector (`note_id` is the primary key of
+    // `embeddings`), so the repair replaces the old row rather than standing
+    // beside it — which is why the name on it decides whether the note is ever
+    // asked again at all.
+    QVERIFY(store->embeddings(QStringLiteral("model-asked")).isEmpty());
 }
 
 void AiTest::aRefusedNoteDoesNotBlockTheOthers()
