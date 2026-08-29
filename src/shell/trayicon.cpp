@@ -84,8 +84,33 @@ void TrayIcon::setTranscriptionError(const QString &reason)
     // The notification is for the moment it happens and goes out once; this
     // state stands as long as the queue holds a job that was given up on, a
     // restart included.
-    m_item->setToolTipSubTitle(reason.isEmpty() ? i18n("Capture thoughts quickly")
-                                                : i18n("Transcription failed: %1", reason));
+    m_transcriptionError = reason;
+    showToolTip();
+}
+
+void TrayIcon::setUnavailableTools(const QStringList &names)
+{
+    m_unavailableTools = names;
+    showToolTip();
+}
+
+void TrayIcon::showToolTip()
+{
+    // `setToolTipSubTitle()` takes ONE string, so every source that has
+    // something to say writes a **part** of it and none of them overwrites
+    // another (issue #118). No ranking either: a ranking would keep the user
+    // from ever learning of the second trouble while the first stands, and
+    // both of these stand for as long as their cause does. The order below is
+    // fixed only so that the line does not reshuffle itself under the pointer.
+    QStringList parts;
+    if (!m_unavailableTools.isEmpty()) {
+        parts.append(i18n("Not available: %1", m_unavailableTools.join(QStringLiteral(", "))));
+    }
+    if (!m_transcriptionError.isEmpty()) {
+        parts.append(i18n("Transcription failed: %1", m_transcriptionError));
+    }
+    m_item->setToolTipSubTitle(parts.isEmpty() ? i18n("Capture thoughts quickly")
+                                               : parts.join(QStringLiteral(" · ")));
 }
 
 QMenu *TrayIcon::buildMenu()

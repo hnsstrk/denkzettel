@@ -1,5 +1,6 @@
 #include "settings/voicenotespage.h"
 
+#include "platform/optionaltools.h"
 #include "settings/settings.h"
 #include "transcribe/transcriber.h"
 
@@ -126,6 +127,27 @@ VoiceNotesPage::VoiceNotesPage(QWidget *parent)
     m_programState->setObjectName(QStringLiteral("whisperProgramState"));
     makeSmall(this, m_programState);
     form->addRow(m_programState);
+
+    // The other program of the same pipeline (SPEC 12, issue #17). No field of
+    // its own, because nobody was ever offered one for it — and no empty row
+    // either: only the lack is reported, being there is the ordinary case (UX
+    // decision of 29.08.2026), and a label that says nothing would still take
+    // a line's height off the page. Nothing can install a program while the
+    // dialog stands, so the row needs no member and no later update. The
+    // wording names the program and not a package; which package carries it is
+    // the distribution's business.
+    const QString ffmpeg =
+        transcription().readEntry("FfmpegProgram", QString(whisper::DefaultFfmpegProgram));
+    if (!tools::isRunnable(ffmpeg)) {
+        auto *ffmpegState = new QLabel(this);
+        ffmpegState->setObjectName(QStringLiteral("ffmpegState"));
+        makeSmall(this, ffmpegState);
+        showLine(ffmpegState,
+                 i18n("%1 is not available; a recording cannot be converted for the transcription",
+                      QFileInfo(ffmpeg).fileName()),
+                 KColorScheme::NeutralText);
+        form->addRow(ffmpegState);
+    }
 
     // Nothing on these pages wants to grow (UX, 29.08.2026), so the room a
     // resized window brings goes underneath the form.

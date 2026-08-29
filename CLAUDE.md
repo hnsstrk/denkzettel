@@ -785,6 +785,22 @@ find.
     layout rather than for state, and only the image told the two apart. Ask
     `columnWidth()` beside the value, or look.
 
+52. **Two catalogues are compared by their set of msgids and against the common
+    ancestor, never by two numbers from two states.** Measured 2026-08-29 on
+    #17 — as the mistake: `msgfmt --statistics` fell from "139 on `main`" to
+    136, that was read as a loss, and a finding was written about it. Both
+    numbers came from different states; `main` had moved on by several merges
+    between the branch point and the comparison, and the difference was their
+    gain, not the branch's loss. Measured at the common ancestor the same thing
+    reads 147 → 150, the three additions being the story's own strings and
+    nothing gone at all. A difference between two numbers does not say **which**
+    message is missing, and without that it cannot be read: take
+    `git merge-base`, turn both catalogues into sets of msgids with
+    `msgattrib --no-obsolete --no-wrap`, and **name** every departure — then
+    hold each one against `grep -rn` in `src/`. And `grep '^msgid '` alone is
+    not enough for that: a msgid xgettext has wrapped (`msgid ""` with the text
+    beneath it) does not appear in its output.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

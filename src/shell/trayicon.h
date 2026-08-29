@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QStringList>
 
 class KStatusNotifierItem;
 class QDialog;
@@ -39,6 +40,20 @@ public Q_SLOTS:
      */
     void setTranscriptionError(const QString &reason);
 
+    /**
+     * Names what of the optional tools of SPEC 2.5 this machine cannot offer —
+     * `ffmpeg`, `whisper-cli`, `task`, and `Ollama` when the server does not
+     * answer (issue #17). An empty list takes the statement back.
+     *
+     * **No error state comes with it**, unlike the slot above, and that is the
+     * difference between the two: a tool that is not installed is not a fault
+     * that happened, it is how this machine stands. A `NeedsAttention` raised
+     * at every login that never falls again is the permanent finding nobody
+     * reads any more — the reasoning of issue #118, which is where the
+     * question of two sources in one line was settled.
+     */
+    void setUnavailableTools(const QStringList &names);
+
 Q_SIGNALS:
     void captureRequested();
     void libraryRequested();
@@ -47,7 +62,11 @@ Q_SIGNALS:
 
 private:
     QMenu *buildMenu();
+    /** Writes the one subtitle line out of whatever the two slots have said. */
+    void showToolTip();
 
+    QString m_transcriptionError;
+    QStringList m_unavailableTools;
     KStatusNotifierItem *m_item;
     /**
      * The open about dialog, or nothing.

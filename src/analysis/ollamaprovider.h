@@ -124,6 +124,38 @@ public:
     int chat(const QString &prompt) override;
     int embed(const QString &text) override;
 
+    /**
+     * Whether the server answers at all, told by reachabilityTested() below
+     * (issue #17).
+     *
+     * **Not testConnection() of the base class**, and the difference is the
+     * price. That one is the button of SPEC 7.1: the user pressed something
+     * and wants the latency of a real `chat` and a real `embed`, so it loads
+     * both models. The tool detection of SPEC 2.5 presses nothing — it runs at
+     * every start of the daemon, and it only wants to know whether the tray
+     * tooltip has to name Ollama. Measured 2026-08-29 against a running Ollama
+     * on this machine: `/api/chat` with `qwen3:8b` 3.08 s and `/api/embed`
+     * with `bge-m3` 1.64 s from cold, against **1 ms** for `/api/tags` — which
+     * lists what is pulled and loads nothing. At the 30 s limit of SPEC 7.1
+     * the bad case is a minute of login for one line of tooltip.
+     *
+     * `/api/tags` and not a HEAD on the root: it is the one endpoint whose
+     * answer says "this is an Ollama", and it is the same road, the same
+     * `QNetworkAccessManager` and the same timeout as every other call here.
+     */
+    void testReachability();
+
+Q_SIGNALS:
+    /**
+     * The answer to testReachability(): whether the transfer got through.
+     *
+     * A bool and not a sentence, because the tooltip names the server and
+     * nothing else (SPEC 14, the quiet channel). Whoever wants to know **why**
+     * presses "Test connection" in the settings, where the whole mapping of
+     * readOllamaReply() is shown.
+     */
+    void reachabilityTested(bool reachable);
+
 private:
     /**
      * Posts one request and answers it. **Once** — the one retry of SPEC 7.1

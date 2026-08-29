@@ -138,6 +138,9 @@ target_link_libraries(denkzettelsettings PUBLIC
     # the same identity in one process take the key press from each other, and
     # the one that dies first switches the shortcut off (issue #74).
     denkzettelshell
+    # Whether `ffmpeg` and `task` can be started at all — the two lines the
+    # pages "Voice notes" and "Export" carry out of issue #17.
+    denkzettelplatform
     # The page "Voice notes" offers the model sizes of SPEC 12 and asks where
     # each of them lies — `whisper::Sizes` and Transcriber::modelPath(), the
     # same two the transcription itself reads (issue #27).
@@ -160,6 +163,11 @@ target_link_libraries(denkzettelsettings PUBLIC
 )
 
 add_library(denkzettelplatform STATIC
+    # Whether this machine can start the optional programs of SPEC 2.5 and 15
+    # (issue #17). It lives here because it is a question about the operating
+    # system and about nothing of ours: three callers ask it — the daemon for
+    # the tray tooltip, and two settings pages for their own program.
+    platform/optionaltools.cpp
     platform/systemfonts.cpp
 )
 
@@ -305,6 +313,9 @@ target_link_libraries(denkzetteld PRIVATE
     # takes away without a word.
     denkzettelanalysis
     denkzettelcapture
+    # The tool detection of SPEC 2.5, named for the same reason as the line
+    # above it: main.cpp includes platform/optionaltools.h itself.
+    denkzettelplatform
     denkzettelsettings
     denkzettelshell
     denkzetteltranscribe
