@@ -44,6 +44,7 @@ endif()
 # their paths are settings, and that is what keeps the automated run — which
 # has neither a graphics card nor a model — building and testing this code.
 add_library(denkzetteltranscribe STATIC
+    transcribe/modeldownload.cpp
     transcribe/transcriber.cpp
 )
 
@@ -52,6 +53,10 @@ target_include_directories(denkzetteltranscribe PUBLIC ${CMAKE_CURRENT_SOURCE_DI
 target_link_libraries(denkzetteltranscribe PUBLIC
     denkzettelstore
     Qt6::Core
+    # QNetworkAccessManager — the model download of SPEC 12 (issue #23). The
+    # same component the AI calls of SPEC 7.1 already use, so no new dependency
+    # of the project.
+    Qt6::Network
     # The three settings of SPEC 12 out of denkzettelrc: the two program paths
     # and the model.
     KF6::ConfigCore

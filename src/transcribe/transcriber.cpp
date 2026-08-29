@@ -231,7 +231,8 @@ void Transcriber::reloadSettings()
     const QString size = group.readEntry("ModelSize", QString());
     const bool known = std::find(whisper::Sizes.begin(), whisper::Sizes.end(), size)
         != whisper::Sizes.end();
-    m_modelPath = modelPath(known ? size : QString(whisper::Sizes.at(whisper::DefaultSize)));
+    m_modelSize = known ? size : QString(whisper::Sizes.at(whisper::DefaultSize));
+    m_modelPath = modelPath(m_modelSize);
 }
 
 QString Transcriber::workingRoot()
@@ -398,6 +399,18 @@ void Transcriber::transcribe()
     if (m_step != Step::Converting) {
         return;
     }
+
+    // The queue never fetches a model itself — the download is a hand on the
+    // settings page and the progress belongs where somebody is looking (UX
+    // decision, 29.08.2026). What it owes the user is the way there: without
+    // this line the missing model arrives as "whisper-cli wrote no transcript"
+    // twice over and the tray goes into its error state with nothing to do
+    // about it (issue #23).
+    if (!QFileInfo::exists(m_modelPath)) {
+        fail(i18n("Model %1 is missing. Download it under Settings \u2192 Voice notes.", m_modelSize));
+        return;
+    }
+
     m_step = Step::Transcribing;
     // `-of` without an extension: whisper-cli appends `.json` to it. Left out,
     // it would write the file beside the input — which is our directory too,

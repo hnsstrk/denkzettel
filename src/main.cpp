@@ -12,6 +12,7 @@
 #include "shell/globalshortcuts.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
+#include "transcribe/modeldownload.h"
 #include "transcribe/transcriber.h"
 #include "ui/librarywindow.h"
 #include "ui/timestampformat.h"
@@ -91,6 +92,12 @@ int main(int argc, char *argv[])
     // it listens on Store::noteAdded for the audio notes to come, and its
     // start() picks up what an earlier run left in the queue (SPEC 12).
     Transcriber transcriber(&store);
+
+    // The model download of SPEC 12 (issue #23). It belongs to the process and
+    // not to the settings dialog: the dialog is built and destroyed per
+    // opening, and a file of gigabytes must not go with it. The page shows what
+    // it is doing and is the only thing that can stop it.
+    ModelDownload modelDownload;
 
     // What the settings page "Voice notes" writes reaches the running queue at
     // once — model size and program path take hold without a restart (SPEC 13,
@@ -280,8 +287,8 @@ int main(int argc, char *argv[])
     // through the same two actions that are registered here, and a second pair
     // of its own would take the key press away from these on the way in and
     // switch them off again on the way out (issue #74).
-    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts] {
-        SettingsDialog::showSettings(&shortcuts);
+    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts, &modelDownload] {
+        SettingsDialog::showSettings(&shortcuts, &modelDownload);
     });
 
     const QList<ShortcutOwner> conflicts = shortcuts.registerCaptureShortcut();

@@ -1,6 +1,7 @@
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
 #include "shell/globalshortcuts.h"
+#include "transcribe/modeldownload.h"
 
 #include <KConfig>
 #include <KConfigGroup>
@@ -121,8 +122,12 @@ SettingsDialog *SettingsTest::openDialog()
     // whoever runs the check, and nothing below touches a key sequence field,
     // so nothing is written either.
     static GlobalShortcuts shortcuts;
+    // The daemon's model download, which the page "Voice notes" shows the
+    // progress of (issue #23). Nothing here starts one, so nothing here
+    // reaches the network.
+    static ModelDownload download;
 
-    SettingsDialog::showSettings(&shortcuts);
+    SettingsDialog::showSettings(&shortcuts, &download);
     return qobject_cast<SettingsDialog *>(KConfigDialog::exists(QStringLiteral("settings")));
 }
 

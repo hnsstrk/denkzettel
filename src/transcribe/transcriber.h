@@ -244,6 +244,9 @@ private:
     std::unique_ptr<QTemporaryDir> m_work;
     QString m_ffmpegProgram;
     QString m_whisperProgram;
+    /** Which of `whisper::Sizes` m_modelPath is, for the sentence a job that
+     * finds no model fails with (issue #23). */
+    QString m_modelSize;
     QString m_modelPath;
     qint64 m_noteId = -1;
     /** How often the running job has been handed out, its own run counted. */

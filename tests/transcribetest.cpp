@@ -1,5 +1,6 @@
 #include "capture/audiorecorder.h"
 #include "store/store.h"
+#include "transcribe/modeldownload.h"
 #include "transcribe/transcriber.h"
 
 #include <KConfigGroup>
@@ -8,10 +9,14 @@
 
 #include <QAudioBuffer>
 #include <QAudioFormat>
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
+#include <QHostAddress>
 #include <QSignalSpy>
 #include <QStandardPaths>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -60,6 +65,11 @@ private Q_SLOTS:
     void aChangedSettingReachesTheRunningQueue();
     void takesOverAModelPathOfTheVersionBefore();
     void fallsBackToTheDefaultForASizeItDoesNotKnow();
+    void namesTheSettingsPageWhenTheModelIsMissing();
+    void fetchesAModelAndWritesItWhenTheChecksumAgrees();
+    void leavesNothingBehindWhenTheDownloadIsCancelled();
+    void leavesNothingBehindWhenTheConnectionBreaks();
+    void leavesNothingBehindWhenWhatArrivesIsNotTheModel();
 
 private:
     QString databasePath() const;
@@ -108,6 +118,15 @@ private:
     QString keptWav() const;
     /** Working directories of a job — none of them may survive its job. */
     static QStringList leftOverWorkingDirectories();
+    /** Where Transcriber::modelPath() puts the models of this run. */
+    static QDir modelDirectory();
+    /**
+     * Everything the models directory holds for `size`, the model itself and
+     * anything beside it — an empty list is what "no half file" means.
+     */
+    static QStringList modelFiles(const QString &size);
+    /** Puts a file where the model of `size` belongs, so a job can run. */
+    static void placeModel(const QString &size);
 
     /** The runtime directory of this run, see initTestCase(). */
     std::unique_ptr<QTemporaryDir> m_runtime;
@@ -182,6 +201,16 @@ void TranscribeTest::initTestCase()
                                   QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
     qputenv("XDG_RUNTIME_DIR", m_runtime->path().toUtf8());
     QCOMPARE(Transcriber::workingRoot(), m_runtime->path());
+
+    // A file where the models of this run belong, for the two sizes the cases
+    // below let the queue run with. Since issue #23 a job that finds no model
+    // stops before whisper-cli with the sentence that names the settings page,
+    // so without these the checks would all measure that one sentence. The
+    // download cases work on `base`, which is deliberately not here.
+    modelDirectory().removeRecursively();
+    placeModel(QStringLiteral("small"));
+    placeModel(QStringLiteral("tiny"));
+    placeModel(QStringLiteral("medium"));
 }
 
 void TranscribeTest::init()
@@ -974,6 +1003,297 @@ void TranscribeTest::fallsBackToTheDefaultForASizeItDoesNotKnow()
 
     settings.deleteGroup();
     settings.sync();
+}
+
+QDir TranscribeTest::modelDirectory()
+{
+    // The run's own, through QStandardPaths test mode (initTestCase) — never
+    // the ~/.local/share/denkzettel/models of whoever runs the check, where
+    // their models lie.
+    return QFileInfo(Transcriber::modelPath(QStringLiteral("tiny"))).absoluteDir();
+}
+
+QStringList TranscribeTest::modelFiles(const QString &size)
+{
+    return modelDirectory().entryList({QStringLiteral("ggml-%1.bin*").arg(size)},
+                                      QDir::Files,
+                                      QDir::Name);
+}
+
+void TranscribeTest::placeModel(const QString &size)
+{
+    const QString path = Transcriber::modelPath(size);
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    // Content nobody reads: whisper.cpp is not run here (see the class
+    // comment), and what the queue asks of this file is that it is there.
+    file.write(QByteArrayLiteral("not a model"));
+}
+
+namespace
+{
+/** 256 KiB the stand-in serves as the model. */
+QByteArray modelBytes()
+{
+    QByteArray bytes(qsizetype(256) * 1024, Qt::Uninitialized);
+    for (qsizetype i = 0; i < bytes.size(); ++i) {
+        bytes[i] = static_cast<char>(i * 7 + 13);
+    }
+    return bytes;
+}
+
+QString sha1Of(const QByteArray &bytes)
+{
+    return QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha1).toHex());
+}
+
+QByteArray httpHead(qsizetype length)
+{
+    return "HTTP/1.1 200 OK\r\nContent-Length: " + QByteArray::number(length)
+        + "\r\nConnection: close\r\n\r\n";
+}
+}
+
+void TranscribeTest::namesTheSettingsPageWhenTheModelIsMissing()
+{
+    // The queue never fetches a model itself (UX decision, 29.08.2026), so the
+    // one thing it owes the user is the way to the place that does. Without
+    // this the same case says "whisper-cli wrote no transcript" twice and the
+    // tray goes red with nothing to act on.
+    const QString stub = writeWhisperStub();
+    QVERIFY(!stub.isEmpty());
+    QVERIFY(QFile::remove(Transcriber::modelPath(QStringLiteral("small"))));
+
+    Transcriber transcriber(m_store.get());
+    transcriber.setWhisperProgram(stub);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&transcriber, &Transcriber::failed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
+
+    QVERIFY(addVoiceNote() > 0);
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 1; }, 30000));
+    QCOMPARE(transcribed.count(), 0);
+    QCOMPARE(failed.constFirst().at(1).toString(),
+             QStringLiteral("Model small is missing. Download it under Settings → Voice notes."));
+    // And whisper-cli was never started: the stand-in keeps the WAV it is
+    // handed, so a run of it would leave that file behind.
+    QVERIFY(!QFile::exists(keptWav()));
+
+    placeModel(QStringLiteral("small"));
+}
+
+void TranscribeTest::fetchesAModelAndWritesItWhenTheChecksumAgrees()
+{
+    // The whole road, against a stand-in on the loopback interface: no name is
+    // resolved and nothing leaves the machine (aitest takes the same road).
+    // Two things are proven here that a run against the real address could not
+    // prove any better — that the **redirect** is followed, which is what the
+    // upstream answers with (302 → 200, measured 29.08.2026), and that a
+    // leftover of a killed run is swept before the new file is written.
+    const QByteArray body = modelBytes();
+
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+    const quint16 port = server.serverPort();
+
+    // Shared and not captured by reference: the inner lambda outlives this
+    // frame as far as anything but a reading of the code can tell, and the CI
+    // fails on the clazy warning that says so (aitest.cpp holds the same note).
+    auto requests = std::make_shared<int>(0);
+    connect(&server, &QTcpServer::newConnection, this, [&server, requests, port, body] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, requests, port, body] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            ++*requests;
+            if (request->startsWith("GET /ggml-base.bin ")) {
+                socket->write("HTTP/1.1 302 Found\r\nLocation: http://127.0.0.1:"
+                              + QByteArray::number(port)
+                              + "/elsewhere\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+            } else {
+                socket->write(httpHead(body.size()) + body);
+            }
+            socket->disconnectFromHost();
+        });
+    });
+
+    ModelDownload download;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&download, &ModelDownload::finished);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy progressed(&download, &ModelDownload::progress);
+    download.start(QStringLiteral("base"),
+                   QUrl(QStringLiteral("http://127.0.0.1:%1/ggml-base.bin").arg(port)),
+                   sha1Of(body));
+    QVERIFY(finished.wait(std::chrono::seconds(20)));
+
+    QCOMPARE(finished.constFirst().at(1).toString(), QString());
+    // The progress the page shows, and it is counted out of what is written —
+    // the last one says the whole file (see ModelDownload::progress).
+    QVERIFY(!progressed.isEmpty());
+    QCOMPARE(progressed.constLast().at(0).toLongLong(), static_cast<qint64>(body.size()));
+    QCOMPARE(progressed.constLast().at(1).toLongLong(), static_cast<qint64>(body.size()));
+    // Two requests, and that is the redirect: with one the client would have
+    // written the 302's empty body as the model, and the checksum would have
+    // been the only thing between that and the queue.
+    QCOMPARE(*requests, 2);
+
+    QFile written(Transcriber::modelPath(QStringLiteral("base")));
+    QVERIFY2(written.open(QIODevice::ReadOnly), qPrintable(written.fileName()));
+    QCOMPARE(written.readAll(), body);
+    written.close();
+
+    // The model and nothing beside it.
+    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList({QStringLiteral("ggml-base.bin")}));
+    QVERIFY(QFile::remove(Transcriber::modelPath(QStringLiteral("base"))));
+}
+
+void TranscribeTest::leavesNothingBehindWhenTheDownloadIsCancelled()
+{
+    // The acceptance criterion of issue #23: cancelling leaves no half file.
+    // The stand-in promises twice as much as it sends and then holds the
+    // connection — that is a download in progress, and the only thing a cancel
+    // can be measured on.
+    const QByteArray body = modelBytes();
+
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+    const quint16 port = server.serverPort();
+
+    connect(&server, &QTcpServer::newConnection, this, [&server, body] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, body] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            // Promised 8 MB, 4 MB sent and then the connection held open.
+            // The 4 MB are not a round number of nothing: with 256 KiB the
+            // client delivered not one byte to the reply until the connection
+            // closed (measured 29.08.2026), and a cancel needs a transfer that
+            // is really running.
+            socket->write(httpHead(body.size() * 32));
+            for (int i = 0; i < 16; ++i) {
+                socket->write(body);
+            }
+            socket->flush();
+        });
+    });
+
+    ModelDownload download;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&download, &ModelDownload::finished);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy progressed(&download, &ModelDownload::progress);
+    download.start(QStringLiteral("base"),
+                   QUrl(QStringLiteral("http://127.0.0.1:%1/ggml-base.bin").arg(port)),
+                   sha1Of(body));
+    QVERIFY(progressed.wait(std::chrono::seconds(20)));
+    QVERIFY(download.isRunning());
+
+    // Read **while** megabytes are arriving, and this is the whole of the
+    // guarantee: the directory holds nothing at all yet. QSaveFile writes into
+    // an inode with no name (O_TMPFILE) and links it in at commit(), so there
+    // is no half file to be seen at any moment — a plain QFile in its place
+    // would show a growing ggml-base.bin here.
+    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+
+    download.cancel();
+    // Not finished.wait(): abort() takes the reply down **inside** cancel(),
+    // so the signal is already in the spy when this line is reached and a wait
+    // for a new one would sit out its whole timeout (measured 29.08.2026).
+    QTRY_COMPARE_WITH_TIMEOUT(finished.count(), 1, 20000);
+    QVERIFY(!finished.constFirst().at(1).toString().isEmpty());
+
+    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+}
+
+void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
+{
+    // The second of the three roads that have to end in the same state: not a
+    // hand on a button but a line that goes away in the middle of the file.
+    const QByteArray body = modelBytes();
+
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+    const quint16 port = server.serverPort();
+
+    auto requests = std::make_shared<int>(0);
+    connect(&server, &QTcpServer::newConnection, this, [&server, requests, body] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, requests, body] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            ++*requests;
+            // Promised twice, sent once, then gone — and every time, not only
+            // the first: a stand-in built to be survived measures the first
+            // failure and stops (CLAUDE.md, finding 41).
+            socket->write(httpHead(body.size() * 2) + body);
+            socket->flush();
+            socket->abort();
+        });
+    });
+
+    ModelDownload download;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&download, &ModelDownload::finished);
+    download.start(QStringLiteral("base"),
+                   QUrl(QStringLiteral("http://127.0.0.1:%1/ggml-base.bin").arg(port)),
+                   sha1Of(body));
+    QVERIFY(finished.wait(std::chrono::seconds(20)));
+
+    QVERIFY2(!finished.constFirst().at(1).toString().isEmpty(),
+             "a connection that broke off is not a finished download");
+    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+}
+
+void TranscribeTest::leavesNothingBehindWhenWhatArrivesIsNotTheModel()
+{
+    // The third road, and the one nothing else can catch: the transfer runs
+    // through to the end and what arrived is a login page, a proxy's error or
+    // a body somebody cut short. Only the SHA-1 of SPEC 12 tells that from a
+    // model — without it this is what would be renamed onto the model.
+    const QByteArray body = modelBytes();
+
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+    const quint16 port = server.serverPort();
+
+    connect(&server, &QTcpServer::newConnection, this, [&server, body] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, body] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            socket->write(httpHead(body.size()) + body);
+            socket->disconnectFromHost();
+        });
+    });
+
+    ModelDownload download;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(&download, &ModelDownload::finished);
+    // Held against the checksum of the real `base`, which these 256 KiB are
+    // not — the one value in this file that comes from outside it.
+    download.start(QStringLiteral("base"),
+                   QUrl(QStringLiteral("http://127.0.0.1:%1/ggml-base.bin").arg(port)),
+                   ModelDownload::checksumFor(QStringLiteral("base")));
+    QVERIFY(finished.wait(std::chrono::seconds(20)));
+
+    QCOMPARE(finished.constFirst().at(1).toString(),
+             QStringLiteral("what arrived is not the model base"));
+    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
 }
 
 QTEST_GUILESS_MAIN(TranscribeTest)

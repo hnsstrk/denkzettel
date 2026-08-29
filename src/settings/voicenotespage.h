@@ -3,9 +3,11 @@
 #include <QString>
 #include <QWidget>
 
+class ModelDownload;
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QPushButton;
 
 /**
  * The page "Voice notes" of SPEC 13: which model whisper.cpp recognises with,
@@ -24,6 +26,14 @@ class QLineEdit;
  *   Choosing it would put a file that is not there in front of the queue: two
  *   failed attempts and the tray in its error state (SPEC 12).
  *
+ * **The download of issue #23 hangs on the same two widgets.** A size that is
+ * not on disk is offered like any other; choosing it asks once, naming the
+ * size and how big the file is, and then fetches it — the line under the list
+ * carries the progress while it runs and the button beside the list is what
+ * stops it (UX decision, 29.08.2026). There is no window of its own for it,
+ * and the download does not belong to this page: it is the daemon's, handed
+ * in, so that closing the dialog does not throw a file of gigabytes away.
+ *
  * And it is where a `ModelPath` that could not be migrated is reported:
  * migrateModelPath() leaves such a key standing, this page says so with the
  * old path in the sentence, and the next Apply takes the key away. The key is
@@ -35,10 +45,15 @@ class VoiceNotesPage : public QWidget
     Q_OBJECT
 
 public:
-    explicit VoiceNotesPage(QWidget *parent = nullptr);
+    /** `download` outlives the dialog and is not owned by this page. */
+    explicit VoiceNotesPage(ModelDownload *download, QWidget *parent = nullptr);
 
 private:
     void browseForProgram();
+    /** Asks about the model behind `index` and fetches it if it is wanted. */
+    void chooseSize(int index);
+    void showProgress(qint64 received, qint64 total);
+    void downloadEnded(const QString &size, const QString &error);
     /** Takes the path over into the stored field if it is an executable. */
     void takeProgram(const QString &path);
     /** Says where the chosen model is expected, as long as it is not there. */
@@ -48,9 +63,22 @@ private:
 
     /** The unmigratable `ModelPath`, empty once there is none to report. */
     QString m_earlierPath;
+    ModelDownload *m_download;
+    /**
+     * The last entry whose model lies on disk — where a refused or a failed
+     * download puts the selection back to, and -1 while there is no such entry
+     * at all (then a refusal leaves the choice standing, which says the same
+     * thing the line under it does).
+     */
+    int m_accepted = -1;
+    /** The entry this page has fetched the model for itself, else -1. */
+    int m_fetched = -1;
+    /** Whether the download that is ending was stopped by the button here. */
+    bool m_cancelling = false;
     QComboBox *m_size;
     QLineEdit *m_program;
     QLineEdit *m_stored;
+    QPushButton *m_cancel;
     QLabel *m_modelState;
     QLabel *m_programState;
 };
