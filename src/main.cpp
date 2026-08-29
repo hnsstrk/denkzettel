@@ -1,3 +1,6 @@
+#include "analysis/analysisscheduler.h"
+#include "analysis/classifier.h"
+#include "analysis/ollamaprovider.h"
 #include "capture/capturewindow.h"
 #include "platform/systemfonts.h"
 #include "settings/settings.h"
@@ -173,9 +176,55 @@ int main(int argc, char *argv[])
                                   reasonWithoutDirectories(reason)));
                      });
 
+    // The analysis run of SPEC 7.2 and what sets it going. Ollama without asking
+    // `[AI] Provider`: it is the only one of the three backends of SPEC 7.1 that
+    // is built, and a setting naming another would be answered by nobody.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    OllamaProvider provider;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    Classifier classifier(&store, &provider);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    AnalysisScheduler analysis(&classifier);
+
+    // The two roads that mean "a note is ready" under the trigger "at once"
+    // (SPEC 7.2): a note that is written, and a voice note whose transcript has
+    // just arrived — the second is nothing the store announces, its text comes
+    // long after the row did. The scheduler links neither side and is handed
+    // both from here.
+    QObject::connect(&store, &Store::noteAdded, &analysis, &AnalysisScheduler::noteIsReady);
+    QObject::connect(&transcriber, &Transcriber::transcribed, &analysis, &AnalysisScheduler::noteIsReady);
+
+    // What the settings dialog wrote reaches the running trigger here, and only
+    // here: without it a switched mode would take effect at the next start of
+    // the daemon and look like a setting that does nothing (SPEC 13, issue #16).
+    QObject::connect(Settings::self(), &Settings::configChanged, &analysis, &AnalysisScheduler::applySettings);
+
+    QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
+
+    // A note that has failed its classification twice is never handed to a model
+    // again (SPEC 7.2), and this line is what SPEC 14 asks to be reported of it.
+    //
+    // ponytail: the log alone, although SPEC 14 names "tray tooltip + log" for
+    // it. The tooltip carries ONE subtitle line and the transcription of issue
+    // #24 holds it; a second writer there would cover the other trouble up. And
+    // the state would stand for ever — such a note is never taken up again, and
+    // there is no place yet where the user could work one off. **The ceiling is
+    // the missing entry "Unclassified" in the category column of issue #18**;
+    // with it the tooltip becomes a count of both halves ("2 notes without a
+    // transcript · 1 without a category") and this line stays as the detail
+    // (UX decision of 29.08.2026).
+    //
+    // Where it is read: `journalctl --user -t denkzetteld`. Qt's default handler
+    // writes to the journal wherever stderr is not a terminal, so in the running
+    // service the sentence never reaches a pipe (CLAUDE.md, finding 25).
+    QObject::connect(&classifier, &Classifier::paused, &app, [](qint64 noteId, const QString &reason) {
+        qWarning("Note %lld is left without a category: %s", noteId, qUtf8Printable(reason));
+    });
+
     DaemonService daemon(&store);
     QObject::connect(&daemon, &DaemonService::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&daemon, &DaemonService::libraryRequested, &library, &LibraryWindow::showLibrary);
+    QObject::connect(&daemon, &DaemonService::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
     QObject::connect(&daemon, &DaemonService::quitRequested, &app, &QApplication::quit);
     if (!daemon.registerOnSessionBus()) {
         qWarning("Exporting io.github.hnsstrk.denkzettel.Daemon failed; the D-Bus entry points are unavailable.");

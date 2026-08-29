@@ -1,5 +1,6 @@
 #include "settings/settings.h"
 
+#include "analysis/analysisscheduler.h"
 #include "analysis/ollamaprovider.h"
 #include "transcribe/transcriber.h"
 
@@ -52,16 +53,21 @@ Settings::Settings()
     addItem(new ItemEnum(currentGroup(),
                          QStringLiteral("Trigger"),
                          m_analysisTrigger,
-                         {choice("AfterSaving"), choice("Periodically"), choice("OnDemand")},
+                         {choice(analysis::TriggerAfterSaving),
+                          choice(analysis::TriggerPeriodically),
+                          choice(analysis::TriggerOnDemand)},
                          Periodically),
             QStringLiteral("Trigger"));
-    // The bounds are on the item and not only on the spin box: a hand-written
-    // denkzettelrc reaches the analysis run of SPEC 7.2 without ever passing
-    // through the dialog. The floor of 5 minutes is not taste — at 1 the field
+    // The bounds are on the item and not only on the spin box: the skeleton is
+    // what the dialog reads a stored value back through, and one outside the
+    // range would come up on the form as a number the run does not obey — the
+    // scheduler clamps a hand-written denkzettelrc to the same two values, out
+    // of the same constants. The floor of 5 minutes is not taste — at 1 the field
     // would have to read "1 Minute" in German, and a spin box that declines its
     // own suffix is KPluralHandlingSpinBox out of KTextWidgets, a dependency
     // for one word.
-    ItemInt *interval = addItemInt(QStringLiteral("IntervalMinutes"), m_analysisInterval, 30);
+    ItemInt *interval =
+        addItemInt(QStringLiteral("IntervalMinutes"), m_analysisInterval, analysis::DefaultIntervalMinutes);
     interval->setMinValue(MinimumAnalysisInterval);
     interval->setMaxValue(MaximumAnalysisInterval);
 

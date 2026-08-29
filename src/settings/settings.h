@@ -1,5 +1,7 @@
 #pragma once
 
+#include "analysis/analysisscheduler.h"
+
 #include <KCoreConfigSkeleton>
 
 #include <QString>
@@ -40,7 +42,15 @@ public:
     };
     Q_ENUM(Provider)
 
-    /** SPEC 7.2: when an analysis run starts. */
+    /**
+     * SPEC 7.2: when an analysis run starts.
+     *
+     * The order is the order of the choice list in settings.cpp, which is what
+     * KConfigDialogManager stores the index of — and the names those choices
+     * carry are `analysis::Trigger…`, because the scheduler compares against
+     * them. Reordering here without reordering there writes one trigger and
+     * means another.
+     */
     enum AnalysisTrigger : std::uint8_t {
         AfterSaving,
         Periodically,
@@ -48,9 +58,14 @@ public:
     };
     Q_ENUM(AnalysisTrigger)
 
-    /** SPEC 7.2 names 30 minutes; 5 is the floor, see the comment at the item. */
-    static constexpr int MinimumAnalysisInterval = 5;
-    static constexpr int MaximumAnalysisInterval = 1440;
+    /**
+     * The bounds of the interval, and they are the scheduler's — a spin box
+     * that allowed what the run then clamps away would show a number nothing
+     * obeys. Named here so the pages keep one word for it; the value stands in
+     * analysis/analysisscheduler.h and in no second place.
+     */
+    static constexpr int MinimumAnalysisInterval = analysis::MinimumIntervalMinutes;
+    static constexpr int MaximumAnalysisInterval = analysis::MaximumIntervalMinutes;
 
     /**
      * The floor of the three thresholds of the export page. Two and not one,

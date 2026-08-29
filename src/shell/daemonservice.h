@@ -38,11 +38,22 @@ public Q_SLOTS:
 
     Q_SCRIPTABLE void ShowLibrary();
 
+    /**
+     * Kicks off an analysis run (SPEC 2.3, 7.2) — the on-demand road, beside
+     * the tray entry of the same name.
+     *
+     * It returns at once and says nothing about what the run found: a run takes
+     * one model call per note and the caller of a D-Bus method waits for its
+     * reply. What the run did stands in the library and in the log.
+     */
+    Q_SCRIPTABLE void AnalyzeNow();
+
     Q_SCRIPTABLE void Quit();
 
 Q_SIGNALS:
     void captureRequested();
     void libraryRequested();
+    void analysisRequested();
     void quitRequested();
 
 private:

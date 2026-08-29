@@ -55,6 +55,7 @@ private Q_SLOTS:
 
     void hintsTheShortcutWithoutBindingItASecondTime();
     void asksForTheSettingsDialog();
+    void asksForAnAnalysisRun();
     void showsAFailedTranscriptionAndTakesItBack();
 
 private:
@@ -347,6 +348,32 @@ void ShellTest::asksForTheSettingsDialog()
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy requested(&icon, &TrayIcon::configureRequested);
     configure->trigger();
+    QCOMPARE(requested.count(), 1);
+}
+
+void ShellTest::asksForAnAnalysisRun()
+{
+    // Acceptance criterion 3 of issue #15. The entry stood in the menu before
+    // this story as a greyed stub — so what breaks without a sound is not that
+    // it is there but that it is **live**: an entry connected to nothing looks
+    // exactly like one that works, and the run it starts is invisible anyway
+    // (SPEC 14 keeps a routine run quiet).
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
+    QAction *analyze = nullptr;
+    const QList<QAction *> entries = icon.item()->contextMenu()->actions();
+    for (QAction *entry : entries) {
+        if (entry->text() == QStringLiteral("Analyze now")) {
+            analyze = entry;
+        }
+    }
+    QVERIFY2(analyze, "the tray menu carries no entry for an analysis run");
+    QVERIFY(analyze->isEnabled());
+    QCOMPARE(analyze->icon().name(), QStringLiteral("system-run"));
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy requested(&icon, &TrayIcon::analysisRequested);
+    analyze->trigger();
     QCOMPARE(requested.count(), 1);
 }
 

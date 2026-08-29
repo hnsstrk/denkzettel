@@ -22,6 +22,19 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   had its place since version 1. Nothing sets a run going yet — that is the
   trigger and the budget (#15) — and nothing shows the category and the tags
   yet, which the library brings (#18) (#14).
+- **The classification runs by itself now.** When it does is the setting on the
+  "Analysis" page: at once after a note is saved or its transcript arrives, at
+  an interval (half an hour by default), or only when asked — and asked means
+  the tray entry "Jetzt analysieren", which no longer stands greyed out, or
+  `AnalyzeNow()` on the D-Bus interface. A switch in the settings takes effect
+  at once and not at the next start of the service. One run takes at most 50
+  notes and the rest follow in the next one, so a large library does not tie
+  the machine up for hours; a note written while a run is going is taken up
+  when that run ends. A note whose classification has failed twice is written
+  into the log — `journalctl --user -t denkzetteld` — and not into the tray
+  tooltip, which the transcription holds and where the message would stand for
+  ever, without a place to work it off; it moves there once the library has an
+  entry for unclassified notes (#18) (#15).
 - **Denkzettel has settings.** The tray menu now carries "Configure
   Denkzettel…", and behind it stands a dialog with a page list. Two pages so
   far: "AI provider" — which backend answers, the language and embedding model,

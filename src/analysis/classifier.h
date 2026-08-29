@@ -100,9 +100,9 @@ Classification readClassification(const QString &answer);
  * fifty answers at once would queue them there anyway.
  *
  * **It starts nothing by itself.** When a run happens — at once, periodically
- * or on demand — and how many notes it may take is the trigger and the budget
- * of SPEC 7.2/14, and that is issue #15; this class does what one run does and
- * is called by it.
+ * or on demand — is the trigger of SPEC 7.2, and that is AnalysisScheduler;
+ * this class does what one run does and is called by it. How much one run may
+ * take is notesPerRun below.
  *
  * **Nothing here reports to the user directly**, as with the transcription
  * queue: a routine run is silent (SPEC 14), and what SPEC 7.2 asks to be
@@ -117,6 +117,17 @@ class Classifier : public QObject
 public:
     /** Neither `store` nor `provider` is owned; both outlive the classifier. */
     Classifier(Store *store, AiProvider *provider, QObject *parent = nullptr);
+
+    /**
+     * The budget of SPEC 14: one run hands at most this many notes to a model,
+     * the rest follow in the next run.
+     *
+     * It bounds what is **classified**, not what is looked at: a note that was
+     * given up on is reported whether it stands before or behind the fiftieth,
+     * or a library of a thousand unanalysed notes would keep the report of the
+     * skipped ones to itself for days.
+     */
+    static constexpr int notesPerRun = 50;
 
     /**
      * Takes up the unanalysed notes and returns at once — the work runs in the

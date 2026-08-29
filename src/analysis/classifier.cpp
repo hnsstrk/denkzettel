@@ -335,7 +335,12 @@ void Classifier::start()
             Q_EMIT paused(note.id, note.analysisLastError);
             continue;
         }
-        m_queue.append(note);
+        // The budget of SPEC 14, and the loop runs on past it on purpose — see
+        // notesPerRun: what it caps is the calls to the model, not the report
+        // of the notes that were given up on.
+        if (m_queue.size() < notesPerRun) {
+            m_queue.append(note);
+        }
     }
 
     m_busy = true;

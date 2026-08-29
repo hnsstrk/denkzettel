@@ -96,8 +96,11 @@ add_test(NAME aitest COMMAND aitest)
 # The configuration directories point at one that holds nothing, and both of
 # them do: what this set reads back are the DEFAULTS of SPEC 7.1, and a
 # denkzettelrc of the person running the check — or one under /etc/xdg — would
-# put their models in their place. LANGUAGE for the error sentences, which go
-# through i18n() and are compared here in the source language.
+# put their models in their place. The trigger case of issue #15 writes an
+# `[Analysis]` group into the first of them, so the set clears its own leftover
+# at the start of the run; the reason stands at AiTest::initTestCase().
+# LANGUAGE for the error sentences, which go through i18n() and are compared
+# here in the source language.
 set_tests_properties(aitest PROPERTIES ENVIRONMENT
     "XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/aitest-ohne-konfiguration;XDG_CONFIG_DIRS=${CMAKE_CURRENT_BINARY_DIR}/aitest-ohne-konfiguration;LANGUAGE=en_US")
 
