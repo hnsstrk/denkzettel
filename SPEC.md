@@ -44,7 +44,7 @@ usable from the CLI, from scripts and to enforce a single instance.
 | `capture` | Text capture window, recording window (voice note) |
 | `store` | SQLite access, data model, FTS index, audio file management |
 | `analysis` | AI pipeline: classification, tags, embeddings, clustering, task extraction |
-| `transcribe` | Whisper backends (whisper.cpp, WhisperX) as subprocesses, job queue |
+| `transcribe` | whisper.cpp as a subprocess, job queue |
 | `proposals` | Suggestion generation and execution (Obsidian export, Taskwarrior) |
 | `ui` | Library, suggestion review, settings |
 | `shell` | Tray (KStatusNotifierItem), KGlobalAccel registration, KNotifications, D-Bus adaptor |
@@ -1115,13 +1115,15 @@ conceivable as an optional later additional path, but is not built for v1.
   `~/.local/share/denkzettel/models/`. The SHA-1 per model stands in the
   upstream `models/README.md` — that is what an aborted download is recognised
   by, no checksum of our own).
-- **WhisperX (ROCm/GPU)**: configurable call path, subprocess with
-  `--language de`, JSON evaluation, without diarisation. **Precondition**
-  (finding of the estimation session 2026-07-31): WhisperX is not yet installed
-  on the development machine — the PoC of the RPG audio project ran with
-  whisper.cpp. The hookup is built/accepted only once the installation exists
-  (it comes into being in the RPG audio project); until then whisper.cpp is the
-  only active route.
+- **A second backend is not built** (decision 2026-08-29). Up to this date
+  WhisperX stood here as a configurable second route, blocked since 2026-07-31
+  on an installation that was to come about in another project. Two things
+  retired it: the entry itself ruled out diarisation, which is the one thing
+  WhisperX does that whisper.cpp does not; and the Vulkan measurement above
+  puts whisper.cpp at 371 ms for 7.3 s of audio at 52 MB of dependencies. What
+  stays from the story is its settings page, which now holds the model size and
+  the path to `whisper-cli` (§13) — the two values the single route does have.
+  A second backend needs a new decision, not a resumed one.
 - **Upper bound 5 minutes per transcription run** (customer decision
   29.08.2026), and it is the whole job: the clock starts where the job is taken
   out of the queue and stops where the job ends, not on a stretch without
@@ -1139,8 +1141,8 @@ conceivable as an optional later additional path, but is not built for v1.
 Page list according to the concept: **AI provider** (provider choice, LLM and
 embedding model, test connection), **Analysis** (at once/periodically with an
 interval/on demand), **Export** (vault path with a folder chooser, overflow
-thresholds count + days, bundle threshold), **Voice notes** (backend
-whisper.cpp/WhisperX, model size, WhisperX path), **Shortcuts**
+thresholds count + days, bundle threshold), **Voice notes** (model size,
+path to `whisper-cli`), **Shortcuts**
 (KKeySequenceWidget for both shortcuts).
 
 ## 14. Error handling and loop discipline
@@ -1347,7 +1349,7 @@ the program wrote, which neither visible channel carries.
 3. **M3 AI basis**: provider abstraction (Ollama), classification + tags,
    categories sidebar, settings pages AI/analysis.
 4. **M4 voice notes**: recording window, queue, whisper.cpp backend,
-   player in the library; WhisperX hookup.
+   player in the library, settings page for voice notes.
 5. **M5 suggestions**: embeddings + clustering, bundle and task suggestions,
    review UI, Obsidian and Taskwarrior execution, overflow guard,
    full export.
