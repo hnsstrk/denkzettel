@@ -257,6 +257,10 @@ target_link_libraries(denkzettelui PUBLIC
     # the library keeps the full export (issue #36). Same `Config` component as
     # ConfigGui above, so no new find_package.
     KF6::ConfigWidgets
+    # KColorUtils — the ground of a search mark is deepened with mix() and the
+    # type on it checked with contrastRatio() (issue #116). KF6::ColorScheme
+    # links the library itself, but a transitive dependency is no promise.
+    KF6::GuiAddons
     KF6::I18n
     KF6::WidgetsAddons
     KF6::WindowSystem

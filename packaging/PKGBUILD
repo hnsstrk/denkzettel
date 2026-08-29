@@ -39,6 +39,11 @@ depends=(
     'kcoreaddons'
     'kdbusaddons'
     'kglobalaccel'
+    # KColorUtils, with which the ground of a search mark is deepened
+    # (issue #116). Written down although kcolorscheme above links the library
+    # too: the binary carries libKF6GuiAddons as a DT_NEEDED entry of its own,
+    # and a transitive dependency is no promise.
+    'kguiaddons'
     'ki18n'
     'knotifications'
     'kstatusnotifieritem'

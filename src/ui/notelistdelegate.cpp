@@ -8,6 +8,7 @@
 #include "ui/searchmarks.h"
 
 #include <KColorScheme>
+#include <KColorUtils>
 
 #include <QAbstractItemView>
 #include <QApplication>
@@ -25,6 +26,12 @@ namespace
 {
 constexpr int HorizontalPadding = 12;
 constexpr int VerticalPadding = 9;
+
+/** How much of `NeutralText` the ground of a search mark is deepened with (issue #116). */
+constexpr qreal MarkDepth = 0.15;
+
+/** What the type on a search mark has to keep for that deepening to be taken. */
+constexpr qreal MarkTextContrast = 4.5;
 
 /** Distance between the timestamp and the note text. */
 constexpr int Gap = 3;
@@ -137,13 +144,26 @@ bool isSelectedIn(const QStyleOptionViewItem &option, const QModelIndex &row)
  * Draws `text` with the found stretches on a mark (issue #77).
  *
  * The mark is a ground, not a colour of the type: `NeutralBackground` of the
- * view, with `NormalText` of the same group on it. Measured over seven
- * installed schemes on 29.08.2026 — the ground is warm and the selection blue
- * or green in all seven, so the two never collide, and the type on the mark
- * stands between 4.72 : 1 and 18.26 : 1. Taken in the colour of the row
- * instead, the selected row would read 1.11 : 1. Neither bold type nor a colour
- * of its own: bold means „unread" in a list (wireframe 3b), and a third text
- * colour is what tells the subject from the preview apart.
+ * view, deepened with the scheme's own `NeutralText`, and `NormalText` of the
+ * same group on it. Measured over seven installed schemes on 29.08.2026 — the
+ * ground is warm and the selection blue or green in all seven, so the two never
+ * collide. Taken in the colour of the row instead, the selected row would read
+ * 1.11 : 1. Neither bold type nor a colour of its own: bold means „unread" in a
+ * list (wireframe 3b), and a third text colour is what tells the subject from
+ * the preview apart. No outline either — a second stroke beside the hairline
+ * and the selection is the same argument that stood against the bold type.
+ *
+ * The role on its own is too faint where the view is light (issue #116):
+ * measured over the eighteen installed schemes on 29.08.2026, mark against row
+ * ground stands at ΔE76 7.1 under BreezeLight (`#fef1ea` on `#ffffff`) and only
+ * reaches 26.6 under BreezeDark. The lightness contrast does not say so — it
+ * lies between 1.10 : 1 and 1.27 : 1 in all eighteen, which is why it went
+ * unnoticed when it was built. The deepening lifts BreezeLight to 19.4
+ * (`#fddec7`). Four of the eighteen turn it down, because the type on them
+ * would fall under 4.5 : 1; those four already stand at ΔE76 22.1 and above
+ * without it. Over all eighteen the worst type contrast goes from 4.94 : 1 to
+ * 4.79 : 1 — as `KColorUtils::contrastRatio()` measures it, which is the
+ * yardstick the threshold is read on here and not the WCAG one.
  *
  * The type goes through the same `drawText()` an unmarked line goes through,
  * twice over and the second time clipped to the mark. Laid out through
@@ -181,8 +201,15 @@ void drawMarked(QPainter *painter,
     layout.endLayout();
 
     const KColorScheme scheme(QPalette::Normal, KColorScheme::View);
-    const QBrush ground = scheme.background(KColorScheme::NeutralBackground);
     const QColor markText = scheme.foreground(KColorScheme::NormalText).color();
+
+    // The threshold sits on the result, not on the input: the mixture is made
+    // first, and only one the type still stands MarkTextContrast on is taken.
+    const QColor neutral = scheme.background(KColorScheme::NeutralBackground).color();
+    const QColor deepened =
+        KColorUtils::mix(neutral, scheme.foreground(KColorScheme::NeutralText).color(), MarkDepth);
+    const QColor ground =
+        KColorUtils::contrastRatio(markText, deepened) >= MarkTextContrast ? deepened : neutral;
 
     for (const library::SearchMark &mark : marks) {
         const qreal from = line.cursorToX(static_cast<int>(mark.start));
