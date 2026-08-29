@@ -522,8 +522,10 @@ notes(id INTEGER PK, created_at TEXT ISO8601, type TEXT 'text'|'audio',
       needs_reembed INTEGER NOT NULL DEFAULT 0,  -- after an edit (section 9)
       analysis_attempts INTEGER NOT NULL DEFAULT 0,  -- error counter 7.2
       analysis_last_error TEXT NULL,
-      task TEXT NULL)          -- JSON of the task fields of 7.2, schema
+      task TEXT NULL,          -- JSON of the task fields of 7.2, schema
                                -- version 4; NULL means the note is no task
+      origin TEXT NULL,        -- window title at capture time (opt-in, §13)
+      origin_app TEXT NULL)    -- and the application id beside it
 tags(note_id FK, tag TEXT)
 embeddings(note_id FK PK, model TEXT, vector BLOB)  -- float32 array
 proposals(id INTEGER PK, kind TEXT 'bundle'|'task', created_at TEXT,
@@ -544,6 +546,15 @@ meta(key TEXT PK, value TEXT)  -- schema version and the like
   `old.content`). With the new text the old words stay findable, and neither an
   error nor FTS5's `integrity-check` shows that — only a search for the old
   word does (see `StoreTest::keepsSearchIndexInSync()`).
+- **The origin is two columns, and that is deliberate too** (issue #47): the
+  window title is what the user reads, the application id is what the
+  classification of §7 can key on — a note from a terminal is probably a
+  command-line note whatever its title says. They are two different facts about
+  one moment, not two spellings of one, so the argument against `is_todo` does
+  not apply. Both are NULL while the setting of §13 is off, and both are NULL
+  when nothing could be determined; the story that brings them brings its own
+  migration (decision E2).
+
 - **There is no `is_todo` column, and that is deliberate** (issue #14,
   29.08.2026): it would be exactly `task IS NOT NULL`, and two columns whose
   truth has to agree are the first place that drifts apart. So the presence of
@@ -1194,12 +1205,23 @@ conceivable as an optional later additional path, but is not built for v1.
 
 ## 13. Settings (dialog)
 
-Page list according to the concept: **AI provider** (provider choice, LLM and
-embedding model, test connection), **Analysis** (at once/periodically with an
+Page list according to the concept: **Capture** (see below), **AI provider**
+(provider choice, LLM and embedding model, test connection), **Analysis** (at once/periodically with an
 interval/on demand), **Export** (vault path with a folder chooser, overflow
 thresholds count + days, bundle threshold), **Voice notes** (model size,
 path to `whisper-cli`), **Shortcuts**
 (KKeySequenceWidget for both shortcuts).
+
+**Capture** stands first, and it is the page for the privacy switch of §5.1:
+„Herkunft der Notiz mitspeichern" (store the note's origin), **off by
+default**, with the sentence that answers what is kept — „Gespeichert werden
+Name der Anwendung und Fenstertitel im Moment der Erfassung. Der Stempel steht
+in der Detailansicht und lässt sich dort einzeln löschen." Icon
+`document-edit`, the same name the tray gives „Notiz erfassen", because it is
+the same action. It is deliberately **not** a line on the Analysis page,
+although the origin feeds the classification: a switch against invisible data
+collection whose own page nobody opens is the collection it was built against.
+Findability is its purpose (UX decision 29.08.2026).
 
 ## 14. Error handling and loop discipline
 

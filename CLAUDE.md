@@ -669,8 +669,15 @@ find.
     the case would have stood green over a program that happily stored the
     rejected folder. Measured by hand as uid 1000 with `chmod 0500` it comes out
     the other way: the message turns red and the field falls back to the last
-    accepted folder. The same goes for `isExecutable()` and for every check
-    against a mode bit. Either the check drops privileges for the run, or the
+    accepted folder. **`isExecutable()` is not the same case, and that was
+    measured too**: on Linux X_OK is granted to uid 0 only where at least one
+    execute bit is set, so a file at 0644 is executable for nobody. Measured
+    2026-08-29 on #27 under `unshare -r` as uid 0 — the whole `settingstest`
+    came out 8 passed, 0 failed with a case that rejects exactly such a file,
+    while a file at 0000 *is* writable in that same namespace. The rule is
+    therefore about the checks root overrides — `isWritable()`, `isReadable()`,
+    reaching into a directory — and not about every mode bit. Where it bites:
+    either the check drops privileges for the run, or the
     case stays out of the set and is measured by hand — but it never stands in
     a set that runs as root, where it can only ever say yes.
 

@@ -52,6 +52,26 @@ public:
     static constexpr int MinimumAnalysisInterval = 5;
     static constexpr int MaximumAnalysisInterval = 1440;
 
+    /**
+     * The floor of the three thresholds of the export page. Two and not one,
+     * for the reason the analysis interval has a floor of five: a spin box
+     * whose suffix is a fixed word can never be allowed to show a singular,
+     * and one note or one day is no threshold anybody would set.
+     */
+    static constexpr int MinimumThreshold = 2;
+    static constexpr int MaximumOverflowNotes = 100000;
+    static constexpr int MaximumOverflowDays = 3650;
+    static constexpr int MaximumBundleNotes = 100;
+
+    /**
+     * Where the export of SPEC 8.1 writes to — empty until the user sets it.
+     *
+     * The one getter on this object, and it is here because the export page
+     * puts a refused folder back to the value that is stored (issue #75); the
+     * overflow guard of SPEC 11 will read its two thresholds the same way.
+     */
+    QString vaultPath() const;
+
 private:
     Settings();
 
@@ -66,4 +86,17 @@ private:
     // Page "Analysis" (SPEC 7.2).
     qint32 m_analysisTrigger = Periodically;
     qint32 m_analysisInterval = 30;
+
+    // Page "Export" (SPEC 13). The values belong to three different sections —
+    // the path to SPEC 8.1, the two overflow thresholds to SPEC 11, the bundle
+    // threshold to SPEC 7.3 — and the page is what holds them together.
+    QString m_vaultPath;
+    qint32 m_overflowNotes = 200;
+    qint32 m_overflowDays = 30;
+    qint32 m_bundleNotes = 3;
+    // Page "Voice notes" (SPEC 12 and 13). Neither default is written down
+    // here: both stand in `whisper::` in transcribe/transcriber.h, where the
+    // transcription reads them from as well.
+    qint32 m_modelSize = 0;
+    QString m_whisperProgram;
 };

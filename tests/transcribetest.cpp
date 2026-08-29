@@ -2,7 +2,9 @@
 #include "store/store.h"
 #include "transcribe/transcriber.h"
 
+#include <KConfigGroup>
 #include <KLocalizedString>
+#include <KSharedConfig>
 
 #include <QAudioBuffer>
 #include <QAudioFormat>
@@ -55,6 +57,9 @@ private Q_SLOTS:
     void stripsTheDirectoriesOffAReasonBeforeItIsForwarded();
     void clearsTheWorkingDirectoryOfAKilledRun();
     void deletingANoteTakesItsJobWithIt();
+    void aChangedSettingReachesTheRunningQueue();
+    void takesOverAModelPathOfTheVersionBefore();
+    void fallsBackToTheDefaultForASizeItDoesNotKnow();
 
 private:
     QString databasePath() const;
@@ -74,6 +79,18 @@ private:
      * would write.
      */
     QString writeWhisperStub();
+    /**
+     * Writes a stand-in that names itself and the model it was handed, and
+     * returns its path.
+     *
+     * The transcript it writes is `<name> <the -m argument>`, so what the note
+     * holds afterwards says **which** program ran and **which** model the
+     * settings had reached it with — the two halves of issue #27's first
+     * acceptance criterion, read off one string.
+     */
+    QString writeMarkingStub(const QString &name);
+    /** Runs one voice note through the queue and answers with its transcript. */
+    QString transcriptOfOneNote(Transcriber &transcriber);
     /**
      * Writes a stand-in for whisper-cli that never comes back, and returns its
      * path: it notes its own process id and then hangs.
@@ -282,6 +299,37 @@ QString TranscribeTest::writeWhisperStub()
                "{ \"transcription\": [\n"
                "  { \"text\": \" Milch und Brötchen kaufen,\" },\n"
                "  { \"text\": \" die Straße ist gesperrt.\" } ] }\n"
+               "JSON\n");
+    stub.close();
+    if (!stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner)) {
+        return {};
+    }
+    return path;
+}
+
+QString TranscribeTest::writeMarkingStub(const QString &name)
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - returned below, see rule 1 in .clang-tidy
+    QString path = m_dir->filePath(name + QStringLiteral(".sh"));
+    QFile stub(path);
+    if (!stub.open(QIODevice::WriteOnly)) {
+        return {};
+    }
+    // The heredoc delimiter is unquoted on purpose, so that `$model` — the
+    // argument the transcriber built out of the model size — is expanded into
+    // the transcript.
+    stub.write("#!/bin/sh\n"
+               "while [ $# -gt 0 ]; do\n"
+               "  case \"$1\" in\n"
+               "    -m) model=\"$2\"; shift 2 ;;\n"
+               "    -of) out=\"$2\"; shift 2 ;;\n"
+               "    *) shift ;;\n"
+               "  esac\n"
+               "done\n"
+               "cat > \"$out.json\" <<JSON\n"
+               "{ \"transcription\": [ { \"text\": \" ");
+    stub.write(name.toUtf8());
+    stub.write(" $model\" } ] }\n"
                "JSON\n");
     stub.close();
     if (!stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner)) {
@@ -771,6 +819,161 @@ void TranscribeTest::deletingANoteTakesItsJobWithIt()
     // still queued is the ordinary case and would fail outright.
     QVERIFY2(m_store->removeNote(id), qPrintable(m_store->lastError()));
     QVERIFY(!m_store->transcribeJob(id).has_value());
+}
+
+void TranscribeTest::aChangedSettingReachesTheRunningQueue()
+{
+    const QString before = writeMarkingStub(QStringLiteral("whisper-before"));
+    const QString after = writeMarkingStub(QStringLiteral("whisper-after"));
+    QVERIFY(!before.isEmpty());
+    QVERIFY(!after.isEmpty());
+
+    // The settings the daemon starts with. Written through the same
+    // KSharedConfig the transcriber reads from, so no file name is named here
+    // — under QTest that name is the binary's and not `denkzettelrc`
+    // (finding 42 of CLAUDE.md).
+    KConfigGroup settings(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    settings.writeEntry("WhisperProgram", before);
+    settings.writeEntry("ModelSize", QStringLiteral("small"));
+    settings.sync();
+
+    Transcriber transcriber(m_store.get());
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&transcriber, &Transcriber::failed);
+
+    // The loud state first (finding 27): what the queue runs BEFORE anything
+    // changes has to be read, or "it takes the new value" is green whatever
+    // the code does.
+    const qint64 first = addVoiceNote();
+    QVERIFY(first > 0);
+    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, 30000),
+             failed.isEmpty() ? "nothing happened at all" : qPrintable(failed.first().at(1).toString()));
+    QCOMPARE(failed.count(), 0);
+    std::optional<Note> note = m_store->note(first);
+    QVERIFY(note.has_value());
+    QCOMPARE(note->content,
+             QStringLiteral("whisper-before ") + Transcriber::modelPath(QStringLiteral("small")));
+
+    // And now what the settings page does: the values change under the running
+    // object. reloadSettings() is the slot main.cpp hangs on the skeleton's
+    // configChanged(), and nothing else here is restarted.
+    settings.writeEntry("WhisperProgram", after);
+    settings.writeEntry("ModelSize", QStringLiteral("tiny"));
+    settings.sync();
+    transcriber.reloadSettings();
+
+    const qint64 second = addVoiceNote();
+    QVERIFY(second > 0);
+    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 2; }, 30000),
+             failed.isEmpty() ? "the second job never ended" : qPrintable(failed.first().at(1).toString()));
+    QCOMPARE(failed.count(), 0);
+    note = m_store->note(second);
+    QVERIFY(note.has_value());
+    // Both halves come out different: the other program, and the model path
+    // the other size builds — `tiny` and not the `small` the file held when
+    // this transcriber was constructed.
+    QCOMPARE(note->content,
+             QStringLiteral("whisper-after ") + Transcriber::modelPath(QStringLiteral("tiny")));
+
+    // The group goes again, or the next run of this set would start with a
+    // program path out of a temporary directory that is long gone.
+    settings.deleteGroup();
+    settings.sync();
+}
+
+/** Runs one voice note through the queue and answers with its transcript. */
+QString TranscribeTest::transcriptOfOneNote(Transcriber &transcriber)
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&transcriber, &Transcriber::failed);
+    const qint64 id = addVoiceNote();
+    if (id <= 0) {
+        return QStringLiteral("the note was not added");
+    }
+    if (!QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, 30000)) {
+        return QStringLiteral("nothing happened at all");
+    }
+    if (!failed.isEmpty()) {
+        return failed.first().at(1).toString();
+    }
+    const std::optional<Note> note = m_store->note(id);
+    return note.has_value() ? note->content : QStringLiteral("the note is gone");
+}
+
+void TranscribeTest::takesOverAModelPathOfTheVersionBefore()
+{
+    const QString stub = writeMarkingStub(QStringLiteral("whisper-taken-over"));
+    QVERIFY(!stub.isEmpty());
+
+    // What a version before issue #27 wrote, and what a hand writes: the file
+    // lies where the user put it, and only its name says which model it is.
+    KConfigGroup settings(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    settings.writeEntry("WhisperProgram", stub);
+    settings.writeEntry("ModelPath", m_dir->filePath(QStringLiteral("ggml-medium.bin")));
+    settings.deleteEntry("ModelSize");
+    settings.sync();
+
+    migrateModelPath();
+
+    // Read out of a group opened afresh, not out of the one that did the
+    // writing (finding 42's neighbourhood): what matters is what stands in the
+    // file for the next start.
+    {
+        const KConfigGroup written(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+        QCOMPARE(written.readEntry("ModelSize", QString()), QStringLiteral("medium"));
+        QVERIFY(!written.hasKey("ModelPath"));
+    }
+
+    // And it is not the file alone: the queue really runs against `medium`.
+    // Without the migration this same run answers `ggml-small.bin`, which is
+    // the whole of the fault it closes.
+    Transcriber transcriber(m_store.get());
+    QCOMPARE(transcriptOfOneNote(transcriber),
+             QStringLiteral("whisper-taken-over ") + Transcriber::modelPath(QStringLiteral("medium")));
+
+    // The other half of the decision: a path that is no size of ours is not
+    // touched. It was a deliberate act of somebody who knew what they were
+    // doing, and it is the whole of the state the settings page reports from —
+    // so nothing is written and nothing is deleted.
+    settings.writeEntry("ModelPath", QStringLiteral("/opt/whisper/one-of-my-own.bin"));
+    settings.deleteEntry("ModelSize");
+    settings.sync();
+
+    migrateModelPath();
+
+    const KConfigGroup kept(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    QCOMPARE(kept.readEntry("ModelPath", QString()), QStringLiteral("/opt/whisper/one-of-my-own.bin"));
+    QVERIFY(!kept.hasKey("ModelSize"));
+
+    settings.deleteGroup();
+    settings.sync();
+}
+
+void TranscribeTest::fallsBackToTheDefaultForASizeItDoesNotKnow()
+{
+    const QString stub = writeMarkingStub(QStringLiteral("whisper-unknown-size"));
+    QVERIFY(!stub.isEmpty());
+
+    // A hand-written denkzettelrc reaches the queue without ever passing
+    // through the dialog, and a size the dialog could never produce would
+    // otherwise be pasted into a file name — a path that leads nowhere, two
+    // failed attempts and the tray in its error state (SPEC 12).
+    KConfigGroup settings(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    settings.writeEntry("WhisperProgram", stub);
+    settings.writeEntry("ModelSize", QStringLiteral("enormous"));
+    settings.sync();
+
+    Transcriber transcriber(m_store.get());
+    QCOMPARE(transcriptOfOneNote(transcriber),
+             QStringLiteral("whisper-unknown-size ")
+                 + Transcriber::modelPath(QString(whisper::Sizes.at(whisper::DefaultSize))));
+
+    settings.deleteGroup();
+    settings.sync();
 }
 
 QTEST_GUILESS_MAIN(TranscribeTest)

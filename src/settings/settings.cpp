@@ -1,6 +1,7 @@
 #include "settings/settings.h"
 
 #include "analysis/ollamaprovider.h"
+#include "transcribe/transcriber.h"
 
 namespace
 {
@@ -63,4 +64,57 @@ Settings::Settings()
     ItemInt *interval = addItemInt(QStringLiteral("IntervalMinutes"), m_analysisInterval, 30);
     interval->setMinValue(MinimumAnalysisInterval);
     interval->setMaxValue(MaximumAnalysisInterval);
+
+    // SPEC 11 names the two defaults, 200 notes and 30 days, and no key for
+    // either of them; SPEC 7.3 names the third, 3 notes, the same way. So the
+    // names below follow the form of the two groups above — one group per page
+    // of SPEC 13, the key written out — and whoever builds the overflow guard
+    // reads them from here rather than inventing a second spelling.
+    setCurrentGroup(QStringLiteral("Export"));
+    // No default for the path on purpose (issue #75): it is a folder outside
+    // this project that only the user knows, and a made-up one would send the
+    // export of SPEC 8.1 somewhere nobody asked for. Empty means "not set".
+    addItemString(QStringLiteral("VaultPath"), m_vaultPath, QString());
+    // The bounds are on the items and not only on the spin boxes, for the
+    // reason the analysis interval carries them: the guard of SPEC 11 reads a
+    // hand-written denkzettelrc that never passed through the dialog.
+    ItemInt *notes = addItemInt(QStringLiteral("OverflowNotes"), m_overflowNotes, 200);
+    notes->setMinValue(MinimumThreshold);
+    notes->setMaxValue(MaximumOverflowNotes);
+    ItemInt *days = addItemInt(QStringLiteral("OverflowDays"), m_overflowDays, 30);
+    days->setMinValue(MinimumThreshold);
+    days->setMaxValue(MaximumOverflowDays);
+    ItemInt *bundle = addItemInt(QStringLiteral("BundleNotes"), m_bundleNotes, 3);
+    bundle->setMinValue(MinimumThreshold);
+    bundle->setMaxValue(MaximumBundleNotes);
+
+    // The group and both key names are Transcriber's, which reads them at
+    // every reloadSettings() — a key written under another name would never
+    // reach the queue.
+    setCurrentGroup(QStringLiteral("Transcription"));
+    // The choices are `whisper::Sizes` and not a list of our own: what a size
+    // means is the file name Transcriber::modelPath() builds from it, so the
+    // spelling and the order have exactly one place. The order is what a
+    // written denkzettelrc depends on — see the comment at that array.
+    QList<ItemEnum::Choice> sizes;
+    sizes.reserve(whisper::Sizes.size());
+    for (const QLatin1StringView size : whisper::Sizes) {
+        ItemEnum::Choice entry;
+        entry.name = QString(size);
+        sizes.append(entry);
+    }
+    addItem(new ItemEnum(currentGroup(),
+                         QStringLiteral("ModelSize"),
+                         m_modelSize,
+                         sizes,
+                         whisper::DefaultSize),
+            QStringLiteral("ModelSize"));
+    addItemString(QStringLiteral("WhisperProgram"),
+                  m_whisperProgram,
+                  QString(whisper::DefaultProgram));
+}
+
+QString Settings::vaultPath() const
+{
+    return m_vaultPath;
 }
