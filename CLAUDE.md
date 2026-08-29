@@ -622,6 +622,27 @@ find.
     first, and that deletion carries a guard on `XDG_CONFIG_HOME`: the same line
     without one deletes the file of whoever runs the check.
 
+43. **Breeze animates the dot in a radio button, so a `grab()` in the same turn
+    draws the state the animation starts from.** Measured 2026-08-29 while
+    reviewing #16: the picture showed „Ollama" checked while `choice()` read
+    back 2 (OpenAI) in the same run and the three button states were 0/0/1.
+    `QTest::qWait(400)` before the grab and the picture agrees. This is
+    finding 19's family for widget animations rather than for KSvg — and it was
+    only visible because a number was read back beside the picture. A picture
+    on its own would have been reported as a fault of the product, or worse,
+    have hidden a real one.
+
+44. **A shell check that parses a file can be fooled by a comment in it, and
+    `set -e` then ends the run mid-way with a plausible answer.** Measured
+    2026-08-29 on #36, running finding 33's dependency-hull check by hand: an
+    apostrophe inside a PKGBUILD comment („somebody else's machine") made the
+    name extraction invent the packages `s` and `machine.`, `pactree` failed on
+    them, and the loop died where it stood — with `kxmlgui` reported as
+    UNCOVERED although it stands in `depends`. The output looked like a finding
+    and was an artefact of the parser. Strip the comments first
+    (`grep -v '^ *#'`), and treat a check that names something you know to be
+    there as broken until proven otherwise.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
