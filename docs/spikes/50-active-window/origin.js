@@ -13,7 +13,11 @@
 // In the product the destination below becomes the daemon itself; here it is
 // sink.py, which writes down what arrives.
 
-var OWN_CLASS = "org.denkzettel.Denkzettel";
+// Measured, not derived: KWin reports this window's resourceClass as the
+// Wayland app_id, which Qt takes from the desktop file name set in
+// src/shell/appidentity.cpp. Whoever moves that name moves this string with it,
+// and a mismatch is silent — the filter simply never matches (issue #112).
+var OWN_CLASS = "io.github.hnsstrk.denkzettel";
 
 var current = workspace.activeWindow;
 var previous = null;

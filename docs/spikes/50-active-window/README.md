@@ -30,7 +30,8 @@ the arriving report is the second answer.
 The script — [`origin.js`](origin.js) — hangs on `workspace.windowActivated`,
 keeps the last foreign window in a variable and sends caption and
 `resourceClass` with `callDBus` at the moment a window with
-`resourceClass == "org.denkzettel.Denkzettel"` becomes active.
+`resourceClass == "io.github.hnsstrk.denkzettel"` becomes active — the
+application id of issue #112, read out of the run below and not derived.
 
 ## What came out
 
@@ -39,9 +40,9 @@ windows with titles of its own making, `denkzetteld`, two captures.
 [`sink.py`](sink.py) stands in for the daemon.
 
 ```
-22:14:53  sink up
-22:15:18  Origin(caption='Fenster C', app='org.kde.kdialog')
-22:15:28  Origin(caption='Fenster D', app='org.kde.kdialog')
+11:32:41  sink up
+11:33:06  Origin(caption='Fenster C', app='org.kde.kdialog')
+11:33:16  Origin(caption='Fenster D', app='org.kde.kdialog')
 ```
 
 Three switches between foreign windows (A → B → C) before the first capture
@@ -49,21 +50,32 @@ produced **nothing**. Then one line per capture, each naming the window the
 capture window took the focus from. The titles are set from outside by the
 runner, so the two lines can only come from KWin.
 
-The decisive edge case is settled by the unfiltered run of the same route:
+The decisive edge case is settled by the unfiltered run of the same route,
+which reports every activation instead of filtering. KWin's script output
+reaches `kwin-stderr.txt` only with `QT_FORCE_STDERR_LOGGING=1`; without it a
+`print()` goes to the journal (`journalctl --user -t kwin_wayland`) and the
+file stays empty:
 
 ```
-22:01:53  activated  current='Denkzettel' [org.denkzettel.Denkzettel]  previous='Fenster A' [org.kde.kdialog]
+js: DZPROBE activated caption=Fenster C resourceClass=org.kde.kdialog
+js: DZPROBE activated caption=Denkzettel resourceClass=io.github.hnsstrk.denkzettel
+js: DZPROBE activated caption=Fenster D resourceClass=org.kde.kdialog
+js: DZPROBE activated caption=Denkzettel resourceClass=io.github.hnsstrk.denkzettel
 ```
 
 The capture window **does** take the activation — a one-shot query at capture
 time would therefore always deliver Denkzettel itself. Only something that was
-already listening before the window came up knows the answer.
+already listening before the window came up knows the answer. And this is where
+`OWN_CLASS` is read off: `io.github.hnsstrk.denkzettel`, the desktop file name
+`src/shell/appidentity.cpp` sets, which Qt hands to Wayland as the `app_id`.
 
 **The counter-check.** Same route, same script, but no foreign window ever
-active — `denkzetteld` alone in the session:
+active — `denkzetteld` alone in the session, two captures:
 
 ```
-22:13:33  Origin(caption='', app='')
+11:34:13  sink up
+11:34:26  Origin(caption='', app='')
+11:34:31  Origin(caption='', app='')
 ```
 
 Two empty strings, not something plausible. The route says "nothing here" when
@@ -99,9 +111,12 @@ So it can say *which windows exist*, never *which of them is or was in front*.
   `window.resourceClass` carry these names since KWin 6; under KWin 5 they were
   called `clientActivated` and the same rename can happen again at KWin 7. The
   breakage is silent: a script whose signal does not exist loads and reports
-  nothing — the same shape as finding 15 in `CLAUDE.md`. Whatever is built on
-  this needs the state read back (`isScriptLoaded`) **and** a check that
-  something actually arrives.
+  nothing — the same shape as finding 15 in `CLAUDE.md`. `OWN_CLASS` breaks the
+  same way, and it already did: the spike was written before issue #112 renamed
+  the application, the constant kept the old id, and the run went through
+  `isScriptLoaded  b true`, two `ShowCapture` calls and an empty `sink.log`
+  without a single complaint. Whatever is built on this needs the state read
+  back (`isScriptLoaded`) **and** a check that something actually arrives.
 - **The script lives in the KWin process.** A `kwin --replace` or a KWin crash
   drops it and the daemon has to load it again; a `QDBusServiceWatcher` on
   `org.kde.KWin` is the place for that. Not measured in this spike.
