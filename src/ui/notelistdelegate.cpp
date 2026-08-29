@@ -163,7 +163,13 @@ bool isSelectedIn(const QStyleOptionViewItem &option, const QModelIndex &row)
  * would fall under 4.5 : 1; those four already stand at ΔE76 22.1 and above
  * without it. Over all eighteen the worst type contrast goes from 4.94 : 1 to
  * 4.79 : 1 — as `KColorUtils::contrastRatio()` measures it, which is the
- * yardstick the threshold is read on here and not the WCAG one.
+ * yardstick the threshold is read on here. **It is the more generous of the
+ * two**: the same measurement by WCAG reads 4.61 : 1 to 4.55 : 1, and the KDE
+ * value comes out higher in all eighteen, because `KColorUtils::luma()` is a
+ * plain `pow(v, 2.2)` per channel where WCAG uses the kinked sRGB curve. The
+ * criterion holds on both, but the margin on the WCAG scale is five
+ * hundredths, not twenty-nine — the closest case is CachyOSNord with 4.787
+ * against 4.552.
  *
  * The type goes through the same `drawText()` an unmarked line goes through,
  * twice over and the second time clipped to the mark. Laid out through

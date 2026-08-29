@@ -801,6 +801,37 @@ find.
     not enough for that: a msgid xgettext has wrapped (`msgid ""` with the text
     beneath it) does not appear in its output.
 
+53. **`KColorUtils::contrastRatio()` uses the WCAG weights through a different
+    transfer function, and comes out more generous throughout.** Measured
+    2026-08-29 on #116: the channel weights are the same — pure primaries come
+    out identical on both (red on white 3.9985 against 3.9985), and that is
+    exactly what hides the difference. `KColorUtils::luma()` is a plain
+    `pow(v, 2.2)` per channel (identical to six decimal places at every point
+    of the grey ramp), WCAG uses the kinked sRGB curve; on dark colours KDE
+    therefore reads higher — `#232629` on `#fef1ea` gives 14.69 against 13.75.
+    Over the eighteen installed schemes the KDE value is above the WCAG value
+    in **all** eighteen, the worst type contrast reads 4.79 against 4.55, and
+    the closest case is CachyOSNord with 4.787 against 4.552 — five hundredths
+    above the promise instead of twenty-nine. From which follows that two pairs
+    of numbers for the same change can **both** be right when they are computed
+    on different scales: the implementer's 4.94 → 4.79 and the issue's
+    4.63 → 4.56 are the same measurement, once with `contrastRatio()` and once
+    by WCAG, and neither refutes the other. **Whoever writes a contrast
+    threshold names the scale beside the number, and where an accessibility
+    criterion is to be met, computes the WCAG value beside it** — a 4.5 : 1
+    written with `contrastRatio()` is not the 4.5 : 1 the guideline means.
+
+54. **A stand-in that answers every call with the same value does not weaken a
+    check — it builds a state the check is not about.** Measured 2026-08-29 on
+    #29: the embedding mock had one default vector, so every note of a run came
+    out identical, similarity 1.0, and any case with three or more notes
+    silently grew a cluster and a bundle call on top of what it was testing.
+    One case then stood at 4 prompts against 3 — and only when the event loop
+    got far enough between two steps, so it was timing-dependent, which is
+    worse than simply wrong, because it passes often enough to be believed. A
+    stand-in's constant answer is an input like any other: give it values that
+    differ, or the check runs against a corpus the product would never see.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

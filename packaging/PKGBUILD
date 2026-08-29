@@ -40,9 +40,14 @@ depends=(
     'kdbusaddons'
     'kglobalaccel'
     # KColorUtils, with which the ground of a search mark is deepened
-    # (issue #116). Written down although kcolorscheme above links the library
-    # too: the binary carries libKF6GuiAddons as a DT_NEEDED entry of its own,
-    # and a transitive dependency is no promise.
+    # (issue #116). Written down although kcolorscheme above pulls the library
+    # in too, and although no check here can demand the line: struck from the
+    # list, the library stays covered, because five of the packages above reach
+    # it transitively. What the change really did is read off the symbols, not
+    # off DT_NEEDED — that entry was already there before it: zero GuiAddons
+    # symbols used on the state before, exactly two after
+    # (KColorUtils::contrastRatio and KColorUtils::mix). Used directly means
+    # declared; a transitive road is no promise.
     'kguiaddons'
     'ki18n'
     'knotifications'
