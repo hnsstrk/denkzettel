@@ -1472,11 +1472,25 @@ void AiTest::aClusterBecomesAnOpenBundleSuggestion()
     const std::unique_ptr<Store> store = openStore(directory);
     QVERIFY(store);
 
-    // Three invented notes of one topic, written on two days: the second day
-    // is what makes the collective note of SPEC 8.1 checkable at all. With all
-    // three on one day a builder that writes a single heading, and one that
-    // takes the notes newest first, would come out the same as the right one
-    // (CLAUDE.md, finding 34).
+    // Three invented notes of one topic, written on two days, and **the angles
+    // are chosen so that the chain does not run in the order of the clock**:
+    // 0° and 100° stand at a similarity of -0.174 and reach each other only
+    // through the 50° in between, so clusterNotes() answers mirror, offsite,
+    // rsync while the days read 08-01, 08-02, 08-01.
+    //
+    // That is what the case is for. Written 0°/20°/40° the chain runs in the
+    // order of the clock by itself, and the two orders agree — the collective
+    // note then comes out right whether anything puts it in order or not, and
+    // the case is green over both (CLAUDE.md, finding 34). Measured: with the
+    // sort in clusterNotesFromStore() taken out, the stored Markdown carries
+    // `## 2026-08-01`, `## 2026-08-02` and `## 2026-08-01`, the same day twice.
+    //
+    // The second day is what makes the sections visible at all; a single day
+    // would hide a builder that writes one heading for everything.
+    //
+    // What this case does **not** rest on is the list of note ids: proposals()
+    // sorts those by the note's own timestamp, so they come back in the right
+    // order either way. The Markdown is the only place the fault shows.
     const QDateTime firstDay = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
     const QDateTime secondDay = QDateTime::fromString(QStringLiteral("2026-08-02T18:30:00.000"), Qt::ISODateWithMs);
     const qint64 mirror =
@@ -1484,11 +1498,11 @@ void AiTest::aClusterBecomesAnOpenBundleSuggestion()
     const qint64 rsync = addEmbeddedNote(*store,
                                          QStringLiteral("rsync mit --delete probieren, damit die Kopie nicht wächst."),
                                          firstDay.addSecs(3600),
-                                         20.0);
+                                         100.0);
     const qint64 offsite = addEmbeddedNote(*store,
                                            QStringLiteral("Eine Platte auswärts lagern, sonst nützt das Backup nichts."),
                                            secondDay,
-                                           40.0);
+                                           50.0);
     QVERIFY(mirror > 0 && rsync > 0 && offsite > 0);
 
     AiProviderMock provider;

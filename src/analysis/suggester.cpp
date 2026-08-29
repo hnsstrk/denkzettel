@@ -19,7 +19,22 @@
 namespace
 {
 /**
- * The notes of one cluster, in the order the clustering put them in.
+ * The notes of one cluster, **oldest first**.
+ *
+ * Not in the order the clustering hands them over, and that is the whole point
+ * of the sort: clusterNotes() answers in the order the chain was walked
+ * (clustering.h), and a chain runs A → C → B whenever A and B are only related
+ * through C — which is the case single linkage exists for. Measured on
+ * 29.08.2026 with three notes at 0°, 100° and 50° on the days 08-01, 08-01 and
+ * 08-02: the cluster comes back as 1, 3, 2, and the collective note built from
+ * it carried `## 2026-08-01`, `## 2026-08-02` and `## 2026-08-01` — the same
+ * day heading twice, because bundleMarkdown() opens a section wherever the day
+ * changes. SPEC 8.1 asks for chronological, so the order is put right here,
+ * once: the numbering the model is handed, the references written into
+ * `proposal_notes` and the Markdown all come out of this list.
+ *
+ * The id breaks a tie, so two notes of the same millisecond keep one fixed
+ * order and a suggestion does not change its notes between two runs.
  *
  * A note the clustering named and the database no longer holds is left out
  * rather than ending the cluster: the vector goes with the note (ON DELETE
@@ -34,6 +49,9 @@ QList<Note> clusterNotesFromStore(Store *store, const QList<qint64> &noteIds)
             notes.append(*note);
         }
     }
+    std::sort(notes.begin(), notes.end(), [](const Note &left, const Note &right) {
+        return left.createdAt == right.createdAt ? left.id < right.id : left.createdAt < right.createdAt;
+    });
     return notes;
 }
 }

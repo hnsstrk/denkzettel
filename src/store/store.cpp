@@ -1144,10 +1144,19 @@ QList<Proposal> Store::proposals() const
     // One query with the links joined on, and the rows read in one pass: the
     // suggestions of a run are a handful, and a second query per suggestion
     // would be one round trip each for a list nobody scrolls.
-    if (!query.exec(QStringLiteral("SELECT proposals.id, kind, created_at, status, payload, note_id"
+    //
+    // The notes come back **oldest first**, and that is by the note's own
+    // timestamp rather than by its id: a note carries the moment it was
+    // captured (SPEC 5.1), so a row written later can hold an earlier moment,
+    // and ordering by the id would hand the review a bundle in an order the
+    // collective note beside it does not have. Both joins are LEFT ones,
+    // because a suggestion without notes has to keep its row.
+    if (!query.exec(QStringLiteral("SELECT proposals.id, kind, proposals.created_at, status, payload, note_id"
                                    " FROM proposals"
                                    " LEFT JOIN proposal_notes ON proposal_notes.proposal_id = proposals.id"
-                                   " ORDER BY proposals.created_at, proposals.id, note_id"))) {
+                                   " LEFT JOIN notes ON notes.id = proposal_notes.note_id"
+                                   " ORDER BY proposals.created_at, proposals.id,"
+                                   " notes.created_at, note_id"))) {
         m_lastError = query.lastError().text();
         return {};
     }
