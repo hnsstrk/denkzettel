@@ -1253,6 +1253,12 @@ void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
 
     QVERIFY2(!finished.constFirst().at(1).toString().isEmpty(),
              "a connection that broke off is not a finished download");
+    // One request, measured: a body that broke off half way is not fetched
+    // again by QNetworkAccessManager, and it must not be — the second answer
+    // would be appended to the file the first one opened. What it does repeat
+    // is a connection that closes before any answer (CLAUDE.md, finding 41),
+    // and this stand-in fails **every** time, so a repeat could not hide.
+    QCOMPARE(*requests, 1);
     QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
 }
 
