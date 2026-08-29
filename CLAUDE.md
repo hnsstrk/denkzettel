@@ -476,6 +476,23 @@ find.
     the one the obvious wrong implementation would give — first, last, largest,
     the only one there is.
 
+35. **A mutation probe goes red on the first assertion of the function, and
+    that is rarely the case the acceptance criterion asks about.** `QCOMPARE`
+    aborts its test function, so a probe reports exactly one failure per
+    function and says nothing about everything below it. Measured 2026-08-29
+    on #114: the criterion demanded a case that comes out different before and
+    after — a note dated exactly on the boundary. With the old reading of
+    `nach:` restored, `storetest` did stand red, but on the two **month**
+    cases four and six lines further up; the day-exact pair the criterion was
+    about was never reached, and reporting that red as its proof would have
+    proved a neighbour. Only with those earlier expectations set to the old
+    values by hand did the probe reach `nach:2026-06-15` (`2026/06/16`
+    against `2026/06/15`) and `nach:2026-07-15` (one note against two), and a
+    third pass was needed for `nach:9999-12-31`, which came out `+10000/01/01`
+    — the shift into the year 10000 the issue described. A probe proves the
+    case it actually reached, so walk the earlier assertions out of the way
+    until the one under test is the one that fails.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

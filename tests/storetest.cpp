@@ -653,13 +653,14 @@ void StoreTest::parsesSearchOperators()
     QCOMPARE(parseSearchQuery(QStringLiteral("kat:persönlich")).categories,
              QStringList({QStringLiteral("persönlich")}));
 
-    // Month and day come out as one boundary, and `nach:` answers the day
-    // after the period it names — otherwise a note written on the named day
-    // would be before and after it at once.
+    // Month and day come out as one boundary, and both operators answer the
+    // **first** day of what was written: `nach:` includes the period it names
+    // (SPEC 6, user decision 2026-08-29). The two `…-06-15` cases are the pair
+    // that carries it — the same date, and only `vor:` leaves it out.
     QCOMPARE(parseSearchQuery(QStringLiteral("vor:2026-07")).before, QDate(2026, 7, 1));
     QCOMPARE(parseSearchQuery(QStringLiteral("vor:2026-07-15")).before, QDate(2026, 7, 15));
-    QCOMPARE(parseSearchQuery(QStringLiteral("nach:2026-06")).after, QDate(2026, 7, 1));
-    QCOMPARE(parseSearchQuery(QStringLiteral("nach:2026-06-15")).after, QDate(2026, 6, 16));
+    QCOMPARE(parseSearchQuery(QStringLiteral("nach:2026-06")).after, QDate(2026, 6, 1));
+    QCOMPARE(parseSearchQuery(QStringLiteral("nach:2026-06-15")).after, QDate(2026, 6, 15));
 
     // Everything is ANDed, so two boundaries pointing the same way keep the
     // narrower one. The narrower one stands **first** here on purpose: written
@@ -668,7 +669,13 @@ void StoreTest::parsesSearchOperators()
     const SearchQuery narrowed =
         parseSearchQuery(QStringLiteral("vor:2026-01 vor:2026-06 nach:2026-04 nach:2026-02"));
     QCOMPARE(narrowed.before, QDate(2026, 1, 1));
-    QCOMPARE(narrowed.after, QDate(2026, 5, 1));
+    QCOMPARE(narrowed.after, QDate(2026, 4, 1));
+
+    // The last day QDate holds is a boundary like any other. Under the earlier
+    // excluding reading `nach:` added a day here and landed in the year 10000
+    // — a valid QDate whose ISO string is empty, which SQLite bound as NULL so
+    // that nothing matched at all.
+    QCOMPARE(parseSearchQuery(QStringLiteral("nach:9999-12-31")).after, QDate(9999, 12, 31));
 
     // Operators and free text in one query, each in its own place.
     const SearchQuery mixed = parseSearchQuery(QStringLiteral("tag:ki tag:backup Bücher \"zwei Wörter\" typ:text"));
@@ -776,10 +783,18 @@ void StoreTest::searchAppliesOperatorsBesideFreeText()
     QCOMPARE(searchContents(QStringLiteral("typ:text")).size(), 3);
 
     // The month is the whole month: before July leaves out the 15th of July,
-    // and after July starts with August.
+    // and from July on the 15th is in.
     QCOMPARE(searchContents(QStringLiteral("vor:2026-07")), QStringList({tram.content, progress.content}));
-    QCOMPARE(searchContents(QStringLiteral("nach:2026-07")), QStringList({milk.content}));
-    QCOMPARE(searchContents(QStringLiteral("nach:2026-07-14 vor:2026-07-16")), QStringList({books.content}));
+    QCOMPARE(searchContents(QStringLiteral("nach:2026-07")), QStringList({milk.content, books.content}));
+
+    // The named day itself, and the books note is dated exactly on it. `nach:`
+    // takes that day, `vor:` leaves it out (SPEC 6, user decision
+    // 2026-08-29) — so every note is on one side or the other and none falls
+    // between the two. Both lines come out differently under the earlier
+    // excluding reading of `nach:`, where the search began on the 16th and
+    // found the milk note alone.
+    QCOMPARE(searchContents(QStringLiteral("nach:2026-07-15")), QStringList({milk.content, books.content}));
+    QCOMPARE(searchContents(QStringLiteral("vor:2026-07-15")), QStringList({tram.content, progress.content}));
 
     // Operators and free text together — the second acceptance criterion of
     // the story.

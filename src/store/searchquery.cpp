@@ -81,27 +81,24 @@ void appendWords(const QString &text, QStringList &terms)
 /**
  * The day a `vor:`/`nach:` value stands for, invalid if it stands for none.
  *
- * A month is the whole month: `vor:2026-07` is everything before the 1st of
- * July, `nach:2026-07` everything from the 1st of August. `nach:` therefore
- * always answers the day **after** what was written — otherwise a note written
- * on the named day would be both before and after it.
+ * Both operators answer the **first** day of what was written, a month being
+ * the whole month: `vor:2026-07` and `nach:2026-07` alike resolve to the 1st
+ * of July. The difference is what the query does with that day — `vor:` stays
+ * below it, `nach:` includes it, so `nach:2026-06-15` finds the 15th itself
+ * (SPEC 6, customer decision of 29.08.2026: everyday language over symmetry).
  *
  * The strictness is Qt's: `QDate::fromString()` with an explicit format takes
  * neither a trailing remainder nor a day that the month does not have, so
  * `2026-07-15x` and `2026-02-31` come back invalid (measured with Qt 6.11.2)
  * and their token becomes full text.
  */
-QDate boundaryDay(const QString &value, bool after)
+QDate boundaryDay(const QString &value)
 {
     const QDate day = QDate::fromString(value, QStringLiteral("yyyy-MM-dd"));
     if (day.isValid()) {
-        return after ? day.addDays(1) : day;
+        return day;
     }
-    const QDate month = QDate::fromString(value, QStringLiteral("yyyy-MM"));
-    if (month.isValid()) {
-        return after ? month.addMonths(1) : month;
-    }
-    return {};
+    return QDate::fromString(value, QStringLiteral("yyyy-MM"));
 }
 
 /**
@@ -146,7 +143,7 @@ bool applyOperator(const QString &token, SearchQuery &query)
     }
     if (prefix == QLatin1String("vor") || prefix == QLatin1String("nach")) {
         const bool after = prefix == QLatin1String("nach");
-        const QDate day = boundaryDay(value, after);
+        const QDate day = boundaryDay(value);
         if (!day.isValid()) {
             return false;
         }

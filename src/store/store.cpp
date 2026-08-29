@@ -527,8 +527,9 @@ QList<Note> Store::search(const QString &text) const
     }
     // `created_at` is ISO 8601, so the boundary compares as text: every
     // timestamp of the 1st of July begins with „2026-07-01" and is longer than
-    // it, and therefore greater. That is what makes `vor:` exclude the day it
-    // names and `nach:` include the day after the one it names.
+    // it, and therefore greater. Both operators get the first day of what was
+    // typed, and these two comparisons are the whole difference: `vor:` leaves
+    // the named day out, `nach:` takes it in.
     if (parsed.before.isValid()) {
         conditions.append(QStringLiteral("created_at < :before"));
     }
