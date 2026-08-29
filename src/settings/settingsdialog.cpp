@@ -2,6 +2,7 @@
 
 #include "settings/aiproviderpage.h"
 #include "settings/analysispage.h"
+#include "settings/exportpage.h"
 #include "settings/settings.h"
 
 #include <KConfigGroup>
@@ -53,6 +54,7 @@ SettingsDialog::SettingsDialog()
             i18n("AI provider"),
             QStringLiteral("preferences-system-network-server"));
     addPage(new AnalysisPage(this), i18n("Analysis"), QStringLiteral("preferences-system-time"));
+    addPage(new ExportPage(this), i18n("Export"), QStringLiteral("document-export"));
 
     // Hidden, not removed: the button leads to KHelpCenter on help:/denkzettel,
     // and there is no handbook — the user would read "The requested help file

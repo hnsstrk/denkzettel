@@ -16,8 +16,10 @@
 #include <QListView>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QSpinBox>
 #include <QStandardPaths>
 #include <QStyle>
+#include <QTemporaryDir>
 #include <QTest>
 
 /**
@@ -38,6 +40,9 @@
  * 3. **The icon names of the page list.** `KPageDialog::List` keeps the height
  *    of an icon free whether one is there or not, so a page without one stands
  *    among holes. What is binding is the name, so the name is what is read.
+ * 4. **Whether a refused vault folder stays out of the file** (issue #75). The
+ *    red line under the field is looked at; that the value behind it did not
+ *    reach denkzettelrc is not visible anywhere and is asserted here.
  */
 class SettingsTest : public QObject
 {
@@ -47,12 +52,16 @@ private Q_SLOTS:
     void initTestCase();
     void settingsSurviveARestart();
     void theWindowSizeSurvivesEveryWayOut();
+    void aRefusedVaultFolderIsNotStored();
+    void theDefaultsComeBack();
+    void afterTheDefaultsARefusalGoesBackToNothing();
     void helpIsHiddenAndNotReplaced();
     void everyPageCarriesAnIcon();
 
 private:
     static SettingsDialog *openDialog();
     static void closeDialog(SettingsDialog *dialog);
+    static void editFolder(QLineEdit *field, const QString &folder);
 };
 
 void SettingsTest::initTestCase()
@@ -108,6 +117,22 @@ void SettingsTest::closeDialog(SettingsDialog *dialog)
     // gives its name back in the destructor. Without this the next case would
     // be handed the closed dialog instead of a fresh one.
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+}
+
+void SettingsTest::editFolder(QLineEdit *field, const QString &folder)
+{
+    // The user's order, and it is load-bearing: into the field first, then the
+    // text, then away from it. The page remembers what stood in the field when
+    // it was entered, so a text set before the focus would hand it the very
+    // value under test and no refusal could send anything back.
+    //
+    // Leaving the field is what makes a QLineEdit report that its editing is
+    // finished — not QTest::keyClick(Qt::Key_Return): QLineEdit ignores that
+    // key so the dialog's default button can have it, and the click would
+    // close the whole dialog under the assertions below (measured 29.08.2026).
+    field->setFocus();
+    field->setText(folder);
+    field->clearFocus();
 }
 
 void SettingsTest::settingsSurviveARestart()
@@ -192,6 +217,114 @@ void SettingsTest::theWindowSizeSurvivesEveryWayOut()
     closeDialog(afterClose);
 }
 
+void SettingsTest::aRefusedVaultFolderIsNotStored()
+{
+    // The one thing on the export page that breaks without a sound (issue
+    // #75): a folder that cannot be written to is reported when it is SET, and
+    // the refused value must not push the stored one out of denkzettelrc. What
+    // the display does is looked at, what the file holds is asserted here.
+    const QTemporaryDir vault;
+    QVERIFY(vault.isValid());
+
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    auto *path = dialog->findChild<QLineEdit *>(QStringLiteral("kcfg_VaultPath"));
+    QVERIFY(path);
+    QPushButton *apply = dialog->button(QDialogButtonBox::Apply);
+    QVERIFY(apply);
+
+    // A folder that is there gets through — the half of the run that has to
+    // come out differently, without which "nothing was stored" would say
+    // nothing about the check.
+    editFolder(path, vault.path());
+    QCOMPARE(path->text(), vault.path());
+    QVERIFY(apply->isEnabled());
+    apply->click();
+
+    {
+        KConfig written(QStringLiteral("denkzettelrc"));
+        QCOMPARE(written.group(QStringLiteral("Export")).readEntry("VaultPath", QString()), vault.path());
+    }
+
+    // And one that is not there does not. Not a folder with the write bit
+    // taken away: isWritable() asks the effective user, and for root — which
+    // is what the CI container runs as — everything is writable, so that case
+    // would stand green over a program that stores the refused folder.
+    const QString missing = vault.path() + QStringLiteral("/nirgends");
+    editFolder(path, missing);
+    QCOMPARE(path->text(), vault.path());
+    // Nothing left to apply, because the form holds what the file holds.
+    QVERIFY(!apply->isEnabled());
+
+    // OK and not Apply: Apply is grey now, so a click on it would prove
+    // nothing about what a write does — OK is never grey and writes just the
+    // same, which gives the refused folder a real road into the file.
+    dialog->button(QDialogButtonBox::Ok)->click();
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+
+    KConfig written(QStringLiteral("denkzettelrc"));
+    QCOMPARE(written.group(QStringLiteral("Export")).readEntry("VaultPath", QString()), vault.path());
+}
+
+void SettingsTest::theDefaultsComeBack()
+{
+    // KConfigDialog brings the button, but whether it reaches a page's fields
+    // depends on the `kcfg_` names being right — and a wrong name is exactly
+    // what the previous case cannot see for the three spin boxes.
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    auto *notes = dialog->findChild<QSpinBox *>(QStringLiteral("kcfg_OverflowNotes"));
+    auto *days = dialog->findChild<QSpinBox *>(QStringLiteral("kcfg_OverflowDays"));
+    auto *bundle = dialog->findChild<QSpinBox *>(QStringLiteral("kcfg_BundleNotes"));
+    QVERIFY(notes);
+    QVERIFY(days);
+    QVERIFY(bundle);
+
+    notes->setValue(17);
+    days->setValue(5);
+    bundle->setValue(9);
+
+    dialog->button(QDialogButtonBox::RestoreDefaults)->click();
+
+    // SPEC 11 names the first two, SPEC 7.3 the third.
+    QCOMPARE(notes->value(), 200);
+    QCOMPARE(days->value(), 30);
+    QCOMPARE(bundle->value(), 3);
+
+    closeDialog(dialog);
+}
+
+void SettingsTest::afterTheDefaultsARefusalGoesBackToNothing()
+{
+    // "Defaults" empties the folder field, and a folder refused afterwards must
+    // go back to that emptiness — not to the folder from before the reset,
+    // which the user has just thrown away (review of issue #75).
+    const QTemporaryDir vault;
+    QVERIFY(vault.isValid());
+
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    auto *path = dialog->findChild<QLineEdit *>(QStringLiteral("kcfg_VaultPath"));
+    QVERIFY(path);
+
+    editFolder(path, vault.path());
+    QCOMPARE(path->text(), vault.path());
+
+    dialog->button(QDialogButtonBox::RestoreDefaults)->click();
+    QCOMPARE(path->text(), QString());
+
+    editFolder(path, vault.path() + QStringLiteral("/nirgends"));
+    QCOMPARE(path->text(), QString());
+
+    closeDialog(dialog);
+}
+
 void SettingsTest::helpIsHiddenAndNotReplaced()
 {
     SettingsDialog *dialog = openDialog();
@@ -223,10 +356,11 @@ void SettingsTest::everyPageCarriesAnIcon()
     QVERIFY(list);
     const QAbstractItemModel *pages = list->model();
     QVERIFY(pages);
-    QCOMPARE(pages->rowCount(), 2);
+    QCOMPARE(pages->rowCount(), 3);
 
     const QStringList expected{QStringLiteral("preferences-system-network-server"),
-                               QStringLiteral("preferences-system-time")};
+                               QStringLiteral("preferences-system-time"),
+                               QStringLiteral("document-export")};
     for (int row = 0; row < expected.size(); ++row) {
         const QIcon icon = pages->data(pages->index(row, 0), Qt::DecorationRole).value<QIcon>();
         QCOMPARE(icon.name(), expected.at(row));
