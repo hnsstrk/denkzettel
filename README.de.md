@@ -70,8 +70,6 @@ aufgeschrieben und nicht gebaut ist:
   `denkzettelrc` oder gar nicht.
 - **Such-Operatoren** (`tag:`, Datumsbereiche und der Rest von SPEC 6). Die
   Suche nimmt heute einfache Begriffe und verknüpft sie mit UND.
-- **Pakete.** Denkzettel wird aus dem Quelltext gebaut, ein PKGBUILD gibt es
-  noch nicht.
 
 Was gerade ansteht, steht in den
 [Issues](https://github.com/hnsstrk/denkzettel/issues); die bindende
@@ -139,6 +137,36 @@ wird nur aus `/etc/xdg/autostart` gelesen — dorthin legt ihn das Präfix `/usr
 
 Danach `denkzetteld` einmal starten oder neu anmelden; künftig übernimmt das
 der Autostart-Eintrag.
+
+### Als Paket (Arch und Ableger)
+
+`packaging/PKGBUILD` baut denselben Stand als Paket, aus dem Git-Tag der
+Fassung, die es nennt:
+
+```sh
+cd packaging
+makepkg -si
+```
+
+`makepkg` holt die fehlenden Bauabhängigkeiten selbst, lässt den Testlauf
+durchlaufen, und `-i` übergibt das fertige Paket an `pacman`. Das Präfix ist
+`/usr`, damit der Autostart-Eintrag in `/etc/xdg/autostart` landet und der
+Kürzeldienst von Plasma die Desktop-Datei findet — dieselben zwei Bedingungen
+wie bei der Installation aus dem Quelltext darüber. Was das Paket außer dem
+Programm mitbringt: den Desktop-Eintrag, den gleichnamigen Autostart-Eintrag,
+die AppStream-Beschreibung, beide Symbole und den deutschen Katalog. Eine eigene
+`.notifyrc` hat Denkzettel nicht — der Warnton des Schutzdialogs ist das
+Plasma-Ereignis `messageWarning` (SPEC 9).
+
+`whisper-cpp` und ein GGML-Backend bleiben **optional** und stehen als
+`optdepends` darin: Ohne sie behält eine Sprachnotiz ihre Aufnahme und bleibt
+abspielbar, und der Grund steht in der Auftragszeile der Datenbank und im
+Journal (`journalctl --user -t denkzetteld`).
+
+`pkgver` ist die zweite Stelle, an der die Versionsnummer steht. Sie folgt
+`project(denkzettel VERSION …)` der obersten `CMakeLists.txt` und dem Tag
+derselben Nummer — beide ändern sich gemeinsam, sonst holt `makepkg` eine andere
+Fassung als die, die die Arbeitskopie hat.
 
 ### Umstieg von einer älteren Fassung
 
@@ -421,6 +449,7 @@ tests/          Unit-Tests und Bildläufer
 po/             Nachrichtenkataloge (Deutsch)
 icons/          Anwendungs- und Tray-Symbole
 desktop/        der Desktop-Eintrag
+packaging/      das PKGBUILD für Arch und Ableger
 cmake/          Hilfsmodule für die Lint-Ziele
 wireframes/     die verbindlichen Zeichnungen
 docs/           die Bilder dieser Datei

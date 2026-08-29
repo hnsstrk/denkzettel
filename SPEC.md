@@ -1167,11 +1167,14 @@ file `~/.local/share/denkzettel/denkzettel.log` (details, with rotation).
   `whisper.cpp` (Vulkan) and `task` (Taskwarrior) — both are detected at
   runtime; if one is missing, only the affected functions are deactivated
   (with a hint in the settings), the application stays usable.
-- Packaging: for now a local `cmake --install` — with
+- Packaging: a PKGBUILD under `packaging/` (issue #41), and beside it a local
+  `cmake --install` for development. Both configure with
   `-DCMAKE_INSTALL_PREFIX=/usr`, because only then does the XDG autostart entry
   land in `/etc/xdg/autostart`; under the CMake default `/usr/local` no Plasma
-  session reads it (sprint 2 finding, issue #6). PKGBUILD/AUR after
-  stabilisation.
+  session reads it (sprint 2 finding, issue #6). `pkgver` moves with the
+  version in `CMakeLists.txt` and with the tag — `source` fetches `v$pkgver`,
+  so a forgotten bump builds the previous release without a word. The AUR
+  submission is still outstanding.
 
 ### 15.1 Version rules and command line (issue #61)
 

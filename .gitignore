@@ -6,3 +6,10 @@ build-*/
 
 # Arbeitsbaeume der Subagenten — Werkzeug, nicht Projektinhalt.
 .claude/worktrees/
+
+# makepkg arbeitet im Verzeichnis des PKGBUILD: der geklonte Quellbaum, die
+# beiden Arbeitsverzeichnisse und das fertige Paket.
+packaging/denkzettel/
+packaging/src/
+packaging/pkg/
+packaging/*.pkg.tar.*
