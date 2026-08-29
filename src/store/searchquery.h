@@ -33,9 +33,10 @@ struct SearchQuery {
     /**
      * `nach:` — the note has to be at least as new as the start of this day.
      *
-     * Resolved the same way, and to the day **after** what was typed: `nach:`
-     * means after the period has passed, so `nach:2026-06-15` is the 16th of
-     * June and `nach:2026-06` is the 1st of July.
+     * Resolved the same way, and to the **first** day of what was typed:
+     * `nach:` includes the period it names, so `nach:2026-06-15` is the 15th
+     * of June and `nach:2026-06` is the 1st of June. A note of the named day
+     * is therefore found by `nach:` and not by `vor:`.
      */
     QDate after;
 

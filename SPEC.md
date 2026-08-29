@@ -557,15 +557,30 @@ the concept):
 | Operator | Meaning |
 |---|---|
 | `tag:backup` | Notes with the AI tag `backup` |
-| `kat:todos` | Category (alle, todos, ideen, cli, persoenlich, software) |
+| `kat:todos` | Category (todos, ideen, cli, persoenlich, software) |
 | `typ:text` / `typ:audio` | Note type |
 | `vor:2026-07` / `vor:2026-07-15` | created before a date (month or day) |
-| `nach:2026-06` | created after a date |
+| `nach:2026-06` | created from a date on (month or day) |
 | `"exact phrase"` | Phrase search (FTS5 phrase) |
 | free text | FTS5 full text (ANDed terms) |
 
 - All components are **ANDed**; no OR, no brackets (v1).
 - Unknown `xyz:` prefixes are treated as full text (no error).
+- **`nach:` includes the day it names, `vor:` excludes it** (user decision
+  2026-08-29, issue #114): `nach:2026-06-15` finds the notes of the 15th of
+  June itself, `nach:2026-06` those from the 1st of June on, while
+  `vor:2026-06-15` stops before that day. Everyday language beat symmetry
+  here. A note of the named day therefore belongs to `nach:` and not to
+  `vor:`, and the two split the corpus at that day instead of leaving it out
+  of both, as the earlier excluding reading of `nach:` did.
+- **`tag:` and `kat:` fold ASCII case and nothing else.** Both compare the
+  stored value `COLLATE NOCASE`, which knows `a`/`A` and no other alphabet:
+  `tag:BACKUP` finds `backup`, `tag:BÜCHER` does **not** find `bücher`. The
+  full text is tolerant exactly where these two are not — „bucher" finds
+  „Bücher" through `remove_diacritics 1` below. Accepted, because nothing the
+  application stores by itself runs into the ceiling: the analysis run writes
+  tags in lower case and the categories are the ASCII values of the table
+  above (7.2). Lifting it needs a folding of its own, like the ß/ss story S30.
 - The parser is a pure function `QString → SearchQuery` — unit-testable.
 - FTS5 tokenizer: **`trigram remove_diacritics 1`** (user decision
   2026-08-01, issue #8). A search term finds **parts of words at any
@@ -677,11 +692,17 @@ only — those with `needs_reembed = 1`; at most 50 notes per run (budget,
 section 14), the rest follow in the next run:
 
 1. **Classification + tags** (one LLM call per note, JSON schema:
-   `{category, tags[], is_todo, task?}`): category from a fixed list (TODOs,
-   Ideen, CLI-Befehle, Persönlich, Software-Ideen), 1–4 tags in lower case.
-   For `is_todo=true` the same call extracts the task fields
-   (`description, project, tags, due, priority` — `due`/`priority` only on a
-   clear signal, otherwise null).
+   `{category, tags[], is_todo, task?}`): category from the fixed list of
+   section 6 — `todos`, `ideen`, `cli`, `persoenlich`, `software` —, 1–4
+   tags in lower case. For `is_todo=true` the same call extracts the task
+   fields (`description, project, tags, due, priority` — `due`/`priority`
+   only on a clear signal, otherwise null).
+   **What the classifier writes is what the user types** (user decision
+   2026-08-29, issue #114): the category values are the ones section 6 offers,
+   without umlaut and without hyphen, so the search stays a literal
+   comparison. The readable label for the sidebar, the chips and the detail
+   view is a matter of the user interface and is made there (M3); what stands
+   in `notes.category` is the short form.
 2. **Embedding** (one `embed` call per note) → `embeddings` table; resets
    `needs_reembed`.
 3. **Clustering + suggestion generation** (7.3/7.4).
