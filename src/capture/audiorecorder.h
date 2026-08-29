@@ -142,6 +142,23 @@ public:
     void encode(const QAudioBuffer &buffer);
 
 Q_SIGNALS:
+    /**
+     * How loud the buffer just taken was, from 0 (silence) to 1 (full scale) —
+     * what the level meter of SPEC 4 shows.
+     *
+     * It comes off the samples that are on their way into the file and not off
+     * a second reading of the device, and that is the whole reason encode() is
+     * the one gate: `QMediaCaptureSession::setAudioInput()` lets nothing out on
+     * the way, so a meter built on that road would open the microphone a second
+     * time — a second stream on the same device, a second entry in the mixer,
+     * and two readings that can disagree (measured on Qt 6.11.2, issue #20).
+     *
+     * Emitted once per buffer, so the meter moves as often as the device
+     * delivers and stands still when it stops. That is the honest picture: a
+     * microphone that has fallen silent shows a meter that no longer moves.
+     */
+    void levelChanged(qreal level);
+
     /** The file is written and closed. `durationSeconds` goes into the note. */
     void finished(const QString &fileName, int durationSeconds);
 

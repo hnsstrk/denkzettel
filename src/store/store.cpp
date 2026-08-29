@@ -491,6 +491,11 @@ QString Store::audioDirectory() const
     return QFileInfo(m_databasePath).absolutePath() + QStringLiteral("/audio");
 }
 
+QString Store::rescuedDirectory() const
+{
+    return QFileInfo(m_databasePath).absolutePath() + QStringLiteral("/rescued");
+}
+
 std::optional<qint64> Store::addNote(const Note &note)
 {
     m_lastError.clear();

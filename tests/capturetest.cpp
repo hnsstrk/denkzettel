@@ -1,5 +1,6 @@
 #include "capture/audiorecorder.h"
 #include "capture/capturewindow.h"
+#include "capture/recordingwindow.h"
 #include "capture/textareaheight.h"
 #include "capture/textcontrast.h"
 #include "store/store.h"
@@ -19,6 +20,7 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTimer>
 
 #include <cmath>
 #include <memory>
@@ -59,6 +61,12 @@ private Q_SLOTS:
     void cancellingOvertakesAStopInFlight();
     void stopsAtTheLimitWithNoBufferAtAll();
     void announcesAFailedRecording();
+    void theLevelFollowsWhatTheSignalDoes();
+
+    void makesTheNoteWhenTheRecordingIsFinished();
+    void discardsTheRecordingOnEscape();
+    void keepsTheRecordingWhenTheNoteCannotBeStored();
+    void armsNothingWhenTheRecordingBreaksOffAtTheStart();
 
 private:
     QPlainTextEdit *textArea() const;
@@ -80,7 +88,17 @@ private:
     static void feedTone(AudioRecorder &recorder, int milliseconds);
     /** One buffer of `frames` samples of that tone, continuing at `phase`. */
     static QAudioBuffer tone(qint64 &phase, int frames);
+    /** One buffer of `frames` samples of nothing at all — the counter-run. */
+    static QAudioBuffer silence(int frames);
     static QImage shot(QWidget &window);
+    /**
+     * The window's own timer, the one that writes the running time.
+     *
+     * Direct children only: findChild() descends by default, and the recorder
+     * below the window parents timers of its own to itself — the wakeup that
+     * ends a recording at the bound is one of them.
+     */
+    static const QTimer *theClock(const RecordingWindow &window);
     /** How far into the top row of the picture the hull is still transparent. */
     static int cornerRun(const QImage &picture);
 
@@ -531,6 +549,23 @@ QAudioBuffer CaptureTest::tone(qint64 &phase, int frames)
     return {samples, format};
 }
 
+const QTimer *CaptureTest::theClock(const RecordingWindow &window)
+{
+    const QList<QTimer *> clocks =
+        window.findChildren<QTimer *>(QString(), Qt::FindDirectChildrenOnly);
+    return clocks.size() == 1 ? clocks.constFirst() : nullptr;
+}
+
+QAudioBuffer CaptureTest::silence(int frames)
+{
+    QAudioFormat format;
+    format.setSampleRate(48000);
+    format.setChannelConfig(QAudioFormat::ChannelConfigMono);
+    format.setSampleFormat(QAudioFormat::Int16);
+
+    return {QByteArray(static_cast<qsizetype>(frames) * 2, '\0'), format};
+}
+
 void CaptureTest::feedTone(AudioRecorder &recorder, int milliseconds)
 {
     qint64 phase = 0;
@@ -772,6 +807,206 @@ void CaptureTest::announcesAFailedRecording()
     QCOMPARE(failed.count(), 1);
     QCOMPARE(finished.count(), 0);
     QCOMPARE(cancelled.count(), 0);
+}
+
+void CaptureTest::theLevelFollowsWhatTheSignalDoes()
+{
+    // Acceptance criterion 2 of issue #21, measured where SPEC 4 can be
+    // measured: on the buffers that are on their way into the file, never on
+    // the user's room. A meter that always read zero would look exactly like a
+    // quiet room, and a meter that reported the buffer's existence rather than
+    // its level would look exactly like a working one — so both ends are
+    // asserted, and they have to come out different.
+    AudioRecorder recorder(m_dir->filePath(QStringLiteral("audio")));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy levels(&recorder, &AudioRecorder::levelChanged);
+
+    QVERIFY2(recorder.startEncoder(QDateTime::currentDateTime()), qPrintable(recorder.lastError()));
+
+    feedTone(recorder, 300);
+    QVERIFY(!levels.isEmpty());
+    // The tone of feedTone() swings to 12000 of a full scale of 32768, so its
+    // peak is 0.366. The bounds are tight enough that a reading off by a
+    // factor — a value taken per frame instead of per sample, a scale of
+    // 32767 read as 255 — falls outside them.
+    const qreal loud = levels.constLast().constFirst().toReal();
+    QVERIFY2(loud > 0.35 && loud < 0.38, qPrintable(QString::number(loud)));
+
+    levels.clear();
+    recorder.encode(silence(4800));
+    QCOMPARE(levels.count(), 1);
+    QCOMPARE(levels.constFirst().constFirst().toReal(), 0.0);
+
+    recorder.cancel();
+}
+
+void CaptureTest::makesTheNoteWhenTheRecordingIsFinished()
+{
+    // No device anywhere in this case, and the window's own road says so:
+    // startWithoutADevice() is the half of SPEC 4 a check can walk.
+    RecordingWindow window(m_store.get());
+    QVERIFY2(window.startWithoutADevice(), qPrintable(window.recorder()->lastError()));
+    // The running time is written by a timer, and the assertion that it stops
+    // is worth nothing without the one that it ran (CLAUDE.md, finding 27):
+    // a window that never started anything looks exactly like one that stopped.
+    const QTimer *clock = theClock(window);
+    QVERIFY(clock->isActive());
+
+    feedTone(*window.recorder(), 1000);
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(window.recorder(), &AudioRecorder::finished);
+    QCOMPARE(m_store->notes().size(), 0);
+
+    QTest::keyClick(&window, Qt::Key_Return, Qt::ControlModifier);
+    // Still nothing, and this is the assertion the case exists for (issue #22):
+    // stop() returns while the muxer is still writing, and a note made here
+    // would be in the transcription queue ahead of its own file — both attempts
+    // of SPEC 12 spent in no time at all.
+    QCOMPARE(m_store->notes().size(), 0);
+    QVERIFY(!window.isVisible());
+
+    QTRY_COMPARE(finished.count(), 1);
+    const QList<Note> notes = m_store->notes();
+    QCOMPARE(notes.size(), 1);
+
+    const Note &note = notes.constFirst();
+    QCOMPARE(note.type, Note::Type::Audio);
+    // Empty on purpose: that is what the transcription queue takes an audio
+    // note by (SPEC 12, transcriber.cpp:101).
+    QVERIFY(note.content.isEmpty());
+    QCOMPARE(note.audioDurationS, std::optional<int>(1));
+    // The row and the file have to name the same moment, and this holds the
+    // one against the other rather than both against a value of the test's:
+    // the name is built here out of the timestamp the **store** handed back.
+    QCOMPARE(note.audioPath, AudioRecorder::fileNameFor(note.createdAt));
+    QVERIFY(QFile::exists(m_store->audioDirectory() + QLatin1Char('/') + note.audioPath));
+
+    // And the display is switched off. Left running it would tick four times a
+    // second on a hidden window for the rest of the service's life, rebuilding
+    // a KColorScheme each time — nothing about that is visible.
+    QVERIFY(!clock->isActive());
+}
+
+void CaptureTest::discardsTheRecordingOnEscape()
+{
+    RecordingWindow window(m_store.get());
+    QVERIFY2(window.startWithoutADevice(), qPrintable(window.recorder()->lastError()));
+    feedTone(*window.recorder(), 300);
+
+    const QString file =
+        m_store->audioDirectory() + QLatin1Char('/') + window.recorder()->fileName();
+    QVERIFY(QFile::exists(file));
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy cancelled(window.recorder(), &AudioRecorder::cancelled);
+    QTest::keyClick(&window, Qt::Key_Escape);
+    QTRY_COMPARE(cancelled.count(), 1);
+
+    // Esc discards the recording **together with its file** (SPEC 4). What
+    // stayed would be an orphan, and the sweep of SPEC 2.5 is what it is for.
+    QVERIFY2(!QFile::exists(file), qPrintable(file));
+    QCOMPARE(m_store->notes().size(), 0);
+    QVERIFY(!window.isVisible());
+}
+
+void CaptureTest::keepsTheRecordingWhenTheNoteCannotBeStored()
+{
+    // The one case the cleanup check of SPEC 2.5 must not be left to decide
+    // (addition of 29.08.2026): the recording is finished, addNote() fails, and
+    // what lies on the disk is a file no row points at — which the sweep at the
+    // next service start cannot tell from a harmless orphan.
+    //
+    // A store that was never opened is how the failure is produced here. Its
+    // audio directory is the same one the case above records into, so the two
+    // differ in exactly one thing: whether the database takes the note.
+    Store closed(m_dir->filePath(QStringLiteral("never-opened.db")));
+
+    RecordingWindow window(&closed);
+    QVERIFY2(window.startWithoutADevice(), qPrintable(window.recorder()->lastError()));
+    feedTone(*window.recorder(), 300);
+
+    const QString name = window.recorder()->fileName();
+    const QString inAudio = closed.audioDirectory() + QLatin1Char('/') + name;
+    const QString rescued = closed.rescuedDirectory() + QLatin1Char('/') + name;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(window.recorder(), &AudioRecorder::finished);
+
+    QTest::keyClick(&window, Qt::Key_Return, Qt::ControlModifier);
+    QTRY_COMPARE(finished.count(), 1);
+
+    // The recording is not where the sweep reads any more. Naming it and
+    // leaving it lying was the first answer, and it was none — the sentence
+    // promised it would not be deleted while the next start deleted it.
+    QVERIFY2(!QFile::exists(inAudio), qPrintable(inAudio));
+    QVERIFY2(QFile::exists(rescued), qPrintable(rescued));
+
+    // And the sweep really runs, on a store that is open over the same data
+    // directory and holds no note at all: every file under `audio/` is an
+    // orphan to it. An assertion that only said "the file is somewhere else"
+    // would be the same output for a directory nothing ever looks in.
+    m_store->sweepOrphanedAudio();
+    QVERIFY2(QFile::exists(rescued), qPrintable(rescued));
+
+    // The counter-run, and it has to come out different: the same file put
+    // back where it stood is gone after the same sweep. Without it the check
+    // above would stand green over a sweep that deletes nothing at all.
+    QVERIFY(QFile::copy(rescued, inAudio));
+    m_store->sweepOrphanedAudio();
+    QVERIFY2(!QFile::exists(inAudio), qPrintable(inAudio));
+    QVERIFY2(QFile::exists(rescued), qPrintable(rescued));
+
+    // What the user is told names the place the recording now lies. Read off
+    // the function rather than off the notification: a KNotification on a bus
+    // with no notification server sends nothing at all and says so nowhere
+    // (CLAUDE.md, finding 37).
+    const QString message = capture::recordingNotSavedMessage(rescued, true);
+    QVERIFY2(message.contains(rescued), qPrintable(message));
+
+    // And where the move itself failed there is no promise to make. The two
+    // sentences have to be two: one text for both outcomes would be wrong in
+    // one of them, and it was.
+    const QString unmoved = capture::recordingNotSavedMessage(inAudio, false);
+    QVERIFY2(unmoved.contains(inAudio), qPrintable(unmoved));
+    QVERIFY(unmoved != message);
+}
+
+void CaptureTest::armsNothingWhenTheRecordingBreaksOffAtTheStart()
+{
+    // `audio/` as a symlink to `/proc`: the directory exists, so the recorder
+    // gets past creating it, and nothing can be written into it — **not even
+    // by root**, which is how the CI runs (CLAUDE.md, finding 46). A directory
+    // of our own with the write bit taken away would let root straight through
+    // and this case would stand green over a window that arms everything.
+    QVERIFY(QFile::link(QStringLiteral("/proc"), m_dir->filePath(QStringLiteral("audio"))));
+
+    RecordingWindow window(m_store.get());
+    const QTimer *clock = theClock(window);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(window.recorder(), &AudioRecorder::failed);
+
+    window.startWithoutADevice();
+
+    // **The answer arrives inside the start.** Measured 29.08.2026: the muxer
+    // emits its error synchronously out of record(), so the recording is over
+    // before the call that began it has returned. The review of #21 read the
+    // symptom off QTimer::isActive() and called for a stop in the failed
+    // handler; the stop was there and ran — on a timer that had not been
+    // started yet, because the window armed the display afterwards.
+    QCOMPARE(failed.count(), 1);
+    QVERIFY(!clock->isActive());
+    QVERIFY(!window.isVisible());
+    QCOMPARE(m_store->notes().size(), 0);
+
+    // And nothing is left believing a recording is in flight. That is the
+    // second half of the same fault and the worse one: a window that still
+    // holds an answer outstanding shows itself on the next Meta+Shift+N and
+    // records nothing at all, for the rest of the service's life. The readback
+    // is a second attempt that has to reach the recorder — it fails the same
+    // way, and that second failure is what says the first one was cleared.
+    window.startWithoutADevice();
+    QCOMPARE(failed.count(), 2);
+    QVERIFY(!clock->isActive());
 }
 
 QTEST_MAIN(CaptureTest)

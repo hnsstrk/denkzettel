@@ -55,8 +55,8 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration, const QKe
     case ShortcutRegistration::ApplicationNotInstalled:
         return i18n("%1 never reached the shortcut service: Denkzettel is not installed "
                     "system-wide, and without its desktop file the service creates no entry. "
-                    "After the installation the shortcut works; until then the capture window "
-                    "stays reachable through the icon in the system tray.",
+                    "After the installation the shortcut works; until then Denkzettel stays "
+                    "reachable through the icon in the system tray.",
                     keys);
     case ShortcutRegistration::DaemonKeptNothing:
         // No process name and no question: whoever does not know what
@@ -65,12 +65,12 @@ QString shortcutRegistrationFailure(ShortcutRegistration registration, const QKe
         return i18n("%1 never reached the shortcut service — it did not keep the "
                     "registration. The shortcuts can be checked in the system settings under "
                     "“Shortcuts”; if that does not help, logging in anew brings the service back. "
-                    "The capture window stays reachable through the icon in the system tray.",
+                    "Denkzettel stays reachable through the icon in the system tray.",
                     keys);
     case ShortcutRegistration::DesktopActionMissing:
         return i18n("%1 is set up but triggers nothing: the desktop file of Denkzettel "
                     "is missing the entry for this shortcut. A complete reinstallation brings it "
-                    "back. Until then the capture window stays reachable through the icon in the "
+                    "back. Until then Denkzettel stays reachable through the icon in the "
                     "system tray.",
                     keys);
     }

@@ -16,6 +16,38 @@
 namespace
 {
 constexpr int SampleRate = 48000;
+
+/**
+ * The loudest sample of `buffer`, from 0 (silence) to 1 (full scale).
+ *
+ * Peak and not RMS, because of what the meter is for: SPEC 4 asks it to react
+ * to the microphone, and the question the user asks it is whether anything is
+ * arriving at all. A peak answers that out of a single buffer; an RMS over
+ * 100 ms of speech sits near the floor between two syllables and would say no
+ * while the recording is running fine.
+ *
+ * Through `normalizedSampleValue()` rather than over `constData<qint16>()`:
+ * the format is the caller's, not ours — start() hands in the Int16 the device
+ * was opened with, and a check hands in whatever it built. The reading is then
+ * right for every format instead of silently wrong for all but one.
+ */
+qreal peakOf(const QAudioBuffer &buffer)
+{
+    const QAudioFormat format = buffer.format();
+    const int bytes = format.bytesPerSample();
+    if (bytes <= 0) {
+        return 0;
+    }
+
+    // `constData<char>()` and not `constData()`: the untyped one is private,
+    // and the template is the only public way to the bytes.
+    const char *sample = buffer.constData<char>();
+    qreal peak = 0;
+    for (qsizetype i = 0; i < buffer.sampleCount(); ++i, sample += bytes) {
+        peak = qMax(peak, qreal(qAbs(format.normalizedSampleValue(sample))));
+    }
+    return peak;
+}
 }
 
 AudioRecorder::AudioRecorder(QString audioDirectory, QObject *parent)
@@ -203,6 +235,12 @@ void AudioRecorder::encode(const QAudioBuffer &buffer)
     if (m_state != State::Recording || !buffer.isValid() || buffer.frameCount() == 0) {
         return;
     }
+    // Before the queue below, and that is deliberate: what the meter shows is
+    // what the microphone delivered, not what the encoder managed to take. A
+    // buffer dropped further down is lost audio and says so in the log; it is
+    // not a moment of silence in the room (SPEC 4, issue #21).
+    Q_EMIT levelChanged(peakOf(buffer));
+
     m_pending.append(buffer);
     m_pendingFrames += buffer.frameCount();
     // ponytail: one fixed bound of two seconds for the queue, in place of

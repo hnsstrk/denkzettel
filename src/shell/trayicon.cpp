@@ -139,7 +139,14 @@ QMenu *TrayIcon::buildMenu()
     captureAction->setShortcutContext(Qt::WidgetShortcut);
     connect(captureAction, &QAction::triggered, this, &TrayIcon::captureRequested);
 
-    addStub(menu, i18n("Record voice note"), QStringLiteral("audio-input-microphone"));
+    QAction *recorderAction =
+        menu->addAction(QIcon::fromTheme(QStringLiteral("audio-input-microphone")),
+                        i18n("Record voice note"));
+    // A hint like the one above it, and never a binding: same reasoning, same
+    // context (SPEC 2.4, issue #60).
+    recorderAction->setShortcut(QKeySequence(Qt::META | Qt::SHIFT | Qt::Key_N));
+    recorderAction->setShortcutContext(Qt::WidgetShortcut);
+    connect(recorderAction, &QAction::triggered, this, &TrayIcon::recorderRequested);
 
     // Separates capturing from looking at and working on — the only grouping
     // among the working paths (wireframe 5a).

@@ -30,6 +30,16 @@ public Q_SLOTS:
     Q_SCRIPTABLE void ShowCapture();
 
     /**
+     * Shows the recording window; the recording starts with it (SPEC 2.3, 4).
+     *
+     * The other road to the same window is the desktop action of SPEC 2.4:
+     * with Denkzettel installed, a key press does not signal the running
+     * process but starts `denkzetteld` again, and the single-instance branch
+     * turns that into this call.
+     */
+    Q_SCRIPTABLE void ShowRecorder();
+
+    /**
      * Stores `text` as a new note and returns its id, 0 on failure — D-Bus has
      * no optional, and a caller can tell an id from a failure that way. Blank
      * text is no note, as in the capture window.
@@ -52,6 +62,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void captureRequested();
+    void recorderRequested();
     void libraryRequested();
     void analysisRequested();
     void quitRequested();

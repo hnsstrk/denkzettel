@@ -123,6 +123,7 @@ GlobalShortcuts::GlobalShortcuts(QObject *parent)
     }
 
     connect(m_captureAction, &QAction::triggered, this, &GlobalShortcuts::captureRequested);
+    connect(m_recorderAction, &QAction::triggered, this, &GlobalShortcuts::recorderRequested);
 }
 
 QAction *GlobalShortcuts::actionFor(Shortcut which) const
@@ -130,9 +131,10 @@ QAction *GlobalShortcuts::actionFor(Shortcut which) const
     return which == Shortcut::Capture ? m_captureAction : m_recorderAction;
 }
 
-QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
+QList<ShortcutOwner> GlobalShortcuts::registerShortcut(Shortcut which)
 {
-    const QKeySequence sequence = defaultSequence(Shortcut::Capture);
+    QAction *action = actionFor(which);
+    const QKeySequence sequence = defaultSequence(which);
 
     QList<ShortcutOwner> owners;
     const QList<KGlobalShortcutInfo> registered = KGlobalAccel::globalShortcutsByKey(sequence, KGlobalAccel::Equal);
@@ -146,18 +148,18 @@ QList<ShortcutOwner> GlobalShortcuts::registerCaptureShortcut()
     // registration (SPEC 2.4). The return value is not looked at: it cannot
     // show a backend failure, because doRegister() sends its D-Bus call and
     // drops the answer.
-    KGlobalAccel::setGlobalShortcut(m_captureAction, sequence);
+    KGlobalAccel::setGlobalShortcut(action, sequence);
 
     // So the daemon is asked what it actually holds, and the desktop file it
     // resolves us through is read for the action it starts on the key press.
     // Both failures are silent otherwise — the user met each of them once,
     // on 01.08.2026 (retro B5).
     const QString desktopFile = desktopFilePath();
-    const QKeySequence held = assignedSequence(Shortcut::Capture);
+    const QKeySequence held = assignedSequence(which);
     const ShortcutRegistration registration =
         shortcutRegistration(held.isEmpty() ? QList<QKeySequence>() : QList<QKeySequence>{held},
                              !desktopFile.isEmpty(),
-                             desktopFileDeclaresAction(desktopFile, m_captureAction->objectName()));
+                             desktopFileDeclaresAction(desktopFile, action->objectName()));
     if (registration != ShortcutRegistration::Reached) {
         // Unlike a conflict this leaves no working shortcut at all, so it is
         // reported at every start rather than on the first one only. The

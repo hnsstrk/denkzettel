@@ -193,8 +193,10 @@ target_link_libraries(denkzettelplatform PUBLIC
 add_library(denkzettelcapture STATIC
     capture/audiorecorder.cpp
     capture/capturewindow.cpp
+    capture/recordingwindow.cpp
     capture/textareaheight.cpp
     capture/textcontrast.cpp
+    capture/windowhull.cpp
 )
 
 target_include_directories(denkzettelcapture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -226,7 +228,15 @@ target_link_libraries(denkzettelcapture PUBLIC
     # window.
     KF6::ConfigCore
     KF6::CoreAddons
+    # NegativeText — the red of the recording indicator and of the running time
+    # from minute 14 (SPEC 4). A role QPalette does not have, so it comes from
+    # the same place the settings dialog takes its result line from.
+    KF6::ColorScheme
     KF6::I18n
+    # The recording window reports a failed save with the path of the file it
+    # left behind (SPEC 2.5, 14) — the loud channel, and the only thing that
+    # keeps the cleanup check of #25 from deleting a recording nobody knows of.
+    KF6::Notifications
     KF6::Svg
     KF6::WindowSystem
 )

@@ -1,4 +1,6 @@
+#include "capture/audiorecorder.h"
 #include "capture/capturewindow.h"
+#include "capture/recordingwindow.h"
 #include "store/note.h"
 #include "store/store.h"
 #include "ui/framecontrast.h"
@@ -7,6 +9,8 @@
 #include <KLocalizedString>
 
 #include <QApplication>
+#include <QAudioBuffer>
+#include <QAudioFormat>
 #include <QDir>
 #include <QListView>
 #include <QLocale>
@@ -16,9 +20,12 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <cmath>
+#include <numbers>
+
 /**
- * Writes the two pictures the README carries: the capture window and the
- * library.
+ * Writes the three pictures the README carries: the capture window, the
+ * recording window and the library.
  *
  * Not a test — a picture maker, and out of `add_test()` for that reason: a
  * picture nobody looks at proves nothing, and a failing screenshot writer must
@@ -288,6 +295,45 @@ void reportWhatItDrewWith()
           qUtf8Printable(library::frameContrastMix(ground, type).name()));
 }
 
+/**
+ * Hands the recorder `milliseconds` of a tone of the runner's own, in buffers
+ * of 100 ms.
+ *
+ * **Never the microphone** (the user's instruction of 28.08.2026): this machine
+ * is the one they work at, this repository is public, and a recording that has
+ * been made cannot be unmade. The picture brings its own signal, exactly as the
+ * checks do.
+ *
+ * The amplitude is fixed at 22000 of a full scale of 32768, so the meter in the
+ * picture stands at five of its seven bars — loud enough to look like somebody
+ * speaking, and the same five in every run: the pictures in this repository are
+ * byte-identical from one run to the next, and a level drawn from anything that
+ * varies would end that.
+ */
+void feedTone(AudioRecorder &recorder, int milliseconds)
+{
+    QAudioFormat format;
+    format.setSampleRate(48000);
+    format.setChannelConfig(QAudioFormat::ChannelConfigMono);
+    format.setSampleFormat(QAudioFormat::Int16);
+
+    qint64 phase = 0;
+    for (int buffers = milliseconds / 100; buffers > 0 && recorder.isRecording(); --buffers) {
+        QByteArray samples(qsizetype{4800} * 2, Qt::Uninitialized);
+        auto *value = reinterpret_cast<qint16 *>(samples.data());
+        for (int i = 0; i < 4800; ++i, ++phase) {
+            const double t = static_cast<double>(phase) / 48000.0;
+            value[i] = static_cast<qint16>(22000.0 * std::sin(2.0 * std::numbers::pi * 440.0 * t));
+        }
+        recorder.encode(QAudioBuffer(samples, format));
+        // The encoder takes one buffer at a time and refuses the next until it
+        // is through, so a run that fed without pausing would put a fraction of
+        // this into the file and the running time in the picture would be that
+        // fraction.
+        QTest::qWait(10);
+    }
+}
+
 void shoot(QWidget &window, const QString &directory, const QString &name)
 {
     QTest::qWait(300);
@@ -355,7 +401,37 @@ int main(int argc, char **argv)
         shoot(window, directory, QStringLiteral("erfassungsfenster.png"));
     }
 
-    // 2 — the library: five day groups on the left, a note open on the right
+    // 2 — the recording window, a voice note twenty-three seconds in
+    // (wireframe 1f). The recording runs from the moment the window opens, so
+    // there is nothing to press here; what the picture needs is a signal, and
+    // it brings its own rather than opening the machine's microphone.
+    {
+        const QTemporaryDir dir;
+        Store store(dir.filePath(QStringLiteral("denkzettel.db")));
+        if (!store.open()) {
+            qFatal("Store: %s", qUtf8Printable(store.lastError()));
+        }
+
+        RecordingWindow window(&store);
+        if (!window.startWithoutADevice()) {
+            qFatal("The recording never started: %s",
+                   qUtf8Printable(window.recorder()->lastError()));
+        }
+        if (!QTest::qWaitForWindowExposed(&window)) {
+            qFatal("The recording window never reached the screen");
+        }
+
+        feedTone(*window.recorder(), 23000);
+        qInfo("recorded: %lld ms", window.recorder()->duration());
+
+        shoot(window, directory, QStringLiteral("aufnahmefenster.png"));
+        // Before the window goes: a recorder taken down mid-recording deletes
+        // its file, and nothing here wants the note it would otherwise make.
+        window.recorder()->cancel();
+        QTest::qWait(300);
+    }
+
+    // 3 — the library: five day groups on the left, a note open on the right
     // (wireframes 2b and 3a).
     {
         const QTemporaryDir dir;
