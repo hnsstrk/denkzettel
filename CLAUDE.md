@@ -326,6 +326,17 @@ find.
     `chmod +x` on the session program, and if nothing comes back, ask the
     compositor over its socket whether it is up rather than guessing.
 
+    **And the quiet half of the same trap**, measured 2026-08-29 on #47: there
+    the session program did run, and the daemon *inside* it did not — the path
+    handed in was empty, because `readlink -f` on a path built out of `..`
+    segments hands back nothing. Nothing hung then; the run finished and
+    reported `isScriptLoaded b false` and zero calls on the bus, which is
+    **exactly** the right answer for the case it was measuring, the setting
+    switched off. A hang is read as a fault, a plausible answer is not. So a
+    nested run needs one line that says its subject was **there** — here the
+    `method return` of the `ShowCapture` call, printed beside the result — and
+    that line belongs in the output whether the run comes out empty or full.
+
 24. **`QAudioBufferInput` constructed with a format refuses every buffer, and
     reports it nowhere.** Measured 2026-08-28 on #20 with Qt 6.11.2:
     `sendAudioBuffer()` returned `false` for all ten buffers of the run,
@@ -917,6 +928,48 @@ find.
     wrote down. **Whoever mutates a format string renumbers its placeholders
     with it, and reads the produced string back once before believing the
     run.**
+
+59. **A check that searches a file for a value finds it in the file's own
+    comment.** Measured 2026-08-29 on #47: the KWin script filters on the
+    application id, and a rename leaves the filter matching nothing while
+    everything else reports success (that is what #112 did to the spike of
+    #50). The guard against it read the installed script and asked whether it
+    contained `QGuiApplication::desktopFileName()`. It always did — the id
+    stands in the script's own comment and in the bus name it calls back on as
+    well, so the control run with the constant blunted to the retired
+    `org.denkzettel.Denkzettel` came out **green**. Against the whole
+    assignment (`var OWN_CLASS = "…";`) the same control reads `isScriptLoaded
+    b false`, zero calls on the interface and one line in the journal naming
+    the file. Whatever a check looks for in a file, look for the **statement**
+    and not the token — a value that occurs three times in a file is a value
+    the check cannot tell apart.
+
+60. **A widget told to ignore its own width wish can be given none at all, and
+    `elidedText()` then returns an empty string.** Measured 2026-08-29 on #47:
+    the origin line carried `QSizePolicy::Ignored` so that a long window title
+    could not push the head row's minimum width — the price is that when the
+    row is over budget the line gets 0 px and disappears **without a word**. At
+    714 px window width that is what happened, and the case looked like a value
+    that never arrived; at 900 px the same note read `· Konsole …`. And the
+    room a design was measured against is read back in the **built** window,
+    not taken from the drawing: the UX pass reckoned with 256 logical px free
+    in that row, the built window gave the line 57 to 74 px, because the
+    reading pane is 440 px of the 900 and the timestamp takes 148 to 165 of
+    what is left. That measurement overturned the decision it was checking —
+    the origin moved into a line of its own. Whoever builds to a measured
+    number measures it again where it is spent, and reports it before the
+    picture looks finished.
+
+61. **Two actions with the same wording in one window: a lookup by wording
+    picks the wrong one, and the red lands in a neighbouring case.** Measured
+    2026-08-29 on #47: the origin removal got an "Undo" of its own beside the
+    deletion's, both added to the window with `addAction()`. `librarytest`'s
+    `actionNamed()` walks `window.actions()` and takes the first hit, so
+    `takesUpTheWaitingNoteWhenTheDeletionIsUndone` — a case that has nothing to
+    do with the new feature — triggered the new action, which did nothing, and
+    failed on a note count. Both readings of that red are wrong: it is neither
+    a broken deletion nor a broken test. What carries: an action that is only
+    reached through one button does not go into `window.actions()` at all.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
