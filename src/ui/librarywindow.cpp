@@ -594,7 +594,7 @@ QWidget *LibraryWindow::buildHeader()
     // sits below the separator, in the administrative group a KDE application
     // menu ends with.
     menu->addSeparator();
-    QAction *configureAction =
+    const QAction *configureAction =
         menu->addAction(QIcon::fromTheme(QStringLiteral("configure")), i18n("Configure Denkzettel…"));
     connect(configureAction, &QAction::triggered, this, &LibraryWindow::configureRequested);
 
