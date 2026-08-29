@@ -859,6 +859,19 @@ find.
     used as evidence has to name **your own** path, the way finding 28 reads
     the style name back.
 
+56. **A review measures a commit, and a worktree is not a commit.** Measured
+    2026-08-29 on #21: the reviewer's verdict was written against `99a0bcd`,
+    the implementer was then sent the findings, and by the time a second
+    measurement was needed the same worktree stood eight files and 203 lines
+    further on — the fixes for the very findings under discussion. The first
+    re-run would have built that newer state and reported it under the old
+    commit's name, and nothing in the output says which state was built. This
+    is the lead's error before it is anybody's: whoever asks for a second look
+    while the branch is being worked on has to say **which** state it is on.
+    What carries: a review builds from `git archive <commit>` into a directory
+    of its own, and its report names the commit it holds for — not the branch,
+    which has moved by the time the report is read.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
