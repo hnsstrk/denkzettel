@@ -1287,12 +1287,18 @@ path to `whisper-cli`), **Shortcuts**
 **Capture** stands first, and it is the page for the privacy switch of §5.1:
 „Herkunft der Notiz mitspeichern" (store the note's origin), **off by
 default**, with the sentence that answers what is kept — „Gespeichert werden
-Name der Anwendung und Fenstertitel im Moment der Erfassung. Der Fenstertitel
-steht in der Detailansicht und lässt sich dort löschen; der Name der Anwendung
-wird nicht angezeigt und geht mit ihm." **Two things are stored and one of them
-is shown**: the application id feeds the classification of §7 and stands in no
-window (5.1), so the earlier wording „Der Stempel steht in der Detailansicht"
-promised more visibility than there is (correction of 29.08.2026, issue #47).
+Name der Anwendung und Fenstertitel im Moment der Erfassung. Beide stehen in
+der Detailansicht und werden dort zusammen gelöscht." **Both are stored and
+both are shown**, the application before the title. Between the two the
+sentence went the other way for a few hours, and the customer's own case turned
+it back: a note captured out of a terminal read back the title the terminal
+happened to carry, with nothing saying it was a terminal. The application id is
+resolved to a name through its desktop file at **display** time — a name frozen
+at capture would be a third fact beside the two columns 5.1 carries on purpose
+— and where no desktop file answers, the raw id stands, because
+`com.example.terminal` still says which program it was (correction of
+29.08.2026, issue #47, after the customer measured it on the installed
+build).
 Icon
 `document-edit`, the same name the tray gives „Notiz erfassen", because it is
 the same action. It is deliberately **not** a line on the Analysis page,
