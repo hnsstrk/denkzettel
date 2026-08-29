@@ -1287,8 +1287,13 @@ path to `whisper-cli`), **Shortcuts**
 **Capture** stands first, and it is the page for the privacy switch of §5.1:
 „Herkunft der Notiz mitspeichern" (store the note's origin), **off by
 default**, with the sentence that answers what is kept — „Gespeichert werden
-Name der Anwendung und Fenstertitel im Moment der Erfassung. Der Stempel steht
-in der Detailansicht und lässt sich dort einzeln löschen." Icon
+Name der Anwendung und Fenstertitel im Moment der Erfassung. Der Fenstertitel
+steht in der Detailansicht und lässt sich dort löschen; der Name der Anwendung
+wird nicht angezeigt und geht mit ihm." **Two things are stored and one of them
+is shown**: the application id feeds the classification of §7 and stands in no
+window (5.1), so the earlier wording „Der Stempel steht in der Detailansicht"
+promised more visibility than there is (correction of 29.08.2026, issue #47).
+Icon
 `document-edit`, the same name the tray gives „Notiz erfassen", because it is
 the same action. It is deliberately **not** a line on the Analysis page,
 although the origin feeds the classification: a switch against invisible data

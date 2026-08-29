@@ -16,10 +16,12 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   Under Settings → Capture there is a new switch, „Herkunft der Notiz
   mitspeichern", and it is **off**. Turned on, a note keeps the title of the
   window that was in front before the capture window came up, and the name of
-  the application it belonged to; the detail view in the library shows it on a
-  line of its own under the timestamp, and the context menu on that line takes
-  it off again — no confirmation, and the band under the header offers the way
-  back. The list is unchanged: entries keep their height and their two lines.
+  the application it belonged to. The detail view in the library shows the
+  **title** on a line of its own under the timestamp, and the context menu on
+  that line takes both off again — no confirmation, and the band under the
+  header offers the way back; the application's name is never shown, it is
+  there for the automatic classification. The list is unchanged: entries keep
+  their height and their two lines.
 
   **With the switch off nothing is looked up at all.** Denkzettel does not even
   hand the little script to KWin that would find the title, so there is nothing
