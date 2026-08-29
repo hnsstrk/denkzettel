@@ -643,6 +643,18 @@ find.
     (`grep -v '^ *#'`), and treat a check that names something you know to be
     there as broken until proven otherwise.
 
+45. **A permission check run as root proves nothing — for root everything is
+    writable.** Measured 2026-08-29 on #75, whose criterion is that a
+    non-writable vault path is reported when it is set. `QFileInfo::isWritable()`
+    asks the *effective* user, and the CI runs in an Arch container as root, so
+    the case would have stood green over a program that happily stored the
+    rejected folder. Measured by hand as uid 1000 with `chmod 0500` it comes out
+    the other way: the message turns red and the field falls back to the last
+    accepted folder. The same goes for `isExecutable()` and for every check
+    against a mode bit. Either the check drops privileges for the run, or the
+    case stays out of the set and is measured by hand — but it never stands in
+    a set that runs as root, where it can only ever say yes.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
