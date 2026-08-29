@@ -1,16 +1,59 @@
 #pragma once
 
+#include <QLatin1StringView>
 #include <QObject>
 #include <QProcess>
 #include <QString>
 #include <QTimer>
 
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 class QTemporaryDir;
 class Store;
+
+/**
+ * What SPEC 12 lets the user choose, and the defaults it names.
+ *
+ * Here and not in the settings, because the dependency only runs one way:
+ * `denkzettelsettings` links `denkzetteltranscribe`, not the other way round —
+ * the same reason `ollama::` lives in analysis/ollamaprovider.h. And because
+ * what a size *means* is the file name Transcriber::modelPath() builds from
+ * it: whoever adds a size adds it in one place and the naming follows.
+ */
+namespace whisper
+{
+/** Where the package `whisper-cpp` puts the program (SPEC 12). */
+inline constexpr QLatin1StringView DefaultProgram("/usr/bin/whisper-cli");
+
+/**
+ * The five model sizes of SPEC 12, smallest first.
+ *
+ * The order is stored: the settings page offers them as a combo box, and
+ * KConfigDialogManager keeps such a box by its **index**. An entry put in
+ * between moves every value after it and changes what a written
+ * `denkzettelrc` means, without a sound.
+ */
+inline constexpr std::array<QLatin1StringView, 5> Sizes{
+    QLatin1StringView("tiny"),
+    QLatin1StringView("base"),
+    QLatin1StringView("small"),
+    QLatin1StringView("medium"),
+    QLatin1StringView("large-v3"),
+};
+
+/** The default of SPEC 12, as an index into Sizes. */
+inline constexpr int DefaultSize = 2;
+// Through std::string_view because QLatin1StringView::operator==() is not
+// constexpr — the point is only that the index and the list cannot drift
+// apart when somebody puts a sixth size in.
+static_assert(std::string_view(Sizes.at(DefaultSize).data(), Sizes.at(DefaultSize).size())
+                  == "small",
+              "SPEC 12 names `small` as the default model size");
+}
 
 /**
  * The transcription queue and the two programs it runs (SPEC 12).
@@ -45,8 +88,15 @@ public:
     Transcriber(const Transcriber &) = delete;
     Transcriber &operator=(const Transcriber &) = delete;
 
-    /** `~/.local/share/denkzettel/models/ggml-small.bin` (SPEC 12). */
-    static QString defaultModelPath();
+    /**
+     * `~/.local/share/denkzettel/models/ggml-<size>.bin` (SPEC 12), after the
+     * naming scheme of the upstream GGML models.
+     *
+     * The setting is the **size** and the path follows from it; the settings
+     * page asks this for the one question it has per size — is the file there
+     * — and the download of issue #23 will write to the same answer.
+     */
+    static QString modelPath(const QString &size);
 
     /**
      * Where the temporary WAV of a job lies, and where start() sweeps up what
@@ -98,6 +148,18 @@ public:
 
     /** Whether a job is being worked on right now. */
     bool isBusy() const;
+
+public Q_SLOTS:
+    /**
+     * Re-reads the settings of SPEC 12 out of `denkzettelrc`.
+     *
+     * The daemon holds one transcriber for the whole session, and the settings
+     * dialog writes underneath it — without this the program and the model
+     * chosen there would only take hold at the next start (SPEC 13, issue
+     * #27). A job that is already running keeps what it was started with; what
+     * is read here reaches the next one.
+     */
+    void reloadSettings();
 
 Q_SIGNALS:
     /** The transcript is written and the job is out of the queue. */

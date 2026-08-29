@@ -1,5 +1,6 @@
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
+#include "transcribe/transcriber.h"
 
 #include <KConfig>
 #include <KConfigGroup>
@@ -9,20 +10,24 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFile>
+#include <QFileInfo>
 #include <QGroupBox>
 #include <QIcon>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QSignalSpy>
 #include <QStandardPaths>
 #include <QStyle>
+#include <QTemporaryDir>
 #include <QTest>
 
 /**
  * What the settings dialog does where nobody can see it (SPEC 13, issue #16).
  *
- * Three things break without a sound, and only those are asserted here — how
+ * Five things break without a sound, and only those are asserted here — how
  * the dialog looks is looked at, not measured:
  *
  * 1. **Whether Apply writes.** KConfigDialog wires its buttons up in its own
@@ -34,7 +39,13 @@
  * 2. **Whether Help is only hidden.** The one line that hides it is what an
  *    unwitting hand replaces with `setStandardButtons()`, which is the fault
  *    above.
- * 3. **The icon names of the page list.** `KPageDialog::List` keeps the height
+ * 3. **That a rejected program path is not written.** A path that names no
+ *    executable is reported on the page; whoever lets it through anyway is
+ *    found out at the next recording and nowhere earlier (issue #27).
+ * 4. **That a save announces itself.** The transcriber of main.cpp takes the
+ *    new model and the new program off that announcement; without it the
+ *    settings would only take hold at the next start of the daemon (#27).
+ * 5. **The icon names of the page list.** `KPageDialog::List` keeps the height
  *    of an icon free whether one is there or not, so a page without one stands
  *    among holes. What is binding is the name, so the name is what is read.
  */
@@ -46,6 +57,8 @@ private Q_SLOTS:
     void initTestCase();
     void settingsSurviveARestart();
     void theWindowSizeSurvivesEveryWayOut();
+    void aRejectedProgramPathIsNotStored();
+    void savingAnnouncesItself();
     void helpIsHiddenAndNotReplaced();
     void everyPageCarriesAnIcon();
 
@@ -185,6 +198,119 @@ void SettingsTest::theWindowSizeSurvivesEveryWayOut()
     closeDialog(afterClose);
 }
 
+void SettingsTest::aRejectedProgramPathIsNotStored()
+{
+    // Files of this run's own, and never a lookup on PATH: `whisper-cli` is
+    // installed on the machine this was written on and is not on the automated
+    // run, so a case built on it would be measuring the machine (finding 33 of
+    // CLAUDE.md in its other shape).
+    const QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString executable = dir.filePath(QStringLiteral("whisper-cli"));
+    QFile program(executable);
+    QVERIFY(program.open(QIODevice::WriteOnly));
+    program.write("#!/bin/sh\nexit 0\n");
+    program.close();
+    QVERIFY(program.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
+
+    // There, a file, readable — and not executable. That is the one case
+    // QFile::exists() waves through, and the whole of this check.
+    const QString rejected = dir.filePath(QStringLiteral("whisper-cli.txt"));
+    QFile plain(rejected);
+    QVERIFY(plain.open(QIODevice::WriteOnly));
+    plain.write("no program\n");
+    plain.close();
+    QVERIFY(plain.setPermissions(QFile::ReadOwner | QFile::WriteOwner));
+    // Root executes what it likes, and the case would then come out green over
+    // a page that rejects nothing.
+    QVERIFY2(!QFileInfo(rejected).isExecutable(), "do not run this check as root");
+
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    auto *editor = dialog->findChild<QLineEdit *>(QStringLiteral("whisperProgram"));
+    const auto *stored = dialog->findChild<QLineEdit *>(QStringLiteral("kcfg_WhisperProgram"));
+    const auto *message = dialog->findChild<QLabel *>(QStringLiteral("whisperProgramState"));
+    QVERIFY(editor);
+    QVERIFY(stored);
+    QVERIFY(message);
+    QPushButton *apply = dialog->button(QDialogButtonBox::Apply);
+    QVERIFY(apply);
+
+    // The accepted state first, or the rejection below has nothing to come out
+    // differently from (finding 27): a path that IS a program travels into the
+    // stored field, wakes the Apply button and reaches the file.
+    editor->setText(executable);
+    QCOMPARE(stored->text(), executable);
+    QVERIFY(message->text().isEmpty());
+    QVERIFY(apply->isEnabled());
+    apply->click();
+    {
+        KConfig written(QStringLiteral("denkzettelrc"));
+        QCOMPARE(written.group(QStringLiteral("Transcription")).readEntry("WhisperProgram", QString()),
+                 executable);
+    }
+
+    // And the rejected one. It stands in the editor, it is reported, and it
+    // reaches neither the stored field nor the file — not even over a click on
+    // Apply, which has nothing to write and stays grey.
+    editor->setText(rejected);
+    QCOMPARE(editor->text(), rejected);
+    QCOMPARE(stored->text(), executable);
+    QVERIFY(!message->text().isEmpty());
+    QVERIFY(!apply->isEnabled());
+    apply->click();
+
+    KConfig after(QStringLiteral("denkzettelrc"));
+    QCOMPARE(after.group(QStringLiteral("Transcription")).readEntry("WhisperProgram", QString()),
+             executable);
+
+    closeDialog(dialog);
+}
+
+void SettingsTest::savingAnnouncesItself()
+{
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    auto *size = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_ModelSize"));
+    QVERIFY(size);
+    // All five of SPEC 12, whether their model lies on disk or not (UX,
+    // 29.08.2026) — what is missing is greyed, not left out.
+    QCOMPARE(size->count(), static_cast<int>(whisper::Sizes.size()));
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy announced(Settings::self(), &Settings::configChanged);
+    QPushButton *apply = dialog->button(QDialogButtonBox::Apply);
+    QVERIFY(apply);
+    QVERIFY(!apply->isEnabled());
+
+    // `medium`: neither the first entry, nor the last, nor the default. The
+    // first index is what a broken store lands on by itself — measured
+    // 29.08.2026, with the widget property left at the USER default the
+    // manager writes the entry TEXT into an int item, "tiny — not
+    // downloaded".toInt() is 0, and a case built on index 0 stands green over
+    // it (finding 34).
+    size->setCurrentIndex(3);
+    QVERIFY(apply->isEnabled());
+    QCOMPARE(announced.count(), 0);
+    apply->click();
+
+    // The announcement the running transcriber of main.cpp hangs on. The
+    // transition and not a count: what the dialog runs through on one Apply is
+    // its own business, and asking for a number would make this case red over
+    // a KConfigDialog that saves twice.
+    QVERIFY(announced.count() > 0);
+
+    KConfig written(QStringLiteral("denkzettelrc"));
+    QCOMPARE(written.group(QStringLiteral("Transcription")).readEntry("ModelSize", QString()),
+             QStringLiteral("medium"));
+
+    closeDialog(dialog);
+}
+
 void SettingsTest::helpIsHiddenAndNotReplaced()
 {
     SettingsDialog *dialog = openDialog();
@@ -216,10 +342,11 @@ void SettingsTest::everyPageCarriesAnIcon()
     QVERIFY(list);
     const QAbstractItemModel *pages = list->model();
     QVERIFY(pages);
-    QCOMPARE(pages->rowCount(), 2);
+    QCOMPARE(pages->rowCount(), 3);
 
     const QStringList expected{QStringLiteral("preferences-system-network-server"),
-                               QStringLiteral("preferences-system-time")};
+                               QStringLiteral("preferences-system-time"),
+                               QStringLiteral("audio-input-microphone")};
     for (int row = 0; row < expected.size(); ++row) {
         const QIcon icon = pages->data(pages->index(row, 0), Qt::DecorationRole).value<QIcon>();
         QCOMPARE(icon.name(), expected.at(row));

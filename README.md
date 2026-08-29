@@ -100,8 +100,13 @@ specification is [`SPEC.md`](SPEC.md).
   [Transcription]
   FfmpegProgram=/usr/bin/ffmpeg
   WhisperProgram=/usr/bin/whisper-cli
-  ModelPath=/home/you/.local/share/denkzettel/models/ggml-small.bin
+  ModelSize=small
   ```
+
+  The size is one of `tiny`, `base`, `small`, `medium` and `large-v3`, and the
+  file follows from it: `~/.local/share/denkzettel/models/ggml-<size>.bin`. The
+  model size and the program path are also the settings page "Voice notes";
+  what is set there takes hold at once, without restarting the daemon.
 
 On Arch and derivatives:
 

@@ -60,10 +60,7 @@ Transcriber::Transcriber(Store *store, QObject *parent)
     : QObject(parent)
     , m_store(store)
 {
-    const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
-    m_ffmpegProgram = group.readEntry("FfmpegProgram", QStringLiteral("/usr/bin/ffmpeg"));
-    m_whisperProgram = group.readEntry("WhisperProgram", QStringLiteral("/usr/bin/whisper-cli"));
-    m_modelPath = group.readEntry("ModelPath", defaultModelPath());
+    reloadSettings();
 
     // Every note that reaches the database runs through Store::noteAdded, and
     // that is why the queue is filled from here rather than from whoever makes
@@ -182,10 +179,23 @@ Transcriber::~Transcriber()
     m_work.reset();
 }
 
-QString Transcriber::defaultModelPath()
+QString Transcriber::modelPath(const QString &size)
 {
     return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-        + QStringLiteral("/models/ggml-small.bin");
+        + QStringLiteral("/models/ggml-") + size + QStringLiteral(".bin");
+}
+
+void Transcriber::reloadSettings()
+{
+    const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    m_ffmpegProgram = group.readEntry("FfmpegProgram", QStringLiteral("/usr/bin/ffmpeg"));
+    m_whisperProgram = group.readEntry("WhisperProgram", QString(whisper::DefaultProgram));
+    // The setting is the **size** and not a path (SPEC 12). Up to issue #27 a
+    // full `ModelPath` stood here; a size cannot be offered as a list of five
+    // while the file holds a file name, and the download of issue #23 needs
+    // the same mapping to know what it is fetching.
+    m_modelPath =
+        modelPath(group.readEntry("ModelSize", QString(whisper::Sizes.at(whisper::DefaultSize))));
 }
 
 QString Transcriber::workingRoot()

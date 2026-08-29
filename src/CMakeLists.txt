@@ -118,6 +118,7 @@ add_library(denkzettelsettings STATIC
     settings/analysispage.cpp
     settings/settings.cpp
     settings/settingsdialog.cpp
+    settings/voicenotespage.cpp
 )
 
 target_include_directories(denkzettelsettings PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -126,6 +127,10 @@ target_link_libraries(denkzettelsettings PUBLIC
     # The button "Test connection" makes one chat and one embed call against
     # the address on the form (SPEC 7.1).
     denkzettelanalysis
+    # The page "Voice notes" offers the model sizes of SPEC 12 and asks where
+    # each of them lies — `whisper::Sizes` and Transcriber::modelPath(), the
+    # same two the transcription itself reads (issue #27).
+    denkzetteltranscribe
     Qt6::Widgets
     # PositiveText and NegativeText of the result line — two roles QPalette does
     # not have. Sought with a version of its own in the root CMakeLists.

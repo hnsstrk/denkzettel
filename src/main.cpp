@@ -1,5 +1,6 @@
 #include "capture/capturewindow.h"
 #include "platform/systemfonts.h"
+#include "settings/settings.h"
 #include "settings/settingsdialog.h"
 #include "shell/appidentity.h"
 #include "shell/daemonservice.h"
@@ -79,6 +80,17 @@ int main(int argc, char *argv[])
     // it listens on Store::noteAdded for the audio notes to come, and its
     // start() picks up what an earlier run left in the queue (SPEC 12).
     Transcriber transcriber(&store);
+
+    // What the settings page "Voice notes" writes reaches the running queue at
+    // once — model size and program path take hold without a restart (SPEC 13,
+    // issue #27). The connection hangs on the skeleton and not on the dialog:
+    // the dialog is built and destroyed per opening, this object lives as long
+    // as the process. KCoreConfigSkeleton::save() emits configChanged() once
+    // per save that changed something and not at all for one that did not
+    // (measured 29.08.2026), so this runs when there is something new to read
+    // and never on its own.
+    QObject::connect(Settings::self(), &Settings::configChanged,
+                     &transcriber, &Transcriber::reloadSettings);
 
     CaptureWindow capture(&store);
 

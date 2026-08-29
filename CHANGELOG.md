@@ -30,6 +30,23 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   which decides whether a run starts at once after saving, at an interval or
   only on demand. What is set there is kept in `~/.config/denkzettelrc` and
   survives a restart (#16).
+- **A third settings page: "Voice notes."** It holds the two values the
+  transcription has so far only read out of the configuration file — the model
+  size and the path to `whisper-cli`. All five sizes stand in the list, and one
+  whose model is not on disk is shown greyed with the note that it is not
+  downloaded, so nothing can be chosen that would only fail at the next
+  recording. A path that names no executable program is reported on the page
+  itself and is not written; the stored one stays. Both take hold while the
+  daemon runs — no restart (#27).
+
+### Changed
+
+- **The model is set by its size, not by a file name.** The key `ModelPath` in
+  the `[Transcription]` group of `~/.config/denkzettelrc` is replaced by
+  `ModelSize` (`tiny`, `base`, `small`, `medium`, `large-v3`, default `small`);
+  the file below `~/.local/share/denkzettel/models/` follows from it. Whoever
+  had set `ModelPath` by hand sets the size instead — a path pointing anywhere
+  else is no longer read (#27).
 
 ## [0.7.0] — 2026-08-28
 
