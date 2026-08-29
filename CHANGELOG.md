@@ -213,6 +213,15 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   600 px is 41 bars, and a wider or narrower window gets one more or one fewer
   for every twelve pixels.
 
+- **And it reacts to a normal speaking voice.** It used to read the level the
+  way a ruler reads a length, and hearing does not work that way: speech sat in
+  the bottom fifth of the row, so the meter looked dead while the recording was
+  running fine. It now reads in decibels — the row is full at full scale and
+  dark below -50 dBFS. Measured over the 41 bars of the 600 px window: an
+  amplitude of 0.05 lights 20 bars instead of 2, one of 0.2 lights 30 instead
+  of 8. The top of the row stays free for what is too loud, and a quiet room
+  keeps the row dark.
+
 - **The model is set by its size, not by a file name.** The key `ModelPath` in
   the `[Transcription]` group of `~/.config/denkzettelrc` is replaced by
   `ModelSize` (`tiny`, `base`, `small`, `medium`, `large-v3`, default `small`);

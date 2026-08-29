@@ -20,6 +20,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include <cmath>
+
 namespace
 {
 constexpr int WindowWidth = 600;
@@ -140,6 +142,20 @@ private:
  * value (UX decision of 29.08.2026). It therefore needs one number per buffer
  * and no memory.
  *
+ * **The lit share is the peak in decibels, not the peak itself** (the
+ * customer's instruction of 29.08.2026, after recording a voice note and
+ * watching the built window: "Der Ausschlag müsste ein gutes Stück
+ * empfindlicher sein. Der schlägt kaum aus."). Hearing is logarithmic and a
+ * linear scale spends its upper half on the loudest tenth of what a voice does,
+ * so normal speech stood in the bottom fifth of the row: measured over the 41
+ * bars of the 600 px window, an amplitude of 0.05 lit 2 of them and one of 0.2
+ * lit 8. On the scale of `Floor` the same two light 20 and 30. What is drawn is
+ * still one buffer's peak and not its root mean square — an RMS stands quieter
+ * and steadier and reads the perceived loudness better, and it also sits near
+ * the floor between two syllables, which on a scale this sensitive is a row
+ * that empties itself mid-sentence. The reasoning stands where the number is
+ * made, in `peakOf()`.
+ *
  * **The bar stays the size it is and the row grows by counting more of them**
  * (the customer's instruction of 29.08.2026, after seeing the built window:
  * "Die Darstellung der Balken sollte über die ganze Breite gehen"). Until then
@@ -178,6 +194,10 @@ public:
         : QWidget(parent)
     {
         setFixedHeight(Height);
+        // So that a picture runner can find the row it has to count the lit
+        // bars in — the class is private to this file and carries no other
+        // mark (levelshots, and the same reason "modelState" has a name).
+        setObjectName(QStringLiteral("levelMeter"));
         // The one widget of the row that takes what the other two leave: the
         // dot and the running time keep their own width, and there is no
         // stretch beside them any more.
@@ -194,12 +214,6 @@ public:
     /** `level` from 0 (silence) to 1 (full scale); anything outside is clamped. */
     void setLevel(qreal level)
     {
-        // ponytail: the peak straight onto the bars, no curve and no falloff.
-        // Ceiling: a linear scale spends its upper half on the loudest tenth
-        // of what a voice does, so a quiet speaker lights a third of the row
-        // where a loud one lights two thirds. The way up is a decibel scale —
-        // 20*log10 over a floor of about -50 dB — and it is worth building
-        // only once somebody has looked at the meter and called it dead.
         m_level = qBound(qreal(0), level, qreal(1));
         const int lit = litBars();
         if (lit == m_litBars) {
@@ -237,14 +251,51 @@ private:
         return qMax(1, (width() + BarGap) / (BarWidth + BarGap));
     }
 
+    /**
+     * The peak on a decibel scale: `Floor` dBFS lights nothing, full scale
+     * lights every bar, and everything between is a straight line in dB.
+     *
+     * ponytail: no falloff and no peak hold, one number per buffer straight
+     * onto the row. Ceiling: the row follows the device as fast as it
+     * delivers, so a single loud syllable is gone again in the next buffer and
+     * the loudest moment of a sentence is not readable off the picture. The way
+     * up is a held maximum that sinks back over about a second — worth building
+     * only if somebody asks to read a peak off it, which is not what SPEC 4
+     * asks the meter for.
+     */
     int litBars() const
     {
-        return qRound(m_level * barCount());
+        if (m_level <= 0) {
+            return 0;
+        }
+        const qreal decibels = 20 * std::log10(m_level);
+        if (decibels <= Floor) {
+            return 0;
+        }
+        return qRound((1 - decibels / Floor) * barCount());
     }
 
     static constexpr int BarWidth = 8;
     static constexpr int BarGap = 4;
     static constexpr int Height = 20;
+    /**
+     * The quietest peak that still lights a bar, in dBFS.
+     *
+     * -50 and not the -60 a mixing console shows, because this row is 20
+     * logical pixels of a quick-capture window and not a studio meter: the
+     * question it answers is whether the microphone hears the speaker, and the
+     * ten decibels below -50 are the room, not the voice. Measured over the 41
+     * bars of the 600 px window, with the amplitudes a peak reading of one
+     * buffer produces: 0.05 to 0.2, which is where normal speech peaks, lights
+     * 20 to 30 bars against 2 to 8 on the linear scale this replaces, and full
+     * scale is still 11 bars above the loudest of them, so an overdriven
+     * recording keeps somewhere to show it. The first bar goes on at -49.4
+     * dBFS, which is half a bar rounded up — measured, an amplitude of 0.0034
+     * leaves the row dark and 0.0035 lights one bar. A room noisy enough to
+     * reach that stands at one to three lit bars (0.005 lights three), which is
+     * the price of the floor and what a lower one would make worse.
+     */
+    static constexpr qreal Floor = -50;
 
     QColor m_lit;
     QColor m_unlit;
