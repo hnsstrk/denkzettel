@@ -56,6 +56,7 @@ private Q_SLOTS:
     void storesASuggestionWithItsNotes();
     void aSuggestionLeavesNoReferenceBehindItWhenEitherSideGoes();
     void listsOnlyTheTaskNotesThatCarryNoSuggestion();
+    void keepsTheOriginOfANoteAndLetsItBeTakenBack();
     void migratesDatabaseFromSchemaVersion1();
 
 private:
@@ -121,7 +122,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 6);
+    QCOMPARE(m_store->schemaVersion(), 7);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -521,7 +522,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 6);
+    QCOMPARE(m_store->schemaVersion(), 7);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -1024,6 +1025,64 @@ void StoreTest::listsOnlyTheTaskNotesThatCarryNoSuggestion()
     QCOMPARE(waiting.constFirst().id, *todoId);
 }
 
+void StoreTest::keepsTheOriginOfANoteAndLetsItBeTakenBack()
+{
+    // SPEC 5.1: `origin` and `origin_app`, the context stamp of issue #47.
+    // Both columns are written, read back and cleared again — clearing is what
+    // „deletable individually" means in the data, and it must not touch
+    // anything else on the note.
+    Note note = sampleNote();
+    note.origin = QStringLiteral("Fenster A — Dokumentation");
+    note.originApp = QStringLiteral("org.example.browser");
+
+    const std::optional<qint64> id = m_store->addNote(note);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    std::optional<Note> stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QCOMPARE(stored->origin, note.origin);
+    QCOMPARE(stored->originApp, note.originApp);
+
+    // The two are two facts and not two spellings of one (SPEC 5.1): a value
+    // written into the one column must not come out of the other, so the pair
+    // is checked crosswise once. Without it the check would pass on an
+    // implementation that binds the same string twice.
+    QVERIFY(stored->origin != stored->originApp);
+
+    // An edit of the text leaves the stamp where it is — updateNote() writes
+    // every column, and the library's editor hands the note back whole. This
+    // is the silent half: an origin dropped here would go unnoticed until
+    // somebody looked at an old note.
+    Note edited = *stored;
+    edited.content = QStringLiteral("Der Text ist ein anderer");
+    QVERIFY2(m_store->updateNote(edited), qPrintable(m_store->lastError()));
+    stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QCOMPARE(stored->origin, note.origin);
+    QCOMPARE(stored->originApp, note.originApp);
+
+    // And taking it back empties both columns and nothing else.
+    Note cleared = *stored;
+    cleared.origin.clear();
+    cleared.originApp.clear();
+    QVERIFY2(m_store->updateNote(cleared), qPrintable(m_store->lastError()));
+    stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QVERIFY(stored->origin.isEmpty());
+    QVERIFY(stored->originApp.isEmpty());
+    QCOMPARE(stored->content, edited.content);
+    QCOMPARE(stored->createdAt, note.createdAt);
+
+    // A note that never carried one looks exactly the same — no placeholder in
+    // the data either (acceptance criterion 5).
+    const std::optional<qint64> plain = m_store->addNote(sampleNote());
+    QVERIFY(plain.has_value());
+    const std::optional<Note> without = m_store->note(*plain);
+    QVERIFY(without.has_value());
+    QVERIFY(without->origin.isEmpty());
+    QVERIFY(without->originApp.isEmpty());
+}
+
 void StoreTest::migratesDatabaseFromSchemaVersion1()
 {
     // T3 (issue #9): the first real migration of an existing database.
@@ -1036,7 +1095,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 6);
+    QCOMPARE(m_store->schemaVersion(), 7);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -1107,6 +1166,25 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     QCOMPARE(migrated.size(), qsizetype(1));
     QCOMPARE(migrated.constFirst().noteIds, QList<qint64>({1, 2}));
 
+    // And the context stamp of schema version 7 is written onto a note that
+    // was stored long before its two columns existed (SPEC 5.1, issue #47).
+    // Before the write both are empty, which is what ALTER TABLE ADD COLUMN
+    // leaves behind on an existing row — an old note reads as one without an
+    // origin and not as one whose origin failed to load.
+    const std::optional<Note> beforeTheStamp = m_store->note(2);
+    QVERIFY(beforeTheStamp.has_value());
+    QVERIFY(beforeTheStamp->origin.isEmpty());
+    QVERIFY(beforeTheStamp->originApp.isEmpty());
+    Note stamped = *beforeTheStamp;
+    stamped.origin = QStringLiteral("Fenster B — Fahrplan");
+    stamped.originApp = QStringLiteral("org.example.terminal");
+    QVERIFY2(m_store->updateNote(stamped), qPrintable(m_store->lastError()));
+    const std::optional<Note> afterTheStamp = m_store->note(2);
+    QVERIFY(afterTheStamp.has_value());
+    QCOMPARE(afterTheStamp->origin, stamped.origin);
+    QCOMPARE(afterTheStamp->originApp, stamped.originApp);
+    QCOMPARE(afterTheStamp->content, QStringLiteral("Backup der Fotos prüfen"));
+
     // And it keeps working for notes written after the migration.
     Note added = sampleNote();
     added.content = QStringLiteral("Nach der Migration erfasst");
@@ -1117,7 +1195,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 6);
+    QCOMPARE(m_store->schemaVersion(), 7);
     QCOMPARE(m_store->notes().size(), 3);
 }
 

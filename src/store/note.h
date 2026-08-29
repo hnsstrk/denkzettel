@@ -46,6 +46,22 @@ struct Note {
      * schema comment of migration 4 in store.cpp says why.
      */
     QString task;
+
+    /**
+     * The title of the window that was active before the capture window took
+     * the focus, and the application id beside it (SPEC 5.1, 13).
+     *
+     * Both empty while the setting „Herkunft der Notiz mitspeichern" is off,
+     * and both empty when nothing could be determined — the two cases look
+     * alike on purpose, because a note without an origin has to look
+     * inconspicuous either way (issue #47).
+     *
+     * Two fields and not one: the title is what the user reads, the
+     * application id is what the classification of SPEC 7 can key on. SPEC 5.1
+     * carries the reasoning.
+     */
+    QString origin;
+    QString originApp;
 };
 
 /**

@@ -201,6 +201,26 @@ const QList<QStringList> &migrations()
                            "  note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,"
                            "  PRIMARY KEY (proposal_id, note_id))"),
         },
+        // Version 7 — the context stamp of SPEC 5.1 and 13 (issue #47): the
+        // title of the window that was active before the capture window took
+        // the focus, and the application id beside it.
+        //
+        // **Two columns and not one**, and SPEC 5.1 carries the reasoning: the
+        // title is what the user reads, the application id is what the
+        // classification of SPEC 7 keys on — a note from a terminal is
+        // probably a command-line note whatever its title says. Two facts
+        // about one moment, so the argument against `is_todo` above does not
+        // apply here.
+        //
+        // Both nullable and both NULL for every note that already stands in
+        // the database: ALTER TABLE ADD COLUMN fills the existing rows with
+        // NULL, which is exactly the state „no origin" — nothing to migrate,
+        // nothing to lose. The switch of SPEC 13 is off by default, so a
+        // database whose owner never turns it on keeps two columns of NULL.
+        {
+            QStringLiteral("ALTER TABLE notes ADD COLUMN origin TEXT"),
+            QStringLiteral("ALTER TABLE notes ADD COLUMN origin_app TEXT"),
+        },
     };
     return steps;
 }
@@ -329,7 +349,8 @@ QDateTime timestampFromText(const QString &text)
 QString noteColumns()
 {
     return QStringLiteral("id, created_at, type, content, audio_path, audio_duration_s,"
-                          " category, state, needs_reembed, analysis_attempts, analysis_last_error, task");
+                          " category, state, needs_reembed, analysis_attempts, analysis_last_error, task,"
+                          " origin, origin_app");
 }
 
 /** Shortest term the trigram index can represent (SPEC 6). */
@@ -373,6 +394,8 @@ Note noteFromQuery(const QSqlQuery &query)
     note.analysisAttempts = query.value(QStringLiteral("analysis_attempts")).toInt();
     note.analysisLastError = query.value(QStringLiteral("analysis_last_error")).toString();
     note.task = query.value(QStringLiteral("task")).toString();
+    note.origin = query.value(QStringLiteral("origin")).toString();
+    note.originApp = query.value(QStringLiteral("origin_app")).toString();
     return note;
 }
 }
@@ -502,9 +525,11 @@ std::optional<qint64> Store::addNote(const Note &note)
     QSqlQuery query(m_db);
     query.prepare(
         QStringLiteral("INSERT INTO notes (created_at, type, content, audio_path, audio_duration_s,"
-                       " category, state, needs_reembed, analysis_attempts, analysis_last_error, task)"
+                       " category, state, needs_reembed, analysis_attempts, analysis_last_error, task,"
+                       " origin, origin_app)"
                        " VALUES (:created_at, :type, :content, :audio_path, :audio_duration_s,"
-                       " :category, :state, :needs_reembed, :analysis_attempts, :analysis_last_error, :task)"));
+                       " :category, :state, :needs_reembed, :analysis_attempts, :analysis_last_error, :task,"
+                       " :origin, :origin_app)"));
     query.bindValue(QStringLiteral(":created_at"), timestampToText(note.createdAt));
     query.bindValue(QStringLiteral(":type"), typeToText(note.type));
     query.bindValue(QStringLiteral(":content"), plainText(note.content));
@@ -516,6 +541,8 @@ std::optional<qint64> Store::addNote(const Note &note)
     query.bindValue(QStringLiteral(":analysis_attempts"), note.analysisAttempts);
     query.bindValue(QStringLiteral(":analysis_last_error"), nullableText(note.analysisLastError));
     query.bindValue(QStringLiteral(":task"), nullableText(note.task));
+    query.bindValue(QStringLiteral(":origin"), nullableText(note.origin));
+    query.bindValue(QStringLiteral(":origin_app"), nullableText(note.originApp));
 
     if (!query.exec()) {
         m_lastError = query.lastError().text();
@@ -537,7 +564,7 @@ bool Store::updateNote(const Note &note)
                        " audio_path = :audio_path, audio_duration_s = :audio_duration_s,"
                        " category = :category, state = :state, needs_reembed = :needs_reembed,"
                        " analysis_attempts = :analysis_attempts, analysis_last_error = :analysis_last_error,"
-                       " task = :task"
+                       " task = :task, origin = :origin, origin_app = :origin_app"
                        " WHERE id = :id"));
     query.bindValue(QStringLiteral(":created_at"), timestampToText(note.createdAt));
     query.bindValue(QStringLiteral(":type"), typeToText(note.type));
@@ -550,6 +577,8 @@ bool Store::updateNote(const Note &note)
     query.bindValue(QStringLiteral(":analysis_attempts"), note.analysisAttempts);
     query.bindValue(QStringLiteral(":analysis_last_error"), nullableText(note.analysisLastError));
     query.bindValue(QStringLiteral(":task"), nullableText(note.task));
+    query.bindValue(QStringLiteral(":origin"), nullableText(note.origin));
+    query.bindValue(QStringLiteral(":origin_app"), nullableText(note.originApp));
     query.bindValue(QStringLiteral(":id"), note.id);
 
     if (!query.exec()) {

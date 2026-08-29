@@ -32,6 +32,15 @@ Settings::Settings()
     // the same denkzettelrc that OllamaProvider and Transcriber read from
     // (SPEC 5.2).
 
+    // The group and the key name are OriginWatcher's, which reads them out of
+    // the same denkzettelrc at every reloadSettings() — a key written under
+    // another name would leave the script loaded with the switch off (issue
+    // #47). Off by default, and SPEC 13 says so: the origin is a window title
+    // and therefore personal data, so nothing is determined until the user
+    // says so.
+    setCurrentGroup(QStringLiteral("Capture"));
+    addItemBool(QStringLiteral("StoreOrigin"), m_storeOrigin, false);
+
     setCurrentGroup(QStringLiteral("AI"));
     addItem(new ItemEnum(currentGroup(),
                          QStringLiteral("Provider"),
@@ -124,4 +133,9 @@ Settings::Settings()
 QString Settings::vaultPath() const
 {
     return m_vaultPath;
+}
+
+bool Settings::storeOrigin() const
+{
+    return m_storeOrigin;
 }

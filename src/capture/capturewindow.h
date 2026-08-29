@@ -53,6 +53,19 @@ public Q_SLOTS:
     void showCapture();
 
     /**
+     * The origin the next note is to carry (SPEC 5.1, 13, issue #47).
+     *
+     * Handed in from outside and not asked for here: what knows it is the KWin
+     * script OriginWatcher runs, and this window is one of **two** that write
+     * notes — the other is the recording window. Both are told, or the
+     * one kind of note would carry an origin and the other would not.
+     *
+     * Two empty strings are the ordinary case: the setting is off, or nothing
+     * was active before this window came up.
+     */
+    void setOrigin(const QString &caption, const QString &appId);
+
+    /**
      * Re-reads the desktop theme and rebuilds the hull on a standing window.
      *
      * An empty `name` means the theme `plasmarc` names — the ordinary case,
@@ -82,6 +95,11 @@ private:
     void applyTextColours();
 
     Store *m_store;
+
+    /** What setOrigin() last handed in; both empty means the note carries none. */
+    QString m_origin;
+    QString m_originApp;
+
     QPlainTextEdit *m_text;
     /**
      * The application name, the heading of the window (SPEC 3.1).

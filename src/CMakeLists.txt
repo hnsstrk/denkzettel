@@ -131,6 +131,7 @@ target_link_libraries(denkzettelproposals PUBLIC
 add_library(denkzettelsettings STATIC
     settings/aiproviderpage.cpp
     settings/analysispage.cpp
+    settings/capturepage.cpp
     settings/exportpage.cpp
     settings/settings.cpp
     settings/settingsdialog.cpp
@@ -294,6 +295,7 @@ add_library(denkzettelshell STATIC
     shell/daemonservice.cpp
     shell/firstrun.cpp
     shell/globalshortcuts.cpp
+    shell/originwatcher.cpp
     shell/shortcutconflict.cpp
     shell/shortcutregistration.cpp
     shell/trayicon.cpp
@@ -352,3 +354,15 @@ target_link_libraries(denkzetteld PRIVATE
 )
 
 install(TARGETS denkzetteld ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+
+# The KWin script of SPEC 5.1 and 13 (issue #47). It is loaded by its absolute
+# path over the session bus (OriginWatcher), so it has to lie where
+# QStandardPaths finds it — a plain file, not a KWin script package with an
+# entry in `kwinrc`, which is heavier and can do nothing `loadScript` cannot
+# (customer decision 28.08.2026).
+#
+# From which follows that a run out of the build directory finds no script:
+# the lookup goes through XDG_DATA_DIRS and never through the source tree. The
+# daemon says so in the journal rather than switching the setting on and
+# quietly doing nothing.
+install(FILES shell/origin.js DESTINATION ${KDE_INSTALL_DATADIR}/denkzettel)

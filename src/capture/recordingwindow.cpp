@@ -498,6 +498,12 @@ void RecordingWindow::save()
     hide();
 }
 
+void RecordingWindow::setOrigin(const QString &caption, const QString &appId)
+{
+    m_origin = caption;
+    m_originApp = appId;
+}
+
 void RecordingWindow::discard()
 {
     m_clock->stop();
@@ -519,6 +525,8 @@ void RecordingWindow::storeRecording(const QString &fileName, int durationSecond
     note.type = Note::Type::Audio;
     note.audioPath = fileName;
     note.audioDurationS = durationSeconds;
+    note.origin = m_origin;
+    note.originApp = m_originApp;
     // No content: the transcription queue takes an audio note whose text is
     // still empty, and it hears of this one over Store::noteAdded (SPEC 12).
     if (m_store->addNote(note)) {

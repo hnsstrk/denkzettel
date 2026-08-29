@@ -95,8 +95,23 @@ public:
      */
     QString vaultPath() const;
 
+    /**
+     * SPEC 13, page "Capture": whether a note keeps the window title it was
+     * written beside (SPEC 5.1, issue #47). Off by default.
+     *
+     * A getter of its own, because what reads it is not a widget: OriginWatcher
+     * decides on this value whether KWin gets the script at all — and the group
+     * and key it opens for that are the two written below.
+     */
+    bool storeOrigin() const;
+
 private:
     Settings();
+
+    // Page "Capture" (SPEC 13, 5.1). The privacy switch of issue #47, and the
+    // first page of the dialog: a switch against invisible data collection
+    // whose page nobody opens is the collection it was built against.
+    bool m_storeOrigin = false;
 
     // Page "AI provider" (SPEC 7.1). The three defaults of these keys are not
     // written down here: they stand in `ollama::` in analysis/ollamaprovider.h,
