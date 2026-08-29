@@ -625,7 +625,22 @@ find.
     order the same case would have been **green over a write that never
     happened**. A check that writes into a configuration therefore deletes it
     first, and that deletion carries a guard on `XDG_CONFIG_HOME`: the same line
-    without one deletes the file of whoever runs the check.
+    without one deletes the file of whoever runs the check. **And the tidy-up line at
+    the end of a case only runs when the case passes — which is exactly when it
+    is not needed.** Measured 2026-08-29 on #119: the new case was the first in
+    `aitest` to write the shared `[AI]` group, it died on its own assertion,
+    and the model name it had set stayed in the group — which took
+    `everyNoteGetsItsOwnVector()` red with it four hundred lines further down,
+    a red saying nothing about the code under it. The deletion in
+    `initTestCase()` does not reach this: it runs before the first case, and
+    the leak happens **between** two cases of one run. So the group goes away
+    through a `qScopeGuard`, which runs on the abort path as well — measured in
+    review: a case that dies on `QCOMPARE` still leaves the group clean, and
+    the next case, which reads its default out of that very group, passed in
+    the same failing run. This is finding 29's mirror image: there the tidying
+    runs too early and hides the fault in the check that is measuring, here it
+    does not run at all and the damage lands on a case that has nothing to do
+    with it.
 
 43. **Breeze animates the dot in a radio button, so a `grab()` in the same turn
     draws the state the animation starts from.** Measured 2026-08-29 while
@@ -886,6 +901,22 @@ find.
     finding 16's neighbour: there a check read an installed path and said
     nothing about the source tree, here it reads an installed path that is
     older than the source tree.
+
+58. **`QString::arg()` fills by the lowest free number, so a mutation that
+    deletes one placeholder rewires the rest.** Measured 2026-08-29 on #117:
+    the probe was to take the date out of the classification prompt and deleted
+    only the sentence carrying `%2`. `arg()` then filled `%1` and `%3`, the
+    date landed where the note text belongs, the note fell out of the prompt
+    altogether — **two unrelated cases went red and the case under test
+    passed**, on a prompt that carried the date in the note's place. A red for
+    a reason that is not the mutation, and it looked exactly like a finding.
+    With the placeholders renumbered so that nothing but the date is gone, the
+    same probe comes out 51 passed, 1 failed, on the case it was aimed at. This
+    is finding 35's family from a third side: there the probe reached the wrong
+    assertion, in 47 the wrong environment, here it made a second change nobody
+    wrote down. **Whoever mutates a format string renumbers its placeholders
+    with it, and reads the produced string back once before believing the
+    run.**
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
