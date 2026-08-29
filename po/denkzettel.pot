@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 14:54+0200\n"
+"POT-Creation-Date: 2026-08-29 15:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -70,7 +70,7 @@ msgid "Ollama's answer carried no embedding."
 msgstr ""
 
 #: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
-#: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:77
+#: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:122
 #: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
 #, kde-format
 msgid "Denkzettel"
@@ -86,12 +86,12 @@ msgstr ""
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/main.cpp:173
+#: src/main.cpp:168
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:174
+#: src/main.cpp:169
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -263,24 +263,45 @@ msgstr ""
 msgid "This folder can be written to."
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:55
+#: src/settings/settingsdialog.cpp:57
 #, kde-format
 msgid "AI provider"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:57
+#: src/settings/settingsdialog.cpp:59
 #, kde-format
 msgid "Analysis"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:58
+#: src/settings/settingsdialog.cpp:60
 #, kde-format
 msgid "Export"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:60
+#: src/settings/settingsdialog.cpp:62
 #, kde-format
 msgid "Voice notes"
+msgstr ""
+
+#: src/settings/settingsdialog.cpp:64
+#, kde-format
+msgid "Shortcuts"
+msgstr ""
+
+#: src/settings/shortcutspage.cpp:40
+#, kde-format
+msgctxt "@label:textbox the shortcut for an action"
+msgid "%1:"
+msgstr ""
+
+#: src/settings/shortcutspage.cpp:130
+#, kde-format
+msgid "The shortcut service holds nothing for “%1”."
+msgstr ""
+
+#: src/settings/shortcutspage.cpp:132
+#, kde-format
+msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
 #: src/settings/voicenotespage.cpp:100
@@ -348,69 +369,68 @@ msgid ""
 "short notes, it is no audio recorder."
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:36
+#: src/shell/globalshortcuts.cpp:24
 #, kde-format
 msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:65 src/shell/trayicon.cpp:96
+#: src/shell/globalshortcuts.cpp:84 src/shell/trayicon.cpp:96
 #, kde-format
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:114
+#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:105
+#, kde-format
+msgid "Record voice note"
+msgstr ""
+
+#: src/shell/globalshortcuts.cpp:170
 #, kde-format
 msgid "Shortcut not ready"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:130
+#: src/shell/globalshortcuts.cpp:194
 #, kde-format
 msgid "Shortcut already taken"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:131
+#: src/shell/globalshortcuts.cpp:195
 #, kde-format
 msgid ""
-"Meta+N already belongs to: %1. The key press may not reach Denkzettel. To "
-"change that, open the system settings under “Shortcuts”."
+"%1 already belongs to: %2. The key press may not reach Denkzettel. To change "
+"that, open the system settings under “Shortcuts”."
 msgstr ""
 
-#: src/shell/shortcutregistration.cpp:51
+#: src/shell/shortcutregistration.cpp:56
 #, kde-format
 msgid ""
-"Meta+N never reached the shortcut service: Denkzettel is not installed "
-"system-wide, and without its desktop file the service creates no entry. "
-"After the installation the shortcut works; until then the capture window "
-"stays reachable through the icon in the system tray."
+"%1 never reached the shortcut service: Denkzettel is not installed system-"
+"wide, and without its desktop file the service creates no entry. After the "
+"installation the shortcut works; until then the capture window stays "
+"reachable through the icon in the system tray."
 msgstr ""
 
-#: src/shell/shortcutregistration.cpp:59
+#: src/shell/shortcutregistration.cpp:65
 #, kde-format
 msgid ""
-"Meta+N never reached the shortcut service — it did not keep the "
-"registration. The shortcuts can be checked in the system settings under "
-"“Shortcuts”; if that does not help, logging in anew brings the service back. "
-"The capture window stays reachable through the icon in the system tray."
+"%1 never reached the shortcut service — it did not keep the registration. "
+"The shortcuts can be checked in the system settings under “Shortcuts”; if "
+"that does not help, logging in anew brings the service back. The capture "
+"window stays reachable through the icon in the system tray."
 msgstr ""
 
-#: src/shell/shortcutregistration.cpp:64
+#: src/shell/shortcutregistration.cpp:71
 #, kde-format
 msgid ""
-"Meta+N is set up but triggers nothing: the desktop file of Denkzettel is "
-"missing the entry for this shortcut. A complete reinstallation brings it "
-"back. Until then the capture window stays reachable through the icon in the "
-"system tray."
+"%1 is set up but triggers nothing: the desktop file of Denkzettel is missing "
+"the entry for this shortcut. A complete reinstallation brings it back. Until "
+"then the capture window stays reachable through the icon in the system tray."
 msgstr ""
 
 #: src/shell/trayicon.cpp:88
 #, kde-format
 msgid "Transcription failed: %1"
-msgstr ""
-
-#: src/shell/trayicon.cpp:105
-#, kde-format
-msgid "Record voice note"
 msgstr ""
 
 #: src/shell/trayicon.cpp:112

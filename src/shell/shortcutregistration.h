@@ -50,5 +50,9 @@ bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &ac
 /**
  * What to tell the user about a registration that did not arrive — empty for
  * ShortcutRegistration::Reached, because then there is nothing to report.
+ *
+ * `sequence` is named in the message instead of being spelled out in it: since
+ * the settings page of SPEC 13 both shortcuts are the user's to choose, and a
+ * text that says "Meta+N" would name a key the user never set (issue #74).
  */
-QString shortcutRegistrationFailure(ShortcutRegistration registration);
+QString shortcutRegistrationFailure(ShortcutRegistration registration, const QKeySequence &sequence);

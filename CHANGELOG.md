@@ -60,6 +60,17 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   recording. A path that names no executable program is reported on the page
   itself and is not written; the stored one stays. Both take hold while the
   daemon runs — no restart (#27).
+- **Both global shortcuts are changeable in the settings.** The page "Kürzel"
+  shows what the shortcut service really holds for "Notiz erfassen" and
+  "Sprachnotiz aufnehmen", and takes a new key sequence for either. A change
+  takes effect on Apply or OK, and is read back from the service afterwards:
+  did the service keep something else than what was asked for, the field goes
+  back to what it really holds and a red line underneath says so, instead of
+  showing a shortcut that no key press finds. A sequence already taken is
+  reported by the input field itself, in the same dialog KDE uses everywhere
+  else. The key press for the voice note is still without effect — that is the
+  recorder itself (#21) — and the messages about a failed registration name the
+  sequence that was really registered instead of spelling out "Meta+N" (#74).
 
 ### Changed
 

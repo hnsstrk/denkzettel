@@ -288,19 +288,29 @@ void ShellTest::readsTheActionsOfADesktopFile()
 
 void ShellTest::hasAMessageForEveryFailureAndNoneForSuccess()
 {
+    // Since the settings page of SPEC 13 the sequence is the user's to choose,
+    // so every message has to name the one that was really registered. A text
+    // that dropped its argument would read like a message about Meta+N on a
+    // machine where Meta+N is not set — which is what it used to say
+    // literally (issue #74).
+    const QKeySequence sequence(Qt::META | Qt::SHIFT | Qt::Key_K);
+    const QString keys = sequence.toString(QKeySequence::NativeText);
+
     // A failure without a message is exactly the silent failure SPEC 2.4
     // forbids; a message on success would cry wolf at every start.
-    QVERIFY(shortcutRegistrationFailure(ShortcutRegistration::Reached).isEmpty());
-    QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled).isEmpty());
-    QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing).isEmpty());
-    QVERIFY(!shortcutRegistrationFailure(ShortcutRegistration::DesktopActionMissing).isEmpty());
+    QVERIFY(shortcutRegistrationFailure(ShortcutRegistration::Reached, sequence).isEmpty());
+
+    const QStringList messages = {
+        shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled, sequence),
+        shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing, sequence),
+        shortcutRegistrationFailure(ShortcutRegistration::DesktopActionMissing, sequence),
+    };
+    for (const QString &message : messages) {
+        QVERIFY(!message.isEmpty());
+        QVERIFY2(message.contains(keys), qPrintable(message));
+    }
 
     // The failures are told apart for the user as well, not only in code.
-    const QStringList messages = {
-        shortcutRegistrationFailure(ShortcutRegistration::ApplicationNotInstalled),
-        shortcutRegistrationFailure(ShortcutRegistration::DaemonKeptNothing),
-        shortcutRegistrationFailure(ShortcutRegistration::DesktopActionMissing),
-    };
     QCOMPARE(QSet<QString>(messages.begin(), messages.end()).size(), messages.size());
 }
 
