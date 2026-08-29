@@ -1109,6 +1109,71 @@ find.
     reverse-DNS file name gives `io` — the check went red over a correct file
     until it used `NAME` and stripped the suffix itself.
 
+71. **A running compositor holds the desktop file as it stood at login, and
+    `kbuildsycoca6` does not reach it.** Measured 2026-08-29 on #125: after
+    installing to `/usr`, `kbuildsycoca6 --noincremental` and a restart of the
+    daemon — the checksum of the running file compared against the one on disk
+    — the key still did nothing, while a check program built for the purpose
+    took the D-Bus road at once. Same machine, same desktop file, same minute:
+    the real key press put **0** `ActivateAction` on the bus and started one
+    systemd unit `app-…@<hash>.service` with `ExecStart=/usr/bin/denkzetteld`;
+    the check program, walking exactly the three steps of the launcher
+    (`KService::serviceByDesktopName`, the `KServiceAction` of that name,
+    `KIO::ApplicationLauncherJob`), put **2** on the bus with `show-recorder`
+    and started no unit at all. A second check program read
+    `DBusActivatable=true` out of the installed file in a fresh process, so
+    the file on disk was right. What differs is the **age of the process**: the
+    shortcut service is `kwin_wayland` itself (finding 49), it read the desktop
+    file at login before `DBusActivatable` stood in it, and holds that reading.
+    That the unit name and the `ExecStart` are precisely what `KProcessRunner`
+    writes on its forking road is what says the service does go through
+    `KProcessRunner` and only picks the **wrong** runner. So a changed desktop
+    file reaches the shortcut service only in a new session, and the
+    counter-check came out different: after a restart of the machine the same
+    key press took the D-Bus road. Whatever a long-lived service read once,
+    measure it in a process of **its** age — a fresh one answers for itself and
+    for nobody else.
+
+72. **A stored `none` beats the default, and two actions of one component then
+    behave differently on identical code.** Measured 2026-08-29 on #125: after
+    the restart the daemon reported the shortcut was not ready, and the
+    readback said `Meta+N` had one holder, `show-capture`, while
+    `Meta+Shift+N` had **none**. The component's group in `kglobalshortcutsrc`
+    carried `show-recorder=none`, and for `show-capture` no line at all.
+    `registerShortcut()` deliberately uses the autoloading
+    `KGlobalAccel::setGlobalShortcut()` (SPEC 2.4), which writes the default
+    only at the very first registration and afterwards restores the stored
+    value — so a missing line lets the default land and a line reading `none`
+    does not, in every new session. The difference between a working and a dead
+    shortcut therefore stood in a configuration file, and no readback of the
+    registration the code performs could have shown it. Where the `none` came
+    from is **not established**. What overwrites it is a registration with
+    `NoAutoloading`, which carries `SetPresent` (findings 20 and 49); the
+    customer set the sequence on the application's own shortcut settings page,
+    and `Meta+Shift+N` opens the recording window on the installed state. Where
+    a default can be overruled by a stored value, read the store beside the
+    code — two actions with the same code are not two runs of the same case.
+
+73. **A prompt to the user inside a running tool call reaches them only after
+    the call has ended.** Measured 2026-08-29 on #125: a bus capture was to
+    show whether a key press puts anything on the wire, and the line asking for
+    the press stood in the same call as the capture, which ran for 25 seconds —
+    the user read it once the capture was over. It came back empty for the
+    working key as well, and was nearly reported as a finding; it could not
+    have come out any other way, which is the first rule of the verification
+    stance. What carries: the capture runs in the background, the request goes
+    to the user before it starts, and the reading happens after their answer.
+
+74. **`busctl` called with the wrong signature answers with an error, and a
+    `grep` over the output swallows it.** Measured 2026-08-29 on #125:
+    `getGlobalShortcutsByKey` takes **one** `i`, not `ii`; called with `ii` the
+    service answers `No such method … (signature 'ii')`, and because the output
+    ran through a `grep` for the application name, what came back was empty and
+    read as "no holder for this key" — the same shape as finding 31, where a
+    command that prints nothing looks like an answer. Look at the raw output
+    before filtering it, and read the interface with `busctl introspect` before
+    calling it.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

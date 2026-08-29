@@ -131,6 +131,15 @@ A second process start recognises the taken D-Bus registration and calls
   program. Without the third one the launcher's call reaches a bus name nobody
   owns whenever the daemon is not running, and the key press fails with
   `ServiceUnknown` and nothing on screen.
+- **A changed desktop file reaches the shortcut service only in a new session
+  (measured 2026-08-29, issue #125):** under Plasma 6 that service is
+  `kwin_wayland` itself (finding 49 in `CLAUDE.md`); it reads the desktop file
+  at login and holds that state. Installing, `kbuildsycoca6 --noincremental`
+  and a restart of the daemon do not reach it — on the same file in the same
+  minute a freshly started process takes the D-Bus road of the paragraph above
+  while the real key press still runs the `Exec` line. So whoever changes the
+  desktop file verifies the key press after a new session, and a user who
+  updates the package keeps the old behaviour until their next login.
 - **Reading the registration back (discovered condition, finding 2026-08-01;
   retro resolution B5):** `KGlobalAccel::setGlobalShortcut()` cannot report a
   failure of the service — the call sends off its D-Bus message without
@@ -145,6 +154,15 @@ A second process start recognises the taken D-Bus registration and calls
   `Meta+N` — without it, it repeats that shortcut's failure, and "visible in
   the system settings" is precisely the state a silently failed shortcut
   produces.
+- **A stored `none` beats the default (measured 2026-08-29, issue #125):**
+  `registerShortcut()` uses the autoloading `KGlobalAccel::setGlobalShortcut()`,
+  which writes the default only at the very first registration and afterwards
+  restores what stands in `kglobalshortcutsrc`. A line `<action id>=none` there
+  therefore wins against the default in every new session, while a missing line
+  lets the default land — two actions of one component then behave differently
+  on identical code, and the difference is not in the code. Only a registration
+  with `NoAutoloading` overwrites it, and the application's own shortcut
+  settings page writes that way.
 - **The component name hangs on the desktop file name (discovered condition,
   finding 2026-08-04, issue #61):** Denkzettel reads
   `QGuiApplication::desktopFileName()` and appends `.desktop` — the component
