@@ -4,6 +4,7 @@
 #include "settings/analysispage.h"
 #include "settings/exportpage.h"
 #include "settings/settings.h"
+#include "settings/shortcutspage.h"
 #include "settings/voicenotespage.h"
 
 #include <KConfigGroup>
@@ -33,7 +34,7 @@ constexpr int WindowWidth = 640;
 constexpr int WindowHeight = 480;
 }
 
-void SettingsDialog::showSettings()
+void SettingsDialog::showSettings(GlobalShortcuts *shortcuts)
 {
     if (KConfigDialog::showDialog(dialogName())) {
         return;
@@ -41,11 +42,12 @@ void SettingsDialog::showSettings()
     // It deletes itself when it is closed (Qt::WA_DeleteOnClose below), and
     // KConfigDialog takes its name out of the list of open dialogs in its
     // destructor — so the next call builds a fresh one.
-    (new SettingsDialog)->show();
+    (new SettingsDialog(shortcuts))->show();
 }
 
-SettingsDialog::SettingsDialog()
+SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts)
     : KConfigDialog(nullptr, dialogName(), Settings::self())
+    , m_shortcutsPage(new ShortcutsPage(shortcuts, this))
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setFaceType(KPageDialog::List);
@@ -59,6 +61,11 @@ SettingsDialog::SettingsDialog()
     addPage(new VoiceNotesPage(this),
             i18n("Voice notes"),
             QStringLiteral("audio-input-microphone"));
+    addPage(m_shortcutsPage, i18n("Shortcuts"), QStringLiteral("preferences-desktop-keyboard-shortcut"));
+
+    // The page carries no `kcfg_` widget, so nothing tells the dialog that
+    // something changed — this does, and the five overrides below do the rest.
+    connect(m_shortcutsPage, &ShortcutsPage::changed, this, &SettingsDialog::updateButtons);
 
     // Hidden, not removed: the button leads to KHelpCenter on help:/denkzettel,
     // and there is no handbook — the user would read "The requested help file
@@ -74,8 +81,55 @@ SettingsDialog::SettingsDialog()
     resize(windowHandle()->size());
 }
 
+void SettingsDialog::updateSettings()
+{
+    m_shortcutsPage->save();
+}
+
+void SettingsDialog::updateWidgets()
+{
+    m_shortcutsPage->load();
+}
+
+void SettingsDialog::updateWidgetsDefault()
+{
+    m_shortcutsPage->loadDefaults();
+}
+
+bool SettingsDialog::hasChanged()
+{
+    return m_shortcutsPage->hasChanged();
+}
+
+bool SettingsDialog::isDefault()
+{
+    return m_shortcutsPage->isDefault();
+}
+
 void SettingsDialog::done(int result)
 {
+    if (result == QDialog::Accepted) {
+        // **The save has to happen here, not in updateSettings().** OK reaches
+        // accept() through the button box, and the box handles the button
+        // before the connections KConfigDialog makes to the button's own
+        // clicked() — so updateSettings() runs *after* this. Asked here for a
+        // result of its own, the failure flag would answer with the state of
+        // the *previous* save: measured 29.08.2026, finished(1) fired while the
+        // service still held the sequence of the run before, and a failed
+        // readback closed the window with its message on it.
+        //
+        // The updateSettings() behind this one then finds every field on the
+        // value the service holds and writes nothing, which is why save() has
+        // to leave the report standing when it wrote nothing (shortcutspage.cpp).
+        m_shortcutsPage->save();
+        if (m_shortcutsPage->takeReadbackFailure()) {
+            // The window stays where it is — otherwise the message SPEC 2.4
+            // asks for would flash past with the closing dialog. Once, see
+            // takeReadbackFailure().
+            return;
+        }
+    }
+
     KConfigGroup group = windowGroup();
     KWindowConfig::saveWindowSize(windowHandle(), group);
     group.sync();

@@ -720,6 +720,36 @@ find.
     `settings.cpp:56` with "is not a member of `analysis`", which is what says
     the other side really is built from it.
 
+49. **The shortcut service is `kwin_wayland` itself, and a component whose
+    desktop file the run cannot reach is dropped whole.** Measured 2026-08-29
+    on #74, where the readback of SPEC 2.4 had to come out different once.
+    Two halves, both of which cost a run:
+
+    - `/usr/lib/kglobalacceld` started under a bare `dbus-run-session` **exits
+      at once and writes nothing** — not a line into the pipe, and the name
+      never appears on the bus (finding 25's family: what it has to say goes to
+      the journal). In a nested `kwin_wayland`, `busctl --user list` shows
+      `org.kde.kglobalaccel` owned by **kwin_wayland**, so starting a daemon
+      beside it changes nothing and killing that daemon changes nothing either
+      — a run built as "with and without kglobalacceld" comes out identical
+      twice and proves nothing.
+    - The lever that does work is the component. kglobalacceld resolves a
+      component name ending in `.desktop` through the desktop file and creates
+      **no component at all** without one. Same binary, same service, one
+      argument apart: with `io.github.hnsstrk.denkzettel` (installed under
+      `/usr/share/applications`, finding 21's road) the write arrives —
+      `isComponentActive` true, the readback hands back `Meta+Shift+K`, and a
+      **second process** in the same session still reads it. With a made-up
+      name the readback is empty for both actions, `isComponentActive` is
+      false, and the page reports the failure. So a run that has to make a
+      global shortcut fail does it by taking the desktop file away, not by
+      taking the service away.
+
+    And finding 20's trap stood in every one of those runs, on the same
+    service: `setDefaultShortcut()` (the `IsDefault` flag) returned **true**
+    while the readback stayed empty, next to a `setShortcut(..., NoAutoloading)`
+    — which carries `SetPresent` — that really landed.
+
 50. **A header comment is a statement of intent, not a measurement — findings
     15 and 18 hold for library documentation as much as for D-Bus.** Measured
     2026-08-29 on #74: `kkeysequencewidget.h:296` says the component name has to

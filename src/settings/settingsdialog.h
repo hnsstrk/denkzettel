@@ -2,6 +2,9 @@
 
 #include <KConfigDialog>
 
+class GlobalShortcuts;
+class ShortcutsPage;
+
 /**
  * The settings of SPEC 13 — a page list, one page per subject, and the button
  * row KConfigDialog brings with it.
@@ -42,7 +45,7 @@ public:
      * the tray menu, and that has no window; hung on the library it would hang
      * on one of several equal-ranking roads (SPEC 2.1).
      */
-    static void showSettings();
+    static void showSettings(GlobalShortcuts *shortcuts);
 
 public Q_SLOTS:
     /**
@@ -53,9 +56,33 @@ public Q_SLOTS:
      * the group stayed empty and the next opening fell back to 640 × 480.
      * close() runs through QDialog::closeEvent → reject() → done(), so this
      * one place covers every way out.
+     *
+     * It is also where the shortcut page is saved on the OK way and where OK
+     * is held back when that save has a failed readback to report. Both belong
+     * here and not in updateSettings(), which KConfigDialog only calls *after*
+     * this — see the measurement at the implementation (SPEC 2.4).
      */
     void done(int result) override;
 
+protected Q_SLOTS:
+    /**
+     * The five routes KConfigDialog offers for widgets its manager does not
+     * know about, and the page "Shortcuts" is the one that needs them: a global
+     * shortcut lives in the shortcut service, not in `denkzettelrc`, so there
+     * is no `kcfg_` widget to load, save or grey the Apply button from
+     * (issue #74). Everything else on this dialog goes through the manager and
+     * must not be touched here.
+     */
+    void updateSettings() override;
+    void updateWidgets() override;
+    void updateWidgetsDefault() override;
+
+protected:
+    bool hasChanged() override;
+    bool isDefault() override;
+
 private:
-    SettingsDialog();
+    explicit SettingsDialog(GlobalShortcuts *shortcuts);
+
+    ShortcutsPage *m_shortcutsPage;
 };

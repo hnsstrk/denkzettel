@@ -120,6 +120,7 @@ add_library(denkzettelsettings STATIC
     settings/exportpage.cpp
     settings/settings.cpp
     settings/settingsdialog.cpp
+    settings/shortcutspage.cpp
     settings/voicenotespage.cpp
 )
 
@@ -129,6 +130,11 @@ target_link_libraries(denkzettelsettings PUBLIC
     # The button "Test connection" makes one chat and one embed call against
     # the address on the form (SPEC 7.1).
     denkzettelanalysis
+    # GlobalShortcuts — the page "Shortcuts" writes through the very actions
+    # the daemon registers, and not through a pair of its own: two QActions of
+    # the same identity in one process take the key press from each other, and
+    # the one that dies first switches the shortcut off (issue #74).
+    denkzettelshell
     # The page "Voice notes" offers the model sizes of SPEC 12 and asks where
     # each of them lies — `whisper::Sizes` and Transcriber::modelPath(), the
     # same two the transcription itself reads (issue #27).
@@ -144,6 +150,10 @@ target_link_libraries(denkzettelsettings PUBLIC
     # KWindowConfig — the window size, remembered the way the library
     # remembers its own.
     KF6::WindowSystem
+    # KKeySequenceWidget — the two input fields of the page "Shortcuts",
+    # including the conflict check SPEC 2.4 asks for. Same component the about
+    # dialog already comes out of.
+    KF6::XmlGui
 )
 
 add_library(denkzettelplatform STATIC

@@ -42,29 +42,37 @@ bool desktopFileDeclaresAction(const QString &desktopFilePath, const QString &ac
     return file.readActions().contains(actionId) && file.hasActionGroup(actionId);
 }
 
-QString shortcutRegistrationFailure(ShortcutRegistration registration)
+QString shortcutRegistrationFailure(ShortcutRegistration registration, const QKeySequence &sequence)
 {
+    // The sequence is a placeholder and not written out: since the settings
+    // page of SPEC 13 the user chooses it, so a text naming Meta+N would name
+    // a key that nothing is registered under (issue #74).
+    const QString keys = sequence.toString(QKeySequence::NativeText);
+
     switch (registration) {
     case ShortcutRegistration::Reached:
         return {};
     case ShortcutRegistration::ApplicationNotInstalled:
-        return i18n("Meta+N never reached the shortcut service: Denkzettel is not installed "
+        return i18n("%1 never reached the shortcut service: Denkzettel is not installed "
                     "system-wide, and without its desktop file the service creates no entry. "
                     "After the installation the shortcut works; until then the capture window "
-                    "stays reachable through the icon in the system tray.");
+                    "stays reachable through the icon in the system tray.",
+                    keys);
     case ShortcutRegistration::DaemonKeptNothing:
         // No process name and no question: whoever does not know what
         // kglobalacceld is knows no more after reading it. What is left is a
         // step that can be carried out and checked (KDE HIG, UI review B9).
-        return i18n("Meta+N never reached the shortcut service — it did not keep the "
+        return i18n("%1 never reached the shortcut service — it did not keep the "
                     "registration. The shortcuts can be checked in the system settings under "
                     "“Shortcuts”; if that does not help, logging in anew brings the service back. "
-                    "The capture window stays reachable through the icon in the system tray.");
+                    "The capture window stays reachable through the icon in the system tray.",
+                    keys);
     case ShortcutRegistration::DesktopActionMissing:
-        return i18n("Meta+N is set up but triggers nothing: the desktop file of Denkzettel "
+        return i18n("%1 is set up but triggers nothing: the desktop file of Denkzettel "
                     "is missing the entry for this shortcut. A complete reinstallation brings it "
                     "back. Until then the capture window stays reachable through the icon in the "
-                    "system tray.");
+                    "system tray.",
+                    keys);
     }
 
     return {};

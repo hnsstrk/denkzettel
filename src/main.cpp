@@ -117,11 +117,6 @@ int main(int argc, char *argv[])
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
-    // The settings are free-standing and belong to no window, so nothing is
-    // handed over here — the dialog finds the standing one itself or builds a
-    // new one (SPEC 13, issue #16).
-    QObject::connect(&tray, &TrayIcon::configureRequested, &app, &SettingsDialog::showSettings);
-
     // The error path of the transcription reaches the user here and nowhere
     // else (SPEC 10 and 12, issue #24). Both edges ask the same question of the
     // database rather than each carrying its own answer: **the state has to
@@ -237,9 +232,23 @@ int main(int argc, char *argv[])
 
     GlobalShortcuts shortcuts;
     QObject::connect(&shortcuts, &GlobalShortcuts::captureRequested, &capture, &CaptureWindow::showCapture);
+
+    // The settings are free-standing and belong to no window, so no parent is
+    // handed over — the dialog finds the standing one itself or builds a new
+    // one (SPEC 13, issue #16). The shortcuts are: the page "Shortcuts" writes
+    // through the same two actions that are registered here, and a second pair
+    // of its own would take the key press away from these on the way in and
+    // switch them off again on the way out (issue #74).
+    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts] {
+        SettingsDialog::showSettings(&shortcuts);
+    });
+
     const QList<ShortcutOwner> conflicts = shortcuts.registerCaptureShortcut();
     if (firstRun && !conflicts.isEmpty()) {
-        notifyShortcutConflict(conflicts);
+        // The sequence that is really registered, not the one that was asked
+        // for: autoloading hands back what the user set, and since the settings
+        // page that is no longer necessarily Meta+N.
+        notifyShortcutConflict(GlobalShortcuts::assignedSequence(GlobalShortcuts::Shortcut::Capture), conflicts);
     }
 
     // Last, and after the first start above: the queue may hold a job from a

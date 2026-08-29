@@ -1,5 +1,6 @@
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
+#include "shell/globalshortcuts.h"
 
 #include <KConfig>
 #include <KConfigGroup>
@@ -115,7 +116,13 @@ void SettingsTest::initTestCase()
 
 SettingsDialog *SettingsTest::openDialog()
 {
-    SettingsDialog::showSettings();
+    // The two actions the page "Shortcuts" writes through. They are built and
+    // never registered here: registering would talk to the shortcut service of
+    // whoever runs the check, and nothing below touches a key sequence field,
+    // so nothing is written either.
+    static GlobalShortcuts shortcuts;
+
+    SettingsDialog::showSettings(&shortcuts);
     return qobject_cast<SettingsDialog *>(KConfigDialog::exists(QStringLiteral("settings")));
 }
 
@@ -553,12 +560,13 @@ void SettingsTest::everyPageCarriesAnIcon()
     QVERIFY(list);
     const QAbstractItemModel *pages = list->model();
     QVERIFY(pages);
-    QCOMPARE(pages->rowCount(), 4);
-
     const QStringList expected{QStringLiteral("preferences-system-network-server"),
                                QStringLiteral("preferences-system-time"),
                                QStringLiteral("document-export"),
-                               QStringLiteral("audio-input-microphone")};
+                               QStringLiteral("audio-input-microphone"),
+                               QStringLiteral("preferences-desktop-keyboard-shortcut")};
+    QCOMPARE(pages->rowCount(), expected.size());
+
     for (int row = 0; row < expected.size(); ++row) {
         const QIcon icon = pages->data(pages->index(row, 0), Qt::DecorationRole).value<QIcon>();
         QCOMPARE(icon.name(), expected.at(row));
