@@ -521,7 +521,9 @@ notes(id INTEGER PK, created_at TEXT ISO8601, type TEXT 'text'|'audio',
       state TEXT 'neu'|'transkribiert'|'analysiert',
       needs_reembed INTEGER NOT NULL DEFAULT 0,  -- after an edit (section 9)
       analysis_attempts INTEGER NOT NULL DEFAULT 0,  -- error counter 7.2
-      analysis_last_error TEXT NULL)
+      analysis_last_error TEXT NULL,
+      task TEXT NULL)          -- JSON of the task fields of 7.2, schema
+                               -- version 4; NULL means the note is no task
 tags(note_id FK, tag TEXT)
 embeddings(note_id FK PK, model TEXT, vector BLOB)  -- float32 array
 proposals(id INTEGER PK, kind TEXT 'bundle'|'task', created_at TEXT,
@@ -542,6 +544,13 @@ meta(key TEXT PK, value TEXT)  -- schema version and the like
   `old.content`). With the new text the old words stay findable, and neither an
   error nor FTS5's `integrity-check` shows that — only a search for the old
   word does (see `StoreTest::keepsSearchIndexInSync()`).
+- **There is no `is_todo` column, and that is deliberate** (issue #14,
+  29.08.2026): it would be exactly `task IS NOT NULL`, and two columns whose
+  truth has to agree are the first place that drifts apart. So the presence of
+  the task fields *is* the statement that the note is a task — an answer that
+  calls a note a task without saying what is to be done carries no task, and
+  the classification of that note stands all the same.
+
 - Audio lies as a file under `audio/` (name = the note's ISO timestamp with the
   colons replaced, section 4), the DB holds the reference. Deleting a note
   deletes tags, embedding, FTS entry, `proposal_notes` references, an
