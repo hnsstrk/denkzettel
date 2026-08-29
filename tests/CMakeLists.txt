@@ -205,8 +205,13 @@ add_test(NAME shelltest COMMAND shelltest)
 # platform that runs without a compositor. The KDE platform theme comes on top
 # because the menu entries are checked for their icon names — without it every
 # name would read empty.
+# XDG_CONFIG_HOME is the fourth of them and it is not cosmetic: the check of
+# the origin sink writes `[Capture] StoreOrigin` and reads it back, and without
+# a directory of its own that write would land in the configuration of whoever
+# runs the set (CLAUDE.md, finding 42). The case asserts the variable before it
+# writes.
 set_tests_properties(shelltest PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US;XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/shelltest-konfiguration")
 
 add_executable(firstruntest firstruntest.cpp)
 

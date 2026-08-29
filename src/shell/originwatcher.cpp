@@ -59,8 +59,12 @@ OriginWatcher::~OriginWatcher()
     // The script outlives this process otherwise, and its callDBus would then
     // hit an unowned bus name — which the bus answers by *starting* the daemon
     // again from its service file (CLAUDE.md finding 37 names that road for the
-    // other direction). So the last thing this object does is take it out.
-    unloadScript();
+    // other direction). So the last thing this object does is take it out —
+    // but only what it put there itself, or a check that builds one of these
+    // would reach into the compositor of whoever runs it.
+    if (m_loaded) {
+        unloadScript();
+    }
 }
 
 void OriginWatcher::start()
@@ -90,18 +94,23 @@ void OriginWatcher::start()
     reloadSettings();
 }
 
-QString OriginWatcher::origin() const
-{
-    return m_caption;
-}
-
-QString OriginWatcher::originApp() const
-{
-    return m_appId;
-}
-
 void OriginWatcher::Report(const QString &caption, const QString &appId)
 {
+    // **The sink asks the setting too, and not only the source.** Barring the
+    // source is what makes the assurance of SPEC 13 true — with the switch off
+    // KWin never gets the script and nothing is determined — but this method
+    // sits on the session bus and anybody there can call it. Without this line
+    // the switch is a lock on one door of two, and a call from outside would be
+    // stored and handed to the next note; on the receiving side the two states
+    // would be indistinguishable (finding of the review, 29.08.2026).
+    //
+    // Read out of the configuration on every call rather than kept in a
+    // member: what is asked here is the state at this moment, and a member
+    // would be a second place for the same fact.
+    if (!settingIsOn()) {
+        return;
+    }
+
     m_caption = caption;
     m_appId = appId;
     Q_EMIT originChanged(m_caption, m_appId);
@@ -157,6 +166,7 @@ void OriginWatcher::loadScript()
     QDBusInterface kwin = scripting();
     if (const QDBusReply<bool> loaded = kwin.call(QStringLiteral("isScriptLoaded"), scriptName());
         loaded.isValid() && loaded.value()) {
+        m_loaded = true;
         return;
     }
 
@@ -170,13 +180,32 @@ void OriginWatcher::loadScript()
     const QDBusReply<bool> running = kwin.call(QStringLiteral("isScriptLoaded"), scriptName());
     if (!running.isValid() || !running.value()) {
         qWarning("KWin did not take denkzettel/origin.js; the origin of a note stays empty.");
+        return;
     }
+    m_loaded = true;
 }
 
 void OriginWatcher::unloadScript()
 {
     QDBusInterface kwin = scripting();
     kwin.call(QStringLiteral("unloadScript"), scriptName());
+
+    // Read back, the way loadScript() does. The whole assurance hangs on this
+    // call having taken, and the return value cannot say: `unloadScript`
+    // answers `false` for a script that was never loaded as well. Only
+    // isScriptLoaded answers.
+    //
+    // An **invalid** reply is the one case where nothing is wrong: it means
+    // KWin is not on the bus, and the script lives in KWin's process — no KWin,
+    // no script. Measured 29.08.2026: without KWin the call comes back
+    // `ServiceUnknown`, and taking that for a failure would put a line in the
+    // journal at every logout.
+    const QDBusReply<bool> still = kwin.call(QStringLiteral("isScriptLoaded"), scriptName());
+    if (still.isValid() && still.value()) {
+        qWarning("KWin still runs denkzettel/origin.js; window titles go on being reported.");
+        return;
+    }
+    m_loaded = false;
 
     // Whatever the last capture left standing goes with the script. Without
     // this a note written after the switch was turned off would carry the title

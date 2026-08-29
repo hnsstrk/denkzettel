@@ -51,12 +51,6 @@ public:
      */
     void start();
 
-    /** The title last reported, empty while the setting is off. */
-    QString origin() const;
-
-    /** The application id beside it, empty for the same reasons. */
-    QString originApp() const;
-
 public Q_SLOTS:
     /**
      * What the KWin script calls, once per capture: the caption and the
@@ -64,6 +58,11 @@ public Q_SLOTS:
      *
      * Both strings empty means „there was nothing before us" — the script says
      * so rather than sending something plausible.
+     *
+     * **It asks the setting itself.** With the switch off the call changes
+     * nothing and says nothing: barring the source keeps KWin from reporting,
+     * and this keeps anybody else on the session bus from reporting in its
+     * place.
      *
      * The name is the D-Bus method's, not the C++ naming style's, as in
      * DaemonService.
@@ -97,4 +96,16 @@ private:
 
     QString m_caption;
     QString m_appId;
+
+    /**
+     * Whether **this** object put the script into KWin.
+     *
+     * Only the destructor asks it, and only to stay out of a KWin it never
+     * wrote to: a process ending must not take a script out of the compositor
+     * that somebody else put there. reloadSettings() unloads without asking,
+     * and that is deliberate — a daemon that was killed leaves its script
+     * behind, and the next start with the switch off is the one chance to
+     * sweep it.
+     */
+    bool m_loaded = false;
 };
