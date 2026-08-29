@@ -463,6 +463,19 @@ find.
     read out of the code and out of SPEC 15, and a machine that has them
     installed can never contradict the list.
 
+34. **A check whose input is ordered so that two rival rules agree measures
+    neither of them.** Measured 2026-08-29 on #10: the parser narrows two date
+    boundaries of the same direction to the tighter one, and the case handed it
+    `vor:2026-06 vor:2026-01` — where the tighter one happens to be the last
+    one read as well. Taking the rule out and letting the last value simply
+    overwrite the first left the case **green**, because both rules produce
+    2026-01-01 for that input. With the narrower boundary written first
+    (`vor:2026-01 vor:2026-06`) the same probe came out red at once. The trap
+    is not the assertion, it is the order of the input: whenever a rule picks
+    between several values, arrange them so that the rule's answer is **not**
+    the one the obvious wrong implementation would give — first, last, largest,
+    the only one there is.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

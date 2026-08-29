@@ -1,5 +1,7 @@
 #include "store/store.h"
 
+#include "store/searchquery.h"
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -185,33 +187,22 @@ QString noteColumns()
 constexpr qsizetype trigramLength = 3;
 
 /**
- * Splits what the user typed into search terms.
+ * Wraps a search term as a LIKE pattern that matches it anywhere.
  *
- * Everything that is not a letter or a digit separates terms, so nothing the
- * user types can reach FTS5 as syntax: quotation marks, hyphens, parentheses
- * and words such as AND are plain text here, and a stray character is no
- * search error. The operators of SPEC 6 are the job of the search parser (S7).
- *
- * A term therefore consists of letters and digits only — which is why neither
- * the FTS5 phrase nor the LIKE pattern built from it in Store::search() needs
- * escaping: a quotation mark, a percent sign or an underscore cannot occur.
+ * A term out of the parser is a word of letters and digits **or** a phrase the
+ * user put in quotation marks, and a phrase carries whatever was typed. So the
+ * two wildcards of LIKE have to be taken out of the term — without that,
+ * searching for the phrase „100%" would find every note (SPEC 6). What cannot
+ * occur in either kind is a quotation mark: the parser eats those as
+ * delimiters, which is why the FTS5 phrase further down needs no escaping.
  */
-QStringList searchTerms(const QString &text)
+QString likePattern(const QString &term)
 {
-    QStringList terms;
-    QString current;
-    for (const QChar character : text) {
-        if (character.isLetterOrNumber()) {
-            current.append(character);
-        } else if (!current.isEmpty()) {
-            terms.append(current);
-            current.clear();
-        }
-    }
-    if (!current.isEmpty()) {
-        terms.append(current);
-    }
-    return terms;
+    QString escaped = term;
+    escaped.replace(QLatin1Char('\\'), QLatin1String("\\\\"));
+    escaped.replace(QLatin1Char('%'), QLatin1String("\\%"));
+    escaped.replace(QLatin1Char('_'), QLatin1String("\\_"));
+    return QStringLiteral("%%%1%%").arg(escaped);
 }
 
 /** Reads the current row of a query built from noteColumns(). */
@@ -459,8 +450,8 @@ QList<Note> Store::notes() const
 QList<Note> Store::search(const QString &text) const
 {
     m_lastError.clear();
-    const QStringList terms = searchTerms(text);
-    if (terms.isEmpty()) {
+    const SearchQuery parsed = parseSearchQuery(text);
+    if (parsed.isEmpty()) {
         return notes();
     }
 
@@ -490,9 +481,16 @@ QList<Note> Store::search(const QString &text) const
     // system library rather than a copy of its own, so the tokenizer would be
     // registered in the same instance the queries run in. Measure before
     // building that.
+    //
+    // A phrase takes the same two roads as a word, and by its length like one:
+    // „Backup prüfen" is long enough for the index, and the trigram tokenizer
+    // holds the space between the two words like any other character, so the
+    // FTS5 phrase finds exactly that sequence. Only a phrase under three
+    // characters — `"KI"` — falls to the LIKE route, and there it is a
+    // substring like everything else.
     QStringList phrases;
     QStringList shortTerms;
-    for (const QString &term : terms) {
+    for (const QString &term : parsed.terms) {
         if (term.size() >= trigramLength) {
             phrases.append(QStringLiteral("\"%1\"").arg(term));
         } else {
@@ -500,12 +498,42 @@ QList<Note> Store::search(const QString &text) const
         }
     }
 
+    // Every component of SPEC 6 is one condition, and they are ANDed — text,
+    // tags, category, type and the two date boundaries alike.
     QStringList conditions;
     if (!phrases.isEmpty()) {
         conditions.append(QStringLiteral("id IN (SELECT rowid FROM notes_fts WHERE notes_fts MATCH :match)"));
     }
     for (qsizetype index = 0; index < shortTerms.size(); ++index) {
-        conditions.append(QStringLiteral("content LIKE :short%1").arg(index));
+        // ESCAPE, because a phrase may carry a percent sign or an underscore.
+        conditions.append(QStringLiteral("content LIKE :short%1 ESCAPE '\\'").arg(index));
+    }
+    for (qsizetype index = 0; index < parsed.tags.size(); ++index) {
+        // Two tags are two conditions, so the note has to carry both.
+        //
+        // ponytail: COLLATE NOCASE folds ASCII case and nothing else, so
+        // `tag:Buecher` finds the tag `buecher` while `tag:BÜCHER` does not
+        // find `bücher`. Ceiling and upgrade path are the ones the short-term
+        // route already carries (SPEC 6); the tags the analysis writes are
+        // lower case to begin with (SPEC 7.2).
+        conditions.append(
+            QStringLiteral("id IN (SELECT note_id FROM tags WHERE tag = :tag%1 COLLATE NOCASE)").arg(index));
+    }
+    for (qsizetype index = 0; index < parsed.categories.size(); ++index) {
+        conditions.append(QStringLiteral("category = :kat%1 COLLATE NOCASE").arg(index));
+    }
+    for (qsizetype index = 0; index < parsed.types.size(); ++index) {
+        conditions.append(QStringLiteral("type = :typ%1").arg(index));
+    }
+    // `created_at` is ISO 8601, so the boundary compares as text: every
+    // timestamp of the 1st of July begins with „2026-07-01" and is longer than
+    // it, and therefore greater. That is what makes `vor:` exclude the day it
+    // names and `nach:` include the day after the one it names.
+    if (parsed.before.isValid()) {
+        conditions.append(QStringLiteral("created_at < :before"));
+    }
+    if (parsed.after.isValid()) {
+        conditions.append(QStringLiteral("created_at >= :after"));
     }
 
     QSqlQuery query(m_db);
@@ -521,8 +549,22 @@ QList<Note> Store::search(const QString &text) const
         query.bindValue(QStringLiteral(":match"), phrases.join(QLatin1Char(' ')));
     }
     for (qsizetype index = 0; index < shortTerms.size(); ++index) {
-        query.bindValue(QStringLiteral(":short%1").arg(index),
-                        QStringLiteral("%%%1%%").arg(shortTerms.at(index)));
+        query.bindValue(QStringLiteral(":short%1").arg(index), likePattern(shortTerms.at(index)));
+    }
+    for (qsizetype index = 0; index < parsed.tags.size(); ++index) {
+        query.bindValue(QStringLiteral(":tag%1").arg(index), parsed.tags.at(index));
+    }
+    for (qsizetype index = 0; index < parsed.categories.size(); ++index) {
+        query.bindValue(QStringLiteral(":kat%1").arg(index), parsed.categories.at(index));
+    }
+    for (qsizetype index = 0; index < parsed.types.size(); ++index) {
+        query.bindValue(QStringLiteral(":typ%1").arg(index), parsed.types.at(index));
+    }
+    if (parsed.before.isValid()) {
+        query.bindValue(QStringLiteral(":before"), parsed.before.toString(Qt::ISODate));
+    }
+    if (parsed.after.isValid()) {
+        query.bindValue(QStringLiteral(":after"), parsed.after.toString(Qt::ISODate));
     }
 
     if (!query.exec()) {

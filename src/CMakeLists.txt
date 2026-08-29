@@ -1,4 +1,5 @@
 add_library(denkzettelstore STATIC
+    store/searchquery.cpp
     store/store.cpp
 )
 
