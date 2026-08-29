@@ -6,6 +6,20 @@ GenericName[de]=Gedanken festhalten
 Comment=Capture thoughts quickly and sort them later
 Comment[de]=Gedanken schnell festhalten und später ordnen
 Exec=denkzetteld
+# What makes the two shortcuts of SPEC 2.4 tell each other apart (issue #125).
+# With this key KIO's ApplicationLauncherJob — the thing kglobalacceld starts an
+# action with — does not run the Exec line but calls
+# org.freedesktop.Application.ActivateAction(<action name>) on the bus name of
+# this file, and main() dispatches on that name. Without it both groups below
+# start the same command line, the running service sees an activation with no
+# distinguishing mark, and every press opens the capture window.
+#
+# Three conditions hang on it, and all three are met here: the file name has at
+# least two dots (DBusActivationRunner refuses otherwise), the bus name equals
+# the file name minus .desktop (SPEC 2.3), and a D-Bus service file maps that
+# name to the program for the case where nothing is running yet —
+# desktop/io.github.hnsstrk.denkzettel.service.in.
+DBusActivatable=true
 Icon=denkzettel
 Terminal=false
 Categories=Utility;Qt;KDE;
@@ -17,14 +31,19 @@ Keywords[de]=Notiz;Notizen;Gedanke;Capture;
 Actions=show-capture;show-recorder;
 
 # With the application installed, kglobalacceld triggers a shortcut through this
-# group, not through D-Bus: the component name ends in .desktop, so the component
-# counts as a service action component and the key press starts the action of the
-# same name. The group name is the action id from GlobalShortcuts (show-capture),
-# and Name matches the display name set there — the two only ever change
-# together, otherwise the same action carries two different names in the system
-# settings and in the application launcher. Exec starts denkzetteld; the
-# single-instance switch of the running service turns that into ShowCapture()
-# (SPEC 2.3, 2.4).
+# group, not through D-Bus signals: the component name ends in .desktop, so the
+# component counts as a service action component and the key press starts the
+# action of the same name. The group name is the action id from GlobalShortcuts
+# (show-capture), and Name matches the display name set there — the two only
+# ever change together, otherwise the same action carries two different names in
+# the system settings and in the application launcher.
+#
+# Exec is what runs when the D-Bus road above is not taken: it stays without an
+# argument (SPEC 15.1), so it cannot say which action was meant. With
+# DBusActivatable the launcher calls ActivateAction("show-capture") instead and
+# never reaches this line; it is kept because the key is mandatory for a desktop
+# action, and because the systemd generator that reads the autostart copy of
+# this file starts the service by it.
 [Desktop Action show-capture]
 Name=Capture note
 Name[de]=Notiz erfassen
@@ -34,7 +53,9 @@ Exec=denkzetteld
 # Meta+Shift+N would register, show up in the system settings and do nothing —
 # the service logs an error and gives up. The group name is the action id from
 # GlobalShortcuts (show-recorder), a valid XDG identifier, and Name matches the
-# display name set there.
+# display name set there. Its Exec line is the same one as above and says
+# nothing about the recorder — what tells this action from the one above is the
+# name in the ActivateAction call, not the command line (issue #125).
 [Desktop Action show-recorder]
 Name=Record voice note
 Name[de]=Sprachnotiz aufnehmen

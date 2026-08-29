@@ -142,6 +142,40 @@ int main(int argc, char *argv[])
                          capture.showCapture();
                      });
 
+    // And this is where a **key press** arrives, which is not the same road
+    // (SPEC 2.4, issue #125). kglobalacceld starts the desktop action of the
+    // shortcut's name through an ApplicationLauncherJob; with DBusActivatable
+    // set that job calls org.freedesktop.Application.ActivateAction(<name>) on
+    // this process instead of running the Exec line, and KDBusService hands the
+    // name on here.
+    //
+    // Without it both shortcuts came in through activateRequested above — the
+    // same start line, no distinguishing mark — and every press showed the
+    // capture window. Meta+N looked reliable because its target happened to be
+    // what always happened, and Meta+Shift+N could not reach the recorder at
+    // all; the customer found it on 29.08.2026, after every measurable thing
+    // about the registration had come out right.
+    //
+    // The names come from GlobalShortcuts and are spelled nowhere else: the
+    // desktop action group, the QAction's object name and this branch are three
+    // readings of one string, and a mismatch is silent on all three roads
+    // (CLAUDE.md, finding 48).
+    QObject::connect(&service, &KDBusService::activateActionRequested, &app,
+                     [&capture, &recorder](const QString &actionName, const QVariant &) {
+                         if (actionName == GlobalShortcuts::actionId(GlobalShortcuts::Shortcut::Capture)) {
+                             capture.showCapture();
+                         } else if (actionName == GlobalShortcuts::actionId(GlobalShortcuts::Shortcut::Recorder)) {
+                             recorder.showRecorder();
+                         } else {
+                             // Nothing shown, and said in the one place a silent
+                             // fault of this kind can be read afterwards
+                             // (CLAUDE.md, finding 25): showing *something* is
+                             // how issue #125 stayed invisible for four weeks.
+                             qWarning("A desktop action nobody knows was activated: %s",
+                                      qUtf8Printable(actionName));
+                         }
+                     });
+
     // The context stamp of SPEC 5.1 and 13 (issue #47). It stands between the
     // two windows that write notes and KWin, and it is told what to do by the
     // setting alone: with „[Capture] StoreOrigin" off it loads nothing into

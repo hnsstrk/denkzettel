@@ -334,6 +334,7 @@ add_test(NAME installtest
         -DAPPLICATION_ENTRY=${KDE_INSTALL_FULL_APPDIR}/io.github.hnsstrk.denkzettel.desktop
         -DAUTOSTART_ENTRY=${KDE_INSTALL_FULL_AUTOSTARTDIR}/io.github.hnsstrk.denkzettel.desktop
         -DMETAINFO_ENTRY=${KDE_INSTALL_FULL_METAINFODIR}/io.github.hnsstrk.denkzettel.metainfo.xml
+        -DDBUS_SERVICE_ENTRY=${KDE_INSTALL_FULL_DBUSSERVICEDIR}/io.github.hnsstrk.denkzettel.service
         -DAPPSTREAMCLI=${APPSTREAMCLI}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/installtest.cmake
 )

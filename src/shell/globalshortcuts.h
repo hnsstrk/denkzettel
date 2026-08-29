@@ -56,6 +56,24 @@ public:
     QList<ShortcutOwner> registerShortcut(Shortcut which);
 
     /**
+     * The action id, which doubles as the object name of the QAction, as the
+     * name of the desktop action kglobalacceld starts on the key press and as
+     * the name that comes back in `ActivateAction` (SPEC 2.4).
+     *
+     * It has to be a valid XDG action identifier — letters, digits and the
+     * hyphen, no underscore — and it must never change: renaming it would drop
+     * the shortcut the user has set.
+     *
+     * **Public because main() dispatches on it.** The key press does not arrive
+     * as a signal of this class but as an `ActivateAction` of that name on the
+     * D-Bus activation road, and the two sides have to spell it identically or
+     * the press opens the wrong window in silence (issue #125). One function is
+     * what makes that a compiler question instead of an assertion — CLAUDE.md,
+     * finding 48.
+     */
+    static QString actionId(Shortcut which);
+
+    /**
      * The label the same action carries in the tray menu. The settings page
      * writes it in front of the input field, and the message about a failed
      * readback names it — one action, one wording, everywhere (SPEC 13).

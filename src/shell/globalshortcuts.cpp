@@ -25,25 +25,6 @@ QString ownerDescription(const KGlobalShortcutInfo &info)
 }
 
 /**
- * The action id, which doubles as the object name of the QAction and as the
- * name of the desktop action kglobalacceld starts on the key press (SPEC 2.4).
- * It has to be a valid XDG action identifier — letters, digits and the hyphen,
- * no underscore — and it must never change: renaming it would drop the
- * shortcut the user has set.
- */
-QString actionId(GlobalShortcuts::Shortcut which)
-{
-    switch (which) {
-    case GlobalShortcuts::Shortcut::Capture:
-        return QStringLiteral("show-capture");
-    case GlobalShortcuts::Shortcut::Recorder:
-        return QStringLiteral("show-recorder");
-    }
-
-    return {};
-}
-
-/**
  * The desktop file that names our component, or an empty string. kglobalacceld
  * resolves a component name ending in `.desktop` through KService and falls back
  * to `<data>/kglobalaccel/<name>`; finding neither, it creates no component at
@@ -66,6 +47,18 @@ QString desktopFilePath()
     return QStandardPaths::locate(QStandardPaths::GenericDataLocation,
                                   QStringLiteral("kglobalaccel/") + GlobalShortcuts::shortcutComponent());
 }
+}
+
+QString GlobalShortcuts::actionId(Shortcut which)
+{
+    switch (which) {
+    case Shortcut::Capture:
+        return QStringLiteral("show-capture");
+    case Shortcut::Recorder:
+        return QStringLiteral("show-recorder");
+    }
+
+    return {};
 }
 
 QString GlobalShortcuts::shortcutComponent()

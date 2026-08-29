@@ -23,7 +23,7 @@ if(NOT install_result EQUAL 0)
     message(FATAL_ERROR "Die Installation schlug fehl:\n${install_output}")
 endif()
 
-foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}" "${METAINFO_ENTRY}")
+foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}" "${METAINFO_ENTRY}" "${DBUS_SERVICE_ENTRY}")
     if(NOT EXISTS "${STAGING_DIR}${entry}")
         message(FATAL_ERROR "Die Installation legte ${entry} nicht an:\n${install_output}")
     endif()
@@ -76,6 +76,43 @@ foreach(action IN ITEMS "show-capture" "show-recorder")
             "Exec line — without it the service has nothing to start.")
     endif()
 endforeach()
+
+# What tells the two actions apart on the key press, and the reason issue #125
+# went unnoticed for four weeks: without DBusActivatable, KIO's
+# ApplicationLauncherJob runs the Exec line of the action instead of calling
+# ActivateAction, both actions run the identical command line, and the running
+# service cannot say which key was pressed — every press opens the capture
+# window. Nothing about that is visible: the registration reads back correctly,
+# the component is active, and Meta+N works, because its target is what happens
+# anyway.
+if(NOT application_entry MATCHES "\nDBusActivatable=true")
+    message(FATAL_ERROR
+        "${APPLICATION_ENTRY} has no DBusActivatable=true — the key press then runs "
+        "the Exec line of the action, and both actions carry the same one.")
+endif()
+
+# And the service file that carries the other half: with DBusActivatable set the
+# launcher only ever calls the bus name, so a session in which the daemon is not
+# running needs the bus to be able to start it. The name has to be the one the
+# launcher calls, which is the desktop file's own name, and the Exec line has to
+# be absolute — a relative one is refused by the bus without a word to anybody.
+file(READ "${STAGING_DIR}${DBUS_SERVICE_ENTRY}" dbus_service_entry)
+
+# NAME and not NAME_WE: the latter cuts at the *first* dot and would ask for
+# `Name=io` — measured, the check went red over a correct file.
+get_filename_component(dbus_service_name "${DBUS_SERVICE_ENTRY}" NAME)
+string(REGEX REPLACE "\\.service$" "" dbus_service_name "${dbus_service_name}")
+if(NOT dbus_service_entry MATCHES "\nName=${dbus_service_name}\n")
+    message(FATAL_ERROR
+        "${DBUS_SERVICE_ENTRY} does not declare Name=${dbus_service_name} — the bus "
+        "would start nothing for the name the launcher calls.")
+endif()
+
+if(NOT dbus_service_entry MATCHES "\nExec=/[^\n]+/denkzetteld")
+    message(FATAL_ERROR
+        "${DBUS_SERVICE_ENTRY} has no absolute Exec line for denkzetteld — the bus "
+        "cannot activate the service from it.")
+endif()
 
 # The metainfo is validated at its installed location, not in the source tree:
 # what a software centre reads is what the installation put down. --no-net keeps

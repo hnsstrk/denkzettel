@@ -65,6 +65,21 @@ ki18n_install(po)
 
 install(FILES desktop/io.github.hnsstrk.denkzettel.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
+# The other half of DBusActivatable in that file (SPEC 2.4, issue #125). Once
+# the key is set, KIO's launcher no longer runs the Exec line but calls
+# ActivateAction on the bus name — and with nothing running, that call reaches
+# the bus and not the program. This file is what lets the bus start it; without
+# it the first shortcut press after a session in which the daemon never came up
+# fails with ServiceUnknown, and nothing on screen says why.
+#
+# Configured rather than shipped verbatim: the Exec line of a D-Bus service file
+# has to be absolute, and the one place that knows where the binary lands is the
+# install prefix.
+configure_file(desktop/io.github.hnsstrk.denkzettel.service.in
+    ${CMAKE_CURRENT_BINARY_DIR}/io.github.hnsstrk.denkzettel.service @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/io.github.hnsstrk.denkzettel.service
+    DESTINATION ${KDE_INSTALL_DBUSSERVICEDIR})
+
 # Autostart with the session (SPEC 2.5), deliberately under the SAME file name
 # as above: kglobalacceld names the shortcut component after it (SPEC 2.4), and
 # the Plasma autostart module switches a system-wide entry off by shadowing
