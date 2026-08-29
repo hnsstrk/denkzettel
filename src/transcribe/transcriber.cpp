@@ -8,6 +8,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -21,6 +22,8 @@
 // The child of a daemon that is gone has to go too, and Linux has the lever
 // for it. No portability guard: this program is a Plasma-on-Wayland tool and
 // is built nowhere else.
+#include <algorithm>
+
 #include <csignal>
 #include <sys/prctl.h>
 #include <unistd.h>
@@ -54,6 +57,31 @@ QString reasonWithoutDirectories(QString reason)
 {
     static const QRegularExpression directories(QStringLiteral("(?:^|(?<=\\s))/\\S*/"));
     return reason.remove(directories);
+}
+
+void migrateModelPath()
+{
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    const QString path = group.readEntry("ModelPath", QString());
+    if (path.isEmpty()) {
+        return;
+    }
+    // Only the file name, and only the naming Transcriber::modelPath() builds:
+    // where the file lies is this program's business, which size it is was the
+    // user's. A path under a directory of their own that carries the ordinary
+    // name is therefore the same model and migrates like any other.
+    const QString name = QFileInfo(path).fileName();
+    for (const QLatin1StringView size : whisper::Sizes) {
+        if (name == QLatin1String("ggml-") + size + QLatin1String(".bin")) {
+            group.writeEntry("ModelSize", QString(size));
+            group.deleteEntry("ModelPath");
+            group.sync();
+            return;
+        }
+    }
+    // No size of ours. Nothing is written and nothing is deleted — the size
+    // stays at its default because the key is absent, and `ModelPath` stands
+    // on as the record of what was set. See the header for why.
 }
 
 Transcriber::Transcriber(Store *store, QObject *parent)
@@ -193,9 +221,17 @@ void Transcriber::reloadSettings()
     // The setting is the **size** and not a path (SPEC 12). Up to issue #27 a
     // full `ModelPath` stood here; a size cannot be offered as a list of five
     // while the file holds a file name, and the download of issue #23 needs
-    // the same mapping to know what it is fetching.
-    m_modelPath =
-        modelPath(group.readEntry("ModelSize", QString(whisper::Sizes.at(whisper::DefaultSize))));
+    // the same mapping to know what it is fetching. What a `ModelPath` of that
+    // time becomes stands in migrateModelPath().
+    //
+    // Held against the list rather than pasted into a file name: this is where
+    // a hand-written denkzettelrc enters, and a typo would otherwise become a
+    // path that leads nowhere — two failed attempts and the tray in its error
+    // state, for a value the dialog could never have produced.
+    const QString size = group.readEntry("ModelSize", QString());
+    const bool known = std::find(whisper::Sizes.begin(), whisper::Sizes.end(), size)
+        != whisper::Sizes.end();
+    m_modelPath = modelPath(known ? size : QString(whisper::Sizes.at(whisper::DefaultSize)));
 }
 
 QString Transcriber::workingRoot()
@@ -219,10 +255,6 @@ void Transcriber::setWhisperProgram(const QString &program)
     m_whisperProgram = program;
 }
 
-void Transcriber::setModelPath(const QString &path)
-{
-    m_modelPath = path;
-}
 
 void Transcriber::setTimeout(std::chrono::milliseconds timeout)
 {

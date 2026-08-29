@@ -4,6 +4,7 @@
 
 #include <KConfig>
 #include <KConfigGroup>
+#include <KSharedConfig>
 
 #include <QAbstractItemModel>
 #include <QApplication>
@@ -27,7 +28,7 @@
 /**
  * What the settings dialog does where nobody can see it (SPEC 13, issue #16).
  *
- * Five things break without a sound, and only those are asserted here — how
+ * Seven things break without a sound, and only those are asserted here — how
  * the dialog looks is looked at, not measured:
  *
  * 1. **Whether Apply writes.** KConfigDialog wires its buttons up in its own
@@ -45,7 +46,15 @@
  * 4. **That a save announces itself.** The transcriber of main.cpp takes the
  *    new model and the new program off that announcement; without it the
  *    settings would only take hold at the next start of the daemon (#27).
- * 5. **The icon names of the page list.** `KPageDialog::List` keeps the height
+ * 5. **That a `ModelPath` which could not be taken over is reported and then
+ *    let go.** The key is the whole of that state — no second mark says a
+ *    migration happened — so a page that does not read it says nothing, and
+ *    one that does not drop it says it for ever (#27).
+ * 6. **That "Restore defaults" reaches the path field.** It is two widgets,
+ *    and the manager makes no signal out of a default that equals what
+ *    already stood there — the field would then keep a rejected path over a
+ *    stored value that is nothing like it.
+ * 7. **The icon names of the page list.** `KPageDialog::List` keeps the height
  *    of an icon free whether one is there or not, so a page without one stands
  *    among holes. What is binding is the name, so the name is what is read.
  */
@@ -59,6 +68,8 @@ private Q_SLOTS:
     void theWindowSizeSurvivesEveryWayOut();
     void aRejectedProgramPathIsNotStored();
     void savingAnnouncesItself();
+    void reportsAModelPathItCouldNotTakeOver();
+    void restoringTheDefaultsResetsThePathField();
     void helpIsHiddenAndNotReplaced();
     void everyPageCarriesAnIcon();
 
@@ -221,9 +232,14 @@ void SettingsTest::aRejectedProgramPathIsNotStored()
     plain.write("no program\n");
     plain.close();
     QVERIFY(plain.setPermissions(QFile::ReadOwner | QFile::WriteOwner));
-    // Root executes what it likes, and the case would then come out green over
-    // a page that rejects nothing.
-    QVERIFY2(!QFileInfo(rejected).isExecutable(), "do not run this check as root");
+    // And it stays rejected as uid 0, which is what lets this case stand in a
+    // set the CI runs as root: on Linux X_OK is granted to root only when at
+    // least one execute bit is set, so a file at 0644 is not executable for
+    // anybody. Measured 29.08.2026 — the whole set run under `unshare -r` as
+    // uid 0 came out 8 passed, 0 failed, while a file at 0000 *is* writable
+    // there. That is the difference to finding 46 of CLAUDE.md, which is about
+    // isWritable(). The line stays as the readback that says so.
+    QVERIFY(!QFileInfo(rejected).isExecutable());
 
     SettingsDialog *dialog = openDialog();
     QVERIFY(dialog);
@@ -307,6 +323,76 @@ void SettingsTest::savingAnnouncesItself()
     KConfig written(QStringLiteral("denkzettelrc"));
     QCOMPARE(written.group(QStringLiteral("Transcription")).readEntry("ModelSize", QString()),
              QStringLiteral("medium"));
+
+    closeDialog(dialog);
+}
+
+void SettingsTest::reportsAModelPathItCouldNotTakeOver()
+{
+    // What migrateModelPath() leaves standing: a path that names no size of
+    // ours. Written before the dialog is opened, because the page reads the
+    // key while it is built — there is nowhere else to read that state from.
+    const QString earlier = QStringLiteral("/opt/whisper/one-of-my-own.bin");
+    {
+        KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+        group.writeEntry("ModelPath", earlier);
+        group.sync();
+    }
+
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    const auto *message = dialog->findChild<QLabel *>(QStringLiteral("modelState"));
+    QVERIFY(message);
+    // The old path is in the sentence: it is what the user set, and what they
+    // need if they want it back.
+    QVERIFY2(message->text().contains(earlier), qPrintable(message->text()));
+
+    QPushButton *apply = dialog->button(QDialogButtonBox::Apply);
+    auto *size = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_ModelSize"));
+    QVERIFY(size);
+    size->setCurrentIndex(1);
+    QVERIFY(apply->isEnabled());
+    apply->click();
+
+    // Gone from the file, and gone from the page with it. After this click
+    // `ModelSize` stands in the file in plain sight, so the old path could
+    // never take effect again whatever happened to it.
+    const KConfigGroup after(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    QVERIFY(!after.hasKey("ModelPath"));
+    QVERIFY(!message->text().contains(earlier));
+
+    closeDialog(dialog);
+}
+
+void SettingsTest::restoringTheDefaultsResetsThePathField()
+{
+    SettingsDialog *dialog = openDialog();
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+    auto *editor = dialog->findChild<QLineEdit *>(QStringLiteral("whisperProgram"));
+    const auto *stored = dialog->findChild<QLineEdit *>(QStringLiteral("kcfg_WhisperProgram"));
+    QPushButton *defaults = dialog->button(QDialogButtonBox::RestoreDefaults);
+    QVERIFY(editor);
+    QVERIFY(stored);
+    QVERIFY(defaults);
+
+    // Twice, and the second click is the whole case: after the first one the
+    // stored field already holds the default, so the second sets it to what it
+    // is — no change, no signal, and a field left to itself would keep the
+    // rejected path below standing over it.
+    defaults->click();
+    const QString fallback = stored->text();
+    QVERIFY(!fallback.isEmpty());
+
+    editor->setText(QStringLiteral("/nowhere/at/all"));
+    QCOMPARE(stored->text(), fallback);
+
+    defaults->click();
+    QCOMPARE(stored->text(), fallback);
+    QCOMPARE(editor->text(), fallback);
 
     closeDialog(dialog);
 }

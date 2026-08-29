@@ -76,6 +76,12 @@ int main(int argc, char *argv[])
     // else in this process touches that directory yet.
     store.sweepOrphanedAudio();
 
+    // Before the transcriber below and before anything reads Settings::self():
+    // it takes its model in its constructor, and the dialog's first Apply
+    // writes every item of the skeleton at once. The reasoning and the
+    // measurement stand at the function (issue #27).
+    migrateModelPath();
+
     // Built before the first window and started at the end of this function:
     // it listens on Store::noteAdded for the audio notes to come, and its
     // start() picks up what an earlier run left in the queue (SPEC 12).

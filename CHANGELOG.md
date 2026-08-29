@@ -44,9 +44,12 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 - **The model is set by its size, not by a file name.** The key `ModelPath` in
   the `[Transcription]` group of `~/.config/denkzettelrc` is replaced by
   `ModelSize` (`tiny`, `base`, `small`, `medium`, `large-v3`, default `small`);
-  the file below `~/.local/share/denkzettel/models/` follows from it. Whoever
-  had set `ModelPath` by hand sets the size instead — a path pointing anywhere
-  else is no longer read (#27).
+  the file below `~/.local/share/denkzettel/models/` follows from it. **The
+  first start takes the old key over**: a path ending in `ggml-<size>.bin`
+  becomes that size and `ModelPath` goes. A path that names anything else stays
+  in the file untouched — the size falls back to `small`, and the page "Voice
+  notes" reports it with the old path in the sentence until the settings are
+  applied once. Nobody's hand-set path disappears without being shown (#27).
 
 ## [0.7.0] — 2026-08-28
 

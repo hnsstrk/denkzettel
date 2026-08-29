@@ -1,9 +1,13 @@
 #include "settings/voicenotespage.h"
 
+#include "settings/settings.h"
 #include "transcribe/transcriber.h"
 
 #include <KColorScheme>
+#include <KConfigDialog>
+#include <KConfigGroup>
 #include <KLocalizedString>
+#include <KSharedConfig>
 
 #include <QComboBox>
 #include <QDir>
@@ -13,12 +17,19 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QDialogButtonBox>
 #include <QPushButton>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
 
 namespace
 {
+/** The group Transcriber reads its settings from (SPEC 12). */
+KConfigGroup transcription()
+{
+    return KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+}
+
 /**
  * The small coloured line of the wireframe (1d:172–173), directly under the
  * row it belongs to.
@@ -93,6 +104,7 @@ VoiceNotesPage::VoiceNotesPage(QWidget *parent)
         }
     }
     form->addRow(i18n("Model size:"), m_size);
+    m_modelState->setObjectName(QStringLiteral("modelState"));
     makeSmall(this, m_modelState);
     form->addRow(m_modelState);
 
@@ -128,6 +140,42 @@ VoiceNotesPage::VoiceNotesPage(QWidget *parent)
     connect(m_stored, &QLineEdit::textChanged, m_program, &QLineEdit::setText);
     connect(browse, &QPushButton::clicked, this, &VoiceNotesPage::browseForProgram);
 
+    // "Restore defaults" writes the item default into the hidden field, and
+    // where that is what already stood there, nothing changes — the editor
+    // would keep a rejected path standing over a stored default that is
+    // nothing like it. The click is the only moment the page can see that in,
+    // because the manager makes no signal out of a value that stayed the same.
+    if (auto *dialog = qobject_cast<KConfigDialog *>(parent)) {
+        connect(dialog->button(QDialogButtonBox::RestoreDefaults),
+                &QAbstractButton::clicked,
+                this,
+                [this] {
+                    m_program->setText(m_stored->text());
+                });
+    }
+
+    // What migrateModelPath() could not take over, read once here: the key is
+    // the state, so there is nothing else to ask.
+    m_earlierPath = transcription().readEntry("ModelPath", QString());
+    connect(Settings::self(), &Settings::configChanged, this, &VoiceNotesPage::forgetTheEarlierPath);
+
+    showModelState();
+}
+
+void VoiceNotesPage::forgetTheEarlierPath()
+{
+    if (m_earlierPath.isEmpty()) {
+        return;
+    }
+    // Any save, and not only one that moved the box: the manager writes every
+    // item of the skeleton at once, so after this click `ModelSize` stands in
+    // the file in plain sight and the old path can never take effect again.
+    // What it was still doing until here was carrying the message above, and
+    // the user has had that in front of them in this very dialog.
+    m_earlierPath.clear();
+    KConfigGroup group = transcription();
+    group.deleteEntry("ModelPath");
+    group.sync();
     showModelState();
 }
 
@@ -165,15 +213,28 @@ void VoiceNotesPage::takeProgram(const QString &path)
 
 void VoiceNotesPage::showModelState()
 {
-    const int index = m_size->currentIndex();
-    if (index < 0) {
+    const int chosen = m_size->currentIndex();
+    if (!m_earlierPath.isEmpty()) {
+        // Ahead of the line below, because it is the more urgent of the two
+        // and it goes away with the next Apply. The old path is in the
+        // sentence: it is what the user set, and what they need if they want
+        // it back.
+        showLine(m_modelState,
+                 i18n("The earlier setting %1 names no model size known here; %2 is in use",
+                      QDir::toNativeSeparators(m_earlierPath),
+                      QString(whisper::Sizes.at(chosen < 0 ? whisper::DefaultSize : chosen))),
+                 KColorScheme::NeutralText);
+        return;
+    }
+
+    if (chosen < 0) {
         return;
     }
     // Only the lack is reported; a model that lies there is the ordinary case
     // and says nothing (UX, 29.08.2026). What the line carries is the place
     // the file is expected in, because that is the one thing the user can act
     // on until the download of issue #23 exists.
-    const QString path = Transcriber::modelPath(QString(whisper::Sizes.at(index)));
+    const QString path = Transcriber::modelPath(QString(whisper::Sizes.at(chosen)));
     showLine(m_modelState,
              QFileInfo::exists(path) ? QString() : i18n("Expected at %1", QDir::toNativeSeparators(path)),
              KColorScheme::NeutralText);

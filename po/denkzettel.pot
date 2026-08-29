@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 14:00+0200\n"
+"POT-Creation-Date: 2026-08-29 14:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,12 +86,12 @@ msgstr ""
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/main.cpp:164
+#: src/main.cpp:170
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:165
+#: src/main.cpp:171
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -217,44 +217,49 @@ msgstr ""
 msgid "Voice notes"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:89
+#: src/settings/voicenotespage.cpp:100
 #, kde-format
 msgctxt "@item:inlistbox a whisper.cpp model that is not on disk"
 msgid "%1 — not downloaded"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:95
+#: src/settings/voicenotespage.cpp:106
 #, kde-format
 msgid "Model size:"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:108
+#: src/settings/voicenotespage.cpp:120
 #, kde-format
 msgid "Browse…"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:113
+#: src/settings/voicenotespage.cpp:125
 #, kde-format
 msgid "whisper-cli program:"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:138
+#: src/settings/voicenotespage.cpp:186
 #, kde-format
 msgctxt "@title:window"
 msgid "Choose the whisper-cli program"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:160
+#: src/settings/voicenotespage.cpp:208
 #, kde-format
 msgid "No program is set for the transcription"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:161
+#: src/settings/voicenotespage.cpp:209
 #, kde-format
 msgid "%1 is not an executable program"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:178
+#: src/settings/voicenotespage.cpp:223
+#, kde-format
+msgid "The earlier setting %1 names no model size known here; %2 is in use"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:239
 #, kde-format
 msgid "Expected at %1"
 msgstr ""
@@ -377,62 +382,62 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:119
+#: src/transcribe/transcriber.cpp:147
 #, kde-format
 msgid "%1 was killed"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:141
+#: src/transcribe/transcriber.cpp:169
 #, kde-format
 msgid "%1 ended with code %2"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:160
+#: src/transcribe/transcriber.cpp:188
 #, kde-format
 msgid "%1 could not be started"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:253
+#: src/transcribe/transcriber.cpp:285
 #, kde-format
 msgid "The run was interrupted"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:307
+#: src/transcribe/transcriber.cpp:339
 #, kde-format
 msgid "The note carries no audio file"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:312
+#: src/transcribe/transcriber.cpp:344
 #, kde-format
 msgid "The audio file %1 is missing"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:326
+#: src/transcribe/transcriber.cpp:358
 #, kde-format
 msgid "No working directory could be created"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:383
+#: src/transcribe/transcriber.cpp:415
 #, kde-format
 msgid "%1 wrote no transcript"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:390
+#: src/transcribe/transcriber.cpp:422
 #, kde-format
 msgid "The transcript is no JSON: %1"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:405
+#: src/transcribe/transcriber.cpp:437
 #, kde-format
 msgid "%1 returned no text"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:413
+#: src/transcribe/transcriber.cpp:445
 #, kde-format
 msgid "The transcript could not be saved"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:439
+#: src/transcribe/transcriber.cpp:471
 #, kde-format
 msgid "%1 did not finish within %2 seconds"
 msgstr ""

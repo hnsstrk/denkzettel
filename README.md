@@ -108,6 +108,12 @@ specification is [`SPEC.md`](SPEC.md).
   model size and the program path are also the settings page "Voice notes";
   what is set there takes hold at once, without restarting the daemon.
 
+  Up to v0.7.0 the key was `ModelPath` and held a whole file name. The first
+  start takes it over: a path ending in `ggml-<size>.bin` becomes that size and
+  the old key goes. A path that is anything else stays where it is — the size
+  falls back to `small`, and the settings page says so with the old path in the
+  sentence until the settings are applied once.
+
 On Arch and derivatives:
 
 ```sh

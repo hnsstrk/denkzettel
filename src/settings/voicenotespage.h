@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QString>
 #include <QWidget>
 
 class QComboBox;
@@ -22,6 +23,12 @@ class QLineEdit;
  * - **Every model size is offered, and one that is not on disk is greyed.**
  *   Choosing it would put a file that is not there in front of the queue: two
  *   failed attempts and the tray in its error state (SPEC 12).
+ *
+ * And it is where a `ModelPath` that could not be migrated is reported:
+ * migrateModelPath() leaves such a key standing, this page says so with the
+ * old path in the sentence, and the next Apply takes the key away. The key is
+ * the whole of that state — there is no second mark anywhere saying a
+ * migration happened (customer decision, 29.08.2026).
  */
 class VoiceNotesPage : public QWidget
 {
@@ -36,7 +43,11 @@ private:
     void takeProgram(const QString &path);
     /** Says where the chosen model is expected, as long as it is not there. */
     void showModelState();
+    /** Drops the `ModelPath` this page has been reporting, after a save. */
+    void forgetTheEarlierPath();
 
+    /** The unmigratable `ModelPath`, empty once there is none to report. */
+    QString m_earlierPath;
     QComboBox *m_size;
     QLineEdit *m_program;
     QLineEdit *m_stored;

@@ -58,6 +58,8 @@ private Q_SLOTS:
     void clearsTheWorkingDirectoryOfAKilledRun();
     void deletingANoteTakesItsJobWithIt();
     void aChangedSettingReachesTheRunningQueue();
+    void takesOverAModelPathOfTheVersionBefore();
+    void fallsBackToTheDefaultForASizeItDoesNotKnow();
 
 private:
     QString databasePath() const;
@@ -87,6 +89,8 @@ private:
      * acceptance criterion, read off one string.
      */
     QString writeMarkingStub(const QString &name);
+    /** Runs one voice note through the queue and answers with its transcript. */
+    QString transcriptOfOneNote(Transcriber &transcriber);
     /**
      * Writes a stand-in for whisper-cli that never comes back, and returns its
      * path: it notes its own process id and then hangs.
@@ -875,6 +879,99 @@ void TranscribeTest::aChangedSettingReachesTheRunningQueue()
 
     // The group goes again, or the next run of this set would start with a
     // program path out of a temporary directory that is long gone.
+    settings.deleteGroup();
+    settings.sync();
+}
+
+/** Runs one voice note through the queue and answers with its transcript. */
+QString TranscribeTest::transcriptOfOneNote(Transcriber &transcriber)
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&transcriber, &Transcriber::failed);
+    const qint64 id = addVoiceNote();
+    if (id <= 0) {
+        return QStringLiteral("the note was not added");
+    }
+    if (!QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, 30000)) {
+        return QStringLiteral("nothing happened at all");
+    }
+    if (!failed.isEmpty()) {
+        return failed.first().at(1).toString();
+    }
+    const std::optional<Note> note = m_store->note(id);
+    return note.has_value() ? note->content : QStringLiteral("the note is gone");
+}
+
+void TranscribeTest::takesOverAModelPathOfTheVersionBefore()
+{
+    const QString stub = writeMarkingStub(QStringLiteral("whisper-taken-over"));
+    QVERIFY(!stub.isEmpty());
+
+    // What a version before issue #27 wrote, and what a hand writes: the file
+    // lies where the user put it, and only its name says which model it is.
+    KConfigGroup settings(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    settings.writeEntry("WhisperProgram", stub);
+    settings.writeEntry("ModelPath", m_dir->filePath(QStringLiteral("ggml-medium.bin")));
+    settings.deleteEntry("ModelSize");
+    settings.sync();
+
+    migrateModelPath();
+
+    // Read out of a group opened afresh, not out of the one that did the
+    // writing (finding 42's neighbourhood): what matters is what stands in the
+    // file for the next start.
+    {
+        const KConfigGroup written(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+        QCOMPARE(written.readEntry("ModelSize", QString()), QStringLiteral("medium"));
+        QVERIFY(!written.hasKey("ModelPath"));
+    }
+
+    // And it is not the file alone: the queue really runs against `medium`.
+    // Without the migration this same run answers `ggml-small.bin`, which is
+    // the whole of the fault it closes.
+    Transcriber transcriber(m_store.get());
+    QCOMPARE(transcriptOfOneNote(transcriber),
+             QStringLiteral("whisper-taken-over ") + Transcriber::modelPath(QStringLiteral("medium")));
+
+    // The other half of the decision: a path that is no size of ours is not
+    // touched. It was a deliberate act of somebody who knew what they were
+    // doing, and it is the whole of the state the settings page reports from —
+    // so nothing is written and nothing is deleted.
+    settings.writeEntry("ModelPath", QStringLiteral("/opt/whisper/one-of-my-own.bin"));
+    settings.deleteEntry("ModelSize");
+    settings.sync();
+
+    migrateModelPath();
+
+    const KConfigGroup kept(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    QCOMPARE(kept.readEntry("ModelPath", QString()), QStringLiteral("/opt/whisper/one-of-my-own.bin"));
+    QVERIFY(!kept.hasKey("ModelSize"));
+
+    settings.deleteGroup();
+    settings.sync();
+}
+
+void TranscribeTest::fallsBackToTheDefaultForASizeItDoesNotKnow()
+{
+    const QString stub = writeMarkingStub(QStringLiteral("whisper-unknown-size"));
+    QVERIFY(!stub.isEmpty());
+
+    // A hand-written denkzettelrc reaches the queue without ever passing
+    // through the dialog, and a size the dialog could never produce would
+    // otherwise be pasted into a file name — a path that leads nowhere, two
+    // failed attempts and the tray in its error state (SPEC 12).
+    KConfigGroup settings(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
+    settings.writeEntry("WhisperProgram", stub);
+    settings.writeEntry("ModelSize", QStringLiteral("enormous"));
+    settings.sync();
+
+    Transcriber transcriber(m_store.get());
+    QCOMPARE(transcriptOfOneNote(transcriber),
+             QStringLiteral("whisper-unknown-size ")
+                 + Transcriber::modelPath(QString(whisper::Sizes.at(whisper::DefaultSize))));
+
     settings.deleteGroup();
     settings.sync();
 }
