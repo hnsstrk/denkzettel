@@ -188,6 +188,25 @@ target_link_libraries(modelshots PRIVATE
     Qt6::Widgets
 )
 
+# The pictures of issue #47: the origin of a note in the reading pane and the
+# privacy switch that decides whether there is one. No add_test() for the
+# reason readmeshots has none — it produces pictures for a human to look at.
+# Built by an ordinary build all the same, so that it cannot write plausible
+# pictures of an old state (CLAUDE.md, rule 4), and committed rather than
+# improvised: the numbers it prints beside every picture are what the design
+# decision of this story was taken on, and a runner nobody can build again
+# leaves them unrepeatable.
+add_executable(originshots originshots.cpp)
+
+target_link_libraries(originshots PRIVATE
+    # CapturePage, the settings page of SPEC 13.
+    denkzettelsettings
+    denkzettelstore
+    denkzettelui
+    Qt6::Test
+    Qt6::Widgets
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE
