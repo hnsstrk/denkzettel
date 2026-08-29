@@ -3,6 +3,7 @@
 #include <KConfigDialog>
 
 class GlobalShortcuts;
+class ModelDownload;
 class ShortcutsPage;
 
 /**
@@ -45,7 +46,7 @@ public:
      * the tray menu, and that has no window; hung on the library it would hang
      * on one of several equal-ranking roads (SPEC 2.1).
      */
-    static void showSettings(GlobalShortcuts *shortcuts);
+    static void showSettings(GlobalShortcuts *shortcuts, ModelDownload *download);
 
 public Q_SLOTS:
     /**
@@ -82,7 +83,7 @@ protected:
     bool isDefault() override;
 
 private:
-    explicit SettingsDialog(GlobalShortcuts *shortcuts);
+    SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download);
 
     ShortcutsPage *m_shortcutsPage;
 };

@@ -865,3 +865,62 @@ msgstr ""
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
 msgstr ""
+
+#: src/settings/voicenotespage.cpp:298
+#, kde-format
+msgid ""
+"Download the model %1?\n"
+"\n"
+"The file is %2."
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:304
+#, kde-format
+msgctxt "@title:window"
+msgid "Download model"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:306
+#, kde-format
+msgid "Download"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:338
+#, kde-format
+msgid "Downloading %1: %2% of %3"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:377
+#, kde-format
+msgid "%1: the download was cancelled; expected at %2"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:378
+#, kde-format
+msgid "%1: the download failed: %2; expected at %3"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:423
+#, kde-format
+msgid "Lies at %1"
+msgstr ""
+
+#: src/transcribe/modeldownload.cpp:123
+#, kde-format
+msgid "%1 is no model size known here"
+msgstr ""
+
+#: src/transcribe/modeldownload.cpp:132
+#, kde-format
+msgid "%1 could not be created"
+msgstr ""
+
+#: src/transcribe/modeldownload.cpp:233
+#, kde-format
+msgid "what arrived is not the model %1"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:345
+#, kde-format
+msgid "Model %1 is missing. Download it under Settings → Voice notes."
+msgstr ""

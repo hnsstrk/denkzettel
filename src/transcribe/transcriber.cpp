@@ -231,7 +231,8 @@ void Transcriber::reloadSettings()
     const QString size = group.readEntry("ModelSize", QString());
     const bool known = std::find(whisper::Sizes.begin(), whisper::Sizes.end(), size)
         != whisper::Sizes.end();
-    m_modelPath = modelPath(known ? size : QString(whisper::Sizes.at(whisper::DefaultSize)));
+    m_modelSize = known ? size : QString(whisper::Sizes.at(whisper::DefaultSize));
+    m_modelPath = modelPath(m_modelSize);
 }
 
 QString Transcriber::workingRoot()
@@ -329,6 +330,25 @@ void Transcriber::takeNextJob()
         return;
     }
 
+    // **A missing model is a precondition, not a failed attempt** (SPEC 12,
+    // decision 29.08.2026). Asked before the job is taken out, because taking
+    // it out is what counts the attempt: the size can be chosen while its
+    // download is still running, and at 1.5 GB for `medium` the two attempts
+    // of a note would be spent on the minutes in between — with the note in
+    // the error state and the model long since in place.
+    //
+    // So nothing is taken, nothing is counted, and the queue stands still
+    // until somebody calls start() again: main.cpp does that when a download
+    // has finished and when the settings have been written.
+    if (!QFileInfo::exists(m_modelPath)) {
+        Q_EMIT modelMissing(
+            i18n("Model %1 is missing. Download it under Settings → Voice notes.", m_modelSize));
+        return;
+    }
+    // Taken back the moment the file is there, and from here rather than from
+    // whoever fetched it: this is the one place that asks the question.
+    Q_EMIT modelMissing(QString());
+
     // The attempt is counted here, in the database — see
     // Store::takeTranscribeJob() for why that is what a crash needs.
     const std::optional<TranscribeJob> job = m_store->takeTranscribeJob();
@@ -398,6 +418,7 @@ void Transcriber::transcribe()
     if (m_step != Step::Converting) {
         return;
     }
+
     m_step = Step::Transcribing;
     // `-of` without an extension: whisper-cli appends `.json` to it. Left out,
     // it would write the file beside the input — which is our directory too,

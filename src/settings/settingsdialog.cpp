@@ -34,7 +34,7 @@ constexpr int WindowWidth = 640;
 constexpr int WindowHeight = 480;
 }
 
-void SettingsDialog::showSettings(GlobalShortcuts *shortcuts)
+void SettingsDialog::showSettings(GlobalShortcuts *shortcuts, ModelDownload *download)
 {
     if (KConfigDialog::showDialog(dialogName())) {
         return;
@@ -42,10 +42,10 @@ void SettingsDialog::showSettings(GlobalShortcuts *shortcuts)
     // It deletes itself when it is closed (Qt::WA_DeleteOnClose below), and
     // KConfigDialog takes its name out of the list of open dialogs in its
     // destructor — so the next call builds a fresh one.
-    (new SettingsDialog(shortcuts))->show();
+    (new SettingsDialog(shortcuts, download))->show();
 }
 
-SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts)
+SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download)
     : KConfigDialog(nullptr, dialogName(), Settings::self())
     , m_shortcutsPage(new ShortcutsPage(shortcuts, this))
 {
@@ -58,7 +58,7 @@ SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts)
             QStringLiteral("preferences-system-network-server"));
     addPage(new AnalysisPage(this), i18n("Analysis"), QStringLiteral("preferences-system-time"));
     addPage(new ExportPage(this), i18n("Export"), QStringLiteral("document-export"));
-    addPage(new VoiceNotesPage(this),
+    addPage(new VoiceNotesPage(download, this),
             i18n("Voice notes"),
             QStringLiteral("audio-input-microphone"));
     addPage(m_shortcutsPage, i18n("Shortcuts"), QStringLiteral("preferences-desktop-keyboard-shortcut"));

@@ -903,6 +903,68 @@ msgctxt "@title:group notes older than the previous week"
 msgid "Older"
 msgstr "Älter"
 
+#: src/settings/voicenotespage.cpp:298
+#, kde-format
+msgid ""
+"Download the model %1?\n"
+"\n"
+"The file is %2."
+msgstr ""
+"%1 herunterladen?\n"
+"\n"
+"Die Datei ist %2 groß."
+
+#: src/settings/voicenotespage.cpp:304
+#, kde-format
+msgctxt "@title:window"
+msgid "Download model"
+msgstr "Modell herunterladen"
+
+#: src/settings/voicenotespage.cpp:306
+#, kde-format
+msgid "Download"
+msgstr "Herunterladen"
+
+#: src/settings/voicenotespage.cpp:338
+#, kde-format
+msgid "Downloading %1: %2% of %3"
+msgstr "%1 wird geladen: %2 % von %3"
+
+#: src/settings/voicenotespage.cpp:377
+#, kde-format
+msgid "%1: the download was cancelled; expected at %2"
+msgstr "%1: Download abgebrochen; erwartet unter %2"
+
+#: src/settings/voicenotespage.cpp:378
+#, kde-format
+msgid "%1: the download failed: %2; expected at %3"
+msgstr "%1: Download gescheitert: %2; erwartet unter %3"
+
+#: src/settings/voicenotespage.cpp:423
+#, kde-format
+msgid "Lies at %1"
+msgstr "Liegt unter %1"
+
+#: src/transcribe/modeldownload.cpp:123
+#, kde-format
+msgid "%1 is no model size known here"
+msgstr "%1 ist keine hier bekannte Modellgröße"
+
+#: src/transcribe/modeldownload.cpp:132
+#, kde-format
+msgid "%1 could not be created"
+msgstr "%1 konnte nicht angelegt werden"
+
+#: src/transcribe/modeldownload.cpp:233
+#, kde-format
+msgid "what arrived is not the model %1"
+msgstr "was ankam, ist nicht das Modell %1"
+
+#: src/transcribe/transcriber.cpp:345
+#, kde-format
+msgid "Model %1 is missing. Download it under Settings → Voice notes."
+msgstr "Modell %1 fehlt. Herunterladen unter Einstellungen → Sprachnotizen."
+
 #, kde-format
 #~ msgid ""
 #~ "Meta+N already belongs to: %1. The key press may not reach Denkzettel. To "

@@ -14,6 +14,7 @@
 #include "shell/globalshortcuts.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
+#include "transcribe/modeldownload.h"
 #include "transcribe/transcriber.h"
 #include "ui/librarywindow.h"
 #include "ui/timestampformat.h"
@@ -94,6 +95,12 @@ int main(int argc, char *argv[])
     // start() picks up what an earlier run left in the queue (SPEC 12).
     Transcriber transcriber(&store);
 
+    // The model download of SPEC 12 (issue #23). It belongs to the process and
+    // not to the settings dialog: the dialog is built and destroyed per
+    // opening, and a file of gigabytes must not go with it. The page shows what
+    // it is doing and is the only thing that can stop it.
+    ModelDownload modelDownload;
+
     // What the settings page "Voice notes" writes reaches the running queue at
     // once — model size and program path take hold without a restart (SPEC 13,
     // issue #27). The connection hangs on the skeleton and not on the dialog:
@@ -104,6 +111,17 @@ int main(int argc, char *argv[])
     // and never on its own.
     QObject::connect(Settings::self(), &Settings::configChanged,
                      &transcriber, &Transcriber::reloadSettings);
+    // And the queue is taken up again after both roads that can put the
+    // missing model of SPEC 12 in place: a size that is already on disk chosen
+    // in the settings, and a download that has just finished. Without these
+    // two the job the queue stopped for would lie there until the next start
+    // of the daemon — it is still in the queue with its attempts untouched,
+    // and nothing else ever asks again. start() does nothing when there is no
+    // job and nothing when the model is still missing.
+    QObject::connect(Settings::self(), &Settings::configChanged,
+                     &transcriber, &Transcriber::start);
+    QObject::connect(&modelDownload, &ModelDownload::finished,
+                     &transcriber, &Transcriber::start);
 
     CaptureWindow capture(&store);
 
@@ -119,6 +137,11 @@ int main(int argc, char *argv[])
 
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     TrayIcon tray;
+    // What the queue is waiting for, in the tooltip and without an error state
+    // (SPEC 12, issue #23): a model that has not been fetched yet is a
+    // precondition not yet met, so it stands beside the optional tools of
+    // SPEC 2.5 rather than beside a transcription that failed.
+    QObject::connect(&transcriber, &Transcriber::modelMissing, &tray, &TrayIcon::setMissingModel);
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
     // The error path of the transcription reaches the user here and nowhere
@@ -302,8 +325,8 @@ int main(int argc, char *argv[])
     // through the same two actions that are registered here, and a second pair
     // of its own would take the key press away from these on the way in and
     // switch them off again on the way out (issue #74).
-    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts] {
-        SettingsDialog::showSettings(&shortcuts);
+    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts, &modelDownload] {
+        SettingsDialog::showSettings(&shortcuts, &modelDownload);
     });
 
     const QList<ShortcutOwner> conflicts = shortcuts.registerCaptureShortcut();

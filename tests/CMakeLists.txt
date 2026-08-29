@@ -68,6 +68,10 @@ add_executable(transcribetest transcribetest.cpp)
 target_link_libraries(transcribetest PRIVATE
     denkzettelcapture
     denkzetteltranscribe
+    # A stand-in for the model store of SPEC 12 on the loopback interface
+    # (issue #23) — the download cases talk to a QTcpServer in this process,
+    # and nothing in this run reaches the network.
+    Qt6::Network
     Qt6::Test
 )
 
@@ -166,6 +170,22 @@ target_link_libraries(readmeshots PRIVATE
     denkzettelcapture
     denkzettelui
     Qt6::Test
+)
+
+# The pictures of issue #23: the page "Voice notes" while a model is really
+# being fetched. No add_test(), and for a harder reason than readmeshots has —
+# it talks to the internet and fetches the smallest of the five models (74 MB)
+# into a throwaway data directory. Built by an ordinary build all the same, so
+# that it cannot write plausible pictures of an old state (CLAUDE.md, rule 4).
+add_executable(modelshots modelshots.cpp)
+
+target_link_libraries(modelshots PRIVATE
+    denkzettelsettings
+    denkzetteltranscribe
+    KF6::ColorScheme
+    KF6::I18n
+    Qt6::Test
+    Qt6::Widgets
 )
 
 add_executable(shelltest shelltest.cpp)

@@ -200,6 +200,17 @@ Q_SIGNALS:
     void failed(qint64 noteId, const QString &reason);
 
     /**
+     * What the queue cannot start without, and where to get it — empty as
+     * soon as it is there (SPEC 12, issue #23).
+     *
+     * A statement, not an error: it goes into the tray tooltip beside the
+     * optional tools of SPEC 2.5 and raises no error state, because nothing
+     * has failed. The job it stopped for is still in the queue with its
+     * attempts untouched.
+     */
+    void modelMissing(const QString &report);
+
+    /**
      * The job is given up on: the attempts of SPEC 12 are used up, and this
      * note will not be handed out again.
      *
@@ -244,6 +255,9 @@ private:
     std::unique_ptr<QTemporaryDir> m_work;
     QString m_ffmpegProgram;
     QString m_whisperProgram;
+    /** Which of `whisper::Sizes` m_modelPath is, for the sentence a job that
+     * finds no model fails with (issue #23). */
+    QString m_modelSize;
     QString m_modelPath;
     qint64 m_noteId = -1;
     /** How often the running job has been handed out, its own run counted. */

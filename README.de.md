@@ -114,6 +114,20 @@ Spezifikation ist [`SPEC.md`](SPEC.md).
   „Sprachnotizen"; was dort gesetzt wird, wirkt sofort, ohne den Dienst neu zu
   starten.
 
+  **Geholt wird das Modell ebenfalls dort.** Eine Größe, die nicht auf der
+  Platte liegt, steht als „medium — nicht heruntergeladen" in der Liste; sie zu
+  wählen fragt einmal nach und nennt dabei die Dateigröße, die Zeile unter der
+  Liste trägt dann den Fortschritt, und der Knopf daneben bricht ab. Geladen
+  wird von der Adresse, aus der auch das Skript `models/download-ggml-model.sh`
+  des Projekts whisper.cpp holt, und geschrieben erst, wenn die SHA-1 stimmt,
+  die dessen `models/README.md` nennt — ein Abbruch, ein Verbindungsfehler und
+  ein abgestürzter Dienst hinterlassen denselben Zustand, nämlich gar keine
+  Datei. Die Warteschlange lädt nie selbst, und ein fehlendes Modell kostet
+  eine Notiz nichts: Der Auftrag bleibt mit unveränderten Versuchen in der
+  Schlange, die Kurzinfo am Symbol sagt, welches Modell fehlt und wo es zu
+  holen ist, und sobald die Datei da ist, nimmt die Schlange den Auftrag von
+  selbst wieder auf.
+
   Bis v0.7.0 hieß der Schlüssel `ModelPath` und trug einen ganzen Dateinamen.
   Der erste Start übernimmt ihn: Ein Pfad, der auf `ggml-<größe>.bin` endet,
   wird zu dieser Größe, der alte Schlüssel verschwindet. Ein Pfad, der auf
