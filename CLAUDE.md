@@ -572,6 +572,23 @@ find.
     compares pictures: what the change was not meant to touch has to come out
     **bit for bit** as it was.
 
+40. **A unit test written from the documentation asserts the case the code
+    never reaches.** Measured 2026-08-29 on #13: `QNetworkRequest::
+    setTransferTimeout()` is documented to abort the reply with
+    `OperationCanceledError`, the error mapping was written for that value, and
+    the test case handing that value in was green. Against a real Ollama with
+    the limit at 5 ms the reply came back as **`TimeoutError`** — so the
+    timeout branch had never once fired, and a bitten limit reached the user as
+    "Ollama could not be reached: Zeitüberschreitung", the transport sentence
+    over a limit of our own. The check was green because it and the code read
+    the same documentation; nothing in the pair could contradict it. This is
+    finding 17's family — the lever the source says is connected — one storey
+    up: there it was a variable that did not switch anything off, here it is a
+    return value the library does not produce. **A mapping of foreign error
+    values gets one live run per value that a real service can actually
+    deliver**, and the value goes into the test from that run, not from the
+    documentation.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
