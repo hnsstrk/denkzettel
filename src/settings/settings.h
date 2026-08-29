@@ -94,4 +94,9 @@ private:
     qint32 m_overflowNotes = 200;
     qint32 m_overflowDays = 30;
     qint32 m_bundleNotes = 3;
+    // Page "Voice notes" (SPEC 12 and 13). Neither default is written down
+    // here: both stand in `whisper::` in transcribe/transcriber.h, where the
+    // transcription reads them from as well.
+    qint32 m_modelSize = 0;
+    QString m_whisperProgram;
 };

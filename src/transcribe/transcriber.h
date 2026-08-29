@@ -1,16 +1,59 @@
 #pragma once
 
+#include <QLatin1StringView>
 #include <QObject>
 #include <QProcess>
 #include <QString>
 #include <QTimer>
 
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 class QTemporaryDir;
 class Store;
+
+/**
+ * What SPEC 12 lets the user choose, and the defaults it names.
+ *
+ * Here and not in the settings, because the dependency only runs one way:
+ * `denkzettelsettings` links `denkzetteltranscribe`, not the other way round —
+ * the same reason `ollama::` lives in analysis/ollamaprovider.h. And because
+ * what a size *means* is the file name Transcriber::modelPath() builds from
+ * it: whoever adds a size adds it in one place and the naming follows.
+ */
+namespace whisper
+{
+/** Where the package `whisper-cpp` puts the program (SPEC 12). */
+inline constexpr QLatin1StringView DefaultProgram("/usr/bin/whisper-cli");
+
+/**
+ * The five model sizes of SPEC 12, smallest first.
+ *
+ * The order is stored: the settings page offers them as a combo box, and
+ * KConfigDialogManager keeps such a box by its **index**. An entry put in
+ * between moves every value after it and changes what a written
+ * `denkzettelrc` means, without a sound.
+ */
+inline constexpr std::array<QLatin1StringView, 5> Sizes{
+    QLatin1StringView("tiny"),
+    QLatin1StringView("base"),
+    QLatin1StringView("small"),
+    QLatin1StringView("medium"),
+    QLatin1StringView("large-v3"),
+};
+
+/** The default of SPEC 12, as an index into Sizes. */
+inline constexpr int DefaultSize = 2;
+// Through std::string_view because QLatin1StringView::operator==() is not
+// constexpr — the point is only that the index and the list cannot drift
+// apart when somebody puts a sixth size in.
+static_assert(std::string_view(Sizes.at(DefaultSize).data(), Sizes.at(DefaultSize).size())
+                  == "small",
+              "SPEC 12 names `small` as the default model size");
+}
 
 /**
  * The transcription queue and the two programs it runs (SPEC 12).
@@ -45,8 +88,15 @@ public:
     Transcriber(const Transcriber &) = delete;
     Transcriber &operator=(const Transcriber &) = delete;
 
-    /** `~/.local/share/denkzettel/models/ggml-small.bin` (SPEC 12). */
-    static QString defaultModelPath();
+    /**
+     * `~/.local/share/denkzettel/models/ggml-<size>.bin` (SPEC 12), after the
+     * naming scheme of the upstream GGML models.
+     *
+     * The setting is the **size** and the path follows from it; the settings
+     * page asks this for the one question it has per size — is the file there
+     * — and the download of issue #23 will write to the same answer.
+     */
+    static QString modelPath(const QString &size);
 
     /**
      * Where the temporary WAV of a job lies, and where start() sweeps up what
@@ -64,16 +114,20 @@ public:
     static QString workingRoot();
 
     /**
-     * The three settings of SPEC 12, read from `denkzettelrc` at construction
-     * and settable afterwards.
+     * The two program paths of SPEC 12, read from `denkzettelrc` at
+     * construction and settable afterwards, for the reason SPEC 12 gives them:
+     * the automated run has no graphics card and puts a program of its own in
+     * whisper-cli's place.
      *
-     * The program paths are settable for the reason SPEC 12 gives them: the
-     * automated run has no graphics card and no model, and puts a program of
-     * its own in that place.
+     * **The model has no setter of its own.** It had one until issue #27 and
+     * nobody ever called it; since the size is what is stored and the path
+     * follows from it, reloadSettings() is the one road from the configuration
+     * into the model, and a second one would only drift from it. The automated
+     * run needs none — its stand-in ignores `-m`, and what the model is
+     * called is asserted through modelPath().
      */
     void setFfmpegProgram(const QString &program);
     void setWhisperProgram(const QString &program);
-    void setModelPath(const QString &path);
 
     /**
      * How long a whole job may take before it is given up on (SPEC 12).
@@ -98,6 +152,18 @@ public:
 
     /** Whether a job is being worked on right now. */
     bool isBusy() const;
+
+public Q_SLOTS:
+    /**
+     * Re-reads the settings of SPEC 12 out of `denkzettelrc`.
+     *
+     * The daemon holds one transcriber for the whole session, and the settings
+     * dialog writes underneath it — without this the program and the model
+     * chosen there would only take hold at the next start (SPEC 13, issue
+     * #27). A job that is already running keeps what it was started with; what
+     * is read here reaches the next one.
+     */
+    void reloadSettings();
 
 Q_SIGNALS:
     /** The transcript is written and the job is out of the queue. */
@@ -187,3 +253,26 @@ private:
  * apart again.
  */
 QString reasonWithoutDirectories(QString reason);
+
+/**
+ * Turns the `ModelPath` of a version before issue #27 into the `ModelSize`
+ * this one reads, once at the start of the daemon.
+ *
+ * **Before the first read of the group**, and that is not a matter of taste:
+ * the Transcriber takes its model in the constructor, and the settings
+ * dialog's first Apply writes every item of the skeleton at once — so a
+ * fallback further in would be overwritten by the default `small` at the first
+ * click, and until then the queue would run against a model the user never
+ * chose. Measured 29.08.2026 on the built daemon: with `ModelPath` naming
+ * `ggml-medium.bin` it started `whisper-cli -m …/ggml-small.bin`, and nothing
+ * said so.
+ *
+ * A path whose file name is `ggml-<size>.bin` for one of `whisper::Sizes` is
+ * that size, and the old key goes. A path that is anything else names a model
+ * this program cannot express: the size falls back to the default and
+ * **`ModelPath` stays where it is** — a path set by hand is a deliberate act
+ * and is not taken away silently. The key is then the whole of the state, and
+ * the page "Voice notes" reports it for as long as it stands (customer
+ * decision, 29.08.2026).
+ */
+void migrateModelPath();

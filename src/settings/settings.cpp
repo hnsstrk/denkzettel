@@ -1,6 +1,7 @@
 #include "settings/settings.h"
 
 #include "analysis/ollamaprovider.h"
+#include "transcribe/transcriber.h"
 
 namespace
 {
@@ -86,6 +87,31 @@ Settings::Settings()
     ItemInt *bundle = addItemInt(QStringLiteral("BundleNotes"), m_bundleNotes, 3);
     bundle->setMinValue(MinimumThreshold);
     bundle->setMaxValue(MaximumBundleNotes);
+
+    // The group and both key names are Transcriber's, which reads them at
+    // every reloadSettings() — a key written under another name would never
+    // reach the queue.
+    setCurrentGroup(QStringLiteral("Transcription"));
+    // The choices are `whisper::Sizes` and not a list of our own: what a size
+    // means is the file name Transcriber::modelPath() builds from it, so the
+    // spelling and the order have exactly one place. The order is what a
+    // written denkzettelrc depends on — see the comment at that array.
+    QList<ItemEnum::Choice> sizes;
+    sizes.reserve(whisper::Sizes.size());
+    for (const QLatin1StringView size : whisper::Sizes) {
+        ItemEnum::Choice entry;
+        entry.name = QString(size);
+        sizes.append(entry);
+    }
+    addItem(new ItemEnum(currentGroup(),
+                         QStringLiteral("ModelSize"),
+                         m_modelSize,
+                         sizes,
+                         whisper::DefaultSize),
+            QStringLiteral("ModelSize"));
+    addItemString(QStringLiteral("WhisperProgram"),
+                  m_whisperProgram,
+                  QString(whisper::DefaultProgram));
 }
 
 QString Settings::vaultPath() const

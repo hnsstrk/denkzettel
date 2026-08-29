@@ -4,6 +4,7 @@
 #include "settings/analysispage.h"
 #include "settings/exportpage.h"
 #include "settings/settings.h"
+#include "settings/voicenotespage.h"
 
 #include <KConfigGroup>
 #include <KLocalizedString>
@@ -55,6 +56,9 @@ SettingsDialog::SettingsDialog()
             QStringLiteral("preferences-system-network-server"));
     addPage(new AnalysisPage(this), i18n("Analysis"), QStringLiteral("preferences-system-time"));
     addPage(new ExportPage(this), i18n("Export"), QStringLiteral("document-export"));
+    addPage(new VoiceNotesPage(this),
+            i18n("Voice notes"),
+            QStringLiteral("audio-input-microphone"));
 
     // Hidden, not removed: the button leads to KHelpCenter on help:/denkzettel,
     // and there is no handbook — the user would read "The requested help file

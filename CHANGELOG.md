@@ -39,6 +39,26 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   moment it is set — and again whenever the page is opened, so a vault that has
   been moved in the meantime does not sit there unremarked. The field keeps the
   folder that was accepted last (#75).
+- **A third settings page: "Voice notes."** It holds the two values the
+  transcription has so far only read out of the configuration file — the model
+  size and the path to `whisper-cli`. All five sizes stand in the list, and one
+  whose model is not on disk is shown greyed with the note that it is not
+  downloaded, so nothing can be chosen that would only fail at the next
+  recording. A path that names no executable program is reported on the page
+  itself and is not written; the stored one stays. Both take hold while the
+  daemon runs — no restart (#27).
+
+### Changed
+
+- **The model is set by its size, not by a file name.** The key `ModelPath` in
+  the `[Transcription]` group of `~/.config/denkzettelrc` is replaced by
+  `ModelSize` (`tiny`, `base`, `small`, `medium`, `large-v3`, default `small`);
+  the file below `~/.local/share/denkzettel/models/` follows from it. **The
+  first start takes the old key over**: a path ending in `ggml-<size>.bin`
+  becomes that size and `ModelPath` goes. A path that names anything else stays
+  in the file untouched — the size falls back to `small`, and the page "Voice
+  notes" reports it with the old path in the sentence until the settings are
+  applied once. Nobody's hand-set path disappears without being shown (#27).
 
 ## [0.7.0] — 2026-08-28
 

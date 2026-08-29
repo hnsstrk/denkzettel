@@ -105,8 +105,21 @@ Spezifikation ist [`SPEC.md`](SPEC.md).
   [Transcription]
   FfmpegProgram=/usr/bin/ffmpeg
   WhisperProgram=/usr/bin/whisper-cli
-  ModelPath=/home/du/.local/share/denkzettel/models/ggml-small.bin
+  ModelSize=small
   ```
+
+  Die Größe ist eine von `tiny`, `base`, `small`, `medium` und `large-v3`, die
+  Datei folgt daraus: `~/.local/share/denkzettel/models/ggml-<größe>.bin`.
+  Modellgröße und Programmpfad sind zugleich die Einstellungsseite
+  „Sprachnotizen"; was dort gesetzt wird, wirkt sofort, ohne den Dienst neu zu
+  starten.
+
+  Bis v0.7.0 hieß der Schlüssel `ModelPath` und trug einen ganzen Dateinamen.
+  Der erste Start übernimmt ihn: Ein Pfad, der auf `ggml-<größe>.bin` endet,
+  wird zu dieser Größe, der alte Schlüssel verschwindet. Ein Pfad, der auf
+  nichts davon abbildet, bleibt stehen — die Größe fällt auf `small` zurück,
+  und die Einstellungsseite sagt das mit dem alten Pfad im Text, bis die
+  Einstellungen einmal angewendet werden.
 
 Auf Arch und Ablegern:
 
