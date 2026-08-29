@@ -462,10 +462,18 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     create();
     KWindowConfig::restoreWindowSize(windowHandle(), windowGroup());
     resize(windowHandle()->size());
-    // A key of its own since the category column came (issue #18): QSplitter
-    // hands a state of two panes to the first two of three, which would put the
-    // column where the note list belongs. What stood under the old key stays
-    // unread and the sizes above hold instead.
+    // A key of its own since the category column came (issue #18), and the
+    // reason is measured, not cosmetic: `restoreState()` fed the stored state
+    // of **two** panes into these three returns **true** and leaves them at
+    // (297, 595, 0) — the reading pane collapsed to nothing, reported as a
+    // success. With an empty QByteArray it returns false and the sizes set
+    // above stand. So the old key stays unread on purpose; whoever renames it
+    // back hands every user who has opened the library once a window with no
+    // reading pane. (That is finding 15's family: a return value that says
+    // "done" over an unusable result.)
+    //
+    // The price is named: the old entry stays behind as a dead line in
+    // `denkzettelrc`, and the division falls back to the default once.
     m_splitter->restoreState(windowGroup().readEntry("ColumnSizes", QByteArray()));
 
     updatePages();
@@ -587,11 +595,9 @@ QWidget *LibraryWindow::buildSidebar()
 
     m_categories->setCurrentItem(all);
     // Connected after the entries are in: building them moves the current item,
-    // and a reload before the window is finished would read a list nobody has
-    // asked for yet.
-    connect(m_categories, &QTreeWidget::currentItemChanged, this, [this] {
-        reload(Selection::Keep);
-    });
+    // and a click written into the search field before the window is finished
+    // would search for something nobody asked for.
+    connect(m_categories, &QTreeWidget::currentItemChanged, this, &LibraryWindow::categoryChosen);
 
     auto *layout = new QVBoxLayout(sidebar);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -643,44 +649,118 @@ void LibraryWindow::updateCategoryCounts()
     }
 }
 
-bool LibraryWindow::isCategoryFiltered() const
+void LibraryWindow::categoryChosen()
 {
-    const QTreeWidgetItem *current = m_categories->currentItem();
-    return current
-        && static_cast<CategoryFilter>(current->data(0, FilterRole).toInt()) != CategoryFilter::All;
-}
+    // The mark is being moved onto what the field already says; writing the
+    // field again here would be the same text and an endless pair.
+    if (m_followingTheSearchField) {
+        return;
+    }
 
-void LibraryWindow::applyCategoryFilter(QList<Note> &notes) const
-{
     const QTreeWidgetItem *current = m_categories->currentItem();
     if (!current) {
         return;
     }
 
+    // "All" and "Unclassified" are no categories: the first is the **absence**
+    // of a `kat:`, and the second is a condition the search language has no
+    // word for (see applyCategoryFilter). Both therefore take the `kat:` out
+    // and leave everything else in the field standing.
     const auto kind = static_cast<CategoryFilter>(current->data(0, FilterRole).toInt());
-    switch (kind) {
-    case CategoryFilter::All:
-        return;
-    case CategoryFilter::Category: {
-        const QString value = current->data(0, ValueRole).toString();
-        // Compared case-insensitively for ASCII, as `kat:` does in the store
-        // (SPEC 6): the same note has to stand under the entry the search finds
-        // it under.
-        notes.removeIf([&value](const Note &note) {
-            return note.category.compare(value, Qt::CaseInsensitive) != 0;
-        });
-        return;
-    }
-    case CategoryFilter::Unclassified:
-        // The condition Classifier::start() skips by, and the one
-        // Store::categoryCounts() counts — written here over notes already
-        // read rather than as a query of its own.
-        notes.removeIf([](const Note &note) {
-            return note.state == Note::State::Analysed
-                || note.analysisAttempts < Store::analysisAttemptLimit;
-        });
+    const QString category =
+        kind == CategoryFilter::Category ? current->data(0, ValueRole).toString() : QString();
+
+    const QString typed = m_search->text();
+    const QString written = withSearchCategory(typed, category);
+    if (written != typed) {
+        // Setting the text is the whole act: textChanged reaches searchChanged()
+        // and that reads the store. A click that only wrote a word into the
+        // field and left the list standing would look like a fault.
+        m_search->setText(written);
         return;
     }
+
+    // The text says the same as before and the entry still changed — "All" over
+    // a field that carried no `kat:`, or the entry for the given-up notes.
+    reload(Selection::Keep);
+}
+
+void LibraryWindow::followTheSearchField()
+{
+    const QStringList categories = parseSearchQuery(m_search->text()).categories;
+    // One `kat:` marks its entry. Several of them ask for a note with two
+    // categories and no note has one, and a value the fixed list does not know
+    // belongs to no entry either — in both cases the column marks **nothing**,
+    // which is the honest answer to "none of these".
+    const QString category = categories.size() == 1 ? categories.constFirst() : QString();
+
+    // The one entry the field cannot contradict, because it cannot express it:
+    // a word typed while "Unclassified" is chosen narrows **within** the
+    // given-up notes and does not leave them. Only a `kat:` moves the mark
+    // away, and the loop below is what does that.
+    //
+    // Measured 2026-08-29: without this the mark fell back to "All" at the
+    // first keystroke and the bucket was gone without a word — the list then
+    // answered out of the whole library.
+    if (categories.isEmpty() && isUnclassifiedChosen()) {
+        return;
+    }
+
+    QTreeWidgetItem *mark = nullptr;
+    for (int row = 0; row < m_categories->topLevelItemCount(); ++row) {
+        QTreeWidgetItem *item = m_categories->topLevelItem(row);
+        const auto kind = static_cast<CategoryFilter>(item->data(0, FilterRole).toInt());
+
+        if (kind == CategoryFilter::All && categories.isEmpty()) {
+            mark = item;
+        }
+        // ASCII case folded, the way `kat:` compares in the store (SPEC 6):
+        // whoever types `kat:TODOs` gets the entry the search finds under.
+        if (kind == CategoryFilter::Category && !category.isEmpty()
+            && item->data(0, ValueRole).toString().compare(category, Qt::CaseInsensitive) == 0) {
+            mark = item;
+        }
+    }
+
+    const QScopeGuard following = qScopeGuard([this] {
+        m_followingTheSearchField = false;
+    });
+    m_followingTheSearchField = true;
+    m_categories->setCurrentItem(mark);
+}
+
+bool LibraryWindow::isUnclassifiedChosen() const
+{
+    const QTreeWidgetItem *current = m_categories->currentItem();
+    return current
+        && static_cast<CategoryFilter>(current->data(0, FilterRole).toInt())
+        == CategoryFilter::Unclassified;
+}
+
+void LibraryWindow::applyCategoryFilter(QList<Note> &notes) const
+{
+    // The five categories are gone from here: a click writes `kat:` into the
+    // search field, so the store answers them and there is exactly one
+    // comparison in the program (SPEC 6, UX decision 2026-08-29).
+    //
+    // "Unclassified" is the entry that stays behind, because the search
+    // language of SPEC 6 has no operator for "the classification was given up
+    // on". Inventing one is a change to that language and belongs to the
+    // customer, not here.
+    if (!isUnclassifiedChosen()) {
+        return;
+    }
+
+    // The condition Classifier::start() skips by, and the one
+    // Store::categoryCounts() counts — written here over notes already read
+    // rather than as a query of its own. All three parts of it, the empty text
+    // included: a note without text never reaches the queue
+    // (Store::unanalysedNotes()), so it is not one the run gave up on, and the
+    // entry has to show what its counter counted.
+    notes.removeIf([](const Note &note) {
+        return note.state == Note::State::Analysed || note.content.trimmed().isEmpty()
+            || note.analysisAttempts < Store::analysisAttemptLimit;
+    });
 }
 
 QWidget *LibraryWindow::buildDetail()
@@ -1119,6 +1199,10 @@ void LibraryWindow::searchChanged()
     // (26 ms instead of 120) and the customer turned it down on 2026-08-28 — it
     // costs a number, a hint line and a rule the user has to learn (SPEC 6).
 
+    // Before the list, because the mark of the column decides what
+    // applyCategoryFilter() takes out (issue #18).
+    followTheSearchField();
+
     // The note the user was reading stays selected if it is among the hits.
     reload(Selection::Keep);
 }
@@ -1126,10 +1210,18 @@ void LibraryWindow::searchChanged()
 void LibraryWindow::updatePages()
 {
     const bool hasNotes = m_model->noteCount() > 0;
-    const bool searching = !m_search->text().isEmpty();
+
+    // Asked of the parsed query and no longer of the field being empty: a field
+    // holding nothing but `kat:cli` is the category column speaking, and it has
+    // its own sentence below (issue #18).
+    const SearchQuery query = parseSearchQuery(m_search->text());
+    const bool searching = !query.tags.isEmpty() || !query.types.isEmpty() || query.before.isValid()
+        || query.after.isValid() || !query.terms.isEmpty();
+    const bool byCategory = !query.categories.isEmpty() || isUnclassifiedChosen();
+
     if (hasNotes) {
         m_listPages->setCurrentWidget(m_list);
-    } else if (!searching && !isCategoryFiltered()) {
+    } else if (!searching && !byCategory) {
         m_listPages->setCurrentWidget(m_emptyLibraryPage);
     } else {
         // A search over an empty library lands here too and offers to change
@@ -1140,9 +1232,16 @@ void LibraryWindow::updatePages()
         // often: until the analysis run of M3 has been through the library
         // every category is empty, and "change the search term" would point at
         // a field the user never touched (issue #18).
-        m_noResultsHint->setText(searching
-                                     ? i18n("Change the search term or clear the field.")
-                                     : i18n("No note carries this category yet."));
+        // And the entry for the given-up notes says a third thing: it stays
+        // standing while it is chosen even after its last note has been
+        // classified, and that is the moment this sentence is for.
+        if (searching) {
+            m_noResultsHint->setText(i18n("Change the search term or clear the field."));
+        } else if (isUnclassifiedChosen()) {
+            m_noResultsHint->setText(i18n("Every note has been classified."));
+        } else {
+            m_noResultsHint->setText(i18n("No note carries this category yet."));
+        }
         m_listPages->setCurrentWidget(m_noResultsPage);
     }
 

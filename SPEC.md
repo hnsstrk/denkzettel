@@ -954,11 +954,29 @@ conceivable as an optional later additional path, but is not built for v1.
   badge.
 - **The category column** (wireframe 1b, issue #18): "All" with the number of
   all notes, then the five categories of section 6 in the order they stand
-  there, each with the number of notes carrying it. A click narrows the list,
-  and it narrows what the search field left over — the two are ANDed like every
-  other pair of conditions in section 6. The counters count the **whole**
-  library and not the list beside them, so they say what a click would find and
-  not what is already found.
+  there, each with the number of notes carrying it.
+
+  **A click writes `kat:<short form>` into the search field** (UX decision
+  2026-08-29): the column is not a second way of filtering beside the search,
+  it **is** the search, written out — so it is the place where the language of
+  section 6 is learnt, by whoever never went looking for a help text. From that
+  follow four things, and they are the whole behaviour:
+  - **The click sets the text *and* searches.** A word standing in the field
+    over a list that still shows the old result reads as a fault.
+  - **A search already standing is added to, not replaced.** An existing `kat:`
+    is overwritten — two would ask for a note with two categories — and
+    everything else stays: whoever typed `nach:2026-06` and then clicks a
+    category wants both.
+  - **"All" is the absence of a `kat:`**, not a value of its own: a click on it
+    takes the operator out of the field and leaves the rest standing.
+  - **The mark of the column follows the field, never the other way round.**
+    Deleting `kat:software` by hand takes the mark off that entry, typing it
+    puts it there; a `kat:` no entry carries, or two of them, leave the column
+    marking nothing. Otherwise two truths would stand beside each other.
+
+  The counters count the **whole** library and not the list beside them, so
+  they say what a click would find and not what is already found — they do not
+  move while the list narrows.
   - **The readable label is made in the window** (7.2): the database keeps the
     short form, the column writes „TODOs · Ideen · CLI-Befehle · Persönlich ·
     Software-Ideen". The list is fixed. A category value the list does not know
@@ -972,6 +990,12 @@ conceivable as an optional later additional path, but is not built for v1.
     without it the tray message of 10 would report a state the window offers no
     way into. It is **not shown while it counts nothing**, unless it is the
     selected entry — a fault that is not there gets no permanent line.
+    **It is the one entry that writes nothing into the field**, because the
+    search language of section 6 has no operator for "the classification was
+    given up on"; a word of its own is a change to that language and is the
+    customer's to make. So it carries a condition of its own, and the field
+    cannot contradict it: a word typed while it is chosen narrows **within**
+    the given-up notes, and only a `kat:` moves the mark away from it.
   - The column is **switched off while a note is being edited**, for the reason
     the search field is: it rebuilds the list under the editor.
 - Detail view: **read and edit view** (decision of the third interview — above

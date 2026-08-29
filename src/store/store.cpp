@@ -1061,9 +1061,18 @@ CategoryCounts Store::categoryCounts() const
     // Notes with no category yet are left out here rather than counted under an
     // empty key: they belong to no entry of the column, and until an analysis
     // run has been through them that is every note there is (SPEC 7.2).
-    if (!byCategory.exec(QStringLiteral("SELECT category, COUNT(*) FROM notes"
+    //
+    // **Grouped over `LOWER(category)`, and that is the same reading `kat:`
+    // uses** — SQLite folds ASCII case and nothing else, in `LOWER()` as in the
+    // `COLLATE NOCASE` of search(), which is exactly what SPEC 6 promises. Case
+    // exactly as stored, a `TODOs` out of a foreign or older database would
+    // stand in the list under „TODOs" and be counted **0** beside it: the
+    // filter of the library compares case-insensitively, the search finds it,
+    // and only the counter would have disagreed. The key comes back folded, so
+    // it meets the lower-case short forms the column asks with.
+    if (!byCategory.exec(QStringLiteral("SELECT LOWER(category), COUNT(*) FROM notes"
                                         " WHERE category IS NOT NULL AND category != ''"
-                                        " GROUP BY category"))) {
+                                        " GROUP BY LOWER(category)"))) {
         m_lastError = byCategory.lastError().text();
         return {};
     }
@@ -1082,9 +1091,17 @@ CategoryCounts Store::categoryCounts() const
 
     // The condition Classifier::start() skips by, written once more in SQL —
     // counting the notes it hands out would mean reading every one of them.
+    //
+    // All three parts of it, `TRIM(content) != ''` included: that one belongs to
+    // unanalysedNotes(), which is where the run takes its queue from, so a note
+    // without text is never handed out and never given up on either. It is
+    // hard to reach — the editor refuses to save an empty note — and it is
+    // written down all the same, because the value of this count is that it
+    // covers the classifier exactly, in both directions.
     QSqlQuery unclassified(m_db);
     unclassified.prepare(QStringLiteral("SELECT COUNT(*) FROM notes"
-                                        " WHERE state != :state AND analysis_attempts >= :limit"));
+                                        " WHERE state != :state AND TRIM(content) != ''"
+                                        " AND analysis_attempts >= :limit"));
     unclassified.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
     unclassified.bindValue(QStringLiteral(":limit"), analysisAttemptLimit);
     if (!unclassified.exec() || !unclassified.next()) {

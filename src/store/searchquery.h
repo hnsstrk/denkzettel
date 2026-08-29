@@ -70,3 +70,21 @@ struct SearchQuery {
  * quotation mark nobody closed reaches to the end of the input.
  */
 SearchQuery parseSearchQuery(const QString &text);
+
+/**
+ * The same search text with its `kat:` operator set to `category` — or taken
+ * out, when `category` is empty. A pure function of its arguments.
+ *
+ * What the category column of the library writes when an entry is clicked
+ * (SPEC 9, issue #18): the column is not a second way of filtering beside the
+ * search, it **is** the search, written out. So everything else the field
+ * carries stays — `nach:2026-06` and a word and a phrase survive a click —
+ * and only the `kat:` is replaced, because two of them would ask for a note
+ * with two categories and no note has one.
+ *
+ * It lives beside the parser because it has to agree with it: what
+ * parseSearchQuery() reads as a `kat:` is what this takes out, quoted tokens
+ * (`"kat:x"` is text) and a prefix without a value (`kat:` is text) included.
+ * Whitespace between the tokens is normalised to one space in the process.
+ */
+QString withSearchCategory(const QString &text, const QString &category);

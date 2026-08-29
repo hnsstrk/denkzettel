@@ -15,8 +15,13 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 - **The library gets a category column, and the reading pane shows what the
   analysis found.** Left of the note list stand "Alle" and the five categories
   of the search, each with the number of notes behind it, counted in the
-  database rather than off the list beside it; a click narrows the list, and it
-  narrows what the search field left over. Under the note text the category
+  database rather than off the list beside it. **A click writes `kat:ideen`
+  into the search field** instead of filtering quietly beside it — so the
+  column is the place where the search language is picked up, and a search
+  already standing is added to rather than thrown away. The mark in the column
+  follows the field: delete the word and the mark goes with it. The counters
+  stay where they are while the list narrows — the column says what is there,
+  not what is showing. Under the note text the category
   stands as a filled pill and the tags as outlined ones — a value out of a fixed
   list looks different from several free ones, and with neither of them there
   the row is not there either, with no empty strip left behind. The list rows

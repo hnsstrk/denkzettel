@@ -115,11 +115,34 @@ private:
      */
     void updateCategoryCounts();
 
-    /** Takes the notes the selected entry of the category column excludes out. */
+    /**
+     * Writes the chosen entry into the search field (SPEC 9, issue #18).
+     *
+     * The column is not a second way of filtering beside the search — it is
+     * the search, written out, so that whoever uses it reads the language the
+     * field speaks. Everything else in the field stays; only the `kat:` is
+     * replaced.
+     */
+    void categoryChosen();
+
+    /**
+     * Moves the mark of the column onto what the search field says.
+     *
+     * The field is the one truth about the category, in both directions:
+     * deleting `kat:software` by hand takes the mark off "Software ideas",
+     * typing it puts it there. Without that the two would stand beside each
+     * other and disagree.
+     */
+    void followTheSearchField();
+
+    /**
+     * Takes out what the entry "Unclassified" excludes — the one entry that no
+     * `kat:` can express.
+     */
     void applyCategoryFilter(QList<Note> &notes) const;
 
-    /** True while the column stands on something narrower than "All". */
-    bool isCategoryFiltered() const;
+    /** True while the column stands on the entry for the given-up notes. */
+    bool isUnclassifiedChosen() const;
 
     /**
      * Takes a note that has just been written into the open list (issue #105).
@@ -347,6 +370,13 @@ private:
 
     /** True while a cancelled switch puts the selection back; stops the loop. */
     bool m_restoringSelection = false;
+
+    /**
+     * True while the mark of the category column is being moved onto what the
+     * search field says — the field writes the column here, so the column must
+     * not write the field back.
+     */
+    bool m_followingTheSearchField = false;
 
     /**
      * True while the selection change being handled goes back to a mouse press
