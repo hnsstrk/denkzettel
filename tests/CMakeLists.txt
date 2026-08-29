@@ -207,6 +207,20 @@ target_link_libraries(originshots PRIVATE
     Qt6::Widgets
 )
 
+# The pictures and the numbers of the level meter's scale (issue #21, the
+# customer's instruction of 29.08.2026). No add_test() for the reason
+# readmeshots has none — it produces pictures for a human to look at. Built by
+# an ordinary build all the same (CLAUDE.md, rule 4), and committed rather than
+# improvised: the floor of the decibel scale was decided on the numbers it
+# prints, and a runner nobody can build again leaves them unrepeatable.
+add_executable(levelshots levelshots.cpp)
+
+target_link_libraries(levelshots PRIVATE
+    denkzettelcapture
+    Qt6::Test
+    Qt6::Widgets
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE

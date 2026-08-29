@@ -304,11 +304,16 @@ void reportWhatItDrewWith()
  * been made cannot be unmade. The picture brings its own signal, exactly as the
  * checks do.
  *
- * The amplitude is fixed at 22000 of a full scale of 32768, so the meter in the
- * picture stands at five of its seven bars — loud enough to look like somebody
- * speaking, and the same five in every run: the pictures in this repository are
- * byte-identical from one run to the next, and a level drawn from anything that
- * varies would end that.
+ * The amplitude is fixed, so that the meter stands at the same place in every
+ * run: the pictures in this repository are byte-identical from one run to the
+ * next, and a level drawn from anything that varies would end that.
+ *
+ * **3277 of a full scale of 32768** is -20 dBFS, which is where a voice at a
+ * comfortable distance from the microphone peaks, and on the decibel scale of
+ * `capture::LevelMeter` it lights 25 of the 41 bars — somebody speaking, with
+ * the top of the row still free. It was 22000 while that scale was linear, and
+ * 22000 is -3.5 dBFS: on the scale the meter has now the same tone lights 38 of
+ * 41 and the picture reads as a recording about to clip.
  */
 void feedTone(AudioRecorder &recorder, int milliseconds)
 {
@@ -323,7 +328,7 @@ void feedTone(AudioRecorder &recorder, int milliseconds)
         auto *value = reinterpret_cast<qint16 *>(samples.data());
         for (int i = 0; i < 4800; ++i, ++phase) {
             const double t = static_cast<double>(phase) / 48000.0;
-            value[i] = static_cast<qint16>(22000.0 * std::sin(2.0 * std::numbers::pi * 440.0 * t));
+            value[i] = static_cast<qint16>(3277.0 * std::sin(2.0 * std::numbers::pi * 440.0 * t));
         }
         recorder.encode(QAudioBuffer(samples, format));
         // The encoder takes one buffer at a time and refuses the next until it

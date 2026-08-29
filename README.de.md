@@ -348,7 +348,11 @@ eines **alten** Standes mit frischem Zeitstempel schreibt.
 
 Das Aufnahmefenster bringt sein eigenes Signal mit: Der Läufer füttert den
 Encoder mit einem Ton fester Amplitude, statt das Mikrofon der Maschine zu
-öffnen — deshalb stehen in jedem Lauf dieselben 28 der 41 Balken.
+öffnen — deshalb stehen in jedem Lauf dieselben 25 der 41 Balken. Die Amplitude
+ist 3277 von 32768 Vollausschlag, also −20 dBFS und der Spitzenwert, den eine
+Stimme in bequemem Abstand zum Mikrofon erreicht; die Anzeige rechnet in Dezibel
+über einer Untergrenze von −50, auf der linearen Skala bis zum 29.08.2026 hätte
+derselbe Ton vier Balken erreicht.
 
 Ein Lauf schreibt **einen** Sprachsatz, und drei Dinge im Bild haben drei
 verschiedene Quellen: Die Beschriftungen kommen aus dem Nachrichtenkatalog

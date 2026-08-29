@@ -1018,6 +1018,19 @@ find.
     lies inside the changed widget" is a statement about two numbers, only one
     of which the picture carries.
 
+65. **A window with a clock in it differs from itself between two runs, and a
+    picture comparison reads that as the change.** Measured 2026-08-29 while
+    making the level meter more sensitive: the eight before-and-after pairs came
+    out clean except the last, which showed 133 differing pixels at device
+    `x 861..870` — outside the meter, and therefore exactly what finding 39 says
+    must not happen. It is the running time, `0:00` against `0:01`: it counts
+    the frames the encoder has taken, and how many that is by the eighth grab
+    depends on how fast the machine got through the seven before it. Nothing in
+    the code moved. So a picture pair from a window that shows a time is
+    compared with that field named beforehand as a region the run does not
+    control — and the way to tell the two apart is to crop it and **look**, not
+    to widen the tolerance.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
