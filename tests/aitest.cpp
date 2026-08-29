@@ -906,14 +906,21 @@ void AiTest::theNotesOwnDayStandsInThePrompt()
     // asked to read "Morgen" knowing nothing about when the note was written,
     // and it answers out of its training: measured against qwen3:8b on
     // 2026-08-29 as `"due": "2023-10-26"` for a note of 2026.
+    //
+    // **The sentence, not the date on its own.** A date can stand anywhere in
+    // the prompt without saying whose day it is: with the sentence deleted and
+    // the same value left in as a meaningless "Request %2", an assertion on the
+    // string "2026-08-01" alone stays green over a prompt that tells the model
+    // nothing at all — measured 2026-08-29, whole set green.
     const QString prompt = classificationPrompt(QStringLiteral("Morgen den Wasserfilter tauschen"), noteDay());
-    QVERIFY2(prompt.contains(QStringLiteral("2026-08-01")), qPrintable(prompt));
+    QVERIFY2(prompt.contains(QStringLiteral("The note was written on 2026-08-01, and every relative date in it is read from that day.")),
+             qPrintable(prompt));
 
     // The day of the **note**, not of the run — so the same text asked about a
     // note of another day has to come out different, or the case would be green
     // over a prompt carrying a date from anywhere at all.
     const QString older = classificationPrompt(QStringLiteral("Morgen den Wasserfilter tauschen"), QDate(2025, 3, 4));
-    QVERIFY2(older.contains(QStringLiteral("2025-03-04")), qPrintable(older));
+    QVERIFY2(older.contains(QStringLiteral("The note was written on 2025-03-04,")), qPrintable(older));
     QVERIFY2(!older.contains(QStringLiteral("2026-08-01")), qPrintable(older));
 }
 
