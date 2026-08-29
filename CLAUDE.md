@@ -589,6 +589,20 @@ find.
     deliver**, and the value goes into the test from that run, not from the
     documentation.
 
+41. **A stand-in that fails only the first time cannot show a repeat that is
+    not yours.** Measured 2026-08-29 on #13: the proof that the provider
+    retried once used a stub which closed the first connection per endpoint and
+    answered the second. It saw two requests, the run succeeded, and that was
+    reported as "the retry is proven". It was — and the number was wrong.
+    Against a stub that closes **every** connection the same call makes
+    **three** requests, because `QNetworkAccessManager` repeats a closed
+    connection by itself; the first stub had ended the experiment before the
+    third attempt could happen. The same shape hid the timeout: 30 s became 60,
+    and nothing in the successful run said so. A stand-in built to be survived
+    measures the first failure and stops. **Whoever counts attempts makes the
+    fault permanent** — closes every time, never answers — and reads the total
+    off the stand-in, not off the client's result.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
