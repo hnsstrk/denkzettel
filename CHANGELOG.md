@@ -203,6 +203,14 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Changed
 
+- **The level meter of the recording window goes across the whole width.** It
+  used to be seven bars standing as a small clump beside the red dot, with half
+  the row empty next to them — seven was the number for the 280 px window of the
+  drawing, and the built window is 600 px wide. The bar itself is unchanged; the
+  row now fills the space between the red dot and the running time, which at
+  600 px is 41 bars, and a wider or narrower window gets one more or one fewer
+  for every twelve pixels.
+
 - **The model is set by its size, not by a file name.** The key `ModelPath` in
   the `[Transcription]` group of `~/.config/denkzettelrc` is replaced by
   `ModelSize` (`tiny`, `base`, `small`, `medium`, `large-v3`, default `small`);

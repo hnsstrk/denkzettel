@@ -337,7 +337,7 @@ with a fresh timestamp.
 
 The recording window brings its own signal: the runner feeds the encoder a tone
 of a fixed amplitude instead of opening the machine's microphone, which is why
-its meter stands at the same five bars in every run.
+its meter stands at the same 28 of 41 bars in every run.
 
 One run writes **one** language set, and three things in the picture have three
 different sources: the interface strings come from the message catalogue
