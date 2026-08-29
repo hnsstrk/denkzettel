@@ -20,7 +20,7 @@ set(CMAKE_AUTOMOC ON)
 # The compile database both lint targets below read.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS DBus Multimedia Widgets Sql)
+find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS DBus Multimedia Network Widgets Sql)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     Config
     CoreAddons

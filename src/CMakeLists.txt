@@ -61,6 +61,33 @@ target_link_libraries(denkzetteltranscribe PUBLIC
     KF6::I18n
 )
 
+# The AI backends (SPEC 7.1, issue #13). No model and no server is looked for
+# at build time and none is talked to in the automated run: Ollama sits behind
+# an HTTP address that is a setting, and what the checks exercise is the mapping
+# of a reply onto an answer or an error.
+#
+# Nothing links it yet — the analysis run that calls chat() and embed() is
+# issue #14. It is built and linted here all the same, and a library that the
+# executable does not carry is a library whose code does not ship untested.
+add_library(denkzettelanalysis STATIC
+    analysis/aiprovider.cpp
+    analysis/ollamaprovider.cpp
+)
+
+target_include_directories(denkzettelanalysis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzettelanalysis PUBLIC
+    Qt6::Core
+    # QNetworkAccessManager — the two HTTP calls of SPEC 7.1, and SPEC 15 names
+    # the component for them.
+    Qt6::Network
+    # The address and the two models out of denkzettelrc (SPEC 5.2).
+    KF6::ConfigCore
+    # The reason a call failed with. It reaches the user through the settings
+    # page and the tray tooltip (SPEC 7.1, 10), so it goes through i18n().
+    KF6::I18n
+)
+
 add_library(denkzettelplatform STATIC
     platform/systemfonts.cpp
 )

@@ -572,6 +572,37 @@ find.
     compares pictures: what the change was not meant to touch has to come out
     **bit for bit** as it was.
 
+40. **A unit test written from the documentation asserts the case the code
+    never reaches.** Measured 2026-08-29 on #13: `QNetworkRequest::
+    setTransferTimeout()` is documented to abort the reply with
+    `OperationCanceledError`, the error mapping was written for that value, and
+    the test case handing that value in was green. Against a real Ollama with
+    the limit at 5 ms the reply came back as **`TimeoutError`** — so the
+    timeout branch had never once fired, and a bitten limit reached the user as
+    "Ollama could not be reached: Zeitüberschreitung", the transport sentence
+    over a limit of our own. The check was green because it and the code read
+    the same documentation; nothing in the pair could contradict it. This is
+    finding 17's family — the lever the source says is connected — one storey
+    up: there it was a variable that did not switch anything off, here it is a
+    return value the library does not produce. **A mapping of foreign error
+    values gets one live run per value that a real service can actually
+    deliver**, and the value goes into the test from that run, not from the
+    documentation.
+
+41. **A stand-in that fails only the first time cannot show a repeat that is
+    not yours.** Measured 2026-08-29 on #13: the proof that the provider
+    retried once used a stub which closed the first connection per endpoint and
+    answered the second. It saw two requests, the run succeeded, and that was
+    reported as "the retry is proven". It was — and the number was wrong.
+    Against a stub that closes **every** connection the same call makes
+    **three** requests, because `QNetworkAccessManager` repeats a closed
+    connection by itself; the first stub had ended the experiment before the
+    third attempt could happen. The same shape hid the timeout: 30 s became 60,
+    and nothing in the successful run said so. A stand-in built to be survived
+    measures the first failure and stops. **Whoever counts attempts makes the
+    fault permanent** — closes every time, never answers — and reads the total
+    off the stand-in, not off the client's result.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

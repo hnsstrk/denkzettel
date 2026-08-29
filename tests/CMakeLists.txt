@@ -67,6 +67,28 @@ add_test(NAME transcribetest COMMAND transcribetest)
 # run through XDG_DATA_DIRS and the comparisons would fail on a correct program.
 set_tests_properties(transcribetest PROPERTIES ENVIRONMENT "LANGUAGE=en_US")
 
+# The AI provider interface and the Ollama reply mapping (SPEC 7.1, issue #13).
+# No server is reached here and none may be: the automated run has no Ollama,
+# and the cases that matter — a timeout, an HTTP status, a body that is not
+# JSON — are ones a running server does not produce on demand. The stand-in of
+# SPEC 16 stands beside it in aiprovidermock.h.
+add_executable(aitest aitest.cpp)
+
+target_link_libraries(aitest PRIVATE
+    denkzettelanalysis
+    Qt6::Test
+)
+
+add_test(NAME aitest COMMAND aitest)
+
+# The configuration directories point at one that holds nothing, and both of
+# them do: what this set reads back are the DEFAULTS of SPEC 7.1, and a
+# denkzettelrc of the person running the check — or one under /etc/xdg — would
+# put their models in their place. LANGUAGE for the error sentences, which go
+# through i18n() and are compared here in the source language.
+set_tests_properties(aitest PROPERTIES ENVIRONMENT
+    "XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/aitest-ohne-konfiguration;XDG_CONFIG_DIRS=${CMAKE_CURRENT_BINARY_DIR}/aitest-ohne-konfiguration;LANGUAGE=en_US")
+
 add_executable(librarytest librarytest.cpp)
 
 target_link_libraries(librarytest PRIVATE
