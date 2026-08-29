@@ -88,6 +88,22 @@ target_link_libraries(denkzettelanalysis PUBLIC
     KF6::I18n
 )
 
+# The transfers of SPEC 8. Only the full export of 8.3 lives here so far
+# (issue #36) — it reads the store and writes files, and needs nothing beyond
+# QtCore for either. The strings it hands back are shown to the user, so they
+# go through i18n() (SPEC 15).
+add_library(denkzettelproposals STATIC
+    proposals/fullexport.cpp
+)
+
+target_include_directories(denkzettelproposals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzettelproposals PUBLIC
+    denkzettelstore
+    Qt6::Core
+    KF6::I18n
+)
+
 add_library(denkzettelplatform STATIC
     platform/systemfonts.cpp
 )
@@ -156,6 +172,8 @@ target_include_directories(denkzettelui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzettelui PUBLIC
     denkzettelplatform
+    # The full export behind the library's hamburger menu (SPEC 8.3, issue #36).
+    denkzettelproposals
     denkzettelstore
     Qt6::Widgets
     # QMediaPlayer and QAudioOutput — the player of the reading pane (SPEC 9,
@@ -170,6 +188,10 @@ target_link_libraries(denkzettelui PUBLIC
     # KStandardShortcut (ConfigGui), KMessageWidget (WidgetsAddons) and
     # KWindowConfig (WindowSystem) — SPEC 15.
     KF6::ConfigGui
+    # KHamburgerMenu — the KDE answer to a window without a menu bar, and where
+    # the library keeps the full export (issue #36). Same `Config` component as
+    # ConfigGui above, so no new find_package.
+    KF6::ConfigWidgets
     KF6::I18n
     KF6::WidgetsAddons
     KF6::WindowSystem

@@ -1,6 +1,7 @@
 #include "ui/librarywindow.h"
 
 #include "platform/systemfonts.h"
+#include "proposals/fullexport.h"
 #include "store/searchquery.h"
 #include "store/store.h"
 #include "ui/audioplayer.h"
@@ -11,10 +12,12 @@
 
 #include <KConfigGroup>
 #include <KGuiItem>
+#include <KHamburgerMenu>
 #include <KLocalizedString>
 #include <KMessageDialog>
 #include <KMessageWidget>
 #include <KSharedConfig>
+#include <KStandardAction>
 #include <KStandardGuiItem>
 #include <KStandardShortcut>
 #include <KWindowConfig>
@@ -24,6 +27,8 @@
 #include <QCloseEvent>
 #include <QDateTime>
 #include <QDialogButtonBox>
+#include <QDir>
+#include <QFileDialog>
 #include <QFontDatabase>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -31,6 +36,7 @@
 #include <QLineEdit>
 #include <QListView>
 #include <QLocale>
+#include <QMenu>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScopeGuard>
@@ -38,6 +44,7 @@
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QTextBrowser>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWindow>
 
@@ -191,6 +198,12 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_editAction(new QAction(i18n("Edit"), this))
     , m_saveAction(new QAction(i18n("Save"), this))
     , m_cancelEditAction(new QAction(i18n("Cancel"), this))
+    // The ellipsis says an input follows — the folder dialog. The symbol is
+    // the one the settings page "Export" carries, because it is the same act
+    // (SPEC 8.3, UX decision 2026-08-29).
+    , m_exportAction(new QAction(QIcon::fromTheme(QStringLiteral("document-export")),
+                                 i18nc("@action", "Export all notes…"),
+                                 this))
     , m_splitter(new QSplitter(Qt::Horizontal, this))
     , m_list(new QListView(this))
     , m_delegate(new NoteListDelegate(m_list))
@@ -250,10 +263,10 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // side. Word wrap would put the button underneath and make the band half
     // again as tall; the text is short and fixed in length, so it has nothing
     // to wrap.
-    m_message->setMessageType(KMessageWidget::Warning);
+    // Type, word wrap and the "Undo" button are set by whoever fills the band
+    // — the deletion below and the export both use it, and they need different
+    // ones (issue #36).
     m_message->setCloseButtonVisible(false);
-    m_message->setWordWrap(false);
-    m_message->addAction(m_undoAction);
     m_message->hide();
 
     auto *layout = new QVBoxLayout(this);
@@ -311,6 +324,11 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     connect(m_cancelEditAction, &QAction::triggered, this, &LibraryWindow::cancelEdit);
     addAction(m_cancelEditAction);
 
+    // No key of its own and not added to the window: the export is reached
+    // through the hamburger menu, and SPEC 2.4 keeps the shortcuts of this
+    // program to the two global ones.
+    connect(m_exportAction, &QAction::triggered, this, &LibraryWindow::startFullExport);
+
     auto *closeAction = new QAction(this);
     closeAction->setShortcuts(KStandardShortcut::close());
     connect(closeAction, &QAction::triggered, this, &LibraryWindow::close);
@@ -325,6 +343,11 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_list->installEventFilter(this);
 
     connect(m_deletion, &PendingDeletion::remainingChanged, this, [this](int seconds) {
+        m_message->setMessageType(KMessageWidget::Warning);
+        m_message->setWordWrap(false);
+        if (!m_message->actions().contains(m_undoAction)) {
+            m_message->addAction(m_undoAction);
+        }
         m_message->setText(i18n("Note deleted — %1 s left", seconds));
         m_undoAction->setEnabled(true);
         if (!m_message->isVisible()) {
@@ -375,9 +398,38 @@ QWidget *LibraryWindow::buildHeader()
 
     connect(m_search, &QLineEdit::textChanged, this, &LibraryWindow::searchChanged);
 
+    // The library has no menu bar, and KHamburgerMenu is what KDE puts in that
+    // place (UX decision 2026-08-29). It stands to the right of the search
+    // field, so the header keeps the one row of wireframe 2b.
+    //
+    // setMenu() rather than the aboutToShowMenu() signal the class documents:
+    // that signal is for a menu expensive to build, and this one holds a single
+    // action. Without a menu bar there is nothing to advertise either — the
+    // sub-menu that advertises one is switched off, or the menu would carry an
+    // empty section beside its one entry.
+    //
+    // Through KStandardAction rather than the constructor: the icon and the
+    // name are the standard action's doing, not the class's. Built by hand the
+    // button comes up with `text=` empty and `icon().isNull()`, and a name set
+    // here by hand would need a catalogue line of its own — this way both come
+    // out of KF6's own translation (`&Menü öffnen`, `application-menu`), which
+    // is what tooltip and accessible name read.
+    KHamburgerMenu *hamburger = KStandardAction::hamburgerMenu(nullptr, nullptr, this);
+    hamburger->setMenuBarAdvertised(false);
+    auto *menu = new QMenu(header);
+    menu->addAction(m_exportAction);
+    hamburger->setMenu(menu);
+
+    auto *row = new QHBoxLayout();
+    row->setContentsMargins(0, 0, 0, 0);
+    row->addWidget(m_search);
+    // requestWidget() is how a QWidgetAction hands out its button outside a
+    // QToolBar; the header is a plain QWidget, so nobody asks for it otherwise.
+    row->addWidget(hamburger->requestWidget(header));
+
     auto *layout = new QVBoxLayout(header);
     layout->setContentsMargins(8, 8, 8, 8);
-    layout->addWidget(m_search);
+    layout->addLayout(row);
 
     return header;
 }
@@ -1290,4 +1342,91 @@ void LibraryWindow::updateEditState()
     m_search->setToolTip(editing ? i18n("Switched off while editing — a search would rebuild the "
                                         "list underneath the editor.")
                                  : QString());
+}
+
+void LibraryWindow::startFullExport()
+{
+    // The folder is asked for at every run rather than fixed: a rescue path
+    // that writes into the home directory without a word is the case in which
+    // the user hunts for the result afterwards, and whoever exports mostly
+    // wants a stick or a vault (UX decision 2026-08-29).
+    const QString parent =
+        QFileDialog::getExistingDirectory(this, i18nc("@title:window", "Export all notes"), QDir::homePath());
+    if (parent.isEmpty()) {
+        return;
+    }
+
+    // The whole guard against two runs at once. The act has one door, and it
+    // is this action.
+    m_exportAction->setEnabled(false);
+    showExportMessage(i18n("Export running…"), false);
+
+    // One turn of the event loop, so the line above stands on screen before
+    // the writing starts — the export holds this thread, and a text set and
+    // replaced inside one turn is never painted. A thread would buy nothing
+    // here: the run copies a few hundred small files off the local disk.
+    QTimer::singleShot(0, this, [this, parent] {
+        const FullExportResult result = ::exportAllNotes(*m_store, parent);
+        m_exportAction->setEnabled(true);
+
+        if (!result.ok()) {
+            showExportMessage(result.error, true);
+            return;
+        }
+
+        // The count is the one the export read back off the folder, not the
+        // one its loop kept — the number the user reads has to come from the
+        // folder it names.
+        QString text =
+            i18np("%1 note exported to %2.", "%1 notes exported to %2.", result.noteCount, result.directory);
+        // Named, not passed over in silence. The reasons go into the log, where
+        // a silent fault is looked for anyway.
+        const QStringList reasons = result.missing + result.incomplete;
+        for (const QString &line : reasons) {
+            qWarning("Full export: %s", qUtf8Printable(line));
+        }
+        // Two sentences and not one: a note that never reached the folder and a
+        // note that reached it without its recording call for different next
+        // steps, and calling both of them incomplete would name the milder of
+        // the two for the worse case.
+        if (!result.missing.isEmpty()) {
+            text += QLatin1Char(' ')
+                + i18np("%1 note is missing, see the log.",
+                        "%1 notes are missing, see the log.",
+                        static_cast<int>(result.missing.size()));
+        }
+        if (!result.incomplete.isEmpty()) {
+            text += QLatin1Char(' ')
+                + i18np("%1 note is without its recording, see the log.",
+                        "%1 notes are without their recording, see the log.",
+                        static_cast<int>(result.incomplete.size()));
+        }
+        showExportMessage(text, !result.missing.isEmpty() || !result.incomplete.isEmpty());
+    });
+}
+
+void LibraryWindow::showExportMessage(const QString &text, bool isError)
+{
+    // "Undo" belongs to the deletion alone; left standing in the band it would
+    // sit beside this line as a greyed out button.
+    m_message->removeAction(m_undoAction);
+    // The folder the user picked can be a long path, and without word wrap the
+    // band widens the window until it fits. It costs the second row the
+    // deletion saves, and this message has no button to put into it.
+    m_message->setWordWrap(true);
+    m_message->setMessageType(isError ? KMessageWidget::Error : KMessageWidget::Information);
+    m_message->setText(text);
+    if (!m_message->isVisible()) {
+        m_message->animatedShow();
+    }
+    // The line stays until something else claims the band — the path is what
+    // the user came for, and a line that fades takes it away again.
+    //
+    // A deletion running at the same moment does take the band away, on three
+    // roads and not one: its next countdown tick overwrites the text, and both
+    // its ends — PendingDeletion::committed and undoDeletion() — hide the band
+    // outright. All three lie inside the same grace period of five seconds, so
+    // that is the whole window in which an export message can be lost, and the
+    // folder stands on disk whatever happens to the line. Naming only the tick
+    // would read more complete than it is.
 }

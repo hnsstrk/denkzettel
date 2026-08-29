@@ -189,6 +189,27 @@ private:
     /** Shows the dialog of wireframe 2a, state C, and reports the answer. */
     UnsavedAnswer askAboutUnsavedChanges();
 
+    /**
+     * Asks for a folder and writes the whole corpus into it (SPEC 8.3,
+     * issue #36).
+     *
+     * Purely reading, so it runs whatever the window is doing — an edit in
+     * progress writes nothing until the user saves it, and the export takes
+     * what stands in the store.
+     */
+    void startFullExport();
+
+    /**
+     * Puts one line of the export into the band under the header
+     * (wireframe 2b).
+     *
+     * The band is shared with the pending deletion, which brings its own
+     * colour, its own layout and the "Undo" button with it — each of the two
+     * sets what it needs, or the export would report itself beside a greyed
+     * out button in the colour of a warning.
+     */
+    void showExportMessage(const QString &text, bool isError);
+
     /** Follows the edit state into buttons, rows, actions and search field. */
     void updateEditState();
 
@@ -201,6 +222,15 @@ private:
     QAction *m_editAction;
     QAction *m_saveAction;
     QAction *m_cancelEditAction;
+
+    /**
+     * The one entry of the hamburger menu in the header (SPEC 8.3).
+     *
+     * Switched off while a run is going, and that is the whole guard against
+     * two exports at once: the run is short, purely reading, and the only door
+     * into it is this action.
+     */
+    QAction *m_exportAction;
 
     QSplitter *m_splitter;
     QLineEdit *m_search;

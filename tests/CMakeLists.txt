@@ -27,6 +27,18 @@ target_link_libraries(storetest PRIVATE
 
 add_test(NAME storetest COMMAND storetest)
 
+# The full export (SPEC 8.3, issue #36). No LANGUAGE here: every assertion on a
+# message reads back a path or a file name the code substituted into it, so the
+# wording around it may be in whatever language a catalogue offers.
+add_executable(exporttest exporttest.cpp)
+
+target_link_libraries(exporttest PRIVATE
+    denkzettelproposals
+    Qt6::Test
+)
+
+add_test(NAME exporttest COMMAND exporttest)
+
 add_executable(capturetest capturetest.cpp)
 
 target_link_libraries(capturetest PRIVATE
