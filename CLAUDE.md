@@ -1174,6 +1174,25 @@ find.
     before filtering it, and read the interface with `busctl introspect` before
     calling it.
 
+75. **A second daemon out of another build directory runs beside the real one
+    for hours, and nothing says so.** Measured 2026-08-29 while tidying up:
+    `pgrep -x denkzetteld` found **two** processes. One was the expected one;
+    the other had an `exe` pointing into a build directory outside the
+    installation, with `(deleted)` behind it, a start time over seven hours
+    back, an `XDG_DATA_HOME` of its own, and `systemd` as its parent — it had
+    been orphaned when the shell that started it ended. It did **not** hold the
+    bus name, read back with `busctl --user list`, so the notes went to the
+    right store; but that is the whole trap. `KDBusService::Unique` decides who
+    owns the name, and whoever does not own it is there all the same: it holds
+    files open, it listens on the same signals, and `pgrep` finds it. So a
+    measurement "on the running service" can be taken on the wrong process for
+    hours without a hint. This is finding 30's family — a process is what the
+    kernel says it is — and finding 1's, where the running process is not the
+    installed state. What carries: `busctl --user status <name>` answers who
+    the service **is**, `readlink /proc/<pid>/exe` gets asked for **every**
+    process found and not only the first, and a run that starts a daemon ends
+    it again, or it outlives the shell that started it.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
