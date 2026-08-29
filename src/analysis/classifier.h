@@ -2,6 +2,7 @@
 
 #include "store/note.h"
 
+#include <QDate>
 #include <QList>
 #include <QObject>
 #include <QString>
@@ -44,8 +45,17 @@ QStringList analysisCategories();
  * categories in English prose and the notes are mostly German — measured
  * against qwen3:8b on 2026-08-29, that combination answers with the short forms
  * unchanged and with German tags.
+ *
+ * **`writtenOn` is the day the note was written, and it is in the prompt**
+ * (issue #117): without it the model is asked to read "morgen" with no idea
+ * what day it is, and it answers out of its training — measured against
+ * qwen3:8b on 2026-08-29 as `"due": "2023-10-26"` for a note of 2026. The day
+ * of the note and not the day of the analysis run: a note from the day before
+ * yesterday saying "morgen" means the day after the day before yesterday, and
+ * a run that catches up on a week of notes would otherwise date them all to
+ * itself.
  */
-QString classificationPrompt(const QString &noteText);
+QString classificationPrompt(const QString &noteText, QDate writtenOn);
 
 /**
  * Turns what the model wrote into a Classification, or into a reason there is
@@ -70,8 +80,15 @@ QString classificationPrompt(const QString &noteText);
  * after two of them leaves the note without a category for good. That price is
  * paid for a category that would be unreachable and for tags that are not
  * there; it is not paid for missing task fields, which SPEC 7.2 lets be null.
+ *
+ * **`writtenOn` is what a due date is held against**, the same day the prompt
+ * named. The anchor above is a request to a model and assures nothing about
+ * the answer (CLAUDE.md, finding 50), so a `due` before that day or absurdly
+ * far behind it is dropped and the field stays null — SPEC 7.2 allows null,
+ * and #29 and #33 read this field into a real task list, where nobody can see
+ * a date is invented.
  */
-Classification readClassification(const QString &answer);
+Classification readClassification(const QString &answer, QDate writtenOn);
 
 /**
  * The classification run of SPEC 7.2, step 1: one LLM call per note, the
@@ -157,6 +174,8 @@ private:
     QList<Note> m_queue;
     /** The note being classified, and -1 between two of them. */
     qint64 m_noteId = -1;
+    /** The day that note was written on, the anchor of its dates (SPEC 7.2). */
+    QDate m_noteWrittenOn;
     /** The id the answer being waited for arrives under (AiProvider). */
     int m_requestId = -1;
     bool m_busy = false;

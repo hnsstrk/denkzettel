@@ -85,6 +85,8 @@ private Q_SLOTS:
     void todoWithoutADescriptionKeepsItsCategory();
     void taskSurvivesAnIsTodoThatIsNoBool();
     void taskKeepsOnlyWhatTheNoteSaid();
+    void theNotesOwnDayStandsInThePrompt();
+    void aDueDateOutsideTheNotesReachIsDropped();
 
     void everyNoteGetsItsOwnAnswer();
     void noteThatFailedTwiceIsSkippedAndReported();
@@ -609,6 +611,18 @@ qint64 addNote(Store &store, const QString &content, const QDateTime &createdAt)
     return id.value_or(-1);
 }
 
+/**
+ * The day the made-up notes of these checks were written on.
+ *
+ * Every classification is read against the day of its own note (SPEC 7.2,
+ * issue #117), and a case handing today's date in would ask a different
+ * question tomorrow.
+ */
+QDate noteDay()
+{
+    return QDate(2026, 8, 1);
+}
+
 /** A well-formed answer, so that a check varies only what it is about. */
 QString answerFor(const QString &category, const QString &tags)
 {
@@ -718,7 +732,7 @@ void AiTest::readsTheAnswerBesideAThinkingBlock()
         " but that is wrong, it is a command line.</think>\n"
         "```json\n"
         R"({"category": "cli", "tags": ["rsync", "spiegeln"], "is_todo": false})"
-        "\n```"));
+        "\n```"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("cli"));
@@ -736,7 +750,7 @@ void AiTest::unclosedThinkingBlockCarriesNoAnswer()
     const Classification classification = readClassification(QStringLiteral(
         "<think>The note asks for something to be done, so probably "
         R"({"category": "todos", "tags": ["backup"], "is_todo": false})"
-        " — although"));
+        " — although"), noteDay());
 
     QVERIFY2(!classification.error.isEmpty(), qPrintable(classification.category));
     QCOMPARE(classification.category, QString());
@@ -754,7 +768,7 @@ void AiTest::braceInTheProseIsNotTheAnswer()
         "Here is the object { as requested. I used "
         R"({"format": "json", "temperature": 0})"
         ", and the answer is:\n"
-        R"({"category": "software", "tags": ["qt", "wayland"], "is_todo": false})"));
+        R"({"category": "software", "tags": ["qt", "wayland"], "is_todo": false})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("software"));
@@ -765,7 +779,7 @@ void AiTest::categoryOutsideTheListIsRefused()
     // A sixth category would be a note that no `kat:` search and no sidebar
     // entry ever reaches again (SPEC 6) — so it is not written, and the value
     // stands in the reason.
-    const Classification classification = readClassification(answerFor(QStringLiteral("haushalt"), QStringLiteral(R"("kaffee")")));
+    const Classification classification = readClassification(answerFor(QStringLiteral("haushalt"), QStringLiteral(R"("kaffee")")), noteDay());
 
     QVERIFY(classification.error.contains(QStringLiteral("haushalt")));
     QCOMPARE(classification.category, QString());
@@ -777,7 +791,7 @@ void AiTest::categoryCaseIsFolded()
     // Upper case is how the answer is written, not what it says: `kat:` is a
     // literal comparison against the short form (SPEC 6), so it is folded here
     // rather than refused.
-    const Classification classification = readClassification(answerFor(QStringLiteral("Persoenlich"), QStringLiteral(R"("geburtstag")")));
+    const Classification classification = readClassification(answerFor(QStringLiteral("Persoenlich"), QStringLiteral(R"("geburtstag")")), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("persoenlich"));
@@ -790,7 +804,7 @@ void AiTest::tagsAreLoweredDedupedAndCutToFour()
     // note would carry three tags where the answer offered six different ones.
     const Classification classification =
         readClassification(answerFor(QStringLiteral("ideen"),
-                                     QStringLiteral(R"("Zeitleiste", "spuren", "ZEITLEISTE", "  notizen  ", "", "woche", "farbe")")));
+                                     QStringLiteral(R"("Zeitleiste", "spuren", "ZEITLEISTE", "  notizen  ", "", "woche", "farbe")")), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.tags,
@@ -802,7 +816,7 @@ void AiTest::tagsAreLoweredDedupedAndCutToFour()
 
 void AiTest::answerWithoutATagIsRefused()
 {
-    const Classification classification = readClassification(answerFor(QStringLiteral("ideen"), QString()));
+    const Classification classification = readClassification(answerFor(QStringLiteral("ideen"), QString()), noteDay());
 
     QVERIFY2(!classification.error.isEmpty(), qPrintable(classification.category));
     QCOMPARE(classification.category, QString());
@@ -814,7 +828,7 @@ void AiTest::categoryThatIsNoTextIsNamedAnyway()
     // tooltip and the log (SPEC 14). Read out as a string, a number falls out
     // of it and the sentence names an empty pair of quotation marks.
     const Classification classification =
-        readClassification(QStringLiteral(R"({"category": 3, "tags": ["backup"], "is_todo": false})"));
+        readClassification(QStringLiteral(R"({"category": 3, "tags": ["backup"], "is_todo": false})"), noteDay());
 
     QVERIFY2(classification.error.contains(QStringLiteral("3")), qPrintable(classification.error));
 }
@@ -825,7 +839,7 @@ void AiTest::markerInsideATagDoesNotCut()
     // no end of any reasoning. Cutting there costs the whole answer and an
     // attempt with it — after two of those the note keeps no category at all.
     const Classification classification = readClassification(
-        QStringLiteral(R"({"category": "ideen", "tags": ["das </think> steht im text"], "is_todo": false})"));
+        QStringLiteral(R"({"category": "ideen", "tags": ["das </think> steht im text"], "is_todo": false})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("ideen"));
@@ -838,7 +852,7 @@ void AiTest::todoWithoutADescriptionKeepsItsCategory()
     // the tags of this answer are sound, and refusing them would spend an
     // attempt on an answer that carried what the call was for.
     const Classification classification = readClassification(
-        QStringLiteral(R"({"category": "todos", "tags": ["backup"], "is_todo": true, "task": null})"));
+        QStringLiteral(R"({"category": "todos", "tags": ["backup"], "is_todo": true, "task": null})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("todos"));
@@ -854,7 +868,7 @@ void AiTest::taskSurvivesAnIsTodoThatIsNoBool()
     // classification, with nothing to say that anything went missing.
     const Classification classification = readClassification(
         QStringLiteral(R"({"category": "todos", "tags": ["backup"], "is_todo": "true",)"
-                       R"( "task": {"description": "Platte anstecken", "project": "vault"}})"));
+                       R"( "task": {"description": "Platte anstecken", "project": "vault"}})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     const QJsonObject task = QJsonDocument::fromJson(classification.task.toUtf8()).object();
@@ -872,7 +886,7 @@ void AiTest::taskKeepsOnlyWhatTheNoteSaid()
     const Classification classification = readClassification(QStringLiteral(
         R"({"category": "todos", "tags": ["filter"], "is_todo": true,)"
         R"( "task": {"description": "Wasserfilter tauschen", "project": "Kueche", "tags": ["FILTER"],)"
-        R"( "due": "irgendwann", "priority": "dringend", "erfunden": "weg"}})"));
+        R"( "due": "irgendwann", "priority": "dringend", "erfunden": "weg"}})"), noteDay());
 
     QCOMPARE(classification.error, QString());
 
@@ -883,6 +897,58 @@ void AiTest::taskKeepsOnlyWhatTheNoteSaid()
     QVERIFY(!task.contains(QStringLiteral("due")));
     QVERIFY(!task.contains(QStringLiteral("priority")));
     QVERIFY(!task.contains(QStringLiteral("erfunden")));
+}
+
+void AiTest::theNotesOwnDayStandsInThePrompt()
+{
+    // The first half of issue #117. Without a day in the prompt the model is
+    // asked to read "Morgen" knowing nothing about when the note was written,
+    // and it answers out of its training: measured against qwen3:8b on
+    // 2026-08-29 as `"due": "2023-10-26"` for a note of 2026.
+    const QString prompt = classificationPrompt(QStringLiteral("Morgen den Wasserfilter tauschen"), noteDay());
+    QVERIFY2(prompt.contains(QStringLiteral("2026-08-01")), qPrintable(prompt));
+
+    // The day of the **note**, not of the run — so the same text asked about a
+    // note of another day has to come out different, or the case would be green
+    // over a prompt carrying a date from anywhere at all.
+    const QString older = classificationPrompt(QStringLiteral("Morgen den Wasserfilter tauschen"), QDate(2025, 3, 4));
+    QVERIFY2(older.contains(QStringLiteral("2025-03-04")), qPrintable(older));
+    QVERIFY2(!older.contains(QStringLiteral("2026-08-01")), qPrintable(older));
+}
+
+void AiTest::aDueDateOutsideTheNotesReachIsDropped()
+{
+    // The second half, and the one that assures something about the **answer**:
+    // the day in the prompt is a request to a model and no guarantee (CLAUDE.md,
+    // finding 50). A date it invents is well-formed and passes every format
+    // check — and #29 and #33 carry this field into a real task list, where
+    // nothing about the value says it was guessed.
+    const auto dueOf = [](const QString &due) {
+        const Classification classification = readClassification(
+            QStringLiteral(R"({"category": "todos", "tags": ["filter"], "is_todo": true,)"
+                           R"( "task": {"description": "Wasserfilter tauschen", "due": "%1"}})")
+                .arg(due),
+            noteDay());
+        return QJsonDocument::fromJson(classification.task.toUtf8())
+            .object()
+            .value(QStringLiteral("due"))
+            .toString();
+    };
+
+    // What is kept comes first: a guard that drops everything would satisfy the
+    // two refusals below and take the feature with it.
+    QCOMPARE(dueOf(QStringLiteral("2026-08-02")), QStringLiteral("2026-08-02"));
+    // Both ends of what is allowed, so that a `>` where a `>=` belongs and a
+    // year counted one day short come out red rather than unnoticed: the day of
+    // the note itself, and the last day of the year after it.
+    QCOMPARE(dueOf(QStringLiteral("2026-08-01")), QStringLiteral("2026-08-01"));
+    QCOMPARE(dueOf(QStringLiteral("2027-08-01")), QStringLiteral("2027-08-01"));
+
+    // The measured case: a date out of the training data, lying before the note
+    // that is supposed to ask for it.
+    QCOMPARE(dueOf(QStringLiteral("2023-10-03")), QString());
+    // And the other direction, one day past the bound.
+    QCOMPARE(dueOf(QStringLiteral("2027-08-02")), QString());
 }
 
 void AiTest::everyNoteGetsItsOwnAnswer()

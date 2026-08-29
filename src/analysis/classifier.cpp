@@ -50,6 +50,23 @@ QStringList readTags(const QJsonArray &values)
 }
 
 /**
+ * How far after the note's own day a due date may lie before it is taken for
+ * invented (SPEC 7.2, issue #117).
+ *
+ * A year. The lower bound below — nothing before the day the note was written —
+ * catches what was actually measured, a date out of the training data lying
+ * years in the past; this is the other direction, where a model that guesses
+ * forward would land. A year is the horizon a note jotted down in a hurry still
+ * plausibly names, and the two mistakes do not cost the same: a wrong date that
+ * is kept becomes a due date in a real task list (SPEC 8.2) that nobody can see
+ * is invented, while a right date that is dropped costs one null field on a
+ * suggestion the user confirms by hand anyway (SPEC 7.4, nothing is carried out
+ * without confirmation). So the bound is drawn where the cheaper mistake is
+ * made.
+ */
+constexpr int dueDaysAhead = 365;
+
+/**
  * The task fields of SPEC 7.2, built from what the model wrote and from
  * nothing else.
  *
@@ -57,10 +74,16 @@ QStringList readTags(const QJsonArray &values)
  * only where they carry what SPEC 7.2 allows, and left out otherwise rather
  * than refusing the whole answer — both are allowed to be null, and a model
  * that over-reads the note gets them wrong without getting the note wrong.
- * Measured on 2026-08-29: qwen3:8b turned "Morgen" into `"due": "2023-10-26"`,
- * a date out of its training and not out of the note.
+ *
+ * **`due` is held against the day the note was written**, and that is the
+ * second half of issue #117: the prompt now says what day the note is from, but
+ * a prompt is a request and not a guarantee (CLAUDE.md, finding 50). Measured
+ * on 2026-08-29: qwen3:8b turned "Morgen" into `"due": "2023-10-26"`, a
+ * well-formed date out of its training that passes every format check. A due
+ * date before the note, or more than dueDaysAhead after it, is dropped and the
+ * field stays null.
  */
-QJsonObject readTask(const QJsonObject &task, const QString &description)
+QJsonObject readTask(const QJsonObject &task, const QString &description, QDate writtenOn)
 {
     QJsonObject kept{{QLatin1String("description"), description}};
 
@@ -75,7 +98,8 @@ QJsonObject readTask(const QJsonObject &task, const QString &description)
     }
 
     const QString due = task.value(QLatin1String("due")).toString();
-    if (QDate::fromString(due, Qt::ISODate).isValid()) {
+    const QDate day = QDate::fromString(due, Qt::ISODate);
+    if (day.isValid() && day >= writtenOn && day <= writtenOn.addDays(dueDaysAhead)) {
         kept.insert(QLatin1String("due"), due);
     }
 
@@ -99,7 +123,7 @@ QStringList analysisCategories()
     };
 }
 
-QString classificationPrompt(const QString &noteText)
+QString classificationPrompt(const QString &noteText, QDate writtenOn)
 {
     return QStringLiteral(
                "You sort short personal notes, most of them written in German. "
@@ -117,13 +141,18 @@ QString classificationPrompt(const QString &noteText)
                "\n"
                "Write the tags and the task in the language of the note. "
                "Set \"due\" and \"priority\" only where the note says so, otherwise null.\n"
+               "The note was written on %2, and every relative date in it is read "
+               "from that day. Where the note names no day at all, \"due\" stays null; "
+               "never fill it with a guessed date.\n"
                "\n"
                "Note:\n"
-               "%2")
-        .arg(QStringLiteral("\"%1\"").arg(analysisCategories().join(QLatin1String("\", \""))), noteText);
+               "%3")
+        .arg(QStringLiteral("\"%1\"").arg(analysisCategories().join(QLatin1String("\", \""))),
+             writtenOn.toString(Qt::ISODate),
+             noteText);
 }
 
-Classification readClassification(const QString &answer)
+Classification readClassification(const QString &answer, QDate writtenOn)
 {
     const QJsonObject object = modelAnswerObject(answer, QLatin1String("category"));
     if (object.isEmpty()) {
@@ -157,7 +186,7 @@ Classification readClassification(const QString &answer)
     const QJsonObject task = object.value(QLatin1String("task")).toObject();
     const QString description = task.value(QLatin1String("description")).toString().trimmed();
     if (!description.isEmpty()) {
-        result.task = QString::fromUtf8(QJsonDocument(readTask(task, description)).toJson(QJsonDocument::Compact));
+        result.task = QString::fromUtf8(QJsonDocument(readTask(task, description, writtenOn)).toJson(QJsonDocument::Compact));
     }
 
     return result;
@@ -183,7 +212,7 @@ Classifier::Classifier(Store *store, AiProvider *provider, QObject *parent)
             return;
         }
 
-        const Classification classification = readClassification(answer);
+        const Classification classification = readClassification(answer, m_noteWrittenOn);
         if (!classification.error.isEmpty()) {
             fail(classification.error);
             return;
@@ -243,7 +272,10 @@ void Classifier::takeNextNote()
 
     const Note note = m_queue.takeFirst();
     m_noteId = note.id;
-    m_requestId = m_provider->chat(classificationPrompt(note.content));
+    // Kept for the answer: the day the note was written is what its relative
+    // dates are read from, on the way out and on the way back (SPEC 7.2).
+    m_noteWrittenOn = note.createdAt.date();
+    m_requestId = m_provider->chat(classificationPrompt(note.content, m_noteWrittenOn));
 }
 
 void Classifier::fail(const QString &reason)

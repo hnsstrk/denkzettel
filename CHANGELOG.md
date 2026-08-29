@@ -200,6 +200,16 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   address as reachable. The check said yes and the analysis talked to the old
   server. Address, language model and embedding model now reach the running
   analysis without a restart (#119).
+- **The classification no longer invents due dates.** A note saying "morgen"
+  came back with a due date out of the model's training data — well-formed, and
+  years in the past. The model was never told what day the note is from. It is
+  now: the prompt names the day the note was written, so a relative date is read
+  from that day and not from the day of the analysis run — a note from the day
+  before yesterday saying "morgen" means the day after the day before
+  yesterday. And what comes back is checked: a due date before the note, or
+  more than a year after it, is dropped and the note keeps none. It matters
+  because the field is on its way into a real task list, where nothing about a
+  date says it was guessed (#117).
 
 ## [0.7.0] — 2026-08-28
 
