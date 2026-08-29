@@ -173,7 +173,14 @@ A second process start recognises the taken D-Bus registration and calls
 - **Cleanup check**: at service start, audio files without a DB reference
   (aborted recordings, interrupted deletions) are removed and noted in the log
   — an unambiguous, harmless, recurring case, and therefore self-healing that
-  is permissible in the sense of the loop conventions.
+  is permissible in the sense of the loop conventions. There is a third road to
+  the same state, and it is the one case where the sweep would be the second
+  half of a data loss: a recording that finished while the note it belongs to
+  never reached the database. In the data it cannot be told from the harmless
+  two — a file, no row, nothing beside it — so it is barred at its source and
+  not here: whatever saves a recording reports a failed save to the user in the
+  same breath (§14), naming the file, and the recording window is where that
+  belongs.
 
 ## 3. Capture window (text)
 
