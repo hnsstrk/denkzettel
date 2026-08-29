@@ -118,8 +118,13 @@ take the invocation from the README section "Screenshots", which points
 `XDG_CONFIG_DIRS` at a throwaway `plasmarc`. Without it the runner finds no
 color scheme, draws a light theme shell under the dark palette it sets itself,
 and the picture looks like a fault of the product — that is finding 8 below.
-Measured on 2026-08-24: with that invocation all four committed pictures come
-out byte-identical, without it none of the two capture-window ones does.
+Measured again on 2026-08-29, now over **six** pictures in two languages: with
+that invocation all six come out byte-identical, without it the **three that
+carry the hull** do not — the capture and the recording window in English and
+the capture window in German, while the library, which draws no theme graphic,
+is unaffected. And the picture is only evidence once the readback says the file
+compared is this run's own: a random marker written into the target directory
+beforehand, and a timestamp inside the run's own window (finding 55).
 
 ## Verification stance
 
@@ -871,6 +876,16 @@ find.
     What carries: a review builds from `git archive <commit>` into a directory
     of its own, and its report names the commit it holds for — not the branch,
     which has moved by the time the report is read.
+
+57. **A staging directory installed from a stale build serves the old
+    catalogue.** Measured 2026-08-29 on #21: the `.mo` is compiled by the
+    **build**, not by `cmake --install`, so a readback taken after editing the
+    `.po` and installing to a `DESTDIR` named the **previous** wording — which
+    reads exactly like a translation nobody wrote, or like a string that never
+    reached the catalogue. Build first, then install, then read back. This is
+    finding 16's neighbour: there a check read an installed path and said
+    nothing about the source tree, here it reads an installed path that is
+    older than the source tree.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
