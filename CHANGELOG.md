@@ -12,6 +12,29 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **A note can remember what you were doing when you wrote it — if you say so.**
+  Under Settings → Capture there is a new switch, „Herkunft der Notiz
+  mitspeichern", and it is **off**. Turned on, a note keeps the title of the
+  window that was in front before the capture window came up, and the name of
+  the application it belonged to. The detail view in the library shows the
+  **title** on a line of its own under the timestamp, and the context menu on
+  that line takes both off again — no confirmation, and the band under the
+  header offers the way back; the application's name is never shown, it is
+  there for the automatic classification. The list is unchanged: entries keep
+  their height and their two lines.
+
+  **With the switch off nothing is looked up at all.** Denkzettel does not even
+  hand the little script to KWin that would find the title, so there is nothing
+  collected that could be thrown away afterwards, and turning the switch off
+  takes hold at once rather than at the next login. Notes taken while it was
+  off carry nothing and look exactly as they did — no placeholder, no empty
+  line. The database grows two columns for it, `origin` and `origin_app`
+  (schema version 7); notes that already stand in it keep them empty.
+
+  The capture window itself is never the answer, and the moment is not
+  followed: what is kept is the state when the note was written, and no later
+  change to it (#47).
+
 - **A topic becomes a suggestion, and a note that asks for something becomes a
   task.** The analysis run has a third step. Out of every topic of at least
   three notes the local model names the subject and says which of the notes

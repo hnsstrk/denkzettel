@@ -1,11 +1,14 @@
 #include "platform/optionaltools.h"
 #include "shell/daemonservice.h"
+#include "shell/originwatcher.h"
 #include "shell/shortcutconflict.h"
 #include "shell/shortcutregistration.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
 
+#include <KConfigGroup>
 #include <KLocalizedString>
+#include <KSharedConfig>
 #include <KStatusNotifierItem>
 
 #include <QAction>
@@ -44,6 +47,8 @@ private Q_SLOTS:
     void keepsBlankTextOutOfTheStore();
     void reportsFailedStorageAsZero();
     void asksForTheLibraryWindow();
+
+    void theOriginSinkAsksTheSettingItself();
 
     void findsNoConflictWithoutOwners();
     void ignoresOurOwnRegistration();
@@ -169,6 +174,48 @@ void ShellTest::asksForTheLibraryWindow()
     m_service->ShowLibrary();
 
     QCOMPARE(requested.size(), 1);
+}
+
+void ShellTest::theOriginSinkAsksTheSettingItself()
+{
+    // SPEC 13: with the switch off nothing is determined **and** nothing is
+    // stored. Barring the source is the first half — with the switch off KWin
+    // never gets the script — and this is the second: `Report` sits on the
+    // session bus under `io.github.hnsstrk.denkzettel.Origin`, and anybody on
+    // that bus can call it. Measured by the review on 29.08.2026: without the
+    // question below the call was taken and handed on, and on the receiving
+    // side the two states were indistinguishable.
+    //
+    // The write goes through the same KSharedConfig the watcher reads from, so
+    // both sides name one file whatever the binary is called (CLAUDE.md,
+    // finding 42). The guard is what keeps that file out of the home directory
+    // of whoever runs the check.
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup capture(KSharedConfig::openConfig(), QStringLiteral("Capture"));
+
+    // No start(): the object is not put on the bus and asks KWin for nothing.
+    // Report() is what the script calls, and calling it is what the bus does.
+    OriginWatcher watcher;
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy reported(&watcher, &OriginWatcher::originChanged);
+
+    capture.writeEntry("StoreOrigin", false);
+    capture.sync();
+    watcher.Report(QStringLiteral("Fenster PROBE"), QStringLiteral("org.example.probe"));
+    QCOMPARE(reported.count(), 0);
+
+    // And the same call comes out different with the switch on — without this
+    // half the case would be green over a slot that never does anything.
+    capture.writeEntry("StoreOrigin", true);
+    capture.sync();
+    watcher.Report(QStringLiteral("Fenster PROBE"), QStringLiteral("org.example.probe"));
+    QCOMPARE(reported.count(), 1);
+    QCOMPARE(reported.constFirst().at(0).toString(), QStringLiteral("Fenster PROBE"));
+    QCOMPARE(reported.constFirst().at(1).toString(), QStringLiteral("org.example.probe"));
+
+    capture.deleteGroup();
+    capture.sync();
 }
 
 void ShellTest::findsNoConflictWithoutOwners()

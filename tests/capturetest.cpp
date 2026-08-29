@@ -44,6 +44,7 @@ private Q_SLOTS:
 
     void savesTextOnControlReturn();
     void keepsBlankTextOutOfTheStore();
+    void bothWindowsWriteTheOriginOntoTheirNote();
     void discardsTextOnEscape();
 
     void windowShrinksBackOnAShownWindow();
@@ -258,6 +259,64 @@ void CaptureTest::keepsBlankTextOutOfTheStore()
 
     QVERIFY(!m_store->note(1).has_value());
     QVERIFY(text->toPlainText().isEmpty());
+}
+
+void CaptureTest::bothWindowsWriteTheOriginOntoTheirNote()
+{
+    // **Both windows in one case, and that is the point of it** (issue #47):
+    // Store::addNote() is called from the capture window and from the
+    // recording window, and a check that walks one of the two roads stands
+    // green over a program in which the voice note carries no origin while the
+    // text note does.
+    //
+    // The titles are invented here. A real one out of the session the user
+    // works in is personal data and this repository is public.
+    QPlainTextEdit *text = textArea();
+    QVERIFY(text);
+
+    m_window->setOrigin(QStringLiteral("Fenster A — Dokumentation"), QStringLiteral("org.example.browser"));
+    m_window->show();
+    text->setPlainText(QStringLiteral("Der Gedanke von nebenan"));
+    QTest::keyClick(text, Qt::Key_Return, Qt::ControlModifier);
+
+    std::optional<Note> written = m_store->note(1);
+    QVERIFY2(written.has_value(), qPrintable(m_store->lastError()));
+    QCOMPARE(written->origin, QStringLiteral("Fenster A — Dokumentation"));
+    QCOMPARE(written->originApp, QStringLiteral("org.example.browser"));
+
+    RecordingWindow recorder(m_store.get());
+    recorder.setOrigin(QStringLiteral("Fenster B — Fahrplan"), QStringLiteral("org.example.terminal"));
+    QVERIFY2(recorder.startWithoutADevice(), qPrintable(recorder.recorder()->lastError()));
+    feedTone(*recorder.recorder(), 300);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy finished(recorder.recorder(), &AudioRecorder::finished);
+    QTest::keyClick(&recorder, Qt::Key_Return, Qt::ControlModifier);
+    QTRY_COMPARE(finished.count(), 1);
+
+    written = m_store->note(2);
+    QVERIFY2(written.has_value(), qPrintable(m_store->lastError()));
+    QCOMPARE(written->type, Note::Type::Audio);
+    // Different from the text note's on purpose: two windows told the same
+    // value would pass a check in which one of them writes the other's
+    // (CLAUDE.md, finding 10).
+    QCOMPARE(written->origin, QStringLiteral("Fenster B — Fahrplan"));
+    QCOMPARE(written->originApp, QStringLiteral("org.example.terminal"));
+
+    // And the switch going off empties the window again — OriginWatcher sends
+    // two empty strings when it unloads the script, and a note written after
+    // that must carry nothing. Without this half the setting would still be
+    // stamping the title of the last capture onto every note (issue #47,
+    // acceptance criterion 1).
+    m_window->setOrigin(QString(), QString());
+    m_window->show();
+    text->setPlainText(QStringLiteral("Der Gedanke danach"));
+    QTest::keyClick(text, Qt::Key_Return, Qt::ControlModifier);
+
+    written = m_store->note(3);
+    QVERIFY2(written.has_value(), qPrintable(m_store->lastError()));
+    QCOMPARE(written->content, QStringLiteral("Der Gedanke danach"));
+    QVERIFY(written->origin.isEmpty());
+    QVERIFY(written->originApp.isEmpty());
 }
 
 void CaptureTest::discardsTextOnEscape()

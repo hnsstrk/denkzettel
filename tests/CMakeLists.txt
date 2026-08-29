@@ -188,6 +188,25 @@ target_link_libraries(modelshots PRIVATE
     Qt6::Widgets
 )
 
+# The pictures of issue #47: the origin of a note in the reading pane and the
+# privacy switch that decides whether there is one. No add_test() for the
+# reason readmeshots has none — it produces pictures for a human to look at.
+# Built by an ordinary build all the same, so that it cannot write plausible
+# pictures of an old state (CLAUDE.md, rule 4), and committed rather than
+# improvised: the numbers it prints beside every picture are what the design
+# decision of this story was taken on, and a runner nobody can build again
+# leaves them unrepeatable.
+add_executable(originshots originshots.cpp)
+
+target_link_libraries(originshots PRIVATE
+    # CapturePage, the settings page of SPEC 13.
+    denkzettelsettings
+    denkzettelstore
+    denkzettelui
+    Qt6::Test
+    Qt6::Widgets
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE
@@ -205,8 +224,13 @@ add_test(NAME shelltest COMMAND shelltest)
 # platform that runs without a compositor. The KDE platform theme comes on top
 # because the menu entries are checked for their icon names — without it every
 # name would read empty.
+# XDG_CONFIG_HOME is the fourth of them and it is not cosmetic: the check of
+# the origin sink writes `[Capture] StoreOrigin` and reads it back, and without
+# a directory of its own that write would land in the configuration of whoever
+# runs the set (CLAUDE.md, finding 42). The case asserts the variable before it
+# writes.
 set_tests_properties(shelltest PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US;XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/shelltest-konfiguration")
 
 add_executable(firstruntest firstruntest.cpp)
 

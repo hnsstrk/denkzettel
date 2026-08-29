@@ -13,6 +13,7 @@
 #include "shell/daemonservice.h"
 #include "shell/firstrun.h"
 #include "shell/globalshortcuts.h"
+#include "shell/originwatcher.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
 #include "transcribe/modeldownload.h"
@@ -140,6 +141,30 @@ int main(int argc, char *argv[])
                      [&capture](const QStringList &, const QString &) {
                          capture.showCapture();
                      });
+
+    // The context stamp of SPEC 5.1 and 13 (issue #47). It stands between the
+    // two windows that write notes and KWin, and it is told what to do by the
+    // setting alone: with „[Capture] StoreOrigin" off it loads nothing into
+    // KWin, so there is nothing determined that could be thrown away.
+    //
+    // **Both windows are connected and not one.** The capture window writes the
+    // text note, the recording window the voice note, and a wiring that reached
+    // only one of them would leave one kind of note without an origin — the
+    // fault every check that walks a single road falls through.
+    //
+    // The D-Bus method AddNote() is deliberately **not** among them: no window
+    // of ours is activated on that road, so what the watcher holds is the
+    // origin of an earlier capture. Written onto such a note it would be a
+    // window title from another moment — the invisible collection this switch
+    // exists against, and no longer „the state at capture time" (SPEC 13,
+    // acceptance criterion 4).
+    OriginWatcher origins;
+    QObject::connect(&origins, &OriginWatcher::originChanged, &capture, &CaptureWindow::setOrigin);
+    QObject::connect(&origins, &OriginWatcher::originChanged, &recorder, &RecordingWindow::setOrigin);
+    // And the switch takes hold on a running daemon, the way the transcription
+    // settings above do: KCoreConfigSkeleton::save() emits configChanged()
+    // once per save that changed something.
+    QObject::connect(Settings::self(), &Settings::configChanged, &origins, &OriginWatcher::reloadSettings);
 
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     LibraryWindow library(&store);
@@ -373,6 +398,11 @@ int main(int argc, char *argv[])
             notifyShortcutConflict(GlobalShortcuts::assignedSequence(which), conflicts);
         }
     }
+
+    // After the object is connected to both windows, and it needs the bus:
+    // exporting /Origin and asking KWin for the script are the two things it
+    // does here.
+    origins.start();
 
     // Last, and after the first start above: the queue may hold a job from a
     // run that was killed, and working it off is the same road as a fresh one.

@@ -39,6 +39,13 @@ qlonglong DaemonService::AddNote(const QString &text)
     note.createdAt = QDateTime::currentDateTime();
     note.type = Note::Type::Text;
     note.content = content;
+    // **No origin, and that is not an omission** (issue #47). The origin is
+    // what the KWin script reports when a window of ours takes the focus, and
+    // this road opens no window at all: what OriginWatcher holds here is the
+    // title of whatever stood before the *last* capture, minutes or days ago.
+    // Written onto this note it would be a window title from another moment —
+    // "no history: only the state at capture time" is exactly what it would
+    // break. The two windows that do take the activation carry it (main.cpp).
 
     const std::optional<qint64> id = m_store->addNote(note);
     if (!id) {

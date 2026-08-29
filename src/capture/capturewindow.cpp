@@ -583,6 +583,8 @@ void CaptureWindow::save()
     note.createdAt = QDateTime::currentDateTime();
     note.type = Note::Type::Text;
     note.content = content;
+    note.origin = m_origin;
+    note.originApp = m_originApp;
 
     if (!m_store->addNote(note)) {
         // Keep window and text: a lost thought is worse than a window that
@@ -593,6 +595,12 @@ void CaptureWindow::save()
 
     m_text->clear();
     hide();
+}
+
+void CaptureWindow::setOrigin(const QString &caption, const QString &appId)
+{
+    m_origin = caption;
+    m_originApp = appId;
 }
 
 void CaptureWindow::discard()

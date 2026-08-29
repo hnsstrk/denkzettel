@@ -98,6 +98,15 @@ public:
 private:
     Settings();
 
+    // Page "Capture" (SPEC 13, 5.1). The privacy switch of issue #47, and the
+    // first page of the dialog: a switch against invisible data collection
+    // whose page nobody opens is the collection it was built against.
+    //
+    // No getter beside it, unlike the vault path: what reads this value at
+    // runtime is OriginWatcher, which lives in a library this one links and
+    // therefore opens the group itself (originwatcher.cpp says so too).
+    bool m_storeOrigin = false;
+
     // Page "AI provider" (SPEC 7.1). The three defaults of these keys are not
     // written down here: they stand in `ollama::` in analysis/ollamaprovider.h,
     // where OllamaProvider reads them from as well (see the comment there).

@@ -7,6 +7,7 @@
 #include "ui/timestampformat.h"
 
 #include <KLocalizedString>
+#include <KMessageWidget>
 
 #include <QAction>
 #include <QDialog>
@@ -194,6 +195,8 @@ private Q_SLOTS:
     void waitsWithTheNewNoteWhileADeletionIsCountingDown();
     void takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut();
     void takesUpTheWaitingNoteWhenTheDeletionIsUndone();
+    void takesTheOriginOffANoteAndPutsItBack();
+    void savingAnEditKeepsWhatChangedOnTheNoteMeanwhile();
     void keepsTheReadingPlaceWhenANoteArrives();
     void takesUpANewNoteOnlyWhenItMatchesTheRunningSearch();
     void marksTheTermsWhereTheyStandInTheText_data();
@@ -2269,6 +2272,133 @@ void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut()
     QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
     QCOMPARE(noteRow(list, 1).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
     QVERIFY(!m_store->note(deleted).has_value());
+}
+
+void LibraryTest::takesTheOriginOffANoteAndPutsItBack()
+{
+    // SPEC 5.1, 13 and issue #47: the origin can be taken off in the detail
+    // view, without a confirmation and without touching the note text, and the
+    // band under the header takes it back.
+    //
+    // What the eye reaches — the line behind the timestamp, its elision, the
+    // context menu — is looked at and not asserted here. What is asserted is
+    // the half that would go unnoticed for weeks: that the removal reaches the
+    // database and that the undo puts both values back.
+    //
+    // The title is invented. A real one out of the session the user works in
+    // is personal data, and this repository is public.
+    Note carrying = noteWith(QStringLiteral("der Gedanke von nebenan"));
+    carrying.origin = QStringLiteral("Fenster A");
+    carrying.originApp = QStringLiteral("org.example.browser");
+    const std::optional<qint64> id = m_store->addNote(carrying);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+
+    // The line stands under the head row and offers the entry — the assertion
+    // that the state is the loud one before the quiet one is asserted
+    // (CLAUDE.md, finding 27).
+    const QLabel *origin = nullptr;
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (const QLabel *label : labels) {
+        if (label->text().contains(carrying.origin)) {
+            origin = label;
+        }
+    }
+    QVERIFY2(origin, qPrintable(QStringLiteral("no label carries the origin: %1")
+                                    .arg(visibleLabels(window).join(QStringLiteral(" | ")))));
+    QCOMPARE(origin->contextMenuPolicy(), Qt::ActionsContextMenu);
+    QCOMPARE(origin->actions().size(), 1);
+
+    origin->actions().constFirst()->trigger();
+
+    std::optional<Note> stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QVERIFY(stored->origin.isEmpty());
+    QVERIFY(stored->originApp.isEmpty());
+    // Nothing else moved — the text is what SPEC 9 says this must not touch.
+    QCOMPARE(stored->content, carrying.content);
+    QVERIFY(origin->text().isEmpty());
+    // Hidden, so the line takes no height either — a note without an origin
+    // has to look exactly like one taken before the setting existed.
+    QVERIFY(!origin->isVisible());
+    QCOMPARE(origin->contextMenuPolicy(), Qt::NoContextMenu);
+
+    // And the way back is the band under the header, the same one a deletion is
+    // taken back with. Its button is not among the window's actions, or looking
+    // an action up by the word "Undo" would find two.
+    const auto *band = window.findChild<KMessageWidget *>();
+    QVERIFY(band);
+    QCOMPARE(band->actions().size(), 1);
+    QVERIFY(!actionNamed(window, QStringLiteral("Undo")) || actionNamed(window, QStringLiteral("Undo"))
+                != band->actions().constFirst());
+
+    band->actions().constFirst()->trigger();
+
+    stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QCOMPARE(stored->origin, carrying.origin);
+    QCOMPARE(stored->originApp, carrying.originApp);
+    QCOMPARE(stored->content, carrying.content);
+    QVERIFY(origin->isVisible());
+    QVERIFY(origin->text().contains(carrying.origin));
+}
+
+void LibraryTest::savingAnEditKeepsWhatChangedOnTheNoteMeanwhile()
+{
+    // The silent data loss the review found on 29.08.2026: saveEdit() wrote
+    // the copy of the note the editor was opened with, and updateNote() writes
+    // every column — so an origin put back through the band's "Undo" while the
+    // editor stood was taken away again by the save, without a word.
+    //
+    // The order of the assertions carries the case: the changed text comes
+    // first, because a save that never happened would leave the origin
+    // standing and the case would be green for the wrong reason (CLAUDE.md,
+    // finding 27).
+    Note carrying = noteWith(QStringLiteral("der Gedanke von nebenan"));
+    carrying.origin = QStringLiteral("Fenster A");
+    carrying.originApp = QStringLiteral("org.example.browser");
+    const std::optional<qint64> id = m_store->addNote(carrying);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    listOf(window)->setCurrentIndex(noteRow(listOf(window), 0));
+
+    const QLabel *origin = nullptr;
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (const QLabel *label : labels) {
+        if (label->text().contains(carrying.origin)) {
+            origin = label;
+        }
+    }
+    QVERIFY(origin);
+    origin->actions().constFirst()->trigger();
+    QVERIFY(m_store->note(*id)->origin.isEmpty());
+
+    // Now the editor, and the undo underneath it.
+    actionNamed(window, QStringLiteral("Edit"))->trigger();
+    editorOf(window)->setPlainText(QStringLiteral("der Gedanke, ausgebessert"));
+
+    const auto *band = window.findChild<KMessageWidget *>();
+    QVERIFY(band);
+    QCOMPARE(band->actions().size(), 1);
+    band->actions().constFirst()->trigger();
+    QCOMPARE(m_store->note(*id)->origin, carrying.origin);
+
+    buttonNamed(window, QStringLiteral("Save"))->click();
+
+    const std::optional<Note> saved = m_store->note(*id);
+    QVERIFY(saved.has_value());
+    QCOMPARE(saved->content, QStringLiteral("der Gedanke, ausgebessert"));
+    QCOMPARE(saved->origin, carrying.origin);
+    QCOMPARE(saved->originApp, carrying.originApp);
 }
 
 void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsUndone()

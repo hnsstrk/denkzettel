@@ -2,6 +2,7 @@
 
 #include "settings/aiproviderpage.h"
 #include "settings/analysispage.h"
+#include "settings/capturepage.h"
 #include "settings/exportpage.h"
 #include "settings/settings.h"
 #include "settings/shortcutspage.h"
@@ -53,6 +54,11 @@ SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *downlo
     setFaceType(KPageDialog::List);
 
     // One line per page — see the class comment for why that is a rule here.
+    // "Capture" stands first, and SPEC 13 says why: it carries the privacy
+    // switch of issue #47, and findability is that switch's purpose. The icon
+    // is `document-edit`, the same one the tray gives „Notiz erfassen", because
+    // it is the same action.
+    addPage(new CapturePage(this), i18n("Capture"), QStringLiteral("document-edit"));
     addPage(new AiProviderPage(this),
             i18n("AI provider"),
             QStringLiteral("preferences-system-network-server"));

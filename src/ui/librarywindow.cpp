@@ -269,6 +269,10 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // beside the text, so the symbol belongs on the action (wireframe 2b,
     // issue #67).
     , m_undoAction(new QAction(QIcon::fromTheme(QStringLiteral("edit-undo")), i18n("Undo"), this))
+    // The same wording and the same symbol as the deletion's: the band under
+    // the header offers one button, and which of the two acts it takes back is
+    // said by the line beside it (issue #47).
+    , m_undoOriginAction(new QAction(QIcon::fromTheme(QStringLiteral("edit-undo")), i18n("Undo"), this))
     , m_editAction(new QAction(i18n("Edit"), this))
     , m_saveAction(new QAction(i18n("Save"), this))
     , m_cancelEditAction(new QAction(i18n("Cancel"), this))
@@ -369,6 +373,15 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     connect(m_deleteAction, &QAction::triggered, this, &LibraryWindow::deleteCurrentNote);
     addAction(m_deleteAction);
 
+    // No shortcut, and **not added to the window**: it is reached through the
+    // button KMessageWidget makes out of it and nowhere else. Two actions on
+    // Ctrl+Z would make the key ambiguous and Qt would hand it to neither, and
+    // a second window action reading "Undo" is one that whoever looks an action
+    // up by its wording picks by accident — which is what it did (librarytest,
+    // takesUpTheWaitingNoteWhenTheDeletionIsUndone).
+    m_undoOriginAction->setEnabled(false);
+    connect(m_undoOriginAction, &QAction::triggered, this, &LibraryWindow::restoreOrigin);
+
     m_undoAction->setShortcuts(KStandardShortcut::undo());
     m_undoAction->setEnabled(false);
     connect(m_undoAction, &QAction::triggered, m_deletion, &PendingDeletion::undo);
@@ -428,6 +441,8 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     connect(m_deletion, &PendingDeletion::remainingChanged, this, [this](int seconds) {
         m_message->setMessageType(KMessageWidget::Warning);
         m_message->setWordWrap(false);
+        // The origin's "Undo" would take back the wrong act beside this line.
+        m_message->removeAction(m_undoOriginAction);
         if (!m_message->actions().contains(m_undoAction)) {
             m_message->addAction(m_undoAction);
         }
@@ -769,6 +784,34 @@ QWidget *LibraryWindow::buildDetail()
 
     m_detailTimestamp = subtleLabel(QString(), detail);
 
+    // A line of its own under the head row and above the note text, reading as
+    // the head's second line (customer decision 29.08.2026, second pass). It
+    // stood behind the timestamp first, and the measurement of that version is
+    // why it does not any more: in the built window the head row left it 57 to
+    // 74 logical pixels, so „Konsole — ssh sample" came out as „· Konsole …" —
+    // eight characters that promise an answer and give none
+    // (docs/images/reviews/47-herkunft-lang.png).
+    //
+    // `Ignored` is what keeps it from claiming the width of its text as the
+    // pane's minimum: it says "give me what is left", and showOrigin() cuts
+    // the text to that. Without an origin the line is hidden, so it takes no
+    // height at all — no placeholder, no empty row.
+    m_detailOrigin = subtleLabel(QString(), detail);
+    m_detailOrigin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    m_detailOrigin->installEventFilter(this);
+
+    // The one entry of the context menu on the origin, and Qt builds the menu
+    // out of it (`ActionsContextMenu`) rather than this window building one per
+    // click. Whether there is a menu at all is decided in showOrigin(): a note
+    // without an origin offers none, and neither does one whose editor is open
+    // — while the head row says „Editing" and its two buttons are gone, the
+    // note is not up for anything else either, exactly as m_deleteAction is
+    // switched off there. What once made a *wrong save* out of that is fixed
+    // where it belonged, in saveEdit().
+    auto *removeOriginAction = new QAction(i18nc("@action:inmenu", "Remove origin"), m_detailOrigin);
+    connect(removeOriginAction, &QAction::triggered, this, &LibraryWindow::removeOrigin);
+    m_detailOrigin->addAction(removeOriginAction);
+
     // Wireframe 2a: while editing, the head says so where the two buttons
     // stand while reading.
     m_editingBadge = smallLabel(i18n("Editing"), detail);
@@ -835,6 +878,14 @@ QWidget *LibraryWindow::buildDetail()
     head->addStretch();
     head->addWidget(m_headPages);
 
+    // Head row and origin as one block with a spacing of its own: the ten
+    // pixels the pane's layout puts between its items would read as a line
+    // standing on its own rather than as the second line of the head.
+    auto *headBlock = new QVBoxLayout();
+    headBlock->setSpacing(2);
+    headBlock->addLayout(head);
+    headBlock->addWidget(m_detailOrigin);
+
     // Above the transcript and below the head row, and only for a voice note
     // (SPEC 9, wireframe 1b). showNoteText() shows and fills it.
     m_audioPlayer = new AudioPlayer(detail);
@@ -894,7 +945,7 @@ QWidget *LibraryWindow::buildDetail()
     auto *layout = new QVBoxLayout(detail);
     layout->setContentsMargins(12, 10, 12, 12);
     layout->setSpacing(10);
-    layout->addLayout(head);
+    layout->addLayout(headBlock);
     layout->addWidget(m_audioPlayer);
     // The surplus height belongs to the note text, said out loud rather than
     // left to Qt's distribution rules. Measured on 02.08.2026: at both tested
@@ -997,6 +1048,13 @@ bool LibraryWindow::eventFilter(QObject *watched, QEvent *event)
 
     if (watched == m_list && event->type() == QEvent::KeyPress) {
         m_selectionFollowsAPress = false;
+    }
+
+    // The label is told to ignore its own width wish, so how much it really
+    // gets is only known once the layout has run — and it changes with every
+    // window and splitter movement (issue #47).
+    if (watched == m_detailOrigin && event->type() == QEvent::Resize) {
+        showOrigin();
     }
 
     return QWidget::eventFilter(watched, event);
@@ -1445,6 +1503,10 @@ void LibraryWindow::showNoteText(const QModelIndex &index)
     // The detail pane stands under no head and keeps the full timestamp.
     m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QLocale()));
 
+    // And the origin behind it, or nothing at all (SPEC 5.1, 13; issue #47).
+    m_originText = note.origin;
+    showOrigin();
+
     // The player belongs to a voice note and to no other, and it is set even
     // when it stays hidden — an empty source is what stops the file of the note
     // just left from playing on.
@@ -1510,6 +1572,113 @@ void LibraryWindow::undoDeletion()
     }
 }
 
+void LibraryWindow::showOrigin()
+{
+    // No menu where there is nothing to take off, and none over an open editor.
+    m_detailOrigin->setContextMenuPolicy(m_originText.isEmpty() || isEditing() ? Qt::NoContextMenu
+                                                                              : Qt::ActionsContextMenu);
+
+    // Hidden and not merely empty: a hidden widget is out of the layout, so a
+    // note without an origin keeps the note text where it always stood
+    // (acceptance criterion 5).
+    m_detailOrigin->setVisible(!m_originText.isEmpty());
+    if (m_originText.isEmpty()) {
+        m_detailOrigin->clear();
+        return;
+    }
+
+    // No separator any more: „ · " carried the join to the timestamp, and the
+    // line does not stand behind it.
+    m_detailOrigin->setText(m_detailOrigin->fontMetrics().elidedText(m_originText, Qt::ElideRight,
+                                                                     m_detailOrigin->width()));
+}
+
+void LibraryWindow::removeOrigin()
+{
+    const QModelIndex current = m_list->currentIndex();
+    const int index = current.isValid() ? m_model->noteIndexAt(current.row()) : -1;
+    if (index < 0) {
+        return;
+    }
+
+    Note note = m_model->noteAt(current.row());
+    if (note.origin.isEmpty() && note.originApp.isEmpty()) {
+        return;
+    }
+
+    // Kept before the write, not read back after it: what the "Undo" needs is
+    // the pair that stood there, and after the update nothing holds it any more.
+    m_removedOriginId = note.id;
+    m_removedOrigin = note.origin;
+    m_removedOriginApp = note.originApp;
+
+    note.origin.clear();
+    note.originApp.clear();
+    if (!m_store->updateNote(note)) {
+        qWarning("Removing the origin failed: %s", qPrintable(m_store->lastError()));
+        m_removedOriginId = -1;
+        return;
+    }
+
+    // As saveEdit() does it: the list is not read from the store again, because
+    // nothing about which notes belong in it has changed.
+    m_model->replaceNote(index, note);
+    m_originText.clear();
+    showOrigin();
+    showOriginMessage();
+}
+
+void LibraryWindow::restoreOrigin()
+{
+    if (m_removedOriginId < 0) {
+        return;
+    }
+
+    // Out of the store and not out of the model: the text may have been edited
+    // in between, and writing the model's copy back would take that edit with
+    // it. A note that is gone meanwhile has nothing to write onto.
+    const std::optional<Note> stored = m_store->note(m_removedOriginId);
+    if (stored.has_value()) {
+        Note note = *stored;
+        note.origin = m_removedOrigin;
+        note.originApp = m_removedOriginApp;
+        if (m_store->updateNote(note)) {
+            const int index = m_model->noteIndexAt(m_model->rowOf(note.id));
+            if (index >= 0) {
+                m_model->replaceNote(index, note);
+            }
+            if (m_model->rowOf(note.id) == m_list->currentIndex().row()) {
+                m_originText = note.origin;
+                showOrigin();
+            }
+        } else {
+            qWarning("Putting the origin back failed: %s", qPrintable(m_store->lastError()));
+        }
+    }
+
+    m_removedOriginId = -1;
+    m_undoOriginAction->setEnabled(false);
+    m_message->animatedHide();
+}
+
+void LibraryWindow::showOriginMessage()
+{
+    // The band carries one button, and it has to be this one: the deletion's
+    // would take back a deletion.
+    m_message->removeAction(m_undoAction);
+    if (!m_message->actions().contains(m_undoOriginAction)) {
+        m_message->addAction(m_undoOriginAction);
+    }
+    m_undoOriginAction->setEnabled(true);
+    // One short line beside a button, as the deletion has it (wireframe 2b).
+    m_message->setWordWrap(false);
+    m_message->setMessageType(KMessageWidget::Information);
+    m_message->setText(i18n("Origin removed"));
+    if (!m_message->isVisible()) {
+        m_message->animatedShow();
+    }
+}
+
 bool LibraryWindow::isEditing() const
 {
     return m_editedNote.id >= 0;
@@ -1558,7 +1727,22 @@ void LibraryWindow::saveEdit()
         return;
     }
 
-    Note note = m_editedNote;
+    // **The row as it stands now, not the copy the editor was opened with.**
+    // updateNote() writes every column, and m_editedNote is a snapshot: what
+    // changed on the note while the editor stood is written back the way it
+    // was, silently. The origin is the case that made it visible — removed,
+    // then put back through the band's "Undo" while the editor was open, the
+    // save wrote the snapshot and took the restored value away again without a
+    // word (finding of the review, 29.08.2026). Every column a later story adds
+    // beside the text falls into the same hole; reading the row back is the one
+    // place that closes it for all of them.
+    const std::optional<Note> stored = m_store->note(m_editedNote.id);
+    if (!stored.has_value()) {
+        qWarning("The note being edited is gone: %s", qPrintable(m_store->lastError()));
+        return;
+    }
+
+    Note note = *stored;
     note.content = content;
     // SPEC 9: editing keeps category, tags and state and sets needs_reembed —
     // only the embedding ages with the text (7.2). The full-text index follows
@@ -1710,6 +1894,12 @@ void LibraryWindow::updateEditState()
         m_audioPlayer->stop();
     }
 
+    // And neither is its origin: showOrigin() takes the context menu off the
+    // line while the editor stands (issue #47). The band's "Undo" stays
+    // reachable — since saveEdit() reads the row back, a restored origin
+    // survives the save.
+    showOrigin();
+
     // The note under the editor is not up for deletion — the button is gone,
     // and so is the key behind it.
     m_deleteAction->setEnabled(!editing && hasNote);
@@ -1802,9 +1992,10 @@ void LibraryWindow::startFullExport()
 
 void LibraryWindow::showExportMessage(const QString &text, bool isError)
 {
-    // "Undo" belongs to the deletion alone; left standing in the band it would
-    // sit beside this line as a greyed out button.
+    // Neither "Undo" belongs to this line; left standing in the band one of
+    // them would sit beside it as a greyed out button.
     m_message->removeAction(m_undoAction);
+    m_message->removeAction(m_undoOriginAction);
     // The folder the user picked can be a long path, and without word wrap the
     // band widens the window until it fits. It costs the second row the
     // deletion saves, and this message has no button to put into it.

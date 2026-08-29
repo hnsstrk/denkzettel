@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 17:48+0200\n"
+"POT-Creation-Date: 2026-08-29 19:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,23 +18,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/analysis/classifier.cpp:130 src/analysis/suggester.cpp:88
+#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:89
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr ""
 
-#: src/analysis/classifier.cpp:138
+#: src/analysis/classifier.cpp:167
 #, kde-format
 msgid ""
 "The model answered with the category \"%1\", which is not one of the five."
 msgstr ""
 
-#: src/analysis/classifier.cpp:143
+#: src/analysis/classifier.cpp:172
 #, kde-format
 msgid "The model's answer carried no tag."
 msgstr ""
 
-#: src/analysis/embedder.cpp:51
+#: src/analysis/embedder.cpp:48
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr ""
@@ -74,17 +74,17 @@ msgstr ""
 msgid "Ollama's answer carried no embedding."
 msgstr ""
 
-#: src/analysis/suggester.cpp:93
+#: src/analysis/suggester.cpp:94
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:111
+#: src/analysis/suggester.cpp:112
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:178
+#: src/analysis/suggester.cpp:179
 #, kde-format
 msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
 msgstr ""
@@ -137,17 +137,17 @@ msgstr ""
 msgid "%1 left — the recording ends at %2."
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:554
+#: src/capture/recordingwindow.cpp:562
 #, kde-format
 msgid "Recording not saved"
 msgstr ""
 
-#: src/main.cpp:182
+#: src/main.cpp:230
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:183
+#: src/main.cpp:231
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -266,6 +266,19 @@ msgstr ""
 msgid "Interval:"
 msgstr ""
 
+#: src/settings/capturepage.cpp:17
+#, kde-format
+msgid "Store the note's origin"
+msgstr ""
+
+#: src/settings/capturepage.cpp:32
+#, kde-format
+msgid ""
+"Stored are the name of the application and the window title at the moment of "
+"capture. The title stands in the detail view and can be deleted there; the "
+"name of the application is not shown and goes with it."
+msgstr ""
+
 #: src/settings/exportpage.cpp:42
 #, kde-format
 msgid "There is no folder %1."
@@ -276,7 +289,7 @@ msgstr ""
 msgid "%1 cannot be written to."
 msgstr ""
 
-#: src/settings/exportpage.cpp:69 src/settings/voicenotespage.cpp:121
+#: src/settings/exportpage.cpp:69 src/settings/voicenotespage.cpp:136
 #, kde-format
 msgid "Browse…"
 msgstr ""
@@ -332,27 +345,32 @@ msgstr ""
 msgid "This folder can be written to."
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:57
+#: src/settings/settingsdialog.cpp:61
+#, kde-format
+msgid "Capture"
+msgstr ""
+
+#: src/settings/settingsdialog.cpp:63
 #, kde-format
 msgid "AI provider"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:59
+#: src/settings/settingsdialog.cpp:65
 #, kde-format
 msgid "Analysis"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:60
+#: src/settings/settingsdialog.cpp:66
 #, kde-format
 msgid "Export"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:62
+#: src/settings/settingsdialog.cpp:68
 #, kde-format
 msgid "Voice notes"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:64
+#: src/settings/settingsdialog.cpp:70
 #, kde-format
 msgid "Shortcuts"
 msgstr ""
@@ -373,55 +391,100 @@ msgstr ""
 msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:101
+#: src/settings/voicenotespage.cpp:78 src/ui/librarywindow.cpp:278
+#: src/ui/librarywindow.cpp:930 src/ui/librarywindow.cpp:1840
+#, kde-format
+msgid "Cancel"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:109
 #, kde-format
 msgctxt "@item:inlistbox a whisper.cpp model that is not on disk"
 msgid "%1 — not downloaded"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:107
+#: src/settings/voicenotespage.cpp:122
 #, kde-format
 msgid "Model size:"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:126
+#: src/settings/voicenotespage.cpp:141
 #, kde-format
 msgid "whisper-cli program:"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:146
+#: src/settings/voicenotespage.cpp:161
 #, kde-format
 msgid ""
 "%1 is not available; a recording cannot be converted for the transcription"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:208
+#: src/settings/voicenotespage.cpp:253
 #, kde-format
 msgctxt "@title:window"
 msgid "Choose the whisper-cli program"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:230
+#: src/settings/voicenotespage.cpp:275
 #, kde-format
 msgid "No program is set for the transcription"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:231
+#: src/settings/voicenotespage.cpp:276
 #, kde-format
 msgid "%1 is not an executable program"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:245
+#: src/settings/voicenotespage.cpp:298
+#, kde-format
+msgid ""
+"Download the model %1?\n"
+"\n"
+"The file is %2."
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:304
+#, kde-format
+msgctxt "@title:window"
+msgid "Download model"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:306
+#, kde-format
+msgid "Download"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:338
+#, kde-format
+msgid "Downloading %1: %2% of %3"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:377
+#, kde-format
+msgid "%1: the download was cancelled; expected at %2"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:378
+#, kde-format
+msgid "%1: the download failed: %2; expected at %3"
+msgstr ""
+
+#: src/settings/voicenotespage.cpp:398
 #, kde-format
 msgid "The earlier setting %1 names no model size known here; %2 is in use"
 msgstr ""
 
-#: src/settings/voicenotespage.cpp:261
+#: src/settings/voicenotespage.cpp:414
 #, kde-format
 msgid "Expected at %1"
 msgstr ""
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:112
+#: src/settings/voicenotespage.cpp:423
+#, kde-format
+msgid "Lies at %1"
+msgstr ""
+
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:124
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr ""
@@ -450,12 +513,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:84 src/shell/trayicon.cpp:121
+#: src/shell/globalshortcuts.cpp:84 src/shell/trayicon.cpp:133
 #, kde-format
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:132
+#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:144
 #, kde-format
 msgid "Record voice note"
 msgstr ""
@@ -503,44 +566,59 @@ msgid ""
 "then Denkzettel stays reachable through the icon in the system tray."
 msgstr ""
 
-#: src/shell/trayicon.cpp:107
+#: src/shell/trayicon.cpp:113
 #, kde-format
 msgid "Not available: %1"
 msgstr ""
 
-#: src/shell/trayicon.cpp:110
+#: src/shell/trayicon.cpp:122
 #, kde-format
 msgid "Transcription failed: %1"
 msgstr ""
 
-#: src/shell/trayicon.cpp:144
+#: src/shell/trayicon.cpp:156
 #, kde-format
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:151
+#: src/shell/trayicon.cpp:163
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:154
+#: src/shell/trayicon.cpp:166
 #, kde-format
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:164
+#: src/shell/trayicon.cpp:176
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
 
-#: src/shell/trayicon.cpp:174
+#: src/shell/trayicon.cpp:186
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:206
+#: src/shell/trayicon.cpp:218
 #, kde-format
 msgid "Quit"
+msgstr ""
+
+#: src/transcribe/modeldownload.cpp:123
+#, kde-format
+msgid "%1 is no model size known here"
+msgstr ""
+
+#: src/transcribe/modeldownload.cpp:132
+#, kde-format
+msgid "%1 could not be created"
+msgstr ""
+
+#: src/transcribe/modeldownload.cpp:233
+#, kde-format
+msgid "what arrived is not the model %1"
 msgstr ""
 
 #: src/transcribe/transcriber.cpp:147
@@ -558,47 +636,52 @@ msgstr ""
 msgid "%1 could not be started"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:295
+#: src/transcribe/transcriber.cpp:296
 #, kde-format
 msgid "The run was interrupted"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:349
+#: src/transcribe/transcriber.cpp:345
+#, kde-format
+msgid "Model %1 is missing. Download it under Settings → Voice notes."
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:369
 #, kde-format
 msgid "The note carries no audio file"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:354
+#: src/transcribe/transcriber.cpp:374
 #, kde-format
 msgid "The audio file %1 is missing"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:368
+#: src/transcribe/transcriber.cpp:388
 #, kde-format
 msgid "No working directory could be created"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:425
+#: src/transcribe/transcriber.cpp:446
 #, kde-format
 msgid "%1 wrote no transcript"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:432
+#: src/transcribe/transcriber.cpp:453
 #, kde-format
 msgid "The transcript is no JSON: %1"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:447
+#: src/transcribe/transcriber.cpp:468
 #, kde-format
 msgid "%1 returned no text"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:455
+#: src/transcribe/transcriber.cpp:476
 #, kde-format
 msgid "The transcript could not be saved"
 msgstr ""
 
-#: src/transcribe/transcriber.cpp:481
+#: src/transcribe/transcriber.cpp:502
 #, kde-format
 msgid "%1 did not finish within %2 seconds"
 msgstr ""
@@ -659,17 +742,17 @@ msgstr ""
 
 #. i18n() and must not depend on which KF6
 #. catalogue happens to be installed.
-#: src/ui/librarywindow.cpp:266 src/ui/librarywindow.cpp:793
+#: src/ui/librarywindow.cpp:266 src/ui/librarywindow.cpp:836
 #, kde-format
 msgid "Delete"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:271
+#: src/ui/librarywindow.cpp:271 src/ui/librarywindow.cpp:275
 #, kde-format
 msgid "Undo"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:272 src/ui/librarywindow.cpp:786
+#: src/ui/librarywindow.cpp:276 src/ui/librarywindow.cpp:829
 #, kde-format
 msgid "Edit"
 msgstr ""
@@ -679,136 +762,141 @@ msgstr ""
 #. The order the three appear in is the platform's. What this window fixes
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
-#: src/ui/librarywindow.cpp:273 src/ui/librarywindow.cpp:876
-#: src/ui/librarywindow.cpp:1654
+#: src/ui/librarywindow.cpp:277 src/ui/librarywindow.cpp:927
+#: src/ui/librarywindow.cpp:1838
 #, kde-format
 msgid "Save"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:274 src/ui/librarywindow.cpp:879
-#: src/ui/librarywindow.cpp:1656
-#, kde-format
-msgid "Cancel"
-msgstr ""
-
-#: src/ui/librarywindow.cpp:279
+#: src/ui/librarywindow.cpp:283
 #, kde-format
 msgctxt "@action"
 msgid "Export all notes…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:290
+#: src/ui/librarywindow.cpp:294
 #, kde-format
 msgctxt "@title:window"
 msgid "Library"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:300
+#: src/ui/librarywindow.cpp:304
 #, kde-format
 msgid "No notes yet"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:301
+#: src/ui/librarywindow.cpp:305
 #, kde-format
 msgid "Press Meta+N to capture a thought."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:310
+#: src/ui/librarywindow.cpp:314
 #, kde-format
 msgid "No matches"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:311 src/ui/librarywindow.cpp:1239
+#: src/ui/librarywindow.cpp:315 src/ui/librarywindow.cpp:1297
 #, kde-format
 msgid "Change the search term or clear the field."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:322
+#: src/ui/librarywindow.cpp:326
 #, kde-format
 msgid "No note selected"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:323
+#: src/ui/librarywindow.cpp:327
 #, kde-format
 msgid "Select a note on the left to read it."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:392
+#: src/ui/librarywindow.cpp:405
 #, kde-format
 msgctxt "@action"
 msgid "Edit note"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:393
+#: src/ui/librarywindow.cpp:406
 #, kde-format
 msgctxt "@action"
 msgid "Delete note"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:394
+#: src/ui/librarywindow.cpp:407
 #, kde-format
 msgctxt "@action"
 msgid "Undo deletion"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:434
+#: src/ui/librarywindow.cpp:449
 #, kde-format
 msgid "Note deleted — %1 s left"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:488
+#: src/ui/librarywindow.cpp:503
 #, kde-format
 msgid "Full-text search…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:581
+#: src/ui/librarywindow.cpp:596
 #, kde-format
 msgctxt "@item:inlistbox all note categories"
 msgid "All"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:592
+#: src/ui/librarywindow.cpp:607
 #, kde-format
 msgctxt "@item:inlistbox notes the analysis gave up on"
 msgid "Unclassified"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:608
+#: src/ui/librarywindow.cpp:623
 #, kde-format
 msgid "AI categories, automatic"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:774
+#: src/ui/librarywindow.cpp:811
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Remove origin"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:817
 #, kde-format
 msgid "Editing"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:867
+#: src/ui/librarywindow.cpp:918
 #, kde-format
 msgid "Category"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:870
+#: src/ui/librarywindow.cpp:921
 #, kde-format
 msgid "Tags"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:890
+#: src/ui/librarywindow.cpp:941
 #, kde-format
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1241
+#: src/ui/librarywindow.cpp:1299
 #, kde-format
 msgid "Every note has been classified."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1243
+#: src/ui/librarywindow.cpp:1301
 #, kde-format
 msgid "No note carries this category yet."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1633
+#: src/ui/librarywindow.cpp:1676
+#, kde-format
+msgid "Origin removed"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:1817
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -816,50 +904,50 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1637
+#: src/ui/librarywindow.cpp:1821
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1655
+#: src/ui/librarywindow.cpp:1839
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1732
+#: src/ui/librarywindow.cpp:1922
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
 "editor."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1749
+#: src/ui/librarywindow.cpp:1939
 #, kde-format
 msgctxt "@title:window"
 msgid "Export all notes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1757
+#: src/ui/librarywindow.cpp:1947
 #, kde-format
 msgid "Export running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1776
+#: src/ui/librarywindow.cpp:1966
 #, kde-format
 msgid "%1 note exported to %2."
 msgid_plural "%1 notes exported to %2."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:1789
+#: src/ui/librarywindow.cpp:1979
 #, kde-format
 msgid "%1 note is missing, see the log."
 msgid_plural "%1 notes are missing, see the log."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:1795
+#: src/ui/librarywindow.cpp:1985
 #, kde-format
 msgid "%1 note is without its recording, see the log."
 msgid_plural "%1 notes are without their recording, see the log."
@@ -900,63 +988,4 @@ msgstr ""
 #, kde-format
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:298
-#, kde-format
-msgid ""
-"Download the model %1?\n"
-"\n"
-"The file is %2."
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:304
-#, kde-format
-msgctxt "@title:window"
-msgid "Download model"
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:306
-#, kde-format
-msgid "Download"
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:338
-#, kde-format
-msgid "Downloading %1: %2% of %3"
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:377
-#, kde-format
-msgid "%1: the download was cancelled; expected at %2"
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:378
-#, kde-format
-msgid "%1: the download failed: %2; expected at %3"
-msgstr ""
-
-#: src/settings/voicenotespage.cpp:423
-#, kde-format
-msgid "Lies at %1"
-msgstr ""
-
-#: src/transcribe/modeldownload.cpp:123
-#, kde-format
-msgid "%1 is no model size known here"
-msgstr ""
-
-#: src/transcribe/modeldownload.cpp:132
-#, kde-format
-msgid "%1 could not be created"
-msgstr ""
-
-#: src/transcribe/modeldownload.cpp:233
-#, kde-format
-msgid "what arrived is not the model %1"
-msgstr ""
-
-#: src/transcribe/transcriber.cpp:345
-#, kde-format
-msgid "Model %1 is missing. Download it under Settings → Voice notes."
 msgstr ""

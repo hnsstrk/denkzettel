@@ -565,7 +565,8 @@ void SettingsTest::everyPageCarriesAnIcon()
     QVERIFY(list);
     const QAbstractItemModel *pages = list->model();
     QVERIFY(pages);
-    const QStringList expected{QStringLiteral("preferences-system-network-server"),
+    const QStringList expected{QStringLiteral("document-edit"),
+                               QStringLiteral("preferences-system-network-server"),
                                QStringLiteral("preferences-system-time"),
                                QStringLiteral("document-export"),
                                QStringLiteral("audio-input-microphone"),
