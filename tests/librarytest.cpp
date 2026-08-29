@@ -7,6 +7,7 @@
 #include "ui/timestampformat.h"
 
 #include <KLocalizedString>
+#include <KMessageWidget>
 
 #include <QAction>
 #include <QDialog>
@@ -15,6 +16,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QSplitter>
 #include <QApplication>
 #include <QLocale>
 #include <QPlainTextEdit>
@@ -194,6 +196,7 @@ private Q_SLOTS:
     void waitsWithTheNewNoteWhileADeletionIsCountingDown();
     void takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut();
     void takesUpTheWaitingNoteWhenTheDeletionIsUndone();
+    void takesTheOriginOffANoteAndPutsItBack();
     void keepsTheReadingPlaceWhenANoteArrives();
     void takesUpANewNoteOnlyWhenItMatchesTheRunningSearch();
     void marksTheTermsWhereTheyStandInTheText_data();
@@ -2269,6 +2272,91 @@ void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsCarriedOut()
     QCOMPARE(noteRow(list, 0).data(Qt::DisplayRole).toString(), QStringLiteral("gerade festgehalten"));
     QCOMPARE(noteRow(list, 1).data(Qt::DisplayRole).toString(), QStringLiteral("bleibt"));
     QVERIFY(!m_store->note(deleted).has_value());
+}
+
+void LibraryTest::takesTheOriginOffANoteAndPutsItBack()
+{
+    // SPEC 5.1, 13 and issue #47: the origin can be taken off in the detail
+    // view, without a confirmation and without touching the note text, and the
+    // band under the header takes it back.
+    //
+    // What the eye reaches — the line behind the timestamp, its elision, the
+    // context menu — is looked at and not asserted here. What is asserted is
+    // the half that would go unnoticed for weeks: that the removal reaches the
+    // database and that the undo puts both values back.
+    //
+    // The title is invented. A real one out of the session the user works in
+    // is personal data, and this repository is public.
+    Note carrying = noteWith(QStringLiteral("der Gedanke von nebenan"));
+    carrying.origin = QStringLiteral("Fenster A");
+    carrying.originApp = QStringLiteral("org.example.browser");
+    const std::optional<qint64> id = m_store->addNote(carrying);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    // The width the design was measured at (UX pass, 29.08.2026): at 900 px the
+    // head row has 256 px to spare beside the timestamp and the two buttons.
+    // Narrower than that the row is over budget and the origin gives its space
+    // up first — which is what "the buttons do not move" costs, and what the
+    // `Ignored` size policy is for.
+    window.resize(900, 700);
+    QVERIFY(QTest::qWaitFor([&window] { return window.width() == 900; }));
+    // And the reading pane wide enough to hold the line: how much of it is
+    // shown is a matter of the splitter, and what this case is about is what
+    // happens to the note, not how many characters fit.
+    auto *splitter = window.findChild<QSplitter *>();
+    QVERIFY(splitter);
+    splitter->setSizes({150, 200, 550});
+    QVERIFY(QTest::qWaitFor([splitter] { return splitter->sizes().constLast() > 400; }));
+
+    QListView *list = listOf(window);
+    list->setCurrentIndex(noteRow(list, 0));
+
+    // The line stands behind the timestamp and offers the entry — the
+    // assertion that the state is the loud one before the quiet one is
+    // asserted (CLAUDE.md, finding 27).
+    const QLabel *origin = nullptr;
+    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    for (const QLabel *label : labels) {
+        if (label->text().contains(carrying.origin)) {
+            origin = label;
+        }
+    }
+    QVERIFY2(origin, qPrintable(QStringLiteral("no label carries the origin: %1")
+                                    .arg(visibleLabels(window).join(QStringLiteral(" | ")))));
+    QCOMPARE(origin->contextMenuPolicy(), Qt::ActionsContextMenu);
+    QCOMPARE(origin->actions().size(), 1);
+
+    origin->actions().constFirst()->trigger();
+
+    std::optional<Note> stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QVERIFY(stored->origin.isEmpty());
+    QVERIFY(stored->originApp.isEmpty());
+    // Nothing else moved — the text is what SPEC 9 says this must not touch.
+    QCOMPARE(stored->content, carrying.content);
+    QVERIFY(origin->text().isEmpty());
+    QCOMPARE(origin->contextMenuPolicy(), Qt::NoContextMenu);
+
+    // And the way back is the band under the header, the same one a deletion is
+    // taken back with. Its button is not among the window's actions, or looking
+    // an action up by the word "Undo" would find two.
+    const auto *band = window.findChild<KMessageWidget *>();
+    QVERIFY(band);
+    QCOMPARE(band->actions().size(), 1);
+    QVERIFY(!actionNamed(window, QStringLiteral("Undo")) || actionNamed(window, QStringLiteral("Undo"))
+                != band->actions().constFirst());
+
+    band->actions().constFirst()->trigger();
+
+    stored = m_store->note(*id);
+    QVERIFY(stored.has_value());
+    QCOMPARE(stored->origin, carrying.origin);
+    QCOMPARE(stored->originApp, carrying.originApp);
+    QCOMPARE(stored->content, carrying.content);
+    QVERIFY(origin->text().contains(carrying.origin));
 }
 
 void LibraryTest::takesUpTheWaitingNoteWhenTheDeletionIsUndone()

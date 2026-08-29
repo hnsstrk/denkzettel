@@ -216,6 +216,36 @@ private:
     void deleteCurrentNote();
     void undoDeletion();
 
+    /**
+     * Takes the origin off the note in the pane, without touching its text
+     * (SPEC 5.1, 13; issue #47).
+     *
+     * Straight away and without a confirmation dialog — a window title is not
+     * worth one, and the way back is the "Undo" in the band under the header,
+     * the same one a deletion is taken back with (customer decision
+     * 29.08.2026). Not while the editor is open: saveEdit() writes the note it
+     * was opened with, and that copy still carries the origin.
+     */
+    void removeOrigin();
+
+    /** Writes the removed origin back onto the note (issue #47). */
+    void restoreOrigin();
+
+    /**
+     * Writes the origin behind the timestamp, elided to what is left over.
+     *
+     * A QLabel does not elide by itself, and left to it the head row would
+     * claim the width of the longest title ever shown as the window's minimum
+     * — measured by the UX pass on 29.08.2026 at 221 px for a long browser
+     * title against 256 px of free space at 900 px window width. So the label
+     * is told to ignore its own width wish and the text is cut to the width it
+     * really gets, which happens on every resize (eventFilter).
+     *
+     * Without an origin it says nothing at all: no placeholder, no separator
+     * with nothing behind it (acceptance criterion 5).
+     */
+    void showOrigin();
+
     /** True while the pane holds a note in the editor rather than in the reader. */
     bool isEditing() const;
 
@@ -258,6 +288,17 @@ private:
      */
     void showExportMessage(const QString &text, bool isError);
 
+    /**
+     * The band under the header with the "Undo" of the origin removal
+     * (issue #47).
+     *
+     * The third writer of that band beside the pending deletion and the export,
+     * and each of the three has to take the other's button out — left standing,
+     * an "Undo" of a deletion would sit beside this line and take back
+     * something else.
+     */
+    void showOriginMessage();
+
     /** Follows the edit state into buttons, rows, actions and search field. */
     void updateEditState();
 
@@ -267,6 +308,13 @@ private:
 
     QAction *m_deleteAction;
     QAction *m_undoAction;
+    /**
+     * "Undo" for the origin removal — a second action and not the deletion's.
+     *
+     * It carries no shortcut: two actions on Ctrl+Z in one window make the key
+     * ambiguous, and Qt then delivers it to neither.
+     */
+    QAction *m_undoOriginAction;
     QAction *m_editAction;
     QAction *m_saveAction;
     QAction *m_cancelEditAction;
@@ -313,6 +361,15 @@ private:
     QWidget *m_blankPage;
 
     QLabel *m_detailTimestamp;
+
+    /**
+     * The origin behind the timestamp, in the same type and the same colour
+     * role (wireframe 2a as decided on 29.08.2026, issue #47).
+     *
+     * It takes the room between the timestamp and the two buttons, so it is
+     * also what holds them apart — the head row needs no stretch of its own.
+     */
+    QLabel *m_detailOrigin;
 
     /**
      * The player of a voice note, between the head row and the transcript
@@ -396,6 +453,18 @@ private:
      */
     int m_deletedIndex = -1;
     Note m_deletedNote;
+
+    /**
+     * The note the pane is reading, as the origin label needs it: the full
+     * text to elide, and the id and the two values to write back.
+     *
+     * The id is below zero while nothing has been removed — that is what the
+     * band's "Undo" asks.
+     */
+    QString m_originText;
+    qint64 m_removedOriginId = -1;
+    QString m_removedOrigin;
+    QString m_removedOriginApp;
 
     /**
      * True while a note written meanwhile waits for a running deletion to end
