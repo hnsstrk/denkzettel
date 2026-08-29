@@ -439,6 +439,30 @@ find.
     failures, one attempt left on the first note and two on the second — and use
     the idle state only after that number is in.
 
+33. **A green `makepkg` on the development machine says nothing about
+    `depends` — every package it would name is already installed there.**
+    Measured 2026-08-29 on #41: `makepkg -e --nobuild` printed its two
+    dependency-check lines and nothing else, both with `kxmlgui` in `depends`
+    and with that line deleted. makepkg asks `pacman -T`, which
+    answers "satisfied" for a name that is installed and stays silent about a
+    name that is not written down at all — so the run that builds the package
+    is exactly the run in which a forgotten dependency cannot show up. The
+    package builds, installs, starts, and fails on the first machine that does
+    not happen to have the library. Two checks do carry, and neither needs a
+    clean chroot: whether every declared name resolves to a package
+    (`pacman -Ssq "^name$"`, which catches a typo), and whether the package
+    owning each `DT_NEEDED` entry of the built binary stands in the dependency
+    closure of what `depends` declares (`readelf -d` plus `ldd`, `pacman -Qoq`
+    and `pactree -u` — namcap's check, done by hand because namcap is not
+    installed here). Both were run against a control that came out different:
+    with `kxmlgui` and `kstatusnotifieritem` struck from the list the second
+    check named exactly those two libraries as uncovered, and a deliberately
+    misspelt `kxmlgu1` was the only name the first one rejected. **What neither
+    of them reaches** is a runtime dependency that is not linked — `ffmpeg` as
+    a program, `libplasma` as theme data, `breeze-icons` as icons. Those are
+    read out of the code and out of SPEC 15, and a machine that has them
+    installed can never contradict the list.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
@@ -470,8 +494,13 @@ guessing.
 
 ## Closing out
 
-Changelog line, version in `CMakeLists.txt`, tag `vX.Y.Z`, close issues and
-milestone.
+Changelog line, version in `CMakeLists.txt`, `pkgver` in `packaging/PKGBUILD`,
+tag `vX.Y.Z`, close issues and milestone.
+
+`pkgver` is the one copy of the version number outside `CMakeLists.txt`
+(SPEC 15.1 allows the program only one source, and this is not one the program
+reads). It has to move with the tag, because the PKGBUILD's `source` fetches
+`v$pkgver` — left behind, `makepkg` silently builds the previous release.
 
 Whoever draws a lesson writes it in here. The next session does not read a log.
 

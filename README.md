@@ -66,7 +66,6 @@ is written down and not built:
   `denkzettelrc` or not at all.
 - **Search operators** (`tag:`, date ranges and the rest of SPEC 6). The search
   takes plain terms today and combines them with AND.
-- **Packages.** Denkzettel is built from source; there is no PKGBUILD yet.
 
 What is currently being worked on is in the
 [issues](https://github.com/hnsstrk/denkzettel/issues); the binding
@@ -136,6 +135,35 @@ read from `/etc/xdg/autostart`, which is where the prefix `/usr` puts it.
 
 Afterwards start `denkzetteld` once or log in again; from then on the autostart
 entry does it.
+
+### As a package (Arch and derivatives)
+
+`packaging/PKGBUILD` builds the same state as a package, out of the git tag of
+the version it names:
+
+```sh
+cd packaging
+makepkg -si
+```
+
+`makepkg` fetches the missing build dependencies itself, runs the test set, and
+`-i` hands the finished package to `pacman`. The prefix is `/usr`, so the
+autostart entry lands in `/etc/xdg/autostart` and Plasma's shortcut service
+finds the desktop file — the same two conditions the source installation above
+has. What the package brings besides the program: the desktop entry, the
+autostart entry of the same name, the AppStream description, both icons and the
+German catalogue. There is no `.notifyrc` of Denkzettel's own — the warning
+sound of the guard dialog is Plasma's `messageWarning` event (SPEC 9).
+
+`whisper-cpp` and a GGML backend stay **optional** and are named as
+`optdepends`: without them a voice note keeps its recording and stays playable,
+and the reason stands in the job line of the database and in the journal
+(`journalctl --user -t denkzetteld`).
+
+`pkgver` is the second place the version number lives. It follows
+`project(denkzettel VERSION …)` of the root `CMakeLists.txt` and the tag of the
+same number — the two change together, or `makepkg` fetches a different release
+than the one the working copy holds.
 
 ### Updating from an older version
 
@@ -411,6 +439,7 @@ tests/          unit tests and the screenshot runner
 po/             message catalogues (German)
 icons/          application and tray icons
 desktop/        the desktop entry
+packaging/      the PKGBUILD for Arch and derivatives
 cmake/          helper modules for the lint targets
 wireframes/     the binding drawings
 docs/           the images used in this file

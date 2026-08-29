@@ -1,0 +1,114 @@
+# Maintainer: hnsstrk <https://github.com/hnsstrk>
+#
+# The package for Arch and derivatives (SPEC 15, issue #41).
+#
+# pkgver is the second place the version number lives — the first and binding
+# one is project(denkzettel VERSION …) in the root CMakeLists.txt (SPEC 15.1).
+# The two only ever change together, in the closing procedure of CLAUDE.md,
+# because `source` below fetches the tag of exactly this number.
+
+pkgname=denkzettel
+pkgver=0.7.0
+pkgrel=1
+pkgdesc='Quick-capture tool for KDE Plasma — capture thoughts quickly and sort them later'
+arch=('x86_64')
+url='https://github.com/hnsstrk/denkzettel'
+license=('MIT')
+
+depends=(
+    # Widgets, Sql (the SQLite driver of SPEC 5.1), DBus (single instance,
+    # service interface, and the question to KWin whether this session blurs).
+    'qt6-base'
+    'qt6-multimedia'
+    # NOT transitive and not interchangeable: qt6-multimedia depends on the
+    # virtual qt6-multimedia-backend, which has two providers. Opus in OGG —
+    # what SPEC 4 records — is what the ffmpeg one writes; which of the two
+    # pacman picks otherwise follows the sync database and not this project.
+    'qt6-multimedia-ffmpeg'
+    'kcolorscheme'
+    'kconfig'
+    'kcoreaddons'
+    'kdbusaddons'
+    'kglobalaccel'
+    'ki18n'
+    'knotifications'
+    'kstatusnotifieritem'
+    'ksvg'
+    'kwidgetsaddons'
+    'kwindowsystem'
+    # The about dialog behind the tray entry is KAboutApplicationDialog, and it
+    # lives here (issue #87). Left out, the package builds and the service does
+    # not start — a fault a package only shows on somebody else's machine.
+    'kxmlgui'
+    # Not linked, and needed all the same: it ships the desktop themes under
+    # /usr/share/plasma/desktoptheme, and KSvg draws the hull of the capture
+    # window out of one of them (SPEC 3.1).
+    'libplasma'
+    # Likewise data, not a library: QIcon::fromTheme() reads empty names
+    # without it, so the tray and the library window lose their icons.
+    'breeze-icons'
+    # Our own icon is installed into the hicolor theme, and the index.theme
+    # that makes that directory a theme at all belongs to this package.
+    # Breeze inherits from hicolor rather than carrying it, so nothing in the
+    # dependency closure of the packages above brings it in — measured.
+    'hicolor-icon-theme'
+    # The program, not the libraries. The transcription converts a recording
+    # into a temporary 16 kHz mono WAV with it before whisper-cli sees it
+    # (SPEC 12). qt6-multimedia-ffmpeg pulls the package in today; transitive
+    # is no promise.
+    'ffmpeg'
+)
+
+makedepends=(
+    'cmake'
+    'extra-cmake-modules'
+    # msgfmt, for the message catalogues ki18n_install() compiles.
+    'gettext'
+    # The source is a git tag.
+    'git'
+    # appstreamcli. The configuration stops without it: the test run validates
+    # the AppStream description a software centre reads (issue #73). It stands
+    # here rather than in checkdepends because the configuration happens in
+    # build(), so `makepkg --nocheck` needs it just as much.
+    'appstream'
+)
+
+checkdepends=(
+    # The `kde` platform theme. Without it the run falls back to Fusion and to
+    # empty icons, and the sets that render or compare strings would be
+    # measuring a different style than the one the program ships in.
+    'plasma-integration'
+)
+
+optdepends=(
+    'whisper-cpp: transcription of voice notes (SPEC 12)'
+    'ggml-vulkan: Vulkan backend for whisper-cpp, ggml-hip under ROCm'
+)
+
+source=("git+$url.git#tag=v$pkgver")
+sha256sums=('SKIP')
+
+build() {
+    # Prefix /usr is not cosmetic: only there does the XDG autostart entry land
+    # in /etc/xdg/autostart, and only a system-wide desktop file is found by
+    # Plasma's shortcut service (SPEC 2.4, 2.5).
+    cmake -B build -S "$pkgname" \
+        -DCMAKE_BUILD_TYPE=None \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_TESTING=ON \
+        -Wno-dev
+    cmake --build build
+}
+
+check() {
+    # No compositor here. Four sets set the same value per test themselves
+    # (tests/CMakeLists.txt); this line covers the remaining ones.
+    QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    # MIT carries its text in the package: the licence names the copyright
+    # holder, so the shared copy under /usr/share/licenses/common does not do.
+    install -Dm644 "$pkgname/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

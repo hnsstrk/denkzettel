@@ -46,6 +46,7 @@ private Q_SLOTS:
     void takesUpAJobLeftBehindByAKilledRun();
     void pausesAfterTwoAttemptsAndKeepsTheJobLine();
     void givesUpOnARunThatHangs();
+    void namesTheProgramWhenItIsNotInstalledAtAll();
     void clearsTheWorkingDirectoryOfAKilledRun();
     void deletingANoteTakesItsJobWithIt();
 
@@ -529,6 +530,41 @@ void TranscribeTest::givesUpOnARunThatHangs()
         QVERIFY2(!QFile::exists(QStringLiteral("/proc/%1").arg(pid)),
                  qPrintable(QStringLiteral("process %1 outlived its job").arg(pid)));
     }
+}
+
+void TranscribeTest::namesTheProgramWhenItIsNotInstalledAtAll()
+{
+    Transcriber transcriber(m_store.get());
+    // whisper.cpp is an **optional** dependency of the package (SPEC 15, issue
+    // #41): the program is meant to stay usable without it. That is a different
+    // road than the case above — a program that is not there never starts, so
+    // QProcess emits errorOccurred and no finished() ever follows. Without the
+    // handler on that signal the job would neither fail nor be counted, and the
+    // queue would stand still with nothing said anywhere.
+    const QString absent = m_dir->filePath(QStringLiteral("whisper-cli-not-installed"));
+    QVERIFY(!QFile::exists(absent));
+    transcriber.setWhisperProgram(absent);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&transcriber, &Transcriber::failed);
+
+    const qint64 id = addVoiceNote();
+    QVERIFY(id > 0);
+
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() == Store::transcribeAttemptLimit; }, 30000));
+
+    // The reason names the program that is missing. Without the name the user
+    // looks for the fault in their recording.
+    const std::optional<TranscribeJob> job = m_store->transcribeJob(id);
+    QVERIFY(job.has_value());
+    QVERIFY2(job->lastError.contains(absent), qPrintable(job->lastError));
+
+    // And nothing is lost: the note keeps its audio and stays playable, exactly
+    // as after a program that ran and failed.
+    const std::optional<Note> note = m_store->note(id);
+    QVERIFY(note.has_value());
+    QVERIFY(note->content.isEmpty());
+    QCOMPARE(note->state, Note::State::New);
+    QVERIFY(QFile::exists(m_store->audioDirectory() + QLatin1Char('/') + note->audioPath));
 }
 
 void TranscribeTest::clearsTheWorkingDirectoryOfAKilledRun()
