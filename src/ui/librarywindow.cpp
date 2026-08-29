@@ -12,6 +12,7 @@
 #include "ui/timestampformat.h"
 
 #include <KConfigGroup>
+#include <KDesktopFile>
 #include <KGuiItem>
 #include <KHamburgerMenu>
 #include <KLocalizedString>
@@ -45,6 +46,7 @@
 #include <QScrollBar>
 #include <QSplitter>
 #include <QStackedWidget>
+#include <QStandardPaths>
 #include <QTextBrowser>
 #include <QTimer>
 #include <QTreeWidget>
@@ -130,6 +132,62 @@ QString categoryLabel(const QString &value)
         }
     }
     return value;
+}
+
+/**
+ * The origin of a note as one readable line: the application in front of the
+ * window title (SPEC 5.1, 13; issue #47).
+ *
+ * `notes.origin_app` was stored from the first version of this story and shown
+ * nowhere — the id was held to be there for the classification of SPEC 7 and
+ * not for reading. The customer's report of 29.08.2026 overturned that: a
+ * terminal writes the work into its title and its own name into nothing, so
+ * „Sprint triage: roadmap Q3-Q4" says what was being done and not that it was
+ * being done in a terminal. The application therefore stands in front, where
+ * an elision from the right cannot reach it.
+ *
+ * **The id becomes a name here and not at capture time.** The desktop file is
+ * read again on every showing, so a renamed or freshly installed application
+ * reads correctly instead of a name frozen months ago, and nothing is stored
+ * that a third column would have to keep in step — SPEC 5.1 names two columns
+ * and says why. The price is one file lookup per note *shown in the pane*, one
+ * at a time on selection; the list carries no origin at all (customer decision
+ * 29.08.2026), so this is not a lookup per row.
+ *
+ * **Where the lookup fails the raw id stands.** Not every `app_id` has a
+ * desktop file and not every desktop file is named after it, and
+ * „com.mitchellh.ghostty" still says which program it was — dropping it would
+ * put the line back where the report found it. `QStandardPaths` plus
+ * `KDesktopFile` rather than `KService::serviceByDesktopName()`: the same
+ * answer for the same names, out of KF6::ConfigCore, which is linked here —
+ * KService would be a framework more in `find_package` and in the package's
+ * `depends` for four lines.
+ *
+ * With no id the title stands alone and with no title the application does: a
+ * separator with nothing behind it reads as a half sentence.
+ */
+QString originLine(const QString &title, const QString &appId)
+{
+    QString application = appId;
+    if (!appId.isEmpty()) {
+        const QString file = QStandardPaths::locate(QStandardPaths::ApplicationsLocation,
+                                                    appId + QStringLiteral(".desktop"));
+        if (!file.isEmpty()) {
+            const QString name = KDesktopFile(file).readName();
+            if (!name.isEmpty()) {
+                application = name;
+            }
+        }
+    }
+
+    if (application.isEmpty()) {
+        return title;
+    }
+    if (title.isEmpty()) {
+        return application;
+    }
+    return i18nc("@info the origin of a note: application, then the window title",
+                 "%1 · %2", application, title);
 }
 
 /** Edge length of the icon above an empty-state text. */
@@ -1503,8 +1561,8 @@ void LibraryWindow::showNoteText(const QModelIndex &index)
     // The detail pane stands under no head and keeps the full timestamp.
     m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QLocale()));
 
-    // And the origin behind it, or nothing at all (SPEC 5.1, 13; issue #47).
-    m_originText = note.origin;
+    // And the origin under it, or nothing at all (SPEC 5.1, 13; issue #47).
+    m_originText = originLine(note.origin, note.originApp);
     showOrigin();
 
     // The player belongs to a voice note and to no other, and it is set even
@@ -1587,8 +1645,9 @@ void LibraryWindow::showOrigin()
         return;
     }
 
-    // No separator any more: „ · " carried the join to the timestamp, and the
-    // line does not stand behind it.
+    // The „ · " inside the text joins the application to the window title and
+    // no longer this line to the timestamp — originLine() writes it, and only
+    // where there is something on both sides of it.
     m_detailOrigin->setText(m_detailOrigin->fontMetrics().elidedText(m_originText, Qt::ElideRight,
                                                                      m_detailOrigin->width()));
 }
@@ -1648,7 +1707,7 @@ void LibraryWindow::restoreOrigin()
                 m_model->replaceNote(index, note);
             }
             if (m_model->rowOf(note.id) == m_list->currentIndex().row()) {
-                m_originText = note.origin;
+                m_originText = originLine(note.origin, note.originApp);
                 showOrigin();
             }
         } else {

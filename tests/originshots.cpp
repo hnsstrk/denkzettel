@@ -11,6 +11,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QSplitter>
+#include <QStandardPaths>
 #include <QStyle>
 #include <QTemporaryDir>
 #include <QTest>
@@ -26,11 +27,26 @@
  * (CLAUDE.md, rule 4).
  *
  * Beside every picture it prints what it drew with and what it measured — the
- * style it resolved, the two colours, the width the origin line really got and
- * where the two buttons stand. Those numbers are the reason the design of this
- * story was decided twice: behind the timestamp the line had 57 to 74 logical
- * pixels of the 256 the drawing reckoned with, so a browser title came out as
- * „· Firefox — …". It stands under the head row since, and gets 416.
+ * style it resolved, the two colours, the rectangle the origin line really got
+ * and where the two buttons stand. Those numbers are the reason the design of
+ * this story was decided twice: behind the timestamp the line had 57 to 74
+ * logical pixels of the 256 the drawing reckoned with, so a browser title came
+ * out as „· Firefox — …". It stands under the head row since, and gets 416.
+ *
+ * The rectangle is printed in device pixels because a picture difference is
+ * read against it (CLAUDE.md, finding 64): a difference box that begins inside
+ * the line looks exactly like a line that has moved, and only a geometry taken
+ * from outside the picture tells the two apart.
+ *
+ * **The application in front of the title is the second decision of this
+ * story** (customer report 29.08.2026), and the three cases it can come out in
+ * are three pictures here: an id with a desktop file, one without, and a note
+ * that carries no id at all. The resolvable one is a desktop file this run
+ * writes itself into an `XDG_DATA_HOME` of its own — a real application of the
+ * machine would make the picture depend on what happens to be installed, and
+ * `/usr/share/applications` stays reachable whatever a run stages
+ * (finding 21). Both lookups are printed, so the run says that one of them
+ * found a file and the other did not.
  *
  * Every note and every window title here is invented. The repository is public
  * and a window title is personal data, so no run of this may ever take its
@@ -110,6 +126,19 @@ int main(int argc, char **argv)
         plasma.close();
     }
 
+    // The desktop file behind the one origin whose id resolves. Invented, and
+    // written here rather than taken off the machine: what is installed on the
+    // machine running this is no part of the picture, and an id nobody ships
+    // is the only one that is unresolvable everywhere.
+    const QTemporaryDir share;
+    qputenv("XDG_DATA_HOME", share.path().toLocal8Bit());
+    QDir().mkpath(share.path() + QStringLiteral("/applications"));
+    QFile entry(share.path() + QStringLiteral("/applications/com.example.terminal.desktop"));
+    if (entry.open(QIODevice::WriteOnly)) {
+        entry.write("[Desktop Entry]\nType=Application\nName=Sample Terminal\nExec=false\n");
+        entry.close();
+    }
+
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QApplication app(argc, argv);
     app.setApplicationName(QStringLiteral("denkzettel"));
@@ -122,6 +151,16 @@ int main(int argc, char **argv)
              qUtf8Printable(app.palette().color(QPalette::Text).name()),
              qUtf8Printable(app.palette().color(QPalette::PlaceholderText).name()));
 
+    // The control that has to come out different: one id has a desktop file
+    // and the other has none. Without this line the two pictures would only
+    // say what they show, not that the run really looked twice.
+    for (const QString &id : {QStringLiteral("com.example.terminal"),
+                              QStringLiteral("com.example.unpackaged")}) {
+        qWarning("desktop file for %s: %s", qUtf8Printable(id),
+                 qUtf8Printable(QStandardPaths::locate(QStandardPaths::ApplicationsLocation,
+                                                       id + QStringLiteral(".desktop"))));
+    }
+
     const QString directory = QString::fromLocal8Bit(argv[1]);
     QDir().mkpath(directory);
 
@@ -131,19 +170,28 @@ int main(int argc, char **argv)
         qFatal("store: %s", qUtf8Printable(store.lastError()));
     }
 
-    // Three notes, newest first: one without an origin, one whose title fits,
-    // and one whose title is that title twice over and has to be cut.
+    // Four notes, newest first: one without an origin, one whose id resolves to
+    // a name, one whose id resolves to nothing, and one whose title has to be
+    // cut.
+    //
+    // The two middle titles are the customer's case of 29.08.2026: a terminal
+    // writes the work into its title and its own name into nothing, so the
+    // title alone leaves the line saying what was being done and not where.
     add(store, QStringLiteral("Keep listening to the podcast about sleep phases, from minute 40"),
         QStringLiteral("2026-07-31T15:04:00"), QString(), QString());
     add(store, QStringLiteral("Idea: have the summer photos printed as a small photo book."),
         QStringLiteral("2026-07-31T09:12:00"),
-        QStringLiteral("Firefox — Human Interface Guidelines · Developer"),
-        QStringLiteral("org.mozilla.firefox"));
+        QStringLiteral("Sprint triage: roadmap Q3-Q4"),
+        QStringLiteral("com.example.terminal"));
     add(store, QStringLiteral("Never pack book boxes heavier than 15 kg."),
         QStringLiteral("2026-07-30T21:38:00"),
-        QStringLiteral("Firefox — Human Interface Guidelines · Developer — Human Interface "
+        QStringLiteral("Sprint triage: roadmap Q3-Q4"),
+        QStringLiteral("com.example.unpackaged"));
+    add(store, QStringLiteral("Ask again about the delivery date before the end of the month."),
+        QStringLiteral("2026-07-30T08:15:00"),
+        QStringLiteral("Human Interface Guidelines · Developer — Human Interface "
                        "Guidelines · Developer"),
-        QStringLiteral("org.mozilla.firefox"));
+        QStringLiteral("com.example.terminal"));
 
     LibraryWindow window(&store);
     window.resize(900, 700);
@@ -161,6 +209,7 @@ int main(int argc, char **argv)
 
     const QStringList names{QStringLiteral("47-ohne-herkunft.png"),
                             QStringLiteral("47-eigene-zeile.png"),
+                            QStringLiteral("47-herkunft-ohne-desktop-datei.png"),
                             QStringLiteral("47-eigene-zeile-gekuerzt.png")};
 
     for (int note = 0; note < model->noteCount() && note < names.size(); ++note) {
@@ -179,8 +228,15 @@ int main(int argc, char **argv)
             }
         }
         const QLabel *line = originLine(window);
-        qWarning("%s  origin line visible=%d w=%d text=%s", qUtf8Printable(names.at(note)),
-                 line ? int(line->isVisible()) : -1, line ? line->width() : -1,
+        // The rectangle in device pixels, which is what a picture difference is
+        // held against (finding 64) — and the text beside it, which says only
+        // that the value is set, never that it is visible (finding 51).
+        const qreal ratio = window.devicePixelRatioF();
+        const QPoint at = line ? line->mapTo(&window, QPoint(0, 0)) : QPoint(-1, -1);
+        qWarning("%s  origin line visible=%d device x=%d..%d y=%d..%d text=%s",
+                 qUtf8Printable(names.at(note)), line ? int(line->isVisible()) : -1,
+                 int(at.x() * ratio), int((at.x() + (line ? line->width() : 0)) * ratio),
+                 int(at.y() * ratio), int((at.y() + (line ? line->height() : 0)) * ratio),
                  line ? qUtf8Printable(line->text()) : "");
         qWarning("%s  splitter %d/%d/%d", qUtf8Printable(names.at(note)), splitter->sizes().at(0),
                  splitter->sizes().at(1), splitter->sizes().at(2));
