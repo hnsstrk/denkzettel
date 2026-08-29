@@ -5,6 +5,7 @@
 #include "store/searchquery.h"
 #include "store/store.h"
 #include "ui/audioplayer.h"
+#include "ui/notechips.h"
 #include "ui/notelistdelegate.h"
 #include "ui/notelistmodel.h"
 #include "ui/pendingdeletion.h"
@@ -31,6 +32,7 @@
 #include <QFileDialog>
 #include <QFontDatabase>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QIcon>
 #include <QLabel>
 #include <QLineEdit>
@@ -45,6 +47,7 @@
 #include <QStackedWidget>
 #include <QTextBrowser>
 #include <QTimer>
+#include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QWindow>
 
@@ -56,11 +59,78 @@ constexpr int WindowHeight = 600;
 /** Width of the note list, as in wireframe 2b. */
 constexpr int ListWidth = 300;
 
+/** Width of the category column, as in wireframe 1b. */
+constexpr int SidebarWidth = 158;
+
 /**
  * How far the splitter may squeeze the list. Two lines of preview need room —
  * below this the list stops being a list of readable notes.
  */
 constexpr int MinimumListWidth = 220;
+
+/** The longest label of the category column plus its counter, measured at 1x. */
+constexpr int MinimumSidebarWidth = 120;
+
+/** Which notes the selected entry of the category column lets through. */
+enum class CategoryFilter : std::uint8_t {
+    /** Everything the search field left over. */
+    All,
+    /** The notes carrying the short form in ValueRole. */
+    Category,
+    /** The notes whose classification attempts are used up (SPEC 7.2). */
+    Unclassified,
+};
+
+/** Roles the entries of the category column carry their filter in. */
+constexpr int FilterRole = Qt::UserRole;
+constexpr int ValueRole = Qt::UserRole + 1;
+
+/** One entry of the category column: the stored short form and its label. */
+struct CategoryEntry {
+    QLatin1StringView value;
+    QString label;
+};
+
+/**
+ * The five categories of SPEC 6 with the labels wireframe 1b writes beside
+ * their counters.
+ *
+ * The short form is what stands in `notes.category` and what `kat:` compares
+ * against; the readable label is a matter of the user interface and is made
+ * **here and nowhere else** (SPEC 7.2). Fixed rather than read out of the
+ * database: the classifier accepts no other value, and an entry generated from
+ * the contents would give the column a shape that changes with them.
+ */
+QList<CategoryEntry> categoryEntries()
+{
+    return {
+        {QLatin1StringView("todos"), i18nc("@item:inlistbox note category", "TODOs")},
+        {QLatin1StringView("ideen"), i18nc("@item:inlistbox note category", "Ideas")},
+        {QLatin1StringView("cli"), i18nc("@item:inlistbox note category", "CLI commands")},
+        {QLatin1StringView("persoenlich"), i18nc("@item:inlistbox note category", "Personal")},
+        {QLatin1StringView("software"), i18nc("@item:inlistbox note category", "Software ideas")},
+    };
+}
+
+/**
+ * The readable label of a stored category value.
+ *
+ * A value the list of SPEC 6 does not know is handed back as it stands: an
+ * older database can carry one, the classifier of issue #14 rejects it, and
+ * such a note is reachable through "All" and through the search — it gets no
+ * entry of its own, or a value nothing writes any more would become a heading
+ * for good.
+ */
+QString categoryLabel(const QString &value)
+{
+    const QList<CategoryEntry> entries = categoryEntries();
+    for (const CategoryEntry &entry : entries) {
+        if (entry.value == value) {
+            return entry.label;
+        }
+    }
+    return value;
+}
 
 /** Edge length of the icon above an empty-state text. */
 constexpr int PlaceholderIconSize = 48;
@@ -176,6 +246,10 @@ QWidget *placeholderPage(const QString &title, const QString &hint, bool withIco
     layout->addWidget(titleLabel);
 
     QLabel *hintLabel = subtleLabel(hint, page);
+    // Named so that the caller can reach it again: the "No matches" page says
+    // something else for an empty category than for a search without a hit
+    // (issue #18).
+    hintLabel->setObjectName(QStringLiteral("hint"));
     hintLabel->setAlignment(Qt::AlignCenter);
     hintLabel->setWordWrap(true);
     layout->addWidget(hintLabel);
@@ -226,12 +300,18 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_emptyLibraryPage = placeholderPage(i18n("No notes yet"),
                                          i18n("Press Meta+N to capture a thought."),
                                          true);
+    // Named so that the check of issue #88 can look at this page alone: it
+    // tells heading from hint by their text role, and the window carries other
+    // labels in those roles — the foot of the category column among them.
+    m_emptyLibraryPage->setObjectName(QStringLiteral("emptyLibraryPage"));
     // A search without a hit is not an empty library: it says something else,
     // and it carries no icon — the icon belongs to the first start, not to a
     // state the user leaves again by typing (wireframe 2c).
     m_noResultsPage = placeholderPage(i18n("No matches"),
                                       i18n("Change the search term or clear the field."),
                                       false);
+    m_noResultsHint = m_noResultsPage->findChild<QLabel *>(QStringLiteral("hint"));
+    Q_ASSERT(m_noResultsHint);
     m_listPages->addWidget(m_list);
     m_listPages->addWidget(m_emptyLibraryPage);
     m_listPages->addWidget(m_noResultsPage);
@@ -249,11 +329,14 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_detailPages->addWidget(m_noSelectionPage);
     m_detailPages->addWidget(m_blankPage);
 
+    m_splitter->addWidget(buildSidebar());
     m_splitter->addWidget(m_listPages);
     m_splitter->addWidget(m_detailPages);
-    m_splitter->setStretchFactor(1, 1);
+    // The surplus width belongs to the reading pane: the category column and
+    // the list are both as wide as their contents need (wireframe 1b).
+    m_splitter->setStretchFactor(2, 1);
     m_splitter->setChildrenCollapsible(false);
-    m_splitter->setSizes({ListWidth, WindowWidth - ListWidth});
+    m_splitter->setSizes({SidebarWidth, ListWidth, WindowWidth - ListWidth - SidebarWidth});
 
     // SPEC 9 deletes for good after five seconds, so the message belongs into
     // the window under the header rather than into a screen corner, and it has
@@ -379,7 +462,11 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     create();
     KWindowConfig::restoreWindowSize(windowHandle(), windowGroup());
     resize(windowHandle()->size());
-    m_splitter->restoreState(windowGroup().readEntry("SplitterState", QByteArray()));
+    // A key of its own since the category column came (issue #18): QSplitter
+    // hands a state of two panes to the first two of three, which would put the
+    // column where the note list belongs. What stood under the old key stays
+    // unread and the sizes above hold instead.
+    m_splitter->restoreState(windowGroup().readEntry("ColumnSizes", QByteArray()));
 
     updatePages();
     updateEditState();
@@ -432,6 +519,168 @@ QWidget *LibraryWindow::buildHeader()
     layout->addLayout(row);
 
     return header;
+}
+
+QWidget *LibraryWindow::buildSidebar()
+{
+    auto *sidebar = new QWidget(this);
+    // Below this the longest label ("Software ideas") and its counter no longer
+    // stand side by side, and the column stops saying what it counts.
+    sidebar->setMinimumWidth(MinimumSidebarWidth);
+
+    m_categories = new QTreeWidget(sidebar);
+    m_categories->setColumnCount(2);
+    m_categories->setHeaderHidden(true);
+    m_categories->setRootIsDecorated(false);
+    // A flat list in a tree: without this every entry would keep the room a
+    // branch marker needs, and none of them has children.
+    m_categories->setIndentation(0);
+    m_categories->setUniformRowHeights(true);
+    m_categories->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_categories->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_categories->setFrameShape(QFrame::NoFrame);
+    m_categories->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    // The label takes what is left, the counter what it needs — the two-column
+    // division of wireframe 1b.
+    //
+    // The smallest section has to be said, and that is not a nicety: measured
+    // 29.08.2026, the style's own minimum is 100 px, so the counter column took
+    // 100 of the 158 the sidebar is wide, the labels elided to "CLI com…" and
+    // the numbers stood outside the viewport — a column of headings with no
+    // counters at all. A counter is at most four digits wide.
+    //
+    // And the stretch of the last section has to go, or the counter column
+    // keeps that 100 px whatever its resize mode says — a QTreeView switches
+    // it on by itself, and it beats the mode.
+    m_categories->header()->setMinimumSectionSize(20);
+    m_categories->header()->setStretchLastSection(false);
+    m_categories->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_categories->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+
+    // One ground for the whole column, and a different one from the note list
+    // beside it (wireframe 1b): the tree draws on `Base` like every item view,
+    // the foot note below it on `Window`, and the two would show as a band.
+    m_categories->viewport()->setBackgroundRole(QPalette::Window);
+
+    const auto entry = [this](const QString &label, CategoryFilter kind, QLatin1StringView value) {
+        auto *item = new QTreeWidgetItem(m_categories, {label, QString()});
+        item->setData(0, FilterRole, static_cast<int>(kind));
+        item->setData(0, ValueRole, QString(value));
+        item->setTextAlignment(1, Qt::AlignRight | Qt::AlignVCenter);
+        return item;
+    };
+
+    QTreeWidgetItem *all = entry(i18nc("@item:inlistbox all note categories", "All"),
+                                 CategoryFilter::All,
+                                 QLatin1StringView());
+    const QList<CategoryEntry> categories = categoryEntries();
+    for (const CategoryEntry &category : categories) {
+        entry(category.label, CategoryFilter::Category, category.value);
+    }
+    // The way to the notes the analysis run has given up on (SPEC 7.2). It is
+    // where such a note can be dealt with, and without it the tray message of
+    // issue #118 would report a state the window offers no way into.
+    // updateCategoryCounts() hides it while it counts nothing.
+    entry(i18nc("@item:inlistbox notes the analysis gave up on", "Unclassified"),
+          CategoryFilter::Unclassified,
+          QLatin1StringView());
+
+    m_categories->setCurrentItem(all);
+    // Connected after the entries are in: building them moves the current item,
+    // and a reload before the window is finished would read a list nobody has
+    // asked for yet.
+    connect(m_categories, &QTreeWidget::currentItemChanged, this, [this] {
+        reload(Selection::Keep);
+    });
+
+    auto *layout = new QVBoxLayout(sidebar);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(m_categories, 1);
+    // What the column is, said once at its foot (wireframe 1b): nobody sorts
+    // these entries by hand, and nothing here can be renamed.
+    QLabel *note = subtleLabel(i18n("AI categories, automatic"), sidebar);
+    note->setContentsMargins(8, 4, 8, 6);
+    note->setWordWrap(true);
+    layout->addWidget(note);
+
+    return sidebar;
+}
+
+void LibraryWindow::updateCategoryCounts()
+{
+    const CategoryCounts counts = m_store->categoryCounts();
+    // The brush is taken from the palette at every write rather than once: the
+    // window outlives a change of the colour scheme (issue #54), and the counts
+    // are written again on every reload and on every palette change.
+    const QBrush dimmed = palette().brush(QPalette::PlaceholderText);
+
+    for (int row = 0; row < m_categories->topLevelItemCount(); ++row) {
+        QTreeWidgetItem *item = m_categories->topLevelItem(row);
+        const auto kind = static_cast<CategoryFilter>(item->data(0, FilterRole).toInt());
+
+        int count = 0;
+        switch (kind) {
+        case CategoryFilter::All:
+            count = counts.total;
+            break;
+        case CategoryFilter::Category:
+            count = counts.byCategory.value(item->data(0, ValueRole).toString());
+            break;
+        case CategoryFilter::Unclassified:
+            count = counts.unclassified;
+            // A fault that is not there gets no permanent line — the same rule
+            // the reading pane follows for a note without category and tags.
+            // Never while it is the selected entry, though: it would take its
+            // own filter away with it, and the empty list beside it would then
+            // have nothing left explaining it.
+            item->setHidden(count == 0 && item != m_categories->currentItem());
+            break;
+        }
+
+        item->setText(1, QLocale().toString(count));
+        item->setForeground(1, dimmed);
+    }
+}
+
+bool LibraryWindow::isCategoryFiltered() const
+{
+    const QTreeWidgetItem *current = m_categories->currentItem();
+    return current
+        && static_cast<CategoryFilter>(current->data(0, FilterRole).toInt()) != CategoryFilter::All;
+}
+
+void LibraryWindow::applyCategoryFilter(QList<Note> &notes) const
+{
+    const QTreeWidgetItem *current = m_categories->currentItem();
+    if (!current) {
+        return;
+    }
+
+    const auto kind = static_cast<CategoryFilter>(current->data(0, FilterRole).toInt());
+    switch (kind) {
+    case CategoryFilter::All:
+        return;
+    case CategoryFilter::Category: {
+        const QString value = current->data(0, ValueRole).toString();
+        // Compared case-insensitively for ASCII, as `kat:` does in the store
+        // (SPEC 6): the same note has to stand under the entry the search finds
+        // it under.
+        notes.removeIf([&value](const Note &note) {
+            return note.category.compare(value, Qt::CaseInsensitive) != 0;
+        });
+        return;
+    }
+    case CategoryFilter::Unclassified:
+        // The condition Classifier::start() skips by, and the one
+        // Store::categoryCounts() counts — written here over notes already
+        // read rather than as a query of its own.
+        notes.removeIf([](const Note &note) {
+            return note.state == Note::State::Analysed
+                || note.analysisAttempts < Store::analysisAttemptLimit;
+        });
+        return;
+    }
 }
 
 QWidget *LibraryWindow::buildDetail()
@@ -521,6 +770,11 @@ QWidget *LibraryWindow::buildDetail()
     m_textPages->addWidget(m_detailText);
     m_textPages->addWidget(m_editor);
 
+    // The read state carries the same two as pills — the category filled, the
+    // tags outlined (UX decision 2026-08-29 on issue #18, wireframe 2b). It
+    // hides itself while it has nothing, so nothing below it moves.
+    m_chips = new NoteChips(detail);
+
     // Category and tags as plain display, deliberately not as greyed-out input
     // fields: those would promise an editing that SPEC 9 does not grant — the
     // analysis run keeps these two, not the editor.
@@ -568,6 +822,7 @@ QWidget *LibraryWindow::buildDetail()
     // guard and not a repair — it becomes load-bearing as soon as one of the
     // two rows below can grow, which the tag row does once M3 fills it.
     layout->addWidget(m_textPages, 1);
+    layout->addWidget(m_chips);
     layout->addWidget(m_metaRow);
     layout->addWidget(m_editFooter);
 
@@ -684,6 +939,13 @@ void LibraryWindow::changeEvent(QEvent *event)
         regroupList();
     }
 
+    // The counters of the category column carry a brush of their own, and a
+    // brush is a colour rather than a role — so it has to be written again when
+    // the scheme changes underneath the standing window (issue #54).
+    if (event->type() == QEvent::PaletteChange) {
+        updateCategoryCounts();
+    }
+
     QWidget::changeEvent(event);
 }
 
@@ -720,7 +982,7 @@ void LibraryWindow::closeEvent(QCloseEvent *event)
 
     KConfigGroup group = windowGroup();
     KWindowConfig::saveWindowSize(windowHandle(), group);
-    group.writeEntry("SplitterState", m_splitter->saveState());
+    group.writeEntry("ColumnSizes", m_splitter->saveState());
     group.sync();
 
     QWidget::closeEvent(event);
@@ -739,10 +1001,18 @@ void LibraryWindow::reload(Selection selection)
     // pick a note and stand in none of them (issue #77).
     m_delegate->setSearchTerms(parseSearchQuery(m_search->text()).terms);
 
+    // The counters stand for the whole library and not for what the list beside
+    // them is showing, so they are asked of the store rather than counted off
+    // the result below (issue #18).
+    updateCategoryCounts();
+
     // An empty search field returns the whole library from the store, so the
     // full list and a result list are the same code path — and clearing the
-    // field needs no case of its own (SPEC 6).
-    m_model->setNotes(m_store->search(m_search->text()), referenceTime());
+    // field needs no case of its own (SPEC 6). The category column narrows what
+    // comes back; both narrow the same list and neither replaces the other.
+    QList<Note> notes = m_store->search(m_search->text());
+    applyCategoryFilter(notes);
+    m_model->setNotes(notes, referenceTime());
     m_groupedOn = referenceTime().date();
 
     // Saying the empty selection explicitly also stops QAbstractItemView from
@@ -856,14 +1126,23 @@ void LibraryWindow::searchChanged()
 void LibraryWindow::updatePages()
 {
     const bool hasNotes = m_model->noteCount() > 0;
+    const bool searching = !m_search->text().isEmpty();
     if (hasNotes) {
         m_listPages->setCurrentWidget(m_list);
-    } else if (m_search->text().isEmpty()) {
+    } else if (!searching && !isCategoryFiltered()) {
         m_listPages->setCurrentWidget(m_emptyLibraryPage);
     } else {
         // A search over an empty library lands here too and offers to change
         // the term. Clearing the field then says "Noch keine Notizen", so the
         // window corrects itself with the next keystroke.
+        //
+        // A category with nothing in it says something else, and it says it
+        // often: until the analysis run of M3 has been through the library
+        // every category is empty, and "change the search term" would point at
+        // a field the user never touched (issue #18).
+        m_noResultsHint->setText(searching
+                                     ? i18n("Change the search term or clear the field.")
+                                     : i18n("No note carries this category yet."));
         m_listPages->setCurrentWidget(m_noResultsPage);
     }
 
@@ -1081,6 +1360,10 @@ void LibraryWindow::showNoteText(const QModelIndex &index)
     if (m_detailText->toPlainText() != note.content) {
         m_detailText->setPlainText(note.content);
     }
+
+    // The readable label is made here (SPEC 7.2); the database keeps the short
+    // form. Without a category and without tags the row hides itself.
+    m_chips->setChips(categoryLabel(note.category), m_store->tags(note.id));
 }
 
 void LibraryWindow::deleteCurrentNote()
@@ -1155,7 +1438,11 @@ void LibraryWindow::startEditing()
     // selected — a first keystroke must not be able to overwrite the note.
     m_editor->moveCursor(QTextCursor::End);
 
-    m_category->setText(note.category.isEmpty() ? missingValue() : note.category);
+    // The readable label here as well as on the pill of the read state: the
+    // short form is what the database keeps, and one pane must not spell the
+    // same value two ways (SPEC 7.2). The row itself stays what wireframe 2a
+    // draws — labels and not marks (UX decision 2026-08-29).
+    m_category->setText(note.category.isEmpty() ? missingValue() : categoryLabel(note.category));
     const QStringList tags = m_store->tags(note.id);
     m_tags->setText(tags.isEmpty() ? missingValue() : tags.join(QStringLiteral(" · ")));
 
@@ -1309,6 +1596,10 @@ void LibraryWindow::updateEditState()
     // Page 0 carries the two buttons, page 1 the badge.
     m_headPages->setCurrentIndex(editing ? 1 : 0);
     m_metaRow->setVisible(editing);
+    // The other half of the same swap: pills while reading, fields while
+    // editing (UX decision 2026-08-29 on issue #18). A note that carries
+    // neither shows nothing in either state.
+    m_chips->setVisible(!editing && !m_chips->isEmpty());
     m_editFooter->setVisible(editing);
 
     // Dimmed while the transcript is edited (wireframe 2a, state B): the audio
@@ -1342,6 +1633,11 @@ void LibraryWindow::updateEditState()
     m_search->setToolTip(editing ? i18n("Switched off while editing — a search would rebuild the "
                                         "list underneath the editor.")
                                  : QString());
+
+    // The category column rebuilds the same list and is switched off for the
+    // same reason, and says so in the same way.
+    m_categories->setEnabled(!editing);
+    m_categories->setToolTip(m_search->toolTip());
 }
 
 void LibraryWindow::startFullExport()

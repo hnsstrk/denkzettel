@@ -1067,9 +1067,15 @@ void LibraryTest::showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles()
     // one subtleLabel() gives the placeholder foreground role (issue #58),
     // the heading is the other visible label. Checking "both texts appear
     // somewhere" would still pass with the two swapped.
+    //
+    // Looked for on the page itself and no longer in the whole window: the
+    // category column carries a label in the same role at its foot (issue #18),
+    // and over the window this case would go red for a page that is right.
+    const QWidget *page = window.findChild<QWidget *>(QStringLiteral("emptyLibraryPage"));
+    QVERIFY(page);
     const QLabel *heading = nullptr;
     const QLabel *hint = nullptr;
-    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    const QList<QLabel *> labels = page->findChildren<QLabel *>();
     for (const QLabel *label : labels) {
         if (!label->isVisible() || label->text().isEmpty()) {
             continue;

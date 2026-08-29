@@ -1051,3 +1051,47 @@ QStringList Store::tags(qint64 noteId) const
     }
     return tags;
 }
+
+CategoryCounts Store::categoryCounts() const
+{
+    m_lastError.clear();
+    CategoryCounts counts;
+
+    QSqlQuery byCategory(m_db);
+    // Notes with no category yet are left out here rather than counted under an
+    // empty key: they belong to no entry of the column, and until an analysis
+    // run has been through them that is every note there is (SPEC 7.2).
+    if (!byCategory.exec(QStringLiteral("SELECT category, COUNT(*) FROM notes"
+                                        " WHERE category IS NOT NULL AND category != ''"
+                                        " GROUP BY category"))) {
+        m_lastError = byCategory.lastError().text();
+        return {};
+    }
+    while (byCategory.next()) {
+        counts.byCategory.insert(byCategory.value(0).toString(), byCategory.value(1).toInt());
+    }
+
+    // Asked of the table rather than added up from the group counts above: a
+    // note without a category stands in none of them, and "All" means all.
+    QSqlQuery total(m_db);
+    if (!total.exec(QStringLiteral("SELECT COUNT(*) FROM notes")) || !total.next()) {
+        m_lastError = total.lastError().text();
+        return {};
+    }
+    counts.total = total.value(0).toInt();
+
+    // The condition Classifier::start() skips by, written once more in SQL —
+    // counting the notes it hands out would mean reading every one of them.
+    QSqlQuery unclassified(m_db);
+    unclassified.prepare(QStringLiteral("SELECT COUNT(*) FROM notes"
+                                        " WHERE state != :state AND analysis_attempts >= :limit"));
+    unclassified.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+    unclassified.bindValue(QStringLiteral(":limit"), analysisAttemptLimit);
+    if (!unclassified.exec() || !unclassified.next()) {
+        m_lastError = unclassified.lastError().text();
+        return {};
+    }
+    counts.unclassified = unclassified.value(0).toInt();
+
+    return counts;
+}

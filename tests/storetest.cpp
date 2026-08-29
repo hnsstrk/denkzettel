@@ -34,6 +34,7 @@ private Q_SLOTS:
     void listsNotesNewestFirst();
     void updatesNote();
     void replacesTags();
+    void countsTheCategoriesOfTheLibraryColumn();
     void removesNoteWithItsTags();
     void removesAudioFileAfterDeletingNote();
     void removesOrphanedAudioFilesButKeepsReferencedOnes();
@@ -278,6 +279,57 @@ void StoreTest::replacesTags()
 
     // Tags need a note to hang on; the foreign key rejects orphans.
     QVERIFY(!m_store->setTags(4711, {QStringLiteral("cli")}));
+}
+
+void StoreTest::countsTheCategoriesOfTheLibraryColumn()
+{
+    // The counters of the category column break silently: a number beside a
+    // heading looks right whatever it counts, and the wrong one only shows
+    // when somebody counts the list by hand (SPEC 9, issue #18).
+    //
+    // Every expectation below is a number written down **here** and not one
+    // read back out of the same query that produced it — nine notes, laid out
+    // so that no two of the three answers can be right by accident: three
+    // categories of different sizes, one value the fixed list of SPEC 6 does
+    // not know, and two notes that separate the two halves of the condition
+    // "given up on".
+    const auto add = [this](const QString &category, Note::State state, int attempts) {
+        Note note = sampleNote();
+        note.category = category;
+        note.state = state;
+        note.analysisAttempts = attempts;
+        QVERIFY(m_store->addNote(note).has_value());
+    };
+
+    add(QStringLiteral("todos"), Note::State::Analysed, 0);
+    add(QStringLiteral("todos"), Note::State::Analysed, 0);
+    add(QStringLiteral("todos"), Note::State::Analysed, 0);
+    add(QStringLiteral("ideen"), Note::State::Analysed, 0);
+    add(QStringLiteral("software"), Note::State::Analysed, 0);
+    // A category no classifier writes any more. It counts under "All" and under
+    // no entry of the column — the fixed list stays the shape of the column.
+    add(QStringLiteral("obsolet"), Note::State::Analysed, 0);
+    // Analysed although it once failed: not given up on, the attempts were
+    // reset by the success (SPEC 7.2). It separates the state clause from the
+    // counter clause.
+    add(QStringLiteral("todos"), Note::State::Analysed, Store::analysisAttemptLimit);
+    // Waiting, with one attempt left — not given up on either.
+    add(QString(), Note::State::New, Store::analysisAttemptLimit - 1);
+    // The only one the column's last entry stands for.
+    add(QString(), Note::State::New, Store::analysisAttemptLimit);
+
+    const CategoryCounts counts = m_store->categoryCounts();
+
+    QCOMPARE(counts.total, 9);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("todos")), 4);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("ideen")), 1);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("software")), 1);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("obsolet")), 1);
+    // Not an entry of the column, and never counted into one either: a note
+    // without a category belongs to none of them.
+    QCOMPARE(counts.byCategory.value(QStringLiteral("cli")), 0);
+    QCOMPARE(counts.byCategory.size(), 4);
+    QCOMPARE(counts.unclassified, 1);
 }
 
 void StoreTest::removesNoteWithItsTags()

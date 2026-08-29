@@ -2,6 +2,7 @@
 
 #include "store/note.h"
 
+#include <QHash>
 #include <QList>
 #include <QObject>
 #include <QSqlDatabase>
@@ -26,6 +27,32 @@ struct TranscribeJob {
     QDateTime enqueuedAt;
     int attempts = 0;
     QString lastError;
+};
+
+/**
+ * How many notes stand behind each entry of the library's category column
+ * (SPEC 9, wireframe 1b).
+ *
+ * `byCategory` is keyed by the stored short form — `todos`, `ideen`, `cli`,
+ * `persoenlich`, `software` (SPEC 6, 7.2). A note no analysis run has reached
+ * yet carries no category and is counted in none of them; the readable label
+ * is a matter of the user interface and is made there (SPEC 7.2).
+ */
+struct CategoryCounts {
+    /** Every note in the library — what the entry "All" counts. */
+    int total = 0;
+
+    /** Notes per stored category value; a value no note carries is absent. */
+    QHash<QString, int> byCategory;
+
+    /**
+     * Notes whose classification attempts are used up (SPEC 7.2).
+     *
+     * Exactly what an analysis run no longer takes on: `Classifier::start()`
+     * skips these and reports them. Without an entry of their own the tray
+     * message of issue #118 would name notes the window offers no way to.
+     */
+    int unclassified = 0;
 };
 
 /**
@@ -143,6 +170,17 @@ public:
     bool setTags(qint64 noteId, const QStringList &tags);
 
     QStringList tags(qint64 noteId) const;
+
+    /**
+     * What the category column of the library writes beside its entries
+     * (SPEC 9, wireframe 1b).
+     *
+     * Counted in the database and not over a list read into memory: the
+     * counters stand for the whole library while the list beside them shows a
+     * search result or one category, so the two must not come out of the same
+     * read.
+     */
+    CategoryCounts categoryCounts() const;
 
     /**
      * How often one note is classified before it is left alone (SPEC 7.2:

@@ -3,6 +3,7 @@
 #include "platform/systemfonts.h"
 
 #include "ui/elidedlines.h"
+#include "ui/framecontrast.h"
 #include "ui/notelistmodel.h"
 #include "ui/searchmarks.h"
 
@@ -76,12 +77,9 @@ bool isGroupHead(const QModelIndex &index)
 
 /**
  * Colour of both separator lines: list ground and text colour mixed in the
- * ratio KColorScheme::frameContrast() — the way Kirigami colours its own
- * separators (wireframe 3a, issue #101).
- *
- * Deliberately not a palette role: measured over eighteen colour schemes, the
- * roles near the ground stay under 1.21 : 1 against it and AlternateBase lands
- * at 1.00 : 1 at every group boundary, while this mixture reaches 1.93 : 1.
+ * ratio KColorScheme::frameContrast() (wireframe 3a, issue #101). The mixing
+ * itself lives in library::frameContrastMix() — the tag chips of the reading
+ * pane draw their outline with it too (issue #18).
  *
  * Read from the Normal colour group, because a group head is handed to the
  * delegate disabled — a line greyed out above one row and not below the next
@@ -89,16 +87,8 @@ bool isGroupHead(const QModelIndex &index)
  */
 QColor separatorColor(const QPalette &palette)
 {
-    const QColor ground = palette.color(QPalette::Normal, QPalette::Base);
-    const QColor text = palette.color(QPalette::Normal, QPalette::Text);
-    // In float, because that is what QColor works in: the channels come back as
-    // float and fromRgbF takes float, so a double ratio would narrow three
-    // times over.
-    const auto share = static_cast<float>(KColorScheme::frameContrast());
-
-    return QColor::fromRgbF(ground.redF() * (1 - share) + text.redF() * share,
-                            ground.greenF() * (1 - share) + text.greenF() * share,
-                            ground.blueF() * (1 - share) + text.blueF() * share);
+    return library::frameContrastMix(palette.color(QPalette::Normal, QPalette::Base),
+                                     palette.color(QPalette::Normal, QPalette::Text));
 }
 
 /**
