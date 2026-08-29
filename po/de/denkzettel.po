@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 11:56+0200\n"
+"POT-Creation-Date: 2026-08-29 13:26+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -20,37 +20,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/analysis/ollamaprovider.cpp:55
+#: src/analysis/ollamaprovider.cpp:34
 #, kde-format
 msgid "Ollama did not answer within the time limit."
 msgstr "Ollama hat nicht innerhalb der Zeitgrenze geantwortet."
 
-#: src/analysis/ollamaprovider.cpp:67
+#: src/analysis/ollamaprovider.cpp:46
 #, kde-format
 msgid "Ollama refused the request: %1"
 msgstr "Ollama hat die Anfrage abgelehnt: %1"
 
-#: src/analysis/ollamaprovider.cpp:71
+#: src/analysis/ollamaprovider.cpp:50
 #, kde-format
 msgid "Ollama could not be reached: %1"
 msgstr "Ollama war nicht erreichbar: %1"
 
-#: src/analysis/ollamaprovider.cpp:75
+#: src/analysis/ollamaprovider.cpp:54
 #, kde-format
 msgid "Ollama answered with HTTP status %1."
 msgstr "Ollama hat mit HTTP-Status %1 geantwortet."
 
-#: src/analysis/ollamaprovider.cpp:79
+#: src/analysis/ollamaprovider.cpp:58
 #, kde-format
 msgid "Ollama sent an unreadable answer: %1"
 msgstr "Ollama hat eine unlesbare Antwort geschickt: %1"
 
-#: src/analysis/ollamaprovider.cpp:85
+#: src/analysis/ollamaprovider.cpp:64
 #, kde-format
 msgid "Ollama's answer carried no text."
 msgstr "Die Antwort von Ollama enthielt keinen Text."
 
-#: src/analysis/ollamaprovider.cpp:95
+#: src/analysis/ollamaprovider.cpp:74
 #, kde-format
 msgid "Ollama's answer carried no embedding."
 msgstr "Die Antwort von Ollama enthielt kein Embedding."
@@ -72,15 +72,106 @@ msgstr "Gedanke festhalten …"
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr "Esc verwirft · Strg+Enter speichert"
 
-#: src/main.cpp:141
+#: src/main.cpp:152
 #, kde-format
 msgid "Transcription failed"
 msgstr "Transkription fehlgeschlagen"
 
-#: src/main.cpp:142
+#: src/main.cpp:153
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
+
+#: src/settings/aiproviderpage.cpp:41
+#, kde-format
+msgid "Test connection"
+msgstr "Verbindung testen"
+
+#: src/settings/aiproviderpage.cpp:72
+#, kde-format
+msgid "Ollama"
+msgstr "Ollama"
+
+#: src/settings/aiproviderpage.cpp:74
+#, kde-format
+msgid "openrouter.ai"
+msgstr "openrouter.ai"
+
+#: src/settings/aiproviderpage.cpp:75
+#, kde-format
+msgid "OpenAI"
+msgstr "OpenAI"
+
+#: src/settings/aiproviderpage.cpp:76
+#, kde-format
+msgid "Provider:"
+msgstr "Anbieter:"
+
+#: src/settings/aiproviderpage.cpp:86
+#, kde-format
+msgid "API key:"
+msgstr "API-Schlüssel:"
+
+#: src/settings/aiproviderpage.cpp:89
+#, kde-format
+msgid "Language model:"
+msgstr "Sprachmodell:"
+
+#: src/settings/aiproviderpage.cpp:96
+#, kde-format
+msgid "Ollama address:"
+msgstr "Ollama-Adresse:"
+
+#: src/settings/aiproviderpage.cpp:99
+#, kde-format
+msgid "Embedding model:"
+msgstr "Einbettungsmodell:"
+
+#: src/settings/aiproviderpage.cpp:169
+#, kde-format
+msgid "Connection is up · chat %1 ms · embedding %2 ms"
+msgstr "Verbindung steht · Chat %1 ms · Einbettung %2 ms"
+
+#: src/settings/analysispage.cpp:32
+#, kde-format
+msgid "at once after saving"
+msgstr "sofort nach dem Speichern"
+
+#: src/settings/analysispage.cpp:33
+#, kde-format
+msgid "periodically"
+msgstr "regelmäßig"
+
+#: src/settings/analysispage.cpp:35
+#, kde-format
+msgid "on demand only"
+msgstr "nur auf Abruf"
+
+#: src/settings/analysispage.cpp:36
+#, kde-format
+msgid "Start analysis:"
+msgstr "Analyse starten:"
+
+#: src/settings/analysispage.cpp:46
+#, kde-format
+msgctxt "@item:valuesuffix the unit of the analysis interval"
+msgid " minutes"
+msgstr " Minuten"
+
+#: src/settings/analysispage.cpp:47
+#, kde-format
+msgid "Interval:"
+msgstr "Abstand:"
+
+#: src/settings/settingsdialog.cpp:53
+#, kde-format
+msgid "AI provider"
+msgstr "KI-Anbieter"
+
+#: src/settings/settingsdialog.cpp:55
+#, kde-format
+msgid "Analysis"
+msgstr "Analyse"
 
 #: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:87
 #, kde-format
@@ -204,12 +295,17 @@ msgstr "Jetzt analysieren"
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:130
+#: src/shell/trayicon.cpp:126
+#, kde-format
+msgid "Configure Denkzettel…"
+msgstr "Denkzettel einrichten …"
+
+#: src/shell/trayicon.cpp:136
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:162
+#: src/shell/trayicon.cpp:168
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"

@@ -1,5 +1,6 @@
 #include "capture/capturewindow.h"
 #include "platform/systemfonts.h"
+#include "settings/settingsdialog.h"
 #include "shell/appidentity.h"
 #include "shell/daemonservice.h"
 #include "shell/firstrun.h"
@@ -95,6 +96,10 @@ int main(int argc, char *argv[])
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
+    // The settings are free-standing and belong to no window, so nothing is
+    // handed over here — the dialog finds the standing one itself or builds a
+    // new one (SPEC 13, issue #16).
+    QObject::connect(&tray, &TrayIcon::configureRequested, &app, &SettingsDialog::showSettings);
 
     // The error path of the transcription reaches the user here and nowhere
     // else (SPEC 10 and 12, issue #24). Both edges ask the same question of the

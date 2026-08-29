@@ -88,6 +88,35 @@ target_link_libraries(denkzettelanalysis PUBLIC
     KF6::I18n
 )
 
+# The settings dialog of SPEC 13 (issue #16). Every page is its own class in
+# its own file — four further stories build into this dialog at the same time,
+# see the comment at SettingsDialog.
+add_library(denkzettelsettings STATIC
+    settings/aiproviderpage.cpp
+    settings/analysispage.cpp
+    settings/settings.cpp
+    settings/settingsdialog.cpp
+)
+
+target_include_directories(denkzettelsettings PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(denkzettelsettings PUBLIC
+    # The button "Test connection" makes one chat and one embed call against
+    # the address on the form (SPEC 7.1).
+    denkzettelanalysis
+    Qt6::Widgets
+    # PositiveText and NegativeText of the result line — two roles QPalette does
+    # not have. Sought with a version of its own in the root CMakeLists.
+    KF6::ColorScheme
+    KF6::ConfigCore
+    # KConfigDialog and the manager behind the `kcfg_` widgets.
+    KF6::ConfigWidgets
+    KF6::I18n
+    # KWindowConfig — the window size, remembered the way the library
+    # remembers its own.
+    KF6::WindowSystem
+)
+
 add_library(denkzettelplatform STATIC
     platform/systemfonts.cpp
 )
@@ -221,6 +250,7 @@ target_include_directories(denkzetteld PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzetteld PRIVATE
     denkzettelcapture
+    denkzettelsettings
     denkzettelshell
     denkzetteltranscribe
     denkzettelui

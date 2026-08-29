@@ -8,6 +8,19 @@ out, every change to the database schema is always named. Version numbering
 follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 `denkzetteld --version`).
 
+## [Unreleased]
+
+### Added
+
+- **Denkzettel has settings.** The tray menu now carries "Configure
+  Denkzettel…", and behind it stands a dialog with a page list. Two pages so
+  far: "AI provider" — which backend answers, the language and embedding model,
+  the Ollama address, and a "Test connection" button that reports the latency of
+  one chat and one embedding call or the reason there is none — and "Analysis",
+  which decides whether a run starts at once after saving, at an interval or
+  only on demand. What is set there is kept in `~/.config/denkzettelrc` and
+  survives a restart (#16).
+
 ## [0.7.0] — 2026-08-28
 
 **The window follows what the session does**, the version becomes visible, and

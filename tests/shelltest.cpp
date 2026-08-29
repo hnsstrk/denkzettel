@@ -7,6 +7,7 @@
 #include <KLocalizedString>
 #include <KStatusNotifierItem>
 
+#include <QAction>
 #include <QFile>
 #include <QIcon>
 #include <QMenu>
@@ -53,6 +54,7 @@ private Q_SLOTS:
     void hasAMessageForEveryFailureAndNoneForSuccess();
 
     void hintsTheShortcutWithoutBindingItASecondTime();
+    void asksForTheSettingsDialog();
     void showsAFailedTranscriptionAndTakesItBack();
 
 private:
@@ -315,6 +317,37 @@ void ShellTest::hintsTheShortcutWithoutBindingItASecondTime()
 
     QCOMPARE(capture->shortcut(), QKeySequence(Qt::META | Qt::Key_N));
     QCOMPARE(capture->shortcutContext(), Qt::WidgetShortcut);
+}
+
+void ShellTest::asksForTheSettingsDialog()
+{
+    // Acceptance criterion 3 of issue #16, and the half of it that breaks
+    // without a sound: an entry that is there and connected to nothing looks
+    // exactly like one that works. The other half — that main.cpp hangs the
+    // dialog on this signal — is one line and is read.
+    //
+    // The entry names the application ("Configure Denkzettel…") because it
+    // stands among entries of other programs; the window it opens does not,
+    // because the decoration appends the name (UX decision of 29.08.2026).
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
+    QAction *configure = nullptr;
+    const QList<QAction *> entries = icon.item()->contextMenu()->actions();
+    for (QAction *entry : entries) {
+        if (entry->text() == QStringLiteral("Configure Denkzettel…")) {
+            configure = entry;
+        }
+    }
+    QVERIFY2(configure, "the tray menu carries no entry for the settings");
+    // Enabled, unlike the stubs beside it: a permanently greyed entry does not
+    // tell the user why it is greyed.
+    QVERIFY(configure->isEnabled());
+    QCOMPARE(configure->icon().name(), QStringLiteral("configure"));
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy requested(&icon, &TrayIcon::configureRequested);
+    configure->trigger();
+    QCOMPARE(requested.count(), 1);
 }
 
 void ShellTest::showsAFailedTranscriptionAndTakesItBack()
