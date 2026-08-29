@@ -804,8 +804,10 @@ QWidget *LibraryWindow::buildDetail()
     // out of it (`ActionsContextMenu`) rather than this window building one per
     // click. Whether there is a menu at all is decided in showOrigin(): a note
     // without an origin offers none, and neither does one whose editor is open
-    // — saveEdit() writes the copy the editor was opened with, and that one
-    // still carries what was just taken off.
+    // — while the head row says „Editing" and its two buttons are gone, the
+    // note is not up for anything else either, exactly as m_deleteAction is
+    // switched off there. What once made a *wrong save* out of that is fixed
+    // where it belonged, in saveEdit().
     auto *removeOriginAction = new QAction(i18nc("@action:inmenu", "Remove origin"), m_detailOrigin);
     connect(removeOriginAction, &QAction::triggered, this, &LibraryWindow::removeOrigin);
     m_detailOrigin->addAction(removeOriginAction);
@@ -1725,7 +1727,22 @@ void LibraryWindow::saveEdit()
         return;
     }
 
-    Note note = m_editedNote;
+    // **The row as it stands now, not the copy the editor was opened with.**
+    // updateNote() writes every column, and m_editedNote is a snapshot: what
+    // changed on the note while the editor stood is written back the way it
+    // was, silently. The origin is the case that made it visible — removed,
+    // then put back through the band's "Undo" while the editor was open, the
+    // save wrote the snapshot and took the restored value away again without a
+    // word (finding of the review, 29.08.2026). Every column a later story adds
+    // beside the text falls into the same hole; reading the row back is the one
+    // place that closes it for all of them.
+    const std::optional<Note> stored = m_store->note(m_editedNote.id);
+    if (!stored.has_value()) {
+        qWarning("The note being edited is gone: %s", qPrintable(m_store->lastError()));
+        return;
+    }
+
+    Note note = *stored;
     note.content = content;
     // SPEC 9: editing keeps category, tags and state and sets needs_reembed —
     // only the embedding ages with the text (7.2). The full-text index follows
@@ -1878,7 +1895,9 @@ void LibraryWindow::updateEditState()
     }
 
     // And neither is its origin: showOrigin() takes the context menu off the
-    // line while the editor stands (issue #47).
+    // line while the editor stands (issue #47). The band's "Undo" stays
+    // reachable — since saveEdit() reads the row back, a restored origin
+    // survives the save.
     showOrigin();
 
     // The note under the editor is not up for deletion — the button is gone,
