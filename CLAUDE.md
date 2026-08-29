@@ -720,6 +720,26 @@ find.
     `settings.cpp:56` with "is not a member of `analysis`", which is what says
     the other side really is built from it.
 
+50. **A header comment is a statement of intent, not a measurement — findings
+    15 and 18 hold for library documentation as much as for D-Bus.** Measured
+    2026-08-29 on #74: `kkeysequencewidget.h:296` says the component name has to
+    be set or the application's own registered shortcut reports a conflict with
+    itself. It does not. With our own component holding the sequence,
+    `isGlobalShortcutAvailable` answered **0** for an empty name, for our own,
+    and for a foreign one alike, while a free sequence answered 1 in all three
+    — `Component::isShortcutAvailable` resolves the own name to
+    `shortcutContext("default")`, and that context holds the key. The line is
+    the documented way to build it and stays; only the reason beside it was
+    wrong.
+
+    **The way the error travelled is the finding.** The UX pass read it in the
+    header and wrote it into a decision, the implementer reported it as checked,
+    the lead carried it into two briefs — three stations, none of them measured,
+    because all three had read the same source and could not contradict each
+    other (finding 40). What an interface says about itself is an intention;
+    what it does is the measurement. Quote a header comment as a *source*, never
+    as a *result*.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
