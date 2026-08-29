@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 13:31+0200\n"
+"POT-Creation-Date: 2026-08-29 13:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: src/analysis/classifier.cpp:250
+#, kde-format
+msgid "The model's answer carried no JSON object."
+msgstr ""
+
+#: src/analysis/classifier.cpp:258
+#, kde-format
+msgid ""
+"The model answered with the category \"%1\", which is not one of the five."
+msgstr ""
+
+#: src/analysis/classifier.cpp:263
+#, kde-format
+msgid "The model's answer carried no tag."
+msgstr ""
 
 #: src/analysis/ollamaprovider.cpp:34
 #, kde-format

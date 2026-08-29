@@ -145,6 +145,57 @@ public:
     QStringList tags(qint64 noteId) const;
 
     /**
+     * How often one note is classified before it is left alone (SPEC 7.2:
+     * "from the second failure on, the note is skipped").
+     */
+    static constexpr int analysisAttemptLimit = 2;
+
+    /**
+     * The notes an analysis run has work on, oldest first (SPEC 7.2).
+     *
+     * Everything that is not `analysiert` yet — the counter is **not**
+     * filtered here, although a note that has used up its attempts is never
+     * classified again: the caller has to see it to report it (SPEC 14 asks
+     * for the tray tooltip and the log), and a query that hides it would make
+     * the skip the silent kind. Classifier::start() is what does both.
+     *
+     * Notes without text are left out, and that is the untranscribed voice
+     * note: it stands at `neu` until its transcript arrives (SPEC 12) and has
+     * nothing to classify until then. The next run takes it, `transkribiert`
+     * and with a text.
+     */
+    QList<Note> unanalysedNotes() const;
+
+    /**
+     * Writes what the classification of SPEC 7.2 found and resets the error
+     * counting, in one transaction.
+     *
+     * Category, tags, the task fields and the state `analysiert` belong
+     * together — a note whose category is written and whose tags are not would
+     * count as analysed and be findable under none of them. `task` empty means
+     * the note is no todo (see Note::task).
+     */
+    bool completeAnalysis(qint64 noteId, const QString &category, const QStringList &tags, const QString &task);
+
+    /**
+     * Counts a failed classification and records its reason, and answers with
+     * the new count.
+     *
+     * The count is what survives a restart (SPEC 7.2), so it is read back out
+     * of the database rather than added up in the caller: at
+     * `analysisAttemptLimit` the note is done with, and that decision must not
+     * hang on a number a run carried in memory.
+     *
+     * Counted **on failure** and not on the way out, which is where
+     * takeTranscribeJob() counts and for a reason that does not hold here: a
+     * whisper.cpp run occupies the graphics card and can take the daemon with
+     * it, and an uncounted attempt would then be repeated for ever. A
+     * classification is one HTTP request; a daemon that dies during it leaves
+     * the note unanalysed, which is the state it was in before.
+     */
+    std::optional<int> failAnalysis(qint64 noteId, const QString &error);
+
+    /**
      * How often one note is handed out for transcription before the job pauses
      * (SPEC 12). Counted on the way out, see takeTranscribeJob().
      */
@@ -223,6 +274,9 @@ Q_SIGNALS:
 
 private:
     bool migrate();
+
+    /** Replaces the tags of one note. The caller owns the transaction. */
+    bool replaceTags(qint64 noteId, const QStringList &tags);
 
     QString m_databasePath;
     QString m_connectionName;

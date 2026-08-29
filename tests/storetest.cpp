@@ -103,7 +103,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 3);
+    QCOMPARE(m_store->schemaVersion(), 4);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -387,7 +387,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 3);
+    QCOMPARE(m_store->schemaVersion(), 4);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -639,7 +639,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 3);
+    QCOMPARE(m_store->schemaVersion(), 4);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -672,6 +672,23 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
              qPrintable(m_store->lastError()));
     QCOMPARE(searchContents(QStringLiteral("Süden")), QStringList({QStringLiteral("Straßenbahn nach Süden")}));
 
+    // And the classification of schema version 4 writes onto a note that was
+    // stored before its column existed (SPEC 7.2, issue #14). The counter it
+    // reads is the one the version 1 row already carried: note 2 stands at one
+    // failed attempt, and the next failure is its second.
+    QVERIFY2(m_store->completeAnalysis(1,
+                                       QStringLiteral("cli"),
+                                       {QStringLiteral("bahn")},
+                                       QStringLiteral(R"({"description":"Fahrplan ansehen"})")),
+             qPrintable(m_store->lastError()));
+    const std::optional<Note> analysed = m_store->note(1);
+    QVERIFY(analysed.has_value());
+    QCOMPARE(analysed->state, Note::State::Analysed);
+    QCOMPARE(analysed->category, QStringLiteral("cli"));
+    QCOMPARE(analysed->task, QStringLiteral(R"({"description":"Fahrplan ansehen"})"));
+    QCOMPARE(m_store->tags(1), QStringList({QStringLiteral("bahn")}));
+    QCOMPARE(m_store->failAnalysis(2, QStringLiteral("Ollama antwortete nicht")), std::optional<int>(2));
+
     // And it keeps working for notes written after the migration.
     Note added = sampleNote();
     added.content = QStringLiteral("Nach der Migration erfasst");
@@ -682,7 +699,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 3);
+    QCOMPARE(m_store->schemaVersion(), 4);
     QCOMPARE(m_store->notes().size(), 3);
 }
 

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 13:31+0200\n"
+"POT-Creation-Date: 2026-08-29 13:59+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -19,6 +19,23 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/analysis/classifier.cpp:250
+#, kde-format
+msgid "The model's answer carried no JSON object."
+msgstr "Die Antwort des Modells enthielt kein JSON-Objekt."
+
+#: src/analysis/classifier.cpp:258
+#, kde-format
+msgid ""
+"The model answered with the category \"%1\", which is not one of the five."
+msgstr ""
+"Das Modell hat mit der Kategorie „%1“ geantwortet, die keine der fünf ist."
+
+#: src/analysis/classifier.cpp:263
+#, kde-format
+msgid "The model's answer carried no tag."
+msgstr "Die Antwort des Modells enthielt kein Schlagwort."
 
 #: src/analysis/ollamaprovider.cpp:34
 #, kde-format
@@ -88,7 +105,7 @@ msgid "The folder %1 already exists."
 msgstr "Der Ordner %1 besteht bereits."
 
 #: src/proposals/fullexport.cpp:110
-#,, kde-format
+#, kde-format
 msgid "The folder %1 could not be created."
 msgstr "Der Ordner %1 konnte nicht angelegt werden."
 
@@ -98,12 +115,12 @@ msgid "Two notes carry the timestamp %1; only the first is in the folder."
 msgstr "Zwei Notizen tragen den Zeitstempel %1; nur die erste liegt im Ordner."
 
 #: src/proposals/fullexport.cpp:145
-#,, kde-format
+#, kde-format
 msgid "The note %1 could not be written."
 msgstr "Die Notiz %1 konnte nicht geschrieben werden."
 
 #: src/proposals/fullexport.cpp:159
-#,, kde-format
+#, kde-format
 msgid "The audio file %1 could not be copied."
 msgstr "Die Audiodatei %1 konnte nicht kopiert werden."
 
