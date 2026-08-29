@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 13:59+0200\n"
+"POT-Creation-Date: 2026-08-29 14:22+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -205,15 +205,81 @@ msgstr " Minuten"
 msgid "Interval:"
 msgstr "Abstand:"
 
-#: src/settings/settingsdialog.cpp:53
+#: src/settings/exportpage.cpp:41
+#, kde-format
+msgid "There is no folder %1."
+msgstr "Den Ordner %1 gibt es nicht."
+
+#: src/settings/exportpage.cpp:44
+#, kde-format
+msgid "%1 cannot be written to."
+msgstr "%1 ist nicht beschreibbar."
+
+#: src/settings/exportpage.cpp:68
+#, kde-format
+msgid "Browse…"
+msgstr "Durchsuchen …"
+
+#: src/settings/exportpage.cpp:72
+#, kde-format
+msgid "Vault folder:"
+msgstr "Vault-Ordner:"
+
+#: src/settings/exportpage.cpp:92
+#, kde-format
+msgid "Overflow warning at:"
+msgstr "Überlaufwarnung ab:"
+
+#: src/settings/exportpage.cpp:95
+#, kde-format
+msgid "notes not transferred yet"
+msgstr "nicht übertragenen Notizen"
+
+#: src/settings/exportpage.cpp:97
+#, kde-format
+msgid "or when the oldest is:"
+msgstr "oder wenn die älteste:"
+
+#: src/settings/exportpage.cpp:100
+#, kde-format
+msgid "days old"
+msgstr "Tage alt ist"
+
+#: src/settings/exportpage.cpp:102
+#, kde-format
+msgid "Collective note from:"
+msgstr "Sammelnotiz ab:"
+
+#: src/settings/exportpage.cpp:105
+#, kde-format
+msgid "notes on the same topic"
+msgstr "Notizen zum selben Thema"
+
+#: src/settings/exportpage.cpp:204
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose the vault folder"
+msgstr "Vault-Ordner wählen"
+
+#: src/settings/exportpage.cpp:244
+#, kde-format
+msgid "This folder can be written to."
+msgstr "Dieser Ordner ist beschreibbar."
+
+#: src/settings/settingsdialog.cpp:54
 #, kde-format
 msgid "AI provider"
 msgstr "KI-Anbieter"
 
-#: src/settings/settingsdialog.cpp:55
+#: src/settings/settingsdialog.cpp:56
 #, kde-format
 msgid "Analysis"
 msgstr "Analyse"
+
+#: src/settings/settingsdialog.cpp:57
+#, kde-format
+msgid "Export"
+msgstr "Export"
 
 #: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:87
 #, kde-format

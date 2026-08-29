@@ -30,6 +30,15 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   which decides whether a run starts at once after saving, at an interval or
   only on demand. What is set there is kept in `~/.config/denkzettelrc` and
   survives a restart (#16).
+- **A third settings page: "Export".** It holds the vault folder the collective
+  notes are written into — a field with a folder chooser beside it, empty until
+  it is set — and the three thresholds behind the overflow warning: at how many
+  notes not transferred yet (200), from what age of the oldest one (30 days),
+  and from how many notes on one topic a collective note is proposed (3). A
+  folder that is not there or cannot be written to is reported by name the
+  moment it is set — and again whenever the page is opened, so a vault that has
+  been moved in the meantime does not sit there unremarked. The field keeps the
+  folder that was accepted last (#75).
 
 ## [0.7.0] — 2026-08-28
 

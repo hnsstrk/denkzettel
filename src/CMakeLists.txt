@@ -116,6 +116,7 @@ target_link_libraries(denkzettelproposals PUBLIC
 add_library(denkzettelsettings STATIC
     settings/aiproviderpage.cpp
     settings/analysispage.cpp
+    settings/exportpage.cpp
     settings/settings.cpp
     settings/settingsdialog.cpp
 )
