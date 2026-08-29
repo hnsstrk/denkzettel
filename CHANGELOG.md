@@ -107,6 +107,22 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   else. The key press for the voice note is still without effect — that is the
   recorder itself (#21) — and the messages about a failed registration name the
   sequence that was really registered instead of spelling out "Meta+N" (#74).
+- **Denkzettel says what it is missing.** At every start it looks whether
+  `ffmpeg`, `whisper-cli` and `task` can be started here and whether Ollama
+  answers, and names in the tray tooltip whatever cannot — "Not available:
+  ffmpeg, Ollama". Asking Ollama costs nothing: it is asked for its list of
+  models, which loads none, and not for a sample answer — that is what the
+  "Test connection" button is for, and paying its price at every login would
+  add seconds to the start for one line of tooltip. Only the lack is named;
+  everything being there is the ordinary case and says nothing, and the tray
+  icon is not set apart for it, so the error state stays what it was, the sign
+  of a transcription that has failed. A file that lies in the right place
+  without being executable counts as missing, which is the case that used to
+  turn up only at the moment the function was wanted. The settings say it a
+  second time where it belongs: the page "Voice notes" for `ffmpeg`, "Export"
+  for `task`, and "AI provider" has had its "Test connection" button all along.
+  What is named is the program, not the package it comes in — which package
+  that is depends on the distribution (#17).
 
 ### Changed
 

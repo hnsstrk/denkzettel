@@ -1,3 +1,4 @@
+#include "platform/optionaltools.h"
 #include "shell/daemonservice.h"
 #include "shell/shortcutconflict.h"
 #include "shell/shortcutregistration.h"
@@ -8,11 +9,14 @@
 #include <KStatusNotifierItem>
 
 #include <QAction>
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QIcon>
 #include <QMenu>
 #include <QSet>
 #include <QSignalSpy>
+#include <QStringList>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -57,6 +61,10 @@ private Q_SLOTS:
     void asksForTheSettingsDialog();
     void asksForAnAnalysisRun();
     void showsAFailedTranscriptionAndTakesItBack();
+
+    void findsAProgramByItsPathAndByItsName();
+    void countsAFileWithoutAnExecuteBitAsMissing();
+    void namesTheMissingToolsBesideTheFailedTranscription();
 
 private:
     std::unique_ptr<QTemporaryDir> m_dir;
@@ -413,6 +421,124 @@ void ShellTest::showsAFailedTranscriptionAndTakesItBack()
     icon.setTranscriptionError({});
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
     QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
+}
+
+namespace
+{
+/** An empty file at `path` with exactly `mode` on it, and whether it worked. */
+bool putProgram(const QString &path, QFile::Permissions mode)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+    file.close();
+    return file.setPermissions(mode);
+}
+}
+
+void ShellTest::findsAProgramByItsPathAndByItsName()
+{
+    // The two roads a setting takes: an absolute path, which SPEC 12 makes
+    // configurable for both programs of the transcription, and a bare name,
+    // which is what SPEC 8.2 runs `task` as. **Neither may go over the system
+    // PATH of the machine this runs on**: here `ffmpeg`, `whisper-cli` and
+    // `task` are all installed, so a run that is to show "missing" could never
+    // come out red on it (CLAUDE.md, finding 33). Every case below stands in a
+    // directory this function makes.
+    const QTemporaryDir programs;
+    QVERIFY(programs.isValid());
+    const QString program = programs.filePath(QStringLiteral("denkzettel-probe"));
+    QVERIFY(putProgram(program, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
+
+    QVERIFY(tools::isRunnable(program));
+    QVERIFY(!tools::isRunnable(programs.filePath(QStringLiteral("denkzettel-absent"))));
+
+    // Read out before the PATH is put back, so that a failing assertion does
+    // not leave the rest of the run with a PATH holding one directory.
+    const QByteArray inherited = qgetenv("PATH");
+    qputenv("PATH", programs.path().toLocal8Bit());
+    const bool byName = tools::isRunnable(QStringLiteral("denkzettel-probe"));
+    const bool absentByName = tools::isRunnable(QStringLiteral("denkzettel-absent"));
+    qputenv("PATH", inherited);
+    QVERIFY(byName);
+    QVERIFY(!absentByName);
+
+    // And the third road, which is neither of the two: a **relative** path.
+    // QProcess starts it off the working directory, and it must not be
+    // searched along PATH, where it is never found — a wrong "not available"
+    // sends the user looking for a program that is there. The directory is
+    // changed and put back around the one call.
+    const QString here = QDir::currentPath();
+    QVERIFY(QDir::setCurrent(programs.path()));
+    const bool relative = tools::isRunnable(QStringLiteral("./denkzettel-probe"));
+    QVERIFY(QDir::setCurrent(here));
+    QVERIFY(relative);
+}
+
+void ShellTest::countsAFileWithoutAnExecuteBitAsMissing()
+{
+    // The case an implementation written with QFile::exists() waves through in
+    // silence, and the one the user meets only at the moment they wanted the
+    // function — as "could not be started" (SPEC 12).
+    //
+    // It may stand in an automated set although finding 46 keeps permission
+    // checks out of one: what root overrides is reading, writing and entering
+    // a directory. X_OK is granted to uid 0 only where at least one execute
+    // bit is set, so a file at 0644 is executable for nobody.
+    const QTemporaryDir programs;
+    QVERIFY(programs.isValid());
+    const QString readable = programs.filePath(QStringLiteral("denkzettel-readable"));
+    QVERIFY(putProgram(readable,
+                       QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther));
+    // Both halves, because only together do they say what the check is about:
+    // the file is there, and it still cannot be started.
+    QVERIFY(QFileInfo::exists(readable));
+    QVERIFY(!tools::isRunnable(readable));
+
+    // And what is handed on is the program's NAME — not the path it was found
+    // under and not a package (UX decision of 29.08.2026).
+    QCOMPARE(tools::missing({readable}), QStringList{QStringLiteral("denkzettel-readable")});
+}
+
+void ShellTest::namesTheMissingToolsBesideTheFailedTranscription()
+{
+    // `setToolTipSubTitle()` takes ONE string and two sources write into it, so
+    // each writes a part and neither pushes the other out (issue #118). That is
+    // what breaks without a sound: a user who reads one trouble takes it for
+    // the whole of what is wrong and never learns of the second.
+    TrayIcon icon;
+    const QString quiet = icon.item()->toolTipSubTitle();
+
+    icon.setUnavailableTools({QStringLiteral("task"), QStringLiteral("Ollama")});
+    const QString named = icon.item()->toolTipSubTitle();
+    QVERIFY2(named.contains(QStringLiteral("task")), qPrintable(named));
+    QVERIFY2(named.contains(QStringLiteral("Ollama")), qPrintable(named));
+    // And no error state with it: this one stands from the first login and
+    // never falls by itself, and a permanent NeedsAttention is read by nobody.
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+
+    const QString reason = QStringLiteral("/usr/bin/whisper-cli ended with code 1");
+    icon.setTranscriptionError(reason);
+    const QString both = icon.item()->toolTipSubTitle();
+    QVERIFY2(both.contains(reason), qPrintable(both));
+    QVERIFY2(both.contains(QStringLiteral("task")), qPrintable(both));
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
+
+    // The other way round as well, because the writer that comes second is the
+    // one that would overwrite: with the transcription standing, the tools are
+    // set again.
+    icon.setUnavailableTools({QStringLiteral("ffmpeg")});
+    const QString again = icon.item()->toolTipSubTitle();
+    QVERIFY2(again.contains(reason), qPrintable(again));
+    QVERIFY2(again.contains(QStringLiteral("ffmpeg")), qPrintable(again));
+
+    // Both taken back, and what stands is the resting line again — not an
+    // empty one, and not one that kept a remnant.
+    icon.setTranscriptionError({});
+    icon.setUnavailableTools({});
+    QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
 }
 
 QTEST_MAIN(ShellTest)

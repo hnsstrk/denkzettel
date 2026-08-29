@@ -2,6 +2,7 @@
 #include "analysis/classifier.h"
 #include "analysis/ollamaprovider.h"
 #include "capture/capturewindow.h"
+#include "platform/optionaltools.h"
 #include "platform/systemfonts.h"
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
@@ -24,6 +25,7 @@
 #include <QApplication>
 #include <QIcon>
 #include <QLocale>
+#include <QStringList>
 
 #include <optional>
 
@@ -196,15 +198,54 @@ int main(int argc, char *argv[])
 
     QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
 
+    // The tool detection of SPEC 2.5 (issue #17), and it runs at **every**
+    // start and not only at the first: what it produces is a state and not
+    // something that happened once (SPEC 14), so a program uninstalled after
+    // the first login would otherwise never be noticed again. Which is also
+    // why it is not in runFirstStart() further down — that function guards the
+    // steps that must not repeat, and this one has to.
+    //
+    // The programs are asked for as the transcription queue holds them, not as
+    // denkzettelrc spells them: the group and the defaults have one place, and
+    // it is Transcriber::reloadSettings().
+    const QStringList missingPrograms =
+        tools::missing({transcriber.ffmpegProgram(), transcriber.whisperProgram(),
+                        QString(tools::TaskProgram)});
+    tray.setUnavailableTools(missingPrograms);
+
+    // The fourth of them is a server and not a program, so its answer only
+    // arrives through the event loop. Over the provider of issue #13 — no
+    // second HTTP road of our own, SPEC 7.1 puts the timeout into that class
+    // and a check written beside it would have none — but over
+    // testReachability() and **not** testConnection(): the button of SPEC 7.1
+    // makes a real chat and a real embed call and loads both models for it,
+    // which measured 4.7 s here and would be paid at every single login. The
+    // reasoning and the numbers stand at that method.
+    QObject::connect(&provider, &OllamaProvider::reachabilityTested, &tray,
+                     [&tray, missingPrograms](bool reachable) {
+                         QStringList unavailable = missingPrograms;
+                         if (!reachable) {
+                             // The name of the server and not the reason it
+                             // did not answer: the tooltip is the quiet
+                             // channel (SPEC 14), and the reason is what the
+                             // settings button shows. Untranslated because it
+                             // is the program's name, like the three above it.
+                             unavailable.append(QStringLiteral("Ollama"));
+                         }
+                         tray.setUnavailableTools(unavailable);
+                     });
+    provider.testReachability();
+
     // A note that has failed its classification twice is never handed to a model
     // again (SPEC 7.2), and this line is what SPEC 14 asks to be reported of it.
     //
     // ponytail: the log alone, although SPEC 14 names "tray tooltip + log" for
-    // it. The tooltip carries ONE subtitle line and the transcription of issue
-    // #24 holds it; a second writer there would cover the other trouble up. And
-    // the state would stand for ever — such a note is never taken up again, and
-    // there is no place yet where the user could work one off. **The ceiling is
-    // the missing entry "Unclassified" in the category column of issue #18**;
+    // it. Since issue #17 the tooltip does take a part per source rather than
+    // one writer's line (TrayIcon::showToolTip()), so covering the other
+    // trouble up is no longer the obstacle — the state standing for ever is:
+    // such a note is never taken up again, and there is no place yet where the
+    // user could work one off. **The ceiling is the missing entry
+    // "Unclassified" in the category column of issue #18**;
     // with it the tooltip becomes a count of both halves ("2 notes without a
     // transcript · 1 without a category") and this line stays as the detail
     // (UX decision of 29.08.2026).

@@ -1,5 +1,6 @@
 #include "settings/exportpage.h"
 
+#include "platform/optionaltools.h"
 #include "settings/settings.h"
 
 #include <KColorScheme>
@@ -113,6 +114,33 @@ ExportPage::ExportPage(QWidget *parent)
     notes->setFixedWidth(width);
     days->setFixedWidth(width);
     bundle->setFixedWidth(width);
+
+    // Taskwarrior, the second transfer of SPEC 8 (issue #17). Here and not on a
+    // page of its own, because SPEC 8 puts Obsidian and Taskwarrior together as
+    // the two transfers and one line does not open a sixth page (UX decision of
+    // 29.08.2026). Built only when there is something to report: only the lack
+    // is reported, the program being there is the ordinary case — and nothing
+    // can change it while the dialog stands, so the row needs no member and no
+    // later update.
+    if (!tools::isRunnable(QString(tools::TaskProgram))) {
+        auto *taskState =
+            new QLabel(i18n("%1 is not available; nothing can be transferred to Taskwarrior",
+                            QString(tools::TaskProgram)),
+                       this);
+        if (bodyFont.pointSizeF() > 0) {
+            QFont small = bodyFont;
+            small.setPointSizeF(bodyFont.pointSizeF() * 0.9);
+            taskState->setFont(small);
+        }
+        const KColorScheme scheme(QPalette::Normal, KColorScheme::View);
+        QPalette colours = taskState->palette();
+        colours.setColor(QPalette::WindowText, scheme.foreground(KColorScheme::NeutralText).color());
+        taskState->setPalette(colours);
+        // Over both columns, unlike the path line above it: that one belongs to
+        // the row it stands under and is indented with it, this one belongs to
+        // the page and starts where the labels do.
+        form->addRow(taskState);
+    }
 
     // Nothing on these pages wants to grow (UX decision of 29.08.2026), so the
     // room a resized window brings goes underneath the form.

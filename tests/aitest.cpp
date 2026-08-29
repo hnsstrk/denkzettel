@@ -64,6 +64,7 @@ private Q_SLOTS:
 
     void nothingIsAskedTwiceWhenNobodyAnswers();
     void aServerThatAnsweredIsNotAskedAgain();
+    void readsReachabilityWithoutLoadingAModel();
 
     void connectionTestMeasuresBothCallsSeparately();
     void connectionTestReportsTheFirstError();
@@ -339,6 +340,60 @@ void AiTest::aServerThatAnsweredIsNotAskedAgain()
     QVERIFY(finished.wait(std::chrono::seconds(10)));
     QCOMPARE(finished.constFirst().at(2).toString(), QStringLiteral("Ollama answered with HTTP status 503."));
     QCOMPARE(connections, 1);
+}
+
+void AiTest::readsReachabilityWithoutLoadingAModel()
+{
+    // What the tray tooltip of SPEC 2.5 asks at every start (issue #17), and
+    // what it must NOT do while asking: testConnection() next door makes a
+    // real chat and a real embed call, which measured 3.08 s and 1.64 s
+    // against a running Ollama on 2026-08-29 and pins two models for one line
+    // of tooltip. So this is checked on two things — that it answers at all,
+    // and that what went over the wire was `/api/tags` and nothing naming a
+    // model.
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    // Shared and not captured by reference: the lambda outlives this frame as
+    // far as anything but a reading of the code can tell, and the CI fails on
+    // the clazy warning that says so.
+    auto asked = std::make_shared<QString>();
+    connect(&server, &QTcpServer::newConnection, this, [&server, asked] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, asked] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            *asked = QString::fromLatin1(request->left(request->indexOf("\r\n")));
+            socket->write("HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n{\"models\":[]}");
+            socket->disconnectFromHost();
+        });
+    });
+
+    OllamaProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort())));
+    provider.setTimeout(std::chrono::seconds(5));
+
+    QSignalSpy answered(&provider, &OllamaProvider::reachabilityTested);
+    provider.testReachability();
+    QVERIFY(answered.wait(std::chrono::seconds(10)));
+    QVERIFY2(answered.constFirst().at(0).toBool(), qPrintable(*asked));
+    // A GET on `/api/tags`: the endpoint that lists what is pulled and starts
+    // nothing. Either of the two that load a model would be a POST.
+    QCOMPARE(*asked, QStringLiteral("GET /api/tags HTTP/1.1"));
+
+    // And the case the whole thing is built for, on the same object so that
+    // the answer has to come out **different** once: a port nobody listens on.
+    // It is the port of the server just closed, so no guess of ours can
+    // collide with something this machine happens to be running.
+    const quint16 abandoned = server.serverPort();
+    server.close();
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1").arg(abandoned)));
+    provider.testReachability();
+    QVERIFY(answered.wait(std::chrono::seconds(10)));
+    QVERIFY(!answered.constLast().at(0).toBool());
 }
 
 void AiTest::connectionTestMeasuresBothCallsSeparately()

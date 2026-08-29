@@ -216,7 +216,7 @@ QString Transcriber::modelPath(const QString &size)
 void Transcriber::reloadSettings()
 {
     const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Transcription"));
-    m_ffmpegProgram = group.readEntry("FfmpegProgram", QStringLiteral("/usr/bin/ffmpeg"));
+    m_ffmpegProgram = group.readEntry("FfmpegProgram", QString(whisper::DefaultFfmpegProgram));
     m_whisperProgram = group.readEntry("WhisperProgram", QString(whisper::DefaultProgram));
     // The setting is the **size** and not a path (SPEC 12). Up to issue #27 a
     // full `ModelPath` stood here; a size cannot be offered as a list of five
@@ -253,6 +253,16 @@ void Transcriber::setFfmpegProgram(const QString &program)
 void Transcriber::setWhisperProgram(const QString &program)
 {
     m_whisperProgram = program;
+}
+
+QString Transcriber::ffmpegProgram() const
+{
+    return m_ffmpegProgram;
+}
+
+QString Transcriber::whisperProgram() const
+{
+    return m_whisperProgram;
 }
 
 

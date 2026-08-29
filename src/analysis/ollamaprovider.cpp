@@ -150,6 +150,25 @@ int OllamaProvider::embed(const QString &text)
     return id;
 }
 
+void OllamaProvider::testReachability()
+{
+    QNetworkRequest request(m_url.resolved(QUrl(QStringLiteral("/api/tags"))));
+    request.setTransferTimeout(m_timeout);
+
+    QNetworkReply *reply = m_network.get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        reply->deleteLater();
+        // Only the transport is asked, and readOllamaReply() is deliberately
+        // not called on it: that function reads an answer of `/api/chat` or
+        // `/api/embed` and would call the list of models "an answer that
+        // carried no text". A server that says anything at all — a status, a
+        // refusal, a body of its own — is a server that is there, and that is
+        // the whole of the question this endpoint is asked (issue #17).
+        Q_EMIT reachabilityTested(reply->error() == QNetworkReply::NoError);
+    });
+}
+
 void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJsonObject &body)
 {
     QNetworkRequest request(m_url.resolved(QUrl(path)));

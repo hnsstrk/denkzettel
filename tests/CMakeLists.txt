@@ -171,6 +171,10 @@ target_link_libraries(readmeshots PRIVATE
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE
+    # The tool detection of SPEC 2.5 (issue #17) and the tooltip that reports
+    # it are the two halves of one story, so they are checked in one set: the
+    # detection's three cases here, the one line two sources share beside them.
+    denkzettelplatform
     denkzettelshell
     Qt6::Test
 )

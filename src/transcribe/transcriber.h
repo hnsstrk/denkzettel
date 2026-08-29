@@ -30,6 +30,16 @@ namespace whisper
 inline constexpr QLatin1StringView DefaultProgram("/usr/bin/whisper-cli");
 
 /**
+ * The other program of the same pipeline, which converts the recording before
+ * whisper.cpp ever sees it (SPEC 12, 15).
+ *
+ * Written down here although no page offers a field for it: it is a setting
+ * all the same — `[Transcription] FfmpegProgram` — and the tool detection of
+ * SPEC 2.5 has to name the same default the queue reads (issue #17).
+ */
+inline constexpr QLatin1StringView DefaultFfmpegProgram("/usr/bin/ffmpeg");
+
+/**
  * The five model sizes of SPEC 12, smallest first.
  *
  * The order is stored: the settings page offers them as a combo box, and
@@ -128,6 +138,17 @@ public:
      */
     void setFfmpegProgram(const QString &program);
     void setWhisperProgram(const QString &program);
+
+    /**
+     * The same two, as the configuration currently names them.
+     *
+     * For the tool detection of SPEC 2.5 (issue #17), which has to ask about
+     * the programs this queue would really start. Read from here rather than
+     * out of `denkzettelrc` a second time: the group, the two key names and
+     * their defaults have exactly one place, and it is reloadSettings().
+     */
+    QString ffmpegProgram() const;
+    QString whisperProgram() const;
 
     /**
      * How long a whole job may take before it is given up on (SPEC 12).
