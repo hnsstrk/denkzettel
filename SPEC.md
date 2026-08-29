@@ -752,14 +752,27 @@ Interface `AiProvider` with two capabilities: `chat(prompt) → text/json` and
 
 - **Ollama** (local/own URL): `/api/chat` + `/api/embed`.
   Defaults: LLM `qwen3:8b`, embedding `bge-m3` (multilingual).
-- **openrouter.ai**: OpenAI-compatible API, API key from KWallet — `chat` only.
-- **OpenAI**: by platform API key (see 7.5) — `chat` only.
+- **openrouter.ai**: OpenAI-compatible API, API key from KWallet.
+- **OpenAI**: by platform API key (see 7.5).
 
-**Embeddings always come from Ollama in v1** (refinement after the finding of
-the estimation session 2026-07-31: openrouter offers no embedding endpoint).
-The LLM provider is freely selectable, the embedding model runs locally —
-uniform, free of charge, and the cluster threshold (7.3) stays bound to one
-model. Without a reachable Ollama, Denkzettel degrades visibly:
+**Both capabilities are selectable per provider** (customer decision
+29.08.2026, issue #130). Until that date this section bound embeddings to
+Ollama for the whole of v1, on the ground that openrouter offered no embedding
+endpoint — measured on 2026-07-31 and true then. It is not true now:
+openrouter lists 34 embedding models beside its chat models. The restriction
+therefore falls with its reason, and it falls for the same purpose the customer
+names for the whole provider choice: **a machine without the compute to run a
+model locally, or the wish to use a distinctly stronger one.** Ollama stays the
+default; nothing about a local installation changes.
+
+What that costs, and it is owed before the switch rather than after (issue
+#130): vectors of two different models are not comparable, so a change of the
+embedding model invalidates the stored corpus and the cluster threshold of 7.3
+has to be calibrated again; and the note text leaves the machine, which the
+local route was the one way to avoid. Whoever offers the choice states both
+where it is made.
+
+Without a reachable provider for embeddings, Denkzettel degrades visibly:
 classification through the chosen provider keeps working, topic bundles are
 dropped (hint in the settings and the tray tooltip).
 
@@ -1293,7 +1306,22 @@ conceivable as an optional later additional path, but is not built for v1.
   puts whisper.cpp at 371 ms for 7.3 s of audio at 52 MB of dependencies. What
   stays from the story is its settings page, which now holds the model size and
   the path to `whisper-cli` (§13) — the two values the single route does have.
-  A second backend needs a new decision, not a resumed one.
+  A second backend needs a new decision, not a resumed one — and that decision
+  has been taken: **transcription through an external provider is an option**
+  (customer decision 29.08.2026, issue #131). whisper.cpp stays the default and
+  the only route that needs no account. All three providers of 7.1 offer
+  speech-to-text: OpenAI `POST /v1/audio/transcriptions` (25 MB per file),
+  openrouter `POST /api/v1/audio/transcriptions` (19 transcription models,
+  no documented size limit), ElevenLabs `POST /v1/speech-to-text` (up to 3 GB
+  and ten hours, with diarisation) — the endpoints probed on 2026-08-29 against
+  an invented route as the control, which answered differently in each case.
+  ElevenLabs is a fourth provider that 7.1 does not know and that would exist
+  for this one capability.
+
+  What the option costs, and it belongs beside it: the audio leaves the machine,
+  the key needs the storage of 7.5, and the five-minute bound below is measured
+  against a local run and has to be restated for a route whose time is spent on
+  the network.
 - **Upper bound 5 minutes per transcription run** (customer decision
   29.08.2026), and it is the whole job: the clock starts where the job is taken
   out of the queue and stops where the job ends, not on a stretch without
