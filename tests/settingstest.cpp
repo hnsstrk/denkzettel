@@ -3,6 +3,7 @@
 
 #include <KConfig>
 #include <KConfigGroup>
+#include <KLocalizedString>
 
 #include <QAbstractItemModel>
 #include <QApplication>
@@ -56,6 +57,12 @@ private:
 
 void SettingsTest::initTestCase()
 {
+    // Every visible string of the two pages goes through i18n(), and without
+    // the domain each of them warns before handing the msgid back — 102 of
+    // them, which is what the CI's string check counts. The product sets it in
+    // main.cpp; a test binary is its own application and has to set it too.
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
     // Without a resolvable platform theme QIcon::fromTheme() hands back icons
     // whose name is empty, and the third case would then pass on nothing. The
     // variable is set in tests/CMakeLists.txt; what proves it arrived is the
