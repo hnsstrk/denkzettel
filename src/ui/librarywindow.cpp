@@ -571,10 +571,10 @@ QWidget *LibraryWindow::buildHeader()
     // field, so the header keeps the one row of wireframe 2b.
     //
     // setMenu() rather than the aboutToShowMenu() signal the class documents:
-    // that signal is for a menu expensive to build, and this one holds a single
-    // action. Without a menu bar there is nothing to advertise either — the
+    // that signal is for a menu expensive to build, and these two actions are
+    // built once. Without a menu bar there is nothing to advertise either — the
     // sub-menu that advertises one is switched off, or the menu would carry an
-    // empty section beside its one entry.
+    // empty section beside its entries.
     //
     // Through KStandardAction rather than the constructor: the icon and the
     // name are the standard action's doing, not the class's. Built by hand the
@@ -586,6 +586,18 @@ QWidget *LibraryWindow::buildHeader()
     hamburger->setMenuBarAdvertised(false);
     auto *menu = new QMenu(header);
     menu->addAction(m_exportAction);
+
+    // The settings, the second route to them beside the tray entry (the user's
+    // decision of 29.08.2026, over the argument at TrayIcon that a statement
+    // about the whole application must not hang off one window). The wording is
+    // the tray's, verbatim, because it is the same action seen twice — and it
+    // sits below the separator, in the administrative group a KDE application
+    // menu ends with.
+    menu->addSeparator();
+    QAction *configureAction =
+        menu->addAction(QIcon::fromTheme(QStringLiteral("configure")), i18n("Configure Denkzettel…"));
+    connect(configureAction, &QAction::triggered, this, &LibraryWindow::configureRequested);
+
     hamburger->setMenu(menu);
 
     auto *row = new QHBoxLayout();

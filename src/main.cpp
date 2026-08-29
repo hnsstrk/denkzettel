@@ -418,6 +418,14 @@ int main(int argc, char *argv[])
         SettingsDialog::showSettings(&shortcuts, &modelDownload);
     });
 
+    // The second route, from the library's application menu (the user's
+    // decision of 29.08.2026). Deliberately the same call and not a second
+    // one: showSettings() hands back the standing dialog, so whichever route is
+    // taken there is never more than one.
+    QObject::connect(&library, &LibraryWindow::configureRequested, &app, [&shortcuts, &modelDownload] {
+        SettingsDialog::showSettings(&shortcuts, &modelDownload);
+    });
+
     // One registration and one read-back per shortcut, because SPEC 2.4 says so
     // per shortcut: Meta+Shift+N repeats Meta+N's failure of 01.08.2026 unless
     // it is asked about separately, and a pair reported together would not say

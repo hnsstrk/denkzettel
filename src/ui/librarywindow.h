@@ -60,6 +60,16 @@ public Q_SLOTS:
     /** Shows the window, or brings the open one to the front. */
     void showLibrary();
 
+Q_SIGNALS:
+    /**
+     * The application menu asks for the settings dialog (the user's decision of
+     * 29.08.2026). Not opened here: the dialog needs the running shortcuts and
+     * the model download, and both belong to main() — the same signal the tray
+     * emits, connected in the same place, so the two routes cannot drift into
+     * two dialogs.
+     */
+    void configureRequested();
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     void changeEvent(QEvent *event) override;
