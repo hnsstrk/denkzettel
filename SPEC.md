@@ -507,6 +507,12 @@ right and is wrong. Most of them contradict what the construction suggests, and
   stay, and settle the only collision two recordings could have.
 - Upper bound 15 minutes (protection against a forgotten recording); hint in
   the time display from minute 14.
+- **At the upper bound the recording is saved, not discarded** (decision
+  29.08.2026, issue #21). The bound exists against a recording forgotten while
+  running, not against the fifteen minutes somebody has just spoken; throwing
+  them away would be the one data loss the program causes on its own. So minute
+  15 ends the recording the way Ctrl+Enter does — note, transcription job,
+  window closed — and the hint from minute 14 says so instead of threatening.
 
 ## 5. Data storage
 
@@ -749,9 +755,17 @@ self-healing.
   **0.60** (internal constant, calibratable, no user setting) land in the same
   cluster.
 - Clusters with ≥ **bundle threshold** notes (setting, default **3**) are laid
-  before the LLM: it names the topic, may remove obvious outliers (sanity
-  check) and generates the collective note (see 8.1). Result: one `bundle`
-  suggestion.
+  before the LLM: it names the topic and may remove obvious outliers (sanity
+  check). Result: one `bundle` suggestion.
+- **The Markdown of the collective note is built by the program, not by the
+  model** (decision 29.08.2026, issue #29). An earlier wording had the LLM
+  generate it, and that was wrong twice over: section 8.1 prescribes the form
+  down to the frontmatter and the chronological `## <YYYY-MM-DD>` sections, so
+  a generated note could only ever agree with it by accident — and a model that
+  writes the note writes the note **texts** too. Section 7.2 settles that the
+  other way: what the classifier writes is what the user types. Whoever lets
+  the model reformulate here changes what the export of 8.1 hands back to the
+  user, in the one place where the original is then deleted.
 - **Notes without a cluster** simply stay in the corpus. If the age threshold
   of the overflow guard is crossed, the service additionally generates a bundle
   "Miscellaneous from <period>" out of the oldest notes without a cluster —
