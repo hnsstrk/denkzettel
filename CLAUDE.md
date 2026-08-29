@@ -833,6 +833,31 @@ find.
     the next reader cannot reproduce damages the list. A
     stand-in's constant answer is an input like any other: give it values that
     differ, or the check runs against a corpus the product would never see.
+    Where the code computes a **relation** out of the answers — similarity,
+    distance, ranking, grouping — a constant stand-in is not a placeholder but
+    an instruction, and it instructs the degenerate case.
+
+55. **Every agent of a team writes into the same scratchpad, and an obvious
+    file name is overwritten by whoever writes it next.** Measured 2026-08-29
+    while reviewing #29: a `lint-tidy` run redirected into
+    `$SCRATCHPAD/tidy.log` was read back and named 58 files of a **foreign**
+    worktree, none of its own — `suggester.cpp` and `modelanswer.cpp`, the
+    files under review, appeared nowhere; two hours later the same path named a
+    **third** worktree. The directory held 800 entries from runs on nine other
+    issues, under one session directory for the whole team. The exit code stays
+    the running process's own, so the **verdict** was right and the
+    **evidence** belonged to somebody else — the worse half to get wrong,
+    because the authoritative-looking number is the one that survives. Not a
+    build-system fault: `USES_TERMINAL` was suspected and cleared, a redirected
+    custom target writes to its own file. **Worse than swapped logs**: the same
+    directory holds the `.orig` copies a mutation probe makes before it mutates
+    and plays back afterwards — two agents with the same name, and one restores
+    the **foreign** source over its own tree. What carries: every run writes
+    into a subdirectory of its own, and every scratchpad file carries a name
+    only this run can have — the issue number, the worktree hash — never a
+    generic `build.log`, `out.txt`, `probe.cpp`. And read the readback: a log
+    used as evidence has to name **your own** path, the way finding 28 reads
+    the style name back.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
