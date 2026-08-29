@@ -181,6 +181,17 @@ A second process start recognises the taken D-Bus registration and calls
   not here: whatever saves a recording reports a failed save to the user in the
   same breath (§14), naming the file, and the recording window is where that
   belongs.
+- **And naming it is not enough** (finding of the review of #21, 29.08.2026):
+  the message told the user the recording "will not be deleted", while the
+  sweep above removes it at the very next service start, because nothing points
+  at it. The sentence was true only for a user who acts before restarting. So
+  the file is **moved out of the sweep's reach** — into `rescued/` beside
+  `audio/`, which the sweep does not read, since it lists the files of `audio/`
+  and no subdirectory — and the message names **that** path. That is what
+  "barred at its source" means here: not a promise about the sweep, but a place
+  the sweep does not look. Denkzettel never deletes anything under `rescued/`;
+  what happens to it is the user's decision, and the directory exists only once
+  something has gone wrong.
 
 ## 3. Capture window (text)
 
