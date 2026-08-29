@@ -61,22 +61,28 @@ target_link_libraries(denkzetteltranscribe PUBLIC
     KF6::I18n
 )
 
-# The AI backends (SPEC 7.1, issue #13). No model and no server is looked for
-# at build time and none is talked to in the automated run: Ollama sits behind
-# an HTTP address that is a setting, and what the checks exercise is the mapping
-# of a reply onto an answer or an error.
+# The AI backends and the classification run (SPEC 7.1/7.2, issues #13 and
+# #14). No model and no server is looked for at build time and none is talked
+# to in the automated run: Ollama sits behind an HTTP address that is a setting,
+# and what the checks exercise is the mapping of a reply onto an answer or an
+# error, and of an answer onto a category.
 #
-# Nothing links it yet — the analysis run that calls chat() and embed() is
-# issue #14. It is built and linted here all the same, and a library that the
-# executable does not carry is a library whose code does not ship untested.
+# Nothing links it yet — what starts a run, and how often, is the trigger and
+# the budget of issue #15. It is built and linted here all the same, and a
+# library that the executable does not carry is a library whose code does not
+# ship untested.
 add_library(denkzettelanalysis STATIC
     analysis/aiprovider.cpp
+    analysis/classifier.cpp
     analysis/ollamaprovider.cpp
 )
 
 target_include_directories(denkzettelanalysis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzettelanalysis PUBLIC
+    # Where the classification of SPEC 7.2 writes what it found: the category,
+    # the tags, the task fields and the error counting.
+    denkzettelstore
     Qt6::Core
     # QNetworkAccessManager — the two HTTP calls of SPEC 7.1, and SPEC 15 names
     # the component for them.

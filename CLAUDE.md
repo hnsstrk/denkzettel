@@ -642,6 +642,25 @@ find.
     and was an artefact of the parser. Strip the comments first
     (`grep -v '^ *#'`), and treat a check that names something you know to be
     there as broken until proven otherwise.
+45. **Ollama takes the reasoning out of the answer, so the backend at hand
+    cannot show the case a robustness against it is built for.** Measured
+    2026-08-29 on #14 with Ollama 0.32.15 and `qwen3:8b`: the classification of
+    SPEC 7.2 has to survive a thinking block, and against this server not one
+    ever arrived. `message.content` carried the bare JSON object every time,
+    while the reasoning — 8,184 characters for one note — stood in a
+    `thinking` field of its own; the same on `/api/chat` with `think` true and
+    with `think` false, and on `/api/generate`, where it is `response` beside
+    `thinking`. So a live run against this machine says nothing at all about
+    the parser: with the block stripping deleted it would have come out
+    identical, which is the first rule of the verification stance. The
+    robustness is still owed — SPEC 7.1 puts openrouter and OpenAI beside
+    Ollama, and those hand the text through as the model wrote it — and it is
+    checked against the stand-in, where the block is written by hand. That is
+    finding 40's family with the opposite ending: there the documented value
+    never occurred and the code was wrong, here the expected shape never
+    occurs and the code is right. Both times the question is the same, and it
+    is asked **per backend**: does this server produce the case at all, and
+    what does it produce instead?
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been

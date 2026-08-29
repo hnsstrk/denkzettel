@@ -12,6 +12,16 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **Notes get a category and tags from the local model.** One call per note
+  yields one of the five categories the search already knows (`todos`, `ideen`,
+  `cli`, `persoenlich`, `software`), one to four tags in lower case, and for a
+  note that asks for something to be done the fields of a task. A note whose
+  classification fails twice is left alone and reported, and that count
+  survives a restart of the service. **Schema version 4** brings the column
+  `notes.task` for the task fields; everything else the classification writes
+  had its place since version 1. Nothing sets a run going yet — that is the
+  trigger and the budget (#15) — and nothing shows the category and the tags
+  yet, which the library brings (#18) (#14).
 - **Denkzettel has settings.** The tray menu now carries "Configure
   Denkzettel…", and behind it stands a dialog with a page list. Two pages so
   far: "AI provider" — which backend answers, the language and embedding model,

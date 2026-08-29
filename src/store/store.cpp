@@ -109,6 +109,28 @@ const QList<QStringList> &migrations()
                            "  attempts INTEGER NOT NULL DEFAULT 0,"
                            "  last_error TEXT)"),
         },
+        // Version 4 — what the classification of SPEC 7.2 writes beyond the
+        // columns version 1 already brought (issue #14). Category, tags, state
+        // and the two error columns stood there from the start; the task fields
+        // did not, and SPEC 5.1 names no place for them.
+        //
+        // **`is_todo` has no column of its own**, although the JSON schema of
+        // SPEC 7.2 carries the flag: it is exactly `task IS NOT NULL`. SPEC 7.4
+        // makes a suggestion out of the extracted fields, so what says a note is
+        // a task is a description to make one from — a model that sets the flag
+        // and hands over nothing has named no task, and readClassification()
+        // writes none while the category and the tags stand as they came. Two
+        // columns whose truth has to agree would be a second place for the same
+        // fact and the first thing to drift.
+        //
+        // One JSON text and not five columns, because that is what the fields
+        // are on the way out as well: SPEC 5.1 gives `proposals.payload` the
+        // same shape, and M5 hands this text on rather than assembling it
+        // again. What may stand in it is decided in readClassification(), not
+        // by the model.
+        {
+            QStringLiteral("ALTER TABLE notes ADD COLUMN task TEXT"),
+        },
     };
     return steps;
 }
@@ -187,7 +209,7 @@ QDateTime timestampFromText(const QString &text)
 QString noteColumns()
 {
     return QStringLiteral("id, created_at, type, content, audio_path, audio_duration_s,"
-                          " category, state, needs_reembed, analysis_attempts, analysis_last_error");
+                          " category, state, needs_reembed, analysis_attempts, analysis_last_error, task");
 }
 
 /** Shortest term the trigram index can represent (SPEC 6). */
@@ -230,6 +252,7 @@ Note noteFromQuery(const QSqlQuery &query)
     note.needsReembed = query.value(QStringLiteral("needs_reembed")).toInt() != 0;
     note.analysisAttempts = query.value(QStringLiteral("analysis_attempts")).toInt();
     note.analysisLastError = query.value(QStringLiteral("analysis_last_error")).toString();
+    note.task = query.value(QStringLiteral("task")).toString();
     return note;
 }
 }
@@ -354,9 +377,9 @@ std::optional<qint64> Store::addNote(const Note &note)
     QSqlQuery query(m_db);
     query.prepare(
         QStringLiteral("INSERT INTO notes (created_at, type, content, audio_path, audio_duration_s,"
-                       " category, state, needs_reembed, analysis_attempts, analysis_last_error)"
+                       " category, state, needs_reembed, analysis_attempts, analysis_last_error, task)"
                        " VALUES (:created_at, :type, :content, :audio_path, :audio_duration_s,"
-                       " :category, :state, :needs_reembed, :analysis_attempts, :analysis_last_error)"));
+                       " :category, :state, :needs_reembed, :analysis_attempts, :analysis_last_error, :task)"));
     query.bindValue(QStringLiteral(":created_at"), timestampToText(note.createdAt));
     query.bindValue(QStringLiteral(":type"), typeToText(note.type));
     query.bindValue(QStringLiteral(":content"), plainText(note.content));
@@ -367,6 +390,7 @@ std::optional<qint64> Store::addNote(const Note &note)
     query.bindValue(QStringLiteral(":needs_reembed"), note.needsReembed ? 1 : 0);
     query.bindValue(QStringLiteral(":analysis_attempts"), note.analysisAttempts);
     query.bindValue(QStringLiteral(":analysis_last_error"), nullableText(note.analysisLastError));
+    query.bindValue(QStringLiteral(":task"), nullableText(note.task));
 
     if (!query.exec()) {
         m_lastError = query.lastError().text();
@@ -387,7 +411,8 @@ bool Store::updateNote(const Note &note)
         QStringLiteral("UPDATE notes SET created_at = :created_at, type = :type, content = :content,"
                        " audio_path = :audio_path, audio_duration_s = :audio_duration_s,"
                        " category = :category, state = :state, needs_reembed = :needs_reembed,"
-                       " analysis_attempts = :analysis_attempts, analysis_last_error = :analysis_last_error"
+                       " analysis_attempts = :analysis_attempts, analysis_last_error = :analysis_last_error,"
+                       " task = :task"
                        " WHERE id = :id"));
     query.bindValue(QStringLiteral(":created_at"), timestampToText(note.createdAt));
     query.bindValue(QStringLiteral(":type"), typeToText(note.type));
@@ -399,6 +424,7 @@ bool Store::updateNote(const Note &note)
     query.bindValue(QStringLiteral(":needs_reembed"), note.needsReembed ? 1 : 0);
     query.bindValue(QStringLiteral(":analysis_attempts"), note.analysisAttempts);
     query.bindValue(QStringLiteral(":analysis_last_error"), nullableText(note.analysisLastError));
+    query.bindValue(QStringLiteral(":task"), nullableText(note.task));
     query.bindValue(QStringLiteral(":id"), note.id);
 
     if (!query.exec()) {
@@ -677,20 +703,13 @@ void Store::sweepOrphanedAudio()
     }
 }
 
-bool Store::setTags(qint64 noteId, const QStringList &tags)
+bool Store::replaceTags(qint64 noteId, const QStringList &tags)
 {
-    m_lastError.clear();
-    if (!m_db.transaction()) {
-        m_lastError = m_db.lastError().text();
-        return false;
-    }
-
     QSqlQuery clear(m_db);
     clear.prepare(QStringLiteral("DELETE FROM tags WHERE note_id = :note_id"));
     clear.bindValue(QStringLiteral(":note_id"), noteId);
     if (!clear.exec()) {
         m_lastError = clear.lastError().text();
-        m_db.rollback();
         return false;
     }
 
@@ -701,9 +720,24 @@ bool Store::setTags(qint64 noteId, const QStringList &tags)
         insert.bindValue(QStringLiteral(":tag"), tag);
         if (!insert.exec()) {
             m_lastError = insert.lastError().text();
-            m_db.rollback();
             return false;
         }
+    }
+
+    return true;
+}
+
+bool Store::setTags(qint64 noteId, const QStringList &tags)
+{
+    m_lastError.clear();
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return false;
+    }
+
+    if (!replaceTags(noteId, tags)) {
+        m_db.rollback();
+        return false;
     }
 
     if (!m_db.commit()) {
@@ -713,6 +747,98 @@ bool Store::setTags(qint64 noteId, const QStringList &tags)
     }
 
     return true;
+}
+
+QList<Note> Store::unanalysedNotes() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // Oldest first — a run works through what has been waiting longest, and the
+    // id breaks the tie the way the note list does.
+    query.prepare(QStringLiteral("SELECT %1 FROM notes"
+                                 " WHERE state != :state AND TRIM(content) != ''"
+                                 " ORDER BY created_at, id")
+                      .arg(noteColumns()));
+    query.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<Note> notes;
+    while (query.next()) {
+        notes.append(noteFromQuery(query));
+    }
+    return notes;
+}
+
+bool Store::completeAnalysis(qint64 noteId, const QString &category, const QStringList &tags, const QString &task)
+{
+    m_lastError.clear();
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return false;
+    }
+
+    QSqlQuery write(m_db);
+    write.prepare(QStringLiteral("UPDATE notes SET category = :category, state = :state, task = :task,"
+                                 " analysis_attempts = 0, analysis_last_error = NULL"
+                                 " WHERE id = :id"));
+    write.bindValue(QStringLiteral(":category"), nullableText(category));
+    write.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+    write.bindValue(QStringLiteral(":task"), nullableText(task));
+    write.bindValue(QStringLiteral(":id"), noteId);
+    if (!write.exec()) {
+        m_lastError = write.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+    if (write.numRowsAffected() == 0) {
+        m_lastError = QStringLiteral("Notiz %1 existiert nicht").arg(noteId);
+        m_db.rollback();
+        return false;
+    }
+
+    if (!replaceTags(noteId, tags)) {
+        m_db.rollback();
+        return false;
+    }
+
+    if (!m_db.commit()) {
+        m_lastError = m_db.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    return true;
+}
+
+std::optional<int> Store::failAnalysis(qint64 noteId, const QString &error)
+{
+    m_lastError.clear();
+    QSqlQuery write(m_db);
+    write.prepare(QStringLiteral("UPDATE notes SET analysis_attempts = analysis_attempts + 1,"
+                                 " analysis_last_error = :error WHERE id = :id"));
+    write.bindValue(QStringLiteral(":error"), error);
+    write.bindValue(QStringLiteral(":id"), noteId);
+    if (!write.exec()) {
+        m_lastError = write.lastError().text();
+        return std::nullopt;
+    }
+    if (write.numRowsAffected() == 0) {
+        m_lastError = QStringLiteral("Notiz %1 existiert nicht").arg(noteId);
+        return std::nullopt;
+    }
+
+    QSqlQuery read(m_db);
+    read.prepare(QStringLiteral("SELECT analysis_attempts FROM notes WHERE id = :id"));
+    read.bindValue(QStringLiteral(":id"), noteId);
+    if (!read.exec() || !read.next()) {
+        m_lastError = read.lastError().text();
+        return std::nullopt;
+    }
+    return read.value(0).toInt();
 }
 
 bool Store::enqueueTranscription(qint64 noteId)

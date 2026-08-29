@@ -30,6 +30,16 @@ public:
 
     /** What chat() answers with, unless `chatError` is set. */
     QString chatAnswer = QStringLiteral("pong");
+    /**
+     * One answer per call, taken from the front; once they are used up
+     * `chatAnswer` stands in again.
+     *
+     * A run over several notes needs a different answer per note, or a check
+     * that every note gets **its** answer could not come out red: with one
+     * answer for all of them, an implementation that writes the first answer
+     * onto every note passes (CLAUDE.md, finding 34).
+     */
+    QStringList chatAnswers;
     /** What embed() answers with, unless `embedError` is set. */
     QList<double> embedVector = {0.5, -0.25};
     /** Non-empty turns the call into a failure carrying exactly this reason. */
@@ -48,9 +58,10 @@ public:
     int chat(const QString &prompt) override
     {
         prompts.append(prompt);
+        const QString answer = chatAnswers.isEmpty() ? chatAnswer : chatAnswers.takeFirst();
         const int id = nextRequestId();
-        QTimer::singleShot(chatDelay, this, [this, id] {
-            Q_EMIT chatFinished(id, chatError.isEmpty() ? chatAnswer : QString(), chatError);
+        QTimer::singleShot(chatDelay, this, [this, id, answer] {
+            Q_EMIT chatFinished(id, chatError.isEmpty() ? answer : QString(), chatError);
         });
         return id;
     }

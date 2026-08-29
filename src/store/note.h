@@ -35,6 +35,16 @@ struct Note {
     bool needsReembed = false;
     int analysisAttempts = 0;
     QString analysisLastError;
+    /**
+     * The task fields the classification extracted, as a JSON object
+     * (`description`, and where the note said so `project`, `tags`, `due`,
+     * `priority` — SPEC 7.2).
+     *
+     * Empty means the note is no todo: `is_todo` of the JSON schema has no
+     * field of its own here, it is exactly this text being non-empty. The
+     * schema comment of migration 4 in store.cpp says why.
+     */
+    QString task;
 };
 
 /**
