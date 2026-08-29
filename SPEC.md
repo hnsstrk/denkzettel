@@ -741,6 +741,20 @@ section 14), the rest follow in the next run:
    tags in lower case. For `is_todo=true` the same call extracts the task
    fields (`description, project, tags, due, priority` — `due`/`priority`
    only on a clear signal, otherwise null).
+   **A due date is read from the note's own day, and it is checked afterwards**
+   (decision 29.08.2026, issue #117). The prompt names the `created_at` of the
+   note — the day it was written, not the day of the analysis run: a note from
+   the day before yesterday saying "morgen" means the day after the day before
+   yesterday, and a run catching up on a week of notes would otherwise date
+   them all to itself. The answer is then held against that day: a `due` before
+   it, or more than a year after it, is dropped and the field stays null.
+   Both halves are needed, and the reason is a measurement — asked without a
+   day in the prompt, qwen3:8b answered a note containing the word "Morgen"
+   with a `due` in 2023, well-formed, out of its training data and past every
+   format check. The prompt is a request to a model and assures nothing about
+   the answer; sections 7.4 and 8.2 carry this field into a real task list,
+   where nothing about the value says it was guessed.
+
    **What the classifier writes is what the user types** (user decision
    2026-08-29, issue #114): the category values are the ones section 6 offers,
    without umlaut and without hyphen, so the search stays a literal

@@ -17,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
+#include <QScopeGuard>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTcpServer>
@@ -66,6 +67,7 @@ private Q_SLOTS:
     void nothingIsAskedTwiceWhenNobodyAnswers();
     void aServerThatAnsweredIsNotAskedAgain();
     void readsReachabilityWithoutLoadingAModel();
+    void aChangedAddressAndModelReachTheRunningProvider();
 
     void connectionTestMeasuresBothCallsSeparately();
     void connectionTestReportsTheFirstError();
@@ -83,6 +85,8 @@ private Q_SLOTS:
     void todoWithoutADescriptionKeepsItsCategory();
     void taskSurvivesAnIsTodoThatIsNoBool();
     void taskKeepsOnlyWhatTheNoteSaid();
+    void theNotesOwnDayStandsInThePrompt();
+    void aDueDateOutsideTheNotesReachIsDropped();
 
     void everyNoteGetsItsOwnAnswer();
     void noteThatFailedTwiceIsSkippedAndReported();
@@ -101,6 +105,7 @@ private Q_SLOTS:
     void bundleThresholdIsClampedToWhatTheDialogAllows();
 
     void everyNoteGetsItsOwnVector();
+    void aVectorIsStoredUnderTheModelItWasAskedOf();
     void aRefusedNoteDoesNotBlockTheOthers();
     void anUnreachableBackendCostsNoAttempt();
 
@@ -402,6 +407,128 @@ void AiTest::readsReachabilityWithoutLoadingAModel()
     QVERIFY(!answered.constLast().at(0).toBool());
 }
 
+namespace
+{
+/**
+ * A stand-in Ollama that keeps the body of every request it was sent and
+ * answers each of them.
+ *
+ * The one answer serves a chat and an embedding alike, so that a case using
+ * this can vary the address and the model and nothing else. It waits for the
+ * announced length before it reads: `QNetworkAccessManager` sends the headers
+ * and the JSON body in segments of their own, and a recorder that stops at the
+ * empty line would write down half a request.
+ */
+void recordAndAnswer(QTcpServer *server, const std::shared_ptr<QStringList> &asked)
+{
+    QObject::connect(server, &QTcpServer::newConnection, server, [server, asked] {
+        QTcpSocket *socket = server->nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        QObject::connect(socket, &QTcpSocket::readyRead, socket, [socket, request, asked] {
+            request->append(socket->readAll());
+            const qsizetype headersEnd = request->indexOf("\r\n\r\n");
+            if (headersEnd < 0) {
+                return;
+            }
+            const QByteArray announced = QByteArray("Content-Length: ");
+            const qsizetype at = request->indexOf(announced);
+            const qsizetype length = at < 0
+                ? 0
+                : request->mid(at + announced.size(), request->indexOf("\r\n", at) - at - announced.size()).toLongLong();
+            const QByteArray body = request->mid(headersEnd + 4);
+            if (body.size() < length) {
+                return;
+            }
+
+            asked->append(QString::fromUtf8(body));
+            const QByteArray answer = R"({"message":{"content":"ok"},"embeddings":[[0.5]]})";
+            socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                          + QByteArray::number(answer.size()) + "\r\nConnection: close\r\n\r\n" + answer);
+            socket->disconnectFromHost();
+        });
+    });
+}
+}
+
+void AiTest::aChangedAddressAndModelReachTheRunningProvider()
+{
+    // The daemon holds one provider for the whole session, and until issue #119
+    // it read the address and the two models once at construction: what the
+    // settings dialog wrote reached the next start of the daemon and nothing
+    // before it. Silently, and worse than silently — "Test connection" on that
+    // same page works with the value out of the form, so it reported the new
+    // address as reachable while every analysis run went on talking to the old
+    // server.
+    //
+    // **The old address is asked first and that is asserted before anything
+    // changes** (CLAUDE.md, finding 27): "it takes the new value" is green over
+    // a provider that never had the old one — the first server has to be shown
+    // to have been the one answering.
+    QTcpServer chosen;
+    QTcpServer replacement;
+    QVERIFY2(chosen.listen(QHostAddress::LocalHost), qPrintable(chosen.errorString()));
+    QVERIFY2(replacement.listen(QHostAddress::LocalHost), qPrintable(replacement.errorString()));
+
+    auto askedChosen = std::make_shared<QStringList>();
+    auto askedReplacement = std::make_shared<QStringList>();
+    recordAndAnswer(&chosen, askedChosen);
+    recordAndAnswer(&replacement, askedReplacement);
+
+    // Written into the same KSharedConfig instance the provider reads from, so
+    // what the file is called plays no part here (CLAUDE.md, finding 42). The
+    // model names are made up: what is asserted is which of them arrived, and a
+    // real one could arrive because something else put it there.
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
+    // Taken away again whatever happens below, and that is not tidiness: a case
+    // that dies on an assertion would otherwise leave a made-up model in the
+    // group everyNoteGetsItsOwnVector() reads its default out of, and the next
+    // case would go red on this one's leftovers (CLAUDE.md, finding 47's
+    // family — a red that says nothing about the code under it).
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
+
+    group.writeEntry("OllamaUrl", QStringLiteral("http://127.0.0.1:%1").arg(chosen.serverPort()));
+    group.writeEntry("ChatModel", QStringLiteral("first-language-model"));
+    group.writeEntry("EmbeddingModel", QStringLiteral("first-embedding-model"));
+
+    OllamaProvider provider;
+    provider.setTimeout(std::chrono::seconds(5));
+
+    QSignalSpy chats(&provider, &AiProvider::chatFinished);
+    provider.chat(QStringLiteral("ping"));
+    QVERIFY(chats.wait(std::chrono::seconds(10)));
+    QCOMPARE(askedChosen->size(), 1);
+    QVERIFY2(askedChosen->constFirst().contains(QStringLiteral("first-language-model")),
+             qPrintable(askedChosen->constFirst()));
+
+    // Now the dialog writes, and the daemon goes on running.
+    group.writeEntry("OllamaUrl", QStringLiteral("http://127.0.0.1:%1").arg(replacement.serverPort()));
+    group.writeEntry("ChatModel", QStringLiteral("second-language-model"));
+    group.writeEntry("EmbeddingModel", QStringLiteral("second-embedding-model"));
+    provider.reloadSettings();
+
+    provider.chat(QStringLiteral("ping"));
+    QVERIFY(chats.wait(std::chrono::seconds(10)));
+    QCOMPARE(askedReplacement->size(), 1);
+    QVERIFY2(askedReplacement->constFirst().contains(QStringLiteral("second-language-model")),
+             qPrintable(askedReplacement->constFirst()));
+
+    // The embedding model of SPEC 7.1 takes the same road, and it is a second
+    // key: a reload that only re-read the address would stand green above.
+    QSignalSpy embeddings(&provider, &AiProvider::embedFinished);
+    provider.embed(QStringLiteral("ping"));
+    QVERIFY(embeddings.wait(std::chrono::seconds(10)));
+    QCOMPARE(askedReplacement->size(), 2);
+    QVERIFY2(askedReplacement->constLast().contains(QStringLiteral("second-embedding-model")),
+             qPrintable(askedReplacement->constLast()));
+
+    // And the server that used to be asked was not asked again — the one
+    // reading that tells a changed address from a second address answering
+    // beside the first.
+    QCOMPARE(askedChosen->size(), 1);
+}
+
 void AiTest::connectionTestMeasuresBothCallsSeparately()
 {
     AiProviderMock provider;
@@ -483,6 +610,18 @@ qint64 addNote(Store &store, const QString &content, const QDateTime &createdAt)
     note.content = content;
     const std::optional<qint64> id = store.addNote(note);
     return id.value_or(-1);
+}
+
+/**
+ * The day the made-up notes of these checks were written on.
+ *
+ * Every classification is read against the day of its own note (SPEC 7.2,
+ * issue #117), and a case handing today's date in would ask a different
+ * question tomorrow.
+ */
+QDate noteDay()
+{
+    return QDate(2026, 8, 1);
 }
 
 /** A well-formed answer, so that a check varies only what it is about. */
@@ -594,7 +733,7 @@ void AiTest::readsTheAnswerBesideAThinkingBlock()
         " but that is wrong, it is a command line.</think>\n"
         "```json\n"
         R"({"category": "cli", "tags": ["rsync", "spiegeln"], "is_todo": false})"
-        "\n```"));
+        "\n```"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("cli"));
@@ -612,7 +751,7 @@ void AiTest::unclosedThinkingBlockCarriesNoAnswer()
     const Classification classification = readClassification(QStringLiteral(
         "<think>The note asks for something to be done, so probably "
         R"({"category": "todos", "tags": ["backup"], "is_todo": false})"
-        " — although"));
+        " — although"), noteDay());
 
     QVERIFY2(!classification.error.isEmpty(), qPrintable(classification.category));
     QCOMPARE(classification.category, QString());
@@ -630,7 +769,7 @@ void AiTest::braceInTheProseIsNotTheAnswer()
         "Here is the object { as requested. I used "
         R"({"format": "json", "temperature": 0})"
         ", and the answer is:\n"
-        R"({"category": "software", "tags": ["qt", "wayland"], "is_todo": false})"));
+        R"({"category": "software", "tags": ["qt", "wayland"], "is_todo": false})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("software"));
@@ -641,7 +780,7 @@ void AiTest::categoryOutsideTheListIsRefused()
     // A sixth category would be a note that no `kat:` search and no sidebar
     // entry ever reaches again (SPEC 6) — so it is not written, and the value
     // stands in the reason.
-    const Classification classification = readClassification(answerFor(QStringLiteral("haushalt"), QStringLiteral(R"("kaffee")")));
+    const Classification classification = readClassification(answerFor(QStringLiteral("haushalt"), QStringLiteral(R"("kaffee")")), noteDay());
 
     QVERIFY(classification.error.contains(QStringLiteral("haushalt")));
     QCOMPARE(classification.category, QString());
@@ -653,7 +792,7 @@ void AiTest::categoryCaseIsFolded()
     // Upper case is how the answer is written, not what it says: `kat:` is a
     // literal comparison against the short form (SPEC 6), so it is folded here
     // rather than refused.
-    const Classification classification = readClassification(answerFor(QStringLiteral("Persoenlich"), QStringLiteral(R"("geburtstag")")));
+    const Classification classification = readClassification(answerFor(QStringLiteral("Persoenlich"), QStringLiteral(R"("geburtstag")")), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("persoenlich"));
@@ -666,7 +805,7 @@ void AiTest::tagsAreLoweredDedupedAndCutToFour()
     // note would carry three tags where the answer offered six different ones.
     const Classification classification =
         readClassification(answerFor(QStringLiteral("ideen"),
-                                     QStringLiteral(R"("Zeitleiste", "spuren", "ZEITLEISTE", "  notizen  ", "", "woche", "farbe")")));
+                                     QStringLiteral(R"("Zeitleiste", "spuren", "ZEITLEISTE", "  notizen  ", "", "woche", "farbe")")), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.tags,
@@ -678,7 +817,7 @@ void AiTest::tagsAreLoweredDedupedAndCutToFour()
 
 void AiTest::answerWithoutATagIsRefused()
 {
-    const Classification classification = readClassification(answerFor(QStringLiteral("ideen"), QString()));
+    const Classification classification = readClassification(answerFor(QStringLiteral("ideen"), QString()), noteDay());
 
     QVERIFY2(!classification.error.isEmpty(), qPrintable(classification.category));
     QCOMPARE(classification.category, QString());
@@ -690,7 +829,7 @@ void AiTest::categoryThatIsNoTextIsNamedAnyway()
     // tooltip and the log (SPEC 14). Read out as a string, a number falls out
     // of it and the sentence names an empty pair of quotation marks.
     const Classification classification =
-        readClassification(QStringLiteral(R"({"category": 3, "tags": ["backup"], "is_todo": false})"));
+        readClassification(QStringLiteral(R"({"category": 3, "tags": ["backup"], "is_todo": false})"), noteDay());
 
     QVERIFY2(classification.error.contains(QStringLiteral("3")), qPrintable(classification.error));
 }
@@ -701,7 +840,7 @@ void AiTest::markerInsideATagDoesNotCut()
     // no end of any reasoning. Cutting there costs the whole answer and an
     // attempt with it — after two of those the note keeps no category at all.
     const Classification classification = readClassification(
-        QStringLiteral(R"({"category": "ideen", "tags": ["das </think> steht im text"], "is_todo": false})"));
+        QStringLiteral(R"({"category": "ideen", "tags": ["das </think> steht im text"], "is_todo": false})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("ideen"));
@@ -714,7 +853,7 @@ void AiTest::todoWithoutADescriptionKeepsItsCategory()
     // the tags of this answer are sound, and refusing them would spend an
     // attempt on an answer that carried what the call was for.
     const Classification classification = readClassification(
-        QStringLiteral(R"({"category": "todos", "tags": ["backup"], "is_todo": true, "task": null})"));
+        QStringLiteral(R"({"category": "todos", "tags": ["backup"], "is_todo": true, "task": null})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     QCOMPARE(classification.category, QStringLiteral("todos"));
@@ -730,7 +869,7 @@ void AiTest::taskSurvivesAnIsTodoThatIsNoBool()
     // classification, with nothing to say that anything went missing.
     const Classification classification = readClassification(
         QStringLiteral(R"({"category": "todos", "tags": ["backup"], "is_todo": "true",)"
-                       R"( "task": {"description": "Platte anstecken", "project": "vault"}})"));
+                       R"( "task": {"description": "Platte anstecken", "project": "vault"}})"), noteDay());
 
     QCOMPARE(classification.error, QString());
     const QJsonObject task = QJsonDocument::fromJson(classification.task.toUtf8()).object();
@@ -748,7 +887,7 @@ void AiTest::taskKeepsOnlyWhatTheNoteSaid()
     const Classification classification = readClassification(QStringLiteral(
         R"({"category": "todos", "tags": ["filter"], "is_todo": true,)"
         R"( "task": {"description": "Wasserfilter tauschen", "project": "Kueche", "tags": ["FILTER"],)"
-        R"( "due": "irgendwann", "priority": "dringend", "erfunden": "weg"}})"));
+        R"( "due": "irgendwann", "priority": "dringend", "erfunden": "weg"}})"), noteDay());
 
     QCOMPARE(classification.error, QString());
 
@@ -759,6 +898,65 @@ void AiTest::taskKeepsOnlyWhatTheNoteSaid()
     QVERIFY(!task.contains(QStringLiteral("due")));
     QVERIFY(!task.contains(QStringLiteral("priority")));
     QVERIFY(!task.contains(QStringLiteral("erfunden")));
+}
+
+void AiTest::theNotesOwnDayStandsInThePrompt()
+{
+    // The first half of issue #117. Without a day in the prompt the model is
+    // asked to read "Morgen" knowing nothing about when the note was written,
+    // and it answers out of its training: measured against qwen3:8b on
+    // 2026-08-29 as `"due": "2023-10-26"` for a note of 2026.
+    //
+    // **The sentence, not the date on its own.** A date can stand anywhere in
+    // the prompt without saying whose day it is: with the sentence deleted and
+    // the same value left in as a meaningless "Request %2", an assertion on the
+    // string "2026-08-01" alone stays green over a prompt that tells the model
+    // nothing at all — measured 2026-08-29, whole set green.
+    const QString prompt = classificationPrompt(QStringLiteral("Morgen den Wasserfilter tauschen"), noteDay());
+    QVERIFY2(prompt.contains(QStringLiteral("The note was written on 2026-08-01, and every relative date in it is read from that day.")),
+             qPrintable(prompt));
+
+    // The day of the **note**, not of the run — so the same text asked about a
+    // note of another day has to come out different, or the case would be green
+    // over a prompt carrying a date from anywhere at all.
+    const QString older = classificationPrompt(QStringLiteral("Morgen den Wasserfilter tauschen"), QDate(2025, 3, 4));
+    QVERIFY2(older.contains(QStringLiteral("The note was written on 2025-03-04,")), qPrintable(older));
+    QVERIFY2(!older.contains(QStringLiteral("2026-08-01")), qPrintable(older));
+}
+
+void AiTest::aDueDateOutsideTheNotesReachIsDropped()
+{
+    // The second half, and the one that assures something about the **answer**:
+    // the day in the prompt is a request to a model and no guarantee (CLAUDE.md,
+    // finding 50). A date it invents is well-formed and passes every format
+    // check — and #29 and #33 carry this field into a real task list, where
+    // nothing about the value says it was guessed.
+    const auto dueOf = [](const QString &due) {
+        const Classification classification = readClassification(
+            QStringLiteral(R"({"category": "todos", "tags": ["filter"], "is_todo": true,)"
+                           R"( "task": {"description": "Wasserfilter tauschen", "due": "%1"}})")
+                .arg(due),
+            noteDay());
+        return QJsonDocument::fromJson(classification.task.toUtf8())
+            .object()
+            .value(QStringLiteral("due"))
+            .toString();
+    };
+
+    // What is kept comes first: a guard that drops everything would satisfy the
+    // two refusals below and take the feature with it.
+    QCOMPARE(dueOf(QStringLiteral("2026-08-02")), QStringLiteral("2026-08-02"));
+    // Both ends of what is allowed, so that a `>` where a `>=` belongs and a
+    // year counted one day short come out red rather than unnoticed: the day of
+    // the note itself, and the last day of the year after it.
+    QCOMPARE(dueOf(QStringLiteral("2026-08-01")), QStringLiteral("2026-08-01"));
+    QCOMPARE(dueOf(QStringLiteral("2027-08-01")), QStringLiteral("2027-08-01"));
+
+    // The measured case: a date out of the training data, lying before the note
+    // that is supposed to ask for it.
+    QCOMPARE(dueOf(QStringLiteral("2023-10-03")), QString());
+    // And the other direction, one day past the bound.
+    QCOMPARE(dueOf(QStringLiteral("2027-08-02")), QString());
 }
 
 void AiTest::everyNoteGetsItsOwnAnswer()
@@ -1352,6 +1550,72 @@ void AiTest::everyNoteGetsItsOwnVector()
     embedder.start();
     QCOMPARE(again.count(), 1);
     QVERIFY(provider.texts.isEmpty());
+}
+
+void AiTest::aVectorIsStoredUnderTheModelItWasAskedOf()
+{
+    // The settings dialog can write while an `embed` call is on its way, and
+    // the answer arrives after the change. Read at that moment, the model would
+    // be the NEW one while the vector was made by the OLD — which is exactly
+    // the mixing this class re-reads the setting to avoid (issue #119), and
+    // permanent: notesToEmbed(new) sees a note that already has a vector under
+    // that name and never asks again, so nothing ever puts the row right.
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
+    group.writeEntry("EmbeddingModel", QStringLiteral("model-asked"));
+
+    AiProviderMock provider;
+    // Long enough for the change to fall between the request and the answer,
+    // short enough not to slow the set down.
+    provider.embedDelay = std::chrono::milliseconds(300);
+
+    Embedder embedder(store.get(), &provider);
+    QCOMPARE(embedder.model(), QStringLiteral("model-asked"));
+
+    const QDateTime when = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    const qint64 note = addAnalysedNote(*store, QStringLiteral("Regentonne an die Fallrohre hängen."), when);
+    QVERIFY(note > 0);
+
+    QSignalSpy done(&embedder, &Embedder::finished);
+    embedder.start();
+
+    // Mid-call, the way the dialog reaches the running daemon.
+    QTest::qWait(50);
+    group.writeEntry("EmbeddingModel", QStringLiteral("model-set-meanwhile"));
+    embedder.reloadSettings();
+    QCOMPARE(embedder.model(), QStringLiteral("model-set-meanwhile"));
+
+    QVERIFY(done.wait(std::chrono::seconds(5)));
+
+    // The vector belongs to the model that made it. Both sides are asked, so
+    // that a run storing under neither name cannot pass the first line alone.
+    QCOMPARE(store->embeddings(QStringLiteral("model-asked")).size(), 1);
+    QCOMPARE(store->embeddings(QStringLiteral("model-asked")).constFirst().noteId, note);
+    QVERIFY(store->embeddings(QStringLiteral("model-set-meanwhile")).isEmpty());
+
+    // The reload is not undone by this: from the next request on the new model
+    // is what is asked and what is stored. And the note above is asked **again**
+    // — it has no vector for the new name, so notesToEmbed() hands it over and
+    // the corpus becomes whole under one model. That repair is what the wrong
+    // name would have cost: written under `model-set-meanwhile`, the row would
+    // have looked current and this run would have skipped it, leaving a vector
+    // of one model in the corpus of another for good.
+    const qint64 later = addAnalysedNote(*store, QStringLiteral("Hochbeet im Frühjahr neu schichten."), when.addSecs(60));
+    QVERIFY(later > 0);
+    embedder.start();
+    QVERIFY(done.wait(std::chrono::seconds(5)));
+    QCOMPARE(store->embeddings(QStringLiteral("model-set-meanwhile")).size(), 2);
+    // A note carries exactly one vector (`note_id` is the primary key of
+    // `embeddings`), so the repair replaces the old row rather than standing
+    // beside it — which is why the name on it decides whether the note is ever
+    // asked again at all.
+    QVERIFY(store->embeddings(QStringLiteral("model-asked")).isEmpty());
 }
 
 void AiTest::aRefusedNoteDoesNotBlockTheOthers()

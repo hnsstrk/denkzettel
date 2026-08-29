@@ -238,6 +238,24 @@ int main(int argc, char *argv[])
     // the daemon and look like a setting that does nothing (SPEC 13, issue #16).
     QObject::connect(Settings::self(), &Settings::configChanged, &analysis, &AnalysisScheduler::applySettings);
 
+    // And the same for the backend itself (issue #119): the address and the two
+    // models of SPEC 7.1 were read once at construction, so a server or a model
+    // chosen in the dialog reached the running run at the next start of the
+    // daemon and not before — while "Test connection" on that very page, which
+    // works with the value out of the form, reported the new address as
+    // reachable. The check said yes and the analysis talked to the old server.
+    //
+    // Three connections and not one, because three objects hold the embedding
+    // model: the provider asks for the vector, the embedder writes the name
+    // beside it and the suggester looks the vectors up by it (SPEC 7.3). Left
+    // out, either of the two latter would go on with the old name while the
+    // provider asked the new model — vectors of two models under one name, or a
+    // corpus that comes out empty. They read it out of one function for that
+    // reason (ollama::configuredEmbeddingModel()).
+    QObject::connect(Settings::self(), &Settings::configChanged, &provider, &OllamaProvider::reloadSettings);
+    QObject::connect(Settings::self(), &Settings::configChanged, &embedder, &Embedder::reloadSettings);
+    QObject::connect(Settings::self(), &Settings::configChanged, &suggester, &Suggester::reloadSettings);
+
     QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
 
     // The tool detection of SPEC 2.5 (issue #17), and it runs at **every**

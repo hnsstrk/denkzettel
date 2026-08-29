@@ -3,6 +3,7 @@
 #include "analysis/aiprovider.h"
 #include "analysis/clustering.h"
 #include "analysis/modelanswer.h"
+#include "analysis/ollamaprovider.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
@@ -289,6 +290,11 @@ void Suggester::start()
 
     m_busy = true;
     takeNextCluster();
+}
+
+void Suggester::reloadSettings()
+{
+    m_embeddingModel = ollama::configuredEmbeddingModel();
 }
 
 bool Suggester::isBusy() const

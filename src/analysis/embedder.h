@@ -61,8 +61,8 @@ public:
     bool isBusy() const;
 
     /**
-     * The embedding model of SPEC 7.1 out of `denkzettelrc`, read once at
-     * construction.
+     * The embedding model of SPEC 7.1 out of `denkzettelrc`, as reloadSettings()
+     * last read it.
      *
      * It is written beside every vector and it is what the clustering asks the
      * store for (Store::embeddings()) — so whoever clusters what this run
@@ -71,6 +71,25 @@ public:
      * spellings would be two models.
      */
     QString model() const;
+
+public Q_SLOTS:
+    /**
+     * Re-reads `[AI] EmbeddingModel` out of `denkzettelrc`.
+     *
+     * It hangs on the same `Settings::configChanged` as
+     * OllamaProvider::reloadSettings() and for the same reason (issue #119):
+     * the provider would otherwise ask a **new** model for the vector while
+     * this class went on writing the **old** name beside it, and the
+     * clustering, which looks the vectors up by that name, would compare two
+     * models' vectors as if they were one.
+     *
+     * **It takes hold from the next request on, and a call already on its way
+     * keeps the name it was sent with** — see m_sentModel. Not "a run that is
+     * already going keeps what it started with": the next note of the same run
+     * is asked with the new model and stored under it, which is what
+     * notesToEmbed() then goes by.
+     */
+    void reloadSettings();
 
 Q_SIGNALS:
     /** The note carries its vector, and its `needs_reembed` is cleared. */
@@ -105,6 +124,16 @@ private:
     Store *m_store;
     AiProvider *m_provider;
     QString m_model;
+    /**
+     * The model the outstanding request was sent with, and what its vector is
+     * stored under.
+     *
+     * m_model can change between the request and the answer (reloadSettings()),
+     * and a vector belongs to the model that made it. Written under the new
+     * name it would be a vector of two models under one, and notesToEmbed()
+     * would never ask for that row again.
+     */
+    QString m_sentModel;
     /** The notes of this run that are still outstanding, oldest first. */
     QList<Note> m_queue;
     /** The note being embedded, and -1 between two of them. */
