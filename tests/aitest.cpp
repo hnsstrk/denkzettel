@@ -2,6 +2,8 @@
 
 #include "analysis/analysisscheduler.h"
 #include "analysis/classifier.h"
+#include "analysis/clustering.h"
+#include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
 #include "store/store.h"
 
@@ -20,8 +22,10 @@
 #include <QTcpSocket>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QtMath>
 
 #include <chrono>
+#include <cmath>
 #include <memory>
 
 /**
@@ -86,6 +90,17 @@ private Q_SLOTS:
     void theBudgetStopsAtFiftyAndTheRestFollows();
     void theTriggerFollowsTheSetting();
     void aNoteWrittenDuringARunIsNotLost();
+
+    void cosineSimilarityIsTheAngleBetweenTwoVectors();
+    void chainedNotesLandInOneCluster();
+    void similarityAtTheThresholdStillCounts();
+    void distantNotesFormTheirOwnCluster();
+    void nothingToClusterYieldsNoCluster();
+    void bundleThresholdIsClampedToWhatTheDialogAllows();
+
+    void everyNoteGetsItsOwnVector();
+    void aRefusedNoteDoesNotBlockTheOthers();
+    void anUnreachableBackendCostsNoAttempt();
 };
 
 void AiTest::initTestCase()
@@ -413,6 +428,36 @@ qint64 addNote(Store &store, const QString &content, const QDateTime &createdAt)
 QString answerFor(const QString &category, const QString &tags)
 {
     return QStringLiteral(R"({"category": "%1", "tags": [%2], "is_todo": false})").arg(category, tags);
+}
+
+/** A note that has been through the classification, so the clustering sees it. */
+qint64 addAnalysedNote(Store &store, const QString &content, const QDateTime &createdAt)
+{
+    Note note;
+    note.createdAt = createdAt;
+    note.content = content;
+    note.state = Note::State::Analysed;
+    note.category = QStringLiteral("ideen");
+    const std::optional<qint64> id = store.addNote(note);
+    return id.value_or(-1);
+}
+
+/**
+ * A corpus of unit vectors in the plane, one per angle, numbered from 1.
+ *
+ * Two dimensions and an angle rather than made-up numbers, because that is
+ * what makes the cases readable: the threshold of 0.60 is an angle of 53.1°,
+ * so two notes 50° apart belong together and two 100° apart do not — and
+ * whoever reads the case can work out the answer without a calculator.
+ */
+QList<NoteEmbedding> corpusAt(const QList<double> &degrees)
+{
+    QList<NoteEmbedding> corpus;
+    for (const double angle : degrees) {
+        const double radians = qDegreesToRadians(angle);
+        corpus.append({corpus.size() + 1, {float(std::cos(radians)), float(std::sin(radians))}});
+    }
+    return corpus;
 }
 }
 
@@ -991,6 +1036,293 @@ void AiTest::aNoteWrittenDuringARunIsNotLost()
     QVERIFY(store->unanalysedNotes().isEmpty());
 
     group.deleteGroup();
+}
+
+void AiTest::cosineSimilarityIsTheAngleBetweenTwoVectors()
+{
+    // (3,4) and (5,0): the dot product is 15, the lengths are 5 and 5, so the
+    // cosine is 15/25 — exactly the threshold, and exactly representable, see
+    // similarityAtTheThresholdStillCounts() below.
+    QCOMPARE(cosineSimilarity({3.0F, 4.0F}, {5.0F, 0.0F}), 0.6);
+    // The same direction at a different length is the same topic: the cosine
+    // knows the angle and not the size. A dot product without the division
+    // would answer 50 here and 15 above.
+    QCOMPARE(cosineSimilarity({3.0F, 4.0F}, {6.0F, 8.0F}), 1.0);
+    QCOMPARE(cosineSimilarity({3.0F, 4.0F}, {-3.0F, -4.0F}), -1.0);
+
+    // The two that would otherwise divide by nothing or read past the end of a
+    // vector — the second is what a BLOB read with the wrong element size
+    // looks like (SPEC 5.1: float32).
+    QCOMPARE(cosineSimilarity({0.0F, 0.0F}, {5.0F, 0.0F}), 0.0);
+    QCOMPARE(cosineSimilarity({3.0F, 4.0F, 5.0F}, {5.0F, 0.0F}), 0.0);
+    QCOMPARE(cosineSimilarity({}, {}), 0.0);
+}
+
+void AiTest::chainedNotesLandInOneCluster()
+{
+    // The case the whole method stands or falls by (SPEC 7.3, single linkage):
+    // A to B is 50°, B to C is 50°, A to C is 100°. The first two are above the
+    // threshold, the third is far below it — so this is **one** cluster of
+    // three. Whoever asks every pair of a cluster to be similar gets two
+    // clusters of two here and none at a minimum of three, and with only two
+    // notes the two readings would be indistinguishable (CLAUDE.md, finding
+    // 34).
+    const QList<NoteEmbedding> corpus = corpusAt({0.0, 50.0, 100.0});
+
+    QVERIFY(cosineSimilarity(corpus.at(0).vector, corpus.at(1).vector) >= clusterSimilarity);
+    QVERIFY(cosineSimilarity(corpus.at(1).vector, corpus.at(2).vector) >= clusterSimilarity);
+    QVERIFY(cosineSimilarity(corpus.at(0).vector, corpus.at(2).vector) < clusterSimilarity);
+
+    const QList<QList<qint64>> clusters = clusterNotes(corpus, 3);
+    QCOMPARE(clusters.size(), 1);
+    QCOMPARE(clusters.constFirst(), QList<qint64>({1, 2, 3}));
+}
+
+void AiTest::similarityAtTheThresholdStillCounts()
+{
+    // SPEC 7.3 says "≥ 0.60", and the difference to "> 0.60" is one pair. The
+    // vectors are chosen so the cosine is exactly 0.6 rather than nearly: 3-4-5
+    // is exact in float32, 15/25 rounds to the same double the constant does.
+    const QList<NoteEmbedding> exactly = {{1, {5.0F, 0.0F}}, {2, {3.0F, 4.0F}}};
+    QCOMPARE(cosineSimilarity(exactly.at(0).vector, exactly.at(1).vector), clusterSimilarity);
+    QCOMPARE(clusterNotes(exactly, 2), QList<QList<qint64>>({{1, 2}}));
+
+    // And a hair below it is two notes that have nothing to do with each other.
+    const QList<NoteEmbedding> below = {{1, {5.0F, 0.0F}}, {2, {2.9F, 4.1F}}};
+    QVERIFY(cosineSimilarity(below.at(0).vector, below.at(1).vector) < clusterSimilarity);
+    QVERIFY(clusterNotes(below, 2).isEmpty());
+}
+
+void AiTest::distantNotesFormTheirOwnCluster()
+{
+    // Two topics: three notes around 0° to 100°, two more around 180°. The
+    // nearest pair across the gap is 80° apart and stays apart.
+    const QList<NoteEmbedding> corpus = corpusAt({0.0, 50.0, 100.0, 180.0, 200.0});
+
+    QCOMPARE(clusterNotes(corpus, 2), QList<QList<qint64>>({{1, 2, 3}, {4, 5}}));
+
+    // The bundle threshold of SPEC 7.3 is what drops the smaller one: at three
+    // notes the pair is no bundle, and its notes simply stay in the corpus.
+    QCOMPARE(clusterNotes(corpus, 3), QList<QList<qint64>>({{1, 2, 3}}));
+}
+
+void AiTest::nothingToClusterYieldsNoCluster()
+{
+    QVERIFY(clusterNotes({}, 3).isEmpty());
+    QVERIFY(clusterNotes(corpusAt({0.0}), 3).isEmpty());
+    // A note whose vector is empty — a wrongly read BLOB — clusters with
+    // nobody, itself included, rather than dragging the corpus together.
+    QVERIFY(clusterNotes({{1, {}}, {2, {}}}, 2).isEmpty());
+}
+
+void AiTest::bundleThresholdIsClampedToWhatTheDialogAllows()
+{
+    // SPEC 7.3, default 3. The set runs with a configuration directory that
+    // holds nothing (tests/CMakeLists.txt), so what comes back with no entry is
+    // the default — and it is `[Export] BundleNotes` the settings page writes
+    // (#75).
+    QCOMPARE(bundleThreshold(), bundle::DefaultNotes);
+    QCOMPARE(bundle::DefaultNotes, 3);
+
+    // Written into the same KSharedConfig instance the reader opens, so what
+    // the file is called plays no part (CLAUDE.md, finding 42).
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Export"));
+
+    // A hand-written value the dialog would never have produced. At 1 every
+    // note is a cluster of its own and the whole corpus turns into bundles;
+    // the item's own bounds do not reach a file nobody edited through the
+    // dialog, so the reader clamps.
+    group.writeEntry("BundleNotes", 1);
+    QCOMPARE(bundleThreshold(), bundle::MinimumNotes);
+    group.writeEntry("BundleNotes", 0);
+    QCOMPARE(bundleThreshold(), bundle::MinimumNotes);
+    group.writeEntry("BundleNotes", -5);
+    QCOMPARE(bundleThreshold(), bundle::MinimumNotes);
+    group.writeEntry("BundleNotes", 500);
+    QCOMPARE(bundleThreshold(), bundle::MaximumNotes);
+
+    // And a value inside the bounds is handed through untouched — without this
+    // line a reader that always answered the floor would pass.
+    group.writeEntry("BundleNotes", 7);
+    QCOMPARE(bundleThreshold(), 7);
+
+    group.deleteGroup();
+    QCOMPARE(bundleThreshold(), bundle::DefaultNotes);
+}
+
+void AiTest::everyNoteGetsItsOwnVector()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    AiProviderMock provider;
+    Embedder embedder(store.get(), &provider);
+    // Every embedding comes from Ollama in v1 (SPEC 7.1), and the model stands
+    // beside the vector — the clustering asks for the vectors of one model.
+    QCOMPARE(embedder.model(), QString(ollama::DefaultEmbeddingModel));
+
+    // Four notes, and only two of them have anything outstanding.
+    const QDateTime first = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    const qint64 fresh = addAnalysedNote(*store, QStringLiteral("Regentonne an die Fallrohre hängen."), first);
+    const qint64 done = addAnalysedNote(*store, QStringLiteral("Hochbeet im Frühjahr neu schichten."), first.addSecs(60));
+    const qint64 edited = addAnalysedNote(*store, QStringLiteral("Der Kompost braucht mehr Braunmaterial."), first.addSecs(120));
+    const qint64 unanalysed = addNote(*store, QStringLiteral("Noch nicht klassifiziert."), first.addSecs(180));
+    QVERIFY(fresh > 0 && done > 0 && edited > 0 && unanalysed > 0);
+
+    QVERIFY2(store->setEmbedding(done, embedder.model(), {0.125F, 0.25F}), qPrintable(store->lastError()));
+    QVERIFY2(store->setEmbedding(edited, embedder.model(), {2.0F, 2.0F}), qPrintable(store->lastError()));
+    // What SPEC 9 sets when the user saves an edited note: the text has moved
+    // on, the vector has not.
+    std::optional<Note> reedit = store->note(edited);
+    QVERIFY(reedit.has_value());
+    reedit->needsReembed = true;
+    QVERIFY2(store->updateNote(*reedit), qPrintable(store->lastError()));
+
+    // Two different answers, so that a run writing the first vector onto every
+    // note comes out red (CLAUDE.md, finding 34).
+    provider.embedVectors = {{0.5, -0.25, 0.75}, {-1.0, 0.25, 0.5}};
+
+    QSignalSpy done_(&embedder, &Embedder::finished);
+    embedder.start();
+    QVERIFY(done_.wait(std::chrono::seconds(5)));
+
+    // The note that has a current vector is not asked again, and the one that
+    // is not analysed is not asked at all — an `embed` call is paid for.
+    QCOMPARE(provider.texts, QStringList({QStringLiteral("Regentonne an die Fallrohre hängen."),
+                                          QStringLiteral("Der Kompost braucht mehr Braunmaterial.")}));
+
+    const QList<NoteEmbedding> stored = store->embeddings(embedder.model());
+    QCOMPARE(stored.size(), 3);
+    QCOMPARE(stored.at(0).noteId, fresh);
+    QCOMPARE(stored.at(0).vector, QList<float>({0.5F, -0.25F, 0.75F}));
+    // Untouched, and still the two components it was written with.
+    QCOMPARE(stored.at(1).noteId, done);
+    QCOMPARE(stored.at(1).vector, QList<float>({0.125F, 0.25F}));
+    // Replaced rather than added beside the old one, and the flag is cleared —
+    // left standing, the note would be embedded again in every run to come.
+    QCOMPARE(stored.at(2).noteId, edited);
+    QCOMPARE(stored.at(2).vector, QList<float>({-1.0F, 0.25F, 0.5F}));
+    QVERIFY(!store->note(edited)->needsReembed);
+
+    // And a second run has nothing left to do.
+    provider.texts.clear();
+    const QSignalSpy again(&embedder, &Embedder::finished);
+    embedder.start();
+    QCOMPARE(again.count(), 1);
+    QVERIFY(provider.texts.isEmpty());
+}
+
+void AiTest::aRefusedNoteDoesNotBlockTheOthers()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // The poison sits on the **oldest** note, which is the one the queue takes
+    // first (Store::notesToEmbed). On the youngest, a run that gives up on the
+    // first failure still writes two vectors and would look almost healthy.
+    const QDateTime first = QDateTime::fromString(QStringLiteral("2026-08-03T08:00:00.000"), Qt::ISODateWithMs);
+    const qint64 poison = addAnalysedNote(*store, QStringLiteral("Die Notiz, an der das Modell scheitert."), first);
+    const qint64 second = addAnalysedNote(*store, QStringLiteral("Das Vogelhaus vor dem Winter abnehmen."), first.addSecs(60));
+    const qint64 third = addAnalysedNote(*store, QStringLiteral("Die Hecke wächst über den Gehweg."), first.addSecs(120));
+    QVERIFY(poison > 0 && second > 0 && third > 0);
+
+    AiProviderMock provider;
+    provider.refusedText = QStringLiteral("Die Notiz, an der das Modell scheitert.");
+    provider.embedVectors = {{1.0, 0.0}, {0.0, 1.0}};
+
+    Embedder embedder(store.get(), &provider);
+    QSignalSpy failed(&embedder, &Embedder::failed);
+    QSignalSpy paused(&embedder, &Embedder::paused);
+    QSignalSpy finished(&embedder, &Embedder::finished);
+
+    // First run: the refusal costs that note an attempt, and the two healthy
+    // notes are embedded all the same. A run that ends on the first failure
+    // asks once and writes nothing.
+    embedder.start();
+    QVERIFY(finished.wait(std::chrono::seconds(5)));
+    QCOMPARE(provider.texts.size(), 3);
+    QCOMPARE(store->embeddings(embedder.model()).size(), 2);
+    QCOMPARE(failed.count(), 1);
+    QCOMPARE(failed.constFirst().at(0).toLongLong(), poison);
+    QCOMPARE(paused.count(), 0);
+    QCOMPARE(store->note(poison)->analysisAttempts, 1);
+    QCOMPARE(store->note(second)->analysisAttempts, 0);
+
+    // Second run: only the refused note is outstanding, and its second refusal
+    // is the last (SPEC 7.2). What SPEC 14 asks to be reported leaves as
+    // paused() and carries the reason.
+    provider.texts.clear();
+    failed.clear();
+    embedder.start();
+    QVERIFY(finished.wait(std::chrono::seconds(5)));
+    QCOMPARE(provider.texts, QStringList({provider.refusedText}));
+    QCOMPARE(paused.count(), 1);
+    QCOMPARE(paused.constFirst().at(0).toLongLong(), poison);
+    QCOMPARE(paused.constFirst().at(1).toString(), provider.refusalReason);
+    QCOMPARE(failed.count(), 0);
+
+    // Third run: the note is not handed over again — that is the endless
+    // retrying SPEC 7.2 rules out — and it is reported once more, because a
+    // restart is the only place the tray could learn of it.
+    provider.texts.clear();
+    paused.clear();
+    finished.clear();
+    embedder.start();
+    // Counted and not waited for: with nothing left to ask, the run ends inside
+    // start() and the signal is gone before a wait() could arm itself — the
+    // ten-second timeout #15's review ran into.
+    QCOMPARE(finished.count(), 1);
+    QVERIFY(provider.texts.isEmpty());
+    QCOMPARE(paused.count(), 1);
+    QCOMPARE(store->note(poison)->analysisAttempts, 2);
+    QCOMPARE(store->note(poison)->analysisLastError, provider.refusalReason);
+}
+
+void AiTest::anUnreachableBackendCostsNoAttempt()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QDateTime first = QDateTime::fromString(QStringLiteral("2026-08-02T07:30:00.000"), Qt::ISODateWithMs);
+    const qint64 one = addAnalysedNote(*store, QStringLiteral("Fahrradkette entfetten und neu ölen."), first);
+    const qint64 two = addAnalysedNote(*store, QStringLiteral("Schaltzug vorne ist ausgefranst."), first.addSecs(60));
+    QVERIFY(one > 0 && two > 0);
+
+    AiProviderMock provider;
+    // What an Ollama that is not running answers with, and it answers the same
+    // for every note — so the run says it once instead of fifty times.
+    provider.embedError = QStringLiteral("Ollama could not be reached: Connection refused");
+    provider.embedFailure = AiFailure::Unreachable;
+
+    Embedder embedder(store.get(), &provider);
+    const QSignalSpy failed(&embedder, &Embedder::failed);
+    const QSignalSpy paused(&embedder, &Embedder::paused);
+    QSignalSpy finished(&embedder, &Embedder::finished);
+    embedder.start();
+    QVERIFY(finished.wait(std::chrono::seconds(5)));
+
+    QCOMPARE(provider.texts.size(), 1);
+    QCOMPARE(failed.count(), 1);
+    QCOMPARE(failed.constFirst().at(0).toLongLong(), one);
+    QCOMPARE(failed.constFirst().at(1).toString(), provider.embedError);
+    QCOMPARE(paused.count(), 0);
+    QVERIFY(!embedder.isBusy());
+
+    // **No counter moved**, and that is the half the run stands or falls by: an
+    // outage counted against the notes would leave the whole corpus given up on
+    // after the second one, and nobody would ever see why.
+    QCOMPARE(store->note(one)->analysisAttempts, 0);
+    QCOMPARE(store->note(two)->analysisAttempts, 0);
+    QCOMPARE(store->note(one)->analysisLastError, QString());
+
+    // Nothing is written and nothing is given up on: both notes stand in the
+    // next run, which is what SPEC 7.1 means by the bundles falling away while
+    // Ollama is unreachable.
+    QVERIFY(store->embeddings(embedder.model()).isEmpty());
+    QCOMPARE(store->notesToEmbed(embedder.model()).size(), 2);
 }
 
 QTEST_GUILESS_MAIN(AiTest)

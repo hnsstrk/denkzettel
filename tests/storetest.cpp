@@ -49,6 +49,8 @@ private Q_SLOTS:
     void parsesUnknownOperatorsAsText();
     void searchAppliesOperatorsBesideFreeText();
     void keepsSearchIndexInSync();
+    void storesTheEmbeddingAsAFloat32Array();
+    void listsWhatHasNoCurrentVector();
     void migratesDatabaseFromSchemaVersion1();
 
 private:
@@ -56,6 +58,17 @@ private:
     static Note sampleNote();
     /** Writes a database in the M1 schema (version 1) with two notes and a tag. */
     static bool writeSchemaVersion1Database(const QString &path, QString *error);
+    /**
+     * What SQLite itself says about the `embeddings` table, over a connection
+     * of this check's own: `SELECT ...` answered as one number.
+     *
+     * The one side of the comparison that is not written by the code under
+     * check (CLAUDE.md, finding 10). A vector written and read back by the same
+     * pair of functions comes out right even when both count bytes where they
+     * should count elements — `LENGTH(vector)` is counted by the database, and
+     * it counts bytes.
+     */
+    qint64 embeddingNumber(const QString &select) const;
     /** Contents of the notes a search returns, in the order it returned them. */
     QStringList searchContents(const QString &text) const;
 
@@ -103,7 +116,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 4);
+    QCOMPARE(m_store->schemaVersion(), 5);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -387,7 +400,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 4);
+    QCOMPARE(m_store->schemaVersion(), 5);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -570,6 +583,106 @@ void StoreTest::keepsSearchIndexInSync()
     QVERIFY(m_store->search(QString()).isEmpty());
 }
 
+qint64 StoreTest::embeddingNumber(const QString &select) const
+{
+    const QString connection = QStringLiteral("blob-%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    qint64 answer = -1;
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        db.setDatabaseName(databasePath());
+        if (db.open()) {
+            QSqlQuery query(db);
+            if (query.exec(select) && query.next()) {
+                answer = query.value(0).toLongLong();
+            }
+        }
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return answer;
+}
+
+void StoreTest::storesTheEmbeddingAsAFloat32Array()
+{
+    // SPEC 5.1: `embeddings(note_id FK PK, model TEXT, vector BLOB)`, float32.
+    Note note = sampleNote();
+    note.state = Note::State::Analysed;
+    const std::optional<qint64> id = m_store->addNote(note);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+
+    // Five values, every one of them exact in float32, so a difference in the
+    // reading is a difference in the value and not in the rounding. Two of them
+    // negative and one of them zero: a reader that mistook the sign bit or
+    // stopped at a nought would come out short.
+    const QList<float> vector = {0.5F, -0.25F, 0.0F, 1.5F, -2.0F};
+    QVERIFY2(m_store->setEmbedding(*id, QStringLiteral("bge-m3"), vector), qPrintable(m_store->lastError()));
+
+    // The number the database counts, and it counts bytes: five float32 are
+    // twenty of them. Read as doubles the same BLOB is two values and a half,
+    // and the round-trip below would still be green (finding 10).
+    QCOMPARE(embeddingNumber(QStringLiteral("SELECT LENGTH(vector) FROM embeddings")), 20);
+
+    const QList<NoteEmbedding> stored = m_store->embeddings(QStringLiteral("bge-m3"));
+    QCOMPARE(stored.size(), 1);
+    QCOMPARE(stored.constFirst().noteId, *id);
+    QCOMPARE(stored.constFirst().vector.size(), 5);
+    QCOMPARE(stored.constFirst().vector, vector);
+
+    // Another model is another vector space (SPEC 7.1/7.3) — asked for one, the
+    // store hands out none of the other.
+    QVERIFY(m_store->embeddings(QStringLiteral("nomic-embed-text")).isEmpty());
+
+    // Deleting the note takes its embedding with it (SPEC 5.1): left behind, it
+    // would be clustered into a bundle carrying a note that is not there.
+    QVERIFY2(m_store->removeNote(*id), qPrintable(m_store->lastError()));
+    QCOMPARE(embeddingNumber(QStringLiteral("SELECT COUNT(*) FROM embeddings")), 0);
+}
+
+void StoreTest::listsWhatHasNoCurrentVector()
+{
+    // The three cases of SPEC 7.2 step 2, and the two that are not cases.
+    const QDateTime first = QDateTime::fromString(QStringLiteral("2026-08-03T06:00:00.000"), Qt::ISODateWithMs);
+    const auto add = [this, first](const QString &content, int minutes, Note::State state) {
+        Note note = sampleNote();
+        note.createdAt = first.addSecs(qint64(minutes) * 60);
+        note.content = content;
+        note.state = state;
+        const std::optional<qint64> id = m_store->addNote(note);
+        return id.value_or(-1);
+    };
+
+    const qint64 fresh = add(QStringLiteral("Ohne Vektor"), 0, Note::State::Analysed);
+    const qint64 current = add(QStringLiteral("Mit Vektor"), 1, Note::State::Analysed);
+    const qint64 edited = add(QStringLiteral("Bearbeitet"), 2, Note::State::Analysed);
+    const qint64 otherModel = add(QStringLiteral("Anderes Modell"), 3, Note::State::Analysed);
+    const qint64 unanalysed = add(QStringLiteral("Noch nicht klassifiziert"), 4, Note::State::New);
+    QVERIFY(fresh > 0 && current > 0 && edited > 0 && otherModel > 0 && unanalysed > 0);
+
+    QVERIFY2(m_store->setEmbedding(current, QStringLiteral("bge-m3"), {1.0F}), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(edited, QStringLiteral("bge-m3"), {1.0F}), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(otherModel, QStringLiteral("nomic-embed-text"), {1.0F}), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(unanalysed, QStringLiteral("bge-m3"), {1.0F}), qPrintable(m_store->lastError()));
+
+    // What SPEC 9 sets when the user saves an edited note.
+    std::optional<Note> changed = m_store->note(edited);
+    QVERIFY(changed.has_value());
+    changed->needsReembed = true;
+    QVERIFY2(m_store->updateNote(*changed), qPrintable(m_store->lastError()));
+
+    QList<qint64> outstanding;
+    const QList<Note> notes = m_store->notesToEmbed(QStringLiteral("bge-m3"));
+    for (const Note &note : notes) {
+        outstanding.append(note.id);
+    }
+    QCOMPARE(outstanding, QList<qint64>({fresh, edited, otherModel}));
+
+    // And writing the vector takes the note out of the list, flag and all —
+    // the two belong in one transaction, or the note would come back for ever.
+    QVERIFY2(m_store->setEmbedding(edited, QStringLiteral("bge-m3"), {2.0F}), qPrintable(m_store->lastError()));
+    QVERIFY(!m_store->note(edited)->needsReembed);
+    QCOMPARE(m_store->notesToEmbed(QStringLiteral("bge-m3")).size(), 2);
+}
+
 bool StoreTest::writeSchemaVersion1Database(const QString &path, QString *error)
 {
     // The M1 schema, frozen as it shipped: a migration test is only worth
@@ -639,7 +752,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 4);
+    QCOMPARE(m_store->schemaVersion(), 5);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -689,6 +802,14 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     QCOMPARE(m_store->tags(1), QStringList({QStringLiteral("bahn")}));
     QCOMPARE(m_store->failAnalysis(2, QStringLiteral("Ollama antwortete nicht")), std::optional<int>(2));
 
+    // And the embeddings of schema version 5 take a note that was written
+    // before their table existed (SPEC 5.1, 7.3, issue #28).
+    QVERIFY2(m_store->setEmbedding(1, QStringLiteral("bge-m3"), {0.5F, -0.5F}), qPrintable(m_store->lastError()));
+    const QList<NoteEmbedding> embedded = m_store->embeddings(QStringLiteral("bge-m3"));
+    QCOMPARE(embedded.size(), 1);
+    QCOMPARE(embedded.constFirst().noteId, qint64(1));
+    QCOMPARE(embedded.constFirst().vector, QList<float>({0.5F, -0.5F}));
+
     // And it keeps working for notes written after the migration.
     Note added = sampleNote();
     added.content = QStringLiteral("Nach der Migration erfasst");
@@ -699,7 +820,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 4);
+    QCOMPARE(m_store->schemaVersion(), 5);
     QCOMPARE(m_store->notes().size(), 3);
 }
 

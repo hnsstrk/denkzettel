@@ -42,9 +42,40 @@ public:
     QStringList chatAnswers;
     /** What embed() answers with, unless `embedError` is set. */
     QList<double> embedVector = {0.5, -0.25};
+    /**
+     * One vector per call, taken from the front; once they are used up
+     * `embedVector` stands in again.
+     *
+     * The same reason `chatAnswers` stands above it: with one vector for every
+     * note, a run that writes the first answer onto all of them passes
+     * (CLAUDE.md, finding 34).
+     */
+    QList<QList<double>> embedVectors;
     /** Non-empty turns the call into a failure carrying exactly this reason. */
     QString chatError;
     QString embedError;
+    /**
+     * Which kind of failure `embedError` is — a backend that never answered, or
+     * one that answered and refused the text (AiFailure).
+     *
+     * It has no default that fits both: the embedding run treats the two
+     * differently on purpose (SPEC 7.2), so a check that sets `embedError`
+     * says which of them it is standing in for. `Refused` stands here because
+     * it is the one that costs the note an attempt — a check that forgot the
+     * line comes out on the counting side and is noticed.
+     */
+    AiFailure embedFailure = AiFailure::Refused;
+    /**
+     * The one text embed() refuses instead of answering — the note a backend
+     * chokes on while it answers every other one.
+     *
+     * A whole corpus that fails is `embedError`; this is the case that tells a
+     * run which ends on any failure from one which counts the refusal and goes
+     * on, and no global error can stand in for it.
+     */
+    QString refusedText;
+    /** What the refusal of `refusedText` says. */
+    QString refusalReason = QStringLiteral("Ollama refused the request: input is not embeddable");
     /** How long chat() takes to answer. */
     std::chrono::milliseconds chatDelay{0};
     /** How long embed() takes to answer. */
@@ -69,9 +100,18 @@ public:
     int embed(const QString &text) override
     {
         texts.append(text);
+        const bool refused = !refusedText.isEmpty() && text == refusedText;
+        const QString error = refused ? refusalReason : embedError;
+        const AiFailure failure = refused ? AiFailure::Refused : embedFailure;
+        // A call that is refused takes no vector out of the list: what it was
+        // going to answer belongs to the next note that is answered at all.
+        const QList<double> vector = (error.isEmpty() && !embedVectors.isEmpty()) ? embedVectors.takeFirst() : embedVector;
         const int id = nextRequestId();
-        QTimer::singleShot(embedDelay, this, [this, id] {
-            Q_EMIT embedFinished(id, embedError.isEmpty() ? embedVector : QList<double>(), embedError);
+        QTimer::singleShot(embedDelay, this, [this, id, vector, error, failure] {
+            Q_EMIT embedFinished(id,
+                                 error.isEmpty() ? vector : QList<double>(),
+                                 error,
+                                 error.isEmpty() ? AiFailure::None : failure);
         });
         return id;
     }

@@ -165,9 +165,18 @@ void AiProviderPage::showResult(qint64 chatMilliseconds, qint64 embedMillisecond
     colours.setColor(QPalette::WindowText, scheme.foreground(role).color());
     m_result->setPalette(colours);
 
+    // **What an unreachable Ollama costs, said where the user finds out that it
+    // is unreachable** (SPEC 7.1, issue #28). Every embedding of v1 comes from
+    // this one server, so with it away the topic bundles of SPEC 7.3 stop
+    // coming — while the classification goes on through whichever provider is
+    // chosen above. The test only ever talks to Ollama, so any error here is
+    // that case; the second half of the criterion, the same news in the tray
+    // tooltip, is issue #118.
     m_result->setText(error.isEmpty()
                           ? i18n("Connection is up · chat %1 ms · embedding %2 ms",
                                  chatMilliseconds,
                                  embedMilliseconds)
-                          : error);
+                          : i18n("%1\nEvery embedding comes from Ollama: without it there are no topic bundles."
+                                 " The classification keeps running through the provider chosen above.",
+                                 error));
 }

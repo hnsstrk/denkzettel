@@ -1,6 +1,7 @@
 #pragma once
 
 #include "analysis/analysisscheduler.h"
+#include "analysis/clustering.h"
 
 #include <KCoreConfigSkeleton>
 
@@ -72,11 +73,18 @@ public:
      * for the reason the analysis interval has a floor of five: a spin box
      * whose suffix is a fixed word can never be allowed to show a singular,
      * and one note or one day is no threshold anybody would set.
+     *
+     * The value stands in analysis/clustering.h and in no second place: the
+     * clustering clamps the bundle threshold to the same floor, because it
+     * reads a `denkzettelrc` that never had to pass through this dialog, and a
+     * bound written down twice is one that a change moves on one side only
+     * (issue #28).
      */
-    static constexpr int MinimumThreshold = 2;
+    static constexpr int MinimumThreshold = bundle::MinimumNotes;
     static constexpr int MaximumOverflowNotes = 100000;
     static constexpr int MaximumOverflowDays = 3650;
-    static constexpr int MaximumBundleNotes = 100;
+    /** Likewise the clustering's, see MinimumThreshold above. */
+    static constexpr int MaximumBundleNotes = bundle::MaximumNotes;
 
     /**
      * Where the export of SPEC 8.1 writes to — empty until the user sets it.

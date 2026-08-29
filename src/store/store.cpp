@@ -11,6 +11,8 @@
 #include <QStandardPaths>
 #include <QUuid>
 
+#include <cstring>
+
 namespace
 {
 /**
@@ -131,8 +133,64 @@ const QList<QStringList> &migrations()
         {
             QStringLiteral("ALTER TABLE notes ADD COLUMN task TEXT"),
         },
+        // Version 5 — the embeddings of SPEC 5.1, which step 2 of the analysis
+        // run writes and the topic clustering of SPEC 7.3 reads (issue #28).
+        //
+        // One row per note and no history: what is asked for is the vector of
+        // the text as it stands now, and an edited note replaces its own
+        // (SPEC 9 sets `needs_reembed`, setEmbedding() clears it again).
+        //
+        // `model` beside the vector, because a vector only means anything
+        // against vectors of the **same** model: SPEC 7.1 makes the embedding
+        // model a setting, and the 0.60 of SPEC 7.3 is calibrated for one of
+        // them. Whoever changes the model gets a corpus that is embedded
+        // again, note by note — see notesToEmbed(), which is what compares the
+        // name. Mixed silently, the clustering would put notes together for no
+        // reason anybody could look up.
+        //
+        // ON DELETE CASCADE for the reason the transcription queue has it: with
+        // `PRAGMA foreign_keys = ON` a row still pointing at the note would make
+        // Store::removeNote() fail outright, and SPEC 5.1 asks for the
+        // embedding to go with the note in the same transaction. Left behind,
+        // it would also be clustered — a bundle carrying a note that is not
+        // there any more.
+        {
+            QStringLiteral("CREATE TABLE embeddings ("
+                           "  note_id INTEGER PRIMARY KEY REFERENCES notes(id) ON DELETE CASCADE,"
+                           "  model TEXT NOT NULL,"
+                           "  vector BLOB NOT NULL)"),
+        },
     };
     return steps;
+}
+
+/**
+ * The vector as SPEC 5.1 stores it: a float32 array, in this machine's byte
+ * order.
+ *
+ * The database lies under the user's home directory and is read by the process
+ * that wrote it (SPEC 5.1) — a copy onto a machine of the other byte order
+ * would have to bring its own converter, and every other column would need one
+ * too.
+ */
+QByteArray vectorToBlob(const QList<float> &vector)
+{
+    return {reinterpret_cast<const char *>(vector.constData()), vector.size() * qsizetype(sizeof(float))};
+}
+
+/**
+ * The other direction, and **the size is counted in elements** — the one place
+ * bytes and dimensions get confused without a word.
+ *
+ * A remainder means the BLOB was not written by the function above; it is cut
+ * off rather than read past the end.
+ */
+QList<float> vectorFromBlob(const QByteArray &blob)
+{
+    const qsizetype count = blob.size() / qsizetype(sizeof(float));
+    QList<float> vector(count);
+    std::memcpy(vector.data(), blob.constData(), size_t(count) * sizeof(float));
+    return vector;
 }
 
 QString typeToText(Note::Type type)
@@ -839,6 +897,108 @@ std::optional<int> Store::failAnalysis(qint64 noteId, const QString &error)
         return std::nullopt;
     }
     return read.value(0).toInt();
+}
+
+QList<Note> Store::notesToEmbed(const QString &model) const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // Oldest first, like the classification run reads its notes.
+    query.prepare(QStringLiteral("SELECT %1 FROM notes"
+                                 " LEFT JOIN embeddings ON embeddings.note_id = notes.id"
+                                 " WHERE state = :state AND TRIM(content) != ''"
+                                 " AND (embeddings.note_id IS NULL OR embeddings.model != :model"
+                                 "      OR needs_reembed = 1)"
+                                 " ORDER BY created_at, id")
+                      .arg(noteColumns()));
+    query.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+    query.bindValue(QStringLiteral(":model"), model);
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<Note> notes;
+    while (query.next()) {
+        notes.append(noteFromQuery(query));
+    }
+    return notes;
+}
+
+bool Store::setEmbedding(qint64 noteId, const QString &model, const QList<float> &vector)
+{
+    m_lastError.clear();
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return false;
+    }
+
+    QSqlQuery write(m_db);
+    write.prepare(QStringLiteral("INSERT INTO embeddings (note_id, model, vector)"
+                                 " VALUES (:id, :model, :vector)"
+                                 " ON CONFLICT(note_id) DO UPDATE SET"
+                                 " model = excluded.model, vector = excluded.vector"));
+    write.bindValue(QStringLiteral(":id"), noteId);
+    write.bindValue(QStringLiteral(":model"), model);
+    write.bindValue(QStringLiteral(":vector"), vectorToBlob(vector));
+    if (!write.exec()) {
+        m_lastError = write.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    // In the same transaction, because that is what makes the two agree: the
+    // flag says "the vector is older than the text", and a vector written with
+    // the flag left standing would be embedded again in every run to come.
+    QSqlQuery clear(m_db);
+    clear.prepare(QStringLiteral("UPDATE notes SET needs_reembed = 0 WHERE id = :id"));
+    clear.bindValue(QStringLiteral(":id"), noteId);
+    if (!clear.exec()) {
+        m_lastError = clear.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+    if (clear.numRowsAffected() == 0) {
+        m_lastError = QStringLiteral("Notiz %1 existiert nicht").arg(noteId);
+        m_db.rollback();
+        return false;
+    }
+
+    if (!m_db.commit()) {
+        m_lastError = m_db.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    return true;
+}
+
+QList<NoteEmbedding> Store::embeddings(const QString &model) const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // **Unexported means still there**: SPEC 8.1 deletes the notes of a
+    // confirmed export in the same transaction, so what stands in the table is
+    // what has not been exported. Analysed is a column, and the model is what
+    // keeps two vector spaces from being compared with each other.
+    query.prepare(QStringLiteral("SELECT embeddings.note_id, embeddings.vector FROM embeddings"
+                                 " JOIN notes ON notes.id = embeddings.note_id"
+                                 " WHERE embeddings.model = :model AND notes.state = :state"
+                                 " ORDER BY notes.created_at, notes.id"));
+    query.bindValue(QStringLiteral(":model"), model);
+    query.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+
+    QList<NoteEmbedding> embeddings;
+    while (query.next()) {
+        embeddings.append({query.value(0).toLongLong(), vectorFromBlob(query.value(1).toByteArray())});
+    }
+    return embeddings;
 }
 
 bool Store::enqueueTranscription(qint64 noteId)

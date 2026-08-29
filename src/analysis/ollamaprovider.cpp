@@ -31,7 +31,7 @@ OllamaAnswer readOllamaReply(OllamaCall call,
     // a running analysis run, or a Qt that starts doing what its own
     // documentation says — and either way the sentence is the right one.
     if (transport == QNetworkReply::TimeoutError || transport == QNetworkReply::OperationCanceledError) {
-        return {{}, {}, i18n("Ollama did not answer within the time limit.")};
+        return {{}, {}, i18n("Ollama did not answer within the time limit."), AiFailure::Unreachable};
     }
 
     QJsonParseError parseError;
@@ -43,25 +43,25 @@ OllamaAnswer readOllamaReply(OllamaCall call,
     // names the model.
     const QString refusal = answer.value(QLatin1String("error")).toString();
     if (!refusal.isEmpty()) {
-        return {{}, {}, i18n("Ollama refused the request: %1", refusal)};
+        return {{}, {}, i18n("Ollama refused the request: %1", refusal), AiFailure::Refused};
     }
 
     if (transport != QNetworkReply::NoError && httpStatus == 0) {
-        return {{}, {}, i18n("Ollama could not be reached: %1", transportMessage)};
+        return {{}, {}, i18n("Ollama could not be reached: %1", transportMessage), AiFailure::Unreachable};
     }
 
     if (httpStatus != 0 && (httpStatus < 200 || httpStatus > 299)) {
-        return {{}, {}, i18n("Ollama answered with HTTP status %1.", httpStatus)};
+        return {{}, {}, i18n("Ollama answered with HTTP status %1.", httpStatus), AiFailure::Refused};
     }
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-        return {{}, {}, i18n("Ollama sent an unreadable answer: %1", parseError.errorString())};
+        return {{}, {}, i18n("Ollama sent an unreadable answer: %1", parseError.errorString()), AiFailure::Refused};
     }
 
     if (call == OllamaCall::Chat) {
         const QString text = answer.value(QLatin1String("message")).toObject().value(QLatin1String("content")).toString();
         if (text.isEmpty()) {
-            return {{}, {}, i18n("Ollama's answer carried no text.")};
+            return {{}, {}, i18n("Ollama's answer carried no text."), AiFailure::Refused};
         }
         return {text, {}, {}};
     }
@@ -71,7 +71,7 @@ OllamaAnswer readOllamaReply(OllamaCall call,
     const QJsonArray vectors = answer.value(QLatin1String("embeddings")).toArray();
     const QJsonArray first = vectors.isEmpty() ? QJsonArray() : vectors.first().toArray();
     if (first.isEmpty()) {
-        return {{}, {}, i18n("Ollama's answer carried no embedding.")};
+        return {{}, {}, i18n("Ollama's answer carried no embedding."), AiFailure::Refused};
     }
 
     QList<double> vector;
@@ -174,7 +174,7 @@ void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJ
         if (call == OllamaCall::Chat) {
             Q_EMIT chatFinished(id, answer.text, answer.error);
         } else {
-            Q_EMIT embedFinished(id, answer.vector, answer.error);
+            Q_EMIT embedFinished(id, answer.vector, answer.error, answer.failure);
         }
     });
 }

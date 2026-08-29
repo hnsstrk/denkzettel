@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 14:51+0200\n"
+"POT-Creation-Date: 2026-08-29 15:17+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -36,6 +36,11 @@ msgstr ""
 #, kde-format
 msgid "The model's answer carried no tag."
 msgstr "Die Antwort des Modells enthielt kein Schlagwort."
+
+#: src/analysis/embedder.cpp:51
+#, kde-format
+msgid "The answer carried no embedding vector."
+msgstr "Die Antwort enthielt keinen Einbettungsvektor."
 
 #: src/analysis/ollamaprovider.cpp:34
 #, kde-format
@@ -169,10 +174,21 @@ msgstr "Ollama-Adresse:"
 msgid "Embedding model:"
 msgstr "Einbettungsmodell:"
 
-#: src/settings/aiproviderpage.cpp:169
+#: src/settings/aiproviderpage.cpp:176
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr "Verbindung steht · Chat %1 ms · Einbettung %2 ms"
+
+#: src/settings/aiproviderpage.cpp:179
+#, kde-format
+msgid ""
+"%1\n"
+"Every embedding comes from Ollama: without it there are no topic bundles. "
+"The classification keeps running through the provider chosen above."
+msgstr ""
+"%1\n"
+"Jede Einbettung kommt von Ollama: ohne es gibt es keine Themenbündel. Die "
+"Klassifikation läuft über den oben gewählten Anbieter weiter."
 
 #: src/settings/analysispage.cpp:32
 #, kde-format
