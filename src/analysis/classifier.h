@@ -51,27 +51,9 @@ QString classificationPrompt(const QString &noteText);
  * Turns what the model wrote into a Classification, or into a reason there is
  * none.
  *
- * **A thinking block is the ordinary case, not an edge one.** The qwen3 family
- * reasons before it answers, and the block may carry a JSON draft of its own —
- * so the object is not looked for from the front of the text:
- *
- * - Everything up to and including the **last** `</think>` is dropped. What the
- *   model thought is not what it answered, and a draft in there would otherwise
- *   be read as the answer.
- * - A `<think>` that never closes cuts the text off at itself: an answer that
- *   broke off inside its reasoning has no answer in it, and the JSON standing
- *   in the unfinished block is a draft by definition.
- * - In what is left, every `{` is tried in turn as the start of an object,
- *   braces inside strings not counted, and the first one that parses **and
- *   carries a `category` key** is the answer. That is what carries a `{` in the
- *   prose around the object, a fenced code block, or a "here is your JSON:"
- *   before it.
- *
- * Measured on 2026-08-29 against Ollama 0.32.15: that version answers with the
- * block in a **separate** `thinking` field, so nothing of it reaches this
- * function through OllamaProvider — on `/api/chat` and `/api/generate` alike,
- * with `think` true and false. The robustness is for what SPEC 7.1 puts beside
- * Ollama: openrouter and OpenAI hand the text through as the model wrote it.
+ * The JSON object is taken out of the answer by modelAnswerObject(), which
+ * carries the reasoning block and the prose a model writes around its object;
+ * `category` is the key that tells the answer from anything else in braces.
  *
  * **What the model may write is decided here, not by the model.** The category
  * has to be one of analysisCategories() after trimming and ASCII case folding;

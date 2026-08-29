@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 16:13+0200\n"
+"POT-Creation-Date: 2026-08-29 16:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,18 +18,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/analysis/classifier.cpp:250
+#: src/analysis/classifier.cpp:130 src/analysis/suggester.cpp:70
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr ""
 
-#: src/analysis/classifier.cpp:258
+#: src/analysis/classifier.cpp:138
 #, kde-format
 msgid ""
 "The model answered with the category \"%1\", which is not one of the five."
 msgstr ""
 
-#: src/analysis/classifier.cpp:263
+#: src/analysis/classifier.cpp:143
 #, kde-format
 msgid "The model's answer carried no tag."
 msgstr ""
@@ -74,6 +74,21 @@ msgstr ""
 msgid "Ollama's answer carried no embedding."
 msgstr ""
 
+#: src/analysis/suggester.cpp:75
+#, kde-format
+msgid "The model's answer carried no title for the bundle."
+msgstr ""
+
+#: src/analysis/suggester.cpp:93
+#, kde-format
+msgid "The model's answer named none of the notes of the bundle."
+msgstr ""
+
+#: src/analysis/suggester.cpp:160
+#, kde-format
+msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
+msgstr ""
+
 #: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:122
 #: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
@@ -91,12 +106,12 @@ msgstr ""
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/main.cpp:170
+#: src/main.cpp:172
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:171
+#: src/main.cpp:173
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""

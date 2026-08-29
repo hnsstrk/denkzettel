@@ -1,6 +1,7 @@
 #pragma once
 
 #include "store/note.h"
+#include "store/proposal.h"
 
 #include <QHash>
 #include <QList>
@@ -269,6 +270,53 @@ public:
      * the name, the analysis owns it (SPEC 7.1).
      */
     QList<NoteEmbedding> embeddings(const QString &model) const;
+
+    /**
+     * Writes one suggestion together with its note references, in one
+     * transaction, and returns its new id (SPEC 7.3, 7.4).
+     *
+     * The two belong together: a suggestion without its references stands for
+     * nothing, and the review would offer a bundle of no notes. `proposal.id`
+     * is ignored — the database gives it one.
+     *
+     * A note id that no note carries makes the whole call fail rather than
+     * writing a suggestion with a gap in it: `PRAGMA foreign_keys` is on and
+     * the reference is what points at the note.
+     */
+    std::optional<qint64> addProposal(const Proposal &proposal);
+
+    /**
+     * The analysed notes that carry task fields and no task suggestion yet,
+     * oldest first (SPEC 7.4).
+     *
+     * `task IS NOT NULL` **is** the statement that the note is a task; there is
+     * no `is_todo` column and SPEC 5.1 says why. The second half of the
+     * condition is what keeps a run from offering the same task again every
+     * half hour, and it counts a **deferred** suggestion too: a task is the
+     * note's own fields, not something recomputed out of a corpus, so "later"
+     * has nothing to come back to.
+     */
+    QList<Note> notesForTaskProposals() const;
+
+    /**
+     * Every suggestion with its notes, oldest first (SPEC 9).
+     *
+     * One read for everything the suggestion run needs to know about what
+     * already stands: which notes carry an open bundle, which ones already have
+     * a task suggestion, and which deferred bundle a fresh one supersedes. At
+     * the ~200 notes of the overflow guard that is a handful of rows, and three
+     * queries of their own would be three places for the same list.
+     */
+    QList<Proposal> proposals() const;
+
+    /**
+     * Deletes one suggestion; its note references go with it (ON DELETE
+     * CASCADE, migration 6). The notes themselves stay.
+     *
+     * That is the end of every road SPEC 8.1 names — accepting, discarding, and
+     * a deferred bundle that a later run has replaced.
+     */
+    bool removeProposal(qint64 id);
 
     /**
      * How often one note is handed out for transcription before the job pauses

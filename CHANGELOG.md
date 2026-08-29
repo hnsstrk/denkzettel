@@ -12,6 +12,25 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **A topic becomes a suggestion, and a note that asks for something becomes a
+  task.** The analysis run has a third step. Out of every topic of at least
+  three notes the local model names the subject and says which of the notes
+  really belong to it — it may drop one that does not fit — and out of that
+  comes an open suggestion carrying that title and the collective note as
+  Markdown: the topic as the heading, a section per day, and **the notes as
+  they were typed**. The text is not handed to the model to rewrite; what is
+  exported later is what was written. Beside them, every note the
+  classification found a task in becomes a task suggestion with exactly the
+  fields the note gave — description, project, tags, due date, priority, and
+  none that were not there. **Nothing is carried out**: no note is exported and
+  no task is added anywhere; the suggestions wait for the review, which is
+  still to come (#30, #31). A suggestion put off with "later" is not buried —
+  its notes go back into the pool and are grouped again in the next run, and
+  the fresh suggestion takes the old one's place rather than standing beside
+  it. Notes with a suggestion still open are left alone until it is answered.
+  **Schema version 6** brings the tables `proposals` and `proposal_notes`;
+  deleting a note takes its references with it, and deleting a suggestion takes
+  them too, while the notes stay (#29).
 - **Notes get a vector, and notes about one topic find each other.** The
   analysis run has a second step: every analysed note is turned into an
   embedding by the local Ollama, and a note the user has edited is embedded

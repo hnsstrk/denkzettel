@@ -1,6 +1,7 @@
 #include "analysis/classifier.h"
 
 #include "analysis/aiprovider.h"
+#include "analysis/modelanswer.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
@@ -13,129 +14,8 @@
 
 namespace
 {
-constexpr QLatin1String thinkingOpen("<think>");
-constexpr QLatin1String thinkingClose("</think>");
-
 /** SPEC 7.2: 1 to 4 tags. */
 constexpr qsizetype tagLimit = 4;
-
-/**
- * Where the object beginning at `start` ends, or -1 if nothing closes it.
- *
- * Braces inside a JSON string do not count, and neither does one that an
- * escape put there — a task description reading `{ so gemeint }` would
- * otherwise end the object in the middle.
- */
-qsizetype objectEnd(const QString &text, qsizetype start)
-{
-    int depth = 0;
-    bool inString = false;
-    bool escaped = false;
-    for (qsizetype index = start; index < text.size(); ++index) {
-        const QChar character = text.at(index);
-        if (inString) {
-            if (escaped) {
-                escaped = false;
-            } else if (character == u'\\') {
-                escaped = true;
-            } else if (character == u'"') {
-                inString = false;
-            }
-            continue;
-        }
-        if (character == u'"') {
-            inString = true;
-        } else if (character == u'{') {
-            ++depth;
-        } else if (character == u'}') {
-            --depth;
-            if (depth == 0) {
-                return index;
-            }
-        }
-    }
-    return -1;
-}
-
-/**
- * The first `{`…`}` that parses as an object and carries a `category`.
- *
- * The `category` is what tells the answer from anything else in braces: prose
- * around the object, an example the model quoted, a stray `{` in a sentence.
- *
- * ponytail: every `{` is tried, so a text full of them costs O(n²). An answer
- * is a few thousand characters; the way up, if a model ever writes an essay, is
- * to try only the last opening brace of each depth-0 stretch.
- */
-QJsonObject answerObject(const QString &text)
-{
-    for (qsizetype start = text.indexOf(u'{'); start >= 0; start = text.indexOf(u'{', start + 1)) {
-        const qsizetype end = objectEnd(text, start);
-        // Not a break: an object that never closes can still have a closed one
-        // inside it, and that one is tried on the next round.
-        if (end < 0) {
-            continue;
-        }
-        const QJsonDocument document = QJsonDocument::fromJson(text.mid(start, end - start + 1).toUtf8());
-        if (document.isObject() && document.object().contains(QLatin1String("category"))) {
-            return document.object();
-        }
-    }
-    return {};
-}
-
-/**
- * What is left of the answer once the reasoning is out (see the header).
- *
- * The markers are looked for **outside** the JSON objects of the text, which
- * are stepped over with the same brace counting answerObject() uses. A
- * `</think>` inside a tag or a task description is text of the answer, and
- * cutting there threw the answer away whole: measured 2026-08-29 on
- * `{"category":"ideen","tags":["das </think> steht im text"],…}`, which came
- * out as "carried no JSON object". That is the damage the error counter does —
- * the answer is lost and an attempt is spent on it, and after two of them the
- * note keeps no category at all.
- */
-QString withoutThinking(const QString &answer)
-{
-    QList<qsizetype> closes;
-    QList<qsizetype> opens;
-
-    for (qsizetype index = 0; index < answer.size();) {
-        if (answer.at(index) == u'{') {
-            const qsizetype end = objectEnd(answer, index);
-            if (end >= 0) {
-                index = end + 1;
-                continue;
-            }
-        }
-        const QStringView rest = QStringView(answer).sliced(index);
-        if (rest.startsWith(thinkingClose)) {
-            closes.append(index + thinkingClose.size());
-            index += thinkingClose.size();
-            continue;
-        }
-        if (rest.startsWith(thinkingOpen)) {
-            opens.append(index);
-            index += thinkingOpen.size();
-            continue;
-        }
-        ++index;
-    }
-
-    // Everything up to the last close, and from the first open that follows it:
-    // an opening marker before that close belongs to the reasoning that was
-    // just cut away.
-    const qsizetype from = closes.isEmpty() ? 0 : closes.constLast();
-    qsizetype to = answer.size();
-    for (const qsizetype open : opens) {
-        if (open >= from) {
-            to = open;
-            break;
-        }
-    }
-    return answer.mid(from, to - from);
-}
 
 /**
  * What the model wrote in a field, whatever JSON type it used.
@@ -245,7 +125,7 @@ QString classificationPrompt(const QString &noteText)
 
 Classification readClassification(const QString &answer)
 {
-    const QJsonObject object = answerObject(withoutThinking(answer));
+    const QJsonObject object = modelAnswerObject(answer, QLatin1String("category"));
     if (object.isEmpty()) {
         return {{}, {}, {}, i18n("The model's answer carried no JSON object.")};
     }
