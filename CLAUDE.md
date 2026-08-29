@@ -770,6 +770,21 @@ find.
     what it does is the measurement. Quote a header comment as a *source*, never
     as a *result*.
 
+51. **An item view hands the value back that it is not showing.** Measured
+    2026-08-29 on #18: the category column is a `QTreeWidget` of two columns,
+    label left and counter right. Every counter was set and every readback said
+    so — `item->text(1)` answered `3`, `0`, `0` for the right rows — and the
+    picture showed a column of headings with no numbers at all. `QTreeView`
+    switches `stretchLastSection` on by itself, and that **beats** the resize
+    mode set on the section: with the sidebar 158 px wide the counter column
+    took 100 px (the style's own `minimumSectionSize`), the label column was
+    left 79, the labels elided to "CLI com…" and the numbers stood outside the
+    viewport. `setStretchLastSection(false)` plus a `setMinimumSectionSize()` of
+    its own put it right — 136 and 22. The model readback proves the value is
+    **set**, never that it is **visible**; that is finding 27's family for
+    layout rather than for state, and only the image told the two apart. Ask
+    `columnWidth()` beside the value, or look.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

@@ -215,7 +215,9 @@ target_link_libraries(denkzettelcapture PUBLIC
 add_library(denkzettelui STATIC
     ui/audioplayer.cpp
     ui/elidedlines.cpp
+    ui/framecontrast.cpp
     ui/librarywindow.cpp
+    ui/notechips.cpp
     ui/notelistdelegate.cpp
     ui/notelistmodel.cpp
     ui/pendingdeletion.cpp

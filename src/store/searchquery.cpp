@@ -5,6 +5,8 @@ namespace
 /** One piece of the input, and whether it opened with a quotation mark. */
 struct Token {
     QString text;
+    /** The piece as it stood in the input, quotation marks included. */
+    QString raw;
     bool phrase = false;
 };
 
@@ -34,6 +36,7 @@ QList<Token> tokenize(const QString &input)
             }
             started = true;
             insideQuotes = !insideQuotes;
+            current.raw.append(character);
             continue;
         }
         if (!insideQuotes && character.isSpace()) {
@@ -45,6 +48,7 @@ QList<Token> tokenize(const QString &input)
             continue;
         }
         current.text.append(character);
+        current.raw.append(character);
         started = true;
     }
     if (started) {
@@ -165,6 +169,38 @@ bool SearchQuery::isEmpty() const
 {
     return tags.isEmpty() && categories.isEmpty() && types.isEmpty() && !before.isValid() && !after.isValid()
         && terms.isEmpty();
+}
+
+// Healing this means a type of its own for one of the two, which is design
+// rather than tidying up (issue #76). A swap does not go unnoticed here:
+// StoreTest::writesTheChosenCategoryIntoTheSearchText() asserts the two roles
+// against each other in both directions, and every one of its cases would
+// change.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+QString withSearchCategory(const QString &text, const QString &category)
+{
+    QStringList kept;
+    const QList<Token> tokens = tokenize(text);
+    for (const Token &token : tokens) {
+        // The two conditions applyOperator() files a `kat:` under, and no
+        // others: a quoted token is text however it is spelled, and a prefix
+        // without a value is text as well. Read the other way round, whatever
+        // stays here is what the parser still reads as it read it before.
+        const qsizetype colon = token.text.indexOf(QLatin1Char(':'));
+        const bool isCategory = !token.phrase && colon > 0 && colon + 1 < token.text.size()
+            && token.text.left(colon).compare(QLatin1String("kat"), Qt::CaseInsensitive) == 0;
+        if (!isCategory) {
+            kept.append(token.raw);
+        }
+    }
+
+    if (!category.isEmpty()) {
+        // At the end rather than where the old one stood: the operators are
+        // ANDed and their order carries no meaning (SPEC 6), and the last
+        // position is the one the eye finds after a click.
+        kept.append(QStringLiteral("kat:%1").arg(category));
+    }
+    return kept.join(QLatin1Char(' '));
 }
 
 SearchQuery parseSearchQuery(const QString &text)

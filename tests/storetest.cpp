@@ -34,6 +34,8 @@ private Q_SLOTS:
     void listsNotesNewestFirst();
     void updatesNote();
     void replacesTags();
+    void countsTheCategoriesOfTheLibraryColumn();
+    void writesTheChosenCategoryIntoTheSearchText();
     void removesNoteWithItsTags();
     void removesAudioFileAfterDeletingNote();
     void removesOrphanedAudioFilesButKeepsReferencedOnes();
@@ -291,6 +293,122 @@ void StoreTest::replacesTags()
 
     // Tags need a note to hang on; the foreign key rejects orphans.
     QVERIFY(!m_store->setTags(4711, {QStringLiteral("cli")}));
+}
+
+void StoreTest::countsTheCategoriesOfTheLibraryColumn()
+{
+    // The counters of the category column break silently: a number beside a
+    // heading looks right whatever it counts, and the wrong one only shows
+    // when somebody counts the list by hand (SPEC 9, issue #18).
+    //
+    // Every expectation below is a number written down **here** and not one
+    // read back out of the same query that produced it — nine notes, laid out
+    // so that no two of the three answers can be right by accident: three
+    // categories of different sizes, one value the fixed list of SPEC 6 does
+    // not know, and two notes that separate the two halves of the condition
+    // "given up on".
+    const auto add = [this](const QString &category, Note::State state, int attempts) {
+        Note note = sampleNote();
+        note.category = category;
+        note.state = state;
+        note.analysisAttempts = attempts;
+        QVERIFY(m_store->addNote(note).has_value());
+    };
+    const auto addWithoutText = [this](int attempts) {
+        Note note = sampleNote();
+        note.content = QStringLiteral("   ");
+        note.state = Note::State::New;
+        note.analysisAttempts = attempts;
+        QVERIFY(m_store->addNote(note).has_value());
+    };
+
+    add(QStringLiteral("todos"), Note::State::Analysed, 0);
+    add(QStringLiteral("todos"), Note::State::Analysed, 0);
+    add(QStringLiteral("todos"), Note::State::Analysed, 0);
+    add(QStringLiteral("ideen"), Note::State::Analysed, 0);
+    add(QStringLiteral("software"), Note::State::Analysed, 0);
+    // A category no classifier writes any more. It counts under "All" and under
+    // no entry of the column — the fixed list stays the shape of the column.
+    add(QStringLiteral("obsolet"), Note::State::Analysed, 0);
+    // Analysed although it once failed: not given up on, the attempts were
+    // reset by the success (SPEC 7.2). It separates the state clause from the
+    // counter clause.
+    add(QStringLiteral("todos"), Note::State::Analysed, Store::analysisAttemptLimit);
+    // Waiting, with one attempt left — not given up on either.
+    add(QString(), Note::State::New, Store::analysisAttemptLimit - 1);
+    // The only one the column's last entry stands for.
+    add(QString(), Note::State::New, Store::analysisAttemptLimit);
+    // A note without text never reaches the queue (unanalysedNotes()), so it
+    // was never given up on either — the third part of the condition, and the
+    // one that is easiest to leave out.
+    addWithoutText(Store::analysisAttemptLimit);
+    // Written by a foreign or older database in a different case. It has to
+    // land under the entry `kat:` finds it under, or the column would show it
+    // as `0` beside a search that returns it (SPEC 6: ASCII case folded).
+    add(QStringLiteral("TODOs"), Note::State::Analysed, 0);
+
+    const CategoryCounts counts = m_store->categoryCounts();
+
+    QCOMPARE(counts.total, 11);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("todos")), 5);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("ideen")), 1);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("software")), 1);
+    QCOMPARE(counts.byCategory.value(QStringLiteral("obsolet")), 1);
+    // Not an entry of the column, and never counted into one either: a note
+    // without a category belongs to none of them.
+    QCOMPARE(counts.byCategory.value(QStringLiteral("cli")), 0);
+    QCOMPARE(counts.byCategory.size(), 4);
+    QCOMPARE(counts.unclassified, 1);
+}
+
+void StoreTest::writesTheChosenCategoryIntoTheSearchText()
+{
+    // What a click in the category column leaves in the search field (SPEC 9,
+    // UX decision 2026-08-29). It breaks silently in both directions: a term
+    // eaten here disappears from a search the user typed, and a `kat:` left
+    // standing beside the new one asks for a note with two categories, which
+    // is a list that stays empty for ever.
+    const auto written = [](const QString &text, const QString &category) {
+        return withSearchCategory(text, category);
+    };
+
+    QCOMPARE(written(QString(), QStringLiteral("software")), QStringLiteral("kat:software"));
+
+    // Everything else the field carries survives the click — and the operators
+    // are checked one by one, because a mistake in the token test would eat
+    // exactly one of them.
+    QCOMPARE(written(QStringLiteral("nach:2026-06 tag:backup typ:text Bücher \"zwei Wörter\""),
+                     QStringLiteral("cli")),
+             QStringLiteral("nach:2026-06 tag:backup typ:text Bücher \"zwei Wörter\" kat:cli"));
+
+    // The old category is replaced and not kept beside the new one, wherever it
+    // stood and however it was spelled.
+    QCOMPARE(written(QStringLiteral("kat:todos Bücher"), QStringLiteral("ideen")),
+             QStringLiteral("Bücher kat:ideen"));
+    QCOMPARE(written(QStringLiteral("Bücher KAT:TODOs"), QStringLiteral("ideen")),
+             QStringLiteral("Bücher kat:ideen"));
+
+    // "All" is the absence of a category, so it takes the operator out and
+    // leaves the rest — the counter-case to the two above, and the one that
+    // shows the replacement is not simply an append.
+    QCOMPARE(written(QStringLiteral("kat:todos nach:2026-06"), QString()),
+             QStringLiteral("nach:2026-06"));
+    QCOMPARE(written(QStringLiteral("kat:todos"), QString()), QString());
+
+    // What the parser reads as text stays text: a quoted `kat:` is a phrase and
+    // a prefix without a value is a word. Removing either would change a query
+    // nobody asked to change — and both are exactly the conditions
+    // parseSearchQuery() files a `kat:` under, read the other way round.
+    QCOMPARE(written(QStringLiteral("\"kat:todos\""), QStringLiteral("cli")),
+             QStringLiteral("\"kat:todos\" kat:cli"));
+    QCOMPARE(written(QStringLiteral("kat:"), QStringLiteral("cli")), QStringLiteral("kat: kat:cli"));
+
+    // And the result has to survive the parser it was written for: the click is
+    // only worth anything if the store sees one category and the rest untouched.
+    const SearchQuery query = parseSearchQuery(written(QStringLiteral("kat:todos tag:backup"),
+                                                       QStringLiteral("ideen")));
+    QCOMPARE(query.categories, QStringList({QStringLiteral("ideen")}));
+    QCOMPARE(query.tags, QStringList({QStringLiteral("backup")}));
 }
 
 void StoreTest::removesNoteWithItsTags()

@@ -10,6 +10,7 @@
 #include <optional>
 
 class AudioPlayer;
+class NoteChips;
 class NoteListDelegate;
 class NoteListModel;
 class PendingDeletion;
@@ -25,6 +26,7 @@ class QPushButton;
 class QSplitter;
 class QStackedWidget;
 class QTextBrowser;
+class QTreeWidget;
 
 /**
  * The library window: header, note list grouped like an inbox, reading pane
@@ -91,10 +93,56 @@ private:
     };
 
     QWidget *buildHeader();
+
+    /**
+     * The category column left of the list: "All", the five categories of
+     * SPEC 6 with their counters, and the entry for the notes the analysis run
+     * has given up on (SPEC 9, wireframe 1b).
+     */
+    QWidget *buildSidebar();
+
     QWidget *buildDetail();
 
     /** Reads the notes matching the search field from the store into the list. */
     void reload(Selection selection);
+
+    /**
+     * Writes the counters of the category column, asking the store for them.
+     *
+     * Counted in the database and not over the list beside it: that one shows
+     * a search result or one category, and a counter taken from it would count
+     * what it is standing next to (issue #18).
+     */
+    void updateCategoryCounts();
+
+    /**
+     * Writes the chosen entry into the search field (SPEC 9, issue #18).
+     *
+     * The column is not a second way of filtering beside the search — it is
+     * the search, written out, so that whoever uses it reads the language the
+     * field speaks. Everything else in the field stays; only the `kat:` is
+     * replaced.
+     */
+    void categoryChosen();
+
+    /**
+     * Moves the mark of the column onto what the search field says.
+     *
+     * The field is the one truth about the category, in both directions:
+     * deleting `kat:software` by hand takes the mark off "Software ideas",
+     * typing it puts it there. Without that the two would stand beside each
+     * other and disagree.
+     */
+    void followTheSearchField();
+
+    /**
+     * Takes out what the entry "Unclassified" excludes — the one entry that no
+     * `kat:` can express.
+     */
+    void applyCategoryFilter(QList<Note> &notes) const;
+
+    /** True while the column stands on the entry for the given-up notes. */
+    bool isUnclassifiedChosen() const;
 
     /**
      * Takes a note that has just been written into the open list (issue #105).
@@ -234,6 +282,14 @@ private:
 
     QSplitter *m_splitter;
     QLineEdit *m_search;
+
+    /**
+     * The category column of wireframe 1b: entry and counter in two columns,
+     * so a QTreeWidget rather than a list — the counter stands right-aligned
+     * in a column of its own, which no list item does without a delegate.
+     */
+    QTreeWidget *m_categories;
+
     QListView *m_list;
     NoteListDelegate *m_delegate;
     KMessageWidget *m_message;
@@ -241,6 +297,15 @@ private:
     QStackedWidget *m_listPages;
     QWidget *m_emptyLibraryPage;
     QWidget *m_noResultsPage;
+
+    /**
+     * The second line of the "No matches" page.
+     *
+     * It says something else for a category with nothing in it than for a
+     * search without a hit — and until the analysis run of M3 has been through
+     * the library, an empty category is every category (issue #18).
+     */
+    QLabel *m_noResultsHint;
 
     QStackedWidget *m_detailPages;
     QWidget *m_detailPage;
@@ -285,6 +350,9 @@ private:
     QLabel *m_category;
     QLabel *m_tags;
 
+    /** The same two as pills, only while reading (wireframe 2b, issue #18). */
+    NoteChips *m_chips;
+
     /** Key hint and the two buttons of the edit state. */
     QWidget *m_editFooter;
 
@@ -302,6 +370,13 @@ private:
 
     /** True while a cancelled switch puts the selection back; stops the loop. */
     bool m_restoringSelection = false;
+
+    /**
+     * True while the mark of the category column is being moved onto what the
+     * search field says — the field writes the column here, so the column must
+     * not write the field back.
+     */
+    bool m_followingTheSearchField = false;
 
     /**
      * True while the selection change being handled goes back to a mouse press

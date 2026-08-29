@@ -1,6 +1,7 @@
 #include "capture/capturewindow.h"
 #include "store/note.h"
 #include "store/store.h"
+#include "ui/framecontrast.h"
 #include "ui/librarywindow.h"
 
 #include <KLocalizedString>
@@ -9,7 +10,9 @@
 #include <QDir>
 #include <QListView>
 #include <QLocale>
+#include <QPalette>
 #include <QPlainTextEdit>
+#include <QStyle>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -70,15 +73,33 @@ QDateTime at(const QString &isoDateTime)
 // would be visible in - placeholderPage() in the empty library - gets a test
 // assurance instead, as issue #88.
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void addNote(Store &store, const QString &content, const QString &isoDateTime)
+qint64 addNote(Store &store, const QString &content, const QString &isoDateTime)
 {
     Note note;
     note.content = content;
     note.createdAt = at(isoDateTime);
     note.type = Note::Type::Text;
     note.state = Note::State::New;
-    if (!store.addNote(note).has_value()) {
+    const std::optional<qint64> id = store.addNote(note);
+    if (!id.has_value()) {
         qFatal("The note could not be stored");
+    }
+    return *id;
+}
+
+/**
+ * Writes what an analysis run would have found on a note (SPEC 7.2).
+ *
+ * Without it the library picture shows a category column of nothing but zeros
+ * and a reading pane without pills — the states the window is in before the
+ * first run, and not the ones the picture is captioned for. The values are
+ * invented like the notes they hang on.
+ */
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+void classify(Store &store, qint64 id, const QString &category, const QStringList &tags)
+{
+    if (!store.completeAnalysis(id, category, tags, QString())) {
+        qFatal("The classification could not be stored: %s", qUtf8Printable(store.lastError()));
     }
 }
 
@@ -116,6 +137,9 @@ QString captureText()
 struct SampleNote {
     QString content;
     QString isoDateTime;
+    /** The short form of SPEC 6, never the label the window makes of it. */
+    QString category;
+    QStringList tags;
 };
 
 /**
@@ -138,21 +162,35 @@ QList<SampleNote> sampleNotes()
                             "zwei Ersatzschläuche mitnehmen, 28 Zoll, und die kleine Luftpumpe "
                             "gleich dazu.\n"
                             "Wenn der Mantel innen rau ist, muss der auch raus."),
-             QStringLiteral("2026-07-31T15:04:00")},
+             QStringLiteral("2026-07-31T15:04:00"),
+             QStringLiteral("todos"),
+             {QStringLiteral("fahrrad"), QStringLiteral("baumarkt")}},
             {QStringLiteral("Kürbissuppe braucht mehr Ingwer"),
-             QStringLiteral("2026-07-31T12:20:00")},
+             QStringLiteral("2026-07-31T12:20:00"),
+             QStringLiteral("persoenlich"),
+             {QStringLiteral("kochen")}},
             {QStringLiteral("Idee: die Fotos vom Sommer als kleines Fotobuch drucken lassen.\n"
                             "Ein Bild pro Woche reicht völlig, sonst wird das nie fertig."),
-             QStringLiteral("2026-07-31T09:12:00")},
+             QStringLiteral("2026-07-31T09:12:00"),
+             QStringLiteral("ideen"),
+             {QStringLiteral("fotos"), QStringLiteral("sommer")}},
             {QStringLiteral("Podcast über Schlafphasen weiterhören,\nab Minute 40"),
-             QStringLiteral("2026-07-30T21:38:00")},
+             QStringLiteral("2026-07-30T21:38:00"),
+             QStringLiteral("persoenlich"),
+             {QStringLiteral("podcast")}},
             {QStringLiteral("Für den Umzug bei der Werkstatt nachfragen, ob der Anhänger übers "
                             "Wochenende frei ist"),
-             QStringLiteral("2026-07-28T16:47:00")},
+             QStringLiteral("2026-07-28T16:47:00"),
+             QStringLiteral("todos"),
+             {QStringLiteral("umzug")}},
             {QStringLiteral("Bildband über Straßenbahnen — hat die Bücherei den noch?"),
-             QStringLiteral("2026-07-23T10:30:00")},
+             QStringLiteral("2026-07-23T10:30:00"),
+             QStringLiteral("ideen"),
+             {QStringLiteral("bücher")}},
             {QStringLiteral("Bücherkisten nie schwerer packen als 15 kg. Nie wieder."),
-             QStringLiteral("2026-07-10T19:55:00")},
+             QStringLiteral("2026-07-10T19:55:00"),
+             QStringLiteral("persoenlich"),
+             {QStringLiteral("umzug")}},
         };
     }
 
@@ -161,20 +199,35 @@ QList<SampleNote> sampleNotes()
                         "tubes at the hardware store, 28 inch, and the small pump along with "
                         "them.\n"
                         "If the tyre is rough on the inside, that one has to come off as well."),
-         QStringLiteral("2026-07-31T15:04:00")},
-        {QStringLiteral("Pumpkin soup needs more ginger"), QStringLiteral("2026-07-31T12:20:00")},
+         QStringLiteral("2026-07-31T15:04:00"),
+         QStringLiteral("todos"),
+         {QStringLiteral("bike"), QStringLiteral("hardware store")}},
+        {QStringLiteral("Pumpkin soup needs more ginger"),
+         QStringLiteral("2026-07-31T12:20:00"),
+         QStringLiteral("persoenlich"),
+         {QStringLiteral("cooking")}},
         {QStringLiteral("Idea: have the summer photos printed as a small photo book.\n"
                         "One picture a week is plenty, otherwise it will never be finished."),
-         QStringLiteral("2026-07-31T09:12:00")},
+         QStringLiteral("2026-07-31T09:12:00"),
+         QStringLiteral("ideen"),
+         {QStringLiteral("photos"), QStringLiteral("summer")}},
         {QStringLiteral("Keep listening to the podcast about sleep phases,\nfrom minute 40"),
-         QStringLiteral("2026-07-30T21:38:00")},
+         QStringLiteral("2026-07-30T21:38:00"),
+         QStringLiteral("persoenlich"),
+         {QStringLiteral("podcast")}},
         {QStringLiteral("Ask the garage about the move, whether the trailer is free over the "
                         "weekend"),
-         QStringLiteral("2026-07-28T16:47:00")},
+         QStringLiteral("2026-07-28T16:47:00"),
+         QStringLiteral("todos"),
+         {QStringLiteral("move")}},
         {QStringLiteral("Picture book about trams — does the library still have it?"),
-         QStringLiteral("2026-07-23T10:30:00")},
+         QStringLiteral("2026-07-23T10:30:00"),
+         QStringLiteral("ideen"),
+         {QStringLiteral("books")}},
         {QStringLiteral("Never pack book boxes heavier than 15 kg. Never again."),
-         QStringLiteral("2026-07-10T19:55:00")},
+         QStringLiteral("2026-07-10T19:55:00"),
+         QStringLiteral("persoenlich"),
+         {QStringLiteral("move")}},
     };
 }
 
@@ -211,6 +264,28 @@ QPalette breezeDark()
     palette.setColor(QPalette::Link, QColor(0x1d, 0x99, 0xf3));
 
     return palette;
+}
+
+/**
+ * What the picture was drawn with, beside the picture itself.
+ *
+ * The style, because `QT_QPA_PLATFORMTHEME=kde` can be set and the plugin still
+ * be missing, and then every number the style hands out is a different one
+ * (finding 28 of CLAUDE.md). The two colours, because the pills of the reading
+ * pane are mixed out of them: a run whose palette says something else than the
+ * picture shows would look like a fault of the product (finding 38).
+ */
+void reportWhatItDrewWith()
+{
+    const QPalette palette = QApplication::palette();
+    const QColor ground = palette.color(QPalette::Normal, QPalette::Window);
+    const QColor type = palette.color(QPalette::Normal, QPalette::WindowText);
+
+    qInfo("style: %s · reading pane %s on %s · pill %s",
+          qUtf8Printable(QApplication::style()->objectName()),
+          qUtf8Printable(type.name()),
+          qUtf8Printable(ground.name()),
+          qUtf8Printable(library::frameContrastMix(ground, type).name()));
 }
 
 void shoot(QWidget &window, const QString &directory, const QString &name)
@@ -252,6 +327,8 @@ int main(int argc, char **argv)
     const QString directory = QString::fromLocal8Bit(argv[1]);
     QDir().mkpath(directory);
 
+    reportWhatItDrewWith();
+
     // 1 — the capture window with a thought half written down, the picture the
     // README opens with (wireframe 1).
     {
@@ -289,7 +366,7 @@ int main(int argc, char **argv)
 
         const QList<SampleNote> notes = sampleNotes();
         for (const SampleNote &note : notes) {
-            addNote(store, note.content, note.isoDateTime);
+            classify(store, addNote(store, note.content, note.isoDateTime), note.category, note.tags);
         }
 
         LibraryWindow window(&store);

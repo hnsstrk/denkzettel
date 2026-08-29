@@ -830,8 +830,13 @@ conceivable as an optional later additional path, but is not built for v1.
   This week · Last week · Older**; "week" is the calendar week, its start
   follows the locale of the system — `QLocale::firstDayOfWeek`, Monday in
   Germany), newest first within the groups.
-  An entry shows the timestamp, the first line as the subject, the following
-  text as a preview and tag chips; voice notes additionally ▶ and the duration.
+  An entry shows the timestamp, the first line as the subject and the following
+  text as a preview; voice notes additionally ▶ and the duration.
+  **No chips in the list row** (UX decision 2026-08-29, issue #18, retiring what
+  wireframes 2b and 3a draw): the row is two lines of text high and has carried
+  the search mark since issue #77, so pills would be the third area style on it
+  and compete with mark and selection. What a category is for finding again is
+  the column, not a pill per row.
   The timestamp does not follow the group: an entry shows date and time in
   every one of the five groups, in the arrangement the locale gives them and
   with a four-digit year, without seconds. The detail pane carries the same
@@ -947,12 +952,71 @@ conceivable as an optional later additional path, but is not built for v1.
   timestamp.
   In addition the search field (section 6) and the button "Suggestions" with a
   badge.
+- **The category column** (wireframe 1b, issue #18): "All" with the number of
+  all notes, then the five categories of section 6 in the order they stand
+  there, each with the number of notes carrying it.
+
+  **A click writes `kat:<short form>` into the search field** (UX decision
+  2026-08-29): the column is not a second way of filtering beside the search,
+  it **is** the search, written out — so it is the place where the language of
+  section 6 is learnt, by whoever never went looking for a help text. From that
+  follow four things, and they are the whole behaviour:
+  - **The click sets the text *and* searches.** A word standing in the field
+    over a list that still shows the old result reads as a fault.
+  - **A search already standing is added to, not replaced.** An existing `kat:`
+    is overwritten — two would ask for a note with two categories — and
+    everything else stays: whoever typed `nach:2026-06` and then clicks a
+    category wants both.
+  - **"All" is the absence of a `kat:`**, not a value of its own: a click on it
+    takes the operator out of the field and leaves the rest standing.
+  - **The mark of the column follows the field, never the other way round.**
+    Deleting `kat:software` by hand takes the mark off that entry, typing it
+    puts it there; a `kat:` no entry carries, or two of them, leave the column
+    marking nothing. Otherwise two truths would stand beside each other.
+
+  The counters count the **whole** library and not the list beside them, so
+  they say what a click would find and not what is already found — they do not
+  move while the list narrows.
+  - **The readable label is made in the window** (7.2): the database keeps the
+    short form, the column writes „TODOs · Ideen · CLI-Befehle · Persönlich ·
+    Software-Ideen". The list is fixed. A category value the list does not know
+    — which only an older database can carry, the classifier of 7.2 writing
+    none — is counted under "All", gets no entry of its own and stays reachable
+    through the search: an entry generated from the contents would give the
+    column a shape that changes with them.
+  - **One entry beyond the five: "Nicht eingeordnet"** — the notes whose
+    classification attempts are used up (7.2, `analysis_attempts` at
+    `Store::analysisAttemptLimit`). It is where such a note can be dealt with;
+    without it the tray message of 10 would report a state the window offers no
+    way into. It is **not shown while it counts nothing**, unless it is the
+    selected entry — a fault that is not there gets no permanent line.
+    **It is the one entry that writes nothing into the field**, because the
+    search language of section 6 has no operator for "the classification was
+    given up on"; a word of its own is a change to that language and is the
+    customer's to make. So it carries a condition of its own, and the field
+    cannot contradict it: a word typed while it is chosen narrows **within**
+    the given-up notes, and only a `kat:` moves the mark away from it.
+  - The column is **switched off while a note is being edited**, for the reason
+    the search field is: it rebuilds the list under the editor.
 - Detail view: **read and edit view** (decision of the third interview — above
   all for faulty transcripts). Editing keeps category/tags and `state`, but
   sets `needs_reembed = 1` — the next analysis run renews the embedding only
   (7.2), since it ages with the text. Delete action with a 5-second undo
   (addition of the spec, not in the concept: purely client-side delayed
   deletion, no soft-delete state in the DB).
+- **Category and tags in the reading pane** (wireframe 2b, UX decision
+  2026-08-29 on issue #18): a row of pills under the note text, the category
+  first and then the tags. **Told apart by the filling, not by the shape** —
+  the category filled, a tag outlined, both in the colour the separator lines
+  of the list are mixed in (see above), so a value out of a fixed list looks
+  different from several free ones without a second shape.
+  Without a category and without tags the row is **hidden** — no placeholder
+  and no reserved height; until the analysis run of M3 has been through the
+  library that is the normal case.
+  **The edit state keeps its label row** (wireframe 2a): there the two are
+  fields, not marks, and they become editable later. "One appearance" therefore
+  holds within the read state — two states, two appearances, which is the
+  difference between showing and entering.
 - **Conditions of the edit state** (S8; the last two discovered during the
   implementation):
   - Unsaved changes are **never** written or discarded **without asking**. A

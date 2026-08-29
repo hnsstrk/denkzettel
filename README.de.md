@@ -350,6 +350,7 @@ printf '[Theme]\nname=breeze-dark\n' > "$conf/plasmarc"
 env -u LANGUAGE LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     XDG_CONFIG_DIRS="$conf:/etc/xdg" \
     QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+    QT_FORCE_STDERR_LOGGING=1 \
     build/bin/readmeshots docs/images
 
 # Deutsch — der Katalog muss zur Laufzeit auffindbar sein. Über DESTDIR in eine
@@ -360,6 +361,7 @@ DESTDIR="$dest" cmake --install build
 env LANGUAGE=de LANG=de_DE.UTF-8 LC_ALL=de_DE.UTF-8 \
     XDG_DATA_DIRS="$dest/usr/share:/usr/share" XDG_CONFIG_DIRS="$conf:/etc/xdg" \
     QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+    QT_FORCE_STDERR_LOGGING=1 \
     build/bin/readmeshots docs/images/de
 ```
 
@@ -368,6 +370,13 @@ Zum Beleg wird der zweite Aufruf erst durch die Gegenprobe: derselbe Aufruf
 war nicht der Katalog der Unterschied. Eine Fußangel dabei: Die Zeile
 `-h, --help  Zeigt Hilfe …` ist in beiden Fällen deutsch — sie kommt aus Qts
 eigenem Katalog, nicht aus dem dieses Projekts, und taugt nicht als Beleg.
+
+`QT_FORCE_STDERR_LOGGING=1` sorgt dafür, dass der Lauf sagt, womit er gezeichnet
+hat — den aufgelösten Stil und die beiden Farben, aus denen die Pillen des
+Detailbereichs gemischt werden, dazu die Pixelgröße jedes Bildes. Ohne die
+Variable landen diese Zeilen im Journal statt auf stderr, sobald die Ausgabe
+umgeleitet wird, und ein stummer Lauf sieht aus wie einer, der nichts zu melden
+hatte.
 
 `QT_QPA_PLATFORMTHEME=kde` muss gesetzt sein: Sonst tritt eine Ersatzschrift an
 die Stelle der echten und stellt die Größenverhältnisse falsch dar. Der Läufer

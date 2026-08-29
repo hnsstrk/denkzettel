@@ -132,6 +132,14 @@ add_executable(librarytest librarytest.cpp)
 
 target_link_libraries(librarytest PRIVATE
     denkzettelui
+    # The five category values stand twice: analysisCategories() builds the
+    # input for the model and rejects an answer outside it, and the library's
+    # column writes a readable label beside each of them (issue #18). Only a
+    # check that sees **both** sides can notice them drifting apart, and a
+    # sixth value in the authoritative list would otherwise reach the column as
+    # a category with no entry — counted under "All" and nowhere else, without
+    # an error and without a warning.
+    denkzettelanalysis
     Qt6::Test
 )
 

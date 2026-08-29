@@ -1,3 +1,4 @@
+#include "analysis/classifier.h"
 #include "store/store.h"
 #include "ui/librarywindow.h"
 #include "ui/notelistmodel.h"
@@ -25,6 +26,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextBrowser>
+#include <QTreeWidget>
 #include <QDataStream>
 #include <QDir>
 #include <QFile>
@@ -184,6 +186,7 @@ private Q_SLOTS:
     void regroupsWhenTheWindowIsActivated();
     void staysPutWhenTheWindowIsActivatedWithoutADayChange();
     void filtersTheListWithTheSearchField();
+    void offersEveryCategoryTheClassifierMayWrite();
     void carriesOutAPendingDeletionWhenTheSearchChanges();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
     void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
@@ -1067,9 +1070,15 @@ void LibraryTest::showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles()
     // one subtleLabel() gives the placeholder foreground role (issue #58),
     // the heading is the other visible label. Checking "both texts appear
     // somewhere" would still pass with the two swapped.
+    //
+    // Looked for on the page itself and no longer in the whole window: the
+    // category column carries a label in the same role at its foot (issue #18),
+    // and over the window this case would go red for a page that is right.
+    const QWidget *page = window.findChild<QWidget *>(QStringLiteral("emptyLibraryPage"));
+    QVERIFY(page);
     const QLabel *heading = nullptr;
     const QLabel *hint = nullptr;
-    const QList<QLabel *> labels = window.findChildren<QLabel *>();
+    const QList<QLabel *> labels = page->findChildren<QLabel *>();
     for (const QLabel *label : labels) {
         if (!label->isVisible() || label->text().isEmpty()) {
             continue;
@@ -2050,6 +2059,47 @@ void LibraryTest::filtersTheListWithTheSearchField()
 
     searchOf(window)->setText(QStringLiteral("\"prüfen Fotos\""));
     QCOMPARE(modelOf(list)->noteCount(), 0);
+}
+
+void LibraryTest::offersEveryCategoryTheClassifierMayWrite()
+{
+    // The five category values stand twice: analysisCategories() is the
+    // authoritative list — it builds the input for the model and rejects an
+    // answer outside it (SPEC 7.2) — and the column of the library writes a
+    // readable label beside each of them (SPEC 9, issue #18). Nothing in the
+    // build holds the two together, and generating one from the other was
+    // measured and turned down: it would move a library dependency from the
+    // interface to the analysis and still not catch a missing label.
+    //
+    // What breaks silently without this case: a sixth value in the
+    // authoritative list gets no entry in the column, and the notes carrying it
+    // are then counted under "All" and reachable under nothing — no error, no
+    // warning. This is why librarytest links denkzettelanalysis.
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const auto *column = window.findChild<QTreeWidget *>();
+    QVERIFY(column);
+
+    QStringList offered;
+    for (int row = 0; row < column->topLevelItemCount(); ++row) {
+        const QTreeWidgetItem *item = column->topLevelItem(row);
+        // "All" and "Unclassified" carry no value: they are no categories, and
+        // the entries that are carry theirs in the same role the filter reads.
+        const QString value = item->data(0, Qt::UserRole + 1).toString();
+        if (!value.isEmpty()) {
+            offered.append(value);
+        }
+        // Whatever the column offers has to be readable as well — an entry with
+        // a value and no label would pass a comparison of the values alone.
+        QVERIFY2(!item->text(0).isEmpty(), qPrintable(QStringLiteral("entry %1 has no label").arg(row)));
+    }
+
+    // Order included: the column shows the categories in the order SPEC 6 and
+    // the classifier list them, and a comparison of sorted lists would not say
+    // that.
+    QCOMPARE(offered, analysisCategories());
 }
 
 void LibraryTest::carriesOutAPendingDeletionWhenTheSearchChanges()

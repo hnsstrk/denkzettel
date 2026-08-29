@@ -28,6 +28,24 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   `embeddings` with one vector per note; deleting a note deletes it with it.
   What a topic becomes is still to come — that is the collective note (#29)
   (#28).
+- **The library gets a category column, and the reading pane shows what the
+  analysis found.** Left of the note list stand "Alle" and the five categories
+  of the search, each with the number of notes behind it, counted in the
+  database rather than off the list beside it. **A click writes `kat:ideen`
+  into the search field** instead of filtering quietly beside it — so the
+  column is the place where the search language is picked up, and a search
+  already standing is added to rather than thrown away. The mark in the column
+  follows the field: delete the word and the mark goes with it. The counters
+  stay where they are while the list narrows — the column says what is there,
+  not what is showing. Under the note text the category
+  stands as a filled pill and the tags as outlined ones — a value out of a fixed
+  list looks different from several free ones, and with neither of them there
+  the row is not there either, with no empty strip left behind. The list rows
+  keep their two lines of text and get no pills: they already carry the search
+  mark. One entry beyond the five: **„Nicht eingeordnet"** collects the notes
+  whose classification has been given up on, so that they can be reached and
+  dealt with; it stays out of sight while there are none (#18, and #63, which
+  went into it).
 - **Notes get a category and tags from the local model.** One call per note
   yields one of the five categories the search already knows (`todos`, `ideen`,
   `cli`, `persoenlich`, `software`), one to four tags in lower case, and for a
@@ -51,6 +69,8 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   tooltip, which the transcription holds and where the message would stand for
   ever, without a place to work it off; it moves there once the library has an
   entry for unclassified notes (#18) (#15).
+  trigger and the budget (#15); what the classification writes is shown by the
+  library above (#18) (#14).
 - **Denkzettel has settings.** The tray menu now carries "Configure
   Denkzettel…", and behind it stands a dialog with a page list. Two pages so
   far: "AI provider" — which backend answers, the language and embedding model,

@@ -339,6 +339,7 @@ printf '[Theme]\nname=breeze-dark\n' > "$conf/plasmarc"
 env -u LANGUAGE LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     XDG_CONFIG_DIRS="$conf:/etc/xdg" \
     QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+    QT_FORCE_STDERR_LOGGING=1 \
     build/bin/readmeshots docs/images
 
 # German — the catalogue has to be findable at runtime. Installed into a
@@ -349,6 +350,7 @@ DESTDIR="$dest" cmake --install build
 env LANGUAGE=de LANG=de_DE.UTF-8 LC_ALL=de_DE.UTF-8 \
     XDG_DATA_DIRS="$dest/usr/share:/usr/share" XDG_CONFIG_DIRS="$conf:/etc/xdg" \
     QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+    QT_FORCE_STDERR_LOGGING=1 \
     build/bin/readmeshots docs/images/de
 ```
 
@@ -357,6 +359,12 @@ The check that turns the second call into evidence is the same call **without**
 catalogue was never what made the difference. One trap in that check: the line
 `-h, --help  Zeigt Hilfe …` is German either way — it comes from Qt's own
 catalogue, not from this project's, and proves nothing.
+
+`QT_FORCE_STDERR_LOGGING=1` is what makes the run say what it drew with — the
+style it resolved and the two colours the pills of the reading pane are mixed
+out of, plus the pixel size of every picture. Without it those lines go into the
+journal instead of onto stderr the moment the output is redirected, and a run
+that is mute looks like a run that had nothing to report.
 
 `QT_QPA_PLATFORMTHEME=kde` has to be set: without it a substitute font takes the
 place of the real one and gets the proportions wrong. The runner works
