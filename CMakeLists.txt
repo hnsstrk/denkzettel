@@ -30,6 +30,10 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     CoreAddons
     DBusAddons
     GlobalAccel
+    # KColorUtils::mix() and contrastRatio() — the ground of a search mark is
+    # deepened with them, and only where the type on it keeps 4.5 : 1
+    # (issue #116).
+    GuiAddons
     I18n
     Notifications
     StatusNotifierItem
