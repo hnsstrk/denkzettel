@@ -107,8 +107,30 @@ A second process start recognises the taken D-Bus registration and calls
   own, and the id stands in `Actions=`.** The action id is at the same time
   the `objectName` of the `QAction` and must be a valid XDG identifier
   (letters, digits, hyphen — no underscore; `desktop-file-validate` rejects it
-  otherwise). The `Exec` line starts `denkzetteld`; the single-instance branch
-  from 2.3 turns that into the call that shows the window.
+  otherwise).
+- **The action name is what tells the two shortcuts apart, and it only arrives
+  over D-Bus activation (discovered condition, finding 2026-08-29, issue
+  #125):** both `Exec=` lines are the same start line without an argument, so
+  the started process carries no mark of which key was pressed — it reaches the
+  running service through the single-instance branch of 2.3 as a plain
+  activation, and that branch shows the capture window. `Meta+N` therefore
+  worked reliably because its target is what happens anyway, and `Meta+Shift+N`
+  could reach the recorder through no key at all. What carries the name is the
+  XDG road: the desktop entry declares **`DBusActivatable=true`**, KIO's
+  `ApplicationLauncherJob` then calls
+  `org.freedesktop.Application.ActivateAction(<action id>)` on the bus name of
+  2.3 instead of running the `Exec` line, and `KDBusService` hands that name on
+  as `activateActionRequested`, where `main()` picks the window. The `Exec`
+  lines stay as they are (15.1): they are the road taken when nothing answers
+  on the bus, and the key is mandatory for a desktop action.
+- **What the D-Bus road needs beside the key (measured 2026-08-29):** the
+  desktop file name has to carry at least two dots — `DBusActivationRunner`
+  refuses a shorter one — the bus name has to equal the file name without
+  `.desktop`, which 2.3 already lays down, and a D-Bus service file
+  `io.github.hnsstrk.denkzettel.service` has to map that name to the installed
+  program. Without the third one the launcher's call reaches a bus name nobody
+  owns whenever the daemon is not running, and the key press fails with
+  `ServiceUnknown` and nothing on screen.
 - **Reading the registration back (discovered condition, finding 2026-08-01;
   retro resolution B5):** `KGlobalAccel::setGlobalShortcut()` cannot report a
   failure of the service — the call sends off its D-Bus message without
@@ -1407,7 +1429,12 @@ the program wrote, which neither visible channel carries.
   the holder.
 - **Unknown switches are rejected** (return ≠ 0). The start without arguments
   stays the start of the service — both `Exec=` lines of the desktop file call
-  without an argument.
+  without an argument, the one of the second desktop action included. That
+  sentence was written when there was one action; it stays true with two,
+  because what tells the two apart is not the command line but the action name
+  of the D-Bus activation (2.4, issue #125). Denkzettel has no switch that
+  chooses a window, and a start line anybody can type is not one of its
+  interfaces.
 
 ## 16. Test strategy
 
