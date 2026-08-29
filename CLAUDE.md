@@ -1018,6 +1018,29 @@ find.
     lies inside the changed widget" is a statement about two numbers, only one
     of which the picture carries.
 
+65. **The diagnosis starts in this project's own written record, not in a
+    measurement — and the record here is evidence, not intention.** Measured
+    2026-08-29 on #125: the customer reported that `Meta+Shift+N` does nothing.
+    An hour went into measuring the D-Bus channel — the component is active,
+    the sequence is registered, the active keys equal the defaults, no foreign
+    component claims them, and a control run proved the channel carries
+    signals; five minutes of real key presses produced **zero**, which was
+    read as "the key never reaches the service". The opposite conclusion.
+    SPEC 2.4 has said since 2026-08-01 what a key press really does: with an
+    installed application the component name ends in `.desktop`, so kglobalacceld
+    treats it as a service action component and **starts the desktop action of
+    the same name instead of sending a D-Bus signal**. Every measurement had
+    taken a road the key does not take. **The distinction that makes this a
+    rule:** finding 50 says a library's own words are an intention and have to
+    be measured — but `SPEC.md`, the issue comments and the vault entries of
+    this project record **measurements that were already made here**, each with
+    its date and its finding. Reading them is not trusting a promise, it is
+    reading a result. So before diagnosing a mechanism this project has already
+    written about — shortcuts, the bus, the compositor, the store — read its
+    section first, and let the measurement start where the record stops. The
+    customer's sentence that opened it: „Wir haben die Doku doch, damit du sie
+    auch nutzt."
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
