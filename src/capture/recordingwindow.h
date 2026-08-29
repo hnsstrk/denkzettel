@@ -44,12 +44,16 @@ QString recordingNotSavedMessage(const QString &path, bool rescued);
  * moment the window opens**: there is no start button, and the window that
  * stands there is the recording.
  *
- * What it shows is wireframe 1f, at the five points the drawing lost against
- * the built capture window (decision of 29.08.2026, noted in the drawing
- * itself): 600 px wide like the capture window, the heading in the note text's
- * colour, no parting line above the footer, seven bars for the level, a
- * resting dot — and from minute 14 the running time turns to the colour scheme's
- * negative text while the footer says when the recording will end.
+ * What it shows is wireframe 1f, at the points the drawing lost against the
+ * built capture window (decision of 29.08.2026, noted in the drawing itself):
+ * 600 px wide like the capture window, the heading in the note text's colour,
+ * no parting line above the footer, a resting dot — and from minute 14 the
+ * running time turns to the colour scheme's negative text while the footer says
+ * when the recording will end. The level meter is the one the drawing lost
+ * against the **built** window: seven bars were the drawing's answer for a
+ * window 280 px wide, and at 600 they stood as a clump on the left, so the row
+ * now fills the width between the dot and the running time (the customer's
+ * instruction of 29.08.2026, see capture::LevelMeter).
  *
  * **The note is made when the recording is finished, not when the key is
  * pressed** (the lesson of issue #22). A note created earlier would be in the

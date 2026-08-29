@@ -132,12 +132,39 @@ private:
 };
 
 /**
- * The level meter of SPEC 4: seven bars that light up from the left.
+ * The level meter of SPEC 4: a row of bars that lights up from the left and
+ * takes the whole width between the dot and the running time.
  *
  * An amplitude meter and not a history — what the user wants of it during a
  * recording is whether the microphone hears them, and that is in the current
  * value (UX decision of 29.08.2026). It therefore needs one number per buffer
  * and no memory.
+ *
+ * **The bar stays the size it is and the row grows by counting more of them**
+ * (the customer's instruction of 29.08.2026, after seeing the built window:
+ * "Die Darstellung der Balken sollte über die ganze Breite gehen"). Until then
+ * there were seven of them, from wireframe 1f, which drew a window 280 px wide;
+ * at the 600 px this window really has they stood as a small clump on the left
+ * with half the row empty beside them. The other way of filling that row —
+ * seven bars stretched to 70 px each — is not a meter any more but seven
+ * blocks, so what is derived from the width is the **count**, and each bar is
+ * the one the window had before. Measured at the user's scaling of 1.5: the
+ * 600 px window leaves the meter 488 logical pixels and draws **41** bars, a
+ * 400 px window 24 and a 900 px window 66 — one bar for every twelve logical
+ * pixels the window gains or loses. A window narrow enough for none to fit
+ * still gets one, so the row never disappears altogether.
+ *
+ * `BarWidth` and `BarGap` are both even because that scaling is 1.5: 8 and 4
+ * are 12 and 6 device pixels, whole numbers, and measured that is what all 41
+ * bars and all 40 gaps come out at. The gap was 3 before, which is 4.5 — with
+ * seven bars the painter's rounding was not worth seeing, with 41 the row would
+ * fray.
+ *
+ * The width is rarely a whole multiple of the twelve a bar and its gap take, so
+ * up to eleven logical pixels can be left over at the right end (four of them
+ * in the 400 px case above, none in the other two). They fall where the
+ * twelve-pixel gap to the running time already stands, which is the one place
+ * in this row where nothing is drawn anyway.
  *
  * The two colours are the ones the window has already resolved for its writing:
  * a lit bar in the note text's colour, an unlit one in the dimmed one. So the
@@ -150,7 +177,11 @@ public:
     explicit LevelMeter(QWidget *parent)
         : QWidget(parent)
     {
-        setFixedSize(Bars * BarWidth + (Bars - 1) * BarGap, Height);
+        setFixedHeight(Height);
+        // The one widget of the row that takes what the other two leave: the
+        // dot and the running time keep their own width, and there is no
+        // stretch beside them any more.
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     }
 
     void setColours(const QColor &lit, const QColor &unlit)
@@ -165,11 +196,12 @@ public:
     {
         // ponytail: the peak straight onto the bars, no curve and no falloff.
         // Ceiling: a linear scale spends its upper half on the loudest tenth
-        // of what a voice does, so a quiet speaker lights two bars where a
-        // loud one lights five. The way up is a decibel scale — 20*log10 over
-        // a floor of about -50 dB — and it is worth building only once
-        // somebody has looked at the meter and called it dead.
-        const int lit = qBound(0, qRound(qBound(qreal(0), level, qreal(1)) * Bars), Bars);
+        // of what a voice does, so a quiet speaker lights a third of the row
+        // where a loud one lights two thirds. The way up is a decibel scale —
+        // 20*log10 over a floor of about -50 dB — and it is worth building
+        // only once somebody has looked at the meter and called it dead.
+        m_level = qBound(qreal(0), level, qreal(1));
+        const int lit = litBars();
         if (lit == m_litBars) {
             return;
         }
@@ -180,22 +212,43 @@ public:
 protected:
     void paintEvent(QPaintEvent *) override
     {
+        const int bars = barCount();
         QPainter painter(this);
         painter.setPen(Qt::NoPen);
-        for (int bar = 0; bar < Bars; ++bar) {
+        for (int bar = 0; bar < bars; ++bar) {
             painter.setBrush(bar < m_litBars ? m_lit : m_unlit);
             painter.drawRect(bar * (BarWidth + BarGap), 0, BarWidth, Height);
         }
     }
 
+    void resizeEvent(QResizeEvent *event) override
+    {
+        // The count is the width's, so a resize moves the lit share as well —
+        // taken from the level again rather than kept, or the same recording
+        // would read differently after the window had changed size.
+        m_litBars = litBars();
+        QWidget::resizeEvent(event);
+    }
+
 private:
-    static constexpr int Bars = 7;
+    /** How many whole bars fit; the last one carries no gap behind it. */
+    int barCount() const
+    {
+        return qMax(1, (width() + BarGap) / (BarWidth + BarGap));
+    }
+
+    int litBars() const
+    {
+        return qRound(m_level * barCount());
+    }
+
     static constexpr int BarWidth = 8;
-    static constexpr int BarGap = 3;
+    static constexpr int BarGap = 4;
     static constexpr int Height = 20;
 
     QColor m_lit;
     QColor m_unlit;
+    qreal m_level = 0;
     int m_litBars = 0;
 };
 
@@ -241,7 +294,6 @@ RecordingWindow::RecordingWindow(Store *store, QWidget *parent)
     row->setSpacing(RowSpacing);
     row->addWidget(m_dot);
     row->addWidget(m_meter);
-    row->addStretch();
     row->addWidget(m_elapsed);
     layout->addLayout(row);
 

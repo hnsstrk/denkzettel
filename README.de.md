@@ -348,8 +348,7 @@ eines **alten** Standes mit frischem Zeitstempel schreibt.
 
 Das Aufnahmefenster bringt sein eigenes Signal mit: Der Läufer füttert den
 Encoder mit einem Ton fester Amplitude, statt das Mikrofon der Maschine zu
-öffnen — deshalb steht seine Pegelanzeige in jedem Lauf auf denselben fünf
-Balken.
+öffnen — deshalb stehen in jedem Lauf dieselben 28 der 41 Balken.
 
 Ein Lauf schreibt **einen** Sprachsatz, und drei Dinge im Bild haben drei
 verschiedene Quellen: Die Beschriftungen kommen aus dem Nachrichtenkatalog

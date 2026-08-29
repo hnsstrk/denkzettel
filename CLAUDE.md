@@ -1002,6 +1002,22 @@ find.
     lazy fix and the root-cause fix were the same line: read the row back
     instead of keeping a copy.
 
+64. **The bounding box of a picture difference is not the rectangle of the
+    widget that changed.** Measured 2026-08-29 while widening the level meter:
+    the difference between the unchanged and the changed picture came out
+    `x 92..806, y 59..88`, and read as finding 39 asks it to be read, that is a
+    change confined to one row and nothing else. It is not the meter. The meter
+    stands at device `x 75..806`; the box begins seventeen pixels further right
+    because the **first bar is drawn identically in both builds** and only the
+    second one moves, the gap having gone from 3 logical pixels to 4. A box that
+    starts inside the widget looks exactly like a widget that has moved right,
+    and the picture cannot tell the two apart. What told them apart was the
+    widget's geometry read back inside the run — `meter->x()`, `width()`, times
+    the device pixel ratio — held against the box. So a difference is read
+    against a rectangle **set from outside** (finding 10), and "the difference
+    lies inside the changed widget" is a statement about two numbers, only one
+    of which the picture carries.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
