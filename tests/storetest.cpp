@@ -361,6 +361,12 @@ void StoreTest::removesOrphanedAudioFilesButKeepsReferencedOnes()
     QVERIFY2(queuedId.has_value(), qPrintable(m_store->lastError()));
     QVERIFY(m_store->enqueueTranscription(*queuedId));
 
+    // "removed **and logged**" is one criterion, not two: without this line the
+    // set stays green when somebody drops the qInfo, because a deleted file
+    // looks the same either way.
+    QTest::ignoreMessage(QtInfoMsg,
+                         qPrintable(QStringLiteral("Removed the orphaned audio file ") + orphan));
+
     m_store->sweepOrphanedAudio();
 
     QVERIFY2(!QFile::exists(audio.filePath(orphan)), qPrintable(orphan));
