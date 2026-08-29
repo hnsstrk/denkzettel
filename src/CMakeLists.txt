@@ -55,6 +55,10 @@ target_link_libraries(denkzetteltranscribe PUBLIC
     # The three settings of SPEC 12 out of denkzettelrc: the two program paths
     # and the model.
     KF6::ConfigCore
+    # The reason a job failed with. It used to stay inside the database and the
+    # log; since issue #24 it stands in the tray tooltip, and a string the user
+    # reads goes through i18n() (SPEC 15).
+    KF6::I18n
 )
 
 add_library(denkzettelplatform STATIC

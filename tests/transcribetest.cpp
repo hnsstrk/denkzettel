@@ -2,6 +2,8 @@
 #include "store/store.h"
 #include "transcribe/transcriber.h"
 
+#include <KLocalizedString>
+
 #include <QAudioBuffer>
 #include <QAudioFormat>
 #include <QDir>
@@ -45,6 +47,9 @@ private Q_SLOTS:
     void transcribesAnAudioNoteItWasHandedByTheStore();
     void takesUpAJobLeftBehindByAKilledRun();
     void pausesAfterTwoAttemptsAndKeepsTheJobLine();
+    void reportsThePauseOnlyWhenTheAttemptsAreUsedUp();
+    void reportsAJobThatWasGivenUpOnAtTheNextStart();
+    void namesAReasonForARunThatWasNeverAnsweredFor();
     void givesUpOnARunThatHangs();
     void namesTheProgramWhenItIsNotInstalledAtAll();
     void clearsTheWorkingDirectoryOfAKilledRun();
@@ -131,6 +136,14 @@ quint32 wavSampleRate(const QByteArray &header)
 
 void TranscribeTest::initTestCase()
 {
+    // As in main.cpp. Since issue #24 the reason a job failed with is a string
+    // the user reads, so it goes through i18n() — and without the domain every
+    // one of those calls warns that translation will not work. The English
+    // wording the checks below compare stays in place because
+    // tests/CMakeLists.txt pins LANGUAGE to the source language, for which no
+    // catalogue exists.
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
     // The transcriber reads its two program paths and its model out of
     // denkzettelrc. Test mode points QStandardPaths at a directory of the
     // test's own, so no setting of the developer's reaches this run — and none
@@ -445,6 +458,135 @@ void TranscribeTest::pausesAfterTwoAttemptsAndKeepsTheJobLine()
     QVERIFY(note->content.isEmpty());
     QCOMPARE(note->state, Note::State::New);
     QVERIFY(QFile::exists(m_store->audioDirectory() + QLatin1Char('/') + note->audioPath));
+}
+
+void TranscribeTest::reportsThePauseOnlyWhenTheAttemptsAreUsedUp()
+{
+    Transcriber transcriber(m_store.get());
+    transcriber.setWhisperProgram(QStringLiteral("/bin/false"));
+
+    // The **order** of the two signals is what is checked here, so both are
+    // written into one list. A spy per signal only counts, and a count cannot
+    // tell "paused after the second failure" from "paused after the first" —
+    // which is the whole difference between a tray state that stands and one
+    // that comes up for a moment and clears itself again (SPEC 12, issue #24).
+    QStringList road;
+    connect(&transcriber, &Transcriber::failed, this, [&road] {
+        road.append(QStringLiteral("failed"));
+    });
+    connect(&transcriber, &Transcriber::paused, this, [&road](qint64, const QString &reason) {
+        road.append(reason.isEmpty() ? QStringLiteral("paused, no reason") : QStringLiteral("paused"));
+    });
+
+    const qint64 id = addVoiceNote();
+    QVERIFY(id > 0);
+
+    // Waited for by the number of ends the queue can still produce and not by
+    // isBusy(), which is false in the gap between two attempts as well
+    // (CLAUDE.md, finding 32).
+    QVERIFY(QTest::qWaitFor([&road] { return road.count() >= 3; }, 30000));
+    QTest::qWait(500);
+
+    const QStringList expected{QStringLiteral("failed"), QStringLiteral("failed"), QStringLiteral("paused")};
+    QCOMPARE(road, expected);
+    // And the reason the tray is handed is the one the job line keeps.
+    const std::optional<TranscribeJob> job = m_store->transcribeJob(id);
+    QVERIFY(job.has_value());
+    QVERIFY(!job->lastError.isEmpty());
+}
+
+void TranscribeTest::reportsAJobThatWasGivenUpOnAtTheNextStart()
+{
+    const qint64 givenUp = addVoiceNote();
+    QVERIFY(givenUp > 0);
+    const qint64 stillWaiting = addVoiceNote();
+    QVERIFY(stillWaiting > 0);
+    QVERIFY2(m_store->enqueueTranscription(givenUp), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->enqueueTranscription(stillWaiting), qPrintable(m_store->lastError()));
+
+    // Two notes and not one, and that is the control: the second one has a
+    // failed attempt behind it too, and it is the **newer** of the two. A
+    // start that reported everything with a counted attempt would name it, not
+    // the note that is really out of attempts.
+    const QString reason = QStringLiteral("/usr/bin/whisper-cli ended with code 1");
+    for (int attempt = 1; attempt <= Store::transcribeAttemptLimit; ++attempt) {
+        const std::optional<TranscribeJob> taken = m_store->takeTranscribeJob();
+        QVERIFY(taken.has_value());
+        // Asserted, not assumed: which note the queue hands out decides what
+        // the rest of this case builds, and the order is the store's business.
+        QCOMPARE(taken->noteId, givenUp);
+        QCOMPARE(taken->attempts, attempt);
+        QVERIFY2(m_store->failTranscribeJob(givenUp, reason), qPrintable(m_store->lastError()));
+    }
+    const std::optional<TranscribeJob> once = m_store->takeTranscribeJob();
+    QVERIFY(once.has_value());
+    QCOMPARE(once->noteId, stillWaiting);
+    QCOMPARE(once->attempts, 1);
+    QVERIFY2(m_store->failTranscribeJob(stillWaiting, QStringLiteral("the first attempt failed")),
+             qPrintable(m_store->lastError()));
+
+    // The restart: a new store on the same file, as the next start of the
+    // daemon opens it.
+    m_store.reset();
+    m_store = std::make_unique<Store>(databasePath());
+    QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+
+    Transcriber transcriber(m_store.get());
+    transcriber.setWhisperProgram(QStringLiteral("/bin/false"));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy paused(&transcriber, &Transcriber::paused);
+    transcriber.start();
+
+    // Read straight away and without an event loop in between: what start()
+    // finds in the database it says on the spot, and the attempt it takes up
+    // for the second note runs in the event loop and cannot reach this line.
+    QCOMPARE(paused.count(), 1);
+    QCOMPARE(paused.first().at(0).toLongLong(), givenUp);
+    QCOMPARE(paused.first().at(1).toString(), reason);
+}
+
+void TranscribeTest::namesAReasonForARunThatWasNeverAnsweredFor()
+{
+    const qint64 id = addVoiceNote();
+    QVERIFY(id > 0);
+    QVERIFY2(m_store->enqueueTranscription(id), qPrintable(m_store->lastError()));
+
+    // What a daemon that is killed leaves behind: takeTranscribeJob() counts
+    // the attempt before the run, and neither failTranscribeJob() nor
+    // completeTranscription() ever follows. SIGTERM runs no destructor of ours.
+    for (int attempt = 1; attempt <= Store::transcribeAttemptLimit; ++attempt) {
+        const std::optional<TranscribeJob> taken = m_store->takeTranscribeJob();
+        QVERIFY(taken.has_value());
+        QCOMPARE(taken->attempts, attempt);
+    }
+    const std::optional<TranscribeJob> unreadable = m_store->transcribeJob(id);
+    QVERIFY(unreadable.has_value());
+    // Asserted while it stands, and it is what makes the check a check: with
+    // the repair taken out the line below comes out empty instead.
+    QVERIFY(unreadable->lastError.isEmpty());
+
+    m_store.reset();
+    m_store = std::make_unique<Store>(databasePath());
+    QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+
+    Transcriber transcriber(m_store.get());
+    transcriber.setWhisperProgram(QStringLiteral("/bin/false"));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy paused(&transcriber, &Transcriber::paused);
+    transcriber.start();
+
+    QCOMPARE(paused.count(), 1);
+    QCOMPARE(paused.first().at(0).toLongLong(), id);
+    // Without the reason the tooltip would read "Transcription failed:" and
+    // break off — the unreadable state issue #22 left behind on purpose.
+    QVERIFY2(!paused.first().at(1).toString().isEmpty(), "the pause was reported without a reason");
+
+    const std::optional<TranscribeJob> repaired = m_store->transcribeJob(id);
+    QVERIFY(repaired.has_value());
+    QCOMPARE(repaired->lastError, paused.first().at(1).toString());
+    // And no attempt was added by the repair: the count is written before a
+    // run and is not the thing that was missing.
+    QCOMPARE(repaired->attempts, Store::transcribeAttemptLimit);
 }
 
 void TranscribeTest::givesUpOnARunThatHangs()

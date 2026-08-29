@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 08:48+0200\n"
+"POT-Creation-Date: 2026-08-29 10:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:77
-#: src/shell/trayicon.cpp:48 src/shell/trayicon.cpp:49
+#: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
 #, kde-format
 msgid "Denkzettel"
 msgstr ""
@@ -34,7 +34,7 @@ msgstr ""
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:50
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:86
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr ""
@@ -63,7 +63,7 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:65 src/shell/trayicon.cpp:78
+#: src/shell/globalshortcuts.cpp:65 src/shell/trayicon.cpp:95
 #, kde-format
 msgid "Capture note"
 msgstr ""
@@ -114,32 +114,97 @@ msgstr ""
 
 #: src/shell/trayicon.cpp:87
 #, kde-format
+msgid "Transcription failed: %1"
+msgstr ""
+
+#: src/shell/trayicon.cpp:104
+#, kde-format
 msgid "Record voice note"
 msgstr ""
 
-#: src/shell/trayicon.cpp:94
+#: src/shell/trayicon.cpp:111
 #, kde-format
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:97
+#: src/shell/trayicon.cpp:114
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:98
+#: src/shell/trayicon.cpp:115
 #, kde-format
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:112
+#: src/shell/trayicon.cpp:129
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:144
+#: src/shell/trayicon.cpp:161
 #, kde-format
 msgid "Quit"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:115
+#, kde-format
+msgid "%1 was killed"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:137
+#, kde-format
+msgid "%1 ended with code %2"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:156
+#, kde-format
+msgid "%1 could not be started"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:236
+#, kde-format
+msgid "The run was interrupted"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:290
+#, kde-format
+msgid "The note carries no audio file"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:295
+#, kde-format
+msgid "The audio file %1 is missing"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:309
+#, kde-format
+msgid "No working directory could be created"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:366
+#, kde-format
+msgid "%1 wrote no transcript"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:373
+#, kde-format
+msgid "The transcript is no JSON: %1"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:388
+#, kde-format
+msgid "%1 returned no text"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:396
+#, kde-format
+msgid "The transcript could not be saved"
+msgstr ""
+
+#: src/transcribe/transcriber.cpp:422
+#, kde-format
+msgid "%1 did not finish within %2 seconds"
 msgstr ""
 
 #: src/ui/audioplayer.cpp:98

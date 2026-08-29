@@ -3,6 +3,7 @@
 #include "store/store.h"
 
 #include <KConfigGroup>
+#include <KLocalizedString>
 #include <KSharedConfig>
 
 #include <QDir>
@@ -111,7 +112,7 @@ Transcriber::Transcriber(Store *store, QObject *parent)
         }
         const QString program = m_step == Step::Converting ? m_ffmpegProgram : m_whisperProgram;
         if (status != QProcess::NormalExit) {
-            fail(QStringLiteral("%1 was killed").arg(program));
+            fail(i18n("%1 was killed", program));
             return;
         }
         // Three different things, and none of them stands for the others: the
@@ -119,9 +120,21 @@ Transcriber::Transcriber(Store *store, QObject *parent)
         // file with text in it. The code is read here, the JSON in
         // collectTranscript() — stderr only ever furnishes the reason.
         if (exitCode != 0) {
+            // What the program said last goes to the log and not into the
+            // tooltip. Measured 2026-08-29: in three failure cases of ffmpeg
+            // and one of whisper-cli the last line carries no path — ffmpeg
+            // names the audio file one line ABOVE it ("Error opening input
+            // file /home/…"), whisper-cli names its backend libraries and the
+            // graphics card there. The branch is clean today by the ordering
+            // of somebody else's messages, and which line is the last is not
+            // ours to decide. So the reason names the program and its code,
+            // like every other failure path here (SPEC 14: tooltip quiet, log
+            // detailed).
             const QString said = lastLineOf(m_process.readAllStandardError());
-            fail(said.isEmpty() ? QStringLiteral("%1 ended with code %2").arg(program).arg(exitCode)
-                                : QStringLiteral("%1 ended with code %2: %3").arg(program).arg(exitCode).arg(said));
+            if (!said.isEmpty()) {
+                qWarning("%s said: %s", qUtf8Printable(program), qUtf8Printable(said));
+            }
+            fail(i18n("%1 ended with code %2", program, exitCode));
             return;
         }
         if (m_step == Step::Converting) {
@@ -140,8 +153,8 @@ Transcriber::Transcriber(Store *store, QObject *parent)
         // program that never started emits no exit code. A crash arrives above
         // as a return status.
         if (error == QProcess::FailedToStart && m_step != Step::Idle) {
-            fail(QStringLiteral("%1 could not be started")
-                     .arg(m_step == Step::Converting ? m_ffmpegProgram : m_whisperProgram));
+            fail(i18n("%1 could not be started",
+                      m_step == Step::Converting ? m_ffmpegProgram : m_whisperProgram));
         }
     });
 }
@@ -212,6 +225,26 @@ void Transcriber::start()
         return;
     }
     sweepAbandonedWork();
+
+    // A run this daemon never came back from: takeTranscribeJob() counts the
+    // attempt before the run, the answer never comes, and the row is left with
+    // an empty reason. Here and not in the destructor — SIGTERM never reaches
+    // that one (see the comment on setChildProcessModifier above), and here
+    // the reading is unambiguous: the service is single-instance (SPEC 2.3)
+    // and no job of ours is running, so an empty reason on a counted attempt
+    // can only belong to a run that was cut off.
+    if (!m_store->noteInterruptedTranscribeJobs(i18n("The run was interrupted"))) {
+        qWarning("Noting the interrupted runs failed: %s", qUtf8Printable(m_store->lastError()));
+    }
+
+    // And what the database already holds as given up on reaches the tray from
+    // here: after a restart the error state has to stand where the queue
+    // stands, not at "no trouble so far" (issue #24).
+    const std::optional<TranscribeJob> givenUp = m_store->pausedTranscribeJob();
+    if (givenUp.has_value()) {
+        Q_EMIT paused(givenUp->noteId, givenUp->lastError);
+    }
+
     takeNextJob();
 }
 
@@ -244,6 +277,9 @@ void Transcriber::takeNextJob()
         return;
     }
     m_noteId = job->noteId;
+    // Counted by takeTranscribeJob(), this run included — it is what fail()
+    // below reads to know whether the queue comes back to this note.
+    m_attempts = job->attempts;
     m_step = Step::Converting;
     // Here and not at the first process: what the limit covers is the job, so
     // reading the note and making the working directory below lie inside it.
@@ -251,19 +287,26 @@ void Transcriber::takeNextJob()
 
     const std::optional<Note> note = m_store->note(m_noteId);
     if (!note.has_value() || note->audioPath.isEmpty()) {
-        fail(QStringLiteral("The note carries no audio file"));
+        fail(i18n("The note carries no audio file"));
         return;
     }
     const QString audioFile = m_store->audioDirectory() + QLatin1Char('/') + note->audioPath;
     if (!QFile::exists(audioFile)) {
-        fail(QStringLiteral("The audio file %1 is missing").arg(note->audioPath));
+        fail(i18n("The audio file %1 is missing", note->audioPath));
         return;
     }
 
     m_work = std::make_unique<QTemporaryDir>(workingRoot() + QLatin1Char('/') + workPrefix()
                                              + QStringLiteral("XXXXXX"));
     if (!m_work->isValid()) {
-        fail(QStringLiteral("No working directory: %1").arg(m_work->errorString()));
+        // The reason reaches the user as a tooltip now (issue #24), and
+        // QTemporaryDir's own wording names the path it tried — the runtime
+        // directory of this login. That belongs in the log and not on the
+        // panel (SPEC 14: tooltip quiet, log detailed).
+        qWarning("No working directory under %s: %s",
+                 qUtf8Printable(workingRoot()),
+                 qUtf8Printable(m_work->errorString()));
+        fail(i18n("No working directory could be created"));
         return;
     }
 
@@ -320,14 +363,14 @@ void Transcriber::collectTranscript()
         // Measured 2026-08-28: whisper-cli writes no JSON at all when it fails
         // to load its model — and a return code of 0 with no file is exactly
         // the case a check on the return code alone would call a success.
-        fail(QStringLiteral("%1 wrote no transcript").arg(m_whisperProgram));
+        fail(i18n("%1 wrote no transcript", m_whisperProgram));
         return;
     }
 
     QJsonParseError error;
     const QJsonDocument document = QJsonDocument::fromJson(json.readAll(), &error);
     if (document.isNull()) {
-        fail(QStringLiteral("The transcript is no JSON: %1").arg(error.errorString()));
+        fail(i18n("The transcript is no JSON: %1", error.errorString()));
         return;
     }
 
@@ -342,12 +385,15 @@ void Transcriber::collectTranscript()
     if (transcript.isEmpty()) {
         // No text is no transcript. The note keeps its audio and stays
         // playable — better than a note that says 'transkribiert' and is empty.
-        fail(QStringLiteral("%1 returned no text").arg(m_whisperProgram));
+        fail(i18n("%1 returned no text", m_whisperProgram));
         return;
     }
 
     if (!m_store->completeTranscription(m_noteId, transcript)) {
-        fail(m_store->lastError());
+        // Same ground as at the working directory above: what SQLite says
+        // names the database file, and that lies in the user's home directory.
+        qWarning("Saving the transcript failed: %s", qUtf8Printable(m_store->lastError()));
+        fail(i18n("The transcript could not be saved"));
         return;
     }
 
@@ -373,9 +419,9 @@ void Transcriber::giveUp()
         m_process.waitForFinished(1000);
     }
     m_step = step;
-    fail(QStringLiteral("%1 did not finish within %2 seconds")
-             .arg(program)
-             .arg(std::chrono::duration<double>(m_timeout).count()));
+    fail(i18n("%1 did not finish within %2 seconds",
+              program,
+              std::chrono::duration<double>(m_timeout).count()));
 }
 
 void Transcriber::fail(const QString &reason)
@@ -385,6 +431,12 @@ void Transcriber::fail(const QString &reason)
         qWarning("Noting the failure failed: %s", qUtf8Printable(m_store->lastError()));
     }
     Q_EMIT failed(m_noteId, reason);
+    // The end of the road, and only it reaches the tray: with an attempt left
+    // the queue comes back to this note, and an error state raised now would
+    // clear itself again a moment later (SPEC 12, issue #24).
+    if (m_attempts >= Store::transcribeAttemptLimit) {
+        Q_EMIT paused(m_noteId, reason);
+    }
     endJob();
 }
 
@@ -393,6 +445,7 @@ void Transcriber::endJob()
     m_deadline.stop();
     m_step = Step::Idle;
     m_noteId = -1;
+    m_attempts = 0;
     // Success, failure and a job that never got as far as its programs all end
     // here, and that is what makes the temporary WAV go on every road.
     m_work.reset();

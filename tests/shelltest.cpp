@@ -53,6 +53,7 @@ private Q_SLOTS:
     void hasAMessageForEveryFailureAndNoneForSuccess();
 
     void hintsTheShortcutWithoutBindingItASecondTime();
+    void showsAFailedTranscriptionAndTakesItBack();
 
 private:
     std::unique_ptr<QTemporaryDir> m_dir;
@@ -314,6 +315,34 @@ void ShellTest::hintsTheShortcutWithoutBindingItASecondTime()
 
     QCOMPARE(capture->shortcut(), QKeySequence(Qt::META | Qt::Key_N));
     QCOMPARE(capture->shortcutContext(), Qt::WidgetShortcut);
+}
+
+void ShellTest::showsAFailedTranscriptionAndTakesItBack()
+{
+    // The error state of SPEC 10 is a **transition**, and a picture of the
+    // resting state says nothing about it (CLAUDE.md, finding 27). What the
+    // item announces goes over the tray protocol, where offscreen there is no
+    // host to read it, so it is read back from the item itself (issue #44).
+    TrayIcon icon;
+    // Asserted before anything is set: without this line the check below would
+    // stand green for an item that is in NeedsAttention from the start.
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+    const QString quiet = icon.item()->toolTipSubTitle();
+    QVERIFY(!quiet.isEmpty());
+
+    const QString reason = QStringLiteral("/usr/bin/whisper-cli ended with code 1");
+    icon.setTranscriptionError(reason);
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
+    // The cause travels with it: an icon that is set apart and says nothing
+    // leaves the user looking for the fault in their recording (SPEC 10).
+    QVERIFY2(icon.item()->toolTipSubTitle().contains(reason),
+             qPrintable(icon.item()->toolTipSubTitle()));
+
+    // And back, because the next transcript that comes through does take it
+    // back — the state must not stand for the rest of the session.
+    icon.setTranscriptionError({});
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+    QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
 }
 
 QTEST_MAIN(ShellTest)

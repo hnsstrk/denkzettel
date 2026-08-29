@@ -27,9 +27,11 @@ class Store;
  * packager linked it against libavformat, and SPEC 12 says why that must not
  * be depended on.
  *
- * **Nothing here reports to the user.** A routine run is silent (SPEC 14: no
- * notification for routine runs); what a failed job does to the tray is issue
- * #24, and failed() is the road it will take.
+ * **Nothing here reports to the user directly.** A routine run is silent (SPEC
+ * 14: no notification for routine runs); a job that has used up its attempts
+ * announces itself through paused(), which the tray turns into its error state
+ * (SPEC 10, issue #24). There is no "running" state and none is wanted — see
+ * the schema comment in store.cpp for why nobody could write one truthfully.
  */
 class Transcriber : public QObject
 {
@@ -104,8 +106,26 @@ Q_SIGNALS:
     /**
      * The attempt failed; the note keeps its audio and no transcript, and the
      * job row keeps the reason (SPEC 12).
+     *
+     * One per attempt, the ones that are retried included — whoever wants the
+     * end of the road wants paused() below.
      */
     void failed(qint64 noteId, const QString &reason);
+
+    /**
+     * The job is given up on: the attempts of SPEC 12 are used up, and this
+     * note will not be handed out again.
+     *
+     * That is what the tray shows as its error state (SPEC 10, issue #24), and
+     * why it is a signal of its own beside failed(): a first attempt that
+     * failed is followed by a second one, and an error state that came up for
+     * it would go away by itself a moment later.
+     *
+     * start() emits it too, for a job that was already given up on before this
+     * process began — after a restart the tray stands where the database says,
+     * not at "no trouble so far".
+     */
+    void paused(qint64 noteId, const QString &reason);
 
 private:
     /** Which of the two programs the running process is. */
@@ -139,5 +159,7 @@ private:
     QString m_whisperProgram;
     QString m_modelPath;
     qint64 m_noteId = -1;
+    /** How often the running job has been handed out, its own run counted. */
+    int m_attempts = 0;
     Step m_step = Step::Idle;
 };
