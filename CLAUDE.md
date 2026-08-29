@@ -826,9 +826,11 @@ find.
     #29: the embedding mock had one default vector, so every note of a run came
     out identical, similarity 1.0, and any case with three or more notes
     silently grew a cluster and a bundle call on top of what it was testing.
-    One case then stood at 4 prompts against 3 — and only when the event loop
-    got far enough between two steps, so it was timing-dependent, which is
-    worse than simply wrong, because it passes often enough to be believed. A
+    One case then stood at 4 prompts against 3 — measured five times out of
+    five with the mock's differing vectors taken away, and five green with them
+    back, so it is deterministic and not the flake the first report of it
+    claimed. That claim was checked because a list entry naming an observation
+    the next reader cannot reproduce damages the list. A
     stand-in's constant answer is an input like any other: give it values that
     differ, or the check runs against a corpus the product would never see.
 
