@@ -16,7 +16,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
-#include <QSplitter>
 #include <QApplication>
 #include <QLocale>
 #include <QPlainTextEdit>
@@ -2296,27 +2295,13 @@ void LibraryTest::takesTheOriginOffANoteAndPutsItBack()
     LibraryWindow window(m_store.get());
     window.showLibrary();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
-    // The width the design was measured at (UX pass, 29.08.2026): at 900 px the
-    // head row has 256 px to spare beside the timestamp and the two buttons.
-    // Narrower than that the row is over budget and the origin gives its space
-    // up first — which is what "the buttons do not move" costs, and what the
-    // `Ignored` size policy is for.
-    window.resize(900, 700);
-    QVERIFY(QTest::qWaitFor([&window] { return window.width() == 900; }));
-    // And the reading pane wide enough to hold the line: how much of it is
-    // shown is a matter of the splitter, and what this case is about is what
-    // happens to the note, not how many characters fit.
-    auto *splitter = window.findChild<QSplitter *>();
-    QVERIFY(splitter);
-    splitter->setSizes({150, 200, 550});
-    QVERIFY(QTest::qWaitFor([splitter] { return splitter->sizes().constLast() > 400; }));
 
     QListView *list = listOf(window);
     list->setCurrentIndex(noteRow(list, 0));
 
-    // The line stands behind the timestamp and offers the entry — the
-    // assertion that the state is the loud one before the quiet one is
-    // asserted (CLAUDE.md, finding 27).
+    // The line stands under the head row and offers the entry — the assertion
+    // that the state is the loud one before the quiet one is asserted
+    // (CLAUDE.md, finding 27).
     const QLabel *origin = nullptr;
     const QList<QLabel *> labels = window.findChildren<QLabel *>();
     for (const QLabel *label : labels) {
@@ -2338,6 +2323,9 @@ void LibraryTest::takesTheOriginOffANoteAndPutsItBack()
     // Nothing else moved — the text is what SPEC 9 says this must not touch.
     QCOMPARE(stored->content, carrying.content);
     QVERIFY(origin->text().isEmpty());
+    // Hidden, so the line takes no height either — a note without an origin
+    // has to look exactly like one taken before the setting existed.
+    QVERIFY(!origin->isVisible());
     QCOMPARE(origin->contextMenuPolicy(), Qt::NoContextMenu);
 
     // And the way back is the band under the header, the same one a deletion is
@@ -2356,6 +2344,7 @@ void LibraryTest::takesTheOriginOffANoteAndPutsItBack()
     QCOMPARE(stored->origin, carrying.origin);
     QCOMPARE(stored->originApp, carrying.originApp);
     QCOMPARE(stored->content, carrying.content);
+    QVERIFY(origin->isVisible());
     QVERIFY(origin->text().contains(carrying.origin));
 }
 

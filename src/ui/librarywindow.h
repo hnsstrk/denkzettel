@@ -232,17 +232,16 @@ private:
     void restoreOrigin();
 
     /**
-     * Writes the origin behind the timestamp, elided to what is left over.
+     * Writes the origin onto its line under the head row, elided to the width
+     * of the reading pane.
      *
-     * A QLabel does not elide by itself, and left to it the head row would
-     * claim the width of the longest title ever shown as the window's minimum
-     * — measured by the UX pass on 29.08.2026 at 221 px for a long browser
-     * title against 256 px of free space at 900 px window width. So the label
+     * A QLabel does not elide by itself, and left to it the pane would claim
+     * the width of the longest title ever shown as its minimum. So the label
      * is told to ignore its own width wish and the text is cut to the width it
      * really gets, which happens on every resize (eventFilter).
      *
-     * Without an origin it says nothing at all: no placeholder, no separator
-     * with nothing behind it (acceptance criterion 5).
+     * Without an origin the line is **hidden**: no placeholder, no empty row,
+     * no height (acceptance criterion 5).
      */
     void showOrigin();
 
@@ -363,11 +362,11 @@ private:
     QLabel *m_detailTimestamp;
 
     /**
-     * The origin behind the timestamp, in the same type and the same colour
-     * role (wireframe 2a as decided on 29.08.2026, issue #47).
+     * The origin on a line of its own under the head row, in the same type and
+     * the same colour role (customer decision 29.08.2026, second pass;
+     * issue #47).
      *
-     * It takes the room between the timestamp and the two buttons, so it is
-     * also what holds them apart — the head row needs no stretch of its own.
+     * Hidden while the note carries none, so it then takes no height at all.
      */
     QLabel *m_detailOrigin;
 

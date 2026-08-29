@@ -784,12 +784,18 @@ QWidget *LibraryWindow::buildDetail()
 
     m_detailTimestamp = subtleLabel(QString(), detail);
 
-    // Behind the timestamp, in the same type and the same colour role — one
-    // head row, no second line and no change of height (customer decision
-    // 29.08.2026). `Ignored` is what keeps it from claiming the width of its
-    // text as the window's minimum: it says "give me what is left", and
-    // showOrigin() cuts the text to that. It is also what holds the timestamp
-    // and the two buttons apart, so the row needs no stretch beside it.
+    // A line of its own under the head row and above the note text, reading as
+    // the head's second line (customer decision 29.08.2026, second pass). It
+    // stood behind the timestamp first, and the measurement of that version is
+    // why it does not any more: in the built window the head row left it 57 to
+    // 74 logical pixels, so „Konsole — ssh sample" came out as „· Konsole …" —
+    // eight characters that promise an answer and give none
+    // (docs/images/reviews/47-herkunft-lang.png).
+    //
+    // `Ignored` is what keeps it from claiming the width of its text as the
+    // pane's minimum: it says "give me what is left", and showOrigin() cuts
+    // the text to that. Without an origin the line is hidden, so it takes no
+    // height at all — no placeholder, no empty row.
     m_detailOrigin = subtleLabel(QString(), detail);
     m_detailOrigin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     m_detailOrigin->installEventFilter(this);
@@ -867,8 +873,16 @@ QWidget *LibraryWindow::buildDetail()
 
     auto *head = new QHBoxLayout();
     head->addWidget(m_detailTimestamp);
-    head->addWidget(m_detailOrigin, 1);
+    head->addStretch();
     head->addWidget(m_headPages);
+
+    // Head row and origin as one block with a spacing of its own: the ten
+    // pixels the pane's layout puts between its items would read as a line
+    // standing on its own rather than as the second line of the head.
+    auto *headBlock = new QVBoxLayout();
+    headBlock->setSpacing(2);
+    headBlock->addLayout(head);
+    headBlock->addWidget(m_detailOrigin);
 
     // Above the transcript and below the head row, and only for a voice note
     // (SPEC 9, wireframe 1b). showNoteText() shows and fills it.
@@ -929,7 +943,7 @@ QWidget *LibraryWindow::buildDetail()
     auto *layout = new QVBoxLayout(detail);
     layout->setContentsMargins(12, 10, 12, 12);
     layout->setSpacing(10);
-    layout->addLayout(head);
+    layout->addLayout(headBlock);
     layout->addWidget(m_audioPlayer);
     // The surplus height belongs to the note text, said out loud rather than
     // left to Qt's distribution rules. Measured on 02.08.2026: at both tested
@@ -1562,18 +1576,18 @@ void LibraryWindow::showOrigin()
     m_detailOrigin->setContextMenuPolicy(m_originText.isEmpty() || isEditing() ? Qt::NoContextMenu
                                                                               : Qt::ActionsContextMenu);
 
+    // Hidden and not merely empty: a hidden widget is out of the layout, so a
+    // note without an origin keeps the note text where it always stood
+    // (acceptance criterion 5).
+    m_detailOrigin->setVisible(!m_originText.isEmpty());
     if (m_originText.isEmpty()) {
         m_detailOrigin->clear();
         return;
     }
 
-    // The separator belongs to the origin and not to the timestamp: the
-    // timestamp is never cut, and a „·" left standing over an elided nothing
-    // would be exactly the placeholder acceptance criterion 5 forbids.
-    const QString full = i18nc("@info the application a note was written beside, behind its timestamp",
-                               "· %1",
-                               m_originText);
-    m_detailOrigin->setText(m_detailOrigin->fontMetrics().elidedText(full, Qt::ElideRight,
+    // No separator any more: „ · " carried the join to the timestamp, and the
+    // line does not stand behind it.
+    m_detailOrigin->setText(m_detailOrigin->fontMetrics().elidedText(m_originText, Qt::ElideRight,
                                                                      m_detailOrigin->width()));
 }
 
