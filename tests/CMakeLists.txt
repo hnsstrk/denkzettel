@@ -61,6 +61,12 @@ target_link_libraries(transcribetest PRIVATE
 
 add_test(NAME transcribetest COMMAND transcribetest)
 
+# LANGUAGE for the reason a failed job records: since issue #24 it stands in the
+# tray tooltip and therefore goes through i18n(), and this set compares its
+# English wording. Without the pin an installed German catalogue would reach the
+# run through XDG_DATA_DIRS and the comparisons would fail on a correct program.
+set_tests_properties(transcribetest PROPERTIES ENVIRONMENT "LANGUAGE=en_US")
+
 add_executable(librarytest librarytest.cpp)
 
 target_link_libraries(librarytest PRIVATE

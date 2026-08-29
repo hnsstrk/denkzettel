@@ -476,6 +476,33 @@ find.
     the one the obvious wrong implementation would give — first, last, largest,
     the only one there is.
 
+36. **A tray item without a `StatusNotifierWatcher` on the bus exports nothing,
+    and the item is never on the daemon's own bus name.** Measured 2026-08-29
+    on #24, where the run had to show what the tray announces while the built
+    daemon runs. Both halves look identical from outside — `UnknownObject` for
+    `/StatusNotifierItem` — and both read like a tray icon that was never
+    built:
+
+    - With no watcher registered, `KStatusNotifierItem` falls back to a legacy
+      `QSystemTrayIcon` and exports no D-Bus object at all. Nothing in the
+      daemon's output says so. A stand-in for plasmashell is therefore part of
+      the run: a `org.kde.StatusNotifierWatcher` at `/StatusNotifierWatcher`
+      that takes `RegisterStatusNotifierItem` and answers
+      `IsStatusNotifierHostRegistered` with `true` — forty lines of
+      python-gi, and the item goes into the real protocol at once.
+    - The item then registers on a **connection of its own**, not on
+      `io.github.hnsstrk.denkzettel`. `gdbus introspect --recurse` on the
+      daemon's name lists `/Daemon`, `/MainApplication` and the KDBusService
+      path, and no item — the address is the unique name the watcher was handed
+      in the registration, and the watcher's log is the only place to read it.
+
+    And the reading has to fall **between** the two states, not after them: the
+    first attempt asked for `Status` once the job was done and got `Active`,
+    which is also what a daemon that never reported anything answers (finding
+    27's family). With a stand-in for `whisper-cli` that sleeps three seconds,
+    the same run reads `NeedsAttention` at the start and `Active` after the
+    transcript — different twice on the same binary.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

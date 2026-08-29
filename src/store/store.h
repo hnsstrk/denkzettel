@@ -13,9 +13,13 @@
 /**
  * One row of `transcribe_jobs` (SPEC 5.1, 12).
  *
- * `lastError` empty means no attempt has reported a failure yet — that is what
- * tells a note whose transcription is still outstanding from one whose
- * transcription has given up (the note keeps its audio either way).
+ * **`attempts` is what tells a note whose transcription is still outstanding
+ * from one that has been given up on**, and `lastError` says why the last
+ * attempt came to nothing (the note keeps its audio either way). The reason
+ * alone cannot carry that: a daemon that is killed mid-run leaves the attempt
+ * counted and no reason behind, and read by the reason that row would pass for
+ * one that is still waiting — see Store::noteInterruptedTranscribeJobs(),
+ * which is what fills it in.
  */
 struct TranscribeJob {
     qint64 noteId = -1;
@@ -154,6 +158,34 @@ public:
     bool failTranscribeJob(qint64 noteId, const QString &error);
 
     std::optional<TranscribeJob> transcribeJob(qint64 noteId) const;
+
+    /**
+     * The newest job that has used up its attempts, or nothing.
+     *
+     * The condition is the exact complement of the one takeTranscribeJob()
+     * selects by, so the two cannot drift apart: what that one no longer hands
+     * out is what this one reports. The newest and not the oldest — of several
+     * given-up notes the one the user recorded last is the one they are
+     * looking for.
+     */
+    std::optional<TranscribeJob> pausedTranscribeJob() const;
+
+    /**
+     * Writes `reason` on every job whose attempt was counted and never
+     * answered for, and reports whether the write went through.
+     *
+     * That is the state a daemon that was killed leaves behind: the attempt is
+     * counted in takeTranscribeJob(), and the answer never comes — neither
+     * failTranscribeJob() nor completeTranscription() runs. The row then reads
+     * as one whose last attempt is still outstanding, although with the
+     * attempts used up it is never handed out again.
+     *
+     * **The caller has to be one that knows no job is running**, or it
+     * overwrites the running attempt's empty reason. In the daemon that is
+     * Transcriber::start(): the service is single-instance (SPEC 2.3) and
+     * start() runs before a job of its own is taken.
+     */
+    bool noteInterruptedTranscribeJobs(const QString &reason);
 
 Q_SIGNALS:
     /**

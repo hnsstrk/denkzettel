@@ -32,7 +32,6 @@ TrayIcon::TrayIcon(QObject *parent)
     , m_item(new KStatusNotifierItem(QStringLiteral("denkzettel"), this))
 {
     m_item->setCategory(KStatusNotifierItem::ApplicationStatus);
-    m_item->setStatus(KStatusNotifierItem::Active);
     // The theme name lets Plasma recolor the monochrome icon to the panel
     // (issue #43). A name would travel over D-Bus and fail silently when the
     // icon is not installed, so fall back to sending pixmaps in that case.
@@ -47,7 +46,10 @@ TrayIcon::TrayIcon(QObject *parent)
     }
     m_item->setTitle(i18n("Denkzettel"));
     m_item->setToolTipTitle(i18n("Denkzettel"));
-    m_item->setToolTipSubTitle(i18n("Capture thoughts quickly"));
+    // Status and subtitle of the untroubled state, and they are set from the
+    // one place that also takes them back: written out a second time here they
+    // would be the copy that goes stale when the wording changes (issue #24).
+    setTranscriptionError({});
     m_item->setStandardActionsEnabled(false);
     m_item->setContextMenu(buildMenu());
     // The left click is to open the same menu as the right one (issue #44,
@@ -68,6 +70,21 @@ TrayIcon::TrayIcon(QObject *parent)
 const KStatusNotifierItem *TrayIcon::item() const
 {
     return m_item;
+}
+
+void TrayIcon::setTranscriptionError(const QString &reason)
+{
+    m_item->setStatus(reason.isEmpty() ? KStatusNotifierItem::Active
+                                       : KStatusNotifierItem::NeedsAttention);
+    // This is the quiet channel of SPEC 14 — tray state and tooltip — and it
+    // is all this class serves. The loud one is owed and not written off: the
+    // customer decided on 29.08.2026 that a transcription given up on shall
+    // notify, which is the "repeated error" SPEC 10 lists among the
+    // KNotification triggers. It carries acceptance criteria of its own and
+    // comes in an issue of its own; whoever builds it puts the KNotification
+    // beside these two lines, not instead of them.
+    m_item->setToolTipSubTitle(reason.isEmpty() ? i18n("Capture thoughts quickly")
+                                                : i18n("Transcription failed: %1", reason));
 }
 
 QMenu *TrayIcon::buildMenu()

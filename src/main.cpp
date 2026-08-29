@@ -17,6 +17,8 @@
 #include <QApplication>
 #include <QIcon>
 
+#include <optional>
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -84,6 +86,23 @@ int main(int argc, char *argv[])
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
+
+    // The error path of the transcription reaches the user here and nowhere
+    // else (SPEC 10 and 12, issue #24). Both edges ask the same question of the
+    // database rather than each carrying its own answer: **the state has to
+    // stand where the queue stands.** A success that simply cleared the state
+    // would make the icon quiet again while another note lies given up on in
+    // the queue, and only the next start of the service would bring it back.
+    //
+    // Asked on both signals and not on failed(): a first attempt is followed
+    // by a second one, so pausedTranscribeJob() still answers nothing there,
+    // and a state raised for it would clear itself a moment later.
+    const auto showWhereTheQueueStands = [&store, &tray] {
+        const std::optional<TranscribeJob> givenUp = store.pausedTranscribeJob();
+        tray.setTranscriptionError(givenUp.has_value() ? givenUp->lastError : QString());
+    };
+    QObject::connect(&transcriber, &Transcriber::paused, &tray, showWhereTheQueueStands);
+    QObject::connect(&transcriber, &Transcriber::transcribed, &tray, showWhereTheQueueStands);
 
     DaemonService daemon(&store);
     QObject::connect(&daemon, &DaemonService::captureRequested, &capture, &CaptureWindow::showCapture);

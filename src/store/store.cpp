@@ -82,15 +82,21 @@ const QList<QStringList> &migrations()
         // Version 3 — the transcription queue (SPEC 5.1, 12). The columns are
         // the ones SPEC 5.1 names and no others; what a reader wants to know
         // is answered by them together:
-        //   no row, state 'transkribiert'  — done, the transcript is the note
-        //   row, last_error NULL           — outstanding: waiting or running
-        //   row, last_error set            — the last attempt failed; with
-        //                                    attempts at the limit it stays
-        //                                    that way, and the note keeps its
-        //                                    audio without a transcript
+        //   no row                         — done, the transcript is the note
+        //                                    (state 'transkribiert')
+        //   row, attempts below the limit  — outstanding: waiting or running
+        //   row, attempts at the limit     — given up on; the note keeps its
+        //                                    audio without a transcript, and
+        //                                    last_error says why
         // A column for "running" would be a fourth state nobody can write
         // truthfully: a daemon killed mid-run cannot clear it, and the row
         // would say "running" for ever (SPEC 12: the queue survives restarts).
+        // For the same reason the **count** and not the reason separates the
+        // last two rows above: the count is written before the run and the
+        // reason after it, so a killed daemon leaves an attempt counted with
+        // nothing said, and read by the reason that row would pass for one
+        // still waiting. Transcriber::start() fills the reason in through
+        // noteInterruptedTranscribeJobs().
         {
             // ON DELETE CASCADE, and not for tidiness: with `PRAGMA
             // foreign_keys = ON` a job row still pointing at the note would
@@ -820,6 +826,47 @@ std::optional<TranscribeJob> Store::transcribeJob(qint64 noteId) const
     job.attempts = query.value(2).toInt();
     job.lastError = query.value(3).toString();
     return job;
+}
+
+std::optional<TranscribeJob> Store::pausedTranscribeJob() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("SELECT note_id, enqueued_at, attempts, last_error FROM transcribe_jobs"
+                                 " WHERE attempts >= :limit ORDER BY enqueued_at DESC, note_id DESC LIMIT 1"));
+    query.bindValue(QStringLiteral(":limit"), transcribeAttemptLimit);
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return std::nullopt;
+    }
+    if (!query.next()) {
+        return std::nullopt;
+    }
+
+    TranscribeJob job;
+    job.noteId = query.value(0).toLongLong();
+    job.enqueuedAt = timestampFromText(query.value(1).toString());
+    job.attempts = query.value(2).toInt();
+    job.lastError = query.value(3).toString();
+    return job;
+}
+
+bool Store::noteInterruptedTranscribeJobs(const QString &reason)
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // NULL and the empty string both, and neither is theoretical: the column
+    // starts out NULL, and failTranscribeJob() writes what it is handed.
+    query.prepare(QStringLiteral("UPDATE transcribe_jobs SET last_error = :last_error"
+                                 " WHERE attempts > 0 AND (last_error IS NULL OR last_error = '')"));
+    query.bindValue(QStringLiteral(":last_error"), reason);
+
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return false;
+    }
+    return true;
 }
 
 QStringList Store::tags(qint64 noteId) const
