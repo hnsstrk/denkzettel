@@ -23,6 +23,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS DBus Multimedia Network Widgets Sql)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     Config
+    # KConfigDialog and KConfigDialogManager — the settings dialog of SPEC 13
+    # (issue #16). Its own component: Config above brings ConfigCore and
+    # ConfigGui, not this one.
+    ConfigWidgets
     CoreAddons
     DBusAddons
     GlobalAccel

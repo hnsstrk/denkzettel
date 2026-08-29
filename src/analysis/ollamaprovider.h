@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QLatin1StringView>
 #include <QString>
 #include <QUrl>
 
@@ -58,6 +59,26 @@ OllamaAnswer readOllamaReply(OllamaCall call,
                              const QByteArray &body);
 
 /**
+ * The three defaults of SPEC 7.1, and the one place they stand.
+ *
+ * Three parties need the same values: the provider below, which reads
+ * `denkzettelrc` at construction; the settings skeleton, which declares the
+ * same keys with the same defaults; and the model boxes of the settings page,
+ * which offer them as the way back. Written down three times they would drift
+ * apart without a sound — a "reset to the default" that hands out a model the
+ * provider never asks for.
+ *
+ * Here and not in the settings, because the dependency only runs one way:
+ * `denkzettelsettings` links `denkzettelanalysis`, not the other way round.
+ */
+namespace ollama
+{
+inline constexpr QLatin1StringView DefaultUrl("http://localhost:11434");
+inline constexpr QLatin1StringView DefaultChatModel("qwen3:8b");
+inline constexpr QLatin1StringView DefaultEmbeddingModel("bge-m3");
+}
+
+/**
  * Ollama over its HTTP API (SPEC 7.1): `/api/chat` and `/api/embed`.
  *
  * The address and the two models are settings out of `denkzettelrc` (SPEC
@@ -75,12 +96,12 @@ class OllamaProvider : public AiProvider
 public:
     explicit OllamaProvider(QObject *parent = nullptr);
 
-    /** `http://localhost:11434` unless `denkzettelrc` says otherwise. */
+    /** `ollama::DefaultUrl` unless `denkzettelrc` says otherwise. */
     void setUrl(const QUrl &url);
-    /** SPEC 7.1: `qwen3:8b`. */
+    /** SPEC 7.1, `ollama::DefaultChatModel`. */
     void setChatModel(const QString &model);
     QString chatModel() const;
-    /** SPEC 7.1: `bge-m3`, and in v1 every embedding comes from here. */
+    /** SPEC 7.1, `ollama::DefaultEmbeddingModel`; in v1 every embedding comes from here. */
     void setEmbeddingModel(const QString &model);
     QString embeddingModel() const;
 

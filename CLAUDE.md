@@ -603,6 +603,25 @@ find.
     fault permanent** — closes every time, never answers — and reads the total
     off the stand-in, not off the client's result.
 
+42. **`KSharedConfig::openConfig()` names its file after the application, and
+    a QTest binary is not the application.** Measured 2026-08-29 on #16: the new
+    `settingstest` pressed Apply on a `KConfigDialog` and read the result back
+    out of `denkzettelrc` — while the dialog had written `settingstestrc`,
+    because QTest fills `QCoreApplication::applicationName()` from the binary
+    and the skeleton takes its file name from there. The case stood **red over
+    a program that was doing exactly the right thing**; the same setup the other
+    way round — an assertion that a key is *absent* — would have stood green
+    for ever, on a file nobody ever wrote. So a check of a configuration file
+    sets `setApplicationName()` to the name the daemon registers, before the
+    first `KSharedConfig` call. **The second half of the same run:** with the
+    file name put right the case was green once and red on the next run. It
+    writes what it asserts, so the second run set the widgets to the values that
+    already stood in the file — no change, and Apply stays grey. In the other
+    order the same case would have been **green over a write that never
+    happened**. A check that writes into a configuration therefore deletes it
+    first, and that deletion carries a guard on `XDG_CONFIG_HOME`: the same line
+    without one deletes the file of whoever runs the check.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

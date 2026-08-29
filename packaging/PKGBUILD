@@ -28,6 +28,14 @@ depends=(
     'qt6-multimedia-ffmpeg'
     'kcolorscheme'
     'kconfig'
+    # KConfigDialog and KConfigDialogManager — the settings dialog of SPEC 13
+    # (issue #16). Its own package: kconfig ships ConfigCore and ConfigGui, not
+    # this one. Written down although kxmlgui above already pulls it in: the
+    # binary links libKF6ConfigWidgets itself, and a transitive dependency is
+    # no promise (same reasoning as ffmpeg below). The DT_NEEDED check of
+    # finding 33 therefore cannot tell this line from its absence — it is
+    # covered either way.
+    'kconfigwidgets'
     'kcoreaddons'
     'kdbusaddons'
     'kglobalaccel'

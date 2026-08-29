@@ -86,9 +86,9 @@ OllamaProvider::OllamaProvider(QObject *parent)
     : AiProvider(parent)
 {
     const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
-    m_url = QUrl(group.readEntry("OllamaUrl", QStringLiteral("http://localhost:11434")));
-    m_chatModel = group.readEntry("ChatModel", QStringLiteral("qwen3:8b"));
-    m_embeddingModel = group.readEntry("EmbeddingModel", QStringLiteral("bge-m3"));
+    m_url = QUrl(group.readEntry("OllamaUrl", QString(ollama::DefaultUrl)));
+    m_chatModel = group.readEntry("ChatModel", QString(ollama::DefaultChatModel));
+    m_embeddingModel = group.readEntry("EmbeddingModel", QString(ollama::DefaultEmbeddingModel));
 }
 
 void OllamaProvider::setUrl(const QUrl &url)

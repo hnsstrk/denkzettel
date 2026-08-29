@@ -101,6 +101,30 @@ add_test(NAME aitest COMMAND aitest)
 set_tests_properties(aitest PROPERTIES ENVIRONMENT
     "XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/aitest-ohne-konfiguration;XDG_CONFIG_DIRS=${CMAKE_CURRENT_BINARY_DIR}/aitest-ohne-konfiguration;LANGUAGE=en_US")
 
+# The settings dialog of SPEC 13 (issue #16). It asserts the three things that
+# break without a sound — whether Apply writes at all, whether the Help button
+# is only hidden, and the icon names of the page list; how the dialog looks is
+# looked at, not measured. The class comment of settingstest.cpp says why each
+# of them is here.
+add_executable(settingstest settingstest.cpp)
+
+target_link_libraries(settingstest PRIVATE
+    denkzettelsettings
+    Qt6::Test
+)
+
+add_test(NAME settingstest COMMAND settingstest)
+
+# A configuration directory of its own, and it carries the whole set: this run
+# WRITES a denkzettelrc through the Apply button, and without the redirection it
+# would write into the one of whoever runs the check. Offscreen so no compositor
+# is needed, the KDE platform theme on top of it because the page icons are
+# checked for their names and without a resolvable theme every name reads empty.
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/settingstest-konfiguration)
+
+set_tests_properties(settingstest PROPERTIES ENVIRONMENT
+    "XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/settingstest-konfiguration;QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US")
+
 add_executable(librarytest librarytest.cpp)
 
 target_link_libraries(librarytest PRIVATE

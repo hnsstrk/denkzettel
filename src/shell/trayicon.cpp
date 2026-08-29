@@ -115,10 +115,16 @@ QMenu *TrayIcon::buildMenu()
     addStub(menu, i18n("Analyze now"), QStringLiteral("system-run"));
     addStub(menu, i18n("Suggestions"), QStringLiteral("tools-wizard"));
 
-    // "Configure Denkzettel…" joins the group below with the settings dialog
-    // (#16). Until then there is no entry for it: a permanently greyed one does
-    // not tell the user why it is greyed (KDE HIG, wireframe 5a).
     menu->addSeparator();
+
+    // The wording names the application, unlike the window title of the dialog
+    // it opens: this entry stands among entries of other programs, and the KDE
+    // habit for it is "Configure %1…" (dolphin.mo: „%1 einrichten …"). The
+    // window on the other side names no application, because the decoration
+    // appends it (issue #16, UX decision of 29.08.2026).
+    const QAction *configureAction =
+        menu->addAction(QIcon::fromTheme(QStringLiteral("configure")), i18n("Configure Denkzettel…"));
+    connect(configureAction, &QAction::triggered, this, &TrayIcon::configureRequested);
 
     // Where the version becomes visible in the running application (issue #87,
     // SPEC 15.1). It stands in the last group, which is the administrative one,
