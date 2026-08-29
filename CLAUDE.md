@@ -1018,6 +1018,62 @@ find.
     lies inside the changed widget" is a statement about two numbers, only one
     of which the picture carries.
 
+65. **Two desktop actions with the same `Exec` line are one action, and every
+    readback the shortcut service offers says the registration is fine.**
+    Measured 2026-08-29 on #125, as the fault: `Meta+Shift+N` reached nothing
+    for four weeks while the component was active, `show-recorder` held
+    `Meta+Shift+N`, no foreign component claimed the sequence, and
+    `invokeShortcut` delivered `globalShortcutPressed` with a control that came
+    out different. All of it was true and none of it was the key's road: a real
+    press starts the **desktop action** through an `ApplicationLauncherJob`
+    (SPEC 2.4), both actions carried `Exec=denkzetteld`, and the started process
+    handed itself to the running service as a plain activation — which shows the
+    capture window. `Meta+N` "worked" because its target is what happens anyway,
+    which is the worst kind of green: the one shortcut that could be checked by
+    hand was the one the fault could not touch. Whatever a key press does, walk
+    **the launcher's** road — `KService::serviceByDesktopName`, the
+    `KServiceAction` of that name, `KIO::ApplicationLauncherJob` — and read back
+    what lands on the bus, not what the shortcut service holds.
+
+66. **A launcher on the offscreen platform puts a different signature on the
+    wire.** Measured 2026-08-29 on #125: `DBusActivationRunner::startProcess()`
+    appends the platform-data map only under X11 or Wayland
+    (`KWindowSystem::isPlatformWayland()`), so with `QT_QPA_PLATFORM=offscreen`
+    the call goes out as `ActivateAction(sav)` while `KDBusService`'s adaptor is
+    `sava{sv}` — D-Bus dispatches by exact signature, and both presses came back
+    `No such method 'ActivateAction'`. On the fixed build. Read as the result it
+    looks like, that is a fix that does not work; the same run inside a nested
+    `kwin_wayland --virtual` came out right for both actions. Offscreen is not a
+    neutral platform for anything that asks **which** platform this is, and the
+    proof is the platform name read back inside the run, next to the call
+    (finding 28's family for the launcher rather than the style).
+
+67. **A bus-activated process inherits the environment the bus was started
+    with.** Measured 2026-08-29 on #125, proving that a key press starts the
+    daemon when none is running: the nested compositor came up *after*
+    `dbus-run-session`, so the activated daemon found no platform plugin and
+    died with signal 6 — `jobErrorText=Process … received signal 6`, which reads
+    like a broken service file. `UpdateActivationEnvironment` on
+    `org.freedesktop.DBus` is what a real session does and what the run has to
+    do too. And the control that makes the run evidence is the file itself: with
+    the service file staged, the name has no owner before the press and one
+    after it, with `Recording failed` arriving from the cold-started daemon;
+    without it, the same press answers `The name … was not provided by any
+    .service files` and nothing happens.
+
+68. **A mutation that cuts one line out of a multi-line call breaks the
+    configure, and the build directory keeps the rules the probe was meant to
+    remove.** Measured 2026-08-29 on #125: `grep -v` on the first line of a
+    two-line `install(FILES … DESTINATION …)` left a dangling argument, `cmake
+    -B` failed with its output redirected, `ctest` ran against the **previous**
+    configuration and reported `Passed` — a green that said nothing. Cutting the
+    whole call made the same check red on the right message. This is finding
+    58's family for build files: read the exit code of every step the mutation
+    depends on, and mutate the whole statement. **Its neighbour in the same
+    check:** `get_filename_component(… NAME_WE)` cuts at the **first** dot, so a
+    reverse-DNS file name gives `io` — the check went red over a correct file
+    until it used `NAME` and stripped the suffix itself.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
