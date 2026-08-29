@@ -3,7 +3,9 @@
 #include <QObject>
 #include <QProcess>
 #include <QString>
+#include <QTimer>
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 
@@ -72,6 +74,19 @@ public:
     void setModelPath(const QString &path);
 
     /**
+     * How long a whole job may take before it is given up on (SPEC 12).
+     *
+     * The default is the five minutes the customer chose on 29.08.2026, and it
+     * covers the run and not a stretch of it without output: whether
+     * `whisper-cli` writes anything at all while it recognises is unmeasured,
+     * and a limit on something unmeasured would be a guess (issue #113).
+     *
+     * Settable for the same reason the program paths above are: a check that
+     * waits five minutes for the limit to bite is one nobody runs.
+     */
+    void setTimeout(std::chrono::milliseconds timeout);
+
+    /**
      * Takes up the queue and returns at once — the work runs in the event loop.
      *
      * Calling it while a job is running does nothing: the next job is taken
@@ -107,12 +122,17 @@ private:
     void transcribe();
     /** Reads the JSON whisper-cli wrote and finishes the job with it. */
     void collectTranscript();
+    /** Kills the run that has outlasted m_timeout and fails its job. */
+    void giveUp();
     void fail(const QString &reason);
     /** Ends the job, drops the temporary files and goes on to the next one. */
     void endJob();
 
     Store *m_store;
     QProcess m_process;
+    /** Runs from the job being taken out until endJob(), and only then. */
+    QTimer m_deadline;
+    std::chrono::milliseconds m_timeout = std::chrono::minutes(5);
     /** Holds the WAV and the JSON of the running job, and only of that one. */
     std::unique_ptr<QTemporaryDir> m_work;
     QString m_ffmpegProgram;

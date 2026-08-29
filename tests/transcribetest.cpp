@@ -11,6 +11,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <chrono>
 #include <cmath>
 #include <memory>
 #include <numbers>
@@ -44,6 +45,7 @@ private Q_SLOTS:
     void transcribesAnAudioNoteItWasHandedByTheStore();
     void takesUpAJobLeftBehindByAKilledRun();
     void pausesAfterTwoAttemptsAndKeepsTheJobLine();
+    void givesUpOnARunThatHangs();
     void clearsTheWorkingDirectoryOfAKilledRun();
     void deletingANoteTakesItsJobWithIt();
 
@@ -65,6 +67,20 @@ private:
      * would write.
      */
     QString writeWhisperStub();
+    /**
+     * Writes a stand-in for whisper-cli that never comes back, and returns its
+     * path: it notes its own process id and then hangs.
+     */
+    QString writeHangingStub();
+    QString hangingPidFile() const;
+    /**
+     * The process ids the hanging stand-in has noted, oldest first.
+     *
+     * The ids come from the children themselves. `pgrep -f` on the path of the
+     * stand-in would find the test's own process too, because its command line
+     * carries that path (finding 30 of CLAUDE.md).
+     */
+    QList<qint64> hangingChildren() const;
     QString keptWav() const;
     /** Working directories of a job — none of them may survive its job. */
     static QStringList leftOverWorkingDirectories();
@@ -161,6 +177,29 @@ QString TranscribeTest::keptWav() const
     return m_dir->filePath(QStringLiteral("handed-over.wav"));
 }
 
+QString TranscribeTest::hangingPidFile() const
+{
+    return m_dir->filePath(QStringLiteral("hanging.pids"));
+}
+
+QList<qint64> TranscribeTest::hangingChildren() const
+{
+    QFile file(hangingPidFile());
+    if (!file.open(QIODevice::ReadOnly)) {
+        return {};
+    }
+    QList<qint64> pids;
+    const QList<QByteArray> lines = file.readAll().split('\n');
+    for (const QByteArray &line : lines) {
+        bool ok = false;
+        const qint64 pid = line.trimmed().toLongLong(&ok);
+        if (ok && pid > 0) {
+            pids.append(pid);
+        }
+    }
+    return pids;
+}
+
 qint64 TranscribeTest::addVoiceNote()
 {
     const QDateTime createdAt = QDateTime::currentDateTime();
@@ -229,6 +268,32 @@ QString TranscribeTest::writeWhisperStub()
                "  { \"text\": \" Milch und Brötchen kaufen,\" },\n"
                "  { \"text\": \" die Straße ist gesperrt.\" } ] }\n"
                "JSON\n");
+    stub.close();
+    if (!stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner)) {
+        return {};
+    }
+    return path;
+}
+
+QString TranscribeTest::writeHangingStub()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - returned below, see rule 1 in .clang-tidy
+    QString path = m_dir->filePath(QStringLiteral("whisper-hanging.sh"));
+    QFile stub(path);
+    if (!stub.open(QIODevice::WriteOnly)) {
+        return {};
+    }
+    // Appended and not overwritten: every run of the stand-in leaves its line,
+    // so the check reads the id of the run it means instead of whichever run
+    // wrote last.
+    //
+    // `exec` and not `sleep 30 &`: the stand-in becomes the sleeping process
+    // instead of starting one beside itself. A background child would outlive
+    // the kill that hits the shell, and the check would then be measuring the
+    // shell and not the run.
+    stub.write("#!/bin/sh\necho $$ >> \"");
+    stub.write(hangingPidFile().toUtf8());
+    stub.write("\"\nexec sleep 30\n");
     stub.close();
     if (!stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner)) {
         return {};
@@ -379,6 +444,91 @@ void TranscribeTest::pausesAfterTwoAttemptsAndKeepsTheJobLine()
     QVERIFY(note->content.isEmpty());
     QCOMPARE(note->state, Note::State::New);
     QVERIFY(QFile::exists(m_store->audioDirectory() + QLatin1Char('/') + note->audioPath));
+}
+
+void TranscribeTest::givesUpOnARunThatHangs()
+{
+    const QString hanging = writeHangingStub();
+    QVERIFY(!hanging.isEmpty());
+
+    // Two notes, because the second half of the criterion is that the queue
+    // goes on afterwards — one note could only ever show the same job again.
+    const qint64 first = addVoiceNote();
+    QVERIFY(first > 0);
+    const qint64 second = addVoiceNote();
+    QVERIFY(second > 0);
+    QVERIFY2(m_store->enqueueTranscription(first), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->enqueueTranscription(second), qPrintable(m_store->lastError()));
+
+    // The control, and the case rests on it: the same hanging run under the
+    // five minutes the customer chose. They do not pass here, so nothing ends —
+    // that is the state issue #113 describes and the state a normal run is in.
+    {
+        Transcriber standing(m_store.get());
+        standing.setWhisperProgram(hanging);
+        // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+        QSignalSpy failed(&standing, &Transcriber::failed);
+        standing.start();
+
+        QVERIFY(QTest::qWaitFor([this] { return !hangingChildren().isEmpty(); }, 30000));
+        QTest::qWait(1000);
+        QCOMPARE(failed.count(), 0);
+        // Alive, and asserted while it is: without this line the run below
+        // would be green over a child that had never started.
+        QVERIFY(QFile::exists(QStringLiteral("/proc/%1").arg(hangingChildren().constFirst())));
+    }
+
+    QVERIFY(QFile::remove(hangingPidFile()));
+
+    Transcriber transcriber(m_store.get());
+    transcriber.setWhisperProgram(hanging);
+    // Long enough to tell the limit from the start of the run, short enough
+    // that a ctest run waits for it. Five minutes are what the daemon uses and
+    // what the control above ran under.
+    transcriber.setTimeout(std::chrono::milliseconds(500));
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy failed(&transcriber, &Transcriber::failed);
+    transcriber.start();
+
+    QVERIFY(QTest::qWaitFor([this] { return !hangingChildren().isEmpty(); }, 30000));
+    const qint64 child = hangingChildren().constFirst();
+    QVERIFY(QFile::exists(QStringLiteral("/proc/%1").arg(child)));
+
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 1; }, 30000));
+    QCOMPARE(failed.first().at(0).toLongLong(), first);
+    QVERIFY2(failed.first().at(1).toString().contains(QStringLiteral("did not finish")),
+             qPrintable(failed.first().at(1).toString()));
+    // The child is gone with the job, and it is gone before the failure is
+    // announced: fail() runs after the kill has been waited for. PR_SET_PDEATHSIG
+    // does not reach this — the daemon is alive and gave the job up itself.
+    QVERIFY(!QFile::exists(QStringLiteral("/proc/%1").arg(child)));
+
+    // And the queue moves on: the next job is a different note, not the one
+    // that was given up on.
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 2; }, 30000));
+    QCOMPARE(failed.at(1).at(0).toLongLong(), second);
+
+    // The reason reaches the job line. Without it the attempt is counted and
+    // nothing says why — the unreadable state issue #22 left behind.
+    const std::optional<TranscribeJob> job = m_store->transcribeJob(first);
+    QVERIFY(job.has_value());
+    QCOMPARE(job->attempts, Store::transcribeAttemptLimit);
+    QVERIFY(!job->lastError.isEmpty());
+
+    // Three runs and no more: the first note had one attempt left, the second
+    // had both. Waited for by that number and not by isBusy(), which is false
+    // for a moment between two jobs as well — caught there, the checks below
+    // would be measuring a queue that goes on running under them.
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 3; }, 30000));
+    QVERIFY(QTest::qWaitFor([&transcriber] { return !transcriber.isBusy(); }, 30000));
+    QCOMPARE(leftOverWorkingDirectories(), QStringList());
+    // No run of the stand-in survived its job.
+    const QList<qint64> children = hangingChildren();
+    QCOMPARE(children.size(), 3);
+    for (const qint64 pid : children) {
+        QVERIFY2(!QFile::exists(QStringLiteral("/proc/%1").arg(pid)),
+                 qPrintable(QStringLiteral("process %1 outlived its job").arg(pid)));
+    }
 }
 
 void TranscribeTest::clearsTheWorkingDirectoryOfAKilledRun()

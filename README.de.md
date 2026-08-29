@@ -98,7 +98,10 @@ Spezifikation ist [`SPEC.md`](SPEC.md).
   GGML-Backend (`ggml-vulkan`, unter ROCm `ggml-hip`) und ein Modell unter
   `~/.local/share/denkzettel/models/`. Zum Bauen und Prüfen braucht es beides
   nicht — der Testlauf setzt an die Stelle von whisper-cli ein eigenes
-  Programm. Beide Pfade sind Einstellungen in `denkzettelrc`:
+  Programm. Ein Lauf wird nach fünf Minuten aufgegeben, gerechnet über den
+  ganzen Auftrag: Denkzettel hält kurze Notizen fest und ist kein Audiorekorder
+  — die Aufnahme selbst endet ohnehin nach fünfzehn Minuten. Beide Pfade sind
+  Einstellungen in `denkzettelrc`:
 
   ```ini
   [Transcription]
