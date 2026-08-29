@@ -14,7 +14,7 @@ Categories=Utility;Qt;KDE;
 # tool under its old name should still find it.
 Keywords=note;notes;thought;capture;
 Keywords[de]=Notiz;Notizen;Gedanke;Capture;
-Actions=show-capture;
+Actions=show-capture;show-recorder;
 
 # With the application installed, kglobalacceld triggers a shortcut through this
 # group, not through D-Bus: the component name ends in .desktop, so the component
@@ -28,4 +28,14 @@ Actions=show-capture;
 [Desktop Action show-capture]
 Name=Capture note
 Name[de]=Notiz erfassen
+Exec=denkzetteld
+
+# One group per shortcut, and this is the second one (SPEC 2.4): without it
+# Meta+Shift+N would register, show up in the system settings and do nothing —
+# the service logs an error and gives up. The group name is the action id from
+# GlobalShortcuts (show-recorder), a valid XDG identifier, and Name matches the
+# display name set there.
+[Desktop Action show-recorder]
+Name=Record voice note
+Name[de]=Sprachnotiz aufnehmen
 Exec=denkzetteld

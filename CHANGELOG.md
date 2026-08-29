@@ -31,6 +31,24 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   **Schema version 6** brings the tables `proposals` and `proposal_notes`;
   deleting a note takes its references with it, and deleting a suggestion takes
   them too, while the notes stay (#29).
+- **Voice notes: `Meta+Umschalt+N` opens a window that is already recording.**
+  No start button — the recording runs from the moment the window stands there
+  (SPEC 4), with a red dot, a level meter of seven bars and the running time.
+  `Ctrl+Enter` saves the recording as an audio note and the transcription queue
+  takes it from there; `Esc` throws it away together with its file. At fifteen
+  minutes the recording **ends the way `Ctrl+Enter` ends it** rather than being
+  discarded, and from minute fourteen the running time turns red and the footer
+  says when it will end. The level comes off the same buffers that go into the
+  file, so no second stream is opened on the microphone. The window is reachable
+  three ways, like the capture window: the shortcut, the tray entry, and the
+  D-Bus method `ShowRecorder()`. **A recording that cannot be stored is not
+  thrown away**: the note is only created once the file is closed, and if the
+  database refuses it, the recording is moved to `rescued/` beside the audio
+  directory and the message names that path. The cleanup check reads `audio/`
+  and would otherwise take the file for an orphan and delete it at the very
+  next start; nothing in Denkzettel ever deletes anything under `rescued/`
+  (#21).
+
 - **Notes get a vector, and notes about one topic find each other.** The
   analysis run has a second step: every analysed note is turned into an
   embedding by the local Ollama, and a note the user has edited is embedded

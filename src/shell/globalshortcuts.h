@@ -37,16 +37,23 @@ public:
     explicit GlobalShortcuts(QObject *parent = nullptr);
 
     /**
-     * Registers Meta+N and returns the components that already hold the
-     * sequence. Registration happens even then: SPEC 2.4 asks for visibility,
-     * not for giving up, and the tray entry keeps working regardless.
+     * Registers the default sequence of `which` and returns the components
+     * that already hold it. Registration happens even then: SPEC 2.4 asks for
+     * visibility, not for giving up, and the tray entries keep working
+     * regardless.
      *
      * Afterwards the registration is read back from the daemon. Did it not
      * arrive, that is reported here — at every start, not only the first one —
      * and the list comes back empty: there is no shortcut left to be in
      * conflict with.
+     *
+     * **Per shortcut, and SPEC 2.4 says so in as many words:** Meta+Shift+N
+     * goes through the same read-back as Meta+N. A pair registered together
+     * and reported together would hide which of the two never arrived, and
+     * "visible in the system settings" is precisely the state a silently
+     * failed shortcut produces.
      */
-    QList<ShortcutOwner> registerCaptureShortcut();
+    QList<ShortcutOwner> registerShortcut(Shortcut which);
 
     /**
      * The label the same action carries in the tray menu. The settings page
@@ -92,16 +99,14 @@ public:
 
 Q_SIGNALS:
     void captureRequested();
+    void recorderRequested();
 
 private:
     QAction *actionFor(Shortcut which) const;
 
     QAction *m_captureAction;
-    // Built here beside the capture action because this is where the identity
-    // of a shortcut lives — component, action id and label together. It is not
-    // registered at the start: what a key press is supposed to reach,
-    // ShowRecorder(), arrives with issue #21, and until then the settings page
-    // is the only thing that writes it.
+    // Beside the capture action, because this is where the identity of a
+    // shortcut lives — component, action id and label together.
     QAction *m_recorderAction;
 };
 

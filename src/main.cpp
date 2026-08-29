@@ -4,6 +4,7 @@
 #include "analysis/ollamaprovider.h"
 #include "analysis/suggester.h"
 #include "capture/capturewindow.h"
+#include "capture/recordingwindow.h"
 #include "platform/optionaltools.h"
 #include "platform/systemfonts.h"
 #include "settings/settings.h"
@@ -107,6 +108,14 @@ int main(int argc, char *argv[])
 
     CaptureWindow capture(&store);
 
+    // The recording window of SPEC 4, built beside the capture window and kept
+    // for the whole life of the daemon like it (SPEC 2.1). Nothing else has to
+    // be wired for the transcription: the queue hangs on Store::noteAdded, and
+    // the note this window writes when a recording is finished is what reaches
+    // it (SPEC 12, issue #22).
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    RecordingWindow recorder(&store);
+
     // SPEC 2.3: a second process start must surface the capture window in the
     // running instance instead of just exiting.
     QObject::connect(&service, &KDBusService::activateRequested, &capture,
@@ -120,6 +129,7 @@ int main(int argc, char *argv[])
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     TrayIcon tray;
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
+    QObject::connect(&tray, &TrayIcon::recorderRequested, &recorder, &RecordingWindow::showRecorder);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
     // The error path of the transcription reaches the user here and nowhere
     // else (SPEC 10 and 12, issue #24). Both edges ask the same question of the
@@ -281,6 +291,7 @@ int main(int argc, char *argv[])
 
     DaemonService daemon(&store);
     QObject::connect(&daemon, &DaemonService::captureRequested, &capture, &CaptureWindow::showCapture);
+    QObject::connect(&daemon, &DaemonService::recorderRequested, &recorder, &RecordingWindow::showRecorder);
     QObject::connect(&daemon, &DaemonService::libraryRequested, &library, &LibraryWindow::showLibrary);
     QObject::connect(&daemon, &DaemonService::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
     QObject::connect(&daemon, &DaemonService::quitRequested, &app, &QApplication::quit);
@@ -295,6 +306,7 @@ int main(int argc, char *argv[])
 
     GlobalShortcuts shortcuts;
     QObject::connect(&shortcuts, &GlobalShortcuts::captureRequested, &capture, &CaptureWindow::showCapture);
+    QObject::connect(&shortcuts, &GlobalShortcuts::recorderRequested, &recorder, &RecordingWindow::showRecorder);
 
     // The settings are free-standing and belong to no window, so no parent is
     // handed over — the dialog finds the standing one itself or builds a new
@@ -306,12 +318,19 @@ int main(int argc, char *argv[])
         SettingsDialog::showSettings(&shortcuts);
     });
 
-    const QList<ShortcutOwner> conflicts = shortcuts.registerCaptureShortcut();
-    if (firstRun && !conflicts.isEmpty()) {
-        // The sequence that is really registered, not the one that was asked
-        // for: autoloading hands back what the user set, and since the settings
-        // page that is no longer necessarily Meta+N.
-        notifyShortcutConflict(GlobalShortcuts::assignedSequence(GlobalShortcuts::Shortcut::Capture), conflicts);
+    // One registration and one read-back per shortcut, because SPEC 2.4 says so
+    // per shortcut: Meta+Shift+N repeats Meta+N's failure of 01.08.2026 unless
+    // it is asked about separately, and a pair reported together would not say
+    // which of the two never arrived.
+    for (const GlobalShortcuts::Shortcut which :
+         {GlobalShortcuts::Shortcut::Capture, GlobalShortcuts::Shortcut::Recorder}) {
+        const QList<ShortcutOwner> conflicts = shortcuts.registerShortcut(which);
+        if (firstRun && !conflicts.isEmpty()) {
+            // The sequence that is really registered, not the one that was
+            // asked for: autoloading hands back what the user set, and since
+            // the settings page that is no longer necessarily the default.
+            notifyShortcutConflict(GlobalShortcuts::assignedSequence(which), conflicts);
+        }
     }
 
     // Last, and after the first start above: the queue may hold a job from a

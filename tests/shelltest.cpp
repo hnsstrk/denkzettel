@@ -60,6 +60,7 @@ private Q_SLOTS:
     void hintsTheShortcutWithoutBindingItASecondTime();
     void asksForTheSettingsDialog();
     void asksForAnAnalysisRun();
+    void asksForARecording();
     void showsAFailedTranscriptionAndTakesItBack();
 
     void findsAProgramByItsPathAndByItsName();
@@ -392,6 +393,35 @@ void ShellTest::asksForAnAnalysisRun()
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy requested(&icon, &TrayIcon::analysisRequested);
     analyze->trigger();
+    QCOMPARE(requested.count(), 1);
+}
+
+void ShellTest::asksForARecording()
+{
+    // Acceptance criterion 3 of issue #21 from the tray's side. The entry stood
+    // in the menu before this story as a greyed stub, so what breaks without a
+    // sound is not that it is there but that it is **live**: an entry connected
+    // to nothing looks exactly like one that works, and the window it opens
+    // starts recording by itself — nobody would look for the fault here.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
+    QAction *record = nullptr;
+    const QList<QAction *> entries = icon.item()->contextMenu()->actions();
+    for (QAction *entry : entries) {
+        if (entry->text() == QStringLiteral("Record voice note")) {
+            record = entry;
+        }
+    }
+    QVERIFY2(record, "the tray menu carries no entry for a voice note");
+    QVERIFY(record->isEnabled());
+    QCOMPARE(record->icon().name(), QStringLiteral("audio-input-microphone"));
+    // A hint and not a second binding, as beside the capture entry (issue #60).
+    QCOMPARE(record->shortcut(), QKeySequence(Qt::META | Qt::SHIFT | Qt::Key_N));
+    QCOMPARE(record->shortcutContext(), Qt::WidgetShortcut);
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy requested(&icon, &TrayIcon::recorderRequested);
+    record->trigger();
     QCOMPARE(requested.count(), 1);
 }
 

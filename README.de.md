@@ -30,6 +30,12 @@ entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
   wird über KGlobalAccel als globales Kürzel angemeldet; hält eine andere
   Komponente das Kürzel bereits, sagt der Erststart das in einer Benachrichtigung,
   statt still danebenzugreifen.
+- **Sprachnotizen auf einen zweiten Tastendruck.** `Meta+Umschalt+N` öffnet ein
+  Aufnahmefenster, das bereits aufnimmt — kein Startknopf, ein roter Punkt, eine
+  Pegelanzeige und die laufende Zeit. `Strg+Enter` sichert die Aufnahme als
+  Audio-Notiz und reiht sie zur Transkription ein, `Esc` verwirft sie samt
+  Datei. Bei fünfzehn Minuten endet die Aufnahme so, wie `Strg+Enter` sie
+  beendet, und ab Minute vierzehn sagt das Fenster das.
 - **Eine Bibliothek mit allen Notizen**, nach Tagen gruppiert wie ein
   Posteingang: Heute, Gestern, Diese Woche, Letzte Woche, Älter. `F2` öffnet den
   Editor, `Entf` löscht mit fünf Sekunden Rückgängig-Möglichkeit, `Strg+Enter`
@@ -51,6 +57,8 @@ entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
   mit der Sitzung.
 - **Alles bleibt lokal** in einer SQLite-Datei. Nichts verlässt den Rechner.
 
+![Das Aufnahmefenster: ein roter Punkt, eine Pegelanzeige und die laufende Zeit 0:23, darunter der Hinweis „Esc verwirft · Strg+Enter speichert"](docs/images/de/aufnahmefenster.png)
+
 ![Die Bibliothek: links die nach Tagen gegliederte Notizliste, rechts der Lesebereich](docs/images/de/bibliothek.png)
 
 ### Noch nicht gebaut
@@ -58,8 +66,6 @@ entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
 Die Spezifikation beschreibt erheblich mehr, als das Programm heute tut. Was
 aufgeschrieben und nicht gebaut ist:
 
-- **Sprachnotizen** mit Aufnahmefenster und Transkription (whisper.cpp,
-  WhisperX). Der Tray-Eintrag ist da und inaktiv.
 - **KI-Analyse** — Klassifikation, Tags, Kategorien-Sidebar, Ollama und
   OpenAI-kompatible Anbieter. Der Tray-Eintrag ist da und inaktiv.
 - **Vorschläge** — Embeddings, Themen-Clustering, Bündel- und Task-Vorschläge
@@ -325,6 +331,11 @@ Testsuite gebaut, steht aber bewusst **nicht** in `ctest` — ein kaputter
 Bildschreiber soll die Suite nicht rot färben. Mitgebaut wird er trotzdem, weil
 ein Läufer, den niemand neu baut, unbemerkt altert und dann plausible Bilder
 eines **alten** Standes mit frischem Zeitstempel schreibt.
+
+Das Aufnahmefenster bringt sein eigenes Signal mit: Der Läufer füttert den
+Encoder mit einem Ton fester Amplitude, statt das Mikrofon der Maschine zu
+öffnen — deshalb steht seine Pegelanzeige in jedem Lauf auf denselben fünf
+Balken.
 
 Ein Lauf schreibt **einen** Sprachsatz, und drei Dinge im Bild haben drei
 verschiedene Quellen: Die Beschriftungen kommen aus dem Nachrichtenkatalog

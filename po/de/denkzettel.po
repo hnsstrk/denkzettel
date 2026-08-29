@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 16:47+0200\n"
+"POT-Creation-Date: 2026-08-29 17:48+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/analysis/classifier.cpp:130 src/analysis/suggester.cpp:70
+#: src/analysis/classifier.cpp:130 src/analysis/suggester.cpp:88
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr "Die Antwort des Modells enthielt kein JSON-Objekt."
@@ -77,46 +77,78 @@ msgstr "Die Antwort von Ollama enthielt keinen Text."
 msgid "Ollama's answer carried no embedding."
 msgstr "Die Antwort von Ollama enthielt kein Embedding."
 
-#: src/analysis/suggester.cpp:75
+#: src/analysis/suggester.cpp:93
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr "Die Antwort des Modells enthielt keinen Titel für das Bündel."
 
-#: src/analysis/suggester.cpp:93
+#: src/analysis/suggester.cpp:111
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr "Die Antwort des Modells nannte keine der Notizen des Bündels."
 
-#: src/analysis/suggester.cpp:160
+#: src/analysis/suggester.cpp:178
 #, kde-format
 msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
 msgstr ""
 "Das Modell behielt %1 von %2 Notizen des Bündels, weniger als ein Bündel "
 "braucht."
 
-#: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
+#: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
+#: src/capture/recordingwindow.cpp:208 src/capture/recordingwindow.cpp:216
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:122
 #: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
 #, kde-format
 msgid "Denkzettel"
 msgstr "Denkzettel"
 
-#: src/capture/capturewindow.cpp:298
+#: src/capture/capturewindow.cpp:115
 #, kde-format
 msgid "Capture a thought…"
 msgstr "Gedanke festhalten …"
 
-#: src/capture/capturewindow.cpp:330
+#: src/capture/capturewindow.cpp:147 src/capture/recordingwindow.cpp:212
+#: src/capture/recordingwindow.cpp:434
 #, kde-format
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr "Esc verwirft · Strg+Enter speichert"
 
-#: src/main.cpp:172
+#: src/capture/recordingwindow.cpp:278 src/capture/recordingwindow.cpp:468
+#, kde-format
+msgid "Recording failed"
+msgstr "Aufnahme fehlgeschlagen"
+
+#: src/capture/recordingwindow.cpp:279 src/capture/recordingwindow.cpp:469
+#, kde-format
+msgid "The voice note could not be recorded: %1"
+msgstr "Die Sprachnotiz konnte nicht aufgenommen werden: %1"
+
+#: src/capture/recordingwindow.cpp:307
+#, kde-format
+msgid "The note could not be created. The recording was moved to %1 and will not be deleted."
+msgstr "Die Notiz konnte nicht angelegt werden. Die Aufnahme wurde nach %1 verschoben und wird nicht gelöscht."
+
+#: src/capture/recordingwindow.cpp:312
+#, kde-format
+msgid "The note could not be created. The recording is at %1, and moving it to safety failed — the next start of Denkzettel will delete it."
+msgstr "Die Notiz konnte nicht angelegt werden. Die Aufnahme liegt unter %1 und konnte nicht in Sicherheit gebracht werden — der nächste Start von Denkzettel löscht sie."
+
+#: src/capture/recordingwindow.cpp:431
+#, kde-format
+msgid "%1 left — the recording ends at %2."
+msgstr "Noch %1 — bei %2 endet die Aufnahme."
+
+#: src/capture/recordingwindow.cpp:554
+#, kde-format
+msgid "Recording not saved"
+msgstr "Aufnahme nicht gespeichert"
+
+#: src/main.cpp:182
 #, kde-format
 msgid "Transcription failed"
 msgstr "Transkription fehlgeschlagen"
 
-#: src/main.cpp:173
+#: src/main.cpp:183
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
@@ -435,22 +467,22 @@ msgstr "%1 — %2"
 msgid "Capture note"
 msgstr "Notiz erfassen"
 
-#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:130
+#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:132
 #, kde-format
 msgid "Record voice note"
 msgstr "Sprachnotiz aufnehmen"
 
-#: src/shell/globalshortcuts.cpp:170
+#: src/shell/globalshortcuts.cpp:172
 #, kde-format
 msgid "Shortcut not ready"
 msgstr "Kürzel nicht einsatzbereit"
 
-#: src/shell/globalshortcuts.cpp:194
+#: src/shell/globalshortcuts.cpp:196
 #, kde-format
 msgid "Shortcut already taken"
 msgstr "Kürzel bereits belegt"
 
-#: src/shell/globalshortcuts.cpp:195
+#: src/shell/globalshortcuts.cpp:197
 #, kde-format
 msgid ""
 "%1 already belongs to: %2. The key press may not reach Denkzettel. To change "
@@ -461,42 +493,18 @@ msgstr ""
 
 #: src/shell/shortcutregistration.cpp:56
 #, kde-format
-msgid ""
-"%1 never reached the shortcut service: Denkzettel is not installed system-"
-"wide, and without its desktop file the service creates no entry. After the "
-"installation the shortcut works; until then the capture window stays "
-"reachable through the icon in the system tray."
-msgstr ""
-"%1 ist beim Kurzbefehl-Dienst nicht angekommen: Denkzettel ist nicht "
-"systemweit installiert, und ohne seine Desktop-Datei legt der Dienst keinen "
-"Eintrag an. Nach der Installation steht das Kürzel zur Verfügung; bis dahin "
-"bleibt das Erfassungsfenster über das Symbol im Systemabschnitt erreichbar."
+msgid "%1 never reached the shortcut service: Denkzettel is not installed system-wide, and without its desktop file the service creates no entry. After the installation the shortcut works; until then Denkzettel stays reachable through the icon in the system tray."
+msgstr "%1 ist beim Kurzbefehl-Dienst nicht angekommen: Denkzettel ist nicht systemweit installiert, und ohne seine Desktop-Datei legt der Dienst keinen Eintrag an. Nach der Installation steht das Kürzel zur Verfügung; bis dahin bleibt Denkzettel über das Symbol im Systemabschnitt erreichbar."
 
 #: src/shell/shortcutregistration.cpp:65
 #, kde-format
-msgid ""
-"%1 never reached the shortcut service — it did not keep the registration. "
-"The shortcuts can be checked in the system settings under “Shortcuts”; if "
-"that does not help, logging in anew brings the service back. The capture "
-"window stays reachable through the icon in the system tray."
-msgstr ""
-"%1 ist beim Kurzbefehl-Dienst nicht angekommen — er hat die Registrierung "
-"nicht behalten. Die Kurzbefehle lassen sich in den Systemeinstellungen unter "
-"„Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst "
-"zurück. Das Erfassungsfenster bleibt über das Symbol im Systemabschnitt "
-"erreichbar."
+msgid "%1 never reached the shortcut service — it did not keep the registration. The shortcuts can be checked in the system settings under “Shortcuts”; if that does not help, logging in anew brings the service back. Denkzettel stays reachable through the icon in the system tray."
+msgstr "%1 ist beim Kurzbefehl-Dienst nicht angekommen — er hat die Registrierung nicht behalten. Die Kurzbefehle lassen sich in den Systemeinstellungen unter „Kurzbefehle“ prüfen; hilft das nicht, bringt eine neue Anmeldung den Dienst zurück. Denkzettel bleibt über das Symbol im Systemabschnitt erreichbar."
 
 #: src/shell/shortcutregistration.cpp:71
 #, kde-format
-msgid ""
-"%1 is set up but triggers nothing: the desktop file of Denkzettel is missing "
-"the entry for this shortcut. A complete reinstallation brings it back. Until "
-"then the capture window stays reachable through the icon in the system tray."
-msgstr ""
-"%1 ist eingerichtet, löst aber nichts aus: In der Desktop-Datei von "
-"Denkzettel fehlt der Eintrag zu diesem Kürzel. Eine vollständige "
-"Neuinstallation bringt ihn zurück. Bis dahin bleibt das Erfassungsfenster "
-"über das Symbol im Systemabschnitt erreichbar."
+msgid "%1 is set up but triggers nothing: the desktop file of Denkzettel is missing the entry for this shortcut. A complete reinstallation brings it back. Until then Denkzettel stays reachable through the icon in the system tray."
+msgstr "%1 ist eingerichtet, löst aber nichts aus: In der Desktop-Datei von Denkzettel fehlt der Eintrag zu diesem Kürzel. Eine vollständige Neuinstallation bringt ihn zurück. Bis dahin bleibt Denkzettel über das Symbol im Systemabschnitt erreichbar."
 
 #: src/shell/trayicon.cpp:107
 #, kde-format
@@ -508,32 +516,32 @@ msgstr "Nicht verfügbar: %1"
 msgid "Transcription failed: %1"
 msgstr "Transkription fehlgeschlagen: %1"
 
-#: src/shell/trayicon.cpp:137
+#: src/shell/trayicon.cpp:144
 #, kde-format
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:144
+#: src/shell/trayicon.cpp:151
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:147
+#: src/shell/trayicon.cpp:154
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:157
+#: src/shell/trayicon.cpp:164
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr "Denkzettel einrichten …"
 
-#: src/shell/trayicon.cpp:167
+#: src/shell/trayicon.cpp:174
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:199
+#: src/shell/trayicon.cpp:206
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"

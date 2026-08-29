@@ -100,6 +100,24 @@ public:
     /** Directory holding the audio files referenced by Note::audioPath. */
     QString audioDirectory() const;
 
+    /**
+     * Where a recording goes that no note could be made of — beside
+     * audioDirectory(), not inside it (SPEC 2.5, addition of 29.08.2026).
+     *
+     * **A place the sweep does not look, rather than a promise about the
+     * sweep.** sweepOrphanedAudio() lists the files of audioDirectory() and no
+     * subdirectory, and this is not even that: it is its sibling. A recording
+     * whose note never reached the database is indistinguishable in the data
+     * from a harmless orphan — a file, no row, nothing beside it — so the only
+     * way to keep the sweep off it is to take it out of the directory the
+     * sweep reads.
+     *
+     * **Nothing in Denkzettel ever deletes anything under here.** What happens
+     * to the files is the user's decision, and the directory exists only once
+     * something has gone wrong.
+     */
+    QString rescuedDirectory() const;
+
     /** Inserts a note and returns its new id. */
     std::optional<qint64> addNote(const Note &note);
 

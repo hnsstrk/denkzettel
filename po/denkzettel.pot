@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 16:47+0200\n"
+"POT-Creation-Date: 2026-08-29 17:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/analysis/classifier.cpp:130 src/analysis/suggester.cpp:70
+#: src/analysis/classifier.cpp:130 src/analysis/suggester.cpp:88
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr ""
@@ -74,44 +74,80 @@ msgstr ""
 msgid "Ollama's answer carried no embedding."
 msgstr ""
 
-#: src/analysis/suggester.cpp:75
+#: src/analysis/suggester.cpp:93
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:93
+#: src/analysis/suggester.cpp:111
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:160
+#: src/analysis/suggester.cpp:178
 #, kde-format
 msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
 msgstr ""
 
-#: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
+#: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
+#: src/capture/recordingwindow.cpp:208 src/capture/recordingwindow.cpp:216
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:122
 #: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
 #, kde-format
 msgid "Denkzettel"
 msgstr ""
 
-#: src/capture/capturewindow.cpp:298
+#: src/capture/capturewindow.cpp:115
 #, kde-format
 msgid "Capture a thought…"
 msgstr ""
 
-#: src/capture/capturewindow.cpp:330
+#: src/capture/capturewindow.cpp:147 src/capture/recordingwindow.cpp:212
+#: src/capture/recordingwindow.cpp:434
 #, kde-format
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/main.cpp:172
+#: src/capture/recordingwindow.cpp:278 src/capture/recordingwindow.cpp:468
+#, kde-format
+msgid "Recording failed"
+msgstr ""
+
+#: src/capture/recordingwindow.cpp:279 src/capture/recordingwindow.cpp:469
+#, kde-format
+msgid "The voice note could not be recorded: %1"
+msgstr ""
+
+#: src/capture/recordingwindow.cpp:307
+#, kde-format
+msgid ""
+"The note could not be created. The recording was moved to %1 and will not be "
+"deleted."
+msgstr ""
+
+#: src/capture/recordingwindow.cpp:312
+#, kde-format
+msgid ""
+"The note could not be created. The recording is at %1, and moving it to "
+"safety failed — the next start of Denkzettel will delete it."
+msgstr ""
+
+#: src/capture/recordingwindow.cpp:431
+#, kde-format
+msgid "%1 left — the recording ends at %2."
+msgstr ""
+
+#: src/capture/recordingwindow.cpp:554
+#, kde-format
+msgid "Recording not saved"
+msgstr ""
+
+#: src/main.cpp:182
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:173
+#: src/main.cpp:183
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -419,22 +455,22 @@ msgstr ""
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:130
+#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:132
 #, kde-format
 msgid "Record voice note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:170
+#: src/shell/globalshortcuts.cpp:172
 #, kde-format
 msgid "Shortcut not ready"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:194
+#: src/shell/globalshortcuts.cpp:196
 #, kde-format
 msgid "Shortcut already taken"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:195
+#: src/shell/globalshortcuts.cpp:197
 #, kde-format
 msgid ""
 "%1 already belongs to: %2. The key press may not reach Denkzettel. To change "
@@ -446,8 +482,8 @@ msgstr ""
 msgid ""
 "%1 never reached the shortcut service: Denkzettel is not installed system-"
 "wide, and without its desktop file the service creates no entry. After the "
-"installation the shortcut works; until then the capture window stays "
-"reachable through the icon in the system tray."
+"installation the shortcut works; until then Denkzettel stays reachable "
+"through the icon in the system tray."
 msgstr ""
 
 #: src/shell/shortcutregistration.cpp:65
@@ -455,8 +491,8 @@ msgstr ""
 msgid ""
 "%1 never reached the shortcut service — it did not keep the registration. "
 "The shortcuts can be checked in the system settings under “Shortcuts”; if "
-"that does not help, logging in anew brings the service back. The capture "
-"window stays reachable through the icon in the system tray."
+"that does not help, logging in anew brings the service back. Denkzettel "
+"stays reachable through the icon in the system tray."
 msgstr ""
 
 #: src/shell/shortcutregistration.cpp:71
@@ -464,7 +500,7 @@ msgstr ""
 msgid ""
 "%1 is set up but triggers nothing: the desktop file of Denkzettel is missing "
 "the entry for this shortcut. A complete reinstallation brings it back. Until "
-"then the capture window stays reachable through the icon in the system tray."
+"then Denkzettel stays reachable through the icon in the system tray."
 msgstr ""
 
 #: src/shell/trayicon.cpp:107
@@ -477,32 +513,32 @@ msgstr ""
 msgid "Transcription failed: %1"
 msgstr ""
 
-#: src/shell/trayicon.cpp:137
+#: src/shell/trayicon.cpp:144
 #, kde-format
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:144
+#: src/shell/trayicon.cpp:151
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:147
+#: src/shell/trayicon.cpp:154
 #, kde-format
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:157
+#: src/shell/trayicon.cpp:164
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
 
-#: src/shell/trayicon.cpp:167
+#: src/shell/trayicon.cpp:174
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:199
+#: src/shell/trayicon.cpp:206
 #, kde-format
 msgid "Quit"
 msgstr ""

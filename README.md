@@ -30,6 +30,12 @@ set the goals, the priorities and the acceptance —
   `Meta+N` is registered as a global shortcut through KGlobalAccel; if another
   component already holds it, the first start says so in a notification instead
   of failing silently.
+- **Voice notes on a second key press.** `Meta+Shift+N` opens a recording
+  window that is already recording — no start button, a red dot, a level meter
+  and the running time. `Ctrl+Enter` saves the recording as an audio note and
+  queues it for transcription, `Esc` throws it away together with its file. At
+  fifteen minutes the recording ends the way `Ctrl+Enter` ends it, and from
+  minute fourteen the window says so.
 - **A library of all notes**, grouped by day like an inbox: Today, Yesterday,
   This week, Last week, Older. `F2` opens the editor, `Del` deletes with five
   seconds of undo, `Ctrl+Enter` saves an edit and `Esc` cancels it. Leaving an
@@ -48,6 +54,8 @@ set the goals, the priorities and the acceptance —
 - **Runs in the background**, sits in the system tray, starts with the session.
 - **Everything stays local** in one SQLite file. Nothing leaves the machine.
 
+![The recording window: a red dot, a level meter and the running time 0:23, below it the hint "Esc discards · Ctrl+Enter saves"](docs/images/aufnahmefenster.png)
+
 ![The library: on the left the note list grouped by day, on the right the reading pane](docs/images/bibliothek.png)
 
 ### Not built yet
@@ -55,8 +63,6 @@ set the goals, the priorities and the acceptance —
 The specification describes considerably more than the program does today. What
 is written down and not built:
 
-- **Voice notes** with recording window and transcription (whisper.cpp,
-  WhisperX). The tray entry exists and is disabled.
 - **AI analysis** — classification, tags, a category sidebar, Ollama and
   OpenAI-compatible providers. The tray entry exists and is disabled.
 - **Suggestions** — embeddings, topic clustering, bundle and task proposals with
@@ -315,6 +321,10 @@ test suite but deliberately kept out of `ctest`: a broken screenshot writer must
 not turn the suite red. It is built all the same, because a runner nobody
 rebuilds ages unnoticed and then writes plausible pictures of an *old* state
 with a fresh timestamp.
+
+The recording window brings its own signal: the runner feeds the encoder a tone
+of a fixed amplitude instead of opening the machine's microphone, which is why
+its meter stands at the same five bars in every run.
 
 One run writes **one** language set, and three things in the picture have three
 different sources: the interface strings come from the message catalogue

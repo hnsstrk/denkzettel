@@ -38,26 +38,44 @@ endforeach()
 # component through it.
 file(READ "${STAGING_DIR}${APPLICATION_ENTRY}" application_entry)
 
-if(NOT application_entry MATCHES "\nActions=[^\n]*show-capture;")
-    message(FATAL_ERROR
-        "${APPLICATION_ENTRY} does not list show-capture in Actions= — "
-        "kglobalacceld will not find the action.")
-endif()
+# One group per shortcut, and both of them are checked: SPEC 2.4 holds this per
+# shortcut, and a second action forgotten here would register, show up in the
+# system settings and do nothing at all.
+#
+# **What this does not check is that the two names match the code.** The ids
+# below are typed out here and read from nowhere; nothing in this file can see
+# `actionId()` in globalshortcuts.cpp. Measured 29.08.2026 in the review of
+# #21: with `actionId(Recorder)` renamed to "show-recorderX" all fourteen test
+# sets stayed green. So this is a guard against a group forgotten in the
+# desktop file, and against nothing else — CLAUDE.md, finding 48.
+#
+# What does catch the drift is not a check but the program: at every start
+# Denkzettel asks the shortcut service what it holds and reads the desktop file
+# for the action of that name, and a name that matches nothing reaches the user
+# as DesktopActionMissing with one executable step (SPEC 2.4, retro B5). That
+# is the road this file cannot walk, and it is the road the user is on.
+foreach(action IN ITEMS "show-capture" "show-recorder")
+    if(NOT application_entry MATCHES "\nActions=[^\n]*${action};")
+        message(FATAL_ERROR
+            "${APPLICATION_ENTRY} does not list ${action} in Actions= — "
+            "kglobalacceld will not find the action.")
+    endif()
 
-if(NOT application_entry MATCHES "\n\\[Desktop Action show-capture\\]")
-    message(FATAL_ERROR
-        "${APPLICATION_ENTRY} has no [Desktop Action show-capture] group — "
-        "the key press then runs into nothing.")
-endif()
+    if(NOT application_entry MATCHES "\n\\[Desktop Action ${action}\\]")
+        message(FATAL_ERROR
+            "${APPLICATION_ENTRY} has no [Desktop Action ${action}] group — "
+            "the key press then runs into nothing.")
+    endif()
 
-string(FIND "${application_entry}" "[Desktop Action show-capture]" action_group_start)
-string(SUBSTRING "${application_entry}" ${action_group_start} -1 action_group)
+    string(FIND "${application_entry}" "[Desktop Action ${action}]" action_group_start)
+    string(SUBSTRING "${application_entry}" ${action_group_start} -1 action_group)
 
-if(NOT action_group MATCHES "\nExec=[^\n]+")
-    message(FATAL_ERROR
-        "Die Gruppe [Desktop Action show-capture] in ${APPLICATION_ENTRY} hat keine "
-        "Exec-Zeile — ohne sie hat der Dienst nichts zu starten.")
-endif()
+    if(NOT action_group MATCHES "\nExec=[^\n]+")
+        message(FATAL_ERROR
+            "The group [Desktop Action ${action}] in ${APPLICATION_ENTRY} has no "
+            "Exec line — without it the service has nothing to start.")
+    endif()
+endforeach()
 
 # The metainfo is validated at its installed location, not in the source tree:
 # what a software centre reads is what the installation put down. --no-net keeps

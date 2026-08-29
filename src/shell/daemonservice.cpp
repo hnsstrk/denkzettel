@@ -23,6 +23,11 @@ void DaemonService::ShowCapture()
     Q_EMIT captureRequested();
 }
 
+void DaemonService::ShowRecorder()
+{
+    Q_EMIT recorderRequested();
+}
+
 qlonglong DaemonService::AddNote(const QString &text)
 {
     const QString content = text.trimmed();
