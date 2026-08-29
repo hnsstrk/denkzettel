@@ -96,8 +96,11 @@ Q_SIGNALS:
      * How much of the model is written, and how much the answer says there is
      * — 0 for as long as it has not said.
      *
-     * Not QNetworkReply::downloadProgress passed on: that signal did not fire
-     * once in a measured transfer of 4.2 MB (Qt 6.11.2, 29.08.2026).
+     * Counted out of what is written, not QNetworkReply::downloadProgress
+     * passed on: that one reports every 100 ms — 21 times in 3 seconds
+     * against the real address — and a body that arrives inside one such
+     * window fires it exactly once, at 100 % (both measured 29.08.2026, Qt
+     * 6.11.2). See collect().
      */
     void progress(qint64 received, qint64 total);
 
@@ -112,6 +115,8 @@ Q_SIGNALS:
     void finished(const QString &size, const QString &error);
 
 private:
+    /** Ends the running reply without letting it report anything. */
+    void letGoOfTheReply();
     void collect(QNetworkReply *reply);
     void complete();
     /** Drops what has been written and reports `reason`. */

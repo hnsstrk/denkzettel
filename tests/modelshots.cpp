@@ -142,13 +142,19 @@ int main(int argc, char **argv)
         qFatal("no model list on the page");
     }
 
-    // The road a hand takes: the entry for `tiny` is pickable although the
-    // model is not there, and picking it is what asks the question. The answer
-    // has to come out of a timer — the question is modal.
+    // The road a hand takes: the list stands on `small`, the entry for `tiny`
+    // is pickable although the model is not there, and picking it is what asks
+    // the question — the box moves with the click, then `activated(int)`
+    // arrives. The answer has to come out of a timer, the question is modal.
+    //
+    // Two different sizes on purpose: what the list shows while a download
+    // runs is what is **stored**, because a size on its way must not reach the
+    // configuration (issue #23, F3/F4). The picture is meant to show that.
     const auto choose = [sizes, &directory](bool picture) {
         QTimer::singleShot(600, sizes, [&directory, picture] {
             takeTheQuestion(directory, picture);
         });
+        sizes->setCurrentIndex(2);
         sizes->setCurrentIndex(0);
         QMetaObject::invokeMethod(sizes, "activated", Q_ARG(int, 0));
     };
@@ -156,6 +162,10 @@ int main(int argc, char **argv)
     // Run one: the picture of a download under way, and then the button.
     QTimer::singleShot(3000, &page, [&page, &directory] {
         qInfo("during: %s", qUtf8Printable(stateLine(page)));
+        // The entry beside the line: it has to be the stored one, not the one
+        // being fetched.
+        auto *list = page.findChild<QComboBox *>(QStringLiteral("kcfg_ModelSize"));
+        qInfo("list shows: %s", qUtf8Printable(list->currentText()));
         auto *cancel = page.findChild<QPushButton *>(QStringLiteral("cancelDownload"));
         if (cancel == nullptr || !cancel->isVisible()) {
             qFatal("no cancel button while a download runs");
@@ -180,6 +190,9 @@ int main(int argc, char **argv)
                              afterCancel = true;
                              QTest::qWait(400);
                              qInfo("after the cancel: %s", qUtf8Printable(stateLine(page)));
+                             auto *list =
+                                 page.findChild<QComboBox *>(QStringLiteral("kcfg_ModelSize"));
+                             qInfo("list shows: %s", qUtf8Printable(list->currentText()));
                              // Nothing of it is left, and that is the
                              // acceptance criterion of the story.
                              qInfo("model on disk: %s",
@@ -214,6 +227,9 @@ int main(int argc, char **argv)
                                qUtf8Printable(ModelDownload::checksumFor(size)));
                          QTest::qWait(400);
                          qInfo("after: %s", qUtf8Printable(stateLine(page)));
+                         auto *list =
+                             page.findChild<QComboBox *>(QStringLiteral("kcfg_ModelSize"));
+                         qInfo("list shows: %s", qUtf8Printable(list->currentText()));
                          shoot(page, directory, QStringLiteral("23-sprachnotizen-fertig.png"));
                          QCoreApplication::quit();
                      });

@@ -330,6 +330,25 @@ void Transcriber::takeNextJob()
         return;
     }
 
+    // **A missing model is a precondition, not a failed attempt** (SPEC 12,
+    // decision 29.08.2026). Asked before the job is taken out, because taking
+    // it out is what counts the attempt: the size can be chosen while its
+    // download is still running, and at 1.5 GB for `medium` the two attempts
+    // of a note would be spent on the minutes in between — with the note in
+    // the error state and the model long since in place.
+    //
+    // So nothing is taken, nothing is counted, and the queue stands still
+    // until somebody calls start() again: main.cpp does that when a download
+    // has finished and when the settings have been written.
+    if (!QFileInfo::exists(m_modelPath)) {
+        Q_EMIT modelMissing(
+            i18n("Model %1 is missing. Download it under Settings → Voice notes.", m_modelSize));
+        return;
+    }
+    // Taken back the moment the file is there, and from here rather than from
+    // whoever fetched it: this is the one place that asks the question.
+    Q_EMIT modelMissing(QString());
+
     // The attempt is counted here, in the database — see
     // Store::takeTranscribeJob() for why that is what a crash needs.
     const std::optional<TranscribeJob> job = m_store->takeTranscribeJob();
@@ -397,17 +416,6 @@ void Transcriber::convert(const QString &audioFile)
 void Transcriber::transcribe()
 {
     if (m_step != Step::Converting) {
-        return;
-    }
-
-    // The queue never fetches a model itself — the download is a hand on the
-    // settings page and the progress belongs where somebody is looking (UX
-    // decision, 29.08.2026). What it owes the user is the way there: without
-    // this line the missing model arrives as "whisper-cli wrote no transcript"
-    // twice over and the tray goes into its error state with nothing to do
-    // about it (issue #23).
-    if (!QFileInfo::exists(m_modelPath)) {
-        fail(i18n("Model %1 is missing. Download it under Settings \u2192 Voice notes.", m_modelSize));
         return;
     }
 

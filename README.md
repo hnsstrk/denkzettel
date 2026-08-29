@@ -115,8 +115,11 @@ specification is [`SPEC.md`](SPEC.md).
   `models/download-ggml-model.sh` fetches from, and it is only written once its
   SHA-1 is the one the upstream `models/README.md` names — a cancelled, a
   broken and a killed download all leave the same state, which is no file at
-  all. The transcription queue never fetches anything itself: a job that finds
-  no model says which one is missing and where to get it.
+  all. The transcription queue never fetches anything itself, and a model that
+  is not there costs a note nothing: the job stays in the queue with its
+  attempts untouched, the tray tooltip says which model is missing and where to
+  get it, and the queue takes the job up by itself as soon as the file is
+  there.
 
   Up to v0.7.0 the key was `ModelPath` and held a whole file name. The first
   start takes it over: a path ending in `ggml-<size>.bin` becomes that size and

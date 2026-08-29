@@ -115,6 +115,14 @@ void ModelDownload::start(const QString &size, const QUrl &from, const QString &
     if (isRunning()) {
         return;
     }
+    if (from.isEmpty() || sha1.isEmpty()) {
+        // A size this program does not know: sourceFor() and checksumFor()
+        // answer nothing for it, and without the guard the run would open a
+        // QSaveFile under `ggml-<nonsense>.bin` and send a GET on an empty
+        // address.
+        Q_EMIT finished(size, i18n("%1 is no model size known here", size));
+        return;
+    }
 
     m_size = size;
     m_expected = sha1;
@@ -149,6 +157,25 @@ void ModelDownload::start(const QString &size, const QUrl &from, const QString &
     connect(m_reply, &QNetworkReply::finished, this, &ModelDownload::complete);
 }
 
+void ModelDownload::letGoOfTheReply()
+{
+    QNetworkReply *reply = m_reply;
+    m_reply = nullptr;
+    // Disconnected before it is aborted, and handed to the event loop rather
+    // than deleted: abort() emits the reply's finished() from inside itself,
+    // so complete() would run on abort()'s own stack and report a second time
+    // — and if anything hanging on our finished() spins an event loop of its
+    // own (a modal dialog, a wait in a picture run), the deleteLater() below
+    // is executed **while abort() is still running**. Measured 29.08.2026:
+    // SIGSEGV in QObjectPrivate::maybeSignalConnected under
+    // QNetworkReply::abort(), reached through the cancel button of the
+    // settings page; and two finished() out of one full disk, the second one
+    // with an empty size.
+    reply->disconnect(this);
+    reply->abort();
+    reply->deleteLater();
+}
+
 void ModelDownload::collect(QNetworkReply *reply)
 {
     const QByteArray chunk = reply->readAll();
@@ -158,17 +185,21 @@ void ModelDownload::collect(QNetworkReply *reply)
         // report it too, but only after the whole model has been pulled over
         // the line for nothing.
         const QString reason = m_file->errorString();
-        reply->abort();
+        if (m_reply != nullptr) {
+            letGoOfTheReply();
+        }
         giveUp(reason);
         return;
     }
 
-    // Counted here rather than taken from QNetworkReply::downloadProgress:
-    // measured 29.08.2026 with Qt 6.11.2, that signal did not fire **once**
-    // over a transfer this same handler took 4.2 MB out of, and a progress
-    // line hung on it would have stood at 0 % for the whole download. What is
-    // written is what has arrived, and how much there is comes out of the
-    // answer.
+    // Counted out of what is written rather than taken from
+    // QNetworkReply::downloadProgress, and the reason is what that signal is:
+    // a report every 100 ms, not one per chunk. Against the real address it
+    // came 21 times in 3 seconds while readyRead delivered 15.4 MB — but a
+    // body that arrives inside one such window fires it **once, at 100 %**,
+    // which is what the loopback stand-in of `transcribetest` does and what a
+    // fast line does to a small model. A progress line hung on it would then
+    // show nothing but its own end. Both measured 29.08.2026 with Qt 6.11.2.
     m_received += chunk.size();
     Q_EMIT progress(m_received, reply->header(QNetworkRequest::ContentLengthHeader).toLongLong());
 }
@@ -234,24 +265,9 @@ void ModelDownload::cancel()
         return;
     }
 
-    // **The reply is let go of before it is aborted, and the report comes
-    // after both.** abort() emits the reply's finished() from inside itself,
-    // so complete() would run on abort()'s own stack — and everything that
-    // hangs on our finished() with it. Let one of those spin an event loop of
-    // its own (a modal dialog, a wait in a picture run) and the deleteLater()
-    // in complete() is executed **while abort() is still running**: measured
-    // 29.08.2026, SIGSEGV in QObjectPrivate::maybeSignalConnected under
-    // QNetworkReply::abort(), reached through the cancel button of the
-    // settings page.
-    //
-    // Disconnected, aborted, handed to the event loop, and only then the
-    // report — which is what makes the sentence ours rather than the reply's
-    // error value.
-    QNetworkReply *reply = m_reply;
-    m_reply = nullptr;
-    reply->disconnect(this);
-    reply->abort();
-    reply->deleteLater();
-
+    // The reply first, the report after it — see letGoOfTheReply(). The
+    // sentence is ours rather than the reply's error value because what
+    // happened here is known without asking anybody.
+    letGoOfTheReply();
     giveUp(QStringLiteral("cancelled"));
 }

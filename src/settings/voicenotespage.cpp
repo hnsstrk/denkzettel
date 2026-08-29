@@ -108,9 +108,6 @@ VoiceNotesPage::VoiceNotesPage(ModelDownload *download, QWidget *parent)
                                    : i18nc("@item:inlistbox a whisper.cpp model that is not on disk",
                                            "%1 — not downloaded",
                                            size));
-        if (downloaded) {
-            m_accepted = index;
-        }
     }
 
     // The button is only there while something is being fetched: a permanently
@@ -171,7 +168,14 @@ VoiceNotesPage::VoiceNotesPage(ModelDownload *download, QWidget *parent)
     // resized window brings goes underneath the form.
     layout->addStretch();
 
-    connect(m_size, &QComboBox::currentIndexChanged, this, &VoiceNotesPage::showModelState);
+    connect(m_size, &QComboBox::currentIndexChanged, this, [this](int index) {
+        // What stood there until this change, for the line below that puts a
+        // click back. Kept here because by the time activated(int) arrives the
+        // box has already moved.
+        m_shownBefore = m_shown;
+        m_shown = index;
+        showModelState();
+    });
     // The decision hangs on activated(int) and not on the change: the dialog's
     // manager sets this box on every open, on Cancel and on "Restore
     // defaults", and a question about a download at those moments would come
@@ -281,7 +285,6 @@ void VoiceNotesPage::chooseSize(int index)
     }
     const QString size(whisper::Sizes.at(index));
     if (QFileInfo::exists(Transcriber::modelPath(size))) {
-        m_accepted = index;
         return;
     }
 
@@ -302,13 +305,15 @@ void VoiceNotesPage::chooseSize(int index)
     question.setIcon(QIcon::fromTheme(QStringLiteral("download")));
     question.setButtons(KGuiItem(i18n("Download"), QStringLiteral("download")),
                         KStandardGuiItem::cancel());
+    // Put back either way, and before anything else: the click has already
+    // moved the list, and neither a refusal nor a download under way may reach
+    // the configuration. A size that is really there is what moves it, and
+    // that happens in downloadEnded().
+    if (m_shownBefore >= 0) {
+        m_size->setCurrentIndex(m_shownBefore);
+    }
+
     if (question.exec() != KMessageDialog::PrimaryAction) {
-        // Back to the last size that is on disk. Where there is none, the
-        // choice stands and the line under it says where the file is expected
-        // — the same state the page had before this story.
-        if (m_accepted >= 0) {
-            m_size->setCurrentIndex(m_accepted);
-        }
         return;
     }
 
@@ -334,7 +339,7 @@ void VoiceNotesPage::showProgress(qint64 received, qint64 total)
                   size,
                   percent,
                   QLocale().formattedDataSize(whole, 1, QLocale::DataSizeTraditionalFormat)),
-             KColorScheme::NeutralText);
+             KColorScheme::NormalText);
 }
 
 void VoiceNotesPage::downloadEnded(const QString &size, const QString &error)
@@ -343,37 +348,35 @@ void VoiceNotesPage::downloadEnded(const QString &size, const QString &error)
     m_cancel->setVisible(false);
 
     if (error.isEmpty()) {
-        // The entry loses its suffix, because the state it named is over.
+        // The entry loses its suffix, because the state it named is over —
+        // and only now does the list move to it, which is what arms Apply.
         const int index = static_cast<int>(
             std::distance(whisper::Sizes.begin(),
                           std::find(whisper::Sizes.begin(), whisper::Sizes.end(), size)));
         if (index < static_cast<int>(whisper::Sizes.size())) {
             m_size->setItemText(index, size);
-            m_accepted = index;
             m_fetched = index;
+            m_size->setCurrentIndex(index);
         }
         showModelState();
         return;
     }
 
-    // **Before the line and not after it.** Putting the choice back sends the
-    // list's currentIndexChanged through showModelState(), which writes the
-    // line for the size that then stands there — over the report of the
-    // failure, in the same turn and without a trace. Measured 29.08.2026 on
-    // the cancel: the message was on the page for the length of one signal.
-    if (m_accepted >= 0) {
-        m_size->setCurrentIndex(m_accepted);
-    }
-
+    // Nothing to put back: the list never moved for this download (see
+    // chooseSize), so the failure only has to be said.
     const QString path = QDir::toNativeSeparators(Transcriber::modelPath(size));
     // Cancelled or failed, and the page knows which without reading the
     // sentence: the button here is the only thing that can cancel a download.
     // Both keep the path — they are states, and the path is what the user can
     // act on (UX, 29.08.2026).
+    //
+    // **Only the failure is coloured** (UX decision, 29.08.2026): colour marks
+    // what departs from the expectation, and the user started the download and
+    // the user cancelled it. One colour role on this line instead of three.
     showLine(m_modelState,
              m_cancelling ? i18n("%1: the download was cancelled; expected at %2", size, path)
                           : i18n("%1: the download failed: %2; expected at %3", size, error, path),
-             m_cancelling ? KColorScheme::NeutralText : KColorScheme::NegativeText);
+             m_cancelling ? KColorScheme::NormalText : KColorScheme::NegativeText);
     m_cancelling = false;
 }
 
@@ -409,7 +412,7 @@ void VoiceNotesPage::showModelState()
     if (!QFileInfo::exists(path)) {
         showLine(m_modelState,
                  i18n("Expected at %1", QDir::toNativeSeparators(path)),
-                 KColorScheme::NeutralText);
+                 KColorScheme::NormalText);
         return;
     }
     // A model that lies there says nothing — that is the ordinary case (UX,

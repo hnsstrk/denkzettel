@@ -94,6 +94,12 @@ void TrayIcon::setUnavailableTools(const QStringList &names)
     showToolTip();
 }
 
+void TrayIcon::setMissingModel(const QString &report)
+{
+    m_missingModel = report;
+    showToolTip();
+}
+
 void TrayIcon::showToolTip()
 {
     // `setToolTipSubTitle()` takes ONE string, so every source that has
@@ -105,6 +111,12 @@ void TrayIcon::showToolTip()
     QStringList parts;
     if (!m_unavailableTools.isEmpty()) {
         parts.append(i18n("Not available: %1", m_unavailableTools.join(QStringLiteral(", "))));
+    }
+    if (!m_missingModel.isEmpty()) {
+        // Whole and not folded into the list above: it is a sentence and not a
+        // name, because SPEC 12 asks it to say what is missing **and where to
+        // get it**.
+        parts.append(m_missingModel);
     }
     if (!m_transcriptionError.isEmpty()) {
         parts.append(i18n("Transcription failed: %1", m_transcriptionError));

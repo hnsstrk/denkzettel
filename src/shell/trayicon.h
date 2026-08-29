@@ -54,6 +54,18 @@ public Q_SLOTS:
      */
     void setUnavailableTools(const QStringList &names);
 
+    /**
+     * What the transcription queue is waiting for and where to get it — the
+     * model of SPEC 12 that is not on disk (issue #23). Empty takes it back.
+     *
+     * The third part of the one subtitle line and, like the tools above, no
+     * error state: a model that has not been fetched yet is a precondition
+     * not yet met, and SPEC 12 says in as many words that it is not a failed
+     * attempt. The queue is standing still, nothing has gone wrong, and the
+     * note is untouched.
+     */
+    void setMissingModel(const QString &report);
+
 Q_SIGNALS:
     void captureRequested();
     void libraryRequested();
@@ -66,6 +78,7 @@ private:
     void showToolTip();
 
     QString m_transcriptionError;
+    QString m_missingModel;
     QStringList m_unavailableTools;
     KStatusNotifierItem *m_item;
     /**

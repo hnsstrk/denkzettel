@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 16:58+0200\n"
+"POT-Creation-Date: 2026-08-29 17:40+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -94,12 +94,12 @@ msgstr "Gedanke festhalten …"
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr "Esc verwirft · Strg+Enter speichert"
 
-#: src/main.cpp:177
+#: src/main.cpp:193
 #, kde-format
 msgid "Transcription failed"
 msgstr "Transkription fehlgeschlagen"
 
-#: src/main.cpp:178
+#: src/main.cpp:194
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
@@ -231,7 +231,7 @@ msgstr "Den Ordner %1 gibt es nicht."
 msgid "%1 cannot be written to."
 msgstr "%1 ist nicht beschreibbar."
 
-#: src/settings/exportpage.cpp:69 src/settings/voicenotespage.cpp:139
+#: src/settings/exportpage.cpp:69 src/settings/voicenotespage.cpp:136
 #, kde-format
 msgid "Browse…"
 msgstr "Durchsuchen …"
@@ -340,17 +340,17 @@ msgctxt "@item:inlistbox a whisper.cpp model that is not on disk"
 msgid "%1 — not downloaded"
 msgstr "%1 — nicht heruntergeladen"
 
-#: src/settings/voicenotespage.cpp:125
+#: src/settings/voicenotespage.cpp:122
 #, kde-format
 msgid "Model size:"
 msgstr "Modellgröße:"
 
-#: src/settings/voicenotespage.cpp:144
+#: src/settings/voicenotespage.cpp:141
 #, kde-format
 msgid "whisper-cli program:"
 msgstr "Programm whisper-cli:"
 
-#: src/settings/voicenotespage.cpp:164
+#: src/settings/voicenotespage.cpp:161
 #, kde-format
 msgid ""
 "%1 is not available; a recording cannot be converted for the transcription"
@@ -358,23 +358,23 @@ msgstr ""
 "%1 ist nicht verfügbar; eine Aufnahme kann für die Transkription nicht "
 "umgewandelt werden"
 
-#: src/settings/voicenotespage.cpp:249
+#: src/settings/voicenotespage.cpp:253
 #, kde-format
 msgctxt "@title:window"
 msgid "Choose the whisper-cli program"
 msgstr "Programm whisper-cli auswählen"
 
-#: src/settings/voicenotespage.cpp:271
+#: src/settings/voicenotespage.cpp:275
 #, kde-format
 msgid "No program is set for the transcription"
 msgstr "Für die Transkription ist kein Programm eingetragen"
 
-#: src/settings/voicenotespage.cpp:272
+#: src/settings/voicenotespage.cpp:276
 #, kde-format
 msgid "%1 is not an executable program"
 msgstr "%1 ist kein ausführbares Programm"
 
-#: src/settings/voicenotespage.cpp:296
+#: src/settings/voicenotespage.cpp:298
 #, kde-format
 msgid ""
 "Download the model %1?\n"
@@ -385,50 +385,50 @@ msgstr ""
 "\n"
 "Die Datei ist %2 groß."
 
-#: src/settings/voicenotespage.cpp:302
+#: src/settings/voicenotespage.cpp:304
 #, kde-format
 msgctxt "@title:window"
 msgid "Download model"
 msgstr "Modell herunterladen"
 
-#: src/settings/voicenotespage.cpp:304
+#: src/settings/voicenotespage.cpp:306
 #, kde-format
 msgid "Download"
 msgstr "Herunterladen"
 
-#: src/settings/voicenotespage.cpp:334
+#: src/settings/voicenotespage.cpp:338
 #, kde-format
 msgid "Downloading %1: %2% of %3"
 msgstr "%1 wird geladen: %2 % von %3"
 
-#: src/settings/voicenotespage.cpp:366
+#: src/settings/voicenotespage.cpp:377
 #, kde-format
 msgid "%1: the download was cancelled; expected at %2"
 msgstr "%1: Download abgebrochen; erwartet unter %2"
 
-#: src/settings/voicenotespage.cpp:367
+#: src/settings/voicenotespage.cpp:378
 #, kde-format
 msgid "%1: the download failed: %2; expected at %3"
 msgstr "%1: Download gescheitert: %2; erwartet unter %3"
 
-#: src/settings/voicenotespage.cpp:390
+#: src/settings/voicenotespage.cpp:398
 #, kde-format
 msgid "The earlier setting %1 names no model size known here; %2 is in use"
 msgstr ""
 "Die frühere Einstellung %1 benennt keine hier bekannte Modellgröße; "
 "verwendet wird %2"
 
-#: src/settings/voicenotespage.cpp:407
+#: src/settings/voicenotespage.cpp:414
 #, kde-format
 msgid "Expected at %1"
 msgstr "Erwartet unter %1"
 
-#: src/settings/voicenotespage.cpp:416
+#: src/settings/voicenotespage.cpp:423
 #, kde-format
 msgid "Lies at %1"
 msgstr "Liegt unter %1"
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:112
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:124
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr "Gedanken schnell festhalten"
@@ -461,12 +461,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr "%1 — %2"
 
-#: src/shell/globalshortcuts.cpp:84 src/shell/trayicon.cpp:121
+#: src/shell/globalshortcuts.cpp:84 src/shell/trayicon.cpp:133
 #, kde-format
 msgid "Capture note"
 msgstr "Notiz erfassen"
 
-#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:130
+#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:142
 #, kde-format
 msgid "Record voice note"
 msgstr "Sprachnotiz aufnehmen"
@@ -529,52 +529,57 @@ msgstr ""
 "Neuinstallation bringt ihn zurück. Bis dahin bleibt das Erfassungsfenster "
 "über das Symbol im Systemabschnitt erreichbar."
 
-#: src/shell/trayicon.cpp:107
+#: src/shell/trayicon.cpp:113
 #, kde-format
 msgid "Not available: %1"
 msgstr "Nicht verfügbar: %1"
 
-#: src/shell/trayicon.cpp:110
+#: src/shell/trayicon.cpp:122
 #, kde-format
 msgid "Transcription failed: %1"
 msgstr "Transkription fehlgeschlagen: %1"
 
-#: src/shell/trayicon.cpp:137
+#: src/shell/trayicon.cpp:149
 #, kde-format
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:144
+#: src/shell/trayicon.cpp:156
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:147
+#: src/shell/trayicon.cpp:159
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:157
+#: src/shell/trayicon.cpp:169
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr "Denkzettel einrichten …"
 
-#: src/shell/trayicon.cpp:167
+#: src/shell/trayicon.cpp:179
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:199
+#: src/shell/trayicon.cpp:211
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"
 
-#: src/transcribe/modeldownload.cpp:125
+#: src/transcribe/modeldownload.cpp:123
+#, kde-format
+msgid "%1 is no model size known here"
+msgstr "%1 ist keine hier bekannte Modellgröße"
+
+#: src/transcribe/modeldownload.cpp:132
 #, kde-format
 msgid "%1 could not be created"
 msgstr "%1 konnte nicht angelegt werden"
 
-#: src/transcribe/modeldownload.cpp:212
+#: src/transcribe/modeldownload.cpp:233
 #, kde-format
 msgid "what arrived is not the model %1"
 msgstr "was ankam, ist nicht das Modell %1"
@@ -599,47 +604,47 @@ msgstr "%1 ließ sich nicht starten"
 msgid "The run was interrupted"
 msgstr "Der Lauf wurde unterbrochen"
 
-#: src/transcribe/transcriber.cpp:350
-#, kde-format
-msgid "The note carries no audio file"
-msgstr "Die Notiz trägt keine Audiodatei"
-
-#: src/transcribe/transcriber.cpp:355
-#, kde-format
-msgid "The audio file %1 is missing"
-msgstr "Die Audiodatei %1 fehlt"
-
-#: src/transcribe/transcriber.cpp:369
-#, kde-format
-msgid "No working directory could be created"
-msgstr "Es ließ sich kein Arbeitsverzeichnis anlegen"
-
-#: src/transcribe/transcriber.cpp:410
+#: src/transcribe/transcriber.cpp:345
 #, kde-format
 msgid "Model %1 is missing. Download it under Settings → Voice notes."
 msgstr "Modell %1 fehlt. Herunterladen unter Einstellungen → Sprachnotizen."
 
-#: src/transcribe/transcriber.cpp:438
+#: src/transcribe/transcriber.cpp:369
+#, kde-format
+msgid "The note carries no audio file"
+msgstr "Die Notiz trägt keine Audiodatei"
+
+#: src/transcribe/transcriber.cpp:374
+#, kde-format
+msgid "The audio file %1 is missing"
+msgstr "Die Audiodatei %1 fehlt"
+
+#: src/transcribe/transcriber.cpp:388
+#, kde-format
+msgid "No working directory could be created"
+msgstr "Es ließ sich kein Arbeitsverzeichnis anlegen"
+
+#: src/transcribe/transcriber.cpp:446
 #, kde-format
 msgid "%1 wrote no transcript"
 msgstr "%1 hat kein Transkript geschrieben"
 
-#: src/transcribe/transcriber.cpp:445
+#: src/transcribe/transcriber.cpp:453
 #, kde-format
 msgid "The transcript is no JSON: %1"
 msgstr "Das Transkript ist kein JSON: %1"
 
-#: src/transcribe/transcriber.cpp:460
+#: src/transcribe/transcriber.cpp:468
 #, kde-format
 msgid "%1 returned no text"
 msgstr "%1 hat keinen Text geliefert"
 
-#: src/transcribe/transcriber.cpp:468
+#: src/transcribe/transcriber.cpp:476
 #, kde-format
 msgid "The transcript could not be saved"
 msgstr "Das Transkript ließ sich nicht speichern"
 
-#: src/transcribe/transcriber.cpp:494
+#: src/transcribe/transcriber.cpp:502
 #, kde-format
 msgid "%1 did not finish within %2 seconds"
 msgstr "%1 wurde in %2 Sekunden nicht fertig"

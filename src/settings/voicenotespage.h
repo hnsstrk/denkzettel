@@ -65,12 +65,18 @@ private:
     QString m_earlierPath;
     ModelDownload *m_download;
     /**
-     * The last entry whose model lies on disk — where a refused or a failed
-     * download puts the selection back to, and -1 while there is no such entry
-     * at all (then a refusal leaves the choice standing, which says the same
-     * thing the line under it does).
+     * Which entry the list shows, and which it showed before that.
+     *
+     * **A click on a size that is not on disk must not change the setting.**
+     * The list moves with the click before anything of ours runs, so the
+     * choice is put straight back to `m_shownBefore` and only a download that
+     * really finished moves it — a size that is on its way is not a size the
+     * dialog may write. Otherwise Apply would store a model that is not
+     * there: the queue takes that over at once (SPEC 13) and every note in the
+     * window would wait on a file still arriving.
      */
-    int m_accepted = -1;
+    int m_shown = -1;
+    int m_shownBefore = -1;
     /** The entry this page has fetched the model for itself, else -1. */
     int m_fetched = -1;
     /** Whether the download that is ending was stopped by the button here. */

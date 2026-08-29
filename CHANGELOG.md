@@ -23,9 +23,12 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   broken and a killed download leave the same state: no file at all**, and what
   is written is only ever written after the SHA-1 the upstream names for that
   model has agreed — a login page, a proxy's error and a body cut short are all
-  a finished transfer otherwise. The queue itself still fetches nothing: a job
-  that finds no model now says which one is missing and where it is to be got
-  (#23).
+  a finished transfer otherwise. The queue itself still fetches nothing, and a
+  model that is not there no longer costs a note anything: the job stays in the
+  queue with its attempts untouched, the tray tooltip says which model is
+  missing and where to get it, and the queue takes the job up by itself as soon
+  as the file has arrived — without that, the two attempts of a note were spent
+  on the minutes between choosing a size and its download finishing (#23).
 - **Notes get a vector, and notes about one topic find each other.** The
   analysis run has a second step: every analysed note is turned into an
   embedding by the local Ollama, and a note the user has edited is embedded

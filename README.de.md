@@ -122,8 +122,11 @@ Spezifikation ist [`SPEC.md`](SPEC.md).
   des Projekts whisper.cpp holt, und geschrieben erst, wenn die SHA-1 stimmt,
   die dessen `models/README.md` nennt — ein Abbruch, ein Verbindungsfehler und
   ein abgestürzter Dienst hinterlassen denselben Zustand, nämlich gar keine
-  Datei. Die Warteschlange lädt nie selbst: Ein Auftrag, der kein Modell
-  findet, sagt, welches fehlt und wo es zu holen ist.
+  Datei. Die Warteschlange lädt nie selbst, und ein fehlendes Modell kostet
+  eine Notiz nichts: Der Auftrag bleibt mit unveränderten Versuchen in der
+  Schlange, die Kurzinfo am Symbol sagt, welches Modell fehlt und wo es zu
+  holen ist, und sobald die Datei da ist, nimmt die Schlange den Auftrag von
+  selbst wieder auf.
 
   Bis v0.7.0 hieß der Schlüssel `ModelPath` und trug einen ganzen Dateinamen.
   Der erste Start übernimmt ihn: Ein Pfad, der auf `ggml-<größe>.bin` endet,

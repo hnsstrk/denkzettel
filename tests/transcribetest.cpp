@@ -65,7 +65,7 @@ private Q_SLOTS:
     void aChangedSettingReachesTheRunningQueue();
     void takesOverAModelPathOfTheVersionBefore();
     void fallsBackToTheDefaultForASizeItDoesNotKnow();
-    void namesTheSettingsPageWhenTheModelIsMissing();
+    void waitsForAMissingModelWithoutSpendingAnAttempt();
     void fetchesAModelAndWritesItWhenTheChecksumAgrees();
     void leavesNothingBehindWhenTheDownloadIsCancelled();
     void leavesNothingBehindWhenTheConnectionBreaks();
@@ -1055,12 +1055,14 @@ QByteArray httpHead(qsizetype length)
 }
 }
 
-void TranscribeTest::namesTheSettingsPageWhenTheModelIsMissing()
+void TranscribeTest::waitsForAMissingModelWithoutSpendingAnAttempt()
 {
-    // The queue never fetches a model itself (UX decision, 29.08.2026), so the
-    // one thing it owes the user is the way to the place that does. Without
-    // this the same case says "whisper-cli wrote no transcript" twice and the
-    // tray goes red with nothing to act on.
+    // **A missing model is not a failed attempt** (SPEC 12): the size can be
+    // chosen while its download is still running, and at 1.5 GB that gap is
+    // minutes — long enough to spend both attempts of a note on it and leave
+    // it in the error state with the model long since in place. The queue
+    // never fetches anything itself (UX, 29.08.2026), so what it owes the user
+    // is the way to the place that does.
     const QString stub = writeWhisperStub();
     QVERIFY(!stub.isEmpty());
     QVERIFY(QFile::remove(Transcriber::modelPath(QStringLiteral("small"))));
@@ -1071,17 +1073,37 @@ void TranscribeTest::namesTheSettingsPageWhenTheModelIsMissing()
     QSignalSpy failed(&transcriber, &Transcriber::failed);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy missing(&transcriber, &Transcriber::modelMissing);
 
-    QVERIFY(addVoiceNote() > 0);
-    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 1; }, 30000));
-    QCOMPARE(transcribed.count(), 0);
-    QCOMPARE(failed.constFirst().at(1).toString(),
+    const qint64 id = addVoiceNote();
+    QVERIFY(id > 0);
+    QTRY_COMPARE_WITH_TIMEOUT(missing.count(), 1, 30000);
+    QCOMPARE(missing.constFirst().at(0).toString(),
              QStringLiteral("Model small is missing. Download it under Settings → Voice notes."));
+
+    // The three things SPEC 12 asks for, and the first two are what a `fail()`
+    // in this place would break: nothing is reported as a failure, and the job
+    // still stands in the queue with its counter where it was.
+    QCOMPARE(failed.count(), 0);
+    QCOMPARE(transcribed.count(), 0);
+    const std::optional<TranscribeJob> waiting = m_store->transcribeJob(id);
+    QVERIFY(waiting.has_value());
+    QCOMPARE(waiting->attempts, 0);
     // And whisper-cli was never started: the stand-in keeps the WAV it is
     // handed, so a run of it would leave that file behind.
     QVERIFY(!QFile::exists(keptWav()));
 
+    // The other half of the same guarantee, and it is what makes the case come
+    // out **different** on the same binary: with the model in place and the
+    // queue taken up again — which is what main.cpp does when a download ends
+    // — the very same job runs through, both attempts still in hand.
     placeModel(QStringLiteral("small"));
+    transcriber.start();
+    QTRY_COMPARE_WITH_TIMEOUT(transcribed.count(), 1, 30000);
+    QCOMPARE(failed.count(), 0);
+    QCOMPARE(missing.constLast().at(0).toString(), QString());
+    QVERIFY(!m_store->transcribeJob(id).has_value());
 }
 
 void TranscribeTest::fetchesAModelAndWritesItWhenTheChecksumAgrees()
@@ -1210,6 +1232,12 @@ void TranscribeTest::leavesNothingBehindWhenTheDownloadIsCancelled()
     // for a new one would sit out its whole timeout (measured 29.08.2026).
     QTRY_COMPARE_WITH_TIMEOUT(finished.count(), 1, 20000);
     QVERIFY(!finished.constFirst().at(1).toString().isEmpty());
+    // And exactly one report for the whole download. abort() gives the reply's
+    // finished() out of itself, so a road that lets the reply keep its
+    // connections reports twice — the second time with an empty size, over the
+    // first one's sentence.
+    QTest::qWait(200);
+    QCOMPARE(finished.count(), 1);
 
     QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
 }
