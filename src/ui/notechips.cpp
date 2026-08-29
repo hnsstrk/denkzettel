@@ -9,6 +9,8 @@
 #include <QPalette>
 #include <QRectF>
 
+#include <utility>
+
 namespace
 {
 /** Room left and right of the word inside a pill, as drawn in wireframe 2b. */
@@ -57,7 +59,7 @@ QSize NoteChips::sizeHint() const
     if (!m_category.isEmpty()) {
         width += chipWidth(metrics, m_category);
     }
-    for (const QString &tag : m_tags) {
+    for (const QString &tag : std::as_const(m_tags)) {
         width += (width > 0 ? Spacing : 0) + chipWidth(metrics, tag);
     }
 
@@ -139,7 +141,7 @@ void NoteChips::paintEvent(QPaintEvent *event)
     if (!m_category.isEmpty()) {
         drawChip(m_category, true);
     }
-    for (const QString &tag : m_tags) {
+    for (const QString &tag : std::as_const(m_tags)) {
         drawChip(tag, false);
     }
 }
