@@ -5,6 +5,33 @@
 #include <QObject>
 #include <QString>
 
+#include <cstdint>
+
+/**
+ * Why a call carried no answer: because the backend never gave one, or because
+ * it gave one and refused this request.
+ *
+ * The two are one sentence to the user and two different facts to a run. An
+ * unreachable backend says nothing about the note that happened to be first in
+ * the queue — the next note fares exactly the same, so the run stops and
+ * nothing is counted against anybody. A refusal came out of a server that
+ * answered: whatever it choked on, it choked on **this** text, and a note that
+ * is refused twice is skipped rather than handed over for ever (SPEC 7.2).
+ *
+ * Only embedFinished() carries it. The classification of SPEC 7.2 counts every
+ * failure against the note (issue #14, Classifier::fail()); what tells the
+ * embedding run apart from it is that a corpus embedded again after every
+ * outage would have burnt its counters through in two of them.
+ */
+enum class AiFailure : std::uint8_t {
+    /** The call carried an answer. */
+    None,
+    /** No answer at all: a timeout, a refused connection, a transport error. */
+    Unreachable,
+    /** The backend answered, and what it answered was a refusal of this text. */
+    Refused,
+};
+
 /**
  * What an AI backend can do for Denkzettel, and nothing beyond it (SPEC 7.1).
  *
@@ -67,8 +94,15 @@ Q_SIGNALS:
     /** `error` is empty exactly when `answer` carries the model's text. */
     void chatFinished(int id, const QString &answer, const QString &error);
 
-    /** `error` is empty exactly when `vector` carries the embedding. */
-    void embedFinished(int id, const QList<double> &vector, const QString &error);
+    /**
+     * `error` is empty exactly when `vector` carries the embedding, and
+     * `failure` says which kind of failure it was (AiFailure above).
+     *
+     * The fourth argument is what the embedding run of SPEC 7.2 decides on. A
+     * listener that does not care takes the first three: Qt's connect() allows
+     * a slot with fewer arguments, which is what testConnection() below does.
+     */
+    void embedFinished(int id, const QList<double> &vector, const QString &error, AiFailure failure);
 
     /**
      * The answer to testConnection(): both latencies in milliseconds, or the

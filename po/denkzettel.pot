@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 15:11+0200\n"
+"POT-Creation-Date: 2026-08-29 15:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,6 +32,11 @@ msgstr ""
 #: src/analysis/classifier.cpp:263
 #, kde-format
 msgid "The model's answer carried no tag."
+msgstr ""
+
+#: src/analysis/embedder.cpp:51
+#, kde-format
+msgid "The answer carried no embedding vector."
 msgstr ""
 
 #: src/analysis/ollamaprovider.cpp:34
@@ -166,9 +171,17 @@ msgstr ""
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:169
+#: src/settings/aiproviderpage.cpp:176
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:179
+#, kde-format
+msgid ""
+"%1\n"
+"Every embedding comes from Ollama: without it there are no topic bundles. "
+"The classification keeps running through the provider chosen above."
 msgstr ""
 
 #: src/settings/analysispage.cpp:32

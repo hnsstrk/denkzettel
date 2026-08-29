@@ -196,6 +196,43 @@ public:
     std::optional<int> failAnalysis(qint64 noteId, const QString &error);
 
     /**
+     * The notes step 2 of an analysis run has to embed (SPEC 7.2), oldest
+     * first.
+     *
+     * Three cases, and the query is the only place they are written down:
+     * a note that carries no vector yet, one whose vector was made by a
+     * **different** model than the one asked for, and one the user has edited
+     * since — that is `needs_reembed`, which SPEC 9 sets on saving and
+     * setEmbedding() clears.
+     *
+     * Only analysed notes, because only those are clustered (SPEC 7.3): a note
+     * whose classification failed is not in the corpus, and an `embed` call for
+     * it would be paid for and never asked after. Notes without text are left
+     * out for the reason unanalysedNotes() leaves them out — a voice note
+     * waiting for its transcript has nothing to embed yet.
+     */
+    QList<Note> notesToEmbed(const QString &model) const;
+
+    /**
+     * Writes the vector of one note and clears its `needs_reembed`, in one
+     * transaction (SPEC 7.2 step 2).
+     *
+     * An existing vector of the same note is replaced: there is one current
+     * text per note and therefore one current vector.
+     */
+    bool setEmbedding(qint64 noteId, const QString &model, const QList<float> &vector);
+
+    /**
+     * What the topic clustering of SPEC 7.3 compares: the embeddings of all
+     * unexported, analysed notes made by `model`, oldest first.
+     *
+     * The model is a parameter and not a setting read here, because it is the
+     * embedding run that knows which one wrote the vectors — the store keeps
+     * the name, the analysis owns it (SPEC 7.1).
+     */
+    QList<NoteEmbedding> embeddings(const QString &model) const;
+
+    /**
      * How often one note is handed out for transcription before the job pauses
      * (SPEC 12). Counted on the way out, see takeTranscribeJob().
      */

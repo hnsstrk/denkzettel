@@ -1,6 +1,7 @@
 #include "settings/settings.h"
 
 #include "analysis/analysisscheduler.h"
+#include "analysis/clustering.h"
 #include "analysis/ollamaprovider.h"
 #include "transcribe/transcriber.h"
 
@@ -90,9 +91,9 @@ Settings::Settings()
     ItemInt *days = addItemInt(QStringLiteral("OverflowDays"), m_overflowDays, 30);
     days->setMinValue(MinimumThreshold);
     days->setMaxValue(MaximumOverflowDays);
-    ItemInt *bundle = addItemInt(QStringLiteral("BundleNotes"), m_bundleNotes, 3);
-    bundle->setMinValue(MinimumThreshold);
-    bundle->setMaxValue(MaximumBundleNotes);
+    ItemInt *bundleNotes = addItemInt(QStringLiteral("BundleNotes"), m_bundleNotes, bundle::DefaultNotes);
+    bundleNotes->setMinValue(MinimumThreshold);
+    bundleNotes->setMaxValue(MaximumBundleNotes);
 
     // The group and both key names are Transcriber's, which reads them at
     // every reloadSettings() — a key written under another name would never

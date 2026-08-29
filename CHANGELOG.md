@@ -12,6 +12,22 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **Notes get a vector, and notes about one topic find each other.** The
+  analysis run has a second step: every analysed note is turned into an
+  embedding by the local Ollama, and a note the user has edited is embedded
+  again. Notes whose vectors point in a similar direction are chained into
+  topics — A and B, B and C, and A and C need not be similar for all three to
+  belong together — and a topic of at least three notes is what a suggestion
+  will be made from. How many notes that takes is the setting "Bundle
+  threshold" of the export page. A note the local model refuses twice is left
+  alone and reported, while an Ollama that cannot be reached at all costs no
+  note an attempt — it is a pause, and the vectors are made up for as soon as
+  it answers again. The connection test on the settings page now says what an
+  unreachable Ollama costs: no topic bundles, while the classification keeps
+  running through the chosen provider. **Schema version 5** brings the table
+  `embeddings` with one vector per note; deleting a note deletes it with it.
+  What a topic becomes is still to come — that is the collective note (#29)
+  (#28).
 - **Notes get a category and tags from the local model.** One call per note
   yields one of the five categories the search already knows (`todos`, `ideen`,
   `cli`, `persoenlich`, `software`), one to four tags in lower case, and for a

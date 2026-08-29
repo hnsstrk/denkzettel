@@ -61,11 +61,12 @@ target_link_libraries(denkzetteltranscribe PUBLIC
     KF6::I18n
 )
 
-# The AI backends and the classification run (SPEC 7.1/7.2, issues #13 and
-# #14). No model and no server is looked for at build time and none is talked
-# to in the automated run: Ollama sits behind an HTTP address that is a setting,
-# and what the checks exercise is the mapping of a reply onto an answer or an
-# error, and of an answer onto a category.
+# The AI backends, the classification run, the embedding run and the topic
+# clustering (SPEC 7.1/7.2/7.3, issues #13, #14 and #28). No model and no server
+# is looked for at build time and none is talked to in the automated run: Ollama
+# sits behind an HTTP address that is a setting, and what the checks exercise is
+# the mapping of a reply onto an answer or an error, of an answer onto a
+# category, and of made-up vectors onto clusters.
 #
 # AnalysisScheduler beside them is what starts a run — at once, at an interval
 # or on demand (SPEC 7.2, issue #15). It reads the trigger out of denkzettelrc
@@ -75,6 +76,8 @@ add_library(denkzettelanalysis STATIC
     analysis/aiprovider.cpp
     analysis/analysisscheduler.cpp
     analysis/classifier.cpp
+    analysis/clustering.cpp
+    analysis/embedder.cpp
     analysis/ollamaprovider.cpp
 )
 

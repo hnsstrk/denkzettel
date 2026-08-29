@@ -26,6 +26,16 @@ struct OllamaAnswer {
     QList<double> vector;
     /** Empty exactly when the call carried an answer. */
     QString error;
+    /**
+     * Which kind of failure `error` is (AiFailure), and `None` when there is
+     * none.
+     *
+     * The line the six cases below are sorted along: the first and the third
+     * are a backend that never answered, the other four came out of one that
+     * did. Only the embedding run reads it, and what it decides with it is
+     * whether the note is counted against or the run is stopped.
+     */
+    AiFailure failure = AiFailure::None;
 };
 
 /**

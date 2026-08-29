@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QList>
 #include <QString>
 
 #include <cstdint>
@@ -45,6 +46,23 @@ struct Note {
      * schema comment of migration 4 in store.cpp says why.
      */
     QString task;
+};
+
+/**
+ * One note's embedding, as the clustering of SPEC 7.3 compares them.
+ *
+ * `float` and not `double`, because that is what SPEC 5.1 stores: a float32
+ * array in the BLOB. Reading it back as anything else would make the vector
+ * come out the wrong length rather than the wrong value — a BLOB knows bytes,
+ * a vector knows elements, and 1024 dimensions read as doubles are 512.
+ *
+ * It stands here beside Note and not in the clustering, because the store is
+ * what hands it out and the analysis is what asks for it: put in the analysis,
+ * the store would depend on it the wrong way round.
+ */
+struct NoteEmbedding {
+    qint64 noteId = -1;
+    QList<float> vector;
 };
 
 /**
