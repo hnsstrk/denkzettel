@@ -77,6 +77,14 @@ Transcriber::Transcriber(Store *store, QObject *parent)
         takeNextJob();
     });
 
+    // The limit of SPEC 12, and it is on the whole job: it starts where the job
+    // is taken out and stops in endJob(), which every road out runs through.
+    // What it must not be hung on is a stretch without output — Transcriber
+    // reads stderr only in the failure path, and whether whisper-cli says
+    // anything at all while it recognises is unmeasured (issue #113).
+    m_deadline.setSingleShot(true);
+    connect(&m_deadline, &QTimer::timeout, this, &Transcriber::giveUp);
+
     // **The destructor is not what ends a run.** Qt handles no SIGTERM, so a
     // logout or a shutdown takes the daemon away without running a line of
     // ours — and whisper-cli kept running on the graphics card afterwards,
@@ -186,6 +194,13 @@ void Transcriber::setModelPath(const QString &path)
     m_modelPath = path;
 }
 
+void Transcriber::setTimeout(std::chrono::milliseconds timeout)
+{
+    // Takes hold with the next job. A deadline that is already running is not
+    // moved: the limit a job was taken out under is the one it is measured by.
+    m_timeout = timeout;
+}
+
 bool Transcriber::isBusy() const
 {
     return m_step != Step::Idle;
@@ -230,6 +245,9 @@ void Transcriber::takeNextJob()
     }
     m_noteId = job->noteId;
     m_step = Step::Converting;
+    // Here and not at the first process: what the limit covers is the job, so
+    // reading the note and making the working directory below lie inside it.
+    m_deadline.start(m_timeout);
 
     const std::optional<Note> note = m_store->note(m_noteId);
     if (!note.has_value() || note->audioPath.isEmpty()) {
@@ -337,6 +355,29 @@ void Transcriber::collectTranscript()
     endJob();
 }
 
+void Transcriber::giveUp()
+{
+    const QString program = m_step == Step::Converting ? m_ffmpegProgram : m_whisperProgram;
+    // Idle over the kill and back again afterwards: killing travels back
+    // through finished(), which would fail and count this job a second time.
+    // Idle it must not stay — until endJob() the job is still running, and
+    // isBusy() has to say so.
+    const Step step = m_step;
+    m_step = Step::Idle;
+    if (m_process.state() != QProcess::NotRunning) {
+        // PR_SET_PDEATHSIG covers the daemon dying; a job the daemon itself
+        // gives up on it never reaches, so the child is killed here. kill() and
+        // not terminate(): a whisper-cli busy on the graphics card is what this
+        // is for, and the WAV under it goes away with endJob() either way.
+        m_process.kill();
+        m_process.waitForFinished(1000);
+    }
+    m_step = step;
+    fail(QStringLiteral("%1 did not finish within %2 seconds")
+             .arg(program)
+             .arg(std::chrono::duration<double>(m_timeout).count()));
+}
+
 void Transcriber::fail(const QString &reason)
 {
     qWarning("Transcribing note %lld failed: %s", m_noteId, qUtf8Printable(reason));
@@ -349,6 +390,7 @@ void Transcriber::fail(const QString &reason)
 
 void Transcriber::endJob()
 {
+    m_deadline.stop();
     m_step = Step::Idle;
     m_noteId = -1;
     // Success, failure and a job that never got as far as its programs all end

@@ -92,8 +92,10 @@ specification is [`SPEC.md`](SPEC.md).
 - For the transcription only, and only at runtime: `whisper-cpp` with a GGML
   backend (`ggml-vulkan`, or `ggml-hip` on ROCm) and a model under
   `~/.local/share/denkzettel/models/`. Neither is needed to build or to test —
-  the test run puts a program of its own in whisper-cli's place. Both paths are
-  settings in `denkzettelrc`:
+  the test run puts a program of its own in whisper-cli's place. A run is given
+  up on after five minutes, counted over the whole job: Denkzettel takes down
+  short notes and is no audio recorder — the recording itself already stops at
+  fifteen minutes. Both paths are settings in `denkzettelrc`:
 
   ```ini
   [Transcription]

@@ -1091,6 +1091,14 @@ conceivable as an optional later additional path, but is not built for v1.
   whisper.cpp. The hookup is built/accepted only once the installation exists
   (it comes into being in the RPG audio project); until then whisper.cpp is the
   only active route.
+- **Upper bound 5 minutes per transcription run** (customer decision
+  29.08.2026), and it is the whole job: the clock starts where the job is taken
+  out of the queue and stops where the job ends, not on a stretch without
+  output — whether `whisper-cli` writes anything at all while it recognises is
+  unmeasured. Exceeded, the child process is killed, the job records the reason
+  in `last_error` and the queue goes on to the next one. Same ground as the
+  15-minute bound of §4: Denkzettel takes down short notes and is no audio
+  recorder.
 - Error path: 2 failed attempts → the job pauses, tray error state, the note
   stays visible/playable as an `audio` note without a transcript (nothing is
   lost).

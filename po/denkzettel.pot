@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-28 23:41+0200\n"
+"POT-Creation-Date: 2026-08-29 08:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,20 +34,27 @@ msgstr ""
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/shell/appidentity.cpp:37 src/shell/trayicon.cpp:50
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:50
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr ""
 
-#: src/shell/appidentity.cpp:43
+#: src/shell/appidentity.cpp:48
 #, kde-format
 msgid "Copyright (c) 2026 hnsstrk"
 msgstr ""
 
-#: src/shell/appidentity.cpp:52
+#: src/shell/appidentity.cpp:62
 #, kde-format
 msgid ""
 "Denkzettel service: it receives notes and keeps the global shortcuts ready."
+msgstr ""
+
+#: src/shell/appidentity.cpp:64
+#, kde-format
+msgid ""
+"A transcription is given up on after five minutes: Denkzettel takes down "
+"short notes, it is no audio recorder."
 msgstr ""
 
 #: src/shell/globalshortcuts.cpp:36
@@ -135,19 +142,19 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/audioplayer.cpp:103
+#: src/ui/audioplayer.cpp:98
 #, kde-format
 msgctxt "@action:button"
 msgid "Pause"
 msgstr ""
 
-#: src/ui/audioplayer.cpp:103
+#: src/ui/audioplayer.cpp:98
 #, kde-format
 msgctxt "@action:button"
 msgid "Play"
 msgstr ""
 
-#: src/ui/audioplayer.cpp:125
+#: src/ui/audioplayer.cpp:120
 #, kde-format
 msgctxt "@info elapsed and total playing time of a voice note"
 msgid "%1 / %2"
@@ -182,13 +189,13 @@ msgstr ""
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
 #: src/ui/librarywindow.cpp:191 src/ui/librarywindow.cpp:488
-#: src/ui/librarywindow.cpp:1190
+#: src/ui/librarywindow.cpp:1209
 #, kde-format
 msgid "Save"
 msgstr ""
 
 #: src/ui/librarywindow.cpp:192 src/ui/librarywindow.cpp:491
-#: src/ui/librarywindow.cpp:1192
+#: src/ui/librarywindow.cpp:1211
 #, kde-format
 msgid "Cancel"
 msgstr ""
@@ -277,7 +284,7 @@ msgstr ""
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1169
+#: src/ui/librarywindow.cpp:1188
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -285,18 +292,18 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1173
+#: src/ui/librarywindow.cpp:1192
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1191
+#: src/ui/librarywindow.cpp:1210
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1264
+#: src/ui/librarywindow.cpp:1283
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "

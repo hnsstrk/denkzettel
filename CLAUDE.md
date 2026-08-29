@@ -426,6 +426,19 @@ find.
     number is the readback which says whether `--comments` has anything to
     show.
 
+32. **A queue is idle between two jobs, and a check that waits for idle stops
+    there.** Measured 2026-08-29 on #113: after a run had been given up on, the
+    check waited for `Transcriber::isBusy()` to go false and then counted what
+    the given-up runs had left behind. `endJob()` sets the step to Idle and
+    posts the next take through the event loop, so `isBusy()` is false in that
+    gap — the wait returned after two of the three runs, and every assertion
+    behind it was taken while the queue went on working underneath. It came out
+    as a wrong count; it could as easily have come out green, because a working
+    directory that the next job has not created yet is a directory that is not
+    there. Wait for the number of ends the queue can still produce — here three
+    failures, one attempt left on the first note and two on the second — and use
+    the idle state only after that number is in.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

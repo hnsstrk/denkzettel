@@ -53,8 +53,16 @@ void registerApplicationIdentity()
 void processCommandLineArguments(const QCoreApplication &app)
 {
     QCommandLineParser parser;
+    // Two sentences and two catalogue entries: the second one is the only place
+    // outside the READMEs where the five minutes of SPEC 12 meet a user before
+    // a transcription fails on them, and the daemon's --help is the only help
+    // this program has (issue #113). Joining the finished sentences leaves the
+    // first one's translation untouched.
     parser.setApplicationDescription(
-        i18n("Denkzettel service: it receives notes and keeps the global shortcuts ready."));
+        i18n("Denkzettel service: it receives notes and keeps the global shortcuts ready.")
+        + QLatin1Char('\n')
+        + i18n("A transcription is given up on after five minutes: Denkzettel takes down short "
+               "notes, it is no audio recorder."));
     parser.addHelpOption();
     parser.addVersionOption();
 
