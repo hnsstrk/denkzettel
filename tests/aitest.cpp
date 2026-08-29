@@ -1,16 +1,21 @@
 #include "aiprovidermock.h"
 
+#include "analysis/analysisscheduler.h"
 #include "analysis/classifier.h"
 #include "analysis/ollamaprovider.h"
 #include "store/store.h"
 
+#include <KConfigGroup>
 #include <KLocalizedString>
+#include <KSharedConfig>
 
 #include <QElapsedTimer>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QFile>
 #include <QSignalSpy>
+#include <QStandardPaths>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTemporaryDir>
@@ -77,6 +82,10 @@ private Q_SLOTS:
     void noteThatFailedTwiceIsSkippedAndReported();
     void theErrorCountSurvivesARestart();
     void successClearsTheErrorCount();
+
+    void theBudgetStopsAtFiftyAndTheRestFollows();
+    void theTriggerFollowsTheSetting();
+    void aNoteWrittenDuringARunIsNotLost();
 };
 
 void AiTest::initTestCase()
@@ -85,6 +94,27 @@ void AiTest::initTestCase()
     // the domain an installed German catalogue would reach the run through
     // XDG_DATA_DIRS; the LANGUAGE pin in tests/CMakeLists.txt is the other half.
     KLocalizedString::setApplicationDomain("denkzettel");
+
+    // theTriggerFollowsTheSetting() writes a trigger into KSharedConfig, and
+    // KSharedConfig writes what it holds to disk when the process ends. A case
+    // that dies before its deleteGroup() therefore leaves a real value behind,
+    // and the NEXT run would read it as a setting somebody made — and read it
+    // before the case that sets one has run, which is the half that would look
+    // like a fault of the scheduler.
+    //
+    // Before the first KSharedConfig::openConfig() of the run, or the stale
+    // value would already be in memory and deleting the file would change
+    // nothing. The name is built rather than asked for that reason.
+    //
+    // The guard is not decoration: without XDG_CONFIG_HOME pointing into the
+    // build directory (tests/CMakeLists.txt) this line would delete a
+    // configuration file of whoever runs the check.
+    const QByteArray configHome = qgetenv("XDG_CONFIG_HOME");
+    QVERIFY2(!configHome.isEmpty(), "XDG_CONFIG_HOME has to point into the build directory");
+    const QString file = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+        + QLatin1Char('/') + QCoreApplication::applicationName() + QStringLiteral("rc");
+    QVERIFY(file.startsWith(QString::fromLocal8Bit(configHome)));
+    QFile::remove(file);
 }
 
 void AiTest::chatAnswerIsReadOutOfTheBody()
@@ -778,6 +808,189 @@ void AiTest::successClearsTheErrorCount()
     QCOMPARE(analysed->category, QStringLiteral("software"));
     QCOMPARE(analysed->analysisAttempts, 0);
     QCOMPARE(analysed->analysisLastError, QString());
+}
+
+void AiTest::theBudgetStopsAtFiftyAndTheRestFollows()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // Ten more than the budget, one minute apart: the timestamps decide the
+    // order (Store::unanalysedNotes), so which fifty a run takes can be read
+    // off afterwards. Written at the same moment they would fall back on the
+    // ids and the two halves could not be told apart.
+    const QDateTime when = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    const int total = Classifier::notesPerRun + 10;
+    QList<qint64> ids;
+    for (int index = 0; index < total; ++index) {
+        const qint64 id = addNote(*store,
+                                  QStringLiteral("Notiz Nummer %1 aus einer vollen Bibliothek.").arg(index),
+                                  when.addSecs(static_cast<qint64>(index) * 60));
+        QVERIFY(id > 0);
+        ids.append(id);
+    }
+
+    AiProviderMock provider;
+    // One answer for all of them, unlike everyNoteGetsItsOwnAnswer() above:
+    // what is measured here is how many notes a run hands to the model and
+    // which, not what it writes onto them.
+    provider.chatAnswer = answerFor(QStringLiteral("ideen"), QStringLiteral(R"("notiz")"));
+
+    Classifier classifier(store.get(), &provider);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&classifier, &Classifier::finished);
+
+    // **Waited for is the number of ends the run can still produce**, not one
+    // signal (CLAUDE.md, finding 32). `finished` comes synchronously out of
+    // start() wherever the queue is empty, and a wait() posted afterwards then
+    // sits until it times out over a run that was long through — the failure
+    // reads "something hangs" and says nothing about the budget.
+    classifier.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 10000);
+
+    // The budget of SPEC 14 bit, and it bit at the front of the list.
+    QCOMPARE(provider.prompts.size(), qsizetype(Classifier::notesPerRun));
+    QCOMPARE(store->unanalysedNotes().size(), qsizetype(total - Classifier::notesPerRun));
+    QCOMPARE(store->note(ids.at(Classifier::notesPerRun - 1))->state, Note::State::Analysed);
+    QCOMPARE(store->note(ids.at(Classifier::notesPerRun))->state, Note::State::New);
+
+    // **And the second half, which is the one a check stopping after the first
+    // would let through.** A budget that took the surplus away for good — a run
+    // that never becomes startable again, a note marked off it never saw —
+    // comes out green above and red here.
+    classifier.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 10000);
+
+    QCOMPARE(provider.prompts.size(), qsizetype(total));
+    QVERIFY(store->unanalysedNotes().isEmpty());
+    QCOMPARE(store->note(ids.constLast())->state, Note::State::Analysed);
+}
+
+void AiTest::theTriggerFollowsTheSetting()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QDateTime when = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+
+    AiProviderMock provider;
+    provider.chatAnswer = answerFor(QStringLiteral("ideen"), QStringLiteral(R"("notiz")"));
+
+    Classifier classifier(store.get(), &provider);
+
+    // Written into the same KSharedConfig instance the scheduler reads from, so
+    // what the file is called plays no part here (CLAUDE.md, finding 42).
+    //
+    // **What this checks is the scheduler's side and no more**: that it reads
+    // the trigger at all and arms what the value names. It compares against the
+    // constants of its own library, and it could not do otherwise — the choice
+    // list of the settings skeleton is built from those same constants, so
+    // there are no two values to hold against each other. The group and the two
+    // key names are the duplication that is left, and they carry a comment on
+    // both sides rather than an assertion (see analysisscheduler.h).
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Analysis"));
+
+    // "on demand only": a note that is written sets nothing going, and no timer
+    // stands either.
+    group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerOnDemand));
+    AnalysisScheduler scheduler(&classifier);
+    QCOMPARE(scheduler.interval(), std::chrono::milliseconds(0));
+
+    QVERIFY(addNote(*store, QStringLiteral("Eine Notiz auf Abruf."), when) > 0);
+    scheduler.noteIsReady();
+    // The stand-in records the prompt inside chat(), so a run that had started
+    // would already stand here — there is nothing to wait for.
+    QVERIFY(provider.prompts.isEmpty());
+
+    // ... and the road the tray entry and AnalyzeNow() take runs it all the same.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&classifier, &Classifier::finished);
+    scheduler.analyzeNow();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+    QCOMPARE(provider.prompts.size(), 1);
+
+    // "at once after saving": the same call now is a run.
+    group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerAfterSaving));
+    scheduler.applySettings();
+    QCOMPARE(scheduler.interval(), std::chrono::milliseconds(0));
+
+    const qint64 saved = addNote(*store, QStringLiteral("Eine Notiz sofort nach dem Speichern."), when.addSecs(60));
+    QVERIFY(saved > 0);
+    provider.prompts.clear();
+    scheduler.noteIsReady();
+    QCOMPARE(provider.prompts.size(), 1);
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 5000);
+    QCOMPARE(store->note(saved)->category, QStringLiteral("ideen"));
+
+    // "periodically": the timer stands at what the setting says, and saving a
+    // note is no longer a run.
+    group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerPeriodically));
+    group.writeEntry("IntervalMinutes", 45);
+    scheduler.applySettings();
+    QCOMPARE(scheduler.interval(), std::chrono::milliseconds(std::chrono::minutes(45)));
+
+    provider.prompts.clear();
+    QVERIFY(addNote(*store, QStringLiteral("Eine Notiz für den nächsten Durchlauf."), when.addSecs(120)) > 0);
+    scheduler.noteIsReady();
+    QVERIFY(provider.prompts.isEmpty());
+
+    // A denkzettelrc written by hand never passes the spin box, and a zero
+    // there would be a timer firing as fast as the event loop turns.
+    group.writeEntry("IntervalMinutes", 0);
+    scheduler.applySettings();
+    QCOMPARE(scheduler.interval(),
+             std::chrono::milliseconds(std::chrono::minutes(analysis::MinimumIntervalMinutes)));
+
+    group.deleteGroup();
+}
+
+void AiTest::aNoteWrittenDuringARunIsNotLost()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QDateTime when = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(addNote(*store, QStringLiteral("Die erste Notiz des Laufs."), when) > 0);
+    QVERIFY(addNote(*store, QStringLiteral("Die zweite Notiz des Laufs."), when.addSecs(60)) > 0);
+
+    AiProviderMock provider;
+    provider.chatAnswer = answerFor(QStringLiteral("ideen"), QStringLiteral(R"("notiz")"));
+    // Long enough that the note below really arrives during the run: with the
+    // answer coming back at once the run would be over before it was written,
+    // and the case could not come out red.
+    provider.chatDelay = std::chrono::milliseconds(50);
+
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Analysis"));
+    group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerAfterSaving));
+
+    Classifier classifier(store.get(), &provider);
+    AnalysisScheduler scheduler(&classifier);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&classifier, &Classifier::finished);
+
+    scheduler.analyzeNow();
+    QVERIFY(classifier.isBusy());
+
+    const qint64 late = addNote(*store, QStringLiteral("Und diese kommt mitten hinein."), when.addSecs(120));
+    QVERIFY(late > 0);
+    scheduler.noteIsReady();
+
+    // **Waited for is the number of runs this can still produce, not an idle
+    // queue** (CLAUDE.md, finding 32): between two notes the classifier is not
+    // busy either, and a wait on that would return in the gap and count a
+    // half-done run as a finished one.
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 5000);
+
+    // Three calls for three notes: the late one was taken up, and neither of
+    // the first two was handed out a second time.
+    QCOMPARE(provider.prompts.size(), 3);
+    QCOMPARE(store->note(late)->state, Note::State::Analysed);
+    QVERIFY(store->unanalysedNotes().isEmpty());
+
+    group.deleteGroup();
 }
 
 QTEST_GUILESS_MAIN(AiTest)

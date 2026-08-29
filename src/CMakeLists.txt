@@ -67,12 +67,13 @@ target_link_libraries(denkzetteltranscribe PUBLIC
 # and what the checks exercise is the mapping of a reply onto an answer or an
 # error, and of an answer onto a category.
 #
-# Nothing links it yet — what starts a run, and how often, is the trigger and
-# the budget of issue #15. It is built and linted here all the same, and a
-# library that the executable does not carry is a library whose code does not
-# ship untested.
+# AnalysisScheduler beside them is what starts a run — at once, at an interval
+# or on demand (SPEC 7.2, issue #15). It reads the trigger out of denkzettelrc
+# and knows neither the store nor the transcription queue: both roads that mean
+# "a note is ready" are connected in main.cpp.
 add_library(denkzettelanalysis STATIC
     analysis/aiprovider.cpp
+    analysis/analysisscheduler.cpp
     analysis/classifier.cpp
     analysis/ollamaprovider.cpp
 )
@@ -283,6 +284,11 @@ add_executable(denkzetteld
 target_include_directories(denkzetteld PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzetteld PRIVATE
+    # The analysis run of SPEC 7.2 and what starts it. Named although
+    # denkzettelsettings already carries it: main.cpp includes its headers, and
+    # a link that only holds by way of a third library is one a change there
+    # takes away without a word.
+    denkzettelanalysis
     denkzettelcapture
     denkzettelsettings
     denkzettelshell

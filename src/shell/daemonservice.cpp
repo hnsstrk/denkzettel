@@ -49,6 +49,11 @@ void DaemonService::ShowLibrary()
     Q_EMIT libraryRequested();
 }
 
+void DaemonService::AnalyzeNow()
+{
+    Q_EMIT analysisRequested();
+}
+
 void DaemonService::Quit()
 {
     Q_EMIT quitRequested();

@@ -681,6 +681,45 @@ find.
     case stays out of the set and is measured by hand — but it never stands in
     a set that runs as root, where it can only ever say yes.
 
+47. **A mutation probe run outside `ctest` goes red for a reason that is not the
+    mutation.** Measured 2026-08-29 on #15: `shelltest` was to show that a tray
+    entry connected to nothing fails its check, and the binary was started by
+    hand. It did fail — with "the tray menu carries no entry for an analysis
+    run", because without the `LANGUAGE=en_US` that `tests/CMakeLists.txt` sets
+    on that set, the installed German catalogue answers `i18n("Analyze now")`
+    with „Jetzt analysieren" and the check looks for the English wording. The
+    **unchanged** binary failed exactly the same way, so the red said nothing
+    at all. With the three variables of the test property in place the same
+    binary came out green unchanged and red with the connection taken away, on
+    the assertion the probe was aimed at (`requested.count()` 0 against 1).
+    This is finding 35's family from the other end: there the probe reached the
+    wrong assertion, here it reached the right set in the wrong environment. So
+    a probe is run the way `ctest` runs it — `ctest -R <set>`, or for a single
+    function the ENVIRONMENT of its `set_tests_properties` set by hand — and
+    its red is read on the assertion it was aimed at, never on the first one
+    that happens to fail.
+
+48. **A comment that presents a test set as a guard does not say the set can
+    reach the thing.** Measured 2026-08-29 on #15: `analysisscheduler.h` called
+    itself the one place the trigger names and the bounds stand, and `aitest`
+    claimed to pin "the three choices, which settings.cpp declares" — while both
+    values stood a second time in `settings.h`/`settings.cpp`, and the set reads
+    only the constants of its own library. `choice("AfterSaving")` renamed to
+    `"Immediately"` and the floor moved from 5 to 15: **all fourteen test sets
+    stayed green**, while the scheduler would have been reading a trigger nobody
+    can set any more. The same fault in #16, where a comment presented `aitest`
+    as the guard of defaults out of a library `denkzettelsettings` does not even
+    link. Whoever writes that two sides have to agree names the build target
+    that carries the other side — where the set does not link it, the guard is
+    an assertion and nothing else. What answered it here was not a check but one
+    source, because no check could: `aitest` cannot link `denkzettelsettings`,
+    which links the analysis library and not the other way round — the literal
+    put back into `settings.cpp` leaves all fourteen sets green today as well.
+    **The guard is then the build, and a guard is read back like any other
+    value**: renaming the constant at its one place stops the compiler in
+    `settings.cpp:56` with "is not a member of `analysis`", which is what says
+    the other side really is built from it.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

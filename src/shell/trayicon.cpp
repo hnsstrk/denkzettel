@@ -112,7 +112,13 @@ QMenu *TrayIcon::buildMenu()
         menu->addAction(QIcon::fromTheme(QStringLiteral("view-list-text")), i18n("Open library"));
     connect(libraryAction, &QAction::triggered, this, &TrayIcon::libraryRequested);
 
-    addStub(menu, i18n("Analyze now"), QStringLiteral("system-run"));
+    // The on-demand road of SPEC 7.2, and it stays enabled under all three
+    // settings: being asked for a run is what "on demand" means, and the two
+    // other triggers have no reason to refuse one (issue #15).
+    const QAction *analyzeAction =
+        menu->addAction(QIcon::fromTheme(QStringLiteral("system-run")), i18n("Analyze now"));
+    connect(analyzeAction, &QAction::triggered, this, &TrayIcon::analysisRequested);
+
     addStub(menu, i18n("Suggestions"), QStringLiteral("tools-wizard"));
 
     menu->addSeparator();

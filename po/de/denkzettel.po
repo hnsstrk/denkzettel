@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 14:45+0200\n"
+"POT-Creation-Date: 2026-08-29 14:51+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -89,12 +89,12 @@ msgstr "Gedanke festhalten …"
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr "Esc verwirft · Strg+Enter speichert"
 
-#: src/main.cpp:170
+#: src/main.cpp:173
 #, kde-format
 msgid "Transcription failed"
 msgstr "Transkription fehlgeschlagen"
 
-#: src/main.cpp:171
+#: src/main.cpp:174
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
@@ -211,7 +211,7 @@ msgid "There is no folder %1."
 msgstr "Den Ordner %1 gibt es nicht."
 
 #: src/settings/exportpage.cpp:44
-#,, kde-format
+#, kde-format
 msgid "%1 cannot be written to."
 msgstr "%1 ist nicht beschreibbar."
 
@@ -262,7 +262,7 @@ msgid "Choose the vault folder"
 msgstr "Vault-Ordner wählen"
 
 #: src/settings/exportpage.cpp:244
-#,, kde-format
+#, kde-format
 msgid "This folder can be written to."
 msgstr "Dieser Ordner ist beschreibbar."
 
@@ -442,27 +442,27 @@ msgstr "Sprachnotiz aufnehmen"
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:115
+#: src/shell/trayicon.cpp:119
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:116
+#: src/shell/trayicon.cpp:122
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:126
+#: src/shell/trayicon.cpp:132
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr "Denkzettel einrichten …"
 
-#: src/shell/trayicon.cpp:136
+#: src/shell/trayicon.cpp:142
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:168
+#: src/shell/trayicon.cpp:174
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"

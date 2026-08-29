@@ -42,6 +42,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void captureRequested();
     void libraryRequested();
+    void analysisRequested();
     void configureRequested();
 
 private:

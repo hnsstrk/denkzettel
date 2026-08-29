@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 14:46+0200\n"
+"POT-Creation-Date: 2026-08-29 14:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,12 +86,12 @@ msgstr ""
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/main.cpp:170
+#: src/main.cpp:173
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:171
+#: src/main.cpp:174
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -418,27 +418,27 @@ msgstr ""
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:115
+#: src/shell/trayicon.cpp:119
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:116
+#: src/shell/trayicon.cpp:122
 #, kde-format
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:126
+#: src/shell/trayicon.cpp:132
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
 
-#: src/shell/trayicon.cpp:136
+#: src/shell/trayicon.cpp:142
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:168
+#: src/shell/trayicon.cpp:174
 #, kde-format
 msgid "Quit"
 msgstr ""
