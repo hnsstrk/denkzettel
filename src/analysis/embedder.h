@@ -61,8 +61,8 @@ public:
     bool isBusy() const;
 
     /**
-     * The embedding model of SPEC 7.1 out of `denkzettelrc`, read once at
-     * construction.
+     * The embedding model of SPEC 7.1 out of `denkzettelrc`, as reloadSettings()
+     * last read it.
      *
      * It is written beside every vector and it is what the clustering asks the
      * store for (Store::embeddings()) — so whoever clusters what this run
@@ -71,6 +71,20 @@ public:
      * spellings would be two models.
      */
     QString model() const;
+
+public Q_SLOTS:
+    /**
+     * Re-reads `[AI] EmbeddingModel` out of `denkzettelrc`.
+     *
+     * It hangs on the same `Settings::configChanged` as
+     * OllamaProvider::reloadSettings() and for the same reason (issue #119):
+     * the provider would otherwise ask a **new** model for the vector while
+     * this class went on writing the **old** name beside it, and the
+     * clustering, which looks the vectors up by that name, would compare two
+     * models' vectors as if they were one. A run that is already going keeps
+     * what it started with.
+     */
+    void reloadSettings();
 
 Q_SIGNALS:
     /** The note carries its vector, and its `needs_reembed` is cleared. */

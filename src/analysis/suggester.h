@@ -137,6 +137,18 @@ public:
     /** Whether a cluster is being named right now. */
     bool isBusy() const;
 
+public Q_SLOTS:
+    /**
+     * Re-reads `[AI] EmbeddingModel` out of `denkzettelrc`, the third of the
+     * three that have to agree on it (issue #119).
+     *
+     * Out of the same ollama::configuredEmbeddingModel() the embedder reads,
+     * and hung on the same signal: read a moment apart from the same file, the
+     * two hold the same name — read out of two places they would be two names,
+     * and this class would ask the store for a model nothing had written.
+     */
+    void reloadSettings();
+
 Q_SIGNALS:
     /** A suggestion has been written and carries the id `proposalId`. */
     void suggested(qint64 proposalId);

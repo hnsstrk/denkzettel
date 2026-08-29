@@ -86,14 +86,29 @@ namespace ollama
 inline constexpr QLatin1StringView DefaultUrl("http://localhost:11434");
 inline constexpr QLatin1StringView DefaultChatModel("qwen3:8b");
 inline constexpr QLatin1StringView DefaultEmbeddingModel("bge-m3");
+
+/**
+ * `[AI] EmbeddingModel` as `denkzettelrc` currently spells it, or the default
+ * above where it says nothing.
+ *
+ * Three objects have to agree on this one name inside a run — the provider
+ * that asks for the vector, the embedder that writes it beside the note and the
+ * suggester that clusters what carries it — and since issue #119 all three
+ * re-read it when the settings dialog has written. Read out of one function so
+ * that the group and the key have one place: three `readEntry` calls would be
+ * three chances to spell it differently, and two spellings are two models with
+ * nothing to say so.
+ */
+QString configuredEmbeddingModel();
 }
 
 /**
  * Ollama over its HTTP API (SPEC 7.1): `/api/chat` and `/api/embed`.
  *
  * The address and the two models are settings out of `denkzettelrc` (SPEC
- * 5.2), read at construction and settable afterwards — the settings dialog of
- * SPEC 13 writes them, and a check points them at a port that is not listening.
+ * 5.2), read at construction, re-read on reloadSettings() and settable
+ * afterwards — the settings dialog of SPEC 13 writes them, and a check points
+ * them at a port that is not listening.
  *
  * Non-streaming on purpose: SPEC 7.2 wants one JSON document per note, not a
  * token trickle, and with `stream: false` the transfer timeout below is a
@@ -144,6 +159,22 @@ public:
      * `QNetworkAccessManager` and the same timeout as every other call here.
      */
     void testReachability();
+
+public Q_SLOTS:
+    /**
+     * Re-reads `[AI] OllamaUrl`, `ChatModel` and `EmbeddingModel` out of
+     * `denkzettelrc`.
+     *
+     * The daemon holds one provider for the whole session and the settings
+     * dialog writes underneath it (SPEC 13). Without this the address and the
+     * models chosen there would only take hold at the next start, while "Test
+     * connection" on the same page — which works with the value out of the
+     * form — reported the new address as reachable: the check says yes and the
+     * analysis run talks to the old server (issue #119). A call that is
+     * already on its way keeps what it was sent with; what is read here reaches
+     * the next one.
+     */
+    void reloadSettings();
 
 Q_SIGNALS:
     /**

@@ -82,13 +82,24 @@ OllamaAnswer readOllamaReply(OllamaCall call,
     return {{}, vector, {}};
 }
 
+QString ollama::configuredEmbeddingModel()
+{
+    const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
+    return group.readEntry("EmbeddingModel", QString(ollama::DefaultEmbeddingModel));
+}
+
 OllamaProvider::OllamaProvider(QObject *parent)
     : AiProvider(parent)
+{
+    reloadSettings();
+}
+
+void OllamaProvider::reloadSettings()
 {
     const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
     m_url = QUrl(group.readEntry("OllamaUrl", QString(ollama::DefaultUrl)));
     m_chatModel = group.readEntry("ChatModel", QString(ollama::DefaultChatModel));
-    m_embeddingModel = group.readEntry("EmbeddingModel", QString(ollama::DefaultEmbeddingModel));
+    m_embeddingModel = ollama::configuredEmbeddingModel();
 }
 
 void OllamaProvider::setUrl(const QUrl &url)

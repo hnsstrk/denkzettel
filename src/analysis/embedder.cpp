@@ -4,9 +4,7 @@
 #include "analysis/ollamaprovider.h"
 #include "store/store.h"
 
-#include <KConfigGroup>
 #include <KLocalizedString>
-#include <KSharedConfig>
 
 #include <optional>
 
@@ -15,8 +13,7 @@ Embedder::Embedder(Store *store, AiProvider *provider, QObject *parent)
     , m_store(store)
     , m_provider(provider)
 {
-    const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
-    m_model = group.readEntry("EmbeddingModel", QString(ollama::DefaultEmbeddingModel));
+    reloadSettings();
 
     connect(m_provider,
             &AiProvider::embedFinished,
@@ -103,6 +100,11 @@ bool Embedder::isBusy() const
 QString Embedder::model() const
 {
     return m_model;
+}
+
+void Embedder::reloadSettings()
+{
+    m_model = ollama::configuredEmbeddingModel();
 }
 
 void Embedder::takeNextNote()

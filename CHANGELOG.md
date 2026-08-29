@@ -190,6 +190,17 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   notes" reports it with the old path in the sentence until the settings are
   applied once. Nobody's hand-set path disappears without being shown (#27).
 
+### Fixed
+
+- **A changed Ollama address or a changed model takes hold at once.** Whoever
+  entered a different server or a different model on the page "AI provider"
+  changed the file and nothing else: the running service went on asking the old
+  address with the old models until the next login — while "Test connection" on
+  that same page, which works with what stands in the form, reported the new
+  address as reachable. The check said yes and the analysis talked to the old
+  server. Address, language model and embedding model now reach the running
+  analysis without a restart (#119).
+
 ## [0.7.0] — 2026-08-28
 
 **The window follows what the session does**, the version becomes visible, and

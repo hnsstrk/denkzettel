@@ -17,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
+#include <QScopeGuard>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTcpServer>
@@ -66,6 +67,7 @@ private Q_SLOTS:
     void nothingIsAskedTwiceWhenNobodyAnswers();
     void aServerThatAnsweredIsNotAskedAgain();
     void readsReachabilityWithoutLoadingAModel();
+    void aChangedAddressAndModelReachTheRunningProvider();
 
     void connectionTestMeasuresBothCallsSeparately();
     void connectionTestReportsTheFirstError();
@@ -400,6 +402,128 @@ void AiTest::readsReachabilityWithoutLoadingAModel()
     provider.testReachability();
     QVERIFY(answered.wait(std::chrono::seconds(10)));
     QVERIFY(!answered.constLast().at(0).toBool());
+}
+
+namespace
+{
+/**
+ * A stand-in Ollama that keeps the body of every request it was sent and
+ * answers each of them.
+ *
+ * The one answer serves a chat and an embedding alike, so that a case using
+ * this can vary the address and the model and nothing else. It waits for the
+ * announced length before it reads: `QNetworkAccessManager` sends the headers
+ * and the JSON body in segments of their own, and a recorder that stops at the
+ * empty line would write down half a request.
+ */
+void recordAndAnswer(QTcpServer *server, const std::shared_ptr<QStringList> &asked)
+{
+    QObject::connect(server, &QTcpServer::newConnection, server, [server, asked] {
+        QTcpSocket *socket = server->nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        QObject::connect(socket, &QTcpSocket::readyRead, socket, [socket, request, asked] {
+            request->append(socket->readAll());
+            const qsizetype headersEnd = request->indexOf("\r\n\r\n");
+            if (headersEnd < 0) {
+                return;
+            }
+            const QByteArray announced = QByteArray("Content-Length: ");
+            const qsizetype at = request->indexOf(announced);
+            const qsizetype length = at < 0
+                ? 0
+                : request->mid(at + announced.size(), request->indexOf("\r\n", at) - at - announced.size()).toLongLong();
+            const QByteArray body = request->mid(headersEnd + 4);
+            if (body.size() < length) {
+                return;
+            }
+
+            asked->append(QString::fromUtf8(body));
+            const QByteArray answer = R"({"message":{"content":"ok"},"embeddings":[[0.5]]})";
+            socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                          + QByteArray::number(answer.size()) + "\r\nConnection: close\r\n\r\n" + answer);
+            socket->disconnectFromHost();
+        });
+    });
+}
+}
+
+void AiTest::aChangedAddressAndModelReachTheRunningProvider()
+{
+    // The daemon holds one provider for the whole session, and until issue #119
+    // it read the address and the two models once at construction: what the
+    // settings dialog wrote reached the next start of the daemon and nothing
+    // before it. Silently, and worse than silently — "Test connection" on that
+    // same page works with the value out of the form, so it reported the new
+    // address as reachable while every analysis run went on talking to the old
+    // server.
+    //
+    // **The old address is asked first and that is asserted before anything
+    // changes** (CLAUDE.md, finding 27): "it takes the new value" is green over
+    // a provider that never had the old one — the first server has to be shown
+    // to have been the one answering.
+    QTcpServer chosen;
+    QTcpServer replacement;
+    QVERIFY2(chosen.listen(QHostAddress::LocalHost), qPrintable(chosen.errorString()));
+    QVERIFY2(replacement.listen(QHostAddress::LocalHost), qPrintable(replacement.errorString()));
+
+    auto askedChosen = std::make_shared<QStringList>();
+    auto askedReplacement = std::make_shared<QStringList>();
+    recordAndAnswer(&chosen, askedChosen);
+    recordAndAnswer(&replacement, askedReplacement);
+
+    // Written into the same KSharedConfig instance the provider reads from, so
+    // what the file is called plays no part here (CLAUDE.md, finding 42). The
+    // model names are made up: what is asserted is which of them arrived, and a
+    // real one could arrive because something else put it there.
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
+    // Taken away again whatever happens below, and that is not tidiness: a case
+    // that dies on an assertion would otherwise leave a made-up model in the
+    // group everyNoteGetsItsOwnVector() reads its default out of, and the next
+    // case would go red on this one's leftovers (CLAUDE.md, finding 47's
+    // family — a red that says nothing about the code under it).
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
+
+    group.writeEntry("OllamaUrl", QStringLiteral("http://127.0.0.1:%1").arg(chosen.serverPort()));
+    group.writeEntry("ChatModel", QStringLiteral("first-language-model"));
+    group.writeEntry("EmbeddingModel", QStringLiteral("first-embedding-model"));
+
+    OllamaProvider provider;
+    provider.setTimeout(std::chrono::seconds(5));
+
+    QSignalSpy chats(&provider, &AiProvider::chatFinished);
+    provider.chat(QStringLiteral("ping"));
+    QVERIFY(chats.wait(std::chrono::seconds(10)));
+    QCOMPARE(askedChosen->size(), 1);
+    QVERIFY2(askedChosen->constFirst().contains(QStringLiteral("first-language-model")),
+             qPrintable(askedChosen->constFirst()));
+
+    // Now the dialog writes, and the daemon goes on running.
+    group.writeEntry("OllamaUrl", QStringLiteral("http://127.0.0.1:%1").arg(replacement.serverPort()));
+    group.writeEntry("ChatModel", QStringLiteral("second-language-model"));
+    group.writeEntry("EmbeddingModel", QStringLiteral("second-embedding-model"));
+    provider.reloadSettings();
+
+    provider.chat(QStringLiteral("ping"));
+    QVERIFY(chats.wait(std::chrono::seconds(10)));
+    QCOMPARE(askedReplacement->size(), 1);
+    QVERIFY2(askedReplacement->constFirst().contains(QStringLiteral("second-language-model")),
+             qPrintable(askedReplacement->constFirst()));
+
+    // The embedding model of SPEC 7.1 takes the same road, and it is a second
+    // key: a reload that only re-read the address would stand green above.
+    QSignalSpy embeddings(&provider, &AiProvider::embedFinished);
+    provider.embed(QStringLiteral("ping"));
+    QVERIFY(embeddings.wait(std::chrono::seconds(10)));
+    QCOMPARE(askedReplacement->size(), 2);
+    QVERIFY2(askedReplacement->constLast().contains(QStringLiteral("second-embedding-model")),
+             qPrintable(askedReplacement->constLast()));
+
+    // And the server that used to be asked was not asked again — the one
+    // reading that tells a changed address from a second address answering
+    // beside the first.
+    QCOMPARE(askedChosen->size(), 1);
 }
 
 void AiTest::connectionTestMeasuresBothCallsSeparately()
