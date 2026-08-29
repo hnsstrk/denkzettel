@@ -971,6 +971,37 @@ find.
     a broken deletion nor a broken test. What carries: an action that is only
     reached through one button does not go into `window.actions()` at all.
 
+62. **A guarantee that hangs on one end is measured at one end, and the run
+    says yes.** Measured 2026-08-29 on #47, by the review: the switch of
+    SPEC 13 bars the *source* — with it off the KWin script is never loaded —
+    and the nested run showed exactly that, `isScriptLoaded b false` and zero
+    calls on the bus, twice over, with a control that came out different. Every
+    one of those numbers was right, and the assurance was still open at the
+    other end: the receiving method sat on the session bus and took a value
+    from anybody who called it, switch or no switch, so on that side the two
+    states were indistinguishable. The same shape in the same class: the load
+    was read back with `isScriptLoaded`, the **unload** was read back with
+    nothing. **Name both ends of an assurance before measuring either** — what
+    produces the data and what accepts it, what switches a thing on and what
+    switches it off — and read each of them back on its own. A run that only
+    ever asks the end you built is finding 40's family with the roles swapped:
+    there the check and the code read the same documentation, here they measure
+    the same half.
+
+63. **A check that walks the story's one road is green over the state the other
+    road leaves behind.** Measured 2026-08-29 on #47:
+    `takesTheOriginOffANoteAndPutsItBack()` removed the origin, undid it and
+    asserted the value was back — and it was, until the next save. `saveEdit()`
+    wrote the copy of the note the editor was opened with, `updateNote()` writes
+    every column, and so the restored value went away again without a word. The
+    case could not see it because it never opened the editor. Two things follow,
+    and the second is the one that costs: whatever a story writes gets asserted
+    **after every other road that writes the same row**, and a whole-row write
+    from a snapshot is the fault itself — not a fault of the column the story
+    added, but one waiting for every column any later story adds beside it. The
+    lazy fix and the root-cause fix were the same line: read the row back
+    instead of keeping a copy.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
