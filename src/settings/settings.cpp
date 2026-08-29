@@ -134,8 +134,3 @@ QString Settings::vaultPath() const
 {
     return m_vaultPath;
 }
-
-bool Settings::storeOrigin() const
-{
-    return m_storeOrigin;
-}
