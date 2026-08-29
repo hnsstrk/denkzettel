@@ -4,10 +4,14 @@
 
 #include <KLocalizedString>
 
+#include <QElapsedTimer>
 #include <QSignalSpy>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTest>
 
 #include <chrono>
+#include <memory>
 
 /**
  * The AI provider interface, its Ollama reply mapping and the connection test
@@ -42,6 +46,9 @@ private Q_SLOTS:
     void missingFieldIsNotSuccess();
 
     void defaultsAreTheModelsOfTheSpec();
+
+    void nothingIsAskedTwiceWhenNobodyAnswers();
+    void aServerThatAnsweredIsNotAskedAgain();
 
     void connectionTestMeasuresBothCallsSeparately();
     void connectionTestReportsTheFirstError();
@@ -92,14 +99,13 @@ void AiTest::timeoutIsNamedAsOne()
     QCOMPARE(timedOut.error, QStringLiteral("Ollama did not answer within the time limit."));
     QCOMPARE(timedOut.text, QString());
 
-    // And an abort, which is what Qt's documentation of setTransferTimeout
-    // names. Same statement to the user.
-    const OllamaAnswer aborted = readOllamaReply(OllamaCall::Chat,
-                                                 QNetworkReply::OperationCanceledError,
-                                                 QStringLiteral("Operation canceled"),
-                                                 0,
-                                                 QByteArray());
-    QCOMPARE(aborted.error, QStringLiteral("Ollama did not answer within the time limit."));
+    // OperationCanceledError, which Qt's documentation names for the same
+    // limit, is deliberately NOT asserted here. Nothing in this program can
+    // produce it — it takes an abort() or a close() on a running reply, and
+    // there is none in the tree — so a case handing it in would be finding 40
+    // written into the very set that records it: a guarantee over a value the
+    // code never sees. The mapping keeps the value; the comment there says
+    // what would reach it.
 }
 
 void AiTest::ollamasOwnRefusalBeatsTheStatusCode()
@@ -180,6 +186,90 @@ void AiTest::defaultsAreTheModelsOfTheSpec()
     const OllamaProvider provider;
     QCOMPARE(provider.chatModel(), QStringLiteral("qwen3:8b"));
     QCOMPARE(provider.embeddingModel(), QStringLiteral("bge-m3"));
+}
+
+void AiTest::nothingIsAskedTwiceWhenNobodyAnswers()
+{
+    // The one guarantee of this class that would fail without a sound: a
+    // second HTTP request nobody sees. Until 2026-08-29 the provider repeated
+    // a request whose limit had been hit, which turned the 30 s of SPEC 7.1
+    // into a minute per call and put a second generation — and a second bill —
+    // on every provider that charges (SPEC 7.1 names openrouter and OpenAI
+    // beside Ollama).
+    //
+    // A QTcpServer in this process, on the loopback interface: no name is
+    // resolved, no route is used and nothing leaves the machine. **It does
+    // need loopback to be up**, which a bare `unshare -rn` does not give — the
+    // interface exists there and is DOWN (measured 2026-08-29). Whoever wants
+    // to repeat that demonstration brings it up first:
+    // `unshare -rn sh -c 'ip link set lo up; ./build/bin/aitest'`.
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    int connections = 0;
+    // Accepted and then held for ever. A socket that is merely accepted and
+    // never answered is what a server behind a hung model looks like, and it
+    // is the only thing that makes the limit the thing under test.
+    connect(&server, &QTcpServer::newConnection, this, [&server, &connections] {
+        ++connections;
+        server.nextPendingConnection();
+    });
+
+    OllamaProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort())));
+    provider.setTimeout(std::chrono::milliseconds(300));
+
+    QSignalSpy finished(&provider, &AiProvider::chatFinished);
+    QElapsedTimer wall;
+    wall.start();
+    provider.chat(QStringLiteral("ping"));
+
+    QVERIFY(finished.wait(std::chrono::seconds(10)));
+    QCOMPARE(finished.constFirst().at(2).toString(),
+             QStringLiteral("Ollama did not answer within the time limit."));
+
+    // The count is the finding, and the clock is the second reading of it: a
+    // repeat cannot hide inside a limit that is served twice.
+    QCOMPARE(connections, 1);
+    QVERIFY2(wall.elapsed() < 600, qPrintable(QString::number(wall.elapsed())));
+}
+
+void AiTest::aServerThatAnsweredIsNotAskedAgain()
+{
+    // The other half of the same guarantee, and the guard on the ceiling the
+    // old comment named: whoever adds an HTTP 5xx to a repeat later finds this
+    // case red. A server that answered has had the request; asking again is a
+    // second job, not a second chance.
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    int connections = 0;
+    connect(&server, &QTcpServer::newConnection, this, [&server, &connections] {
+        ++connections;
+        QTcpSocket *socket = server.nextPendingConnection();
+        // Answered once the headers are complete, not on the first byte that
+        // arrives: a POST body may follow in a segment of its own.
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            socket->write("HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+            socket->disconnectFromHost();
+        });
+    });
+
+    OllamaProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort())));
+    provider.setTimeout(std::chrono::seconds(5));
+
+    QSignalSpy finished(&provider, &AiProvider::embedFinished);
+    provider.embed(QStringLiteral("ping"));
+
+    QVERIFY(finished.wait(std::chrono::seconds(10)));
+    QCOMPARE(finished.constFirst().at(2).toString(), QStringLiteral("Ollama answered with HTTP status 503."));
+    QCOMPARE(connections, 1);
 }
 
 void AiTest::connectionTestMeasuresBothCallsSeparately()

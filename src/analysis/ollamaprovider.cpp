@@ -8,35 +8,9 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 
-namespace
-{
-/**
- * Whether a second attempt can come out differently from the first.
- *
- * ponytail: transport-level failures and the timeout, nothing the server said.
- * An answer Ollama gave — a model that is not pulled, a malformed request —
- * comes out the same on the second try, and the retry would only double the
- * wait before the user is told. The ceiling is a genuinely transient HTTP 5xx,
- * which is not retried here; the way up is to add the status to this decision
- * once such a case has been seen.
- */
-bool isWorthRetrying(QNetworkReply::NetworkError transport)
-{
-    switch (transport) {
-    case QNetworkReply::ConnectionRefusedError:
-    case QNetworkReply::RemoteHostClosedError:
-    case QNetworkReply::HostNotFoundError:
-    case QNetworkReply::TimeoutError:
-    case QNetworkReply::OperationCanceledError:
-    case QNetworkReply::TemporaryNetworkFailureError:
-    case QNetworkReply::NetworkSessionFailedError:
-    case QNetworkReply::UnknownNetworkError:
-        return true;
-    default:
-        return false;
-    }
-}
-}
+// No namespace of its own any more: the decision which errors are worth
+// repeating used to live here, and every one of its entries fell to a
+// measurement (issue #13, 2026-08-29). What is left is in send() below.
 
 OllamaAnswer readOllamaReply(OllamaCall call,
                              QNetworkReply::NetworkError transport,
@@ -45,11 +19,17 @@ OllamaAnswer readOllamaReply(OllamaCall call,
                              const QByteArray &body)
 {
     // The timeout of SPEC 7.1, and it arrives as TimeoutError — measured on
-    // 2026-08-29 against a real Ollama with the limit set to 5 ms. Qt's
-    // documentation of setTransferTimeout names OperationCanceledError, which
-    // an abort of ours would produce; both are the same statement to the user,
-    // and mapping only the documented one left this case falling through to
-    // "could not be reached: Zeitüberschreitung".
+    // 2026-08-29 against a real Ollama with the limit set to 5 ms. Mapping only
+    // the OperationCanceledError that Qt's documentation of setTransferTimeout
+    // names left this case falling through to "could not be reached:
+    // Zeitüberschreitung", the transport's sentence over a limit of ours.
+    //
+    // OperationCanceledError stays beside it and **nothing in this program
+    // reaches it today**: it takes an abort() or a close() on a running reply,
+    // and there is none in the tree. It is not asserted anywhere for that
+    // reason (CLAUDE.md, finding 40). What would reach it is a cancel button on
+    // a running analysis run, or a Qt that starts doing what its own
+    // documentation says — and either way the sentence is the right one.
     if (transport == QNetworkReply::TimeoutError || transport == QNetworkReply::OperationCanceledError) {
         return {{}, {}, i18n("Ollama did not answer within the time limit.")};
     }
@@ -154,7 +134,7 @@ int OllamaProvider::chat(const QString &prompt)
     };
 
     const int id = nextRequestId();
-    send(id, OllamaCall::Chat, QStringLiteral("/api/chat"), body, 0);
+    send(id, OllamaCall::Chat, QStringLiteral("/api/chat"), body);
     return id;
 }
 
@@ -166,11 +146,11 @@ int OllamaProvider::embed(const QString &text)
     };
 
     const int id = nextRequestId();
-    send(id, OllamaCall::Embed, QStringLiteral("/api/embed"), body, 0);
+    send(id, OllamaCall::Embed, QStringLiteral("/api/embed"), body);
     return id;
 }
 
-void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJsonObject &body, int attempt)
+void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJsonObject &body)
 {
     QNetworkRequest request(m_url.resolved(QUrl(path)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
@@ -181,7 +161,7 @@ void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJ
 
     QNetworkReply *reply = m_network.post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, id, call, path, body, attempt] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, id, call] {
         reply->deleteLater();
         const OllamaAnswer answer = readOllamaReply(call,
                                                     reply->error(),
@@ -190,11 +170,6 @@ void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJ
                                                     // An aborted reply is closed, and reading it anyway
                                                     // only earns a "device not open" from QIODevice.
                                                     reply->isOpen() ? reply->readAll() : QByteArray());
-
-        if (!answer.error.isEmpty() && attempt == 0 && isWorthRetrying(reply->error())) {
-            send(id, call, path, body, attempt + 1);
-            return;
-        }
 
         if (call == OllamaCall::Chat) {
             Q_EMIT chatFinished(id, answer.text, answer.error);
