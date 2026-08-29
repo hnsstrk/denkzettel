@@ -17,7 +17,8 @@ license=('MIT')
 
 depends=(
     # Widgets, Sql (the SQLite driver of SPEC 5.1), DBus (single instance,
-    # service interface, and the question to KWin whether this session blurs).
+    # service interface, and the question to KWin whether this session blurs),
+    # Network (the two HTTP calls to the AI backend, SPEC 7.1).
     'qt6-base'
     'qt6-multimedia'
     # NOT transitive and not interchangeable: qt6-multimedia depends on the

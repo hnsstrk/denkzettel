@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 10:47+0200\n"
+"POT-Creation-Date: 2026-08-29 11:56+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -19,6 +19,41 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/analysis/ollamaprovider.cpp:55
+#, kde-format
+msgid "Ollama did not answer within the time limit."
+msgstr "Ollama hat nicht innerhalb der Zeitgrenze geantwortet."
+
+#: src/analysis/ollamaprovider.cpp:67
+#, kde-format
+msgid "Ollama refused the request: %1"
+msgstr "Ollama hat die Anfrage abgelehnt: %1"
+
+#: src/analysis/ollamaprovider.cpp:71
+#, kde-format
+msgid "Ollama could not be reached: %1"
+msgstr "Ollama war nicht erreichbar: %1"
+
+#: src/analysis/ollamaprovider.cpp:75
+#, kde-format
+msgid "Ollama answered with HTTP status %1."
+msgstr "Ollama hat mit HTTP-Status %1 geantwortet."
+
+#: src/analysis/ollamaprovider.cpp:79
+#, kde-format
+msgid "Ollama sent an unreadable answer: %1"
+msgstr "Ollama hat eine unlesbare Antwort geschickt: %1"
+
+#: src/analysis/ollamaprovider.cpp:85
+#, kde-format
+msgid "Ollama's answer carried no text."
+msgstr "Die Antwort von Ollama enthielt keinen Text."
+
+#: src/analysis/ollamaprovider.cpp:95
+#, kde-format
+msgid "Ollama's answer carried no embedding."
+msgstr "Die Antwort von Ollama enthielt kein Embedding."
 
 #: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:77
@@ -257,7 +292,7 @@ msgctxt "@info elapsed and total playing time of a voice note"
 msgid "%1 / %2"
 msgstr "%1 / %2"
 
-#: src/ui/librarywindow.cpp:82
+#: src/ui/librarywindow.cpp:83
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "%1 (%2)"
@@ -265,17 +300,17 @@ msgstr "%1 (%2)"
 
 #. i18n() and must not depend on which KF6
 #. catalogue happens to be installed.
-#: src/ui/librarywindow.cpp:184 src/ui/librarywindow.cpp:410
+#: src/ui/librarywindow.cpp:185 src/ui/librarywindow.cpp:412
 #, kde-format
 msgid "Delete"
 msgstr "Löschen"
 
-#: src/ui/librarywindow.cpp:189
+#: src/ui/librarywindow.cpp:190
 #, kde-format
 msgid "Undo"
 msgstr "Rückgängig"
 
-#: src/ui/librarywindow.cpp:190 src/ui/librarywindow.cpp:403
+#: src/ui/librarywindow.cpp:191 src/ui/librarywindow.cpp:405
 #, kde-format
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -285,103 +320,103 @@ msgstr "Bearbeiten"
 #. The order the three appear in is the platform's. What this window fixes
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
-#: src/ui/librarywindow.cpp:191 src/ui/librarywindow.cpp:488
-#: src/ui/librarywindow.cpp:1209
+#: src/ui/librarywindow.cpp:192 src/ui/librarywindow.cpp:490
+#: src/ui/librarywindow.cpp:1216
 #, kde-format
 msgid "Save"
 msgstr "Speichern"
 
-#: src/ui/librarywindow.cpp:192 src/ui/librarywindow.cpp:491
-#: src/ui/librarywindow.cpp:1211
+#: src/ui/librarywindow.cpp:193 src/ui/librarywindow.cpp:493
+#: src/ui/librarywindow.cpp:1218
 #, kde-format
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: src/ui/librarywindow.cpp:201
+#: src/ui/librarywindow.cpp:203
 #, kde-format
 msgctxt "@title:window"
 msgid "Library"
 msgstr "Bibliothek"
 
-#: src/ui/librarywindow.cpp:211
+#: src/ui/librarywindow.cpp:213
 #, kde-format
 msgid "No notes yet"
 msgstr "Noch keine Notizen"
 
-#: src/ui/librarywindow.cpp:212
+#: src/ui/librarywindow.cpp:214
 #, kde-format
 msgid "Press Meta+N to capture a thought."
 msgstr "Mit Meta+N einen Gedanken festhalten."
 
-#: src/ui/librarywindow.cpp:217
+#: src/ui/librarywindow.cpp:219
 #, kde-format
 msgid "No matches"
 msgstr "Keine Treffer"
 
-#: src/ui/librarywindow.cpp:218
+#: src/ui/librarywindow.cpp:220
 #, kde-format
 msgid "Change the search term or clear the field."
 msgstr "Den Suchbegriff ändern oder das Feld leeren."
 
-#: src/ui/librarywindow.cpp:227
+#: src/ui/librarywindow.cpp:229
 #, kde-format
 msgid "No note selected"
 msgstr "Keine Notiz ausgewählt"
 
-#: src/ui/librarywindow.cpp:228
+#: src/ui/librarywindow.cpp:230
 #, kde-format
 msgid "Select a note on the left to read it."
 msgstr "Zum Lesen links eine Notiz auswählen."
 
-#: src/ui/librarywindow.cpp:294
+#: src/ui/librarywindow.cpp:296
 #, kde-format
 msgctxt "@action"
 msgid "Edit note"
 msgstr "Notiz bearbeiten"
 
-#: src/ui/librarywindow.cpp:295
+#: src/ui/librarywindow.cpp:297
 #, kde-format
 msgctxt "@action"
 msgid "Delete note"
 msgstr "Notiz löschen"
 
-#: src/ui/librarywindow.cpp:296
+#: src/ui/librarywindow.cpp:298
 #, kde-format
 msgctxt "@action"
 msgid "Undo deletion"
 msgstr "Löschen rückgängig machen"
 
-#: src/ui/librarywindow.cpp:326
+#: src/ui/librarywindow.cpp:328
 #, kde-format
 msgid "Note deleted — %1 s left"
 msgstr "Notiz gelöscht — noch %1 s"
 
-#: src/ui/librarywindow.cpp:368
+#: src/ui/librarywindow.cpp:370
 #, kde-format
 msgid "Full-text search…"
 msgstr "Volltextsuche …"
 
-#: src/ui/librarywindow.cpp:391
+#: src/ui/librarywindow.cpp:393
 #, kde-format
 msgid "Editing"
 msgstr "wird bearbeitet"
 
-#: src/ui/librarywindow.cpp:479
+#: src/ui/librarywindow.cpp:481
 #, kde-format
 msgid "Category"
 msgstr "Kategorie"
 
-#: src/ui/librarywindow.cpp:482
+#: src/ui/librarywindow.cpp:484
 #, kde-format
 msgid "Tags"
 msgstr "Tags"
 
-#: src/ui/librarywindow.cpp:502
+#: src/ui/librarywindow.cpp:504
 #, kde-format
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr "Esc bricht ab · Strg+Enter speichert"
 
-#: src/ui/librarywindow.cpp:1188
+#: src/ui/librarywindow.cpp:1195
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -393,18 +428,18 @@ msgstr ""
 "Die bearbeitete Notiz (%1) hat ungespeicherte Änderungen. Ohne Speichern "
 "gehen sie verloren."
 
-#: src/ui/librarywindow.cpp:1192
+#: src/ui/librarywindow.cpp:1199
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr "Ungespeicherte Änderungen"
 
-#: src/ui/librarywindow.cpp:1210
+#: src/ui/librarywindow.cpp:1217
 #, kde-format
 msgid "Discard"
 msgstr "Verwerfen"
 
-#: src/ui/librarywindow.cpp:1283
+#: src/ui/librarywindow.cpp:1290
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "

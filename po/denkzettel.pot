@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 10:47+0200\n"
+"POT-Creation-Date: 2026-08-29 11:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,41 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: src/analysis/ollamaprovider.cpp:55
+#, kde-format
+msgid "Ollama did not answer within the time limit."
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:67
+#, kde-format
+msgid "Ollama refused the request: %1"
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:71
+#, kde-format
+msgid "Ollama could not be reached: %1"
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:75
+#, kde-format
+msgid "Ollama answered with HTTP status %1."
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:79
+#, kde-format
+msgid "Ollama sent an unreadable answer: %1"
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:85
+#, kde-format
+msgid "Ollama's answer carried no text."
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:95
+#, kde-format
+msgid "Ollama's answer carried no embedding."
+msgstr ""
 
 #: src/capture/capturewindow.cpp:262 src/capture/capturewindow.cpp:323
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:77
@@ -235,7 +270,7 @@ msgctxt "@info elapsed and total playing time of a voice note"
 msgid "%1 / %2"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:82
+#: src/ui/librarywindow.cpp:83
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "%1 (%2)"
@@ -243,17 +278,17 @@ msgstr ""
 
 #. i18n() and must not depend on which KF6
 #. catalogue happens to be installed.
-#: src/ui/librarywindow.cpp:184 src/ui/librarywindow.cpp:410
+#: src/ui/librarywindow.cpp:185 src/ui/librarywindow.cpp:412
 #, kde-format
 msgid "Delete"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:189
+#: src/ui/librarywindow.cpp:190
 #, kde-format
 msgid "Undo"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:190 src/ui/librarywindow.cpp:403
+#: src/ui/librarywindow.cpp:191 src/ui/librarywindow.cpp:405
 #, kde-format
 msgid "Edit"
 msgstr ""
@@ -263,103 +298,103 @@ msgstr ""
 #. The order the three appear in is the platform's. What this window fixes
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
-#: src/ui/librarywindow.cpp:191 src/ui/librarywindow.cpp:488
-#: src/ui/librarywindow.cpp:1209
+#: src/ui/librarywindow.cpp:192 src/ui/librarywindow.cpp:490
+#: src/ui/librarywindow.cpp:1216
 #, kde-format
 msgid "Save"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:192 src/ui/librarywindow.cpp:491
-#: src/ui/librarywindow.cpp:1211
+#: src/ui/librarywindow.cpp:193 src/ui/librarywindow.cpp:493
+#: src/ui/librarywindow.cpp:1218
 #, kde-format
 msgid "Cancel"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:201
+#: src/ui/librarywindow.cpp:203
 #, kde-format
 msgctxt "@title:window"
 msgid "Library"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:211
+#: src/ui/librarywindow.cpp:213
 #, kde-format
 msgid "No notes yet"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:212
+#: src/ui/librarywindow.cpp:214
 #, kde-format
 msgid "Press Meta+N to capture a thought."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:217
+#: src/ui/librarywindow.cpp:219
 #, kde-format
 msgid "No matches"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:218
+#: src/ui/librarywindow.cpp:220
 #, kde-format
 msgid "Change the search term or clear the field."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:227
+#: src/ui/librarywindow.cpp:229
 #, kde-format
 msgid "No note selected"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:228
+#: src/ui/librarywindow.cpp:230
 #, kde-format
 msgid "Select a note on the left to read it."
-msgstr ""
-
-#: src/ui/librarywindow.cpp:294
-#, kde-format
-msgctxt "@action"
-msgid "Edit note"
-msgstr ""
-
-#: src/ui/librarywindow.cpp:295
-#, kde-format
-msgctxt "@action"
-msgid "Delete note"
 msgstr ""
 
 #: src/ui/librarywindow.cpp:296
 #, kde-format
 msgctxt "@action"
+msgid "Edit note"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:297
+#, kde-format
+msgctxt "@action"
+msgid "Delete note"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:298
+#, kde-format
+msgctxt "@action"
 msgid "Undo deletion"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:326
+#: src/ui/librarywindow.cpp:328
 #, kde-format
 msgid "Note deleted — %1 s left"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:368
+#: src/ui/librarywindow.cpp:370
 #, kde-format
 msgid "Full-text search…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:391
+#: src/ui/librarywindow.cpp:393
 #, kde-format
 msgid "Editing"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:479
+#: src/ui/librarywindow.cpp:481
 #, kde-format
 msgid "Category"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:482
+#: src/ui/librarywindow.cpp:484
 #, kde-format
 msgid "Tags"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:502
+#: src/ui/librarywindow.cpp:504
 #, kde-format
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1188
+#: src/ui/librarywindow.cpp:1195
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -367,18 +402,18 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1192
+#: src/ui/librarywindow.cpp:1199
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1210
+#: src/ui/librarywindow.cpp:1217
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1283
+#: src/ui/librarywindow.cpp:1290
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
