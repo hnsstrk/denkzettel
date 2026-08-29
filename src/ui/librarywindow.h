@@ -10,6 +10,7 @@
 #include <optional>
 
 class AudioPlayer;
+class NoteListDelegate;
 class NoteListModel;
 class PendingDeletion;
 class Store;
@@ -204,6 +205,7 @@ private:
     QSplitter *m_splitter;
     QLineEdit *m_search;
     QListView *m_list;
+    NoteListDelegate *m_delegate;
     KMessageWidget *m_message;
 
     QStackedWidget *m_listPages;

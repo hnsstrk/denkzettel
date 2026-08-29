@@ -536,6 +536,42 @@ find.
     a stand-in owning the name is part of the run, and it is what the "already
     activated" line in the daemon's output is really reporting.
 
+38. **`KColorScheme` never reads the application palette — a runner that sets
+    its palette by hand measures two sources at once.** Measured 2026-08-29 on
+    #77, where the mark under a hit is `NeutralBackground` of the View set.
+    `readmeshots` throws its configuration directory away and then sets a dark
+    palette in code; in such a run `QApplication::palette()` says
+    `Base #141618` and `Text #fcfcfc`, while
+    `KColorScheme(QPalette::Normal, KColorScheme::View)` hands back the
+    built-in **light** defaults — background `#ffffff`,
+    `NeutralBackground #fef1ea`, `NormalText #232629`. A picture taken that way
+    shows a near-white mark in a dark window and reads as a fault of the
+    product; it is a fault of the runner. That is finding 8 one storey further
+    down: not the theme graphic this time, but every colour role a widget asks
+    for. What works is a `kdeglobals` of the run's own — copy a `.colors` file
+    out of `/usr/share/color-schemes/` into the throwaway `XDG_CONFIG_HOME`
+    **before** `QApplication`, and the platform theme and `KColorScheme` read
+    the same file: `#3c1f05` on `#fcfcfc` under BreezeDark, `#fef1ea` on
+    `#232629` under BreezeLight. And read the colour back inside the run, the
+    way finding 28 reads the style name back.
+
+39. **A picture that looks right does not say the rest of the window is
+    unchanged — the difference against the unchanged build does.** Measured
+    2026-08-29 on #77: the lines carrying a mark were laid out through
+    `QTextLayout` while every other line went on through
+    `QPainter::drawText()`, and the marked line came out **one device pixel
+    higher** than its neighbours. Nothing in the picture said so — the mark sat
+    on the right letters and the row looked like the rest. The pixel difference
+    against the same picture taken from the unchanged build named it in one
+    step: not the mark alone but the **whole** line differed, x 20 to 425, and
+    moving the new picture down by one row cut the summed channel difference
+    over that line from 477,435 to 147,493. With the type going through the
+    same `drawText()` in both cases and only the mark's ground and its clipped
+    second pass added, the difference shrank to exactly the two mark
+    rectangles and nothing else. Whoever changes how something is drawn
+    compares pictures: what the change was not meant to touch has to come out
+    **bit for bit** as it was.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

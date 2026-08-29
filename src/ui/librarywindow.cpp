@@ -1,6 +1,7 @@
 #include "ui/librarywindow.h"
 
 #include "platform/systemfonts.h"
+#include "store/searchquery.h"
 #include "store/store.h"
 #include "ui/audioplayer.h"
 #include "ui/notelistdelegate.h"
@@ -192,6 +193,7 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_cancelEditAction(new QAction(i18n("Cancel"), this))
     , m_splitter(new QSplitter(Qt::Horizontal, this))
     , m_list(new QListView(this))
+    , m_delegate(new NoteListDelegate(m_list))
     , m_message(new KMessageWidget(this))
 {
     // Only what this window is, not the application name: the window decoration
@@ -201,7 +203,7 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     setWindowTitle(i18nc("@title:window", "Library"));
 
     m_list->setModel(m_model);
-    m_list->setItemDelegate(new NoteListDelegate(m_list));
+    m_list->setItemDelegate(m_delegate);
     m_list->setSelectionMode(QAbstractItemView::SingleSelection);
     m_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -679,6 +681,11 @@ void LibraryWindow::reload(Selection selection)
     // brings a head row along with them.
     const qint64 selected =
         selection == Selection::Keep ? m_model->noteAt(m_list->currentIndex().row()).id : -1;
+
+    // The same text that picks the notes says what is marked in them, and it
+    // is the parsed terms rather than the field: `tag:` and its four siblings
+    // pick a note and stand in none of them (issue #77).
+    m_delegate->setSearchTerms(parseSearchQuery(m_search->text()).terms);
 
     // An empty search field returns the whole library from the store, so the
     // full list and a result list are the same code path — and clearing the
