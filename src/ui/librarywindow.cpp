@@ -618,18 +618,26 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
         }
     });
     connect(m_deletion, &PendingDeletion::committed, this, [this] {
+        // The note is out of the store now, and until this line the column went
+        // on counting it: deleteCurrentNote() takes the row out of the list and
+        // leaves the counters standing, which is right while the grace period
+        // runs — the note is still there to be undone — and wrong from the
+        // moment it is over. "All" then read one more than the list showed. The
+        // tray tooltip is what made it visible: the last note out of the
+        // given-up set has to take the error state with it (issue #118), and
+        // the recount is what carries it there.
+        //
+        // **Before the guard below and not inside it**, and that is the whole
+        // of the second road: with a second deletion started while the first
+        // was still counting down, isPending() is true when the first one is
+        // carried out, and the counters would then stand for good — no further
+        // commit is coming for that note. Every deletion carried out is a
+        // deletion; what the guard belongs to is the message band, which may
+        // only go while nothing is waiting on it.
+        updateCategoryCounts();
         if (!m_deletion->isPending()) {
             m_undoAction->setEnabled(false);
             m_message->animatedHide();
-            // The note is out of the store now, and until this line the column
-            // went on counting it: deleteCurrentNote() takes the row out of the
-            // list and leaves the counters standing, which is right while the
-            // grace period runs — the note is still there to be undone — and
-            // wrong from the moment it is over. "All" then read one more than
-            // the list showed. The tray tooltip is what made it visible: the
-            // last note out of the given-up set has to take the error state
-            // with it (issue #118), and the recount is what carries it there.
-            updateCategoryCounts();
             // The period is over, so a note that arrived during it can come in
             // now. A second deletion that has taken over leaves it waiting.
             if (m_newNoteWaits) {

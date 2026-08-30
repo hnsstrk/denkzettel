@@ -295,7 +295,9 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   blieben aber stehen — „Alle" nannte eine mehr, als die Liste zeigte, bis
   irgendetwas anderes die Liste neu einlas. Während der Widerrufsfrist ist das
   richtig, die Notiz steht ja noch; von dem Moment an, in dem die Frist abläuft,
-  war es falsch. Jetzt werden die Zähler genau dann neu gerechnet (#118).
+  war es falsch. Jetzt werden die Zähler bei **jeder** ausgeführten Löschung neu
+  gerechnet — auch bei der ersten von zweien, deren zweite noch mitzählt, wo sie
+  sonst dauerhaft stehen geblieben wären (#118).
 
 - **The empty library names the shortcut you actually have.** „Mit Meta+N einen
   Gedanken festhalten." stood there whatever key was set — the sequence was
