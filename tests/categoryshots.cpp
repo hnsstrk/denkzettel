@@ -42,13 +42,51 @@
  * data, so no run of this may ever take its material out of the session
  * somebody is working in.
  *
- * Usage — the environment is not optional, see rule 2 and finding 28:
+ * Usage — the environment is not optional, see rule 2 and finding 28.
+ *
+ * **The pictures under `docs/images/reviews/` are the German ones**, because
+ * the wording of the new row is what this issue decided and the customer reads
+ * German. So the second call below is the one that reproduces them; the first
+ * writes the same windows in the source language and belongs somewhere else.
+ * Running the English call against `docs/images/reviews` rewrites all seven
+ * files — checked, and the reason this block says so: a runner whose documented
+ * invocation does not reproduce its own committed pictures is the silent trap
+ * this project keeps a list for.
+ *
+ * The catalogue has to be findable at runtime, and the **build** is what
+ * compiles it (finding 57), so the order is build, install, run — never install
+ * before build, or the readback names the previous wording:
  *
  *   cmake --build build --target categoryshots
+ *
+ *   conf=$(mktemp -d)
+ *   printf '[Theme]\nname=breeze-dark\n' > "$conf/plasmarc"
+ *
+ *   # English — the source language, no catalogue involved. Writes into a
+ *   # directory of its own; it is not what is committed.
  *   env -u LANGUAGE LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
+ *       XDG_CONFIG_DIRS="$conf:/etc/xdg" \
+ *       QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+ *       QT_FORCE_STDERR_LOGGING=1 \
+ *       build/bin/categoryshots /tmp/categoryshots-en
+ *
+ *   # German — this is what stands in docs/images/reviews/. Installed into a
+ *   # throwaway root with DESTDIR, nothing is written outside it.
+ *   cmake --build build
+ *   dest=$(mktemp -d)
+ *   DESTDIR="$dest" cmake --install build
+ *
+ *   env LANGUAGE=de LANG=de_DE.UTF-8 LC_ALL=de_DE.UTF-8 \
+ *       XDG_DATA_DIRS="$dest/usr/share:/usr/share" XDG_CONFIG_DIRS="$conf:/etc/xdg" \
  *       QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
  *       QT_FORCE_STDERR_LOGGING=1 \
  *       build/bin/categoryshots docs/images/reviews
+ *
+ * The check that turns the second call into evidence is the same call
+ * **without** `XDG_DATA_DIRS`: row 6 has to come out "Waiting for analysis"
+ * then, while row 7 stays "Nicht eingeordnet" — the system catalogue carries
+ * the older string and not the new one, so the difference is exactly the
+ * catalogue this run staged.
  */
 namespace
 {
