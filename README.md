@@ -393,6 +393,13 @@ out of, plus the pixel size of every picture. Without it those lines go into the
 journal instead of onto stderr the moment the output is redirected, and a run
 that is mute looks like a run that had nothing to report.
 
+One run writes **four** pictures, not three: the library comes twice, once with
+the category column and once without it (issue #134). The README shows the first
+of them; the pair exists so that the two states can be held against each other,
+and the runner prints the splitter's division and the visibility of the column
+beside each — no picture can tell a hidden column from one squeezed to width 0,
+which is the state issue #18 measured and excluded.
+
 `QT_QPA_PLATFORMTHEME=kde` has to be set: without it a substitute font takes the
 place of the real one and gets the proportions wrong. The runner works
 deterministically — two runs in a row deliver byte-identical files. The notes

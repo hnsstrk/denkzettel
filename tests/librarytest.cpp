@@ -6,8 +6,10 @@
 #include "ui/searchmarks.h"
 #include "ui/timestampformat.h"
 
+#include <KConfigGroup>
 #include <KLocalizedString>
 #include <KMessageWidget>
+#include <KSharedConfig>
 
 #include <QAction>
 #include <QDialog>
@@ -21,9 +23,12 @@
 #include <QLocale>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QScrollBar>
 #include <QSignalBlocker>
 #include <QSignalSpy>
+#include <QMenu>
+#include <QSplitter>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
@@ -224,6 +229,12 @@ private Q_SLOTS:
 
     void fallsSilentWhenTheNoteLeavesTheReadingPane();
 
+    void hidesTheCategoryColumnAndGivesItsRoomToTheOtherTwo();
+    void keepsTheHiddenColumnAndItsWidthAcrossASession();
+    void showsTheColumnForADenkzettelrcWrittenBeforeThisStory();
+    void takesTheFilterNoFieldShowsOffWithTheColumn_data();
+    void takesTheFilterNoFieldShowsOffWithTheColumn();
+
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
     void carriesOutTheDeletionWhenTheApplicationQuits();
@@ -273,6 +284,19 @@ private:
     static QListView *listOf(const QWidget &window);
     static NoteListModel *modelOf(const QListView *list);
     static QAction *actionNamed(const QWidget &window, const QString &text);
+
+    /**
+     * The entry of the hamburger menu carrying `text`, or nullptr.
+     *
+     * Not actionNamed(): an action reached only through that menu is never
+     * added to the window (CLAUDE.md, finding 61), so window.actions() cannot
+     * see it — and looking in the menu is what the acceptance criterion of
+     * issue #134 asks for anyway, "through the decided control".
+     */
+    static QAction *menuActionNamed(const QWidget &window, const QString &text);
+
+    /** The three-column splitter of the library (issue #134). */
+    static QSplitter *splitterOf(const QWidget &window);
 
     /** The button carrying `text`, or nullptr if the window shows none. */
     static QPushButton *buttonNamed(const QWidget &window, const QString &text);
@@ -828,6 +852,25 @@ QAction *LibraryTest::actionNamed(const QWidget &window, const QString &text)
         }
     }
     return nullptr;
+}
+
+QAction *LibraryTest::menuActionNamed(const QWidget &window, const QString &text)
+{
+    const QList<QMenu *> menus = window.findChildren<QMenu *>();
+    for (const QMenu *menu : menus) {
+        const QList<QAction *> actions = menu->actions();
+        for (QAction *action : actions) {
+            if (action->text() == text) {
+                return action;
+            }
+        }
+    }
+    return nullptr;
+}
+
+QSplitter *LibraryTest::splitterOf(const QWidget &window)
+{
+    return window.findChild<QSplitter *>();
 }
 
 void LibraryTest::analysed(qint64 id, const QString &category, const QStringList &tags)
@@ -3404,6 +3447,290 @@ void LibraryTest::fallsSilentWhenTheNoteLeavesTheReadingPane()
     // And closing the window, the way out that leaves nothing on screen at all.
     window.close();
     QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
+}
+
+namespace
+{
+/** The wording of the checkable menu entry of issue #134, in the source language. */
+const QString ShowColumnEntry = QStringLiteral("Show category column");
+
+/**
+ * Clears the window group of `denkzettelrc` and hands back a guard that clears
+ * it again when the case ends — on the abort path as well (CLAUDE.md,
+ * finding 42).
+ *
+ * The group is shared: every case that closes a library window writes
+ * `ColumnSizes` into it. Left behind, `SidebarHidden` would reach every later
+ * case that builds a window and take the category column away from it — a red
+ * that says nothing about the code under it. The deletion at the end of a case
+ * body would not do, it only runs when the case passes.
+ */
+/**
+ * Lets the event loop turn once, and it is load-bearing here.
+ *
+ * Measured 2026-08-30 while building issue #134: in the turn in which the
+ * category column is hidden, `QSplitter::sizes()` still answers **158** for it
+ * — the widget reports itself invisible at once, the division follows only
+ * when the splitter has laid out again. Read without this, the second end of
+ * the acceptance criterion comes out red over a program that does exactly the
+ * right thing (CLAUDE.md, finding 19's family: the effect arrives after the
+ * call, not inside it).
+ */
+void settle()
+{
+    QCoreApplication::processEvents();
+}
+
+[[nodiscard]] auto clearedWindowGroup()
+{
+    const auto clear = [] {
+        KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Bibliothek"));
+        group.deleteGroup();
+        group.sync();
+    };
+    clear();
+    return qScopeGuard(clear);
+}
+}
+
+void LibraryTest::hidesTheCategoryColumnAndGivesItsRoomToTheOtherTwo()
+{
+    const auto restored = clearedWindowGroup();
+    storedNote(QStringLiteral("Ein Gedanke"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    // Shown and exposed, not built: a splitter hands out the sizes of a laid
+    // out window and not those of a hidden one (CLAUDE.md, finding 14).
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QSplitter *splitter = splitterOf(window);
+    QVERIFY(splitter);
+    const QWidget *sidebar = splitter->widget(0);
+    QVERIFY(sidebar);
+
+    QAction *toggle = menuActionNamed(window, ShowColumnEntry);
+    QVERIFY2(toggle, "the hamburger menu carries no entry for the category column");
+    QVERIFY(toggle->isCheckable());
+    QVERIFY(toggle->isChecked());
+    // Without a symbol: a check mark and a symbol in one menu row compete under
+    // Breeze (UX decision 30.08.2026).
+    QVERIFY(toggle->icon().isNull());
+    // Without a shortcut, and that is a decision and not an omission — the KDE
+    // HIG bar a bare function key, and no modifier combination was invented in
+    // advance.
+    QVERIFY(toggle->shortcut().isEmpty());
+
+    const QList<int> shown = splitter->sizes();
+    QCOMPARE(shown.size(), 3);
+    QVERIFY(sidebar->isVisible());
+    QVERIFY(shown.at(0) > 0);
+
+    toggle->trigger();
+    settle();
+
+    // Both ends of it, separately (CLAUDE.md, finding 62): the widget is gone,
+    // **and** the room it held is gone with it. A column of width 0 that is
+    // formally still visible is the state issue #18 measured and excluded, and
+    // no picture can tell the two apart.
+    QVERIFY(!toggle->isChecked());
+    QVERIFY(!sidebar->isVisible());
+    const QList<int> hidden = splitter->sizes();
+    QCOMPARE(hidden.at(0), 0);
+    QVERIFY2(hidden.at(1) + hidden.at(2) > shown.at(1) + shown.at(2),
+             "the room of the hidden column did not reach the other two");
+
+    // And the way back, at the width the column had.
+    toggle->trigger();
+    settle();
+    QVERIFY(toggle->isChecked());
+    QVERIFY(sidebar->isVisible());
+    QCOMPARE(splitter->sizes(), shown);
+}
+
+void LibraryTest::keepsTheHiddenColumnAndItsWidthAcrossASession()
+{
+    const auto restored = clearedWindowGroup();
+    QVERIFY2(QStandardPaths::isTestModeEnabled(),
+             "this case writes a configuration and may only do so in test mode");
+    storedNote(QStringLiteral("Ein Gedanke"));
+
+    QByteArray divisionWhileShown;
+    QList<int> columns;
+    {
+        LibraryWindow window(m_store.get());
+        window.showLibrary();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QSplitter *splitter = splitterOf(window);
+        QVERIFY(splitter);
+        // A division set from outside, so that the default cannot stand in for
+        // the result of the read-back (CLAUDE.md, finding 10).
+        splitter->setSizes({210, 260, 430});
+        settle();
+        // The splitter normalises what it is handed to the room it has, so the
+        // numbers the rest of this case compares are read back out of it and
+        // not written down twice.
+        columns = splitter->sizes();
+        QCOMPARE(columns.at(0), 210);
+        divisionWhileShown = splitter->saveState();
+
+        menuActionNamed(window, ShowColumnEntry)->trigger();
+        settle();
+        QVERIFY(!splitter->widget(0)->isVisible());
+
+        // What a drag of the one remaining handle leaves behind, and it is why
+        // the division is not taken from saveState() while the column is
+        // hidden. Measured 2026-08-30 on a bare QSplitter through the road a
+        // real drag takes, the protected moveSplitter(500, 2): the state then
+        // saved differs from the one saved while the column stood, and a fresh
+        // splitter restored from it puts the column at its minimum 120 and the
+        // reading pane at its own 220 — not at the 210 and 430 the user left.
+        // setSizes() is the stand-in the test can reach; it produces the same
+        // stored state, which is all the file ever sees.
+        splitter->setSizes({0, 500, 399});
+
+        window.close();
+    }
+
+    const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Bibliothek"));
+    QVERIFY(group.readEntry("SidebarHidden", false));
+    // Not what the splitter would save now — that state carries the 0 of the
+    // hidden pane and the drag that happened behind it.
+    QCOMPARE(group.readEntry("ColumnSizes", QByteArray()), divisionWhileShown);
+
+    // Second session: hidden as it was left, and the width kept for the way back.
+    LibraryWindow reopened(m_store.get());
+    reopened.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&reopened));
+
+    const QSplitter *splitter = splitterOf(reopened);
+    QVERIFY(splitter);
+    QAction *toggle = menuActionNamed(reopened, ShowColumnEntry);
+    QVERIFY(toggle);
+    QVERIFY(!toggle->isChecked());
+    QVERIFY(!splitter->widget(0)->isVisible());
+    QCOMPARE(splitter->sizes().at(0), 0);
+
+    toggle->trigger();
+    settle();
+    QVERIFY(splitter->widget(0)->isVisible());
+    QCOMPARE(splitter->sizes(), columns);
+}
+
+void LibraryTest::showsTheColumnForADenkzettelrcWrittenBeforeThisStory()
+{
+    const auto restored = clearedWindowGroup();
+    QVERIFY(QStandardPaths::isTestModeEnabled());
+    storedNote(QStringLiteral("Ein Gedanke"));
+
+    // What such a file holds: a `ColumnSizes` of the old form and **no**
+    // `SidebarHidden`. Taken off a window rather than made up, so it is the
+    // very state the version before this story wrote.
+    QByteArray oldEntry;
+    QList<int> columns;
+    {
+        LibraryWindow window(m_store.get());
+        window.showLibrary();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QSplitter *splitter = splitterOf(window);
+        QVERIFY(splitter);
+        splitter->setSizes({210, 260, 430});
+        settle();
+        columns = splitter->sizes();
+        QCOMPARE(columns.at(0), 210);
+        oldEntry = splitter->saveState();
+    }
+
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Bibliothek"));
+    group.deleteGroup();
+    group.writeEntry("ColumnSizes", oldEntry);
+    group.sync();
+    QVERIFY2(!group.hasKey("SidebarHidden"), "the old stock is defined by this key being absent");
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QSplitter *splitter = splitterOf(window);
+    QVERIFY(splitter);
+    QVERIFY(menuActionNamed(window, ShowColumnEntry)->isChecked());
+    QVERIFY(splitter->widget(0)->isVisible());
+    // The column stands where the old entry put it — **and** the reading pane
+    // is usable beside it, which is the half of the criterion that names the
+    // window issue #18's comment at the restore was written against.
+    QCOMPARE(splitter->sizes(), columns);
+    QVERIFY(splitter->sizes().at(2) > 0);
+}
+
+void LibraryTest::takesTheFilterNoFieldShowsOffWithTheColumn_data()
+{
+    QTest::addColumn<QString>("entry");
+    QTest::addColumn<int>("matching");
+
+    // The two entries of issue #133 that are states of the machine rather than
+    // categories, and therefore the two the search language of SPEC 6 has no
+    // word for. Both have to be covered, or the case would stand green over a
+    // condition that names only one of them.
+    QTest::newRow("waiting") << QStringLiteral("Waiting for analysis") << 1;
+    QTest::newRow("unclassified") << QStringLiteral("Unclassified") << 1;
+}
+
+void LibraryTest::takesTheFilterNoFieldShowsOffWithTheColumn()
+{
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(QString, entry);
+    // NOLINTNEXTLINE(misc-const-correctness) - QFETCH declares it, see the head of this file
+    QFETCH(int, matching);
+
+    const auto restored = clearedWindowGroup();
+
+    const qint64 givenUp = storedNote(QStringLiteral("gibt die Analyse auf"));
+    const qint64 waiting = storedNote(QStringLiteral("wartet noch auf die Analyse"));
+    // The condition of SPEC 7.2 the entry "Unclassified" stands for: the
+    // classification attempts are used up. The other note is left alone and is
+    // what "Waiting for analysis" counts.
+    for (int attempt = 0; attempt < Store::analysisAttemptLimit; ++attempt) {
+        m_store->failAnalysis(givenUp, QStringLiteral("Ollama antwortet nicht"));
+    }
+    QVERIFY(m_store->note(waiting).has_value());
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QTreeWidget *column = window.findChild<QTreeWidget *>();
+    QVERIFY(column);
+
+    QTreeWidgetItem *machineState = nullptr;
+    for (int row = 0; row < column->topLevelItemCount(); ++row) {
+        if (column->topLevelItem(row)->text(0) == entry) {
+            machineState = column->topLevelItem(row);
+        }
+    }
+    QVERIFY2(machineState, qPrintable(QStringLiteral("the column offers no entry %1").arg(entry)));
+    QVERIFY2(!machineState->isHidden(), qPrintable(QStringLiteral("%1 is not offered").arg(entry)));
+
+    const QListView *list = listOf(window);
+    QCOMPARE(modelOf(list)->noteCount(), 2);
+
+    column->setCurrentItem(machineState);
+    settle();
+
+    // It filters, and the search field says **nothing** about it — that is what
+    // makes these two entries the ones this story has to take back, and it is
+    // asserted rather than assumed: without a narrowed list the case below could
+    // not come out red.
+    QCOMPARE(modelOf(list)->noteCount(), matching);
+    QVERIFY(searchOf(window)->text().isEmpty());
+
+    menuActionNamed(window, ShowColumnEntry)->trigger();
+    settle();
+
+    // Back on "All", the entry buildSidebar() adds before every other one, and
+    // the list answers out of the whole library again.
+    QCOMPARE(column->currentItem(), column->topLevelItem(0));
+    QCOMPARE(modelOf(list)->noteCount(), 2);
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()

@@ -3,6 +3,7 @@
 #include "store/note.h"
 #include "ui/timestampformat.h"
 
+#include <QByteArray>
 #include <QModelIndex>
 #include <QWidget>
 
@@ -330,6 +331,22 @@ private:
     /** Follows the edit state into buttons, rows, actions and search field. */
     void updateEditState();
 
+    /**
+     * Shows or hides the category column (issue #134).
+     *
+     * Hiding is `setVisible(false)` and not a width of 0: a column of width 0
+     * that is formally still visible is the state issue #18 measured and
+     * excluded, and it is what a collapsible splitter would leave behind. The
+     * splitter gives the freed room to the note list and the reading pane on
+     * its own.
+     *
+     * A filter the column applied does not survive its column invisibly: a
+     * category stands written out in the search field anyway, so it stays; the
+     * two entries the search language of SPEC 6 cannot express — the machine
+     * states of issue #133 — fall back to "All".
+     */
+    void showSidebar(bool visible);
+
     Store *m_store;
     NoteListModel *m_model;
     PendingDeletion *m_deletion;
@@ -356,7 +373,42 @@ private:
      */
     QAction *m_exportAction;
 
+    /**
+     * The checkable entry of the hamburger menu that hides the category column
+     * (issue #134, UX decision 30.08.2026).
+     *
+     * Without a symbol, because a check mark and a symbol in one menu row
+     * compete under Breeze — and without a shortcut: the KDE HIG bar a bare
+     * function key ("never just a function key, as these can be hard to access
+     * on laptops"), which rules out the obvious F9 of Dolphin's places panel,
+     * and an invented modifier combination is one nobody remembers. An
+     * accelerator is fitted when the customer asks for one; it is not invented
+     * in advance.
+     */
+    QAction *m_sidebarAction;
+
     QSplitter *m_splitter;
+
+    /**
+     * The category column as the splitter's first child (issue #134).
+     *
+     * Held so that it can be hidden outright rather than squeezed to width 0:
+     * setChildrenCollapsible(false) stays, and the splitter hands the room of a
+     * hidden child to the other two by itself.
+     */
+    QWidget *m_sidebar;
+
+    /**
+     * The splitter's division as it stood while the category column was last
+     * visible (issue #134).
+     *
+     * `ColumnSizes` is written from here instead of from saveState() whenever
+     * the column is hidden. A state saved over a hidden child carries a 0 for
+     * that child, and a window restored from it is exactly the one the comment
+     * at the restore in the constructor was written against — formally
+     * successful, unusable to look at.
+     */
+    QByteArray m_columnSizes;
     QLineEdit *m_search;
 
     /**
