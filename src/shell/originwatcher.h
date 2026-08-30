@@ -72,9 +72,9 @@ public Q_SLOTS:
     /**
      * Reads the setting again and loads or unloads the script accordingly.
      *
-     * Connected to Settings::configChanged in main.cpp: the dialog's Apply has
-     * to reach the running daemon, or the switch would look like a setting
-     * that does nothing until the next login.
+     * Connected to Settings::configChanged in settings/settingswiring.cpp: the
+     * dialog's Apply has to reach the running daemon, or the switch would look
+     * like a setting that does nothing until the next login.
      */
     void reloadSettings();
 

@@ -339,7 +339,8 @@ void Transcriber::takeNextJob()
     //
     // So nothing is taken, nothing is counted, and the queue stands still
     // until somebody calls start() again: main.cpp does that when a download
-    // has finished and when the settings have been written.
+    // has finished, settings/settingswiring.cpp when the settings have been
+    // written.
     if (!QFileInfo::exists(m_modelPath)) {
         Q_EMIT modelMissing(
             i18n("Model %1 is missing. Download it under Settings → Voice notes.", m_modelSize));
