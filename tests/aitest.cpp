@@ -24,11 +24,13 @@
 #include <QTcpSocket>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTimer>
 #include <QtMath>
 
 #include <chrono>
 #include <cmath>
 #include <memory>
+#include <utility>
 
 /**
  * The AI provider interface, its Ollama reply mapping and the connection test
@@ -55,6 +57,8 @@ private Q_SLOTS:
 
     void chatAnswerIsReadOutOfTheBody();
     void streamedChatAnswerIsPutBackTogether();
+    void streamCutOffAtALineBoundaryIsNoAnswer();
+    void aCallOverTheTotalLimitSaysSo();
     void embeddingIsReadOutOfTheBody();
     void timeoutIsNamedAsOne();
     void ollamasOwnRefusalBeatsTheStatusCode();
@@ -67,6 +71,7 @@ private Q_SLOTS:
 
     void nothingIsAskedTwiceWhenNobodyAnswers();
     void aServerThatAnsweredIsNotAskedAgain();
+    void theTotalLimitEndsACallThatKeepsTrickling();
     void readsReachabilityWithoutLoadingAModel();
     void aChangedAddressAndModelReachTheRunningProvider();
 
@@ -151,39 +156,125 @@ void AiTest::chatAnswerIsReadOutOfTheBody()
                                                 QNetworkReply::NoError,
                                                 QString(),
                                                 200,
-                                                R"({"message":{"role":"assistant","content":"Hallo, Grüße"}})");
+                                                R"({"message":{"role":"assistant","content":"Hallo, Grüße"},"done":true})");
     QCOMPARE(answer.error, QString());
     QCOMPARE(answer.text, QStringLiteral("Hallo, Grüße"));
 }
 
+namespace
+{
+/**
+ * Lines out of one recorded stream, so that every case below reads what the
+ * server really sends (issue #121).
+ *
+ * Recorded on 2026-08-30 from Ollama 0.32.15 with `qwen3:8b` over `/api/chat`
+ * with `stream: true` and **nothing else set** — which is the call
+ * `OllamaProvider::chat()` makes. The recording has 218 lines; these are its
+ * lines 1, 2, 215, 216, 217 and 218, and the 212 reasoning lines between the
+ * second and the third are left out. Nothing inside a line is changed.
+ *
+ * Two things about it are the server's decision and not a reader's guess, and
+ * both are why the body is recorded rather than written: „Grüße" arrives in
+ * three pieces with the umlaut a piece of its own, and the reasoning arrives
+ * in a `thinking` field of its own beside an empty `content` (CLAUDE.md,
+ * finding 45). A body assembled by hand would have put the cut where somebody
+ * thought it likely and carried no reasoning at all.
+ */
+constexpr const char *thinkingLine1 =
+    R"({"model":"qwen3:8b","created_at":"2026-08-30T07:15:08.901473844Z","message":{"role":"assistant","content":"","thinking":"Okay"},"done":false})";
+constexpr const char *thinkingLine2 =
+    R"({"model":"qwen3:8b","created_at":"2026-08-30T07:15:08.912065757Z","message":{"role":"assistant","content":"","thinking":","},"done":false})";
+constexpr const char *textLine1 =
+    R"({"model":"qwen3:8b","created_at":"2026-08-30T07:15:11.198964902Z","message":{"role":"assistant","content":"Gr"},"done":false})";
+constexpr const char *textLine2 =
+    R"({"model":"qwen3:8b","created_at":"2026-08-30T07:15:11.209637558Z","message":{"role":"assistant","content":"ü"},"done":false})";
+constexpr const char *textLine3 =
+    R"({"model":"qwen3:8b","created_at":"2026-08-30T07:15:11.220228942Z","message":{"role":"assistant","content":"ße"},"done":false})";
+constexpr const char *doneLine =
+    R"({"model":"qwen3:8b","created_at":"2026-08-30T07:15:11.231002909Z","message":{"role":"assistant","content":""},"done":true,)"
+    R"("done_reason":"stop","total_duration":36067140899,"load_duration":1027214,"prompt_eval_count":21,)"
+    R"("prompt_eval_duration":25430000,"eval_count":222,"eval_duration":2355064000})";
+
+QByteArray streamOf(const QList<QByteArray> &lines)
+{
+    QByteArray body;
+    for (const QByteArray &line : lines) {
+        body += line + '\n';
+    }
+    return body;
+}
+}
+
 void AiTest::streamedChatAnswerIsPutBackTogether()
 {
-    // The body of a real streamed call, recorded on 2026-08-30 from Ollama
-    // 0.32.15 with `qwen3:8b` and shortened by nothing (issue #121). It is here
-    // rather than invented because what a stream cuts where is the server's
-    // decision: „Grüße" arrives as three chunks, and the umlaut is a chunk of
-    // its own — a body assembled by hand would have put the split somewhere a
-    // reader thought likely and left the encoding case untested.
-    //
-    // This is the one thing about the stream that breaks without a sound: a
-    // reader that takes the first line, or the last, gets a piece of the answer
-    // that is still valid text, and the note fails on its classification rather
-    // than on its transport.
-    const QByteArray body =
-        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.197131066Z","message":{"role":"assistant","content":"Gr"},"done":false})"
-        "\n"
-        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.21011067Z","message":{"role":"assistant","content":"ü"},"done":false})"
-        "\n"
-        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.227420149Z","message":{"role":"assistant","content":"ße"},"done":false})"
-        "\n"
-        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.23822516Z","message":{"role":"assistant","content":""},"done":true,)"
-        R"("done_reason":"stop","total_duration":102320790,"load_duration":1080047,"prompt_eval_count":26,)"
-        R"("prompt_eval_duration":40830000,"eval_count":4,"eval_duration":41073000})"
-        "\n";
+    // Two things break here without a sound, and neither reaches the user as
+    // itself: a reader that takes only the first line or only the last gets a
+    // piece of the answer that is still valid text, and a reader that takes
+    // `thinking` along puts the model's reasoning into the JSON the classifier
+    // parses. Both come out as "the model answered nonsense" and cost the note
+    // an attempt (SPEC 7.2).
+    const OllamaAnswer answer = readOllamaReply(
+        OllamaCall::Chat,
+        QNetworkReply::NoError,
+        QString(),
+        200,
+        streamOf({thinkingLine1, thinkingLine2, textLine1, textLine2, textLine3, doneLine}));
 
-    const OllamaAnswer answer = readOllamaReply(OllamaCall::Chat, QNetworkReply::NoError, QString(), 200, body);
     QCOMPARE(answer.error, QString());
+    // The reasoning of the two lines above is not in it — `Okay` and `,` would
+    // stand in front of the word if it were.
     QCOMPARE(answer.text, QStringLiteral("Grüße"));
+}
+
+void AiTest::streamCutOffAtALineBoundaryIsNoAnswer()
+{
+    // **The case the streaming created** (found in review, 30.08.2026). A
+    // connection that goes away between two lines leaves a body in which every
+    // line parses, the status is 200, and half the answer is missing — and
+    // nothing but the absent `done` says so. Unstreamed it could not happen: a
+    // cut-off document has no closing brace.
+    //
+    // What it cost before the reader asked for `done`: this body came back as
+    // `text = "Grüße"` with no error at all, the classifier read a fragment of
+    // JSON, and the note paid one of the two attempts of SPEC 7.2 — the very
+    // currency issue #121 is about — with an error naming the model.
+    const OllamaAnswer answer = readOllamaReply(
+        OllamaCall::Chat,
+        QNetworkReply::RemoteHostClosedError,
+        QStringLiteral("Connection closed"),
+        // 200, because the headers did arrive before the connection went away.
+        200,
+        streamOf({thinkingLine1, thinkingLine2, textLine1, textLine2, textLine3}));
+
+    QCOMPARE(answer.error, QStringLiteral("Ollama's answer broke off."));
+    QCOMPARE(answer.text, QString());
+    // Unreachable and not Refused: the server refused nothing, the transfer
+    // stopped — and the embedding run of SPEC 7.2 decides on this value.
+    QCOMPARE(answer.failure, AiFailure::Unreachable);
+}
+
+void AiTest::aCallOverTheTotalLimitSaysSo()
+{
+    // The value an abort() on a running reply really produces, and it is in
+    // this case because it was measured rather than read (CLAUDE.md, finding
+    // 40): on 2026-08-30 against a real Ollama a streamed call aborted after
+    // 3 s came back `OperationCanceledError` at 2,849 ms, while the same
+    // program with its timer set past the end of the answer ran 38,537 ms to
+    // `NoError`.
+    //
+    // Until that day the mapping put this value in with the silence limit and
+    // a comment said nothing in the program could reach it. The total limit of
+    // SPEC 7.1 reaches it, and it needs a sentence of its own: this server did
+    // answer, it only took too long, and "did not answer within the time
+    // limit" would send the user looking for a server that is running.
+    const OllamaAnswer answer = readOllamaReply(OllamaCall::Chat,
+                                                QNetworkReply::OperationCanceledError,
+                                                QStringLiteral("Operation canceled"),
+                                                200,
+                                                QByteArray());
+
+    QCOMPARE(answer.error, QStringLiteral("Ollama took longer over this call than it is allowed."));
+    QCOMPARE(answer.failure, AiFailure::Unreachable);
 }
 
 void AiTest::embeddingIsReadOutOfTheBody()
@@ -384,6 +475,72 @@ void AiTest::aServerThatAnsweredIsNotAskedAgain()
     QCOMPARE(connections, 1);
 }
 
+void AiTest::theTotalLimitEndsACallThatKeepsTrickling()
+{
+    // **The limit the streaming made necessary** (SPEC 7.1, decision
+    // 30.08.2026). Since the chat call streams, setTimeout() bounds a stretch
+    // of silence and no longer bounds the call: this stand-in sends its headers
+    // and then one byte every 20 ms and never finishes, so the silence limit
+    // never bites and, without the total limit, the analysis run would wait for
+    // ever — nothing else in the tree ends a call.
+    //
+    // Chosen so the two limits cannot be confused: the silence limit is set to
+    // ten seconds and the total limit to 300 ms. Were the trickle to stop, the
+    // silence limit would fire and the sentence would be the other one.
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    QList<QTcpSocket *> sockets;
+    connect(&server, &QTcpServer::newConnection, this, [&server, &sockets] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        sockets.append(socket);
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request] {
+            request->append(socket->readAll());
+            if (!request->contains("\r\n\r\n")) {
+                return;
+            }
+            // Chunked, so nothing announces an end the client could wait for.
+            socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/x-ndjson\r\n"
+                          "Transfer-Encoding: chunked\r\n\r\n");
+            auto *trickle = new QTimer(socket);
+            connect(trickle, &QTimer::timeout, socket, [socket] {
+                socket->write("1\r\n \r\n");
+                socket->flush();
+            });
+            trickle->start(std::chrono::milliseconds(20));
+        });
+    });
+
+    const auto closeTheSockets = qScopeGuard([&sockets] {
+        for (QTcpSocket *socket : std::as_const(sockets)) {
+            socket->abort();
+        }
+    });
+
+    OllamaProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort())));
+    provider.setTimeout(std::chrono::seconds(10));
+
+    // **The counter-run first, and it is what makes the rest evidence**: with
+    // the total limit out of reach the same stand-in holds the same call open,
+    // and nothing answers. Asserted before the limit is lowered, or "the limit
+    // ended it" would be green over a call that ended by itself (CLAUDE.md,
+    // finding 27).
+    provider.setCallLimit(std::chrono::seconds(30));
+    QSignalSpy trickling(&provider, &AiProvider::chatFinished);
+    provider.chat(QStringLiteral("ping"));
+    QVERIFY2(!trickling.wait(std::chrono::milliseconds(600)), "the trickling call ended without any limit");
+
+    provider.setCallLimit(std::chrono::milliseconds(300));
+    QSignalSpy limited(&provider, &AiProvider::chatFinished);
+    provider.chat(QStringLiteral("ping"));
+
+    QVERIFY(limited.wait(std::chrono::seconds(5)));
+    QCOMPARE(limited.constFirst().at(2).toString(),
+             QStringLiteral("Ollama took longer over this call than it is allowed."));
+}
+
 void AiTest::readsReachabilityWithoutLoadingAModel()
 {
     // What the tray tooltip of SPEC 2.5 asks at every start (issue #17), and
@@ -472,7 +629,10 @@ void recordAndAnswer(QTcpServer *server, const std::shared_ptr<QStringList> &ask
             }
 
             asked->append(QString::fromUtf8(body));
-            const QByteArray answer = R"({"message":{"content":"ok"},"embeddings":[[0.5]]})";
+            // `done` because every real chat answer carries it and the reader
+            // now asks for it (issue #121): without it this stand-in would
+            // answer every chat with a stream that broke off.
+            const QByteArray answer = R"({"message":{"content":"ok"},"embeddings":[[0.5]],"done":true})";
             socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
                           + QByteArray::number(answer.size()) + "\r\nConnection: close\r\n\r\n" + answer);
             socket->disconnectFromHost();

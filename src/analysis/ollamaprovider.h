@@ -143,10 +143,25 @@ public:
     QString embeddingModel() const;
 
     /**
-     * The 30 s of SPEC 7.1, settable because a check that waits half a minute
-     * for the limit to bite is one nobody runs.
+     * The 30 s of silence of SPEC 7.1, settable because a check that waits half
+     * a minute for the limit to bite is one nobody runs.
      */
     void setTimeout(std::chrono::milliseconds timeout);
+
+    /**
+     * The 5 minutes one call may take all told (SPEC 7.1, decision
+     * 30.08.2026), settable for the reason above and rather more so.
+     *
+     * Since the chat call streams, setTimeout() above bounds a **stretch of
+     * silence** and no longer bounds the call: a server sending one byte every
+     * 29 s holds an analysis run for ever, and nothing else in the tree ends it
+     * — AnalysisScheduler carries the interval between runs, not a bound on
+     * one. The number is SPEC 12's, and deliberately generous: healthy calls
+     * were measured up to 46.9 s, and a tight bound would repeat issue #121 one
+     * storey up. What it is for is to turn a silent hang into an error the
+     * attempt counter of SPEC 7.2 can deal with.
+     */
+    void setCallLimit(std::chrono::milliseconds limit);
 
     int chat(const QString &prompt) override;
     int embed(const QString &text) override;
@@ -245,4 +260,5 @@ private:
     QString m_chatModel;
     QString m_embeddingModel;
     std::chrono::milliseconds m_timeout = std::chrono::seconds(30);
+    std::chrono::milliseconds m_callLimit = std::chrono::minutes(5);
 };
