@@ -1683,12 +1683,32 @@ std::optional<TranscribeJob> Store::transcribeJob(qint64 noteId) const
     return job;
 }
 
+namespace
+{
+/**
+ * The set of SPEC 12 both functions below are about: the transcription jobs
+ * whose attempts are used up.
+ *
+ * Written **once** and not twice, because the two are the newest element and
+ * the count of one set and a comment saying they agree would be guarded by
+ * nothing (CLAUDE.md, finding 48). Measured in the review of issue #118: with
+ * `>=` blunted to `>` in a second copy the count answered 0 for every given-up
+ * job, the transcription half of the tray tooltip would never have come back,
+ * and all fourteen test sets stayed green.
+ *
+ * The `FROM` travels with it, so neither side can even reach a different
+ * table. `:limit` is bound by the caller.
+ */
+constexpr QLatin1StringView PausedTranscribeJobs(" FROM transcribe_jobs WHERE attempts >= :limit");
+}
+
 std::optional<TranscribeJob> Store::pausedTranscribeJob() const
 {
     m_lastError.clear();
     QSqlQuery query(m_db);
-    query.prepare(QStringLiteral("SELECT note_id, enqueued_at, attempts, last_error FROM transcribe_jobs"
-                                 " WHERE attempts >= :limit ORDER BY enqueued_at DESC, note_id DESC LIMIT 1"));
+    query.prepare(QStringLiteral("SELECT note_id, enqueued_at, attempts, last_error")
+                  + PausedTranscribeJobs
+                  + QStringLiteral(" ORDER BY enqueued_at DESC, note_id DESC LIMIT 1"));
     query.bindValue(QStringLiteral(":limit"), transcribeAttemptLimit);
 
     if (!query.exec()) {
@@ -1705,6 +1725,23 @@ std::optional<TranscribeJob> Store::pausedTranscribeJob() const
     job.attempts = query.value(2).toInt();
     job.lastError = query.value(3).toString();
     return job;
+}
+
+int Store::pausedTranscribeJobCount() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // Counted in the database rather than by reading the rows: what the tooltip
+    // of issue #118 says is a number, and a list read in to be measured would
+    // be a second reading of the same set.
+    query.prepare(QStringLiteral("SELECT COUNT(*)") + PausedTranscribeJobs);
+    query.bindValue(QStringLiteral(":limit"), transcribeAttemptLimit);
+
+    if (!query.exec() || !query.next()) {
+        m_lastError = query.lastError().text();
+        return 0;
+    }
+    return query.value(0).toInt();
 }
 
 bool Store::noteInterruptedTranscribeJobs(const QString &reason)

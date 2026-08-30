@@ -461,6 +461,22 @@ public:
     std::optional<TranscribeJob> pausedTranscribeJob() const;
 
     /**
+     * How many jobs have used up their attempts (issue #118).
+     *
+     * The tray tooltip took the reason off the one job above until the
+     * analysis run became a second source of the same one subtitle line; a
+     * reason is a sentence and pushes the other half out, a number stands
+     * beside it (UX decision of 29.08.2026). The reason itself is not lost —
+     * it goes to the log, where SPEC 14 sorts it.
+     *
+     * The two share their `FROM` and their `WHERE` as **one** literal in
+     * store.cpp rather than as two copies that agree: they are the count and
+     * the newest element of one set, and a comment promising that would have
+     * been guarded by nothing (CLAUDE.md, finding 48).
+     */
+    int pausedTranscribeJobCount() const;
+
+    /**
      * Writes `reason` on every job whose attempt was counted and never
      * answered for, and reports whether the write went through.
      *

@@ -31,6 +31,25 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   and vectors are untouched. On disk the new index costs 1.3 MiB beside the
   16.1 MiB the same collection took at 20,000 notes. There is no way back to
   the previous version — an older Denkzettel will not open the file any more.
+- **Die Kurzinfo des Symbols im Systemabschnitt nennt beide Arten stecken
+  gebliebener Notiz, nicht nur die zuletzt gemeldete.** Sie hat eine einzige
+  Unterzeile, und darin standen bisher entweder die Sprachnotizen ohne
+  Transkript oder gar nichts über die Notizen, deren Einordnung zweimal
+  gescheitert ist — wer zuletzt schrieb, verdeckte die andere Störung. Jetzt
+  besteht die Zeile aus bis zu zwei Teilen und nennt genau die, die anstehen:
+  „2 Notizen ohne Transkript · 1 Notiz ohne Einordnung", oder nur eine der
+  beiden Hälften, oder — steht nichts an — wieder die ruhige Zeile. Es gibt
+  keine Rangfolge zwischen ihnen: beide Zustände bleiben, solange ihre Ursache
+  bleibt, und von der zweiten Störung soll man nicht erst erfahren, wenn die
+  erste behoben ist. Genannt wird jeweils die Anzahl statt des Grunds; der
+  Grund steht weiterhin im Protokoll, wo er ausführlich hingehört. Die Zahl
+  neben „Nicht eingeordnet" in der Kategorien-Spalte und die Zahl in der
+  Kurzinfo sind dieselbe — die Spalte ist der Ort, an dem sich diese Notizen
+  abarbeiten lassen, und sobald die letzte von ihnen verschwindet, ist das
+  Symbol wieder unauffällig. Für den Analyselauf gibt es dabei bewusst **keine**
+  Benachrichtigung: er ist der Routinelauf schlechthin, und eine nicht
+  eingeordnete Notiz ist in der Bibliothek weiter lesbar — ihr fehlen nur
+  Kategorie und Schlagwörter (#118).
 
 - **An analysis run can be started from the library.** The application menu
   behind the hamburger button carries „Jetzt analysieren" as its first entry,
@@ -307,6 +326,15 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   threw it away when the dialog closed, no longer comes up at all. Both locks
   and the sentence go again the moment the two providers are really connected;
   the label stays (#127).
+- **Die Zähler der Kategorien-Spalte zählen eine gelöschte Notiz nicht weiter
+  mit.** Nach dem Löschen verschwand die Notiz aus der Liste, die Zahlen daneben
+  blieben aber stehen — „Alle" nannte eine mehr, als die Liste zeigte, bis
+  irgendetwas anderes die Liste neu einlas. Während der Widerrufsfrist ist das
+  richtig, die Notiz steht ja noch; von dem Moment an, in dem die Frist abläuft,
+  war es falsch. Jetzt werden die Zähler bei **jeder** ausgeführten Löschung neu
+  gerechnet — auch bei der ersten von zweien, deren zweite noch mitzählt, wo sie
+  sonst dauerhaft stehen geblieben wären (#118).
+
 - **The empty library names the shortcut you actually have.** „Mit Meta+N einen
   Gedanken festhalten." stood there whatever key was set — the sequence was
   written into the sentence, and since the shortcut became yours to choose on

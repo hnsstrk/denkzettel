@@ -655,8 +655,10 @@ void TranscribeTest::namesAReasonForARunThatWasNeverAnsweredFor()
 
     QCOMPARE(paused.count(), 1);
     QCOMPARE(paused.first().at(0).toLongLong(), id);
-    // Without the reason the tooltip would read "Transcription failed:" and
-    // break off — the unreadable state issue #22 left behind on purpose.
+    // The reason is what the log keeps and what the KNotification of issue #115
+    // names; without it the user is told a transcription failed and never what
+    // the program said. The tooltip is no longer among its readers — since
+    // issue #118 that line carries a count and not this text.
     QVERIFY2(!paused.first().at(1).toString().isEmpty(), "the pause was reported without a reason");
 
     const std::optional<TranscribeJob> repaired = m_store->transcribeJob(id);
