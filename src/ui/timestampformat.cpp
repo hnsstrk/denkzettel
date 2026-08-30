@@ -33,13 +33,12 @@ struct FormatPart {
 /** Whether `c` stands for a field of a date or time format rather than for text. */
 bool isFieldLetter(QChar c)
 {
-    // Only these four carry meaning to the functions below — the day, month
-    // and year fields `withFourDigitYear()` widens, and the minute field
-    // `withSeconds()` extends. Every other letter is text that Qt copies out
-    // unchanged — the "de" of "d 'de' MMMM 'de' yyyy", the 年 of
-    // "yyyy年M月d日" and the hour, am/pm and time-zone letters this file
-    // never touches among them.
-    return c == u'd' || c == u'M' || c == u'y' || c == u'm';
+    // Only these three carry meaning to the function below: the day, month and
+    // year fields `withFourDigitYear()` walks. Every other letter is text that
+    // Qt copies out unchanged — the "de" of "d 'de' MMMM 'de' yyyy", the 年 of
+    // "yyyy年M月d日" and the hour, minute, am/pm and time-zone letters this
+    // file never touches among them.
+    return c == u'd' || c == u'M' || c == u'y';
 }
 
 /** `format` taken apart into its fields and the text between them. */
@@ -86,23 +85,6 @@ QString withFourDigitYear(const QString &format)
     QString pattern;
     for (const FormatPart &part : parts) {
         pattern += part.isField && part.text.startsWith(u'y') ? QStringLiteral("yyyy") : part.text;
-    }
-    return pattern;
-}
-
-/**
- * `format` with its minute field widened by seconds — built the way
- * `withFourDigitYear()` widens the year. `QLocale::LongFormat` times carry a
- * time zone name that has no place in this UI (measured with Qt 6.11), so the
- * short pattern is the one seconds are added to.
- */
-QString withSeconds(const QString &format)
-{
-    const QList<FormatPart> parts = splitFormat(format);
-
-    QString pattern;
-    for (const FormatPart &part : parts) {
-        pattern += part.isField && part.text.startsWith(u'm') ? part.text + QStringLiteral(":ss") : part.text;
     }
     return pattern;
 }
@@ -160,9 +142,8 @@ QString library::entryTimestamp(const QDateTime &when, const QLocale &locale)
 
 QString library::relativeTimestamp(const QDateTime &when, const QLocale &locale)
 {
-    const QString pattern = withSeconds(withFourDigitYear(locale.dateTimeFormat(QLocale::ShortFormat)));
     const QString weekday = locale.toString(when.date(), QStringLiteral("dddd"));
-    return weekday + QStringLiteral(", ") + locale.toString(when, pattern);
+    return weekday + QStringLiteral(", ") + entryTimestamp(when, locale);
 }
 
 QString library::clockTime(qint64 milliseconds)

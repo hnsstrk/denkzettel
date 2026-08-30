@@ -50,11 +50,17 @@ QString groupTitle(NoteGroup group);
 QString entryTimestamp(const QDateTime &when, const QLocale &locale);
 
 /**
- * The timestamp of the detail pane (SPEC 9): weekday, date and time with
- * seconds, the same form for every note — no "Today", no "Yesterday". Under
- * de_DE "Montag, 24.08.2026 15:42:07", under en_US
- * "Monday, 8/24/2026 3:42:07 PM". The comma after the weekday is the one
- * literal in the whole form; everything else again comes out of `locale`.
+ * The timestamp of the detail pane (SPEC 9): the weekday in front of the form
+ * the list carries, the same for every note — no "Today", no "Yesterday".
+ * Under de_DE "Montag, 24.08.2026 15:42", under en_US
+ * "Monday, 8/24/2026 3:42 PM". The comma after the weekday is the one literal
+ * in the whole form; everything else again comes out of `locale`.
+ *
+ * No seconds (issue #124): a note is a thought written down in passing, not a
+ * measurement, and the head of the detail pane is the one row in the window
+ * where the space is short. They never came out of the locale either — no
+ * short format of the 711 locales Qt 6.11 knows carries a seconds field, and
+ * the ones written here were appended by a step of this file's own.
  */
 QString relativeTimestamp(const QDateTime &when, const QLocale &locale);
 

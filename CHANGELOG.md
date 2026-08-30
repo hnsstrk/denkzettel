@@ -252,6 +252,14 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   more than a year after it, is dropped and the note keeps none. It matters
   because the field is on its way into a real task list, where nothing about a
   date says it was guessed (#117).
+- **The timestamp of the reading pane no longer counts seconds.** It read
+  „Freitag, 31.07.2026 15:04:00" and now reads „Freitag, 31.07.2026 15:04". A
+  note is a thought written down in passing and not a measurement, and the
+  seconds claimed an accuracy nobody checks. They also cost room in the one row
+  where it is short: the label is 15 logical pixels narrower, measured in the
+  built window in both languages, and the two buttons beside it keep what it
+  gives up. The list rows and the group heads never carried seconds and are
+  unchanged (#124).
 
 ## [0.7.0] — 2026-08-28
 

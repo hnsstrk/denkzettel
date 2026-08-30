@@ -1570,7 +1570,7 @@ void LibraryWindow::showNoteText(const QModelIndex &index)
 {
     const Note note = m_model->noteAt(index.row());
 
-    // The detail pane stands under no head and keeps the full timestamp.
+    // The detail pane stands under no head and carries the weekday as well.
     m_detailTimestamp->setText(library::relativeTimestamp(note.createdAt, QLocale()));
 
     // And the origin under it, or nothing at all (SPEC 5.1, 13; issue #47).
@@ -1877,7 +1877,7 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
     // 02.08.2026). A KMessageDialog is a plain QDialog and stays ours.
     //
     // The timestamp stands in brackets, not in the middle of the sentence: it
-    // comes in the full detail-pane form — “Monday, 8/24/2026 3:42:07 PM”
+    // comes in the full detail-pane form — “Monday, 8/24/2026 3:42 PM”
     // under en_US — and no single sentence carries weekday, date and time as
     // one object.
     // The brackets take the grammar out of the format's hands.
