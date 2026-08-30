@@ -8,7 +8,9 @@
 #include <QDir>
 #include <QFile>
 #include <QHeaderView>
+#include <QFontMetrics>
 #include <QListView>
+#include <QSplitter>
 #include <QPixmap>
 #include <QStyle>
 #include <QTemporaryDir>
@@ -50,6 +52,9 @@
  */
 namespace
 {
+/** The floor of `MinimumSidebarWidth` in librarywindow.cpp, which is file-local there. */
+constexpr int MinimumSidebarWidth = 120;
+
 /**
  * One note in the state the picture needs it in.
  *
@@ -262,6 +267,51 @@ int main(int argc, char **argv)
                      qUtf8Printable(waiting->text(0)), qUtf8Printable(waiting->text(1)),
                      model ? model->noteCount() : -1, list->model()->rowCount());
             shoot(window, directory + QStringLiteral("/133-wartet-gewaehlt.png"));
+
+            // The floor of MinimumSidebarWidth, **measured** and not read out
+            // of the header configuration (finding 50: a configuration is a
+            // statement of intent until somebody measures it). The claim under
+            // test is that at 120 px section 1 keeps its content width while
+            // the stretched label section shrinks — the opposite of the fault
+            // issue #18 fixed, where the counters were pushed out of the
+            // viewport.
+            //
+            // Both digit counts, because the four-digit one is where the old
+            // definition of the constant broke: the counter of a category with
+            // a thousand notes in it is wider, and it is the counter this
+            // column asserts (finding 51). Written into the item rather than
+            // grown out of a thousand notes — `updateCategoryCounts()` puts
+            // exactly this string there through QLocale().toString().
+            auto *splitter = window.findChild<QSplitter *>();
+            for (const char *digits : {"123", "1234"}) {
+                for (int row = 0; row < mutableColumn->topLevelItemCount(); ++row) {
+                    QTreeWidgetItem *item = mutableColumn->topLevelItem(row);
+                    if (!item->isHidden()) {
+                        item->setText(1, QString::fromUtf8(digits));
+                    }
+                }
+                splitter->setSizes({MinimumSidebarWidth, 300, 900 - 300 - MinimumSidebarWidth});
+                mutableColumn->header()->resizeSections(QHeaderView::ResizeToContents);
+                mutableColumn->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+                mutableColumn->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+                QTest::qWait(200);
+
+                // The counter has to be **complete and inside the viewport**,
+                // which is two statements: the section is wide enough for the
+                // string, and the section ends before the viewport does.
+                const QFontMetrics metrics(mutableColumn->font());
+                const int needed = metrics.horizontalAdvance(QString::fromUtf8(digits));
+                const int right = mutableColumn->columnWidth(0) + mutableColumn->columnWidth(1);
+                qWarning("133-schmal-%s  sidebar=%d label=%d counter=%d textNeeds=%d "
+                         "rightEdge=%d viewport=%d fits=%d inside=%d",
+                         digits, splitter->sizes().at(0), mutableColumn->columnWidth(0),
+                         mutableColumn->columnWidth(1), needed, right,
+                         mutableColumn->viewport()->width(),
+                         int(needed <= mutableColumn->columnWidth(1)),
+                         int(right <= mutableColumn->viewport()->width()));
+                shoot(window, directory + QStringLiteral("/133-schmal-") + QLatin1StringView(digits)
+                          + QStringLiteral(".png"));
+            }
         }
     }
 

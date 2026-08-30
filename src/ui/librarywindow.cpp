@@ -71,29 +71,36 @@ constexpr int SidebarWidth = 158;
 constexpr int MinimumListWidth = 220;
 
 /**
- * The longest label of the category column plus its counter, measured at 1x.
+ * How far the splitter may squeeze the category column.
  *
- * Measured in the built window on 2026-08-30 under Breeze at a device pixel
- * ratio of 1, as the item delegate's own size hint per label plus the width the
- * counter section takes (issue #133, finding 60 — the room is read where it is
- * spent, not taken from the drawing): "Software ideas" 104 + 22 = 126,
- * "Software-Ideen" 108 + 22 = 130, "Nicht eingeordnet" 125 + 22 = 147,
- * "Wartet auf Analyse" 129 + 22 = 151, and the longest of them all
- * "Waiting for analysis" 134 + 22 = **156**.
+ * Not "the longest label plus its counter" any more (that reading was 6 px
+ * short of its own promise from the day it was written, and a four-digit
+ * counter breaks it at any width): the **counter** is what this column
+ * asserts, and it is held by the header configuration in buildSidebar(), not
+ * by this number — section 1 keeps its content width while the stretched
+ * label section shrinks. This floor keeps the labels far enough apart to be
+ * told from one another; below it they elide into each other.
  *
- * The old value of 120 was already 6 px under its own definition — at 120 the
- * English "Software ideas" elided. The new entry of issue #133 is the longest
- * label the column has, and it sets the number.
+ * Measured at this floor on 2026-08-30 rather than read out of the header
+ * configuration, because a configuration is a statement of intent until
+ * somebody measures it (finding 50), and the row that made this a question is
+ * the one whose counter once stood outside the viewport (issue #18,
+ * finding 51). With the sidebar squeezed to 120 px the counter section keeps
+ * its content width — **37 px at three digits, 45 px at four** — the stretched
+ * label section takes what is left (83 and 75), and both counters stand
+ * complete inside the viewport (`categoryshots`, pictures
+ * `133-schmal-123.png` and `133-schmal-1234.png`).
  *
- * **What this does not cover**, measured in the same run: the counter section
- * is sized to its contents, and at four digits it takes 45 px instead of 22.
- * A library of a thousand notes therefore needs 179 px for the longest label,
- * more than the 158 wireframe 1b gives the column — the label elides there and
- * the counter stays readable, which is the right way round but is not what this
- * constant promises. Widening the column is a change to the wireframe and
- * belongs to the customer.
+ * **The 22 px this was first argued with are the width of a *one*-digit
+ * counter**, measured on the small populations of those same pictures and then
+ * carried into the reasoning as the three-digit figure. Three digits cost
+ * 37 px, so the label keeps 83 px and not the 98 the argument assumed. The
+ * conclusion is unaffected and was checked by looking: at 83 px the three long
+ * labels read "Software-…", "Wartet au…" and "Nicht ein…", and at 75 px
+ * "Softwar…", "Wartet a…" and "Nicht ei…" — still three different lines. What
+ * elides is the label, never the counter, which is the whole point.
  */
-constexpr int MinimumSidebarWidth = 156;
+constexpr int MinimumSidebarWidth = 120;
 
 /** Which notes the selected entry of the category column lets through. */
 enum class CategoryFilter : std::uint8_t {
