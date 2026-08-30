@@ -591,6 +591,7 @@ proposals(id INTEGER PK, kind TEXT 'bundle'|'task', created_at TEXT,
 proposal_notes(proposal_id FK, note_id FK)
 transcribe_jobs(note_id FK PK, enqueued_at TEXT, attempts INTEGER,
                 last_error TEXT NULL)
+editcost(iLang INT, cFrom TEXT, cTo TEXT, iCost INT)  -- German rules, §6
 meta(key TEXT PK, value TEXT)  -- schema version and the like
 ```
 
@@ -603,6 +604,38 @@ meta(key TEXT PK, value TEXT)  -- schema version and the like
   `old.content`). With the new text the old words stay findable, and neither an
   error nor FTS5's `integrity-check` shows that — only a search for the old
   word does (see `StoreTest::keepsSearchIndexInSync()`).
+- **A second full-text index `notes_words(content)` beside it** (schema
+  version 8, issue #69), on the same `content='notes'` pattern and with the
+  same three triggers, but tokenized `unicode61 remove_diacritics 0`. Nothing
+  queries it; what is read is its `fts5vocab` view `notes_words_vocab`, which
+  is the list of words the corpus holds. It exists because the trigram index
+  has no words in it — its vocabulary is three-character fragments — and the
+  tolerant search of §6 needs whole words to correct a term to.
+  - **`remove_diacritics 0` is a condition, not a preference** (spike #62).
+    With 1 the word list would read „prufen", the correction would hand the
+    user a word standing in no note, and the second search pass would find
+    nothing.
+- **spellfix1** — the SQLite extension the correction of §6 runs on — is
+  vendored under `third_party/spellfix/` and compiled in with `SQLITE_CORE=1`.
+  Two conditions of the spike govern how it is wired:
+  - **It needs a shared `libsqlite3` with the Qt driver.** The `QSQLITE`
+    plugin links `/usr/lib/libsqlite3.so.0` rather than a copy of its own, so
+    the extension registers in the same instance of SQLite the queries run in.
+    A Qt built with an SQLite of its own would silently take this away.
+  - **The registration applies per connection, not per database file.** It is
+    therefore done in `Store::open()` — after the file is open and before the
+    migrations — and read back from the database (`SELECT editdist3(…)`),
+    because the return value of the registration call only says the call
+    returned. Every further `Store` on the same file registers again.
+  - **The spellfix1 table itself is not in the schema.** It lives in `temp`
+    and is filled from `notes_words_vocab` when a search first needs it, and
+    again after a write. spellfix1 offers no hook a trigger could hang on, so a
+    copy in the database file would drift away from the notes without saying
+    so. What says it is out of date is `sqlite3_total_changes()` on the
+    connection.
+- **`editcost` holds the German rules of §6** and nothing else: `ue`↔`ü`,
+  `ae`↔`ä`, `oe`↔`ö`, `ss`↔`ß`, each direction at cost 1. The four column
+  names are the ones spellfix1 reads.
 - **The origin is two columns, and that is deliberate too** (issue #47): the
   window title is what the user reads, the application id is what the
   classification of §7 can key on — a note from a terminal is probably a
@@ -664,7 +697,8 @@ the concept):
   „Bücher" through `remove_diacritics 1` below. Accepted, because nothing the
   application stores by itself runs into the ceiling: the analysis run writes
   tags in lower case and the categories are the ASCII values of the table
-  above (7.2). Lifting it needs a folding of its own, like the ß/ss story S30.
+  above (7.2). Lifting it needs a folding of its own — the tolerant search
+  below has one, and it is not applied to these two.
 - The parser is a pure function `QString → SearchQuery` — unit-testable.
 - FTS5 tokenizer: **`trigram remove_diacritics 1`** (user decision
   2026-08-01, issue #8). A search term finds **parts of words at any
@@ -685,8 +719,12 @@ the concept):
   - **Limit (finding of issue #8, SQLite 3.53.4):** the tokenizer removes
     diacritics. `ß` carries none — it is a letter of its own and stays. That
     is why „strassenbahn" does **not** find „Straßenbahn", and „grosse" does
-    not find „Größe". Holds for `unicode61` as for `trigram`; folding ß/ss
-    demands a tokenizer of its own and is a story of its own (S30).
+    not find „Größe". Holds for `unicode61` as for `trigram`, and it is a
+    limit of the **index**: what does find both of them is the second pass
+    below, which took the ß/ss story S30 over (issue #69). `ss`→`ß` is one of
+    the four rules of `editcost`, the literal search comes back empty, and the
+    corrected word is searched for — without a word, because a keyboard is
+    only being written around here, not a typo made.
 - **Search terms of fewer than three characters (decision of issue #8):** a
   trigram index cannot contain them by construction — a trigram is three
   characters long. Such terms are therefore **compared as substrings directly
@@ -702,6 +740,66 @@ the concept):
     finds „KI"), but folds no diacritics („u" does not find „ü") and no case
     beyond that („ü" does not find „Ü"). Affects terms of one or two
     characters exclusively.
+- **A search that finds nothing is run a second time with the words
+  corrected** (user decision option A, 02.08.2026; spike #62; built in issue
+  #69, which took #51 and #52 over). Every term of three characters or more is
+  looked up in `notes_words_vocab` through **spellfix1**, the closest word
+  within the cost ceiling takes its place, and the query runs again. What
+  carries this is `editdist3` with the `editcost` table of 5.1, so the
+  spelling variant „pruefen" and the typo „prüfem" both find „prüfen" through
+  one mechanism.
+  - **Only on nothing found, never on few found.** Every hit of the first pass
+    is a hit on what the user really typed; hits on another word put beside
+    them would push their own result out of the list. And the trigram
+    tokenizer finds parts of words at any position, so „p", „pr" and „prüfe"
+    all have hits while a correct word is being typed — the second pass
+    therefore fires at the moment a wrong word is finished, and not on the way
+    there. It costs nothing in a search that has hits.
+  - **Distances are costs, not edits** (condition of spike #62). spellfix1
+    charges 150 for an ordinary substitution and 100 for an insertion or a
+    deletion, while the rules of `editcost` cost 1 apiece. The ceiling is
+    therefore **150**: any number of umlaut spellings and at most one ordinary
+    typo. A ceiling read as a number of edits does not work — measured in the
+    spike, a threshold of 2 or less admits the spelling variants and locks
+    every typo out.
+  - **Vocabulary and search term have to be spelled the same** (condition of
+    spike #62). The word list is what `unicode61` wrote, which is lower case,
+    so the term is case-folded before the lookup.
+  - **Phrases and terms under three characters are not corrected.** The word
+    list holds single words, and on the substring route a correction would
+    turn „ad" into some word of the corpus.
+  - **Price, measured at 20,000 notes** (issue #69, on a machine at load 0.3).
+    On disk: the second word index costs **1.3 MiB** beside the 16.1 MiB the
+    same corpus took before — 8 % more, against the six-fold the trigram index
+    costs above. In time, **a search that has hits is unchanged**:
+    157.8 ms against 157.8 ms for a term matching every note and 0.5 ms
+    against 0.5 ms for one matching fifty, measured with `tests/searchbench.cpp`
+    on the same seed before and after. A search that finds nothing pays the
+    correction — the **first** one 114 ms, because it builds the spellfix1
+    table out of a word list of 17,030 entries, and every one after it 52 ms
+    against the 50 ms the same rows cost without a correction. The pair is the
+    typo „prüfstamd" against the word „prüfstand", which stands in 5,376 of
+    those 20,000 notes — counted with `sqlite3` on the file itself, which also
+    says that not one note carries the typo. A term resembling nothing in the
+    corpus stays at 0.2 ms: nothing is fetched.
+  - **What the user is told, and when** (UX decision 30.08.2026, drawing 2c).
+    A **line above the list**, dimmed, not clickable: „Ergebnisse für
+    „prüfen““. It appears only when the correction is a real one — both words
+    are folded by the German rule (`ü`→`ue`, `ö`→`oe`, `ä`→`ae`, `ß`→`ss`) and
+    compared, and if they come out the same, nothing the user did was wrong
+    and nothing is said. That is the same silence this section already keeps
+    for „bucher" → „Bücher". The boundary is that comparison and not a cost
+    threshold: four rules, nothing to calibrate.
+    - No offer, no click, no list of alternatives: the search runs on **every
+      keystroke**, so a „Meinten Sie …?" to accept would appear and vanish
+      while the user is still typing.
+    - No way back either — what was typed stands unchanged in the field, and
+      the field's clear button is the way back. A link „search for that word
+      instead" would lead to an empty list, that being the condition under
+      which the correction ran at all.
+    - Only the best candidate per term; several terms are joined with „ · ".
+    - If the second pass finds nothing either, the placeholder page „Keine
+      Treffer" stands with the sentence it always had.
 - **No upper bound on the result list** (user decision 2026-08-28, measured in
   issue #78). At the 20,000 notes this section sizes the index for, a term that
   matches every note costs **120 ms** in `Store::search()` and **26 MiB** for
@@ -1468,7 +1566,15 @@ the program wrote, which neither visible channel carries.
 
 ## 15. Build, dependencies, packaging
 
-- **CMake** + ECM (Extra CMake Modules), C++20.
+- **CMake** + ECM (Extra CMake Modules), C++20 — and **C**, for the one file
+  `third_party/spellfix/spellfix.c` (5.1). It is compiled with `-w` and every
+  clang-tidy check switched off in a `.clang-tidy` of its own: foreign code,
+  taken over unchanged, and a finding in it is not one we would be allowed to
+  fix without breaking the checksum in its `HERKUNFT.md`.
+- **SQLite** is linked directly since that file: `find_package(SQLite3)`, and
+  `sqlite` therefore stands in `depends` of the PKGBUILD. `qt6-base` pulls the
+  library in as well, because its `QSQLITE` plugin links it — and a transitive
+  road is no promise.
 - Qt 6: Widgets, Sql, Network, Multimedia, **DBus** (not only for the single
   instance and the service interface: the capture window asks KWin over it
   whether this session blurs at all — 3.2, item 9).

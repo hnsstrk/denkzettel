@@ -476,6 +476,24 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_listPages->addWidget(m_noResultsPage);
     m_listPages->setMinimumWidth(MinimumListWidth);
 
+    // The correction line of SPEC 6 sits above the stack, inside the list
+    // column: it belongs to the list, not to the window (UX decision
+    // 30.08.2026). Hidden it takes no height, so the list stands where it
+    // stands today until there is something to say.
+    m_correctionLine = subtleLabel(QString(), this);
+    m_correctionLine->setObjectName(QStringLiteral("correctionLine"));
+    // 12 to the left and right, which is `HorizontalPadding` in
+    // notelistdelegate.cpp — file-local there. The sentence stands over the
+    // list, so it lines up with the list's text and not with the window.
+    m_correctionLine->setContentsMargins(12, 6, 12, 2);
+    m_correctionLine->setVisible(false);
+    auto *listColumn = new QWidget(this);
+    auto *listColumnLayout = new QVBoxLayout(listColumn);
+    listColumnLayout->setContentsMargins(0, 0, 0, 0);
+    listColumnLayout->setSpacing(0);
+    listColumnLayout->addWidget(m_correctionLine);
+    listColumnLayout->addWidget(m_listPages, 1);
+
     m_detailPages = new QStackedWidget(this);
     m_detailPage = buildDetail();
     m_noSelectionPage = placeholderPage(i18n("No note selected"),
@@ -489,7 +507,7 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_detailPages->addWidget(m_blankPage);
 
     m_splitter->addWidget(buildSidebar());
-    m_splitter->addWidget(m_listPages);
+    m_splitter->addWidget(listColumn);
     m_splitter->addWidget(m_detailPages);
     // The surplus width belongs to the reading pane: the category column and
     // the list are both as wide as their contents need (wireframe 1b).
@@ -1410,7 +1428,21 @@ void LibraryWindow::reload(Selection selection)
     // full list and a result list are the same code path — and clearing the
     // field needs no case of its own (SPEC 6). The category column narrows what
     // comes back; both narrow the same list and neither replaces the other.
-    QList<Note> notes = m_store->search(m_search->text());
+    QStringList correctedTo;
+    QList<Note> notes = m_store->search(m_search->text(), &correctedTo);
+    // What the search really looked for, when that is not what stands in the
+    // field (SPEC 6, issue #69). The list is empty for a spelling variant —
+    // there the correction is none from the user's side — and for every search
+    // that found what it was given.
+    //
+    // The text is cleared and not only hidden: a label that keeps the last
+    // sentence while standing invisible makes every readback ambiguous — it
+    // then says the same thing for "nothing to report" as for "reported and
+    // hidden by mistake" (finding 51 from its other side).
+    m_correctionLine->setText(correctedTo.isEmpty()
+                                  ? QString()
+                                  : i18n("Results for “%1”", correctedTo.join(QStringLiteral(" · "))));
+    m_correctionLine->setVisible(!correctedTo.isEmpty());
     applyCategoryFilter(notes);
     m_model->setNotes(notes, referenceTime());
     m_groupedOn = referenceTime().date();

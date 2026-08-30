@@ -24,34 +24,32 @@ target_link_libraries(denkzettelstore PUBLIC
     KF6::I18n
 )
 
-# Spike #62: compile spellfix1 along. OFF by default — the spike ends with a
-# report, not with a feature. With the switch off nothing below is configured,
-# and the build is the same as without this block.
-option(DENKZETTEL_SPIKE_SPELLFIX "Build the spellfix1 prototype of spike #62 (issue #62)" OFF)
+# spellfix1, the SQLite extension the tolerant search of SPEC 6 rests on
+# (issue #69). Not an option any more: the correction is part of the search,
+# and a build without it would be a different product.
+find_package(SQLite3 REQUIRED)
 
-if(DENKZETTEL_SPIKE_SPELLFIX)
-    # Das Projekt ist als reines C++-Projekt deklariert; spellfix.c ist C. Die
-    # Sprache wird erst hier angeschaltet, damit der Normalbau ohne den Schalter
-    # keinen C-Compiler suchen muss.
-    enable_language(C)
-    find_package(SQLite3 REQUIRED)
+target_sources(denkzettelstore PRIVATE ${CMAKE_SOURCE_DIR}/third_party/spellfix/spellfix.c)
 
-    target_sources(denkzettelstore PRIVATE ${CMAKE_SOURCE_DIR}/third_party/spellfix/spellfix.c)
+set_source_files_properties(${CMAKE_SOURCE_DIR}/third_party/spellfix/spellfix.c PROPERTIES
+    # Without SQLITE_CORE the file compiles as a loadable extension: every
+    # SQLite call would then go through the `sqlite3_api` pointer, which only
+    # sqlite3_load_extension() fills. With SQLITE_CORE those macros fall away
+    # and the file calls the same libsqlite3 directly that the Qt driver is
+    # linked against (see /usr/include/sqlite3ext.h, line 727 ff.) — SPEC 5.1
+    # condition 1, and it only holds because the Qt driver links the shared
+    # library rather than a copy of its own.
+    COMPILE_DEFINITIONS SQLITE_CORE=1
+    # Third-party code, taken over unchanged: warnings in it are not ones we
+    # would be allowed to fix without breaking the checksum in HERKUNFT.md.
+    COMPILE_OPTIONS -w
+)
 
-    set_source_files_properties(${CMAKE_SOURCE_DIR}/third_party/spellfix/spellfix.c PROPERTIES
-        # Without SQLITE_CORE the file compiles as a loadable extension: every
-        # SQLite call would then go through the `sqlite3_api` pointer, which only
-        # sqlite3_load_extension() fills. With SQLITE_CORE those macros fall away
-        # and the file calls the same libsqlite3 directly that the Qt driver is
-        # linked against (see /usr/include/sqlite3ext.h, line 727 ff.).
-        COMPILE_DEFINITIONS SQLITE_CORE=1
-        # Third-party code, taken over unchanged: warnings in it are not ones we
-        # would be allowed to fix without breaking the checksum in HERKUNFT.md.
-        COMPILE_OPTIONS -w
-    )
-
-    target_link_libraries(denkzettelstore PUBLIC SQLite3::SQLite3)
-endif()
+# The header of the same library the Qt driver already carries. Store::open()
+# needs sqlite3.h for the handle QSqlDriver::handle() hands out; the link is
+# what makes the one instance of SQLite in the process the one the extension
+# is registered in.
+target_link_libraries(denkzettelstore PUBLIC SQLite3::SQLite3)
 
 # The transcription queue (SPEC 12). No library of whisper.cpp's is linked
 # here and none is looked for at build time: both programs are subprocesses,

@@ -1369,6 +1369,22 @@ find.
     the wallet's **global** folder current, and the next `passwordList()` reads
     entries that are not ours.
 
+79. **A hidden label that keeps its last sentence answers the same thing for
+    "nothing to say" and for "said it and hid it by mistake".** Measured
+    2026-08-30 on #69: the correction line above the library list was hidden
+    when there was nothing to report but its text was left standing, and the
+    readback beside the picture then printed
+    `line=0 text="Ergebnisse für „prüfen“"` for the spelling variant — a line
+    that reads like a fault and is none, and that would have read exactly the
+    same had the line been wrongly hidden over a real correction. Only
+    `isVisible()` told the two apart, and a picture cannot show a widget that
+    is not drawn. Clearing the text with the hiding made the same readback
+    `line=0 text=""`, which comes out **different** from the case that has
+    something to say. This is finding 51 from its other side: there a value
+    was set and not visible, here it is visible in the readback and not on the
+    screen. Whatever a check reads off a widget it may find hidden, put the
+    widget into **one** state per case — or the readback carries two.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

@@ -62,6 +62,16 @@ depends=(
     'kwallet'
     'kwidgetsaddons'
     'kwindowsystem'
+    # libsqlite3 and its headers. Since issue #69 the store links SQLite
+    # itself — third_party/spellfix/spellfix.c is compiled into it and
+    # registered on the handle the Qt driver hands out (SPEC 5.1). Written
+    # down although the DT_NEEDED check of finding 33 cannot demand the line:
+    # struck out, libsqlite3 stays covered, because qt6-base above reaches
+    # `sqlite` transitively through its QSQLITE plugin (measured — the check
+    # names the same two libraries with and without this line). Same reasoning
+    # as kconfigwidgets, kguiaddons and kwallet above: used directly means
+    # declared, and a transitive road is no promise.
+    'sqlite'
     # The about dialog behind the tray entry is KAboutApplicationDialog, and it
     # lives here (issue #87). Left out, the package builds and the service does
     # not start — a fault a package only shows on somebody else's machine.

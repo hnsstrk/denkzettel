@@ -5,5 +5,9 @@
 # Die Lint-Ziele des Projekts sammeln ohnehin nur `src/*.cpp` und `tests/*.cpp`
 # ein (oberstes CMakeLists.txt). Diese Datei ist die zweite Sperre: Sie greift
 # auch, wenn jemand clang-tidy von Hand über die Compile-Datenbank laufen lässt,
-# in der spellfix.c bei eingeschaltetem Spike-Schalter steht.
+# in der spellfix.c seit Issue #69 immer steht — die Datei wird ohne Schalter
+# mitübersetzt, der Spike-Schalter DENKZETTEL_SPIKE_SPELLFIX ist weg.
+#
+# Gemessen am 30.08.2026: `clang-tidy -p build/lint third_party/spellfix/spellfix.c`
+# meldet mit dieser Datei keinen einzigen Befund und ohne sie 27.
 Checks: '-*'
