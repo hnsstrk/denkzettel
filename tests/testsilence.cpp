@@ -34,9 +34,15 @@
  * warning (CLAUDE.md, finding 37) — which is what makes one line here the whole
  * fix for every call site a check can reach: the three in RecordingWindow, the
  * two in GlobalShortcuts, and any written next month. The sixth, in main.cpp,
- * belongs to the daemon alone and no test binary links it. The application is
- * untouched either way; it keeps its own bus and goes on notifying, measured
- * against a stand-in owning the name — two calls with it, none without.
+ * no test binary links — but commandlinetest *starts* the daemon as a child
+ * process, so that call site is reachable from a check all the same. What
+ * holds it is not this file: the child inherits the private bus of the
+ * dbus-run-session commandlinetest is started under, through
+ * isolatedEnvironment(). Both ends carry, and they are different ends
+ * (CLAUDE.md, finding 62) — whoever rebuilds one of them has to look at the
+ * other. The application is untouched either way; it keeps its own bus and
+ * goes on notifying, measured against a stand-in owning the name: two calls
+ * arrived, both out of GlobalShortcuts.
  *
  * commandlinetest is the one set that needs a session bus — it reads back the
  * name the built daemon announces — and it brings one of its own through
