@@ -12,6 +12,34 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **An analysis run can be started from the library.** The application menu
+  behind the hamburger button carries „Jetzt analysieren" as its first entry,
+  in the wording and with the symbol the tray entry has always had — it is the
+  same act, seen a third time. Until now the only ways in were the tray icon and
+  the D-Bus method, so a note just written waited for the schedule, and with the
+  trigger „periodisch" that is up to half an hour. While a run is going the
+  entry says „Analyse läuft …" and cannot be pressed, so a second run cannot be
+  started by accident; the band under the header reports the run that was
+  started here — „Analyse läuft …" on the press, „Analyse abgeschlossen." at the
+  end — and stays quiet for the runs the schedule starts by itself (#132).
+
+- **The category column of the library can be put away.** The application menu
+  behind the hamburger button carries a new entry with a check mark,
+  „Kategorien-Spalte anzeigen". Taken off, the left column disappears and the
+  room it held goes to the note list and the reading pane — it is not squeezed
+  to nothing while formally still standing there. The window remembers the
+  state until next time, and across that it keeps the width the column had: the
+  next session brings it back where it stood, not at some default. Within one
+  session it comes back at its minimum width once the two remaining columns have
+  been dragged — the division that drag left is the user's own, and it is not
+  overwritten to put the old width back. Was a category chosen when the column
+  went, its `kat:` stays visible in the search field, so nothing filters the
+  list that is not written down anywhere; the two entries the search cannot
+  spell out, „Wartet auf Analyse" and „Nicht eingeordnet", fall back to „Alle"
+  instead of going on filtering invisibly. There is no keyboard shortcut for it
+  — an invented one nobody remembers is worse than none, and one can be fitted
+  when it is asked for (#134).
+
 - **A note can remember what you were doing when you wrote it — if you say so.**
   Under Settings → Capture there is a new switch, „Herkunft der Notiz
   mitspeichern", and it is **off**. Turned on, a note keeps the title of the

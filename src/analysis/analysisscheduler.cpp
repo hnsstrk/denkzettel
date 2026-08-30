@@ -24,11 +24,15 @@ AnalysisScheduler::AnalysisScheduler(Classifier *classifier, Embedder *embedder,
     connect(m_embedder, &Embedder::finished, m_suggester, &Suggester::start);
 
     connect(m_suggester, &Suggester::finished, this, [this] {
-        if (!m_runWhenIdle) {
-            return;
+        if (m_runWhenIdle) {
+            m_runWhenIdle = false;
+            analyzeNow();
         }
-        m_runWhenIdle = false;
-        analyzeNow();
+        // Behind the owed run and not instead of it: a run taken up here leaves
+        // isBusy() true, so updateBusy() reports nothing and the state of the
+        // window outside stays "busy" across the seam between the two runs
+        // (issue #132).
+        updateBusy();
     });
 
     // Half an hour by default, and nothing here needs it to the second: a
@@ -78,6 +82,21 @@ void AnalysisScheduler::analyzeNow()
         return;
     }
     m_classifier->start();
+    // After the start and not before it, because start() may be the whole run:
+    // with nothing to analyse all three steps walk through inside this call and
+    // isBusy() is false again by the time it returns. Nothing is emitted then,
+    // which is the honest answer — the state never moved.
+    updateBusy();
+}
+
+void AnalysisScheduler::updateBusy()
+{
+    const bool busy = isBusy();
+    if (busy == m_busy) {
+        return;
+    }
+    m_busy = busy;
+    Q_EMIT busyChanged(busy);
 }
 
 bool AnalysisScheduler::isBusy() const

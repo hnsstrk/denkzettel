@@ -17,6 +17,9 @@
 #include <QPalette>
 #include <QPlainTextEdit>
 #include <QStyle>
+#include <QAction>
+#include <QMenu>
+#include <QSplitter>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -282,6 +285,25 @@ QPalette breezeDark()
  * pane are mixed out of them: a run whose palette says something else than the
  * picture shows would look like a fault of the product (finding 38).
  */
+/**
+ * Writes the splitter's division and the visibility of its first child beside
+ * the picture (issue #134).
+ *
+ * A hidden column and a column squeezed to width 0 look exactly alike in a
+ * picture, and the second is the state issue #18 excluded — so the two numbers
+ * that tell them apart belong in the log, the way the style name does.
+ */
+void reportTheColumns(QSplitter *splitter, const char *what)
+{
+    const QList<int> sizes = splitter->sizes();
+    qInfo("%s: sizes %d/%d/%d · column visible %s",
+          what,
+          sizes.value(0),
+          sizes.value(1),
+          sizes.value(2),
+          splitter->widget(0)->isVisible() ? "yes" : "no");
+}
+
 void reportWhatItDrewWith()
 {
     const QPalette palette = QApplication::palette();
@@ -469,6 +491,40 @@ int main(int argc, char **argv)
         list->setCurrentIndex(list->model()->index(1, 0));
 
         shoot(window, directory, QStringLiteral("bibliothek.png"));
+
+        // 3b — the same window with the category column put away (issue #134).
+        // Taken from **one** window in one run, so that everything this story
+        // did not touch comes out bit for bit as it was (CLAUDE.md,
+        // finding 39).
+        auto *splitter = window.findChild<QSplitter *>();
+        Q_ASSERT(splitter);
+        reportTheColumns(splitter, "with the category column");
+
+        QAction *toggle = nullptr;
+        const QList<QMenu *> menus = window.findChildren<QMenu *>();
+        for (const QMenu *menu : menus) {
+            const QList<QAction *> entries = menu->actions();
+            for (QAction *entry : entries) {
+                if (entry->isCheckable()) {
+                    toggle = entry;
+                }
+            }
+        }
+        if (!toggle) {
+            qFatal("The application menu carries no checkable entry");
+        }
+        toggle->trigger();
+        // The division follows the hiding only once the splitter has laid out
+        // again — in the same turn sizes() still answers the old width
+        // (measured 2026-08-30, and the reason this line is here). shoot()
+        // waits 300 ms of its own, but the numbers below are read before it.
+        QCoreApplication::processEvents();
+        // Read back beside the picture, because no picture can tell a hidden
+        // column from one squeezed to width 0 — which is the state issue #18
+        // measured and excluded (findings 27 and 51).
+        reportTheColumns(splitter, "without the category column");
+
+        shoot(window, directory, QStringLiteral("bibliothek-ohne-kategorien.png"));
     }
 
     return 0;

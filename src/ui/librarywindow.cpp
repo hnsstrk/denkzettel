@@ -420,6 +420,18 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     , m_exportAction(new QAction(QIcon::fromTheme(QStringLiteral("document-export")),
                                  i18nc("@action", "Export all notes…"),
                                  this))
+    // No symbol, for the reason at the member: the check mark is what this row
+    // says, and a second graphic beside it competes with it under Breeze.
+    , m_sidebarAction(new QAction(i18nc("@action", "Show category column"), this))
+    // Wording and symbol taken from the tray entry, verbatim (SPEC 7.2,
+    // src/shell/trayicon.cpp:163) — the same act seen a third time. Plain
+    // i18n() and not i18nc(): the settings entry below shares its msgid with
+    // the tray's in exactly this way, and a context of its own would make a
+    // **second** catalogue entry for the same sentence — which is how two
+    // wordings that must not differ start differing.
+    , m_analysisAction(new QAction(QIcon::fromTheme(QStringLiteral("system-run")),
+                                   i18n("Analyze now"),
+                                   this))
     , m_splitter(new QSplitter(Qt::Horizontal, this))
     , m_list(new QListView(this))
     , m_delegate(new NoteListDelegate(m_list))
@@ -568,6 +580,16 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // program to the two global ones.
     connect(m_exportAction, &QAction::triggered, this, &LibraryWindow::startFullExport);
 
+    // The same for the category column, and the reason for the missing key is
+    // written out at the member.
+    m_sidebarAction->setCheckable(true);
+    m_sidebarAction->setChecked(true);
+    connect(m_sidebarAction, &QAction::toggled, this, &LibraryWindow::showSidebar);
+
+    // And the same for the analysis run: reached through the menu, so no key
+    // and not added to the window.
+    connect(m_analysisAction, &QAction::triggered, this, &LibraryWindow::startAnalysis);
+
     auto *closeAction = new QAction(this);
     closeAction->setShortcuts(KStandardShortcut::close());
     connect(closeAction, &QAction::triggered, this, &LibraryWindow::close);
@@ -632,7 +654,22 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     //
     // The price is named: the old entry stays behind as a dead line in
     // `denkzettelrc`, and the division falls back to the default once.
-    m_splitter->restoreState(windowGroup().readEntry("ColumnSizes", QByteArray()));
+    m_columnSizes = windowGroup().readEntry("ColumnSizes", QByteArray());
+    m_splitter->restoreState(m_columnSizes);
+
+    // A second key beside the division rather than a 0 inside it (issue #134).
+    // `ColumnSizes` keeps its form and its meaning, so a denkzettelrc written
+    // before this story reads back as it always did: the key below is missing,
+    // its default is false, and the column stands. Written into the division
+    // instead, "hidden" would be a 0 for the first pane — and that is the state
+    // the comment above was written against, only for another column.
+    //
+    // setChecked() rather than showSidebar() straight away: the entry in the
+    // menu carries the state, so it is the one place it is set from, and the
+    // check mark cannot fall out of step with the column.
+    if (windowGroup().readEntry("SidebarHidden", false)) {
+        m_sidebarAction->setChecked(false);
+    }
 
     updatePages();
     updateEditState();
@@ -670,7 +707,19 @@ QWidget *LibraryWindow::buildHeader()
     KHamburgerMenu *hamburger = KStandardAction::hamburgerMenu(nullptr, nullptr, this);
     hamburger->setMenuBarAdvertised(false);
     auto *menu = new QMenu(header);
+    // The on-demand road of SPEC 7.2, above the export: both come out of the
+    // "File" heading a menu bar would have, and this one is the act, the export
+    // the rescue path (issue #132).
+    menu->addAction(m_analysisAction);
     menu->addAction(m_exportAction);
+
+    // The category column of wireframe 1b, in a group of its own (issue #134,
+    // UX decision 30.08.2026). Three groups because the entries come out of
+    // three menu-bar headings — File, View, Settings — which a hamburger menu
+    // pulls flat; with the analysis entry above it that is four entries, well
+    // under the "about 15 items or fewer" the KDE HIG name.
+    menu->addSeparator();
+    menu->addAction(m_sidebarAction);
 
     // The settings, the second route to them beside the tray entry (the user's
     // decision of 29.08.2026, over the argument at TrayIcon that a statement
@@ -701,7 +750,11 @@ QWidget *LibraryWindow::buildHeader()
 
 QWidget *LibraryWindow::buildSidebar()
 {
-    auto *sidebar = new QWidget(this);
+    // Held as a member, the way m_categories below is: hiding the column is
+    // done on this widget and not on the tree inside it, or the splitter would
+    // keep a child that has nothing left to draw (issue #134).
+    m_sidebar = new QWidget(this);
+    QWidget *sidebar = m_sidebar;
     // Below this the longest label ("Software ideas") and its counter no longer
     // stand side by side, and the column stops saying what it counts.
     sidebar->setMinimumWidth(MinimumSidebarWidth);
@@ -1321,7 +1374,15 @@ void LibraryWindow::closeEvent(QCloseEvent *event)
 
     KConfigGroup group = windowGroup();
     KWindowConfig::saveWindowSize(windowHandle(), group);
-    group.writeEntry("ColumnSizes", m_splitter->saveState());
+    // The division is written only while the category column stands. Hidden, its
+    // pane measures 0 and saveState() would carry that 0 into the file — the
+    // next start would restore a column that is formally there and shows
+    // nothing, which is the window issue #18's comment at the restore describes
+    // (issue #134). What is written then is the division of the moment it was
+    // hidden, so bringing the column back brings back its old width and not the
+    // default.
+    group.writeEntry("ColumnSizes", m_sidebar->isVisible() ? m_splitter->saveState() : m_columnSizes);
+    group.writeEntry("SidebarHidden", !m_sidebar->isVisible());
     group.sync();
 
     QWidget::closeEvent(event);
@@ -2132,6 +2193,81 @@ void LibraryWindow::updateEditState()
     // same reason, and says so in the same way.
     m_categories->setEnabled(!editing);
     m_categories->setToolTip(m_search->toolTip());
+    // And the entry that hides the column with it: hiding it takes "Unclassified"
+    // back to "All", and that rebuilds the list — the very thing the two lines
+    // above are switched off for (issue #134).
+    m_sidebarAction->setEnabled(!editing);
+}
+
+void LibraryWindow::startAnalysis()
+{
+    m_analysisRequestedHere = true;
+    // Synchronous as far as the scheduler is concerned: main() connects this
+    // signal straight to AnalysisScheduler::analyzeNow(), so by the time the
+    // emit returns the run is either out at the provider or already through.
+    Q_EMIT analysisRequested();
+
+    // The band reports the state the scheduler is in **after** the press, never
+    // the one that was expected of it (CLAUDE.md, finding 27). A run with
+    // nothing to analyse walks all three steps of SPEC 7.2 inside that call and
+    // never reports itself busy, so "Analysis running…" would stand there for
+    // good with nothing left to take it back. The action carries that state,
+    // because setAnalysisBusy() is the one place it is set from.
+    //
+    // Nothing to do when the flag is already down: setAnalysisBusy() has then
+    // reported the end itself, inside the emit above.
+    if (m_analysisRequestedHere) {
+        const bool running = !m_analysisAction->isEnabled();
+        m_analysisRequestedHere = running;
+        showBandMessage(running ? i18n("Analysis running…") : i18n("Analysis finished."), false);
+    }
+}
+
+void LibraryWindow::setAnalysisBusy(bool busy)
+{
+    // The whole guard against a second run from this window, the way the export
+    // action is the whole guard against a second export.
+    m_analysisAction->setEnabled(!busy);
+    m_analysisAction->setText(busy ? i18n("Analysis running…") : i18n("Analyze now"));
+
+    // Only for the run this window asked for: the band belongs to the act in
+    // the window (wireframe 2b), and a periodic run would otherwise write a
+    // line into it every half hour with nobody having done anything.
+    if (!busy && m_analysisRequestedHere) {
+        m_analysisRequestedHere = false;
+        showBandMessage(i18n("Analysis finished."), false);
+    }
+}
+
+void LibraryWindow::showSidebar(bool visible)
+{
+    if (!visible) {
+        // Remembered before the column goes, because from here on saveState()
+        // writes a 0 for its pane (issue #134, and the reason at closeEvent()).
+        m_columnSizes = m_splitter->saveState();
+
+        // A filter the window no longer shows must not go on filtering — the
+        // acceptance criterion of issue #134 and the plain reading of it. A
+        // **category** needs nothing done: categoryChosen() has written its
+        // `kat:` into the search field, where it stays readable with the column
+        // gone. The two **machine states** of issue #133 are the ones the
+        // search language of SPEC 6 has no word for, so hiding the column while
+        // one of them is marked would leave a filter with nothing on screen
+        // naming it; they are taken back to "All" instead.
+        //
+        // Through isMachineState() and not through a condition written out
+        // again here: the same rule copied to a second place is what the review
+        // of issue #133 found and CLAUDE.md's finding 48 describes — two
+        // transcriptions drift, and nothing in the build says they have.
+        if (isMachineState(chosenFilter(m_categories))) {
+            // The "All" entry, which buildSidebar() adds before every other one.
+            m_categories->setCurrentItem(m_categories->topLevelItem(0));
+        }
+    }
+
+    // Not a width of 0: setChildrenCollapsible(false) stays, and the splitter
+    // hands the freed room to the note list and the reading pane by itself.
+    m_sidebar->setVisible(visible);
 }
 
 void LibraryWindow::startFullExport()
@@ -2149,7 +2285,7 @@ void LibraryWindow::startFullExport()
     // The whole guard against two runs at once. The act has one door, and it
     // is this action.
     m_exportAction->setEnabled(false);
-    showExportMessage(i18n("Export running…"), false);
+    showBandMessage(i18n("Export running…"), false);
 
     // One turn of the event loop, so the line above stands on screen before
     // the writing starts — the export holds this thread, and a text set and
@@ -2160,7 +2296,7 @@ void LibraryWindow::startFullExport()
         m_exportAction->setEnabled(true);
 
         if (!result.ok()) {
-            showExportMessage(result.error, true);
+            showBandMessage(result.error, true);
             return;
         }
 
@@ -2191,11 +2327,11 @@ void LibraryWindow::startFullExport()
                         "%1 notes are without their recording, see the log.",
                         static_cast<int>(result.incomplete.size()));
         }
-        showExportMessage(text, !result.missing.isEmpty() || !result.incomplete.isEmpty());
+        showBandMessage(text, !result.missing.isEmpty() || !result.incomplete.isEmpty());
     });
 }
 
-void LibraryWindow::showExportMessage(const QString &text, bool isError)
+void LibraryWindow::showBandMessage(const QString &text, bool isError)
 {
     // Neither "Undo" belongs to this line; left standing in the band one of
     // them would sit beside it as a greyed out button.

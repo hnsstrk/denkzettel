@@ -3,6 +3,7 @@
 #include "store/note.h"
 #include "ui/timestampformat.h"
 
+#include <QByteArray>
 #include <QModelIndex>
 #include <QWidget>
 
@@ -82,6 +83,16 @@ public Q_SLOTS:
     /** Shows the window, or brings the open one to the front. */
     void showLibrary();
 
+    /**
+     * Follows the analysis run into the menu entry and the message band
+     * (issue #132).
+     *
+     * Hangs on AnalysisScheduler::busyChanged in main(), because this library
+     * links no scheduler — the same arrangement setCaptureShortcut() has and
+     * for the same reason.
+     */
+    void setAnalysisBusy(bool busy);
+
 Q_SIGNALS:
     /**
      * The application menu asks for the settings dialog (the user's decision of
@@ -91,6 +102,16 @@ Q_SIGNALS:
      * two dialogs.
      */
     void configureRequested();
+
+    /**
+     * The application menu asks for an analysis run — the third road of
+     * SPEC 7.2 beside the tray entry and the bus method (issue #132).
+     *
+     * Not started here: the scheduler lives in `denkzettelanalysis`, which this
+     * library does not link, and main() already holds the two other roads to
+     * it. One action, one signal, one connect, and no new plumbing.
+     */
+    void analysisRequested();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -306,15 +327,23 @@ private:
     void startFullExport();
 
     /**
-     * Puts one line of the export into the band under the header
-     * (wireframe 2b).
+     * Puts one line into the band under the header (wireframe 2b).
      *
      * The band is shared with the pending deletion, which brings its own
-     * colour, its own layout and the "Undo" button with it — each of the two
-     * sets what it needs, or the export would report itself beside a greyed
-     * out button in the colour of a warning.
+     * colour, its own layout and the "Undo" button with it — each of them sets
+     * what it needs, or the export would report itself beside a greyed out
+     * button in the colour of a warning.
+     *
+     * Two writers use it in this shape: the full export of SPEC 8.3 and, since
+     * issue #132, the analysis run started from this window.
      */
-    void showExportMessage(const QString &text, bool isError);
+    void showBandMessage(const QString &text, bool isError);
+
+    /**
+     * Asks for an analysis run and says in the band which state that left
+     * (issue #132, wireframe 2b).
+     */
+    void startAnalysis();
 
     /**
      * The band under the header with the "Undo" of the origin removal
@@ -329,6 +358,22 @@ private:
 
     /** Follows the edit state into buttons, rows, actions and search field. */
     void updateEditState();
+
+    /**
+     * Shows or hides the category column (issue #134).
+     *
+     * Hiding is `setVisible(false)` and not a width of 0: a column of width 0
+     * that is formally still visible is the state issue #18 measured and
+     * excluded, and it is what a collapsible splitter would leave behind. The
+     * splitter gives the freed room to the note list and the reading pane on
+     * its own.
+     *
+     * A filter the column applied does not survive its column invisibly: a
+     * category stands written out in the search field anyway, so it stays; the
+     * two entries the search language of SPEC 6 cannot express — the machine
+     * states of issue #133 — fall back to "All".
+     */
+    void showSidebar(bool visible);
 
     Store *m_store;
     NoteListModel *m_model;
@@ -356,7 +401,64 @@ private:
      */
     QAction *m_exportAction;
 
+    /**
+     * The checkable entry of the hamburger menu that hides the category column
+     * (issue #134, UX decision 30.08.2026).
+     *
+     * Without a symbol, because a check mark and a symbol in one menu row
+     * compete under Breeze — and without a shortcut: the KDE HIG bar a bare
+     * function key ("never just a function key, as these can be hard to access
+     * on laptops"), which rules out the obvious F9 of Dolphin's places panel,
+     * and an invented modifier combination is one nobody remembers. An
+     * accelerator is fitted when the customer asks for one; it is not invented
+     * in advance.
+     */
+    QAction *m_sidebarAction;
+
+    /**
+     * The first entry of the hamburger menu: the on-demand road of SPEC 7.2
+     * (issue #132).
+     *
+     * Wording and symbol are the tray entry's, verbatim, because it is the same
+     * act seen a third time — the settings entry below is the precedent. The
+     * text carries the state rather than a tooltip: a deactivated row without an
+     * explanation is unfriendly, and a tooltip is invisible until somebody
+     * points at it — and would need setToolTipsVisible() on the menu before Qt
+     * showed it at all.
+     */
+    QAction *m_analysisAction;
+
+    /**
+     * Whether the run now going was asked for in this window (issue #132).
+     *
+     * The band belongs to the act in the window (wireframe 2b), so a periodic
+     * run must not write into it — every half hour a line would appear where
+     * nobody did anything.
+     */
+    bool m_analysisRequestedHere = false;
+
     QSplitter *m_splitter;
+
+    /**
+     * The category column as the splitter's first child (issue #134).
+     *
+     * Held so that it can be hidden outright rather than squeezed to width 0:
+     * setChildrenCollapsible(false) stays, and the splitter hands the room of a
+     * hidden child to the other two by itself.
+     */
+    QWidget *m_sidebar;
+
+    /**
+     * The splitter's division as it stood while the category column was last
+     * visible (issue #134).
+     *
+     * `ColumnSizes` is written from here instead of from saveState() whenever
+     * the column is hidden. A state saved over a hidden child carries a 0 for
+     * that child, and a window restored from it is exactly the one the comment
+     * at the restore in the constructor was written against — formally
+     * successful, unusable to look at.
+     */
+    QByteArray m_columnSizes;
     QLineEdit *m_search;
 
     /**

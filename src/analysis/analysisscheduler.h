@@ -76,10 +76,11 @@ inline constexpr int MaximumIntervalMinutes = 1440;
  *   what a note carries is the store's business and a finished transcript is
  *   the transcription queue's, and this library links neither.
  * - **periodically** — a timer at `[Analysis] IntervalMinutes`.
- * - **on demand** — `AnalyzeNow()` on the bus (SPEC 2.3) and the tray entry
- *   beside it, both landing on analyzeNow(). That one runs whatever the setting
- *   says: being asked for a run is what "on demand" means, and the other two
- *   modes have no reason to refuse one.
+ * - **on demand** — `AnalyzeNow()` on the bus (SPEC 2.3), the tray entry beside
+ *   it and, since issue #132, the library's application menu; all three land on
+ *   analyzeNow(). That one runs whatever the setting says: being asked for a run
+ *   is what "on demand" means, and the other two modes have no reason to refuse
+ *   one.
  *
  * **A note written while a run is going is not lost, and not classified
  * twice.** Every step declines a second start while it is busy, so the request
@@ -118,6 +119,19 @@ public:
      */
     std::chrono::milliseconds interval() const;
 
+    /**
+     * Whether any of the three steps of SPEC 7.2 is working.
+     *
+     * All three and not the classification alone: between two steps of one run
+     * the first one is through and the run is not (CLAUDE.md, finding 32).
+     *
+     * Public since issue #132, where the library has to say which of the two
+     * states it is in. Read on the scheduler and never off the button that
+     * asked for the run — a run that was never started looks exactly like one
+     * that finished (finding 27).
+     */
+    bool isBusy() const;
+
 public Q_SLOTS:
     /**
      * Reads `[Analysis] Trigger` and `IntervalMinutes` and arms what they name.
@@ -134,9 +148,30 @@ public Q_SLOTS:
     /** A note has been written or has got its transcript (SPEC 7.2, "at once"). */
     void noteIsReady();
 
+Q_SIGNALS:
+    /**
+     * A run has begun or the last of its three steps has ended (issue #132).
+     *
+     * Emitted only when the answer of isBusy() really changes, so that a caller
+     * may hang a state on it: a request that finds the queue busy already
+     * changes nothing and says nothing.
+     *
+     * **The end is the end of the last step, not of the first.** Hung on
+     * Classifier::finished this would report the run over while the embedding
+     * of the same run was still out — a queue is idle between two of its jobs
+     * as well (CLAUDE.md, finding 32).
+     *
+     * **A run with nothing to analyse emits nothing at all**, and that is not
+     * an oversight: all three steps then walk through inside analyzeNow(), the
+     * answer of isBusy() never leaves false, and a signal saying otherwise
+     * would be a state nobody ever takes back. Whoever wants to know how such
+     * a press ended reads isBusy() after it.
+     */
+    void busyChanged(bool busy);
+
 private:
-    /** Whether any of the three steps is working (see analyzeNow()). */
-    bool isBusy() const;
+    /** Emits busyChanged() if, and only if, the answer of isBusy() has moved. */
+    void updateBusy();
 
     Classifier *m_classifier;
     Embedder *m_embedder;
@@ -146,4 +181,6 @@ private:
     bool m_afterSaving = false;
     /** A run was asked for while one was going, and is owed once it ends. */
     bool m_runWhenIdle = false;
+    /** What busyChanged() last reported, so that it reports only changes. */
+    bool m_busy = false;
 };
