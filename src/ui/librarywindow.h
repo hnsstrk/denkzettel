@@ -168,13 +168,10 @@ private:
     void followTheSearchField();
 
     /**
-     * Takes out what the entry "Unclassified" excludes — the one entry that no
-     * `kat:` can express.
+     * Takes out what the two machine-state entries exclude — "Waiting for
+     * analysis" and "Unclassified", the two no `kat:` can express.
      */
     void applyCategoryFilter(QList<Note> &notes) const;
-
-    /** True while the column stands on the entry for the given-up notes. */
-    bool isUnclassifiedChosen() const;
 
     /**
      * Takes a note that has just been written into the open list (issue #105).

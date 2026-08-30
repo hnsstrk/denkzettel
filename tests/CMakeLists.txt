@@ -209,6 +209,26 @@ target_link_libraries(originshots PRIVATE
     Qt6::Widgets
 )
 
+# The pictures of the category column (issue #133). No add_test() for the
+# reason readmeshots has none — it produces pictures for a human to look at.
+# Built by an ordinary build all the same (CLAUDE.md, rule 4), and committed
+# rather than improvised: the sum the column promises was read off the numbers
+# it prints beside every picture, and the tree's viewport shares its ground
+# colour with the sidebar, so those numbers are the only statement about space
+# there is.
+add_executable(categoryshots categoryshots.cpp)
+
+target_link_libraries(categoryshots PRIVATE
+    denkzettelstore
+    denkzettelui
+    # The German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name.
+    KF6::I18n
+    Qt6::Test
+    Qt6::Widgets
+)
+
 # The pictures and the numbers of the level meter's scale (issue #21, the
 # customer's instruction of 29.08.2026). No add_test() for the reason
 # readmeshots has none — it produces pictures for a human to look at. Built by
