@@ -423,9 +423,9 @@ void LibraryTest::keepsTheYearFourDigitsAcrossYears()
     const QDateTime lastYear = at(QStringLiteral("2025-07-28T09:00:45"));
 
     QCOMPARE(library::entryTimestamp(lastYear, german()), QStringLiteral("28.07.2025 09:00"));
-    QCOMPARE(library::relativeTimestamp(lastYear, german()), QStringLiteral("Montag, 28.07.2025 09:00:45"));
+    QCOMPARE(library::relativeTimestamp(lastYear, german()), QStringLiteral("Montag, 28.07.2025 09:00"));
     QCOMPARE(library::entryTimestamp(lastYear, american()), QStringLiteral("7/28/2025 9:00 AM"));
-    QCOMPARE(library::relativeTimestamp(lastYear, american()), QStringLiteral("Monday, 7/28/2025 9:00:45 AM"));
+    QCOMPARE(library::relativeTimestamp(lastYear, american()), QStringLiteral("Monday, 7/28/2025 9:00 AM"));
 }
 
 void LibraryTest::countsTheRunningTimeInWholeSecondsWithoutRounding()
@@ -538,14 +538,16 @@ void LibraryTest::showsTheSameDateAndTimeFormInEveryGroup()
     QCOMPARE(library::entryTimestamp(lastWeek, german()), QStringLiteral("23.07.2026 09:00"));
     QCOMPARE(library::entryTimestamp(older, german()), QStringLiteral("19.07.2026 09:00"));
 
-    // The detail pane stands under no head and carries weekday, date and time
-    // with seconds — again the same form in every group, and neither "Today"
-    // nor "Yesterday" appears there any more.
-    QCOMPARE(library::relativeTimestamp(today, german()), QStringLiteral("Freitag, 31.07.2026 14:32:07"));
-    QCOMPARE(library::relativeTimestamp(yesterday, german()), QStringLiteral("Donnerstag, 30.07.2026 21:48:19"));
-    QCOMPARE(library::relativeTimestamp(thisWeek, german()), QStringLiteral("Mittwoch, 29.07.2026 09:00:33"));
-    QCOMPARE(library::relativeTimestamp(lastWeek, german()), QStringLiteral("Donnerstag, 23.07.2026 09:00:45"));
-    QCOMPARE(library::relativeTimestamp(older, german()), QStringLiteral("Sonntag, 19.07.2026 09:00:01"));
+    // The detail pane stands under no head and carries the weekday in front of
+    // that same date and time — again the same form in every group, and
+    // neither "Today" nor "Yesterday" appears there any more. Every one of the
+    // five times above carries a seconds field of its own (07, 19, 33, 45, 01)
+    // and none of them may reach the window (issue #124).
+    QCOMPARE(library::relativeTimestamp(today, german()), QStringLiteral("Freitag, 31.07.2026 14:32"));
+    QCOMPARE(library::relativeTimestamp(yesterday, german()), QStringLiteral("Donnerstag, 30.07.2026 21:48"));
+    QCOMPARE(library::relativeTimestamp(thisWeek, german()), QStringLiteral("Mittwoch, 29.07.2026 09:00"));
+    QCOMPARE(library::relativeTimestamp(lastWeek, german()), QStringLiteral("Donnerstag, 23.07.2026 09:00"));
+    QCOMPARE(library::relativeTimestamp(older, german()), QStringLiteral("Sonntag, 19.07.2026 09:00"));
 
     // The same in English, on two of the five: month before day, no leading
     // zero, twelve-hour clock with AM/PM, and the weekday name in English —
@@ -553,8 +555,8 @@ void LibraryTest::showsTheSameDateAndTimeFormInEveryGroup()
     // checks, so this only has to show the arrangement, not repeat it.
     QCOMPARE(library::entryTimestamp(today, american()), QStringLiteral("7/31/2026 2:32 PM"));
     QCOMPARE(library::entryTimestamp(older, american()), QStringLiteral("7/19/2026 9:00 AM"));
-    QCOMPARE(library::relativeTimestamp(today, american()), QStringLiteral("Friday, 7/31/2026 2:32:07 PM"));
-    QCOMPARE(library::relativeTimestamp(older, american()), QStringLiteral("Sunday, 7/19/2026 9:00:01 AM"));
+    QCOMPARE(library::relativeTimestamp(today, american()), QStringLiteral("Friday, 7/31/2026 2:32 PM"));
+    QCOMPARE(library::relativeTimestamp(older, american()), QStringLiteral("Sunday, 7/19/2026 9:00 AM"));
 }
 
 void LibraryTest::sortsATimestampFromTheFutureIntoToday()
@@ -1363,7 +1365,7 @@ void LibraryTest::leavesThePictureWhereItIsWhenAVisibleNoteOfAnotherGroupIsClick
     // issue #57).
     QVERIFY2(!list->viewport()->rect().intersects(list->visualRect(head)),
              qPrintable(QStringLiteral("Head at y=%1").arg(list->visualRect(head).y())));
-    QVERIFY(visibleLabels(window).contains(QStringLiteral("Donnerstag, 30.07.2026 09:00:00")));
+    QVERIFY(visibleLabels(window).contains(QStringLiteral("Donnerstag, 30.07.2026 09:00")));
 }
 
 void LibraryTest::keepsTheHeadFetchAfterAClickThatSelectedNothing()

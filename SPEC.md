@@ -932,10 +932,19 @@ conceivable as an optional later additional path, but is not built for v1.
   The timestamp does not follow the group: an entry shows date and time in
   every one of the five groups, in the arrangement the locale gives them and
   with a four-digit year, without seconds. The detail pane carries the same
-  date and time plus weekday and seconds, again the same form whichever group
-  the note falls into — "Today" and "Yesterday" stay group heads and appear
-  nowhere else (issue #108). The structure is fixed — no toggle, no
-  collapsible groups (wireframes 3a/3b).
+  date and time plus the weekday, again the same form whichever group the note
+  falls into — "Today" and "Yesterday" stay group heads and appear nowhere
+  else (issue #108). **The timestamp carries seconds nowhere**, the detail
+  pane included (issue #124, retiring the half of #108 that put them there):
+  a note is a thought written down in passing and not a measurement, and the
+  head row of the detail pane is the one row where the space is short — the
+  reading pane is 440 px of a 900 px window, 168 of them taken by the two
+  buttons. Without the seconds the timestamp label measures 130 logical px
+  under de_DE instead of 145, and 133 instead of 148 under en_US (measured in
+  the built window, 2026-08-30). The running time of a voice note is not a
+  timestamp and keeps its seconds — "▶ 0:41" is a length, not a time of day.
+  The structure is fixed — no toggle, no collapsible groups (wireframes
+  3a/3b).
   **Separation is by two hairlines of one colour. The note boundary carries its
   line on the edge of the row, the group boundary carries it beside the label
   of its head, and the head carries a rank of type of its own on top of that**
