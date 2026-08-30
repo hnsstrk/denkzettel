@@ -13,6 +13,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QIcon>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
@@ -170,6 +171,7 @@ private Q_SLOTS:
 
     void carriesOutTheDeletionWhenTheWindowCloses();
     void showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles();
+    void namesTheCaptureShortcutTheServiceHolds();
     void bringsTheHeadOfTheNewGroupIntoView_data();
     void bringsTheHeadOfTheNewGroupIntoView();
     void bringsTheHeadAlongForANoteInTheMiddleOfASmallGroup();
@@ -1099,7 +1101,47 @@ void LibraryTest::showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles()
     QVERIFY(heading);
     QVERIFY(hint);
     QCOMPARE(heading->text(), QStringLiteral("No notes yet"));
+    // No setCaptureShortcut() was called, so the window knows of no sequence —
+    // and that is the wording for it (issue #120).
+    QCOMPARE(hint->text(), QStringLiteral("Capture a thought through the icon in the system tray."));
+}
+
+void LibraryTest::namesTheCaptureShortcutTheServiceHolds()
+{
+    // The hint named „Meta+N" in the source for as long as the shortcut was
+    // fixed; since the settings page of SPEC 13 it is the user's to choose, and
+    // a hard-coded key sends them to press one that does nothing (issue #120).
+    //
+    // **Read is the text of the label, never the sequence handed in.** A case
+    // that asks the window for the value it was just given measures itself; the
+    // three expectations below are written out by hand, so they are values set
+    // from outside (CLAUDE.md, finding 10).
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QWidget *page = window.findChild<QWidget *>(QStringLiteral("emptyLibraryPage"));
+    QVERIFY(page);
+    const QLabel *hint = page->findChild<QLabel *>(QStringLiteral("hint"));
+    QVERIFY(hint);
+
+    // The default of SPEC 2.4.
+    window.setCaptureShortcut(QKeySequence(Qt::META | Qt::Key_N));
     QCOMPARE(hint->text(), QStringLiteral("Press Meta+N to capture a thought."));
+
+    // A different one, on the same window and without rebuilding it: this is
+    // the road the settings page takes, where changeSequence() reports what the
+    // service kept and nothing is restarted. Three modifiers and another letter,
+    // so no part of the first expectation could stand in for the second.
+    window.setCaptureShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::SHIFT | Qt::Key_K));
+    QCOMPARE(hint->text(), QStringLiteral("Press Ctrl+Alt+Shift+K to capture a thought."));
+
+    // And the state the read-back of issue #74 reports: the service holds
+    // nothing. The hint must not tell the user to press nothing, so it names
+    // the road that is there in every case — in the wording the three
+    // registration failures of shortcutregistration.cpp already end with.
+    window.setCaptureShortcut(QKeySequence());
+    QCOMPARE(hint->text(), QStringLiteral("Capture a thought through the icon in the system tray."));
 }
 
 void LibraryTest::bringsTheHeadOfTheNewGroupIntoView_data()

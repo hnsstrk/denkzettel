@@ -119,6 +119,32 @@ Q_SIGNALS:
     void captureRequested();
     void recorderRequested();
 
+    /**
+     * What the service holds for `which` after changeSequence() wrote — the
+     * read-back value, not the wish, because that is what a key press finds.
+     *
+     * Emitted so that a text naming the sequence can be rewritten without a
+     * restart: the empty library says how to capture a thought, and after a
+     * change on the settings page it would otherwise go on naming the old key
+     * (issue #120). It is emitted on every write, a failed one included: the
+     * window then shows what the service really holds, which is the same value
+     * the page puts back into its own field.
+     *
+     * ponytail: only our own road announces itself. Ceiling — the sequence can
+     * also be changed in the Plasma shortcut settings, and a text naming it
+     * stays stale until the next start of the daemon. Upgrade path:
+     * `KGlobalAccel::globalShortcutChanged`, which is documented for exactly
+     * that case; it is not used here because whether it reaches this process
+     * is a promise of an interface and would need a measurement of its own
+     * (CLAUDE.md, findings 15, 18 and 50), and the acceptance criteria of
+     * issue #120 ask about the dialog.
+     */
+    // Fully qualified, although the declaration stands inside the class: moc
+    // writes the type name into the meta object as it is spelled here, and a
+    // queued connection resolves it by that name at run time — unqualified,
+    // `Shortcut` is not found and the call is dropped.
+    void sequenceChanged(GlobalShortcuts::Shortcut which, const QKeySequence &held);
+
 private:
     QAction *actionFor(Shortcut which) const;
 
