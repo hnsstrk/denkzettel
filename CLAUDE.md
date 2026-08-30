@@ -1193,6 +1193,43 @@ find.
     process found and not only the first, and a run that starts a daemon ends
     it again, or it outlives the shell that started it.
 
+76. **How long a thinking model takes is no property of the note, so a limit
+    near that range fails by a coin toss — and a before/after run against the
+    real server comes out green on the broken build.** Measured 2026-08-30 on
+    #121, three traps in one road:
+
+    - **The reproduction.** The first walk put a 316-word note through the
+      **unfixed** daemon against a cold Ollama and came back
+      `analysiert | persoenlich | 0 attempts` — which reads as "the bug is not
+      here". Four runs of the same note through the same prompt on the same
+      server then took 18.1 s, 46.9 s, 22.5 s and 45.7 s, with 2,565 to 15,054
+      characters in the `thinking` field; two of the four were over the 30 s of
+      SPEC 7.1 and two were not. Nothing about the note decides it. So a fault
+      that hangs on a limit is not shown by one run against a live model, and
+      the control has to be a stand-in that takes the same time **every** time
+      — here one that sends nothing for 45 s unstreamed and a chunk a second
+      streamed, which is what the real server was measured to do. Against that
+      the same pair came out different at once: `neu | 1 attempt | "Ollama did
+      not answer within the time limit."` against
+      `analysiert | todos | 0 attempts`.
+    - **A shortened prompt is a different measurement.** The first number
+      written into the commit message, 34.8 s, came from a probe that sent an
+      abbreviated version of `classificationPrompt()`. The real prompt, with
+      its schema and its rules, makes the same model reason **less** — 4,402
+      characters against 11,293 for a comparable note. A probe that rebuilds a
+      prompt by hand measures the prompt it rebuilt (finding 58's family for
+      the input rather than the placeholders): build it from the source, or
+      take it off the wire.
+    - **`ollama stop` is not a cold start.** It frees the graphics card; the
+      model file stays in the page cache, and the reload then costs a fraction
+      of a real one. The lever that works needs no root:
+      `posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED)` on the blob under
+      `OLLAMA_MODELS`, whose digest stands in the manifest. With it the load of
+      `qwen3:8b` measured 2.3 s and of an 18 GB model 6.5 s — and that is the
+      finding under the finding: the load the issue named as the cause was the
+      **smaller** half, and a fix aimed only at it would have left the real
+      failure in place.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

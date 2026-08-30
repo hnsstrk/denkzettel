@@ -44,9 +44,16 @@ struct OllamaAnswer {
  *
  * A pure function and not a method, so the mapping can be checked without a
  * server: every case below is one an `aitest` function hands in directly.
+ *
+ * **The body is read as lines, not as one document** (issue #121): the chat
+ * call streams, so it arrives as one JSON object per line, and an embedding —
+ * which does not stream — is one such line. What the six cases say is
+ * unchanged by it.
+ *
  * The order the cases are tried in is the order of what the user needs told:
  *
- * 1. **The transfer ran out of time** — the timeout of SPEC 7.1 bit. It
+ * 1. **The transfer ran out of time** — the timeout of SPEC 7.1 bit, meaning
+ *    30 s in which nothing arrived at all. It
  *    arrives as `TimeoutError`, measured; `OperationCanceledError`, which Qt's
  *    documentation of `setTransferTimeout` names, is mapped beside it and is
  *    unreachable in this program today (see the comment at the case).
@@ -110,9 +117,14 @@ QString configuredEmbeddingModel();
  * afterwards — the settings dialog of SPEC 13 writes them, and a check points
  * them at a port that is not listening.
  *
- * Non-streaming on purpose: SPEC 7.2 wants one JSON document per note, not a
- * token trickle, and with `stream: false` the transfer timeout below is a
- * deadline for the whole answer.
+ * **The chat call streams and the answer is put back together here** (issue
+ * #121). SPEC 7.2 still gets one JSON document per note; what the stream
+ * changes is the transfer timeout below, which measured the whole answer while
+ * nothing arrived until it was finished. A cold Ollama loads the model on the
+ * first call, and that load fell into the same 30 s as the thinking — so the
+ * first note after a start paid one of its two attempts for having been first.
+ * Streamed, the limit is what SPEC 7.1 means by it: 30 s in which the server
+ * said nothing.
  */
 class OllamaProvider : public AiProvider
 {

@@ -54,6 +54,7 @@ private Q_SLOTS:
     void initTestCase();
 
     void chatAnswerIsReadOutOfTheBody();
+    void streamedChatAnswerIsPutBackTogether();
     void embeddingIsReadOutOfTheBody();
     void timeoutIsNamedAsOne();
     void ollamasOwnRefusalBeatsTheStatusCode();
@@ -153,6 +154,36 @@ void AiTest::chatAnswerIsReadOutOfTheBody()
                                                 R"({"message":{"role":"assistant","content":"Hallo, Grüße"}})");
     QCOMPARE(answer.error, QString());
     QCOMPARE(answer.text, QStringLiteral("Hallo, Grüße"));
+}
+
+void AiTest::streamedChatAnswerIsPutBackTogether()
+{
+    // The body of a real streamed call, recorded on 2026-08-30 from Ollama
+    // 0.32.15 with `qwen3:8b` and shortened by nothing (issue #121). It is here
+    // rather than invented because what a stream cuts where is the server's
+    // decision: „Grüße" arrives as three chunks, and the umlaut is a chunk of
+    // its own — a body assembled by hand would have put the split somewhere a
+    // reader thought likely and left the encoding case untested.
+    //
+    // This is the one thing about the stream that breaks without a sound: a
+    // reader that takes the first line, or the last, gets a piece of the answer
+    // that is still valid text, and the note fails on its classification rather
+    // than on its transport.
+    const QByteArray body =
+        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.197131066Z","message":{"role":"assistant","content":"Gr"},"done":false})"
+        "\n"
+        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.21011067Z","message":{"role":"assistant","content":"ü"},"done":false})"
+        "\n"
+        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.227420149Z","message":{"role":"assistant","content":"ße"},"done":false})"
+        "\n"
+        R"({"model":"qwen3:8b","created_at":"2026-08-30T06:21:27.23822516Z","message":{"role":"assistant","content":""},"done":true,)"
+        R"("done_reason":"stop","total_duration":102320790,"load_duration":1080047,"prompt_eval_count":26,)"
+        R"("prompt_eval_duration":40830000,"eval_count":4,"eval_duration":41073000})"
+        "\n";
+
+    const OllamaAnswer answer = readOllamaReply(OllamaCall::Chat, QNetworkReply::NoError, QString(), 200, body);
+    QCOMPARE(answer.error, QString());
+    QCOMPARE(answer.text, QStringLiteral("Grüße"));
 }
 
 void AiTest::embeddingIsReadOutOfTheBody()

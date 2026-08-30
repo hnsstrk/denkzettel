@@ -777,7 +777,20 @@ classification through the chosen provider keeps working, topic bundles are
 dropped (hint in the settings and the tray tooltip).
 
 All calls through Qt Network, asynchronous, with a timeout (30 s) and one
-retry. "Test connection" in the settings makes one mini `chat` call and (with
+retry. **The 30 s are 30 s of silence, not 30 s of answer** (decision
+30.08.2026, issue #121): the chat call streams and its lines are put back
+together before anybody sees them, so SPEC 7.2 still reads one JSON document
+per note. Unstreamed, the limit covered the model load and the whole generation
+in one budget, and the first note after a start paid one of its two attempts
+for a server that was merely cold. Measured on 30.08.2026 against Ollama
+0.32.15 and `qwen3:8b`: the load costs 2.3 s of silence with the page cache
+dropped (6.5 s for an 18 GB model), and the load is the smaller half — **one
+and the same note took 18.1 s, 46.9 s, 22.5 s and 45.7 s in four warm runs**,
+because how long a thinking model reasons is no property of the note. Two of
+those four were over the limit, so unstreamed the old limit failed notes that
+nothing was wrong with, by a coin toss. What the limit still catches is a
+server that says nothing at all, which is the failure the attempt counter of
+7.2 is there to count. "Test connection" in the settings makes one mini `chat` call and (with
 Ollama) one `embed` call each and shows the latency or the error.
 
 ### 7.2 Analysis run
