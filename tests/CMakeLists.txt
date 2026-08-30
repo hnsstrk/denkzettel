@@ -404,3 +404,17 @@ target_link_libraries(searchbench PRIVATE
     Qt6::Sql
     Qt6::Test
 )
+
+# The numbers of the search mark's edges (issue #122). No add_test() for the
+# reason levelshots has none — it produces the measurement a design decision was
+# taken on, and a runner nobody can build again leaves it unrepeatable. Built by
+# an ordinary build all the same (CLAUDE.md, rule 4).
+add_executable(markshots markshots.cpp)
+
+target_link_libraries(markshots PRIVATE
+    denkzettelui
+    KF6::ColorScheme
+    KF6::I18n
+    Qt6::Test
+    Qt6::Widgets
+)
