@@ -1,4 +1,10 @@
+# SPEC 5 in one library: the database of 5.1 and the secrets of 5.2. The API
+# keys live here and not beside the AI backends that spend them, because the
+# settings page writes them and two providers read them — and one wallet handle
+# for the process is what keeps a locked wallet to one password prompt
+# (issue #37).
 add_library(denkzettelstore STATIC
+    store/keystore.cpp
     store/searchquery.cpp
     store/store.cpp
 )
@@ -8,6 +14,14 @@ target_include_directories(denkzettelstore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(denkzettelstore PUBLIC
     Qt6::Core
     Qt6::Sql
+    # KWallet — the one place an API key may lie (SPEC 5.2, issue #37). The
+    # platform's own key store: no encryption of ours, and no second road for a
+    # key to take. It pulls Qt6::Gui behind it, which this project links
+    # anyway.
+    KF6::Wallet
+    # Why a key could not be kept. The sentence reaches the settings page and
+    # the provider's error channel, so it goes through i18n() (SPEC 15).
+    KF6::I18n
 )
 
 # Spike #62: compile spellfix1 along. OFF by default — the spike ends with a

@@ -19,7 +19,7 @@
  * changes it there too.
  *
  * **What a page contributes stands in a block of its own below**, and the
- * pages still to come (#74, #75, #27, #37) append theirs. The storage cannot
+ * pages still to come (#74, #75, #27) append theirs. The storage cannot
  * move into the page classes: a KConfigSkeleton item holds a reference to the
  * variable it fills, and a page is destroyed with the dialog while this object
  * outlives every one of them.

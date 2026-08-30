@@ -38,6 +38,9 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     Notifications
     StatusNotifierItem
     Svg
+    # KWallet — where the API keys of SPEC 5.2 lie, and the only place they may
+    # (issue #37).
+    Wallet
     WidgetsAddons
     WindowSystem
     XmlGui

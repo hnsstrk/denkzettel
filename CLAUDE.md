@@ -479,6 +479,20 @@ find.
     read out of the code and out of SPEC 15, and a machine that has them
     installed can never contradict the list.
 
+    **And the closure has to resolve virtual provisions itself, or it invents
+    uncovered libraries.** Measured 2026-08-30 on #37 and again in its review:
+    the check named `libGLX.so.0` and `libOpenGL.so.0` as uncovered, on the
+    changed state and on the unchanged one alike, which read like a package
+    that would not start on a foreign machine. It is right that `pactree -u`
+    does not list `libglvnd` — `qt6-base` depends on the **virtual** name
+    `libgl`, which `libglvnd` provides together with `libGLX.so=0-64` and
+    `libOpenGL.so=0-64`, and `pactree` prints the virtual name without
+    resolving it to a provider. `libgl` does stand in the closure, the package
+    is sound, and the finding was a fault of the check. Whoever runs this check
+    resolves each uncovered library's owner against the provides table
+    (`pacman -Qi <provider> | grep -i provides`, or `pacman -Sddp`) before
+    reporting it — namcap does exactly that, which is why it does not raise it.
+
 34. **A check whose input is ordered so that two rival rules agree measures
     neither of them.** Measured 2026-08-29 on #10: the parser narrows two date
     boundaries of the same direction to the tighter one, and the case handed it
@@ -1254,6 +1268,106 @@ find.
       5.2 GB blob is read in under a second and an 18 GB model in about 3.1 s.
       The conclusion the numbers were for — the load is the smaller half — came
       out stronger for being reckoned instead of staged.
+77. **`XDG_DATA_DIRS` cannot take a service away from a session bus, and the
+    two ways of opening a wallet call two different D-Bus methods.** Measured
+    2026-08-30 on #37, four things in one run and each of them looked like a
+    result:
+
+    - `<standard_session_servicedirs/>` appends `/usr/share/dbus-1/services`
+      **whatever `XDG_DATA_DIRS` says**. The mirror of finding 21 is built,
+      `XDG_DATA_DIRS` points at it alone, and `dbus-run-session` still
+      activates the service out of `/usr/share` — a run meant to measure "no
+      wallet on this session" measured the installed one. What works is a bus
+      configuration of the run's own: `dbus-run-session --config-file=…` with a
+      single `<servicedir>`. The readback is `busctl --user list`, which then
+      does not even list the name as activatable — but **without**
+      `--acquired=no`, which hides activatable names and reports nothing for a
+      service that is very much reachable.
+    - `KWallet::Wallet::isEnabled()` answers **true** on a session with no
+      wallet service at all — it reads `kwalletrc` and nothing else. A guard
+      built on it lets every request through.
+    - `Wallet::LocalWallet()` and `Wallet::NetworkWallet()` are **both**
+      blocking D-Bus calls (`localWallet` and `networkWallet`, both in
+      `kf6_org.kde.KWallet.xml`) and **both answer the empty string when no
+      wallet service is reachable** — that, and not a difference between the
+      two functions, is what makes the empty-name check in
+      `KeyStore::openWallet()` carry. With a service reachable the first of the
+      two costs **one activation of the wallet service** and every one after it
+      is negligible — that is the part that holds across machines, and the
+      numbers are not: 70 to 181 ms for the first call and 0 to 3 ms for the
+      second here, 1422 ms and 7 to 12 ms on the machine beside this one, where
+      `ksecretd` had to come up cold. A span measured on one machine is the
+      entry that damages the list; what to write down is the shape.
+      `LocalWallet()` answered `kdewallet` in every state measured. What
+      `NetworkWallet()` answers depends on the state behind the service and is
+      not to be relied on: on a session whose Secret Service held a collection
+      it answered `kdewallet` too, on one whose did not — `kwalletd6` logging
+      `Error reading label: … 'org.freedesktop.Secret.Collection' was not
+      found` — it answered empty, four readings in two processes and in both
+      call orders. The first version of this entry said the empty string was a
+      property of `NetworkWallet()` on KWallet 6.29; a second measurement on
+      another session state contradicted it. **A statement about the return
+      value of either function is only one once it says what was reachable.**
+    - `openWallet(…, Synchronous)` calls `open` on the bus and
+      `openWallet(…, Asynchronous)` calls `openAsync`. A stand-in that
+      implements only one of them answers the other with `UnknownMethod`, so
+      the mutation probe "synchronous instead of asynchronous" came back in
+      1 ms and looked exactly like the fixed code. With the stand-in holding
+      **both** methods open, the same probe never returns from the call at all,
+      while the built code answers in 51 ms with 4042 event-loop ticks in
+      twenty seconds. Whoever mutates which call is made makes sure the other
+      end can receive it — otherwise the control measures a missing method.
+
+    And the wallet case has a fifth: in a headless session `kwalletd6` asks the
+    user before it opens anything (`Using kwallet without parent window!`, then
+    silence), so **no** run without a compositor can show a key arriving in a
+    real wallet. What carries is a stand-in on `org.kde.kwalletd6` speaking
+    `org.kde.KWallet` — a hundred lines of python-dbus — which puts the whole
+    road from the code down to the wire under test and keeps the entries in a
+    file the run can read without asking our own code (finding 62). Two things
+    about that stand-in, both of which cost a run: it has to **load** its state
+    file rather than write an empty one at startup, or a run that restarts it
+    to change its behaviour reads back an empty wallet and reports the deletion
+    it was measuring as done (finding 29's family, the harness tidying away its
+    own evidence); and a probe built against the newer interface does not
+    compile against the older one, so the "before" side of a comparison keeps
+    running the **previous** binary while the build fails beside it
+    (finding 11's family — read the exit code of the build, not only of the
+    run).
+
+78. **`QDBusReply<bool>` hands back its default when the call failed, so every
+    KWallet question that answers `bool` says `false` for "it is not there" and
+    for "the wallet did not answer" alike.** Measured 2026-08-30 in the review
+    of #37, against a wallet that opens and then refuses every call — the state
+    after `kwalletd6` dies with the handle still held. `hasFolder()`,
+    `hasEntry()` and `setFolder()` all read `true` on a healthy store and
+    `false` on a broken one, which is exactly what they read for an empty one:
+    a read then hands out an empty key **with no error**, and a removal reports
+    success while the secret provably stays in the wallet — read back from the
+    wallet's own side, never from the code that claimed to have deleted it
+    (finding 62). Only **three** methods of `KWallet::Wallet` carry an error
+    channel of their own — `entriesList(bool *ok)`, `mapList(bool *ok)` and
+    `passwordList(bool *ok)` (`kwallet.h:412`, `:426`, `:441`); everything else
+    answers `bool`, or one collecting non-zero `int` for everything that went
+    wrong. Three of how many is left out on purpose: counted as declarations
+    without the signals and the constructors it is 35, by distinct name 33, and
+    two readers of the same header came to 35 and 39 — a number nobody
+    reproduces the same way carries nothing, and the three named ones carry the
+    whole statement. `passwordList(&ok)` on the same binary reads `ok=true`
+    against the healthy store and `ok=false` against the broken one, and it is
+    the only call that tells them apart. Its `ok` is not quite "did the wallet
+    answer" either: the header (`kwallet.h:432–434`) says it is set false **also**
+    when an entry in the folder was not written as a password. That direction is
+    the harmless one — an error rather than a silent empty answer — but it is
+    what the interface promises, and the narrower sentence is the kind the next
+    reader does not check. The rule is more
+    general than KWallet: **wherever a foreign interface answers a question
+    with a plain `bool` or a bare list, ask what it answers when the call
+    itself fails** — and if that is the same value, the guarantee built on it
+    is not one. The neighbouring trap is the folder: with the return value of
+    `setFolder()` unusable for the same reason, letting it fail silently leaves
+    the wallet's **global** folder current, and the next `passwordList()` reads
+    entries that are not ours.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
