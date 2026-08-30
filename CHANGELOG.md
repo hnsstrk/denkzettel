@@ -232,6 +232,14 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   notes" reports it with the old path in the sentence until the settings are
   applied once. Nobody's hand-set path disappears without being shown (#27).
 
+- **The category column ends with its last entry.** Under the last entry stood
+  a small grey line, „KI-Kategorien, automatisch". It said something true — the
+  entries come from the analysis, none of them can be renamed and none sorted
+  by hand — but that is worth reading once and not standing in the navigation
+  for good. It is gone, and the column simply runs out where it stood. Nothing
+  else there moves: the same entries, the same counters, the same widths
+  (#135).
+
 ### Fixed
 
 - **A changed Ollama address or a changed model takes hold at once.** Whoever

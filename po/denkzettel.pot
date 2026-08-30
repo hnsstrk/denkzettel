@@ -855,11 +855,6 @@ msgctxt "@item:inlistbox notes the analysis gave up on"
 msgid "Unclassified"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:681
-#, kde-format
-msgid "AI categories, automatic"
-msgstr ""
-
 #: src/ui/librarywindow.cpp:869
 #, kde-format
 msgctxt "@action:inmenu"

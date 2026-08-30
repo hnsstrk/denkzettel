@@ -651,8 +651,8 @@ QWidget *LibraryWindow::buildSidebar()
     m_categories->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 
     // One ground for the whole column, and a different one from the note list
-    // beside it (wireframe 1b): the tree draws on `Base` like every item view,
-    // the foot note below it on `Window`, and the two would show as a band.
+    // beside it (wireframe 1b): an item view draws on `Base`, which is the
+    // ground the note list already stands on.
     m_categories->viewport()->setBackgroundRole(QPalette::Window);
 
     const auto entry = [this](const QString &label, CategoryFilter kind, QLatin1StringView value) {
@@ -688,12 +688,6 @@ QWidget *LibraryWindow::buildSidebar()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(m_categories, 1);
-    // What the column is, said once at its foot (wireframe 1b): nobody sorts
-    // these entries by hand, and nothing here can be renamed.
-    QLabel *note = subtleLabel(i18n("AI categories, automatic"), sidebar);
-    note->setContentsMargins(8, 4, 8, 6);
-    note->setWordWrap(true);
-    layout->addWidget(note);
 
     return sidebar;
 }
