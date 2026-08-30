@@ -83,6 +83,16 @@ public Q_SLOTS:
     /** Shows the window, or brings the open one to the front. */
     void showLibrary();
 
+    /**
+     * Follows the analysis run into the menu entry and the message band
+     * (issue #132).
+     *
+     * Hangs on AnalysisScheduler::busyChanged in main(), because this library
+     * links no scheduler — the same arrangement setCaptureShortcut() has and
+     * for the same reason.
+     */
+    void setAnalysisBusy(bool busy);
+
 Q_SIGNALS:
     /**
      * The application menu asks for the settings dialog (the user's decision of
@@ -92,6 +102,16 @@ Q_SIGNALS:
      * two dialogs.
      */
     void configureRequested();
+
+    /**
+     * The application menu asks for an analysis run — the third road of
+     * SPEC 7.2 beside the tray entry and the bus method (issue #132).
+     *
+     * Not started here: the scheduler lives in `denkzettelanalysis`, which this
+     * library does not link, and main() already holds the two other roads to
+     * it. One action, one signal, one connect, and no new plumbing.
+     */
+    void analysisRequested();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -307,15 +327,23 @@ private:
     void startFullExport();
 
     /**
-     * Puts one line of the export into the band under the header
-     * (wireframe 2b).
+     * Puts one line into the band under the header (wireframe 2b).
      *
      * The band is shared with the pending deletion, which brings its own
-     * colour, its own layout and the "Undo" button with it — each of the two
-     * sets what it needs, or the export would report itself beside a greyed
-     * out button in the colour of a warning.
+     * colour, its own layout and the "Undo" button with it — each of them sets
+     * what it needs, or the export would report itself beside a greyed out
+     * button in the colour of a warning.
+     *
+     * Two writers use it in this shape: the full export of SPEC 8.3 and, since
+     * issue #132, the analysis run started from this window.
      */
-    void showExportMessage(const QString &text, bool isError);
+    void showBandMessage(const QString &text, bool isError);
+
+    /**
+     * Asks for an analysis run and says in the band which state that left
+     * (issue #132, wireframe 2b).
+     */
+    void startAnalysis();
 
     /**
      * The band under the header with the "Undo" of the origin removal
@@ -386,6 +414,28 @@ private:
      * in advance.
      */
     QAction *m_sidebarAction;
+
+    /**
+     * The first entry of the hamburger menu: the on-demand road of SPEC 7.2
+     * (issue #132).
+     *
+     * Wording and symbol are the tray entry's, verbatim, because it is the same
+     * act seen a third time — the settings entry below is the precedent. The
+     * text carries the state rather than a tooltip: a deactivated row without an
+     * explanation is unfriendly, and a tooltip is invisible until somebody
+     * points at it — and would need setToolTipsVisible() on the menu before Qt
+     * showed it at all.
+     */
+    QAction *m_analysisAction;
+
+    /**
+     * Whether the run now going was asked for in this window (issue #132).
+     *
+     * The band belongs to the act in the window (wireframe 2b), so a periodic
+     * run must not write into it — every half hour a line would appear where
+     * nobody did anything.
+     */
+    bool m_analysisRequestedHere = false;
 
     QSplitter *m_splitter;
 

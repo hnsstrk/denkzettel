@@ -783,7 +783,10 @@ Ollama) one `embed` call each and shows the latency or the error.
 ### 7.2 Analysis run
 
 Trigger according to the setting: **at once** (after saving/transcription),
-**periodically** (interval, default 30 min) or **on demand** (tray/D-Bus).
+**periodically** (interval, default 30 min) or **on demand**
+(tray/library/D-Bus — the library's application menu is the third road since
+issue #132, and it is the same act seen a third time: it carries the tray's
+wording and the tray's symbol).
 A run processes all notes with `state != 'analysiert'` as well as — for step 2
 only — those with `needs_reembed = 1`; at most 50 notes per run (budget,
 section 14), the rest follow in the next run:

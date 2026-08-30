@@ -423,6 +423,15 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // No symbol, for the reason at the member: the check mark is what this row
     // says, and a second graphic beside it competes with it under Breeze.
     , m_sidebarAction(new QAction(i18nc("@action", "Show category column"), this))
+    // Wording and symbol taken from the tray entry, verbatim (SPEC 7.2,
+    // src/shell/trayicon.cpp:163) — the same act seen a third time. Plain
+    // i18n() and not i18nc(): the settings entry below shares its msgid with
+    // the tray's in exactly this way, and a context of its own would make a
+    // **second** catalogue entry for the same sentence — which is how two
+    // wordings that must not differ start differing.
+    , m_analysisAction(new QAction(QIcon::fromTheme(QStringLiteral("system-run")),
+                                   i18n("Analyze now"),
+                                   this))
     , m_splitter(new QSplitter(Qt::Horizontal, this))
     , m_list(new QListView(this))
     , m_delegate(new NoteListDelegate(m_list))
@@ -577,6 +586,10 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_sidebarAction->setChecked(true);
     connect(m_sidebarAction, &QAction::toggled, this, &LibraryWindow::showSidebar);
 
+    // And the same for the analysis run: reached through the menu, so no key
+    // and not added to the window.
+    connect(m_analysisAction, &QAction::triggered, this, &LibraryWindow::startAnalysis);
+
     auto *closeAction = new QAction(this);
     closeAction->setShortcuts(KStandardShortcut::close());
     connect(closeAction, &QAction::triggered, this, &LibraryWindow::close);
@@ -694,6 +707,10 @@ QWidget *LibraryWindow::buildHeader()
     KHamburgerMenu *hamburger = KStandardAction::hamburgerMenu(nullptr, nullptr, this);
     hamburger->setMenuBarAdvertised(false);
     auto *menu = new QMenu(header);
+    // The on-demand road of SPEC 7.2, above the export: both come out of the
+    // "File" heading a menu bar would have, and this one is the act, the export
+    // the rescue path (issue #132).
+    menu->addAction(m_analysisAction);
     menu->addAction(m_exportAction);
 
     // The category column of wireframe 1b, in a group of its own (issue #134,
@@ -2182,6 +2199,46 @@ void LibraryWindow::updateEditState()
     m_sidebarAction->setEnabled(!editing);
 }
 
+void LibraryWindow::startAnalysis()
+{
+    m_analysisRequestedHere = true;
+    // Synchronous as far as the scheduler is concerned: main() connects this
+    // signal straight to AnalysisScheduler::analyzeNow(), so by the time the
+    // emit returns the run is either out at the provider or already through.
+    Q_EMIT analysisRequested();
+
+    // The band reports the state the scheduler is in **after** the press, never
+    // the one that was expected of it (CLAUDE.md, finding 27). A run with
+    // nothing to analyse walks all three steps of SPEC 7.2 inside that call and
+    // never reports itself busy, so "Analysis running…" would stand there for
+    // good with nothing left to take it back. The action carries that state,
+    // because setAnalysisBusy() is the one place it is set from.
+    //
+    // Nothing to do when the flag is already down: setAnalysisBusy() has then
+    // reported the end itself, inside the emit above.
+    if (m_analysisRequestedHere) {
+        const bool running = !m_analysisAction->isEnabled();
+        m_analysisRequestedHere = running;
+        showBandMessage(running ? i18n("Analysis running…") : i18n("Analysis finished."), false);
+    }
+}
+
+void LibraryWindow::setAnalysisBusy(bool busy)
+{
+    // The whole guard against a second run from this window, the way the export
+    // action is the whole guard against a second export.
+    m_analysisAction->setEnabled(!busy);
+    m_analysisAction->setText(busy ? i18n("Analysis running…") : i18n("Analyze now"));
+
+    // Only for the run this window asked for: the band belongs to the act in
+    // the window (wireframe 2b), and a periodic run would otherwise write a
+    // line into it every half hour with nobody having done anything.
+    if (!busy && m_analysisRequestedHere) {
+        m_analysisRequestedHere = false;
+        showBandMessage(i18n("Analysis finished."), false);
+    }
+}
+
 void LibraryWindow::showSidebar(bool visible)
 {
     if (!visible) {
@@ -2228,7 +2285,7 @@ void LibraryWindow::startFullExport()
     // The whole guard against two runs at once. The act has one door, and it
     // is this action.
     m_exportAction->setEnabled(false);
-    showExportMessage(i18n("Export running…"), false);
+    showBandMessage(i18n("Export running…"), false);
 
     // One turn of the event loop, so the line above stands on screen before
     // the writing starts — the export holds this thread, and a text set and
@@ -2239,7 +2296,7 @@ void LibraryWindow::startFullExport()
         m_exportAction->setEnabled(true);
 
         if (!result.ok()) {
-            showExportMessage(result.error, true);
+            showBandMessage(result.error, true);
             return;
         }
 
@@ -2270,11 +2327,11 @@ void LibraryWindow::startFullExport()
                         "%1 notes are without their recording, see the log.",
                         static_cast<int>(result.incomplete.size()));
         }
-        showExportMessage(text, !result.missing.isEmpty() || !result.incomplete.isEmpty());
+        showBandMessage(text, !result.missing.isEmpty() || !result.incomplete.isEmpty());
     });
 }
 
-void LibraryWindow::showExportMessage(const QString &text, bool isError)
+void LibraryWindow::showBandMessage(const QString &text, bool isError)
 {
     // Neither "Undo" belongs to this line; left standing in the band one of
     // them would sit beside it as a greyed out button.

@@ -291,6 +291,25 @@ int main(int argc, char *argv[])
 
     QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
 
+    // The third road of SPEC 7.2, from the library's application menu
+    // (issue #132) — the same call as the tray's above and as the bus method's
+    // further down, so the three cannot drift into three behaviours. The way
+    // back is what the entry needs to say which of the two states it is in.
+    //
+    // ponytail: **no test set reaches these two lines**, and the reason is the
+    // link graph, counted for issue #120 and unchanged: not one target links
+    // denkzettelui and denkzettelshell together, and main.cpp, where they meet,
+    // is linked by no library at all. What guards the halves is that they are
+    // reachable on their own — `librarytest` links denkzettelui **and**
+    // denkzettelanalysis, so it builds the pair below by hand and presses the
+    // entry, which is where the read-back on the scheduler lives. What stays
+    // unguarded is these two lines themselves. The ceiling is the usual one: a
+    // wrong *name* is a compile error here, a *missing* line is silent.
+    QObject::connect(&library, &LibraryWindow::analysisRequested, &analysis,
+                     &AnalysisScheduler::analyzeNow);
+    QObject::connect(&analysis, &AnalysisScheduler::busyChanged, &library,
+                     &LibraryWindow::setAnalysisBusy);
+
     // The tool detection of SPEC 2.5 (issue #17), and it runs at **every**
     // start and not only at the first: what it produces is a state and not
     // something that happened once (SPEC 14), so a program uninstalled after

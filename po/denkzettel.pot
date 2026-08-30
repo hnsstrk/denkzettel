@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 10:37+0200\n"
+"POT-Creation-Date: 2026-08-30 10:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -391,7 +391,7 @@ msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
 #: src/settings/voicenotespage.cpp:78 src/ui/librarywindow.cpp:416
-#: src/ui/librarywindow.cpp:1159 src/ui/librarywindow.cpp:2089
+#: src/ui/librarywindow.cpp:1176 src/ui/librarywindow.cpp:2106
 #, kde-format
 msgid "Cancel"
 msgstr ""
@@ -580,7 +580,8 @@ msgstr ""
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:163
+#: src/shell/trayicon.cpp:163 src/ui/librarywindow.cpp:433
+#: src/ui/librarywindow.cpp:2231
 #, kde-format
 msgid "Analyze now"
 msgstr ""
@@ -590,7 +591,7 @@ msgstr ""
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:176 src/ui/librarywindow.cpp:715
+#: src/shell/trayicon.cpp:176 src/ui/librarywindow.cpp:732
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
@@ -757,7 +758,7 @@ msgstr ""
 
 #. i18n() and must not depend on which KF6
 #. catalogue happens to be installed.
-#: src/ui/librarywindow.cpp:404 src/ui/librarywindow.cpp:1065
+#: src/ui/librarywindow.cpp:404 src/ui/librarywindow.cpp:1082
 #, kde-format
 msgid "Delete"
 msgstr ""
@@ -767,7 +768,7 @@ msgstr ""
 msgid "Undo"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:414 src/ui/librarywindow.cpp:1058
+#: src/ui/librarywindow.cpp:414 src/ui/librarywindow.cpp:1075
 #, kde-format
 msgid "Edit"
 msgstr ""
@@ -777,8 +778,8 @@ msgstr ""
 #. The order the three appear in is the platform's. What this window fixes
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
-#: src/ui/librarywindow.cpp:415 src/ui/librarywindow.cpp:1156
-#: src/ui/librarywindow.cpp:2087
+#: src/ui/librarywindow.cpp:415 src/ui/librarywindow.cpp:1173
+#: src/ui/librarywindow.cpp:2104
 #, kde-format
 msgid "Save"
 msgstr ""
@@ -795,130 +796,130 @@ msgctxt "@action"
 msgid "Show category column"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:435
+#: src/ui/librarywindow.cpp:444
 #, kde-format
 msgctxt "@title:window"
 msgid "Library"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:450
+#: src/ui/librarywindow.cpp:459
 #, kde-format
 msgid "No notes yet"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:460
+#: src/ui/librarywindow.cpp:469
 #, kde-format
 msgid "No matches"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:461 src/ui/librarywindow.cpp:1543
+#: src/ui/librarywindow.cpp:470 src/ui/librarywindow.cpp:1560
 #, kde-format
 msgid "Change the search term or clear the field."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:472
+#: src/ui/librarywindow.cpp:481
 #, kde-format
 msgid "No note selected"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:473
+#: src/ui/librarywindow.cpp:482
 #, kde-format
 msgid "Select a note on the left to read it."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:551
+#: src/ui/librarywindow.cpp:560
 #, kde-format
 msgctxt "@action"
 msgid "Edit note"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:552
+#: src/ui/librarywindow.cpp:561
 #, kde-format
 msgctxt "@action"
 msgid "Delete note"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:553
+#: src/ui/librarywindow.cpp:562
 #, kde-format
 msgctxt "@action"
 msgid "Undo deletion"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:601
+#: src/ui/librarywindow.cpp:614
 #, kde-format
 msgid "Note deleted — %1 s left"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:670
+#: src/ui/librarywindow.cpp:683
 #, kde-format
 msgid "Full-text search…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:787
+#: src/ui/librarywindow.cpp:804
 #, kde-format
 msgctxt "@item:inlistbox all note categories"
 msgid "All"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:807
+#: src/ui/librarywindow.cpp:824
 #, kde-format
 msgctxt "@item:inlistbox notes the analysis has not reached yet"
 msgid "Waiting for analysis"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:814
+#: src/ui/librarywindow.cpp:831
 #, kde-format
 msgctxt "@item:inlistbox notes the analysis gave up on"
 msgid "Unclassified"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1040
+#: src/ui/librarywindow.cpp:1057
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove origin"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1046
+#: src/ui/librarywindow.cpp:1063
 #, kde-format
 msgid "Editing"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1147
+#: src/ui/librarywindow.cpp:1164
 #, kde-format
 msgid "Category"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1150
+#: src/ui/librarywindow.cpp:1167
 #, kde-format
 msgid "Tags"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1170
+#: src/ui/librarywindow.cpp:1187
 #, kde-format
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1545
+#: src/ui/librarywindow.cpp:1562
 #, kde-format
 msgid "Every note has been classified."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1547
+#: src/ui/librarywindow.cpp:1564
 #, kde-format
 msgid "The analysis has caught up."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1549
+#: src/ui/librarywindow.cpp:1566
 #, kde-format
 msgid "No note carries this category yet."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1925
+#: src/ui/librarywindow.cpp:1942
 #, kde-format
 msgid "Origin removed"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2066
+#: src/ui/librarywindow.cpp:2083
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -926,50 +927,60 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2070
+#: src/ui/librarywindow.cpp:2087
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2088
+#: src/ui/librarywindow.cpp:2105
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2171
+#: src/ui/librarywindow.cpp:2188
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
 "editor."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2223
+#: src/ui/librarywindow.cpp:2222 src/ui/librarywindow.cpp:2231
+#, kde-format
+msgid "Analysis running…"
+msgstr ""
+
+#: src/ui/librarywindow.cpp:2222 src/ui/librarywindow.cpp:2238
+#, kde-format
+msgid "Analysis finished."
+msgstr ""
+
+#: src/ui/librarywindow.cpp:2280
 #, kde-format
 msgctxt "@title:window"
 msgid "Export all notes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2231
+#: src/ui/librarywindow.cpp:2288
 #, kde-format
 msgid "Export running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2250
+#: src/ui/librarywindow.cpp:2307
 #, kde-format
 msgid "%1 note exported to %2."
 msgid_plural "%1 notes exported to %2."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2263
+#: src/ui/librarywindow.cpp:2320
 #, kde-format
 msgid "%1 note is missing, see the log."
 msgid_plural "%1 notes are missing, see the log."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2269
+#: src/ui/librarywindow.cpp:2326
 #, kde-format
 msgid "%1 note is without its recording, see the log."
 msgid_plural "%1 notes are without their recording, see the log."

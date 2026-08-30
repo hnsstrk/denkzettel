@@ -12,6 +12,17 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **An analysis run can be started from the library.** The application menu
+  behind the hamburger button carries „Jetzt analysieren" as its first entry,
+  in the wording and with the symbol the tray entry has always had — it is the
+  same act, seen a third time. Until now the only ways in were the tray icon and
+  the D-Bus method, so a note just written waited for the schedule, and with the
+  trigger „periodisch" that is up to half an hour. While a run is going the
+  entry says „Analyse läuft …" and cannot be pressed, so a second run cannot be
+  started by accident; the band under the header reports the run that was
+  started here — „Analyse läuft …" on the press, „Analyse abgeschlossen." at the
+  end — and stays quiet for the runs the schedule starts by itself (#132).
+
 - **The category column of the library can be put away.** The application menu
   behind the hamburger button carries a new entry with a check mark,
   „Kategorien-Spalte anzeigen". Taken off, the left column disappears and the

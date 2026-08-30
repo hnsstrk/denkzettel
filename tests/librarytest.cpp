@@ -1,4 +1,9 @@
+#include "aiprovidermock.h"
+
+#include "analysis/analysisscheduler.h"
 #include "analysis/classifier.h"
+#include "analysis/embedder.h"
+#include "analysis/suggester.h"
 #include "store/store.h"
 #include "ui/librarywindow.h"
 #include "ui/notelistmodel.h"
@@ -234,6 +239,8 @@ private Q_SLOTS:
     void showsTheColumnForADenkzettelrcWrittenBeforeThisStory();
     void takesTheFilterNoFieldShowsOffWithTheColumn_data();
     void takesTheFilterNoFieldShowsOffWithTheColumn();
+
+    void startsAnalysisRunFromTheApplicationMenu();
 
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
@@ -3451,8 +3458,15 @@ void LibraryTest::fallsSilentWhenTheNoteLeavesTheReadingPane()
 
 namespace
 {
-/** The wording of the checkable menu entry of issue #134, in the source language. */
-const QString ShowColumnEntry = QStringLiteral("Show category column");
+/**
+ * The wording of the checkable menu entry of issue #134, in the source
+ * language.
+ *
+ * QLatin1StringView and not QString: a file-scope QString runs a constructor
+ * before main(), which clazy reports as non-pod-global-static and the CI turns
+ * red over. It converts where it is handed on.
+ */
+constexpr auto ShowColumnEntry = QLatin1StringView("Show category column");
 
 /**
  * Clears the window group of `denkzettelrc` and hands back a guard that clears
@@ -3731,6 +3745,121 @@ void LibraryTest::takesTheFilterNoFieldShowsOffWithTheColumn()
     // the list answers out of the whole library again.
     QCOMPARE(column->currentItem(), column->topLevelItem(0));
     QCOMPARE(modelOf(list)->noteCount(), 2);
+}
+
+void LibraryTest::startsAnalysisRunFromTheApplicationMenu()
+{
+    const auto restored = clearedWindowGroup();
+    storedNote(QStringLiteral("wartet auf die Analyse"));
+
+    // The stand-in of SPEC 16, answering slowly enough that the busy state is
+    // there to be read: the evidence is the **transition**, and a run that is
+    // over before anybody looks is indistinguishable from one that never
+    // started (CLAUDE.md, finding 27).
+    AiProviderMock provider;
+    provider.chatDelay = std::chrono::seconds(2);
+    // A classification the note survives, so that the run really walks all
+    // **three** steps of SPEC 7.2. With the mock's default answer the
+    // classification is refused, the note stays unanalysed, the embedding then
+    // finds nothing to do — and the check would be measuring the end of the
+    // first step while claiming to measure the end of the last (finding 32).
+    provider.chatAnswer =
+        QStringLiteral(R"({"category": "ideen", "tags": ["notiz"], "is_todo": false})");
+    provider.embedDelay = std::chrono::milliseconds(200);
+
+    Classifier classifier(m_store.get(), &provider);
+    Embedder embedder(m_store.get(), &provider);
+    Suggester suggester(m_store.get(), &provider, embedder.model());
+    AnalysisScheduler scheduler(&classifier, &embedder, &suggester);
+
+    LibraryWindow window(m_store.get());
+    // The two lines main.cpp carries, built here by hand — no target links
+    // denkzettelui and denkzettelshell together and main.cpp is linked by none,
+    // so those two lines cannot be reached by any set (issue #120's count).
+    // This set links denkzettelui **and** denkzettelanalysis, so both ends of
+    // the pair are reachable here even though the wiring in main.cpp is not.
+    connect(&window, &LibraryWindow::analysisRequested, &scheduler, &AnalysisScheduler::analyzeNow);
+    connect(&scheduler, &AnalysisScheduler::busyChanged, &window, &LibraryWindow::setAnalysisBusy);
+
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QAction *analyze = menuActionNamed(window, QStringLiteral("Analyze now"));
+    QVERIFY2(analyze, "the application menu carries no entry for an analysis run");
+    // Wording and symbol are the tray's, verbatim — the same act seen a third
+    // time (SPEC 7.2, src/shell/trayicon.cpp).
+    QCOMPARE(analyze->icon().name(), QStringLiteral("system-run"));
+    QVERIFY(analyze->isEnabled());
+
+    const auto *band = window.findChild<KMessageWidget *>();
+    QVERIFY(band);
+
+    // Read on the scheduler and not on the button (finding 27), and asserted
+    // **before** the press, so that "busy" cannot have been true all along.
+    QVERIFY(!scheduler.isBusy());
+    QSignalSpy busy(&scheduler, &AnalysisScheduler::busyChanged);
+
+    // First a run this window did **not** ask for — what the periodic trigger of
+    // SPEC 7.2 does every half hour. The entry has to follow it, because a
+    // second run cannot be started while one is going whoever asked for it; the
+    // band must stay out of it, or a line would appear every thirty minutes in a
+    // window where nobody did anything (wireframe 2b: the band belongs to the
+    // act in the window).
+    QVERIFY(!band->isVisible());
+    scheduler.analyzeNow();
+
+    QVERIFY(scheduler.isBusy());
+    QVERIFY(!analyze->isEnabled());
+    QCOMPARE(analyze->text(), QStringLiteral("Analysis running…"));
+    QVERIFY2(!band->isVisible(), "a run nobody asked for in this window wrote into the band");
+
+    QVERIFY(QTest::qWaitFor([&busy] { return busy.count() >= 2; }, 15000));
+    QVERIFY(!scheduler.isBusy());
+    QVERIFY(analyze->isEnabled());
+    QVERIFY2(!band->isVisible(), "the end of a periodic run wrote into the band");
+
+    // And now the press. A note of its own, or the run above would have left
+    // nothing to analyse and the press could not start anything.
+    storedNote(QStringLiteral("kommt nach dem ersten Lauf"));
+    busy.clear();
+
+    analyze->trigger();
+
+    QVERIFY2(scheduler.isBusy(), "the press did not start a run");
+    QCOMPARE(busy.count(), 1);
+    QCOMPARE(busy.constFirst().constFirst().toBool(), true);
+
+    // And the window says which of the two states it is in — read off the text
+    // of the action, not off a picture.
+    QVERIFY(!analyze->isEnabled());
+    QCOMPARE(analyze->text(), QStringLiteral("Analysis running…"));
+    QCOMPARE(band->text(), QStringLiteral("Analysis running…"));
+
+    // The end of the **last** step of SPEC 7.2 and not of the first: a queue is
+    // idle between two of its jobs as well (CLAUDE.md, finding 32). Waited for
+    // on the signal count, so the wait cannot end in that gap.
+    QVERIFY(QTest::qWaitFor([&busy] { return busy.count() >= 2; }, 15000));
+    QCOMPARE(busy.count(), 2);
+    QCOMPARE(busy.constLast().constFirst().toBool(), false);
+    QVERIFY(!scheduler.isBusy());
+
+    QVERIFY(analyze->isEnabled());
+    QCOMPARE(analyze->text(), QStringLiteral("Analyze now"));
+    QCOMPARE(band->text(), QStringLiteral("Analysis finished."));
+
+    // And the press with **nothing left to analyse**, which is what a second
+    // press is: the scheduler then walks all three steps of SPEC 7.2 inside
+    // analyzeNow() and never reports itself busy, so nothing would ever take a
+    // „läuft …" back off the band. The line has to be the finished one right
+    // away, and the entry has to stay pressable.
+    busy.clear();
+    analyze->trigger();
+
+    QCOMPARE(busy.count(), 0);
+    QVERIFY(!scheduler.isBusy());
+    QVERIFY(analyze->isEnabled());
+    QCOMPARE(analyze->text(), QStringLiteral("Analyze now"));
+    QCOMPARE(band->text(), QStringLiteral("Analysis finished."));
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
