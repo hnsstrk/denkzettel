@@ -1385,6 +1385,40 @@ find.
     screen. Whatever a check reads off a widget it may find hidden, put the
     widget into **one** state per case — or the readback carries two.
 
+80. **`msgcomm --unique` answers symmetrically, and `--no-wrap` does not put a
+    multi-line msgid on one line — so both usual ways of comparing two
+    catalogues answer the same thing to "was something lost?" and "was
+    something added?".** Measured 2026-08-30 on #32, as a disagreement between
+    two readings of the same catalogue that were both partly wrong.
+
+    - **`--unique` is `--less-than=2`** (its own `--help` says so), so it hands
+      back the symmetric difference and cannot, on its own, tell an addition
+      from a departure. A report that names only that option has not stated a
+      direction, whatever number stands beside it. **The refinement does
+      carry**, and that was measured rather than argued: the difference
+      intersected back against each side with `--more-than=1` came out
+      **0 departures** on the real comparison and **2** on a control from which
+      one message had actually been removed. Different twice, so the procedure
+      discriminates — but the count includes the header entry, which is why
+      finding 52 asks for the departures to be **named** and not counted.
+    - **The other method is blind where it matters most.**
+      `grep '^msgid ' | sort -u` plus `comm` is the obvious way and it collapses
+      exactly the entries finding 52 already warned about: a msgid carrying an
+      embedded newline is written as `msgid ""` with the text beneath it **even
+      under `--no-wrap`**, which suppresses wrapping at the column and nothing
+      else. Three of this project's messages look like that, so four lines read
+      `msgid ""` — the header and three real messages — and `sort -u` makes one
+      of them. Control: one of those three deleted for real (`msgfmt` 202 → 201),
+      and `comm` reported **0** departures while the msgcomm procedure reported
+      it. A whole class of messages can leave the catalogue without that check
+      saying a word.
+    - **And the totals from either method are not the message count.** The two
+      readings of this branch were 194 → 203 and 190 → 199; both are right about
+      the change (+9) and neither is the number of messages. `msgfmt
+      --statistics` is: **193 → 202**, and it counts no header. Where a
+      catalogue is reported on, the total comes from `msgfmt` and the departures
+      come from a set comparison whose entries are read.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

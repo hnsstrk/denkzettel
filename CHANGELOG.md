@@ -12,6 +12,21 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **Accepting a bundle writes it into the Obsidian vault and clears the notes
+  out of Denkzettel.** The collective note lands in `_INBOX/` of the vault
+  folder from the settings, named `Denkzettel <topic> <date>.md`, with the
+  frontmatter the vault expects — `type: note`, `created`, and a tag list that
+  carries `denkzettel` plus the tags of the exported notes. Umlauts stand in
+  the file name and in the file as they stood in the note. Afterwards the
+  exported notes are gone for good: text, recording, tags, vectors, search
+  index and the suggestion itself, all in one step. Notes deselected before
+  accepting are not written and not deleted. If a collective note of the same
+  topic and day already lies there, the new one is put beside it with a
+  counter — nothing in `_INBOX/` is ever written over, because the notes
+  behind the older file are already deleted. And if anything is in the way —
+  no vault folder set, the folder gone or not writable — the export stops and
+  not a single note is deleted (#32).
+
 - **The search now also finds what you mistyped or wrote without umlauts.** If
   a search comes back empty, it runs a second time with the word corrected:
   „pruefen" finds „prüfen", „strassenbahn" finds „Straßenbahn", and the typo

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 12:27+0200\n"
+"POT-Creation-Date: 2026-08-30 13:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -162,14 +162,58 @@ msgstr ""
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
 
+#: src/proposals/bundleexport.cpp:150
+#, kde-format
+msgid "Only a bundle suggestion can be exported to Obsidian."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:159
+#, kde-format
+msgid "The suggestion carries no collective note that could be exported."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:167
+#, kde-format
+msgid ""
+"No vault folder is set. The export writes into the Obsidian vault of the "
+"settings."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:174
+#, kde-format
+msgid "The vault folder %1 does not exist."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:178
+#, kde-format
+msgid "%1 is not a folder."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:187 src/proposals/fullexport.cpp:110
+#, kde-format
+msgid "The folder %1 could not be created."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:212 src/proposals/bundleexport.cpp:233
+#, kde-format
+msgid "The file %1 could not be written: %2"
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:216
+#, kde-format
+msgid "The folder %1 already holds %2 collective notes of this topic and day."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:247
+#, kde-format
+msgid ""
+"The collective note %1 was written, but the exported notes could not be "
+"deleted: %2"
+msgstr ""
+
 #: src/proposals/fullexport.cpp:102
 #, kde-format
 msgid "The folder %1 already exists."
-msgstr ""
-
-#: src/proposals/fullexport.cpp:110
-#, kde-format
-msgid "The folder %1 could not be created."
 msgstr ""
 
 #: src/proposals/fullexport.cpp:132
@@ -655,6 +699,11 @@ msgstr ""
 #: src/store/keystore.cpp:197
 #, kde-format
 msgid "The API key could not be removed from the password store."
+msgstr ""
+
+#: src/store/store.cpp:1562
+#, kde-format
+msgid "The note %1 is no longer in the database."
 msgstr ""
 
 #: src/transcribe/modeldownload.cpp:123

@@ -126,6 +126,7 @@ target_link_libraries(denkzettelanalysis PUBLIC
 # QtCore for either. The strings it hands back are shown to the user, so they
 # go through i18n() (SPEC 15).
 add_library(denkzettelproposals STATIC
+    proposals/bundleexport.cpp
     proposals/fullexport.cpp
 )
 

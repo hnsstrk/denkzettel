@@ -412,6 +412,40 @@ public:
     bool removeProposal(qint64 id);
 
     /**
+     * Deletes the exported notes **and** the suggestion in one transaction,
+     * then their audio files — the second half of the Obsidian export
+     * (SPEC 8.1, issue #32).
+     *
+     * One transaction and not a loop over removeNote(): SPEC 8.1 asks for the
+     * deletion "in one transaction", and N calls are N of them. What that buys
+     * is the state after an interruption — with one transaction the corpus is
+     * either whole or exactly the exported notes lighter, never half of a
+     * bundle, and never a suggestion standing over notes that are gone.
+     *
+     * `noteIds` are the notes that were **exported**, which is not the same set
+     * as `proposal.noteIds` once the review of SPEC 9 lets the user deselect:
+     * what was deselected was not written into the collective note and must not
+     * be deleted with it. The suggestion goes either way — accepting and
+     * discarding end the same (SPEC 8.1).
+     *
+     * A note id that no note carries stops the run **before** the first
+     * deletion rather than skipping it: the caller has just written those notes
+     * into a file the user will read, and a corpus that quietly loses one of
+     * them off the list is worse than an export that says it failed.
+     *
+     * Everything the notes own goes with them: tags by hand, embeddings,
+     * `transcribe_jobs` and `proposal_notes` by ON DELETE CASCADE, both FTS
+     * indexes by their triggers — see deleteNoteRow(), which removeNote() uses
+     * as well so that the two roads out of the corpus cannot drift apart.
+     *
+     * The audio files go **after** the commit, for the reason removeNote() puts
+     * them last: the database is the authority, and an interruption in between
+     * leaves an orphan for sweepOrphanedAudio() rather than a note pointing at
+     * a file that is gone.
+     */
+    bool removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId);
+
+    /**
      * How often one note is handed out for transcription before the job pauses
      * (SPEC 12). Counted on the way out, see takeTranscribeJob().
      */
@@ -509,6 +543,17 @@ private:
 
     /** Replaces the tags of one note. The caller owns the transaction. */
     bool replaceTags(qint64 noteId, const QStringList &tags);
+
+    /**
+     * Deletes one note's row and its tags. The caller owns the transaction.
+     *
+     * The one place that says what "deleting a note" consists of, and it is
+     * shared rather than copied because there are two roads out of the corpus
+     * — removeNote() for the library, removeExportedBundle() for the export of
+     * SPEC 8.1 — and a table that a later story hangs on notes(id) has to reach
+     * both of them or only one of them forgets it.
+     */
+    bool deleteNoteRow(qint64 id);
 
     /** One pass of the query of SPEC 6 — what search() runs once or twice. */
     QList<Note> notesMatching(const SearchQuery &parsed) const;

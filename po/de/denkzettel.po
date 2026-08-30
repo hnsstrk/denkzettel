@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 12:27+0200\n"
+"POT-Creation-Date: 2026-08-30 13:00+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -172,15 +172,63 @@ msgstr "Transkription fehlgeschlagen"
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
 
+#: src/proposals/bundleexport.cpp:150
+#, kde-format
+msgid "Only a bundle suggestion can be exported to Obsidian."
+msgstr "Nur ein Bündel-Vorschlag lässt sich nach Obsidian exportieren."
+
+#: src/proposals/bundleexport.cpp:159
+#, kde-format
+msgid "The suggestion carries no collective note that could be exported."
+msgstr "Der Vorschlag enthält keine Sammelnotiz, die exportiert werden könnte."
+
+#: src/proposals/bundleexport.cpp:167
+#, kde-format
+msgid ""
+"No vault folder is set. The export writes into the Obsidian vault of the "
+"settings."
+msgstr ""
+"Es ist kein Vault-Ordner eingestellt. Der Export schreibt in den Obsidian-"
+"Vault aus den Einstellungen."
+
+#: src/proposals/bundleexport.cpp:174
+#, kde-format
+msgid "The vault folder %1 does not exist."
+msgstr "Den Vault-Ordner %1 gibt es nicht."
+
+#: src/proposals/bundleexport.cpp:178
+#, kde-format
+msgid "%1 is not a folder."
+msgstr "%1 ist kein Ordner."
+
+#: src/proposals/bundleexport.cpp:187 src/proposals/fullexport.cpp:110
+#, kde-format
+msgid "The folder %1 could not be created."
+msgstr "Der Ordner %1 konnte nicht angelegt werden."
+
+#: src/proposals/bundleexport.cpp:212 src/proposals/bundleexport.cpp:233
+#, kde-format
+msgid "The file %1 could not be written: %2"
+msgstr "Die Datei %1 konnte nicht geschrieben werden: %2"
+
+#: src/proposals/bundleexport.cpp:216
+#, kde-format
+msgid "The folder %1 already holds %2 collective notes of this topic and day."
+msgstr "Im Ordner %1 liegen bereits %2 Sammelnotizen zu diesem Thema und Tag."
+
+#: src/proposals/bundleexport.cpp:247
+#, kde-format
+msgid ""
+"The collective note %1 was written, but the exported notes could not be "
+"deleted: %2"
+msgstr ""
+"Die Sammelnotiz %1 wurde geschrieben, aber die exportierten Notizen konnten "
+"nicht gelöscht werden: %2"
+
 #: src/proposals/fullexport.cpp:102
 #, kde-format
 msgid "The folder %1 already exists."
 msgstr "Der Ordner %1 besteht bereits."
-
-#: src/proposals/fullexport.cpp:110
-#, kde-format
-msgid "The folder %1 could not be created."
-msgstr "Der Ordner %1 konnte nicht angelegt werden."
 
 #: src/proposals/fullexport.cpp:132
 #, kde-format
@@ -705,6 +753,11 @@ msgstr "Der API-Schlüssel konnte nicht im Passwortspeicher abgelegt werden."
 msgid "The API key could not be removed from the password store."
 msgstr ""
 "Der API-Schlüssel konnte nicht aus dem Passwortspeicher entfernt werden."
+
+#: src/store/store.cpp:1562
+#, kde-format
+msgid "The note %1 is no longer in the database."
+msgstr "Die Notiz %1 steht nicht mehr in der Datenbank."
 
 #: src/transcribe/modeldownload.cpp:123
 #, kde-format

@@ -2,6 +2,8 @@
 
 #include "store/searchquery.h"
 
+#include <KLocalizedString>
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -1069,6 +1071,32 @@ QList<Note> Store::notesMatching(const SearchQuery &parsed) const
     return found;
 }
 
+bool Store::deleteNoteRow(qint64 id)
+{
+    // `tags` is the one table referencing notes(id) WITHOUT ON DELETE CASCADE
+    // (migration 1), so it goes by hand and it goes first: with
+    // `PRAGMA foreign_keys = ON` a tag row still pointing at the note would
+    // make the DELETE below fail outright. Everything else the note owns is
+    // taken by the schema — embeddings, transcribe_jobs and proposal_notes
+    // cascade, and the FTS indexes follow their AFTER DELETE triggers.
+    QSqlQuery removeTags(m_db);
+    removeTags.prepare(QStringLiteral("DELETE FROM tags WHERE note_id = :id"));
+    removeTags.bindValue(QStringLiteral(":id"), id);
+    if (!removeTags.exec()) {
+        m_lastError = removeTags.lastError().text();
+        return false;
+    }
+
+    QSqlQuery removeNote(m_db);
+    removeNote.prepare(QStringLiteral("DELETE FROM notes WHERE id = :id"));
+    removeNote.bindValue(QStringLiteral(":id"), id);
+    if (!removeNote.exec()) {
+        m_lastError = removeNote.lastError().text();
+        return false;
+    }
+    return true;
+}
+
 bool Store::removeNote(qint64 id)
 {
     m_lastError.clear();
@@ -1084,20 +1112,7 @@ bool Store::removeNote(qint64 id)
         return false;
     }
 
-    QSqlQuery removeTags(m_db);
-    removeTags.prepare(QStringLiteral("DELETE FROM tags WHERE note_id = :id"));
-    removeTags.bindValue(QStringLiteral(":id"), id);
-    if (!removeTags.exec()) {
-        m_lastError = removeTags.lastError().text();
-        m_db.rollback();
-        return false;
-    }
-
-    QSqlQuery removeNote(m_db);
-    removeNote.prepare(QStringLiteral("DELETE FROM notes WHERE id = :id"));
-    removeNote.bindValue(QStringLiteral(":id"), id);
-    if (!removeNote.exec()) {
-        m_lastError = removeNote.lastError().text();
+    if (!deleteNoteRow(id)) {
         m_db.rollback();
         return false;
     }
@@ -1529,6 +1544,73 @@ bool Store::removeProposal(qint64 id)
         m_lastError = query.lastError().text();
         return false;
     }
+    return true;
+}
+
+bool Store::removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId)
+{
+    m_lastError.clear();
+
+    // The audio references are read while the rows still exist, so what is
+    // removed after the commit is what the deleted notes pointed at — and they
+    // are read for *every* note before the first one goes, because a note that
+    // is not there at all has to stop the run before anything is deleted.
+    QStringList audioFiles;
+    for (const qint64 id : noteIds) {
+        const std::optional<Note> stored = note(id);
+        if (!stored.has_value()) {
+            m_lastError = i18n("The note %1 is no longer in the database.", id);
+            return false;
+        }
+        if (!stored->audioPath.isEmpty()) {
+            audioFiles.append(stored->audioPath);
+        }
+    }
+
+    if (!m_db.transaction()) {
+        m_lastError = m_db.lastError().text();
+        return false;
+    }
+
+    for (const qint64 id : noteIds) {
+        if (!deleteNoteRow(id)) {
+            m_db.rollback();
+            return false;
+        }
+    }
+
+    // The suggestion goes in the same transaction as the notes it stood for,
+    // and its `proposal_notes` rows go with it (ON DELETE CASCADE, migration
+    // 6). Left to a call of its own it would be a second transaction, and an
+    // interruption between the two would leave a suggestion over notes that
+    // are gone — the review would offer a bundle of nothing.
+    QSqlQuery removeProposal(m_db);
+    removeProposal.prepare(QStringLiteral("DELETE FROM proposals WHERE id = :id"));
+    removeProposal.bindValue(QStringLiteral(":id"), proposalId);
+    if (!removeProposal.exec()) {
+        m_lastError = removeProposal.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    if (!m_db.commit()) {
+        m_lastError = m_db.lastError().text();
+        m_db.rollback();
+        return false;
+    }
+
+    // Database and file system cannot be committed together, so the files go
+    // last for the reason removeNote() puts them last: an interruption here
+    // leaves an orphaned recording, never a note pointing at a missing file,
+    // and sweepOrphanedAudio() clears those at the next service start.
+    for (const QString &name : std::as_const(audioFiles)) {
+        const QString file = audioDirectory() + QLatin1Char('/') + name;
+        if (QFile::exists(file) && !QFile::remove(file)) {
+            // The notes are gone either way; the export did not fail.
+            qWarning("Deleting the audio file %s failed", qUtf8Printable(file));
+        }
+    }
+
     return true;
 }
 
