@@ -41,6 +41,25 @@ target_link_libraries(exporttest PRIVATE
 
 add_test(NAME exporttest COMMAND exporttest)
 
+# The Taskwarrior execution (SPEC 8.2, issue #33). It starts NO `task`: SPEC 15
+# makes Taskwarrior an optional program, so a set that needed it would go red on
+# a machine doing exactly what the specification allows — the CI container has
+# none. A stand-in stands in its place, as SPEC 12 does for whisper-cli, and
+# every case reads the argument array back out of a file the stand-in writes.
+# The run against a real `task` with a TASKDATA directory of its own is SPEC 16's
+# manual column; what it measured stands in the comments of taskexport.h.
+# LANGUAGE because two cases compare error wording in the source language.
+add_executable(taskexporttest taskexporttest.cpp)
+
+target_link_libraries(taskexporttest PRIVATE
+    denkzettelproposals
+    Qt6::Test
+)
+
+add_test(NAME taskexporttest COMMAND taskexporttest)
+
+set_tests_properties(taskexporttest PROPERTIES ENVIRONMENT "LANGUAGE=en_US")
+
 add_executable(capturetest capturetest.cpp)
 
 target_link_libraries(capturetest PRIVATE

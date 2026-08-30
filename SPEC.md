@@ -1045,11 +1045,46 @@ conceivable as an optional later additional path, but is not built for v1.
 
 ### 8.2 Taskwarrior
 
-- Execution by `QProcess`: `task add <description> project:<p> +tag1 +tag2
-  due:<d> priority:<p>` (only populated fields), afterwards, with a longer note
-  text, `task <uuid> annotate <full text>` (UUID from the `task add` output).
+- Execution by `QProcess` with an **argument array**, never an assembled
+  command line: `task rc.verbose=new-uuid rc.confirmation=no add project:<p>
+  +tag1 +tag2 due:<d> priority:<p> -- <description>` (only populated fields),
+  afterwards, with a longer note text, `task rc.verbose=new-uuid
+  rc.confirmation=no <uuid> annotate -- <full text>` (UUID from the `task add`
+  output). `rc.confirmation=no` is belt and braces and measured to change
+  nothing on either call — a single-task change never asks, and the bulk
+  question is governed by `rc.bulk`, not by this setting.
+- **The order is binding and so is the `--`** (measured at #33 against
+  Taskwarrior 3.5.0, 30.08.2026). The argument array keeps the *shell* out, and
+  that is the smaller half: Taskwarrior parses its own arguments and reads
+  `project:`, `+tag` and `due:` out of them wherever they stand. So the fields
+  go **before** the separator and the free text **after** it, or a note is read
+  as fields:
+  - A description reading `project:secret +evil due:tomorrow really` was eaten
+    word by word and the add came back `A task must have a description.` with
+    return value 2.
+  - The same text as an **annotation** without the separator was worse: no
+    annotation was attached at all, and the task's `project` was silently
+    overwritten with `stolen +hijack the real annotation` — **return value 0**,
+    not a word on any channel. The note text was gone and a field of the user's
+    task had been rewritten.
+- **`rc.verbose=new-uuid` on both calls.** The default verbosity prints
+  `Created task 3.` — the id, which the annotation cannot use; this token is
+  what turns the same line into the UUID. On the `annotate` it earns its place
+  for a second reason: without it a failing call writes
+  `Configuration override …` above its real message, and that reaches the card.
+  `rc.verbose=nothing` is the wrong lever for that — it empties standard error
+  and leaves only the return value. A wrong token is silent: a made-up one
+  printed the id again with return value 0.
+- **A tag Taskwarrior cannot carry is left out, not repaired.** A tag with
+  whitespace is no tag: `+two words` falls into the description and the add
+  goes through with return value 0 — the tag gone and the description carrying
+  a word nobody wrote. A project with whitespace needs no such care;
+  `project:home stuff` as one argument arrives whole.
 - Error case (task binary missing, exit ≠ 0): the suggestion stays open, the
-  error is shown on the card — nothing is lost.
+  error is shown on the card — nothing is lost. The two are told apart: a
+  program that cannot be started names itself, a refusal passes Taskwarrior's
+  own sentence on. Taskwarrior writes errors to standard error and the created
+  UUID to standard output, so the two never mix.
 - After success: delete the note and remove the suggestion (as in 8.1).
 
 ### 8.3 Full export (rescue path)

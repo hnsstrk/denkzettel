@@ -12,6 +12,21 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **A confirmed task suggestion can now be carried into Taskwarrior.** It
+  becomes one task with everything the suggestion holds — description, project,
+  tags, due date and priority, each of them only where it was filled — and
+  where the note says more than its description does, the note's own text is
+  attached to that task as an annotation. Your note text stays your note text:
+  it is handed to Taskwarrior as one piece, so a note containing something like
+  „project:geheim" or a semicolon ends up in the task as those words and not as
+  a field or a command. If Taskwarrior is not installed, or refuses the task,
+  nothing is lost — the suggestion stays open, your note stays where it is, and
+  what Taskwarrior said goes on the suggestion. `task` is an optional program:
+  without it only this transfer falls away (#33).
+
+  **Not yet reachable from the window.** The review with its suggestion cards
+  (#30, #31) is what will offer the „Übernehmen" button; until then this is the
+  machinery behind it and nothing you can click.
 - **The search now also finds what you mistyped or wrote without umlauts.** If
   a search comes back empty, it runs a second time with the word corrected:
   „pruefen" finds „prüfen", „strassenbahn" finds „Straßenbahn", and the typo

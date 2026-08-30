@@ -121,12 +121,19 @@ target_link_libraries(denkzettelanalysis PUBLIC
     KF6::I18n
 )
 
-# The transfers of SPEC 8. Only the full export of 8.3 lives here so far
-# (issue #36) — it reads the store and writes files, and needs nothing beyond
-# QtCore for either. The strings it hands back are shown to the user, so they
-# go through i18n() (SPEC 15).
+# The transfers of SPEC 8: the full export of 8.3 (issue #36) and the
+# Taskwarrior execution of 8.2 (issue #33). Neither needs more than QtCore —
+# the one writes files, the other starts a process. The strings they hand back
+# are shown to the user, so they go through i18n() (SPEC 15).
+#
+# taskexport.cpp reads `tools::TaskProgram` out of platform/optionaltools.h and
+# is deliberately NOT linked against denkzettelplatform: that name is a
+# constexpr in the header, no symbol of the library is referenced, and the
+# library carries Qt6::Widgets into everything that links it. Whoever calls a
+# function of `tools::` from here adds the line — the linker says so at once.
 add_library(denkzettelproposals STATIC
     proposals/fullexport.cpp
+    proposals/taskexport.cpp
 )
 
 target_include_directories(denkzettelproposals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

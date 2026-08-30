@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 12:27+0200\n"
+"POT-Creation-Date: 2026-08-30 13:50+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -196,6 +196,34 @@ msgstr "Die Notiz %1 konnte nicht geschrieben werden."
 #, kde-format
 msgid "The audio file %1 could not be copied."
 msgstr "Die Audiodatei %1 konnte nicht kopiert werden."
+
+#: src/proposals/taskexport.cpp:105
+#, kde-format
+msgid "%1 is not available."
+msgstr "%1 ist nicht verfügbar."
+
+#: src/proposals/taskexport.cpp:110
+#, kde-format
+msgid "%1 did not answer within %2 seconds."
+msgstr "%1 hat nicht innerhalb von %2 Sekunden geantwortet."
+
+#: src/proposals/taskexport.cpp:126
+#, kde-format
+msgid "%1 ended with the return value %2."
+msgstr "%1 endete mit dem Rückgabewert %2."
+
+#: src/proposals/taskexport.cpp:185
+#, kde-format
+msgid "The suggestion carries no description; nothing was created."
+msgstr "Der Vorschlag trägt keine Beschreibung; es wurde nichts angelegt."
+
+#: src/proposals/taskexport.cpp:202
+#, kde-format
+msgid ""
+"%1 created the task but did not name it; the note text was not attached."
+msgstr ""
+"%1 hat die Aufgabe angelegt, aber nicht benannt; der Notiztext wurde nicht "
+"angehängt."
 
 #: src/settings/aiproviderpage.cpp:55
 #, kde-format

@@ -119,6 +119,16 @@ checkdepends=(
 optdepends=(
     'whisper-cpp: transcription of voice notes (SPEC 12)'
     'ggml-vulkan: Vulkan backend for whisper-cpp, ggml-hip under ROCm'
+    # The program `task`, which the Taskwarrior transfer of SPEC 8.2 starts
+    # along PATH (issue #33). optdepends and not depends, because SPEC 15 makes
+    # it optional: without it only that one transfer falls away, and the
+    # settings page says so.
+    # Neither check of finding 33 can reach this line — it is a program the
+    # code starts, not a library the binary links, so it stands in no
+    # DT_NEEDED and no dependency closure. It is read out of the code
+    # (tools::TaskProgram) and out of SPEC 15, and a machine that has it
+    # installed can never contradict the list.
+    'task: transfer of task suggestions to Taskwarrior (SPEC 8.2)'
 )
 
 source=("git+$url.git#tag=v$pkgver")
