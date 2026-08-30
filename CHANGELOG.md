@@ -242,6 +242,18 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Fixed
 
+- **The empty library names the shortcut you actually have.** „Mit Meta+N einen
+  Gedanken festhalten." stood there whatever key was set — the sequence was
+  written into the sentence, and since the shortcut became yours to choose on
+  the settings page, whoever changed it was told to press a key that no longer
+  did anything. The hint now names the sequence the shortcut service really
+  holds, and a change on the page „Kürzel" reaches it while the window stands
+  open, without a restart. Holds the service **no** shortcut at all — the case
+  the daemon already reports at start — then the sentence does not ask you to
+  press nothing: it names the way that is there in every case, „Über das Symbol
+  im Systemabschnitt einen Gedanken festhalten.", in the same words as those
+  reports. Why there is no shortcut it deliberately does not say; that stands in
+  the report, and an empty library is the place for how it works (#120).
 - **A changed Ollama address or a changed model takes hold at once.** Whoever
   entered a different server or a different model on the page "AI provider"
   changed the file and nothing else: the running service went on asking the old

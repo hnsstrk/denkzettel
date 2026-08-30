@@ -18,6 +18,7 @@ class Store;
 
 class KMessageWidget;
 class QAction;
+class QKeySequence;
 class QLabel;
 class QLineEdit;
 class QListView;
@@ -55,6 +56,27 @@ public:
      * the window, just as a passing midnight does.
      */
     void setReferenceTime(const QDateTime &now);
+
+    /**
+     * The sequence the shortcut service really holds for the capture window —
+     * the empty library names it instead of spelling out a key (issue #120).
+     *
+     * **Handed in from outside, and that is the whole of the design here.**
+     * `denkzettelui` links neither `KF6::GlobalAccel` nor the shell, so this
+     * library cannot ask what is registered; main() knows, the way it knows
+     * about store, transcriber and scheduler. A dependency of our own would
+     * buy one text the shorter road already carries.
+     *
+     * An empty sequence is the state issue #74's read-back reports, and it
+     * gets the other wording: the hint then names the road that is always
+     * there, the icon in the system tray — the same one the three registration
+     * failures of `shortcutregistration.cpp` end with, so the user meets one
+     * description of one situation and not two. What it does **not** do is
+     * explain why no shortcut is there; that explanation exists already and is
+     * shown as a message at registration, and an empty library is the place
+     * for "this is how it works", not for "this is how it is broken".
+     */
+    void setCaptureShortcut(const QKeySequence &sequence);
 
 public Q_SLOTS:
     /** Shows the window, or brings the open one to the front. */
@@ -353,6 +375,13 @@ private:
 
     QStackedWidget *m_listPages;
     QWidget *m_emptyLibraryPage;
+
+    /**
+     * The second line of the empty-library page — it names the capture
+     * shortcut, so it is rewritten whenever that changes (issue #120).
+     */
+    QLabel *m_emptyLibraryHint;
+
     QWidget *m_noResultsPage;
 
     /**

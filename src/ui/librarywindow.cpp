@@ -35,6 +35,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QIcon>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
@@ -275,6 +276,34 @@ QLabel *subtleLabel(const QString &text, QWidget *parent)
 }
 
 /**
+ * The second line of the empty library: how to capture a thought (wireframe
+ * 2c, issue #120).
+ *
+ * The sequence is named and not spelled out. Since the settings page of
+ * SPEC 13 the user chooses it, and „Press Meta+N" then names a key that does
+ * nothing — the same fault issue #74 took out of the four messages in the
+ * shell, left standing here because this library is another one.
+ *
+ * **Without a sequence the hint changes its subject, not its tone.** That is
+ * the state the read-back of SPEC 2.4 reports, and telling the user to press
+ * nothing would be worse than saying nothing. It names the road that is there
+ * whatever the shortcut service does — and in the wording the three failure
+ * messages of `shortcutregistration.cpp` already end with, so one situation
+ * gets one description. The reason no shortcut is there is deliberately not
+ * given: it is shown at registration, and an empty library is where „this is
+ * how it works" belongs, not „this is how it is broken" — a state one leaves
+ * with the first note is no place for a fault report.
+ */
+QString captureHint(const QKeySequence &sequence)
+{
+    if (sequence.isEmpty()) {
+        return i18n("Capture a thought through the icon in the system tray.");
+    }
+
+    return i18n("Press %1 to capture a thought.", sequence.toString(QKeySequence::NativeText));
+}
+
+/**
  * A centred empty-state page (wireframe 2c). Without an icon name only the two
  * lines of text are drawn — the empty library says it once, in the list.
  */
@@ -359,13 +388,18 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     m_list->setFrameShape(QFrame::NoFrame);
 
     m_listPages = new QStackedWidget(this);
-    m_emptyLibraryPage = placeholderPage(i18n("No notes yet"),
-                                         i18n("Press Meta+N to capture a thought."),
-                                         true);
+    // Built with the wording for "no sequence", because at this point there is
+    // none: the window is created at daemon start and the shortcuts are
+    // registered further down in main(), which then hands the sequence in
+    // (issue #120). Starting from the other wording would put a key on the
+    // screen that nothing has confirmed yet.
+    m_emptyLibraryPage = placeholderPage(i18n("No notes yet"), captureHint({}), true);
     // Named so that the check of issue #88 can look at this page alone: it
     // tells heading from hint by their text role, and the window carries other
     // labels in those roles — the foot of the category column among them.
     m_emptyLibraryPage->setObjectName(QStringLiteral("emptyLibraryPage"));
+    m_emptyLibraryHint = m_emptyLibraryPage->findChild<QLabel *>(QStringLiteral("hint"));
+    Q_ASSERT(m_emptyLibraryHint);
     // A search without a hit is not an empty library: it says something else,
     // and it carries no icon — the icon belongs to the first start, not to a
     // state the user leaves again by typing (wireframe 2c).
@@ -1059,6 +1093,14 @@ void LibraryWindow::setReferenceTime(const QDateTime &now)
     // next time it is rebuilt or the window is activated, exactly like the
     // clock the running application reads (wireframe 3b).
     m_referenceTime = now;
+}
+
+void LibraryWindow::setCaptureShortcut(const QKeySequence &sequence)
+{
+    // Written straight into the label and not kept: the page stands for the
+    // life of the window, so there is no later moment at which the value would
+    // be read again.
+    m_emptyLibraryHint->setText(captureHint(sequence));
 }
 
 QDateTime LibraryWindow::referenceTime() const

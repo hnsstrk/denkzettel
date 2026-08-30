@@ -174,7 +174,15 @@ QKeySequence GlobalShortcuts::changeSequence(Shortcut which, const QKeySequence 
     const QList<QKeySequence> wanted = sequence.isEmpty() ? QList<QKeySequence>() : QList<QKeySequence>{sequence};
     KGlobalAccel::self()->setShortcut(actionFor(which), wanted, KGlobalAccel::NoAutoloading);
 
-    return assignedSequence(which);
+    const QKeySequence held = assignedSequence(which);
+    // What the service kept, and not `sequence`: a text that names the shortcut
+    // has to name the key a press really finds (issue #120). This is the
+    // sending end of a route no test set reaches — deleted, the build is clean
+    // and ctest stays 14/14; the ceiling is written out at the receiving end,
+    // beside the connect in main.cpp.
+    Q_EMIT sequenceChanged(which, held);
+
+    return held;
 }
 
 void notifyShortcutConflict(const QKeySequence &sequence, const QList<ShortcutOwner> &conflicts)

@@ -29,6 +29,7 @@
 
 #include <QApplication>
 #include <QIcon>
+#include <QKeySequence>
 #include <QLocale>
 #include <QStringList>
 
@@ -413,6 +414,55 @@ int main(int argc, char *argv[])
             notifyShortcutConflict(GlobalShortcuts::assignedSequence(which), conflicts);
         }
     }
+
+    // The empty library names the key that captures a thought, and it can only
+    // learn it here: denkzettelui links neither KF6::GlobalAccel nor the shell,
+    // so the text comes in from outside the way store, transcriber and
+    // scheduler do (issue #120). After the loop, because the read-back above is
+    // what makes assignedSequence() answer for a registration that arrived —
+    // and it is the service that is asked, not the default, so a sequence the
+    // user set in an earlier session stands in the window at once.
+    //
+    // Not in connectSettingsToRunningObjects(): the sender there is
+    // Settings::self(), and a global shortcut lives in the shortcut service and
+    // not in denkzettelrc (issue #123, settingswiring.h).
+    library.setCaptureShortcut(GlobalShortcuts::assignedSequence(GlobalShortcuts::Shortcut::Capture));
+    // And the second road to the same text: the settings page of SPEC 13
+    // writes through changeSequence(), which reports what the service kept.
+    // Without this the hint would name the old key until the daemon is
+    // restarted — the fault of issue #120 one step further on.
+    //
+    // ponytail: **no test set reaches this route**, and both of its ends are
+    // unguarded, each measured on its own (CLAUDE.md, finding 62). The emit in
+    // GlobalShortcuts::changeSequence() deleted: build clean, ctest 14/14. The
+    // connect below deleted: build clean, ctest 14/14 — the same output as the
+    // working state, which is the first rule of the verification stance. The
+    // reason is the link graph and it was counted: **not one target links
+    // denkzettelui and denkzettelshell together** — five link the one
+    // (librarytest, readmeshots, originshots, systemfontstest, searchbench),
+    // three the other (shelltest, firstruntest, identitytest), none both — and
+    // main.cpp, where they meet, is linked by no library at all (issue #123,
+    // settingswiring.h names the same ceiling for its own call site).
+    //
+    // What *is* guarded is the spelling, and only in two steps: renaming the
+    // signal's declaration alone stops the compiler one file earlier, in
+    // globalshortcuts.cpp, and main.cpp is then never translated. Renamed in
+    // the header **and** at the emit, it stops here — `sequenceChanged is not
+    // a member of GlobalShortcuts`, main.cpp:435 (finding 48).
+    //
+    // The ceiling is therefore: a wrong *name* is a compile error, a *missing*
+    // line is silent. The way up is the other reading of issue #123 — a run
+    // that starts the daemon, changes the shortcut and reads the arrival off
+    // the window; short of that, a test set linking both libraries would at
+    // least reach signal, connect and label together.
+    QObject::connect(&shortcuts,
+                     &GlobalShortcuts::sequenceChanged,
+                     &library,
+                     [&library](GlobalShortcuts::Shortcut which, const QKeySequence &held) {
+                         if (which == GlobalShortcuts::Shortcut::Capture) {
+                             library.setCaptureShortcut(held);
+                         }
+                     });
 
     // After the object is connected to both windows, and it needs the bus:
     // exporting /Origin and asking KWin for the script are the two things it
