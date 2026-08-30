@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 08:33+0200\n"
+"POT-Creation-Date: 2026-08-30 09:39+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -212,32 +212,32 @@ msgstr "OpenAI"
 msgid "Provider:"
 msgstr "Anbieter:"
 
-#: src/settings/aiproviderpage.cpp:86
+#: src/settings/aiproviderpage.cpp:87
 #, kde-format
 msgid "API key:"
 msgstr "API-Schlüssel:"
 
-#: src/settings/aiproviderpage.cpp:89
+#: src/settings/aiproviderpage.cpp:90
 #, kde-format
 msgid "Language model:"
 msgstr "Sprachmodell:"
 
-#: src/settings/aiproviderpage.cpp:96
+#: src/settings/aiproviderpage.cpp:97
 #, kde-format
 msgid "Ollama address:"
 msgstr "Ollama-Adresse:"
 
-#: src/settings/aiproviderpage.cpp:99
+#: src/settings/aiproviderpage.cpp:100
 #, kde-format
 msgid "Embedding model:"
 msgstr "Einbettungsmodell:"
 
-#: src/settings/aiproviderpage.cpp:176
+#: src/settings/aiproviderpage.cpp:177
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr "Verbindung steht · Chat %1 ms · Einbettung %2 ms"
 
-#: src/settings/aiproviderpage.cpp:179
+#: src/settings/aiproviderpage.cpp:180
 #, kde-format
 msgid ""
 "%1\n"
@@ -646,24 +646,36 @@ msgstr "Über Denkzettel"
 msgid "Quit"
 msgstr "Beenden"
 
-#: src/store/keystore.cpp:102
+#: src/store/keystore.cpp:152
 #, kde-format
 msgid "There is no password store on this session, so API keys cannot be kept."
 msgstr ""
 "In dieser Sitzung gibt es keinen Passwortspeicher; API-Schlüssel lassen sich "
 "deshalb nicht ablegen."
 
-#: src/store/keystore.cpp:110
+#: src/store/keystore.cpp:160
 #, kde-format
 msgid "The password store could not be opened, so API keys cannot be kept."
 msgstr ""
 "Der Passwortspeicher ließ sich nicht öffnen; API-Schlüssel lassen sich "
 "deshalb nicht ablegen."
 
-#: src/store/keystore.cpp:139
+#: src/store/keystore.cpp:191
 #, kde-format
-msgid "The password store refused the API key."
-msgstr "Der Passwortspeicher hat den API-Schlüssel abgelehnt."
+msgid "The API key could not be read from the password store."
+msgstr "Der API-Schlüssel konnte nicht aus dem Passwortspeicher gelesen werden."
+
+#: src/store/keystore.cpp:193
+#, kde-format
+msgid "The API key could not be stored in the password store."
+msgstr ""
+"Der API-Schlüssel konnte nicht im Passwortspeicher abgelegt werden."
+
+#: src/store/keystore.cpp:195
+#, kde-format
+msgid "The API key could not be removed from the password store."
+msgstr ""
+"Der API-Schlüssel konnte nicht aus dem Passwortspeicher entfernt werden."
 
 #: src/transcribe/modeldownload.cpp:123
 #, kde-format
@@ -1060,6 +1072,10 @@ msgstr "Letzte Woche"
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
 msgstr "Älter"
+
+#, kde-format
+#~ msgid "The password store refused the API key."
+#~ msgstr "Der Passwortspeicher hat den API-Schlüssel abgelehnt."
 
 #, kde-format
 #~ msgid ""

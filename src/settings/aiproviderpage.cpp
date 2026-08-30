@@ -77,8 +77,9 @@ AiProviderPage::AiProviderPage(QWidget *parent)
 
     // ponytail: the key is read here and stored nowhere — closing the dialog
     // loses it. Ceiling: nothing can authenticate against openrouter or OpenAI
-    // yet, which is why no code asks for the value. Upgrade path: KWallet,
-    // issue #37 (SPEC 5.2). It deliberately has no `kcfg_` name — an API key in
+    // yet, which is why no code asks for the value. Upgrade path: `KeyStore`,
+    // which issue #37 built for exactly this field — this page wires itself to
+    // it in #127. It deliberately has no `kcfg_` name — an API key in
     // denkzettelrc is the one thing SPEC 5.2 forbids outright.
     auto *apiKey = new QLineEdit(this);
     apiKey->setEchoMode(QLineEdit::Password);

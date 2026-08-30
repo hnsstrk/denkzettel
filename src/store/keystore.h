@@ -27,13 +27,17 @@ class Wallet;
  * still opening waits in a queue and is answered from it.
  *
  * **What happens when the wallet stays shut** (the decision this class makes,
- * issue #37): the request is answered with an error and with nothing else. No
- * waiting, no dialog of ours, and above all no second place the key could be
- * kept — a fallback into the configuration file would be exactly the sentence
- * of SPEC 5.2 undone. The caller shows the error where it asked: the settings
- * page beside the field, a provider through the error channel it already
- * carries. The wallet is opened again on the next request, so a user who
- * unlocks it afterwards is served without restarting anything.
+ * issue #37): whatever the wallet answers, the request is answered with that
+ * and with nothing else — never with a second place the key could be kept, a
+ * fallback into the configuration file being exactly the sentence of SPEC 5.2
+ * undone. Three outcomes, and a caller has to handle all three: the wallet
+ * refuses or is not there at all, and the error says so; the wallet answers,
+ * and the key or the empty key comes back; the wallet says nothing yet,
+ * because it is standing in front of its own password dialog, and
+ * waitingForWallet() is what the caller shows meanwhile. No deadline of ours
+ * on the third — see the signal. The wallet is opened again on the next
+ * request, so a user who unlocks it afterwards is served without restarting
+ * anything.
  *
  * The wallet is opened on the **first** request and not before: a user who
  * never enters a key is never asked for a wallet password.
@@ -72,6 +76,26 @@ Q_SIGNALS:
     /** The answer to storeKey() and to removeKey(); `error` empty means it happened. */
     void keyStored(const QString &provider, const QString &error);
 
+    /**
+     * The wallet has been asked and has not answered yet — it may be asking
+     * its owner for a password right now.
+     *
+     * The third state, and the note SPEC 5.2's behaviour owes the user. Without
+     * it a caller knows two things — an answer arrived, or nothing happened —
+     * and the whole time the wallet spends in front of its own password dialog
+     * falls into the second. What belongs beside the field then is "waiting for
+     * the password store", replaced by the value or by the error as soon as
+     * keyRead() or keyStored() arrives.
+     *
+     * **Deliberately not a deadline.** KWallet puts no time limit on its own
+     * password dialog, so any number of ours would be a promise the platform
+     * does not make: it would take the dialog out from under the user's fingers
+     * and tell them the store is broken while it is still standing open. This
+     * says what *is*, instead of claiming after an invented interval what is
+     * broken.
+     */
+    void waitingForWallet(const QString &provider);
+
 private:
     KeyStore();
 
@@ -90,7 +114,11 @@ private:
 
     void enqueue(Request request);
     void openWallet();
+    /** Empties the queue through run(), from the event loop and never from a call. */
+    void runPending();
     void run(const Request &request);
+    /** Why a request failed — one sentence per verb, because the verbs differ. */
+    static QString failureMessage(Action action);
     void answerAll(const QString &error);
     void answer(const Request &request, const QString &key, const QString &error);
 

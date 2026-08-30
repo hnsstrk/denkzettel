@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 08:33+0200\n"
+"POT-Creation-Date: 2026-08-30 09:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -202,32 +202,32 @@ msgstr ""
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:86
+#: src/settings/aiproviderpage.cpp:87
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:89
+#: src/settings/aiproviderpage.cpp:90
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:96
+#: src/settings/aiproviderpage.cpp:97
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:99
+#: src/settings/aiproviderpage.cpp:100
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:176
+#: src/settings/aiproviderpage.cpp:177
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:179
+#: src/settings/aiproviderpage.cpp:180
 #, kde-format
 msgid ""
 "%1\n"
@@ -605,19 +605,29 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/store/keystore.cpp:102
+#: src/store/keystore.cpp:152
 #, kde-format
 msgid "There is no password store on this session, so API keys cannot be kept."
 msgstr ""
 
-#: src/store/keystore.cpp:110
+#: src/store/keystore.cpp:160
 #, kde-format
 msgid "The password store could not be opened, so API keys cannot be kept."
 msgstr ""
 
-#: src/store/keystore.cpp:139
+#: src/store/keystore.cpp:191
 #, kde-format
-msgid "The password store refused the API key."
+msgid "The API key could not be read from the password store."
+msgstr ""
+
+#: src/store/keystore.cpp:193
+#, kde-format
+msgid "The API key could not be stored in the password store."
+msgstr ""
+
+#: src/store/keystore.cpp:195
+#, kde-format
+msgid "The API key could not be removed from the password store."
 msgstr ""
 
 #: src/transcribe/modeldownload.cpp:123
