@@ -196,6 +196,17 @@ target_link_libraries(modelshots PRIVATE
 # improvised: the numbers it prints beside every picture are what the design
 # decision of this story was taken on, and a runner nobody can build again
 # leaves them unrepeatable.
+add_executable(originshots originshots.cpp)
+
+target_link_libraries(originshots PRIVATE
+    # CapturePage, the settings page of SPEC 13.
+    denkzettelsettings
+    denkzettelstore
+    denkzettelui
+    Qt6::Test
+    Qt6::Widgets
+)
+
 # The pictures of the category column (issue #133). No add_test() for the
 # reason readmeshots has none — it produces pictures for a human to look at.
 # Built by an ordinary build all the same (CLAUDE.md, rule 4), and committed
@@ -212,17 +223,6 @@ target_link_libraries(categoryshots PRIVATE
     # translation domain — without it every i18n() falls back to English and
     # the run writes an English picture under a German name.
     KF6::I18n
-    Qt6::Test
-    Qt6::Widgets
-)
-
-add_executable(originshots originshots.cpp)
-
-target_link_libraries(originshots PRIVATE
-    # CapturePage, the settings page of SPEC 13.
-    denkzettelsettings
-    denkzettelstore
-    denkzettelui
     Qt6::Test
     Qt6::Widgets
 )

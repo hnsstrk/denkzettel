@@ -189,6 +189,8 @@ private Q_SLOTS:
     void filtersTheListWithTheSearchField();
     void offersEveryCategoryTheClassifierMayWrite();
     void theShownRowsAddUpToTheNumberBesideAll();
+    void eachMachineRowHoldsTheNotesItsCounterCounted();
+    void aNoteThatKeepsItsCategoryAcrossALateTranscript();
     void carriesOutAPendingDeletionWhenTheSearchChanges();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
     void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
@@ -2244,20 +2246,155 @@ void LibraryTest::theShownRowsAddUpToTheNumberBesideAll()
     QVERIFY2(seen.rows.contains(QStringLiteral("Unclassified=1")),
              qPrintable(seen.rows.join(QLatin1Char(' '))));
 
-    // 5. The one population in which the promise fails, written down rather
-    //    than argued away (issue #133, store.h `CategoryCounts::waiting`): a
-    //    note with a category **and** used-up attempts at `state != analysed`
-    //    is counted in `byCategory` and in `unclassified` both, and the shown
-    //    rows come to one more than "All".
-    //
-    //    `completeAnalysis()` cannot write it — category, state and
-    //    `analysis_attempts = 0` go into one UPDATE — so the row is built here
-    //    by hand. The day some road does write it, this case says so instead of
-    //    the customer counting again.
+    // 5. The population that used to break the promise: a note with a category
+    //    **and** used-up attempts at `state != analysed`. Until 30.08.2026 it
+    //    was counted in `byCategory` and in `unclassified` both and the shown
+    //    rows came to one more than "All"; since `unclassified` asks for an
+    //    empty category too, it belongs to its category row and to nothing else
+    //    (issue #133, UX decision). The sum now holds here as well, which is
+    //    the whole point of the change — this case is the one that says so.
     add(QStringLiteral("Kategorie und Versuche"), Note::State::New, Store::analysisAttemptLimit,
         QStringLiteral("cli"));
     measure("category and used-up attempts", seen);
-    QCOMPARE(seen.belowAll, seen.all + 1);
+    QCOMPARE(seen.belowAll, seen.all);
+    // It stands under its own category and in neither machine row — the "given
+    // up on" counter must not have moved.
+    QVERIFY2(seen.rows.contains(QStringLiteral("CLI commands=1")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+    QVERIFY2(seen.rows.contains(QStringLiteral("Unclassified=1")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+}
+
+void LibraryTest::eachMachineRowHoldsTheNotesItsCounterCounted()
+{
+    // The counter of a machine row is made in SQL (Store::categoryCounts), its
+    // filter in C++ (LibraryWindow::applyCategoryFilter) — two copies of one
+    // rule, and nothing held them together. A note the one counts and the other
+    // hides is the fault of this issue one storey down: a number that
+    // contradicts the rows beside it.
+    //
+    // Measured in review 29.08.2026: with the empty-text clause taken out of the
+    // C++ predicate alone, all fourteen sets stayed green while counter and
+    // filter meant different notes (finding 48).
+    const auto add = [this](const QString &content, Note::State state, int attempts) {
+        const qint64 id = storedNote(QStringLiteral("Platzhalter"));
+        const std::optional<Note> stored = m_store->note(id);
+        QVERIFY2(stored.has_value(), qPrintable(m_store->lastError()));
+        Note note = *stored;
+        note.content = content;
+        note.state = state;
+        note.analysisAttempts = attempts;
+        QVERIFY2(m_store->updateNote(note), qPrintable(m_store->lastError()));
+    };
+    add(QStringLiteral("noch nicht analysiert"), Note::State::New, 0);
+    add(QStringLiteral("aufgegeben"), Note::State::New, Store::analysisAttemptLimit);
+    // The note that tells the two copies apart: no text, attempts used up. The
+    // SQL keeps it out of the given-up pot through `TRIM(content) != ''`.
+    add(QString(), Note::State::New, Store::analysisAttemptLimit);
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    auto *column = window.findChild<QTreeWidget *>();
+    QVERIFY(column);
+
+    for (int row = 0; row < column->topLevelItemCount(); ++row) {
+        QTreeWidgetItem *item = column->topLevelItem(row);
+        const QString label = item->text(0);
+        if (label != QLatin1StringView("Waiting for analysis")
+            && label != QLatin1StringView("Unclassified")) {
+            continue;
+        }
+        column->setCurrentItem(item);
+        QTest::qWait(50);
+        // noteCount() and not rowCount(): the list carries a head row per day
+        // group, so rowCount() answers more than the column counted.
+        const int inTheList = modelOf(listOf(window))->noteCount();
+        // Compared as composed strings rather than as two numbers, so that a red
+        // QCOMPARE says by itself **which** row drifted apart.
+        QCOMPARE(QStringLiteral("%1=%2").arg(label).arg(inTheList),
+                 QStringLiteral("%1=%2").arg(label, item->text(1)));
+    }
+}
+
+void LibraryTest::aNoteThatKeepsItsCategoryAcrossALateTranscript()
+{
+    // The road to a note carrying a category **and** used-up attempts, found in
+    // review on 29.08.2026. Every step is a public Store call — no UPDATE by
+    // hand — which is why this is a case and not a remark: the combination
+    // store.h once called unwritable is six ordinary calls away.
+    //
+    // `completeTranscription()` rewrites content and state and leaves category,
+    // task and attempts standing, so a transcript arriving after the note was
+    // analysed puts it back into the queue with its category still on it.
+    Note recorded;
+    recorded.createdAt = QDateTime::currentDateTime();
+    recorded.type = Note::Type::Audio;
+    recorded.content = QString();
+    recorded.audioPath = QStringLiteral("late.ogg");
+    const std::optional<qint64> id = m_store->addNote(recorded);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->enqueueTranscription(*id), qPrintable(m_store->lastError()));
+
+    // Taken and never answered — what an abandoned daemon leaves behind.
+    QVERIFY(m_store->takeTranscribeJob().has_value());
+
+    // The user types the text by hand while the transcript is still out, the
+    // way saveEdit() does it: read the row back, set content, write.
+    std::optional<Note> stored = m_store->note(*id);
+    QVERIFY2(stored.has_value(), qPrintable(m_store->lastError()));
+    Note edited = *stored;
+    edited.content = QStringLiteral("von Hand getippt, bevor das Transkript kam");
+    QVERIFY2(m_store->updateNote(edited), qPrintable(m_store->lastError()));
+
+    // The analysis reaches it and classifies it.
+    QVERIFY2(m_store->completeAnalysis(*id, QStringLiteral("ideen"), {QStringLiteral("t")},
+                                       QString()),
+             qPrintable(m_store->lastError()));
+
+    // The transcript arrives late. This is the step the whole case is about —
+    // without it the note stays analysed and the combination never forms.
+    QVERIFY2(m_store->completeTranscription(*id, QStringLiteral("das Transkript")),
+             qPrintable(m_store->lastError()));
+
+    // Back in the queue, and the reanalysis fails twice.
+    m_store->failAnalysis(*id, QStringLiteral("Ollama nicht erreichbar"));
+    m_store->failAnalysis(*id, QStringLiteral("Ollama nicht erreichbar"));
+
+    stored = m_store->note(*id);
+    QVERIFY2(stored.has_value(), qPrintable(m_store->lastError()));
+    // The combination itself, asserted before anything is counted: without this
+    // the case could pass on a row that never reached the state under test.
+    QCOMPARE(stored->category, QStringLiteral("ideen"));
+    QVERIFY(stored->state != Note::State::Analysed);
+    QCOMPARE(stored->analysisAttempts, Store::analysisAttemptLimit);
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    const auto *column = window.findChild<QTreeWidget *>();
+    QVERIFY(column);
+
+    int all = 0;
+    int belowAll = 0;
+    QStringList rows;
+    for (int row = 0; row < column->topLevelItemCount(); ++row) {
+        const QTreeWidgetItem *item = column->topLevelItem(row);
+        const int count = QLocale().toInt(item->text(1));
+        if (row == 0) {
+            all = count;
+        } else if (!item->isHidden()) {
+            belowAll += count;
+        }
+        rows.append(QStringLiteral("%1=%2").arg(item->text(0)).arg(count));
+    }
+    // Before 30.08.2026 this read 2 against 1.
+    QCOMPARE(belowAll, all);
+    QCOMPARE(all, 1);
+    // And it is where it belongs: under its category, not under "given up on".
+    QVERIFY2(rows.contains(QStringLiteral("Ideas=1")), qPrintable(rows.join(QLatin1Char(' '))));
+    QVERIFY2(rows.contains(QStringLiteral("Unclassified=0")),
+             qPrintable(rows.join(QLatin1Char(' '))));
 }
 
 void LibraryTest::carriesOutAPendingDeletionWhenTheSearchChanges()

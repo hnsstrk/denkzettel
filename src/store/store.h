@@ -49,9 +49,22 @@ struct CategoryCounts {
     /**
      * Notes whose classification attempts are used up (SPEC 7.2).
      *
-     * Exactly what an analysis run no longer takes on: `Classifier::start()`
-     * skips these and reports them. Without an entry of their own the tray
-     * message of issue #118 would name notes the window offers no way to.
+     * What an analysis run no longer takes on **and** what carries no category
+     * (the second half since 30.08.2026, issue #133).
+     *
+     * `Classifier::start()` skips a note whose attempts are used up and reports
+     * it; without an entry of their own the tray message of issue #118 would
+     * name notes the window offers no way to. The category clause narrows that
+     * set, and deliberately: a note carrying `ideen` and three tags is not
+     * uneingeordnet whatever its attempt counter says, and it keeps a way into
+     * the window — the row of its own category. So the guarantee holds and only
+     * the set is smaller.
+     *
+     * **The two do not count the same notes any more**, and that is not an
+     * oversight: `unanalysedNotes()` asks nothing about the category, so
+     * `paused()` still fires for a classified note whose reanalysis failed
+     * twice. Read the journal line of main.cpp with that in mind — it says
+     * "left without a category" for a note that has one.
      */
     int unclassified = 0;
 
@@ -71,15 +84,24 @@ struct CategoryCounts {
      * second reason: `TRIM(content) != ''` keeps it out of `unclassified`, and
      * a category it has none.
      *
-     * **The one combination that would break the sum** is a note carrying a
-     * category *and* used-up attempts at `state != 'analysed'`: it is counted
-     * in `byCategory` and in `unclassified` both. The classifier does not
-     * write it — `completeAnalysis()` sets category, `state` and
-     * `analysis_attempts = 0` in one UPDATE, so a note that has a category has
-     * no attempts left standing — and no migration produces it either.
-     * Written down rather than argued
-     * away: it is the only input for which the column's promise fails, and
-     * `storetest` builds that row by hand so the number is on the record.
+     * **The sum holds for every row the table can hold**, and that is a
+     * property of the conditions rather than of the writers: `unclassified`
+     * carries the same "no category" clause, so a note with a category goes to
+     * `byCategory` and a note without one goes to exactly one of the two rows
+     * below. No case distinction, and nothing anybody has to keep true.
+     *
+     * It was not always so. Until 30.08.2026 `unclassified` asked nothing about
+     * the category, and a note carrying a category *and* used-up attempts at
+     * `state != 'analysed'` was counted in both pots. The first reading of this
+     * comment called that unwritable because `completeAnalysis()` sets category,
+     * `state` and `analysis_attempts = 0` in one UPDATE — true, and it looked at
+     * one of **three** writers. `completeTranscription()` rewrites `content` and
+     * `state` and leaves category, task and attempts standing, so a transcript
+     * arriving after a hand-written text has been analysed puts the note back
+     * into the queue with its category still on it; two failed reanalyses
+     * complete the combination. Every step of that road is a public `Store`
+     * call, which is why it is a test case and not a remark
+     * (`librarytest::aNoteThatKeepsItsCategoryAcrossALateTranscript`).
      */
     int waiting = 0;
 };

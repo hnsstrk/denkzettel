@@ -905,16 +905,28 @@ void LibraryWindow::applyCategoryFilter(QList<Note> &notes) const
             && note.analysisAttempts >= Store::analysisAttemptLimit;
     };
 
+    // Both rows are "no category" first and differ only in the second half —
+    // the same shape the two SQL conditions have, and the reason the counters
+    // add up. A note with a category belongs to neither, whatever its attempt
+    // counter says (issue #133, UX decision 30.08.2026).
+    //
+    // **These are the second copy of a rule the store writes in SQL**, and two
+    // copies drift. What holds them together is not this comment but
+    // `librarytest::eachMachineRowHoldsTheNotesItsCounterCounted()`, which
+    // chooses each machine row and compares the counter beside it with the
+    // notes the list then holds. Measured in review on 29.08.2026: with the
+    // empty-text clause taken out of this predicate alone, all fourteen test
+    // sets stayed green while the counter of "Waiting for analysis" said 2 and
+    // its filter showed 1 — a comment claiming a coupling nothing checked
+    // (finding 48). That case is the check; do not describe the coupling here
+    // without it.
     switch (chosenFilter(m_categories)) {
     case CategoryFilter::Unclassified:
         notes.removeIf([&givenUp](const Note &note) {
-            return !givenUp(note);
+            return !note.category.isEmpty() || !givenUp(note);
         });
         break;
     case CategoryFilter::Waiting:
-        // The complement `Store::categoryCounts()` counts, written with the
-        // same `givenUp` the row above uses — so the two rows cannot drift
-        // apart here while the store still adds them up.
         notes.removeIf([&givenUp](const Note &note) {
             return !note.category.isEmpty() || givenUp(note);
         });

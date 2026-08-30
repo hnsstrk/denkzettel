@@ -254,6 +254,13 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   a library that is up to date looks exactly as it did. A voice note whose
   transcript has not arrived stands there too — it has no text to classify yet.
   What „Alle" names is once more the sum of the rows underneath it (#133).
+
+  **„Nicht eingeordnet" now means what it says:** a note that carries a
+  category is no longer counted there, however often its analysis failed
+  afterwards. It stands in the row of its own category, which is where you
+  would look for it. That case is rare — it needs a transcript arriving after
+  the note was already classified — but it was the one arrangement in which the
+  column could still count 2 and show 1 (#133).
 - **A changed Ollama address or a changed model takes hold at once.** Whoever
   entered a different server or a different model on the page "AI provider"
   changed the file and nothing else: the running service went on asking the old

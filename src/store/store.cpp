@@ -1478,18 +1478,37 @@ CategoryCounts Store::categoryCounts() const
     }
     counts.total = total.value(0).toInt();
 
-    // The condition Classifier::start() skips by, written once more in SQL —
-    // counting the notes it hands out would mean reading every one of them.
+    // What the classifier gave up on **and** what therefore carries no category
+    // — the second half added on 30.08.2026 (issue #133, UX decision).
     //
-    // All three parts of it, `TRIM(content) != ''` included: that one belongs to
+    // Three of the four parts are the condition Classifier::start() skips by,
+    // written once more in SQL: counting the notes it hands out would mean
+    // reading every one of them. `TRIM(content) != ''` belongs to
     // unanalysedNotes(), which is where the run takes its queue from, so a note
-    // without text is never handed out and never given up on either. It is
-    // hard to reach — the editor refuses to save an empty note — and it is
-    // written down all the same, because the value of this count is that it
-    // covers the classifier exactly, in both directions.
+    // without text is never handed out and never given up on either.
+    //
+    // The fourth, `category IS NULL OR category = ''`, is **not** the
+    // classifier's: a note carrying `ideen` and three tags is not uneingeordnet,
+    // whatever its attempt counter says, and counting it under that name was
+    // wrong before it was ever a question of sums. That it also makes the three
+    // pots disjoint by construction — a category puts a note in byCategory, no
+    // category puts it in exactly one of the two rows below — is the reason it
+    // is written here and not in the interface: with it,
+    // `total = Sigma byCategory + unclassified + waiting` holds for **every**
+    // row the database can hold, and not merely for the ones the writers happen
+    // to produce today. The way to such a row is real and was measured
+    // (librarytest, `aNoteThatKeepsItsCategoryAcrossALateTranscript`).
+    //
+    // **What this does not reach**: `Classifier::start()` still reports such a
+    // note through paused(), because unanalysedNotes() asks nothing about the
+    // category. The window offers a way to it all the same — it stands in the
+    // row of its own category — so the guarantee this count was built for holds
+    // (issue #118). The journal line in main.cpp calls it "left without a
+    // category", which is the wording that is now imprecise, not the reach.
     QSqlQuery unclassified(m_db);
     unclassified.prepare(QStringLiteral("SELECT COUNT(*) FROM notes"
-                                        " WHERE state != :state AND TRIM(content) != ''"
+                                        " WHERE (category IS NULL OR category = '')"
+                                        " AND state != :state AND TRIM(content) != ''"
                                         " AND analysis_attempts >= :limit"));
     unclassified.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
     unclassified.bindValue(QStringLiteral(":limit"), analysisAttemptLimit);
@@ -1501,10 +1520,16 @@ CategoryCounts Store::categoryCounts() const
 
     // What is left over once the two pots above have taken theirs (issue #133):
     // no category, and not one of the given-up notes. Written as the
-    // complement of the clause four lines up rather than as a condition of its
-    // own — `state != 'analysed' AND analysis_attempts < 2` would read the same
-    // today and drift apart the moment either side is touched, and the column's
+    // complement of the clause above rather than as a condition of its own —
+    // `state != 'analysed' AND analysis_attempts < 2` would read the same today
+    // and drift apart the moment either side is touched, and the column's
     // promise is the **sum**, not the wording.
+    //
+    // The two share their first line word for word, and that is what makes the
+    // sum exact rather than likely: within "no category" the given-up clause
+    // and its negation split the notes in two, so the three pots are disjoint
+    // and cover the table. Whoever edits one of the two conditions edits the
+    // other in the same breath, or the sum stops holding.
     //
     // The negation carries the voice note without a transcript by itself:
     // `TRIM(content) != ''` is false for it, so `NOT(...)` is true and it lands

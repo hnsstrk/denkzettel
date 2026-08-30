@@ -1076,18 +1076,36 @@ conceivable as an optional later additional path, but is not built for v1.
     none — is counted under "All", gets no entry of its own and stays reachable
     through the search: an entry generated from the contents would give the
     column a shape that changes with them.
-  - **One entry beyond the five: "Nicht eingeordnet"** — the notes whose
-    classification attempts are used up (7.2, `analysis_attempts` at
-    `Store::analysisAttemptLimit`). It is where such a note can be dealt with;
-    without it the tray message of 10 would report a state the window offers no
-    way into. It is **not shown while it counts nothing**, unless it is the
-    selected entry — a fault that is not there gets no permanent line.
-    **It is the one entry that writes nothing into the field**, because the
+  - **Two entries beyond the five, in the order a note travels through them:
+    "Wartet auf Analyse" and below it "Nicht eingeordnet"** (issue #133, UX
+    decision 30.08.2026). The first holds the notes the analysis has not
+    reached yet, the second those whose classification attempts are used up
+    (7.2, `analysis_attempts` at `Store::analysisAttemptLimit`). The second is
+    where such a note can be dealt with; without it the tray message of 10
+    would report a state the window offers no way into.
+
+    **Both carry "no category" as their first condition**, and that is what
+    makes the column add up: a note with a category stands in its category
+    entry, a note without one in exactly one of these two. What "Alle" names is
+    therefore the sum of the entries below it, for every row the database can
+    hold — the column promised that sum from the first drawing (wireframe 1b
+    adds five counters to "Alle 128") and did not keep it until then. A note
+    carrying a category **and** used-up attempts is counted under its category
+    and in neither of the two: it is not uneingeordnet, whatever its attempt
+    counter says. `Classifier::start()` still reports it through `paused()`,
+    which asks nothing about the category — the two sets are deliberately not
+    the same any more.
+
+    Neither entry is **shown while it counts nothing**, unless it is the
+    selected one — a state that is not there gets no permanent line, and an
+    analysis that has caught up leaves the column as the five categories.
+    **They are the two entries that write nothing into the field**, because the
     search language of section 6 has no operator for "the classification was
-    given up on"; a word of its own is a change to that language and is the
-    customer's to make. So it carries a condition of its own, and the field
-    cannot contradict it: a word typed while it is chosen narrows **within**
-    the given-up notes, and only a `kat:` moves the mark away from it.
+    given up on" or "the analysis has not been here yet"; a word of their own is
+    a change to that language and is the customer's to make. So each carries a
+    condition of its own, and the field cannot contradict it: a word typed while
+    one of them is chosen narrows **within** that entry, and only a `kat:` moves
+    the mark away.
   - The column is **switched off while a note is being edited**, for the reason
     the search field is: it rebuilds the list under the editor.
 - Detail view: **read and edit view** (decision of the third interview — above
