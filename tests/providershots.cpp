@@ -19,14 +19,16 @@
 #include <QTest>
 
 /**
- * The pictures of issue #38: the page "AI provider" once openrouter.ai takes
- * clicks again, with the row rule the Product Owner settled on 30.08.2026 —
- * the key row under a provider that needs one, the language model row of the
- * chosen service, and the sentence naming Ollama as what answers the embedding
- * call whatever is chosen.
+ * The pictures of issues #38 and #39: the page "AI provider" once **all three**
+ * providers take clicks, with the row rule the Product Owner settled on
+ * 30.08.2026 — the key row under a provider that needs one, the language model
+ * row of the chosen service, and the sentence naming Ollama as what answers the
+ * embedding call whatever is chosen. Under OpenAI the note of SPEC 7.5 stands
+ * with it, saying why the field wants an API key and not a "Sign in with
+ * ChatGPT".
  *
  * They replace nothing: the three `127-anbieter-*.png` beside them are the
- * record of the state that story shipped, and this one changed that state.
+ * record of the state before, and these stories changed that state.
  *
  * Not a test and out of `add_test()`, for the reason `readmeshots` is out of
  * it: a broken picture writer must not turn the suite red. It is built with
@@ -47,8 +49,8 @@
  * to keep working as well.
  *
  * Beside every picture the run prints what it drew with and what it measured:
- * the style it resolved, the two colours, the resolved wording of the sentence
- * (which says whether the catalogue was found), and for all three buttons
+ * the style it resolved, the two colours, the resolved wording of the OpenAI
+ * note (which says whether the catalogue was found), and for all three buttons
  * `isEnabled()` and `isChecked()` next to the API key row's state. The checked
  * state is read **after** `QTest::qWait`, because Breeze animates the dot and
  * a `grab()` in the same turn draws the state the animation starts from
@@ -63,12 +65,13 @@
  *
  * That the stored value goes back into the file unchanged, and that the key row
  * follows it, is the business of `settingstest` —
- * `aStoredProviderSurvivesItsDisabledButton()`; that the button asks the chosen
+ * `aStoredProviderReachesTheButtonsAndTheRows()`; that the button asks the chosen
  * provider is `theConnectionTestAsksTheChosenProvider()`.
  *
  * **The committed pictures under `docs/images/reviews/` are the German ones**,
  * and the call below is the one that reproduces them byte for byte. The run
- * writes one language set per call under **the same three file names**, so an
+ * writes one language set per call under **the same three file names**
+ * (`39-anbieter-*.png`), so an
  * English run pointed at that directory overwrites them with English pictures
  * of the same state — it belongs in a throwaway directory. Read it back: run
  * the line, then `git status`, and nothing may have changed.
@@ -119,18 +122,27 @@ void report(const QString &what, QWidget &page)
 
     // The row rule of 30.08.2026, read back beside the picture: one language
     // model row per provider, and the sentence that says which service the
-    // address and the embedding model belong to.
+    // address and the embedding model belong to. Three model rows since #39,
+    // and the note of SPEC 7.5 beside them — a row shown under the wrong
+    // provider is what the picture alone cannot tell from a row shown under all
+    // of them (CLAUDE.md, finding 79).
     const auto *ollamaModel = page.findChild<QComboBox *>(QStringLiteral("kcfg_ChatModel"));
     const auto *remoteModel = page.findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterModel"));
+    const auto *openAiModel = page.findChild<QComboBox *>(QStringLiteral("kcfg_OpenAiModel"));
     const auto *fromOllama = page.findChild<QLabel *>(QStringLiteral("embeddingsFromOllama"));
-    if (ollamaModel == nullptr || remoteModel == nullptr || fromOllama == nullptr) {
+    const auto *openAiNote = page.findChild<QLabel *>(QStringLiteral("openAiNote"));
+    if (ollamaModel == nullptr || remoteModel == nullptr || openAiModel == nullptr
+        || fromOllama == nullptr || openAiNote == nullptr) {
         qFatal("the page carries no model rows to report on");
     }
-    qWarning("%s  Ollama model row shown=%d  openrouter model row shown=%d  embedding note shown=%d",
+    qWarning("%s  model rows shown: Ollama=%d openrouter=%d OpenAI=%d"
+             "  embedding note shown=%d  OpenAI note shown=%d",
              qUtf8Printable(what),
              int(!ollamaModel->isHidden()),
              int(!remoteModel->isHidden()),
-             int(!fromOllama->isHidden()));
+             int(!openAiModel->isHidden()),
+             int(!fromOllama->isHidden()),
+             int(!openAiNote->isHidden()));
 }
 
 void shoot(QWidget &page, const QString &directory, const QString &name)
@@ -191,9 +203,9 @@ int main(int argc, char **argv)
         const char *stored;
         QString file;
     };
-    const QList<State> states{{Settings::Ollama, "Ollama", QStringLiteral("38-anbieter-ollama.png")},
-                              {Settings::OpenRouter, "OpenRouter", QStringLiteral("38-anbieter-openrouter.png")},
-                              {Settings::OpenAi, "OpenAI", QStringLiteral("38-anbieter-openai.png")}};
+    const QList<State> states{{Settings::Ollama, "Ollama", QStringLiteral("39-anbieter-ollama.png")},
+                              {Settings::OpenRouter, "OpenRouter", QStringLiteral("39-anbieter-openrouter.png")},
+                              {Settings::OpenAi, "OpenAI", QStringLiteral("39-anbieter-openai.png")}};
 
     for (const State &state : states) {
         // **The setting first, then the page**: the page reads `[AI] Provider`
@@ -218,7 +230,16 @@ int main(int argc, char **argv)
         // The width the page has in the dialog at its built-in size: 640 less
         // the page list. Printed with every picture, so the numbers below can
         // be held against a rectangle set from outside (finding 64).
-        page.resize(470, 260);
+        //
+        // **The height is asked of the page and no longer a number of this
+        // runner's own** (issue #39). A fixed 260 was enough while the page
+        // carried one word-wrapped line; with the note of SPEC 7.5 beside it,
+        // `resize()` was clamped to the layout's minimum — 359 — while the page
+        // needs 410 at this width, and the picture came out with the type
+        // clipped along every wrapped row. That reads as a fault of the product
+        // and is one of the runner: `KConfigDialog` gives the page its
+        // sizeHint, which is taller still. Read the numbers beside the picture.
+        page.resize(470, page.heightForWidth(470));
         page.show();
         if (!QTest::qWaitForWindowExposed(&page)) {
             qFatal("the page never reached the screen");
@@ -234,25 +255,36 @@ int main(int argc, char **argv)
             qFatal("the stored provider did not reach the buttons");
         }
 
-        // The sentence as it really resolved. That is the one line which says
-        // whether the message catalogue was found — an English wording under a
-        // German LANGUAGE is a runner without its domain or without its
-        // catalogue, not a page without its sentence.
+        // The note of SPEC 7.5 as it really resolved. That is the one line which
+        // says whether the message catalogue was found — an English wording
+        // under a German LANGUAGE is a runner without its domain or without its
+        // catalogue, not a page without its note. It took the place of the
+        // "not connected yet" sentence #127 put here, which #38 and #39 removed
+        // with the lock it explained.
         //
         // Asked by object name and fatal when it is missing: a search over
         // every QLabel for a word out of the text prints nothing when it finds
         // nothing, and the run then ends with 0 and without the one line it is
-        // here for (CLAUDE.md, findings 31 and 59).
-        const auto *sentence = page.findChild<QLabel *>(QStringLiteral("unbuiltProviders"));
+        // here for (CLAUDE.md, findings 31 and 59). **The text is printed
+        // whether the row is shown or not**, and the readback of `shown` beside
+        // it is what tells "nothing to say" from "said and wrongly hidden"
+        // (finding 79).
+        const auto *sentence = page.findChild<QLabel *>(QStringLiteral("openAiNote"));
         if (sentence == nullptr) {
-            qFatal("the page carries no sentence named unbuiltProviders");
+            qFatal("the page carries no note named openAiNote");
         }
-        qWarning("%s  sentence: %s", qUtf8Printable(state.file), qUtf8Printable(sentence->text()));
-        qWarning("%s  page %dx%d logical, ratio %.1f",
+        qWarning("%s  OpenAI note: %s", qUtf8Printable(state.file), qUtf8Printable(sentence->text()));
+        qWarning("%s  page %dx%d logical, ratio %.1f, sizeHint %dx%d, minimum %dx%d,"
+                 " heightForWidth(470) %d",
                  qUtf8Printable(state.file),
                  page.width(),
                  page.height(),
-                 page.devicePixelRatioF());
+                 page.devicePixelRatioF(),
+                 page.sizeHint().width(),
+                 page.sizeHint().height(),
+                 page.minimumSizeHint().width(),
+                 page.minimumSizeHint().height(),
+                 page.heightForWidth(470));
         report(state.file, page);
         // The rows "Ollama address", "Language model" and "Embedding model" are
         // **empty in every picture**, and that is this runner and not the
@@ -273,7 +305,7 @@ int main(int argc, char **argv)
         group.sync();
     }
     AiProviderPage control;
-    control.resize(470, 260);
+    control.resize(470, control.heightForWidth(470));
     control.show();
     if (!QTest::qWaitForWindowExposed(&control)) {
         qFatal("the control page never reached the screen");
@@ -285,7 +317,12 @@ int main(int argc, char **argv)
     report(QStringLiteral("control, Ollama checked"), control);
     controlButtons.at(Settings::OpenRouter)->setChecked(true);
     QTest::qWait(50);
-    report(QStringLiteral("control, switched away from Ollama by hand"), control);
+    report(QStringLiteral("control, switched to openrouter.ai by hand"), control);
+    // And on to the button #39 unlocked, so the live switch is walked for the
+    // provider whose rows are new.
+    controlButtons.at(Settings::OpenAi)->setChecked(true);
+    QTest::qWait(50);
+    report(QStringLiteral("control, switched to OpenAI by hand"), control);
 
     return 0;
 }

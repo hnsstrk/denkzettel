@@ -2,7 +2,7 @@
 #include "analysis/classifier.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 #include "analysis/suggester.h"
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
@@ -24,6 +24,8 @@
 #include <QFile>
 #include <QGroupBox>
 #include <QIcon>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLineEdit>
 #include <QListView>
 #include <QPushButton>
@@ -70,8 +72,8 @@
  *    `settings/settingswiring.cpp`, which this set links through
  *    `denkzettelsettings` — that is what makes this a guard rather than an
  *    assertion (CLAUDE.md, finding 48).
- * 6. **Whether a stored provider survives its disabled button** (issue #127).
- *    That two of the three buttons are grey is looked at; that the choice
+ * 6. **Whether a stored provider reaches the buttons and the rows** (issues
+ *    #127, #38 and #39). How the page looks is looked at; that the choice
  *    already standing in denkzettelrc comes back out of it unchanged is not
  *    visible anywhere — a value quietly rewritten to Ollama would show up as a
  *    different button checked at some later opening and nowhere else.
@@ -83,7 +85,7 @@ class SettingsTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void settingsSurviveARestart();
-    void aStoredProviderSurvivesItsDisabledButton();
+    void aStoredProviderReachesTheButtonsAndTheRows();
     void theConnectionTestAsksTheChosenProvider();
     void theApiKeyNeverReachesTheConfigurationFile();
     void theWindowSizeSurvivesEveryWayOut();
@@ -252,20 +254,22 @@ void SettingsTest::settingsSurviveARestart()
     closeDialog(dialog);
 }
 
-void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
+void SettingsTest::aStoredProviderReachesTheButtonsAndTheRows()
 {
-    // openrouter.ai and OpenAI are not selectable until #38 and #39 have built
-    // their clients (issue #127). A configuration that already names one of
-    // them — the customer's does, that is how the defect was found — has to
-    // arrive on the page all the same and go back into the file unchanged.
-    // **This is the half nobody can see**: were the greyed button dropped on
-    // the way in, opening the settings once and pressing OK would quietly
-    // write the choice back as Ollama, and the only sign of it would be a
-    // different button checked at some later opening.
+    // A configuration that already names a remote provider — the customer's
+    // does, that is how the defect of #127 was found — has to arrive on the
+    // page and go back into the file unchanged. **This is the half nobody can
+    // see**: were the stored choice dropped on the way in, opening the settings
+    // once and pressing OK would quietly write it back as Ollama, and the only
+    // sign of it would be a different button checked at some later opening.
     //
-    // Everything visible about the change — that two buttons are grey and that
-    // a sentence stands under them — is looked at in the picture, not asserted
-    // here (CLAUDE.md, "What gets verified").
+    // The case kept its shape when #38 and #39 unlocked the two buttons #127
+    // had greyed; what it asserts about them is now that all three are
+    // selectable, which is the state the lock left behind.
+    //
+    // Everything visible about the change — how the rows sit and what the note
+    // under OpenAI reads — is looked at in the picture, not asserted here
+    // (CLAUDE.md, "What gets verified").
     const QByteArray configHome = qgetenv("XDG_CONFIG_HOME");
     QVERIFY2(!configHome.isEmpty(), "XDG_CONFIG_HOME has to point into the build directory");
     QVERIFY(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
@@ -287,7 +291,7 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
     };
     // All three, because "the value comes back" only says something where it
     // comes back **differently** at least once (finding 10) — and Ollama is
-    // the one the whole page falls back to if the greyed buttons are dropped.
+    // the one the whole page falls back to if a stored choice is dropped.
     const QList<Stored> cases{{Settings::Ollama, "Ollama"},
                               {Settings::OpenRouter, "OpenRouter"},
                               {Settings::OpenAi, "OpenAI"}};
@@ -321,9 +325,11 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
 
         for (int index = 0; index < buttons.size(); ++index) {
             QCOMPARE(buttons.at(index)->isChecked(), index == stored.provider);
-            // OpenAI alone is still greyed: its client is #39. openrouter took
-            // its lock off with #38, which is what this story is.
-            QCOMPARE(buttons.at(index)->isEnabled(), index != Settings::OpenAi);
+            // **All three take clicks now.** #127 greyed the two remote ones
+            // because main.cpp built the same Ollama provider behind all three;
+            // #38 unlocked openrouter and #39 OpenAI. A lock left standing here
+            // would be a choice the program can honour and does not offer.
+            QVERIFY2(buttons.at(index)->isEnabled(), qPrintable(buttons.at(index)->text()));
         }
 
         // **The wording, because the index cannot see itself.** The stored
@@ -361,10 +367,19 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
         // nothing.
         const auto *apiKey = dialog->findChild<QLineEdit *>(QStringLiteral("apiKey"));
         QVERIFY(apiKey);
-        // OpenRouter alone: OpenAI needs a key by SPEC 7.5 and has no client
-        // until #39, so the page does not ask for one — keyNameOf() in
-        // aiproviderpage.cpp carries the reason.
-        QCOMPARE(apiKey->isHidden(), stored.provider != Settings::OpenRouter);
+        // Both remote services now: each needs a key of its own (SPEC 5.2 and
+        // 7.5), and under Ollama nothing asks for one.
+        QCOMPARE(apiKey->isHidden(), stored.provider == Settings::Ollama);
+
+        // The note of SPEC 7.5 stands under OpenAI and only there — a sentence
+        // about "Sign in with ChatGPT" under openrouter would be the
+        // functionless place on the page #127 removed. The **wording** is
+        // looked at in the picture; that it is on the right row is here,
+        // because a note shown under all three providers looks like a page that
+        // simply carries one more line (issue #39).
+        const auto *note = dialog->findChild<QLabel *>(QStringLiteral("openAiNote"));
+        QVERIFY(note);
+        QCOMPARE(note->isHidden(), stored.provider != Settings::OpenAi);
 
         // And the row rule beside it (Product Owner, 30.08.2026, issue #38):
         // the language model row is the chosen service's own. Two widgets and
@@ -373,10 +388,13 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
         // moment the user switched back.
         const auto *ollamaModel = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_ChatModel"));
         const auto *openRouterModel = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterModel"));
+        const auto *openAiModel = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_OpenAiModel"));
         QVERIFY(ollamaModel);
         QVERIFY(openRouterModel);
-        QCOMPARE(ollamaModel->isHidden(), stored.provider == Settings::OpenRouter);
+        QVERIFY(openAiModel);
+        QCOMPARE(ollamaModel->isHidden(), stored.provider != Settings::Ollama);
         QCOMPARE(openRouterModel->isHidden(), stored.provider != Settings::OpenRouter);
+        QCOMPARE(openAiModel->isHidden(), stored.provider != Settings::OpenAi);
 
         // OK and not Apply: Apply is grey, because the form holds exactly what
         // the file holds — and OK writes the same way (the reasoning of
@@ -399,8 +417,8 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
     // only the second one worked. Closed and not OK'd: this flip must not reach
     // the file.
     //
-    // It starts from Ollama and goes to openrouter, which is now a click a user
-    // can really make.
+    // It starts from Ollama and goes to **OpenAI**, which is the button this
+    // story unlocked — the one whose live switch nobody had walked before.
     {
         KConfig prefilled(QStringLiteral("denkzettelrc"));
         prefilled.group(QStringLiteral("AI")).writeEntry("Provider", QStringLiteral("Ollama"));
@@ -416,7 +434,7 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
     const auto *field = control->findChild<QLineEdit *>(QStringLiteral("apiKey"));
     QVERIFY(field);
     QVERIFY(field->isHidden());
-    box->findChildren<QRadioButton *>().at(Settings::OpenRouter)->setChecked(true);
+    box->findChildren<QRadioButton *>().at(Settings::OpenAi)->setChecked(true);
     QVERIFY(!field->isHidden());
     closeDialog(control);
 }
@@ -461,8 +479,23 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
             // emptiness was handed over unconditionally and wiped it, and the
             // user read "openrouter.ai refused the request" over a working
             // installation.
-            if (request->contains("Authorization: Bearer sk-or-v1-invented-for-this-check")) {
+            if (request->contains("Authorization: Bearer sk-invented-for-this-check")) {
                 asked->append(QStringLiteral("key-survived"));
+            }
+            // **Which model was asked for**, and it is what tells the two
+            // remote services apart on the wire: the endpoint, the key and the
+            // body shape are identical for both, so without this the OpenAI
+            // case would be green over a page that asked openrouter (issue
+            // #39). Read off the stand-in, not off the page.
+            //
+            // Only on the completions path: Ollama's two calls carry a model
+            // as well, and it comes out of a row this case does not touch.
+            if (path == QLatin1String("/api/v1/chat/completions")) {
+                const QString model = QJsonDocument::fromJson(request->sliced(end + 4))
+                                          .object()
+                                          .value(QLatin1String("model"))
+                                          .toString();
+                asked->append(QStringLiteral("model=") + model);
             }
 
             QByteArray payload;
@@ -496,18 +529,40 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
     struct Expectation {
         int provider;
         const char *name;
+        /** The object name AiProviderPage gives that provider's backend. */
+        const char *backend;
+        QString model;
         QStringList endpoints;
         QString claim;
     };
+    // **Three cases, and the two remote ones differ from each other as well.**
+    // With one client class behind both of them, a page that always asked
+    // `m_openRouter` would pass a two-case run — the endpoints and the key are
+    // the same on both. What tells them apart is the model, which comes off two
+    // different rows, and the service named in the sentence.
     const QList<Expectation> cases{
         {Settings::Ollama,
          "Ollama",
+         "",
+         QString(),
          {QStringLiteral("/api/chat"), QStringLiteral("/api/embed")},
          QStringLiteral("embedding")},
         {Settings::OpenRouter,
          "OpenRouter",
-         {QStringLiteral("/api/v1/chat/completions"), QStringLiteral("key-survived")},
-         QStringLiteral("Embeddings are not asked of openrouter.ai")}};
+         "openRouterProvider",
+         QStringLiteral("some/model-of-the-check"),
+         {QStringLiteral("/api/v1/chat/completions"),
+          QStringLiteral("key-survived"),
+          QStringLiteral("model=some/model-of-the-check")},
+         QStringLiteral("Embeddings are not asked of openrouter.ai")},
+        {Settings::OpenAi,
+         "OpenAI",
+         "openAiProvider",
+         QStringLiteral("gpt-of-the-check"),
+         {QStringLiteral("/api/v1/chat/completions"),
+          QStringLiteral("key-survived"),
+          QStringLiteral("model=gpt-of-the-check")},
+         QStringLiteral("Embeddings are not asked of OpenAI")}};
 
     for (const Expectation &expected : cases) {
         asked->clear();
@@ -528,18 +583,28 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
         QVERIFY(url);
         url->setText(address);
         // And the remote backend, which has no address field by design: the
-        // service is the service (openrouterprovider.h).
-        auto *remote = dialog->findChild<OpenRouterProvider *>();
-        QVERIFY(remote);
-        remote->setUrl(QUrl(address + QStringLiteral("/api/v1/chat/completions")));
-        remote->setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
-        // The model off the form, the way the button takes it. There is no
-        // default for this service (SPEC 7.1, customer 30.08.2026), so an
-        // untouched field means no call goes out at all — which the case
-        // theConnectionTestNamesAMissingModel() below is about.
-        auto *remoteModel = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterModel"));
-        QVERIFY(remoteModel);
-        remoteModel->setCurrentText(QStringLiteral("some/model-of-the-check"));
+        // service is the service (openaicompatibleprovider.h). **By object name
+        // and not by type**: both remote backends are OpenAiCompatibleProvider,
+        // so a lookup by type would hand back whichever was built first and the
+        // OpenAI case would silently measure openrouter (issue #39).
+        if (expected.provider != Settings::Ollama) {
+            auto *remote = dialog->findChild<OpenAiCompatibleProvider *>(
+                QString::fromLatin1(expected.backend));
+            QVERIFY2(remote, expected.backend);
+            remote->setUrl(QUrl(address + QStringLiteral("/api/v1/chat/completions")));
+            remote->setKey(QStringLiteral("sk-invented-for-this-check"));
+            // The model off the form, the way the button takes it. There is no
+            // default for either remote service (SPEC 7.1, customer
+            // 30.08.2026), so an untouched field means no call goes out at all
+            // — which the case theConnectionTestNamesAMissingModel() below is
+            // about. Two different rows and two different values, so a page
+            // that read the wrong row comes out wrong here.
+            auto *remoteModel = dialog->findChild<QComboBox *>(
+                expected.provider == Settings::OpenRouter ? QStringLiteral("kcfg_OpenRouterModel")
+                                                          : QStringLiteral("kcfg_OpenAiModel"));
+            QVERIFY(remoteModel);
+            remoteModel->setCurrentText(expected.model);
+        }
 
         auto *button = dialog->findChild<QPushButton *>(QStringLiteral("testConnection"));
         auto *result = dialog->findChild<QLabel *>(QStringLiteral("testResult"));
@@ -931,7 +996,8 @@ void SettingsTest::everySettingReachesItsRunningObject()
     Transcriber transcriber(&store);
     OriginWatcher origins;
     OllamaProvider provider;
-    OpenRouterProvider openRouter;
+    OpenAiCompatibleProvider openRouter(openrouter::Service);
+    OpenAiCompatibleProvider openAi(openai::Service);
     Classifier classifier(&store, &provider);
     Embedder embedder(&store, &provider);
     Suggester suggester(&store, &provider, embedder.model());
@@ -946,8 +1012,8 @@ void SettingsTest::everySettingReachesItsRunningObject()
     // this function and is gone when it ends.)
     QVERIFY(!QObject::disconnect(settings, &Settings::configChanged, &transcriber, &Transcriber::reloadSettings));
 
-    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &openRouter, &embedder, &suggester,
-                                    &analysis);
+    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &openRouter, &openAi, &embedder,
+                                    &suggester, &analysis);
 
     // Collected instead of asserted one by one: QCOMPARE ends the test function
     // at the first failure, so a check per line would name the first missing
@@ -973,11 +1039,18 @@ void SettingsTest::everySettingReachesItsRunningObject()
             QObject::disconnect(settings, &Settings::configChanged, &embedder, &Embedder::reloadSettings));
     reaches("Suggester::reloadSettings",
             QObject::disconnect(settings, &Settings::configChanged, &suggester, &Suggester::reloadSettings));
-    // The eighth, and the two values behind it are a model the run stands still
-    // without and a key the user is billed against (issue #38).
-    reaches("OpenRouterProvider::reloadSettings",
+    // The eighth and the ninth, and the two values behind each are a model the
+    // run stands still without and a key the user is billed against (issues #38
+    // and #39). **Two lines, because they are two receivers of one class**: a
+    // single `disconnect()` would answer for whichever object it names and say
+    // nothing at all about the other — the same shape finding 48 warns about,
+    // one storey down.
+    reaches("OpenAiCompatibleProvider::reloadSettings (openrouter)",
             QObject::disconnect(settings, &Settings::configChanged, &openRouter,
-                                &OpenRouterProvider::reloadSettings));
+                                &OpenAiCompatibleProvider::reloadSettings));
+    reaches("OpenAiCompatibleProvider::reloadSettings (OpenAI)",
+            QObject::disconnect(settings, &Settings::configChanged, &openAi,
+                                &OpenAiCompatibleProvider::reloadSettings));
 
     QCOMPARE(missing.join(QStringLiteral(", ")), QString());
 }

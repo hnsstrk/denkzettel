@@ -3,7 +3,7 @@
 #include <QWidget>
 
 class OllamaProvider;
-class OpenRouterProvider;
+class OpenAiCompatibleProvider;
 class QComboBox;
 class QFormLayout;
 class QLabel;
@@ -34,7 +34,12 @@ class QRadioButton;
  * removes the key.
  *
  * **Which rows are shown follows the chosen provider** (row rule, Product Owner
- * 30.08.2026, issue #38) — and it follows the **stored** value, not a toggle.
+ * 30.08.2026, issues #38 and #39): the Ollama address only under Ollama, the
+ * key row only under a provider that needs one, and the language model row of
+ * the service that is going to answer. Since #39 all three buttons take clicks,
+ * so the lock and the "not connected yet" sentence #127 put here are gone.
+ *
+ * **And it follows the stored value, not a toggle.**
  * Before the dialog's manager reads the setting no button is checked, so a
  * stored `Provider=OpenRouter` checks button 1 and toggles the Ollama button
  * not at all: a visibility hung on that one signal left the key field away for
@@ -59,6 +64,14 @@ Q_SIGNALS:
     void changed();
 
 private:
+    /**
+     * The backend behind the checked button, or nullptr under Ollama.
+     *
+     * Both remote backends are built and only the chosen one is asked: they are
+     * two accounts at two companies, and a connection test that reached the
+     * wrong one would bill the wrong key (issue #39).
+     */
+    OpenAiCompatibleProvider *chosenRemote() const;
     /** Which of the three buttons is checked, as a Settings::Provider value. */
     int chosenProvider() const;
     /** Shows exactly the rows that belong to the chosen provider. */
@@ -76,19 +89,25 @@ private:
     QLabel *m_keyState;
     QComboBox *m_chatModel;
     QComboBox *m_openRouterModel;
+    QComboBox *m_openAiModel;
     QLineEdit *m_ollamaUrl;
     QComboBox *m_embeddingModel;
     QLabel *m_embeddingsFromOllama;
     QPushButton *m_test;
     QLabel *m_result;
+    /** Why there is no "Sign in with ChatGPT" (SPEC 7.5); shown under OpenAI. */
+    QLabel *m_openAiNote;
     OllamaProvider *m_ollama;
-    OpenRouterProvider *m_openRouter;
+    OpenAiCompatibleProvider *m_openRouter;
+    OpenAiCompatibleProvider *m_openAi;
 
     /** The row numbers the form knows each row by, filled while building. */
     int m_apiKeyRow = -1;
     int m_keyStateRow = -1;
     int m_chatModelRow = -1;
     int m_openRouterModelRow = -1;
+    int m_openAiModelRow = -1;
+    int m_openAiNoteRow = -1;
     int m_embeddingsFromOllamaRow = -1;
 
     /** True once the user has typed in the key field, see save(). */

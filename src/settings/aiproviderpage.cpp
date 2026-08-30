@@ -1,7 +1,7 @@
 #include "settings/aiproviderpage.h"
 
 #include "analysis/ollamaprovider.h"
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 #include "settings/settings.h"
 #include "store/keystore.h"
 
@@ -55,6 +55,19 @@ QLabel *smallLine(QWidget *parent)
         line->setFont(small);
     }
     line->setWordWrap(true);
+    // **And the layout has to be told that the height depends on the width.**
+    // A word-wrapped QLabel answers `minimumSizeHint()` with roughly one line,
+    // and QFormLayout believes it: the rows then get less room than the text
+    // needs and the page draws them **over each other**. Measured 30.08.2026 on
+    // #39, where the four-line note of SPEC 7.5 pushed the page past its budget
+    // and the picture showed the provider buttons and the note overlapping —
+    // the same page one row shorter came out clean, so it read like a fault of
+    // the new row and is a property of every wrapped label on the page.
+    // `heightForWidth` is what makes the layout ask the label how tall it has
+    // to be at the width it is getting.
+    QSizePolicy height = line->sizePolicy();
+    height.setHeightForWidth(true);
+    line->setSizePolicy(height);
     return line;
 }
 
@@ -80,22 +93,29 @@ int storedProvider()
 }
 
 /**
- * The KeyStore entry name of a provider, empty for one this page takes no key
- * for.
+ * The remote service behind a provider choice, or nullptr for Ollama.
  *
- * **OpenAI answers empty, and that is deliberate rather than forgotten.** It
- * needs a key by SPEC 7.5 and has no client until #39, so a key field under it
- * would ask the user for a secret nothing can spend — while the sentence
- * directly above the row says the provider is not connected. That is the
- * untruth #127 took the two buttons away for. #39 adds the name here, and the
- * row comes with it.
+ * The one place this page turns a button index into a service, so the key row,
+ * the wallet entry, the model row and the sentence under the result all name
+ * the same one. Ollama is the exception and stays nullptr: it needs no key and
+ * its address is a setting, which is exactly what the row rule is about.
  */
-QString keyNameOf(int provider)
+const AiService *serviceOf(int provider)
 {
     if (provider == Settings::OpenRouter) {
-        return QString(openrouter::KeyName);
+        return &openrouter::Service;
     }
-    return {};
+    if (provider == Settings::OpenAi) {
+        return &openai::Service;
+    }
+    return nullptr;
+}
+
+/** The KeyStore entry name of a provider, empty for Ollama. */
+QString keyNameOf(int provider)
+{
+    const AiService *service = serviceOf(provider);
+    return service == nullptr ? QString() : QString(service->keyName);
 }
 }
 
@@ -112,14 +132,26 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     // model for this service on purpose (customer decision 30.08.2026), so
     // there is nothing to offer and the placeholder says what to do instead.
     , m_openRouterModel(modelBox(this, QString()))
+    // The same for OpenAI, and for the same customer decision: SPEC 7.1 names
+    // no model for either remote service.
+    , m_openAiModel(modelBox(this, QString()))
     , m_ollamaUrl(new QLineEdit(this))
     , m_embeddingModel(modelBox(this, QString(ollama::DefaultEmbeddingModel)))
     , m_embeddingsFromOllama(smallLine(this))
     , m_test(new QPushButton(i18n("Test connection"), this))
     , m_result(smallLine(this))
+    , m_openAiNote(smallLine(this))
     , m_ollama(new OllamaProvider(this))
-    , m_openRouter(new OpenRouterProvider(this))
+    , m_openRouter(new OpenAiCompatibleProvider(openrouter::Service, this))
+    , m_openAi(new OpenAiCompatibleProvider(openai::Service, this))
 {
+    // **The two remote backends are one class**, so a check looking for one of
+    // them by type would take whichever was built first and never know it was
+    // measuring the wrong service (issue #39). These names are what
+    // `settingstest` points at its stand-in.
+    m_openRouter->setObjectName(QStringLiteral("openRouterProvider"));
+    m_openAi->setObjectName(QStringLiteral("openAiProvider"));
+
     auto *layout = new QVBoxLayout(this);
     layout->addLayout(m_form);
 
@@ -158,21 +190,29 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     choices->addWidget(m_openAiButton);
     m_form->addRow(i18n("Provider:"), provider);
 
-    // **openrouter takes clicks again**; the client behind it is this story
-    // (#38). OpenAI stays where #127 put it until #39 builds its client, and
-    // for the reason #127 gave: the page stops offering a choice the program
-    // cannot honour, because under an unbuilt provider the Ollama rows are not
-    // foreign rows — they are the server that really answers, and hiding them
-    // would be the second untruth.
-    m_openAiButton->setEnabled(false);
+    // **All three buttons take clicks now.** #127 locked the two remote ones
+    // and put a sentence under them saying so, because main.cpp built the same
+    // Ollama provider behind all three; #38 unlocked openrouter and this story
+    // unlocks OpenAI. Both the lock and the sentence go with it — a page that
+    // says a provider is not connected while it is, is the same untruth the
+    // other way round (wireframe supplement 1d, UX decision 30.08.2026).
 
-    QLabel *unbuilt = smallLine(this);
+    // **Why there is no "Sign in with ChatGPT"**, and the wording is not
+    // invented here: SPEC 7.5 settled it on the research of 2026-07-31, and
+    // #127 wrote the sentence down in the wireframe supplement so it would not
+    // be written twice. It is shown only under OpenAI — a note about a provider
+    // nobody has chosen is the functionless place on the page that #127 removed.
+    //
     // The object name is what the picture runner asks the sentence by, so that
     // a run whose catalogue was not found says so instead of printing nothing
     // (CLAUDE.md, findings 31 and 59).
-    unbuilt->setObjectName(QStringLiteral("unbuiltProviders"));
-    unbuilt->setText(i18n("OpenAI is not connected yet. With it chosen, Denkzettel asks Ollama."));
-    m_form->addRow(unbuilt);
+    m_openAiNote->setObjectName(QStringLiteral("openAiNote"));
+    m_openAiNote->setText(
+        i18n("A route over \"Sign in with ChatGPT\" is not possible: the procedure hands out name,"
+             " e-mail address and profile picture, no model access. Denkzettel therefore needs an"
+             " API key from the OpenAI platform account."));
+    m_openAiNoteRow = m_form->rowCount();
+    m_form->addRow(m_openAiNote);
 
     // **The key goes into KWallet and never into denkzettelrc** (SPEC 5.2), so
     // this field has no `kcfg_` name — the dialog's manager would take one for
@@ -221,6 +261,19 @@ AiProviderPage::AiProviderPage(QWidget *parent)
                                      m_openRouterModel->sizePolicy().verticalPolicy());
     m_openRouterModelRow = m_form->rowCount();
     m_form->addRow(i18n("Language model:"), m_openRouterModel);
+
+    // The third of the same row, and a widget of its own for the reason the
+    // second one is: `OpenAiModel` and `OpenRouterModel` are two settings, and
+    // one shared field would carry whichever name was typed last to the other
+    // service (settings.cpp says it at the two items). One of the three is
+    // shown at a time.
+    m_openAiModel->setObjectName(QStringLiteral("kcfg_OpenAiModel"));
+    m_openAiModel->lineEdit()->setPlaceholderText(i18n("For example gpt-4o-mini · platform.openai.com/docs/models"));
+    // The width, for the reason the row above carries it: an empty editable
+    // combo box sizes itself to nothing and elides its own placeholder.
+    m_openAiModel->setSizePolicy(QSizePolicy::Expanding, m_openAiModel->sizePolicy().verticalPolicy());
+    m_openAiModelRow = m_form->rowCount();
+    m_form->addRow(i18n("Language model:"), m_openAiModel);
 
     // **The address stays under openrouter, and that is a deviation with a
     // reason** (issue #38, reported with the story). The row rule of 30.08.2026
@@ -315,6 +368,18 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     connect(m_test, &QPushButton::clicked, this, &AiProviderPage::startTest);
     connect(m_ollama, &AiProvider::connectionTested, this, &AiProviderPage::showResult);
     connect(m_openRouter, &AiProvider::connectionTested, this, &AiProviderPage::showResult);
+    connect(m_openAi, &AiProvider::connectionTested, this, &AiProviderPage::showResult);
+}
+
+OpenAiCompatibleProvider *AiProviderPage::chosenRemote() const
+{
+    if (m_openRouterButton->isChecked()) {
+        return m_openRouter;
+    }
+    if (m_openAiButton->isChecked()) {
+        return m_openAi;
+    }
+    return nullptr;
 }
 
 int AiProviderPage::chosenProvider() const
@@ -332,9 +397,15 @@ void AiProviderPage::showRowsOfTheChosenProvider()
 {
     const int chosen = chosenProvider();
     const bool needsKey = !keyNameOf(chosen).isEmpty();
-    const bool remoteChat = chosen == Settings::OpenRouter;
+    // Both remote services now, and that is the whole of the row rule: what
+    // used to read "openrouter" reads "not Ollama" (issue #39).
+    const bool remoteChat = serviceOf(chosen) != nullptr;
 
     m_form->setRowVisible(m_apiKeyRow, needsKey);
+    // The note about "Sign in with ChatGPT" belongs to the one provider it is
+    // about (SPEC 7.5), and it is shown with the key row rather than instead of
+    // it: it says why the field beside it wants a key and not a login.
+    m_form->setRowVisible(m_openAiNoteRow, chosen == Settings::OpenAi);
     // Only once it has something to say. An empty label still takes its row's
     // height, which stood in the picture as a hand's width of nothing between
     // the key field and the model row (measured 30.08.2026) — and a line that
@@ -342,10 +413,10 @@ void AiProviderPage::showRowsOfTheChosenProvider()
     // report" as for "reported and wrongly hidden" (CLAUDE.md, finding 79).
     m_keyState->clear();
     m_form->setRowVisible(m_keyStateRow, false);
-    // The model row of the chosen service, and only that one. Under OpenAI it
-    // is Ollama's: nothing else answers there until #39.
+    // The model row of the chosen service, and only that one.
     m_form->setRowVisible(m_chatModelRow, !remoteChat);
-    m_form->setRowVisible(m_openRouterModelRow, remoteChat);
+    m_form->setRowVisible(m_openRouterModelRow, chosen == Settings::OpenRouter);
+    m_form->setRowVisible(m_openAiModelRow, chosen == Settings::OpenAi);
     // The address and the embedding model carry no line here: they stand under
     // all three providers, because Ollama is what answers the embedding call
     // whatever is chosen — the reason is at the row itself. What the other two
@@ -403,8 +474,9 @@ void AiProviderPage::startTest()
     m_test->setEnabled(false);
     m_result->clear();
 
-    if (chosenProvider() == Settings::OpenRouter) {
-        m_openRouter->setChatModel(m_openRouterModel->currentText());
+    if (OpenAiCompatibleProvider *remote = chosenRemote(); remote != nullptr) {
+        remote->setChatModel(chosenProvider() == Settings::OpenRouter ? m_openRouterModel->currentText()
+                                                                     : m_openAiModel->currentText());
         // **Only a key that was typed**, and this line is the one the review of
         // 30.08.2026 found: the field is write-only and therefore empty on
         // every opening, so handing its text over unconditionally wiped the
@@ -418,9 +490,9 @@ void AiProviderPage::startTest()
         // what KeyStore's rule allows: **a key press may open the wallet, the
         // opening of a dialog may not.**
         if (m_keyEdited) {
-            m_openRouter->setKey(m_apiKey->text());
+            remote->setKey(m_apiKey->text());
         }
-        m_openRouter->testConnection();
+        remote->testConnection();
         return;
     }
 
@@ -451,7 +523,7 @@ void AiProviderPage::showResult(qint64 chatMilliseconds, qint64 embedMillisecond
         // (issue #38). What an unreachable Ollama costs is added only where
         // Ollama was what was asked: with openrouter chosen the embedding call
         // was not part of this test at all.
-        m_result->setText(chosenProvider() == Settings::OpenRouter
+        m_result->setText(chosenRemote() != nullptr
                               ? error
                               : i18n("%1\nEvery embedding comes from Ollama: without it there are no topic bundles."
                                      " The classification keeps running through the provider chosen above.",
@@ -462,10 +534,15 @@ void AiProviderPage::showResult(qint64 chatMilliseconds, qint64 embedMillisecond
     // -1 for the second latency is a backend that does not embed (AiProvider),
     // and then the line says which service the embeddings come from rather than
     // printing a number nobody measured.
-    m_result->setText(embedMilliseconds < 0
+    // The service is named rather than spelled into the sentence: with two
+    // remote backends a fixed "openrouter.ai" here would be a line claiming the
+    // wrong service measured the call (issue #39).
+    const AiService *service = serviceOf(chosenProvider());
+    m_result->setText(embedMilliseconds < 0 && service != nullptr
                           ? i18n("Connection is up · chat %1 ms."
-                                 " Embeddings are not asked of openrouter.ai; test them under Ollama.",
-                                 chatMilliseconds)
+                                 " Embeddings are not asked of %2; test them under Ollama.",
+                                 chatMilliseconds,
+                                 QString(service->name))
                           : i18n("Connection is up · chat %1 ms · embedding %2 ms",
                                  chatMilliseconds,
                                  embedMilliseconds));

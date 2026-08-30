@@ -2,7 +2,7 @@
 #include "analysis/classifier.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 #include "analysis/suggester.h"
 #include "capture/capturewindow.h"
 #include "capture/recordingwindow.h"
@@ -261,28 +261,37 @@ int main(int argc, char *argv[])
                                   reasonWithoutDirectories(reason)));
                      });
 
-    // The analysis run of SPEC 7.2 and what sets it going. **Both backends are
-    // built and the two capabilities go different ways** (SPEC 7.1, issue #38):
-    // the classification and the bundle naming follow `[AI] Provider`, every
-    // embedding goes to Ollama, because openrouter's embedding side is issue
-    // #130 and is not built. Until #127 the choice reached nothing at all.
+    // The analysis run of SPEC 7.2 and what sets it going. **All three backends
+    // are built and the two capabilities go different ways** (SPEC 7.1, issues
+    // #38 and #39): the classification and the bundle naming follow
+    // `[AI] Provider`, every embedding goes to Ollama, because the remote
+    // embedding side is issue #130 and is not built. Until #127 the choice
+    // reached nothing at all.
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     OllamaProvider provider;
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    OpenRouterProvider openRouter;
+    OpenAiCompatibleProvider openRouter(openrouter::Service);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    OpenAiCompatibleProvider openAi(openai::Service);
     //
     // ponytail: the choice is read **once, here**. Ceiling: a provider switched
     // in the settings takes hold at the next start of the daemon, while the
-    // address and both model names take hold at once (issue #119) — so the one
-    // thing that still needs a restart is the rarest of them. Upgrade path: a
-    // setProvider() on Classifier and Suggester, connected in settingswiring
-    // like the seven that are there; not built here because no acceptance
-    // criterion of #38 asks for it and #130 rebuilds this junction anyway.
+    // address and all three model names take hold at once (issue #119) — so the
+    // one thing that still needs a restart is the rarest of them. Upgrade path:
+    // a setProvider() on Classifier and Suggester, connected in settingswiring
+    // like the ones that are there; not built here because no acceptance
+    // criterion of #38 or #39 asks for it and #130 rebuilds this junction
+    // anyway.
+    //
+    // The names are the ones settings.cpp declares as the enum's choices, and
+    // AiProviderPage::storedProvider() reads the same three.
     AiProvider *chat = &provider;
-    if (KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("AI"))
-            .readEntry("Provider", QStringLiteral("Ollama"))
-        == QLatin1String("OpenRouter")) {
+    const QString chosen = KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("AI"))
+                               .readEntry("Provider", QStringLiteral("Ollama"));
+    if (chosen == QLatin1String("OpenRouter")) {
         chat = &openRouter;
+    } else if (chosen == QLatin1String("OpenAI")) {
+        chat = &openAi;
     }
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     Classifier classifier(&store, chat);
@@ -311,8 +320,8 @@ int main(int argc, char *argv[])
     // library, so no test set reaches it — the three connections of issue #119
     // taken out left `ctest` at 14/14 green. The function called here is built
     // into `denkzettelsettings`, and `settingstest` links that (issue #123).
-    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &openRouter, &embedder, &suggester,
-                                    &analysis);
+    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &openRouter, &openAi, &embedder,
+                                    &suggester, &analysis);
 
     QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
 

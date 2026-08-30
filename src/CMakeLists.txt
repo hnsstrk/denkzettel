@@ -101,9 +101,11 @@ add_library(denkzettelanalysis STATIC
     analysis/embedder.cpp
     analysis/modelanswer.cpp
     analysis/ollamaprovider.cpp
-    # The second backend of SPEC 7.1, chat only (issue #38). Its key comes out
-    # of KeyStore in denkzettelstore, which this library already links.
-    analysis/openrouterprovider.cpp
+    # The two remote backends of SPEC 7.1, chat only — one client for both,
+    # because openrouter.ai and OpenAI speak the same protocol (issues #38 and
+    # #39). Their keys come out of KeyStore in denkzettelstore, which this
+    # library already links.
+    analysis/openaicompatibleprovider.cpp
     analysis/suggester.cpp
 )
 

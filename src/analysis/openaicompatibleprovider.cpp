@@ -1,4 +1,4 @@
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 
 #include "store/keystore.h"
 
@@ -21,13 +21,17 @@ constexpr QByteArrayView DataPrefix("data:");
 constexpr QByteArrayView StreamEnd("[DONE]");
 }
 
-OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
-                                     const QString &transportMessage,
-                                     int httpStatus,
-                                     const QByteArray &body)
+OpenAiCompatibleAnswer readOpenAiCompatibleReply(QLatin1StringView service,
+                                                 QNetworkReply::NetworkError transport,
+                                                 const QString &transportMessage,
+                                                 int httpStatus,
+                                                 const QByteArray &body)
 {
+    // Once, because every sentence below needs it and i18n() takes a QString.
+    const QString name(service);
+
     if (transport == QNetworkReply::TimeoutError) {
-        return {{}, i18n("openrouter.ai did not answer within the time limit.")};
+        return {{}, i18n("%1 did not answer within the time limit.", name)};
     }
 
     // The total limit of SPEC 7.1, and this is what an abort() on a running
@@ -35,7 +39,7 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
     // OllamaProvider, and it is Qt's value rather than the service's, so it
     // carries here (see the header for what does not).
     if (transport == QNetworkReply::OperationCanceledError) {
-        return {{}, i18n("openrouter.ai took longer over this call than it is allowed.")};
+        return {{}, i18n("%1 took longer over this call than it is allowed.", name)};
     }
 
     // A refusal that arrives as one JSON document, which is what a request
@@ -44,11 +48,12 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
     // different things to the user and one HTTP number.
     //
     // **It is not the only shape a refusal takes** — the review of 30.08.2026
-    // measured the other one against this very function: openrouter can put the
-    // error *inside* the stream, as a `data:` frame carrying `error`, and read
-    // as an ordinary frame that came out "the answer broke off" or "carried no
-    // text" — the service's own sentence lost, which is the whole point of this
-    // branch. The frame loop below therefore asks the same question again.
+    // measured the other one against this very function: the service can put
+    // the error *inside* the stream, as a `data:` frame carrying `error`, and
+    // read as an ordinary frame that came out "the answer broke off" or
+    // "carried no text" — the service's own sentence lost, which is the whole
+    // point of this branch. The frame loop below therefore asks the same
+    // question again.
     const QString refusal = QJsonDocument::fromJson(body)
                                 .object()
                                 .value(QLatin1String("error"))
@@ -56,15 +61,15 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
                                 .value(QLatin1String("message"))
                                 .toString();
     if (!refusal.isEmpty()) {
-        return {{}, i18n("openrouter.ai refused the request: %1", refusal)};
+        return {{}, i18n("%1 refused the request: %2", name, refusal)};
     }
 
     if (transport != QNetworkReply::NoError && httpStatus == 0) {
-        return {{}, i18n("openrouter.ai could not be reached: %1", transportMessage)};
+        return {{}, i18n("%1 could not be reached: %2", name, transportMessage)};
     }
 
     if (httpStatus != 0 && (httpStatus < 200 || httpStatus > 299)) {
-        return {{}, i18n("openrouter.ai answered with HTTP status %1.", httpStatus)};
+        return {{}, i18n("%1 answered with HTTP status %2.", name, httpStatus)};
     }
 
     // The stream. Every frame is a line of its own, so a connection that goes
@@ -77,7 +82,7 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
     const QList<QByteArray> lines = body.split('\n');
     for (const QByteArray &raw : lines) {
         const QByteArray line = raw.trimmed();
-        // A line beginning with a colon is a comment, and openrouter sends
+        // A line beginning with a colon is a comment, and both services send
         // those as a keep-alive while a model thinks — they are what keeps the
         // silence limit above from biting on a slow answer. Every other field
         // of the protocol (`event:`, `id:`, `retry:`) is none of our business.
@@ -93,7 +98,7 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
         QJsonParseError parseError;
         const QJsonDocument frame = QJsonDocument::fromJson(payload, &parseError);
         if (parseError.error != QJsonParseError::NoError || !frame.isObject()) {
-            return {{}, i18n("openrouter.ai sent an unreadable answer.")};
+            return {{}, i18n("%1 sent an unreadable answer.", name)};
         }
         readable = true;
 
@@ -108,7 +113,7 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
                                      .value(QLatin1String("message"))
                                      .toString();
         if (!streamed.isEmpty()) {
-            return {{}, i18n("openrouter.ai refused the request: %1", streamed)};
+            return {{}, i18n("%1 refused the request: %2", name, streamed)};
         }
 
         // `delta.content` and not `message.content`: a streamed choice carries
@@ -127,22 +132,24 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
     }
 
     if (!readable && !finished) {
-        return {{}, i18n("openrouter.ai sent an unreadable answer.")};
+        return {{}, i18n("%1 sent an unreadable answer.", name)};
     }
 
     if (!finished) {
-        return {{}, i18n("openrouter.ai's answer broke off.")};
+        return {{}, i18n("%1's answer broke off.", name)};
     }
 
     if (text.isEmpty()) {
-        return {{}, i18n("openrouter.ai's answer carried no text.")};
+        return {{}, i18n("%1's answer carried no text.", name)};
     }
 
     return {text, {}};
 }
 
-OpenRouterProvider::OpenRouterProvider(QObject *parent)
+OpenAiCompatibleProvider::OpenAiCompatibleProvider(const AiService &service, QObject *parent)
     : AiProvider(parent)
+    , m_service(service)
+    , m_url(QString(service.endpoint))
 {
     reloadSettings();
 
@@ -154,7 +161,12 @@ OpenRouterProvider::OpenRouterProvider(QObject *parent)
             this,
             // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) - the signature is KeyStore::keyRead
             [this](const QString &provider, const QString &key, const QString &error) {
-                if (provider != QLatin1String(openrouter::KeyName)) {
+                // **By this instance's own entry name**, and that is what keeps
+                // two of these providers apart: both listen on the one KeyStore,
+                // and without this line the OpenAI client would take the
+                // openrouter answer for its own — a key on the wrong wire and
+                // billed to the wrong account (issue #39).
+                if (provider != QLatin1String(m_service.keyName)) {
                     return;
                 }
                 m_keyAsked = false;
@@ -169,8 +181,9 @@ OpenRouterProvider::OpenRouterProvider(QObject *parent)
                     return;
                 }
                 if (key.isEmpty()) {
-                    releaseWaiting(i18n("No API key for openrouter.ai is stored."
-                                        " Enter it in the settings under \"AI provider\"."));
+                    releaseWaiting(i18n("No API key for %1 is stored."
+                                        " Enter it in the settings under \"AI provider\".",
+                                        QString(m_service.name)));
                     return;
                 }
 
@@ -180,54 +193,54 @@ OpenRouterProvider::OpenRouterProvider(QObject *parent)
             });
 }
 
-void OpenRouterProvider::reloadSettings()
+void OpenAiCompatibleProvider::reloadSettings()
 {
     const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
     // No default, and the header says why: any model here would make a choice
     // the customer reserved for himself, every 30 minutes and billed.
-    m_model = group.readEntry("OpenRouterModel", QString());
+    m_model = group.readEntry(QString(m_service.modelKey), QString());
     m_keyKnown = false;
     m_key.clear();
 }
 
-void OpenRouterProvider::setChatModel(const QString &model)
+void OpenAiCompatibleProvider::setChatModel(const QString &model)
 {
     m_model = model;
 }
 
-QString OpenRouterProvider::chatModel() const
+QString OpenAiCompatibleProvider::chatModel() const
 {
     return m_model;
 }
 
-void OpenRouterProvider::setKey(const QString &key)
+void OpenAiCompatibleProvider::setKey(const QString &key)
 {
     m_key = key;
     m_keyKnown = true;
 }
 
-void OpenRouterProvider::setUrl(const QUrl &url)
+void OpenAiCompatibleProvider::setUrl(const QUrl &url)
 {
     m_url = url;
 }
 
-void OpenRouterProvider::setTimeout(std::chrono::milliseconds timeout)
+void OpenAiCompatibleProvider::setTimeout(std::chrono::milliseconds timeout)
 {
     m_timeout = timeout;
 }
 
-void OpenRouterProvider::setCallLimit(std::chrono::milliseconds limit)
+void OpenAiCompatibleProvider::setCallLimit(std::chrono::milliseconds limit)
 {
     m_callLimit = limit;
 }
 
-int OpenRouterProvider::chat(const QString &prompt)
+int OpenAiCompatibleProvider::chat(const QString &prompt)
 {
     const int id = nextRequestId();
 
     // **The guided sentence instead of the transport's** (issue #38): with no
     // model set, a request would go out as `"model":""` and come back as
-    // whatever openrouter makes of that — an HTTP status or a refusal, which
+    // whatever the service makes of that — an HTTP status or a refusal, which
     // sends the user looking at their network for a field they never filled
     // in. Answered here rather than in the connection test alone, because this
     // is the one place every caller routes through.
@@ -251,12 +264,12 @@ int OpenRouterProvider::chat(const QString &prompt)
     m_waiting.append({id, prompt});
     if (!m_keyAsked) {
         m_keyAsked = true;
-        KeyStore::self()->readKey(QString(openrouter::KeyName));
+        KeyStore::self()->readKey(QString(m_service.keyName));
     }
     return id;
 }
 
-int OpenRouterProvider::embed(const QString &text)
+int OpenAiCompatibleProvider::embed(const QString &text)
 {
     Q_UNUSED(text)
 
@@ -266,27 +279,29 @@ int OpenRouterProvider::embed(const QString &text)
     QTimer::singleShot(0, this, [this, id] {
         Q_EMIT embedFinished(id,
                              {},
-                             i18n("openrouter.ai is not asked for embeddings; those come from Ollama."),
+                             i18n("%1 is not asked for embeddings; those come from Ollama.",
+                                  QString(m_service.name)),
                              AiFailure::Unreachable);
     });
     return id;
 }
 
-bool OpenRouterProvider::canEmbed() const
+bool OpenAiCompatibleProvider::canEmbed() const
 {
     return false;
 }
 
-QString OpenRouterProvider::unmetPrecondition() const
+QString OpenAiCompatibleProvider::unmetPrecondition() const
 {
     if (m_model.isEmpty()) {
-        return i18n("No model for openrouter.ai is set."
-                    " Enter one in the settings under \"AI provider\".");
+        return i18n("No model for %1 is set."
+                    " Enter one in the settings under \"AI provider\".",
+                    QString(m_service.name));
     }
     return {};
 }
 
-void OpenRouterProvider::releaseWaiting(const QString &error)
+void OpenAiCompatibleProvider::releaseWaiting(const QString &error)
 {
     // Taken out first: post() below can answer synchronously on a transport
     // that fails at once, and a list being walked while it grows is the fault
@@ -301,7 +316,7 @@ void OpenRouterProvider::releaseWaiting(const QString &error)
     }
 }
 
-void OpenRouterProvider::post(int id, const QString &prompt)
+void OpenAiCompatibleProvider::post(int id, const QString &prompt)
 {
     const QJsonObject message{
         {QLatin1String("role"), QLatin1String("user")},
@@ -336,13 +351,15 @@ void OpenRouterProvider::post(int id, const QString &prompt)
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, id] {
         reply->deleteLater();
-        const OpenRouterAnswer answer =
-            readOpenRouterReply(reply->error(),
-                                reply->errorString(),
-                                reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
-                                // An aborted reply is closed, and reading it
-                                // anyway only earns a "device not open".
-                                reply->isOpen() ? reply->readAll() : QByteArray());
+        const OpenAiCompatibleAnswer answer =
+            readOpenAiCompatibleReply(m_service.name,
+                                      reply->error(),
+                                      reply->errorString(),
+                                      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+                                      // An aborted reply is closed, and reading
+                                      // it anyway only earns a "device not
+                                      // open".
+                                      reply->isOpen() ? reply->readAll() : QByteArray());
         Q_EMIT chatFinished(id, answer.text, answer.error);
     });
 }

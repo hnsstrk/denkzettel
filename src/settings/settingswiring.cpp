@@ -3,7 +3,7 @@
 #include "analysis/analysisscheduler.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 #include "analysis/suggester.h"
 #include "settings/settings.h"
 #include "shell/originwatcher.h"
@@ -14,7 +14,8 @@
 void connectSettingsToRunningObjects(Transcriber *transcriber,
                                      OriginWatcher *origins,
                                      OllamaProvider *provider,
-                                     OpenRouterProvider *openRouter,
+                                     OpenAiCompatibleProvider *openRouter,
+                                     OpenAiCompatibleProvider *openAi,
                                      Embedder *embedder,
                                      Suggester *suggester,
                                      AnalysisScheduler *analysis)
@@ -70,12 +71,19 @@ void connectSettingsToRunningObjects(Transcriber *transcriber,
     QObject::connect(settings, &Settings::configChanged, embedder, &Embedder::reloadSettings);
     QObject::connect(settings, &Settings::configChanged, suggester, &Suggester::reloadSettings);
 
-    // And the second backend beside it (issue #38). It carries **two** values a
-    // user changes in that dialog, and both of them silently: the model, which
-    // has no default and which the run stands still without, and the API key,
-    // which this slot forgets so the next call fetches the new one. Without
-    // this line a corrected key never reaches the running daemon and it goes on
-    // being billed against the old one — the very reason the class comment of
-    // OpenRouterProvider::reloadSettings() gives for forgetting it.
-    QObject::connect(settings, &Settings::configChanged, openRouter, &OpenRouterProvider::reloadSettings);
+    // And the two remote backends beside it (issues #38 and #39). Each carries
+    // **two** values a user changes in that dialog, and both of them silently:
+    // the model, which has no default and which the run stands still without,
+    // and the API key, which this slot forgets so the next call fetches the new
+    // one. Without these lines a corrected key never reaches the running daemon
+    // and it goes on being billed against the old one — the very reason the
+    // class comment of OpenAiCompatibleProvider::reloadSettings() gives for
+    // forgetting it.
+    //
+    // Two lines and not one, although the class is the same: they are two
+    // objects with two wallet entries and two model keys, and one line would
+    // leave whichever service is not wired reading the values it was built with
+    // until the daemon restarts.
+    QObject::connect(settings, &Settings::configChanged, openRouter, &OpenAiCompatibleProvider::reloadSettings);
+    QObject::connect(settings, &Settings::configChanged, openAi, &OpenAiCompatibleProvider::reloadSettings);
 }

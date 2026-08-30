@@ -114,6 +114,7 @@ private:
     QString m_ollamaUrl;
     QString m_chatModel;
     QString m_openRouterModel;
+    QString m_openAiModel;
     QString m_embeddingModel;
 
     // Page "Analysis" (SPEC 7.2).
