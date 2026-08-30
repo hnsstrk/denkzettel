@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-29 21:00+0200\n"
+"POT-Creation-Date: 2026-08-30 08:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,8 +90,8 @@ msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
 msgstr ""
 
 #: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
-#: src/capture/recordingwindow.cpp:261 src/capture/recordingwindow.cpp:269
-#: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:122
+#: src/capture/recordingwindow.cpp:312 src/capture/recordingwindow.cpp:320
+#: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:115
 #: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
 #, kde-format
 msgid "Denkzettel"
@@ -102,52 +102,52 @@ msgstr ""
 msgid "Capture a thought…"
 msgstr ""
 
-#: src/capture/capturewindow.cpp:147 src/capture/recordingwindow.cpp:265
-#: src/capture/recordingwindow.cpp:486
+#: src/capture/capturewindow.cpp:147 src/capture/recordingwindow.cpp:316
+#: src/capture/recordingwindow.cpp:537
 #, kde-format
 msgid "Esc discards · Ctrl+Enter saves"
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:330 src/capture/recordingwindow.cpp:520
+#: src/capture/recordingwindow.cpp:381 src/capture/recordingwindow.cpp:571
 #, kde-format
 msgid "Recording failed"
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:331 src/capture/recordingwindow.cpp:521
+#: src/capture/recordingwindow.cpp:382 src/capture/recordingwindow.cpp:572
 #, kde-format
 msgid "The voice note could not be recorded: %1"
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:359
+#: src/capture/recordingwindow.cpp:410
 #, kde-format
 msgid ""
 "The note could not be created. The recording was moved to %1 and will not be "
 "deleted."
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:364
+#: src/capture/recordingwindow.cpp:415
 #, kde-format
 msgid ""
 "The note could not be created. The recording is at %1, and moving it to "
 "safety failed — the next start of Denkzettel will delete it."
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:483
+#: src/capture/recordingwindow.cpp:534
 #, kde-format
 msgid "%1 left — the recording ends at %2."
 msgstr ""
 
-#: src/capture/recordingwindow.cpp:614
+#: src/capture/recordingwindow.cpp:665
 #, kde-format
 msgid "Recording not saved"
 msgstr ""
 
-#: src/main.cpp:230
+#: src/main.cpp:264
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:231
+#: src/main.cpp:265
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -391,7 +391,7 @@ msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
 #: src/settings/voicenotespage.cpp:78 src/ui/librarywindow.cpp:336
-#: src/ui/librarywindow.cpp:988 src/ui/librarywindow.cpp:1899
+#: src/ui/librarywindow.cpp:1000 src/ui/librarywindow.cpp:1911
 #, kde-format
 msgid "Cancel"
 msgstr ""
@@ -512,27 +512,27 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:84 src/shell/trayicon.cpp:133
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:133
 #, kde-format
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:86 src/shell/trayicon.cpp:144
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:144
 #, kde-format
 msgid "Record voice note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:172
+#: src/shell/globalshortcuts.cpp:165
 #, kde-format
 msgid "Shortcut not ready"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:196
+#: src/shell/globalshortcuts.cpp:189
 #, kde-format
 msgid "Shortcut already taken"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:197
+#: src/shell/globalshortcuts.cpp:190
 #, kde-format
 msgid ""
 "%1 already belongs to: %2. The key press may not reach Denkzettel. To change "
@@ -590,7 +590,7 @@ msgstr ""
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:176
+#: src/shell/trayicon.cpp:176 src/ui/librarywindow.cpp:598
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
@@ -603,6 +603,21 @@ msgstr ""
 #: src/shell/trayicon.cpp:218
 #, kde-format
 msgid "Quit"
+msgstr ""
+
+#: src/store/keystore.cpp:102
+#, kde-format
+msgid "There is no password store on this session, so API keys cannot be kept."
+msgstr ""
+
+#: src/store/keystore.cpp:110
+#, kde-format
+msgid "The password store could not be opened, so API keys cannot be kept."
+msgstr ""
+
+#: src/store/keystore.cpp:139
+#, kde-format
+msgid "The password store refused the API key."
 msgstr ""
 
 #: src/transcribe/modeldownload.cpp:123
@@ -747,7 +762,7 @@ msgstr ""
 
 #. i18n() and must not depend on which KF6
 #. catalogue happens to be installed.
-#: src/ui/librarywindow.cpp:324 src/ui/librarywindow.cpp:894
+#: src/ui/librarywindow.cpp:324 src/ui/librarywindow.cpp:906
 #, kde-format
 msgid "Delete"
 msgstr ""
@@ -757,7 +772,7 @@ msgstr ""
 msgid "Undo"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:334 src/ui/librarywindow.cpp:887
+#: src/ui/librarywindow.cpp:334 src/ui/librarywindow.cpp:899
 #, kde-format
 msgid "Edit"
 msgstr ""
@@ -767,8 +782,8 @@ msgstr ""
 #. The order the three appear in is the platform's. What this window fixes
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
-#: src/ui/librarywindow.cpp:335 src/ui/librarywindow.cpp:985
-#: src/ui/librarywindow.cpp:1897
+#: src/ui/librarywindow.cpp:335 src/ui/librarywindow.cpp:997
+#: src/ui/librarywindow.cpp:1909
 #, kde-format
 msgid "Save"
 msgstr ""
@@ -800,7 +815,7 @@ msgstr ""
 msgid "No matches"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:373 src/ui/librarywindow.cpp:1355
+#: src/ui/librarywindow.cpp:373 src/ui/librarywindow.cpp:1367
 #, kde-format
 msgid "Change the search term or clear the field."
 msgstr ""
@@ -843,65 +858,65 @@ msgstr ""
 msgid "Full-text search…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:654
+#: src/ui/librarywindow.cpp:666
 #, kde-format
 msgctxt "@item:inlistbox all note categories"
 msgid "All"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:665
+#: src/ui/librarywindow.cpp:677
 #, kde-format
 msgctxt "@item:inlistbox notes the analysis gave up on"
 msgid "Unclassified"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:681
+#: src/ui/librarywindow.cpp:693
 #, kde-format
 msgid "AI categories, automatic"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:869
+#: src/ui/librarywindow.cpp:881
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove origin"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:875
+#: src/ui/librarywindow.cpp:887
 #, kde-format
 msgid "Editing"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:976
+#: src/ui/librarywindow.cpp:988
 #, kde-format
 msgid "Category"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:979
+#: src/ui/librarywindow.cpp:991
 #, kde-format
 msgid "Tags"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:999
+#: src/ui/librarywindow.cpp:1011
 #, kde-format
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1357
+#: src/ui/librarywindow.cpp:1369
 #, kde-format
 msgid "Every note has been classified."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1359
+#: src/ui/librarywindow.cpp:1371
 #, kde-format
 msgid "No note carries this category yet."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1735
+#: src/ui/librarywindow.cpp:1747
 #, kde-format
 msgid "Origin removed"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1876
+#: src/ui/librarywindow.cpp:1888
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -909,50 +924,50 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1880
+#: src/ui/librarywindow.cpp:1892
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1898
+#: src/ui/librarywindow.cpp:1910
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1981
+#: src/ui/librarywindow.cpp:1993
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
 "editor."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1998
+#: src/ui/librarywindow.cpp:2010
 #, kde-format
 msgctxt "@title:window"
 msgid "Export all notes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2006
+#: src/ui/librarywindow.cpp:2018
 #, kde-format
 msgid "Export running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2025
+#: src/ui/librarywindow.cpp:2037
 #, kde-format
 msgid "%1 note exported to %2."
 msgid_plural "%1 notes exported to %2."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2038
+#: src/ui/librarywindow.cpp:2050
 #, kde-format
 msgid "%1 note is missing, see the log."
 msgid_plural "%1 notes are missing, see the log."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2044
+#: src/ui/librarywindow.cpp:2056
 #, kde-format
 msgid "%1 note is without its recording, see the log."
 msgid_plural "%1 notes are without their recording, see the log."

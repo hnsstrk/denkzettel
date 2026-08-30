@@ -53,6 +53,13 @@ depends=(
     'knotifications'
     'kstatusnotifieritem'
     'ksvg'
+    # KWallet — the one place an API key may lie (SPEC 5.2, issue #37). Written
+    # down although the DT_NEEDED check of finding 33 cannot demand the line:
+    # struck out, libKF6Wallet stays covered, because `libplasma` above reaches
+    # `kwallet` transitively (measured, and it is the only one of the twenty-one
+    # that does). Same reasoning as kconfigwidgets and kguiaddons above — the
+    # binary links the library itself, and a transitive road is no promise.
+    'kwallet'
     'kwidgetsaddons'
     'kwindowsystem'
     # The about dialog behind the tray entry is KAboutApplicationDialog, and it

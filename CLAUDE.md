@@ -1193,6 +1193,48 @@ find.
     process found and not only the first, and a run that starts a daemon ends
     it again, or it outlives the shell that started it.
 
+76. **`XDG_DATA_DIRS` cannot take a service away from a session bus, and the
+    two ways of opening a wallet call two different methods.** Measured
+    2026-08-30 on #37, four things in one run and each of them looked like a
+    result:
+
+    - `<standard_session_servicedirs/>` appends `/usr/share/dbus-1/services`
+      **whatever `XDG_DATA_DIRS` says**. The mirror of finding 21 is built,
+      `XDG_DATA_DIRS` points at it alone, and `dbus-run-session` still
+      activates the service out of `/usr/share` — a run meant to measure "no
+      wallet on this session" measured the installed one. What works is a bus
+      configuration of the run's own: `dbus-run-session --config-file=…` with a
+      single `<servicedir>`. The readback is `busctl --user list`, which then
+      does not even list the name as activatable.
+    - `KWallet::Wallet::isEnabled()` answers **true** on a session with no
+      wallet service at all — it reads `kwalletrc` and nothing else. A guard
+      built on it lets every request through.
+    - `Wallet::NetworkWallet()` answers the **empty string** on KWallet 6.29,
+      whose `kwalletd6` is a compatibility shim over the Secret Service, while
+      `LocalWallet()` answers `kdewallet` — and an empty name is what makes the
+      service ask the user about a wallet that does not exist, after which the
+      open never completes. Both are blocking D-Bus calls; the first one costs
+      85 to 90 ms while the daemon is activated and 0 ms afterwards. Moving
+      that lookup off the event loop buys nothing: with the name written out by
+      hand, `openWallet()` pays the same 90 ms itself.
+    - `openWallet(…, Synchronous)` calls `open` on the bus and
+      `openWallet(…, Asynchronous)` calls `openAsync`. A stand-in that
+      implements only one of them answers the other with `UnknownMethod`, so
+      the mutation probe "synchronous instead of asynchronous" came back in
+      1 ms and looked exactly like the fixed code. With the stand-in holding
+      **both** methods open, the same probe never returns from the call at all,
+      while the built code answers in 51 ms with 4050 event-loop ticks in
+      twenty seconds. Whoever mutates which call is made makes sure the other
+      end can receive it — otherwise the control measures a missing method.
+
+    And the wallet case has a fifth: in a headless session `kwalletd6` asks the
+    user before it opens anything (`Using kwallet without parent window!`, then
+    silence), so **no** run without a compositor can show a key arriving in a
+    real wallet. What carries is a stand-in on `org.kde.kwalletd6` speaking
+    `org.kde.KWallet` — a hundred lines of python-dbus — which puts the whole
+    road from the code down to the wire under test and keeps the entries in a
+    file the run can read without asking our own code (finding 62).
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
