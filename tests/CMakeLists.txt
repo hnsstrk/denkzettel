@@ -1,7 +1,9 @@
 # Silence, and it applies to every executable created BELOW this line — so
 # NOTHING goes above it. The KDE guard dialog plays a system sound on every
 # show, fourteen per librarytest run, in the room the user sits in.
-# testsilence.cpp points libcanberra at its null driver before main() begins;
+# testsilence.cpp points libcanberra at its null driver before main() begins,
+# and the session bus at nothing beside it, so that no check reaches the user's
+# notification server either (issue #126);
 # link_libraries() puts its object into every target this directory creates from
 # here on, tests and benches alike. A ctest property could not do that: the
 # benches are started by hand and no property reaches them.
@@ -310,8 +312,15 @@ add_test(NAME commandlinetest
 # notification activates the desktop's notification service into the private
 # session, where it outlives the bus and holds the output pipe of the run open.
 # Nothing measured here depends on a service being activatable.
+#
+# DENKZETTEL_TEST_SESSION_BUS is the one exemption from testsilence.cpp, which
+# otherwise points DBUS_SESSION_BUS_ADDRESS at nothing in every test and bench
+# so that no check can reach the user's notification server (issue #126). This
+# set is the only one that needs a bus — its last case reads back the name the
+# built daemon announces — and dbus-run-session above hands it one of its own,
+# which no notification server answers on.
 set_tests_properties(commandlinetest PROPERTIES
-    ENVIRONMENT "XDG_DATA_DIRS=${CMAKE_CURRENT_BINARY_DIR}/commandlinetest-ohne-dienste")
+    ENVIRONMENT "XDG_DATA_DIRS=${CMAKE_CURRENT_BINARY_DIR}/commandlinetest-ohne-dienste;DENKZETTEL_TEST_SESSION_BUS=1")
 
 # REQUIRED, and the same reasoning as for dbus-run-session above: without
 # appstreamcli the metainfo check below would fall away silently, and a metainfo
