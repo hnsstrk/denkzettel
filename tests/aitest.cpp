@@ -934,23 +934,29 @@ void AiTest::openRouterLeavesTheOneRetryToQt()
     // 41, where a stand-in built to be survived measured the first failure and
     // stopped.
     //
-    // **The number is measured and it is 1**, and it took two runs to get
-    // right (30.08.2026, this machine, Qt 6.11.2):
+    // **The number is measured and it is 1**, and the control is what makes it
+    // evidence: with a repeat on `RemoteHostClosedError` written into `post()`
+    // by hand, the same stand-in saw **2** and this case passed at 2.
+    // Unchanged it is 1 (30.08.2026, this machine, Qt 6.11.2).
     //
-    // - A stand-in that aborts at the moment of connecting also shows 1, and
-    //   shows it for a reason that has nothing to do with this client — Qt
-    //   repeats a connection that died with the request already on it, not one
-    //   that never took a request. That run could not have come out any other
-    //   way, so the stand-in reads the request first and only then closes.
-    // - The control that makes 1 evidence: with a repeat on
-    //   `RemoteHostClosedError` written into `post()` by hand, the same
-    //   stand-in saw **2** and this case passed at 2. Unchanged it is 1.
+    // The stand-in reads the request before it closes, and that is deliberate:
+    // one that aborts at the moment of connecting also shows 1, so it could not
+    // come out any other way and would prove nothing.
     //
-    // What this does **not** reach is Qt's own retry on a reused keep-alive
-    // connection: a fresh QNetworkAccessManager has nothing in its pool, so the
-    // road Qt repeats on is not the road this case walks. The guarantee it does
-    // carry is the one that matters here — this client sends one request per
-    // chat() call and no second one of its own.
+    // **Whether Qt repeats on any road of its own is not measured for this
+    // client**, and an earlier wording here claimed it did. The review of
+    // 30.08.2026 built five stand-in forms against this very class — the
+    // request read and then closed by RST and by FIN, a pooled connection
+    // closed after the second request, and a pooled connection closed while
+    // idle, which is the case `ollamaprovider.h` names as the one genuinely
+    // transient one — and **not one of them produced a repetition**: every form
+    // came out one request per call, and only the hand-written repeat made it
+    // two. The measurement that says Qt repeats belongs to `OllamaProvider`
+    // and issue #13; carried over to here it was a borrowed result.
+    //
+    // So what this case carries is the half that costs money, and it is the
+    // half the story needs: this client sends one request per chat() call and
+    // no second one of its own.
     QTcpServer server;
     QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
 

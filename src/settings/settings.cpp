@@ -52,10 +52,11 @@ Settings::Settings()
     addItemString(QStringLiteral("OllamaUrl"), m_ollamaUrl, QString(ollama::DefaultUrl));
     addItemString(QStringLiteral("ChatModel"), m_chatModel, QString(ollama::DefaultChatModel));
     // A key of its own for openrouter's model, and it is not tidiness: `ChatModel`
-    // is what OllamaProvider asks its server for, so a shared key would send
-    // `openai/gpt-4o-mini` to Ollama the moment the user switched back — an
-    // HTTP 404 for a setting they never changed. Two services, two model names
-    // (issue #38).
+    // is what OllamaProvider asks its server for, so one shared key would carry
+    // whichever service's model name was typed last to the other — an Ollama
+    // asked for `anthropic/claude-3.5-sonnet`, or an openrouter asked for
+    // `qwen3:8b`, each an error over a setting the user never changed. Two
+    // services, two model names (issue #38).
     // **No default** (customer decision 30.08.2026, SPEC 7.1): the two reasons
     // he names for reaching past Ollama are opposite ones, and any model put
     // here would make his choice for him — every 30 minutes and billed. Empty

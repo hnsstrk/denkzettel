@@ -7,6 +7,7 @@
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
 #include "settings/settingswiring.h"
+#include "store/keystore.h"
 #include "shell/globalshortcuts.h"
 #include "shell/originwatcher.h"
 #include "store/store.h"
@@ -141,6 +142,20 @@ void SettingsTest::initTestCase()
         + QStringLiteral("/denkzettelrc");
     QVERIFY(file.startsWith(QString::fromLocal8Bit(configHome)));
     QFile::remove(file);
+
+    // **This set presses OK on a page that stores an API key, and `kwalletd6`
+    // runs on the development machine** — so the one thing standing between a
+    // check and the user's real wallet is that the session bus is unreachable.
+    // `testsilence.cpp` points it at /nonexistent for every binary under
+    // tests/ since issue #126, and this line is the readback of that: a guard
+    // nobody asserts is a guard that can be removed without a sound, and SPEC
+    // 16 has checks running against test data only.
+    //
+    // The variable, not its effect — the effect is read where it is spent, in
+    // theApiKeyNeverReachesTheConfigurationFile(), which asserts that the
+    // store attempt comes back refused.
+    QVERIFY2(qgetenv("DBUS_SESSION_BUS_ADDRESS").startsWith("unix:path=/nonexistent"),
+             qgetenv("DBUS_SESSION_BUS_ADDRESS").constData());
 }
 
 SettingsDialog *SettingsTest::openDialog()
@@ -598,8 +613,26 @@ void SettingsTest::theApiKeyNeverReachesTheConfigurationFile()
     QTest::keyClicks(apiKey, typed);
     QCOMPARE(apiKey->text(), typed);
 
+    // **And the wallet has to refuse, or this check writes into the user's
+    // own.** OK calls KeyStore::storeKey(), `kwalletd6` runs on this machine,
+    // and only the dead session bus of testsilence.cpp stops the call — so the
+    // refusal is asserted rather than hoped for. Measured 30.08.2026 under
+    // ctest: `keyStored` arrives once, for `openrouter`, with "There is no
+    // password store on this session, so API keys cannot be kept." The wallet
+    // is never opened, so nothing of this run can reach it — **not** a write
+    // that merely does not finish in time.
+    //
+    // The error is asserted as non-empty rather than by its wording: what
+    // carries here is that the store was refused, and the sentence belongs to
+    // KeyStore and may be reworded there.
+    const QSignalSpy stored(KeyStore::self(), &KeyStore::keyStored);
     dialog->button(QDialogButtonBox::Ok)->click();
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+
+    QTRY_COMPARE_WITH_TIMEOUT(stored.count(), 1, 5000);
+    QCOMPARE(stored.constFirst().at(0).toString(), QStringLiteral("openrouter"));
+    QVERIFY2(!stored.constFirst().at(1).toString().isEmpty(),
+             "the password store accepted the key — this run reached a real wallet");
 
     // Nothing anywhere in the group, under any key name: the assertion is about
     // the **value**, not about one spelling of one key, because a renamed

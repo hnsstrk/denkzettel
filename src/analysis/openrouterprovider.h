@@ -65,11 +65,13 @@ struct OpenRouterAnswer {
  *   — measured for Ollama over plain HTTP on 2026-08-30, not for this service;
  * - that openrouter's keep-alive comment lines really begin with `:`, which is
  *   what is supposed to keep the silence limit from biting on a slow model;
- * - **that the endpoint above and the `Bearer` scheme are what this service
- *   accepts at all.** Both come from the documentation. The check
+ * - **that the endpoint above, the `Bearer` scheme and the shape of the request
+ *   body are what this service accepts at all** — `messages` as a list of
+ *   objects with `role` and `content`, beside `model` and `stream`. All three
+ *   come from the documentation. The check
  *   `openRouterCarriesTheKeyAndTheModelOnTheWire()` proves that *we* write that
- *   header to that path — it cannot prove that openrouter reads it, and no
- *   stand-in can (review of 30.08.2026).
+ *   header, that path and that body — it cannot prove that openrouter reads any
+ *   of them, and no stand-in can (review of 30.08.2026).
  *
  * `OperationCanceledError` is the one value here that does **not** need a live
  * run: it is what Qt's own abort() produces, measured on 2026-08-30 against a
@@ -132,10 +134,21 @@ inline constexpr QLatin1StringView KeyName("openrouter");
  * SPEC 7.1 means by it, and the 5 minutes of setCallLimit() are what ends a
  * call that trickles for ever.
  *
- * **No retry of ours**, and here the reason is money rather than time:
- * `QNetworkAccessManager` already repeats a closed connection by itself (the
- * one retry SPEC 7.1 asks for, measured on 2026-08-29), and a second request
- * of ours would be a second generation and a second bill for one job.
+ * **No retry of ours**, and here the reason is money rather than time: a second
+ * request would be a second generation and a second bill for one job.
+ *
+ * **Whether anything repeats at all is open for this backend** (review of
+ * 30.08.2026, and the correction of what stood here before). That
+ * `QNetworkAccessManager` repeats a closed connection by itself is measured —
+ * for `OllamaProvider`, on 2026-08-29, under issue #13. Carried over to here it
+ * was a borrowed result, and five stand-in forms against *this* client produced
+ * no repetition in any of them: a connection closed after the request (by RST
+ * and by FIN alike), a pooled connection closed after the second request, and a
+ * pooled connection closed while idle — the case `ollamaprovider.h` calls the
+ * one genuinely transient one — all came out one request per call. So **the one
+ * retry SPEC 7.1 asks for is not established for openrouter**, and it is named
+ * as open rather than claimed. What *is* measured is the half that costs money:
+ * this client sends one request per chat() call and no second one of its own.
  */
 class OpenRouterProvider : public AiProvider
 {
