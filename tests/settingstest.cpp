@@ -2,6 +2,7 @@
 #include "analysis/classifier.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/openrouterprovider.h"
 #include "analysis/suggester.h"
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
@@ -30,6 +31,8 @@
 #include <QSpinBox>
 #include <QStandardPaths>
 #include <QStyle>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTemporaryDir>
 #include "transcribe/transcriber.h"
 #include <KSharedConfig>
@@ -80,6 +83,7 @@ private Q_SLOTS:
     void initTestCase();
     void settingsSurviveARestart();
     void aStoredProviderSurvivesItsDisabledButton();
+    void theConnectionTestAsksTheChosenProvider();
     void theWindowSizeSurvivesEveryWayOut();
     void aRefusedVaultFolderIsNotStored();
     void theDefaultsComeBack();
@@ -301,7 +305,9 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
 
         for (int index = 0; index < buttons.size(); ++index) {
             QCOMPARE(buttons.at(index)->isChecked(), index == stored.provider);
-            QCOMPARE(buttons.at(index)->isEnabled(), index == Settings::Ollama);
+            // OpenAI alone is still greyed: its client is #39. openrouter took
+            // its lock off with #38, which is what this story is.
+            QCOMPARE(buttons.at(index)->isEnabled(), index != Settings::OpenAi);
         }
 
         // **The wording, because the index cannot see itself.** The stored
@@ -318,25 +324,43 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
         QCOMPARE(buttons.at(Settings::OpenRouter)->text(), QStringLiteral("openrouter.ai"));
         QCOMPARE(buttons.at(Settings::OpenAi)->text(), QStringLiteral("OpenAI (API key)"));
 
-        // **The API key row is away for all three stored values**, measured
-        // 30.08.2026 while writing this case, and the second reason for it was
-        // a surprise: the row hangs on the Ollama button's `toggled` signal,
-        // and a freshly opened dialog whose stored value is *not* Ollama never
-        // emits it — no button is checked before the manager reads the
-        // setting, so checking button 1 or 2 toggles nothing. The row
-        // therefore never came up on an opening, only on a click, and with the
-        // two buttons disabled there are no more clicks. Nobody can type a key
-        // into the field that loses it (the UX decision of 30.08.2026), and
-        // for a reason one line stronger than that decision assumed.
+        // **The API key row follows the STORED value**, and that is the defect
+        // #127 measured on 30.08.2026 and could only make unreachable: the row
+        // hung on the Ollama button's `toggled` signal, and a freshly opened
+        // dialog whose stored value is not Ollama never emits it — no button is
+        // checked before the manager reads the setting, so checking button 1 or
+        // 2 toggles nothing. The field was therefore missing for exactly the
+        // users who need it: whoever had `Provider=OpenRouter` stored — the
+        // customer had — got the button and never the key row. With the lock
+        // off, that fault would have been back on the first opening.
+        //
+        // This is the one assertion of the loop that comes out **differently**
+        // per case, so it is the one that says the row is set at all rather
+        // than merely built hidden (finding 10): away under Ollama, there under
+        // both providers that need a key.
         //
         // `isHidden()` and not `isVisible()`: the AI page is not the dialog's
         // current one, so every widget on it is invisible whatever the row
         // does — that readback would answer the same in every state and carry
-        // nothing. The control that makes this one carry stands after the
-        // loop.
+        // nothing.
         const auto *apiKey = dialog->findChild<QLineEdit *>(QStringLiteral("apiKey"));
         QVERIFY(apiKey);
-        QVERIFY(apiKey->isHidden());
+        // OpenRouter alone: OpenAI needs a key by SPEC 7.5 and has no client
+        // until #39, so the page does not ask for one — keyNameOf() in
+        // aiproviderpage.cpp carries the reason.
+        QCOMPARE(apiKey->isHidden(), stored.provider != Settings::OpenRouter);
+
+        // And the row rule beside it (Product Owner, 30.08.2026, issue #38):
+        // the language model row is the chosen service's own. Two widgets and
+        // not one, because `ChatModel` is what OllamaProvider asks its server
+        // for — one shared key would send an openrouter model id to Ollama the
+        // moment the user switched back.
+        const auto *ollamaModel = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_ChatModel"));
+        const auto *openRouterModel = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterModel"));
+        QVERIFY(ollamaModel);
+        QVERIFY(openRouterModel);
+        QCOMPARE(ollamaModel->isHidden(), stored.provider == Settings::OpenRouter);
+        QCOMPARE(openRouterModel->isHidden(), stored.provider != Settings::OpenRouter);
 
         // OK and not Apply: Apply is grey, because the form holds exactly what
         // the file holds — and OK writes the same way (the reasoning of
@@ -353,16 +377,14 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
                  QString::fromLatin1(stored.name));
     }
 
-    // The control: hidden three times over says nothing unless the same
-    // readback can come out the other way on the same build. Checked by hand —
-    // the road a click would take if the button still took clicks — the row
-    // does appear, so the assertions above are about the state and not about a
-    // row that was never built. Closed and not OK'd: this flip must not reach
+    // The control, and since #38 it measures the other half: the loop above
+    // shows the row set from the **stored** value, this one shows it still
+    // following a live switch. Both roads matter — the defect of #127 was that
+    // only the second one worked. Closed and not OK'd: this flip must not reach
     // the file.
     //
-    // It starts from Ollama, and that is the whole reason the flip is visible
-    // at all: the row hangs on **this** button's signal, so it only moves when
-    // this button's state moves.
+    // It starts from Ollama and goes to openrouter, which is now a click a user
+    // can really make.
     {
         KConfig prefilled(QStringLiteral("denkzettelrc"));
         prefilled.group(QStringLiteral("AI")).writeEntry("Provider", QStringLiteral("Ollama"));
@@ -381,6 +403,132 @@ void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
     box->findChildren<QRadioButton *>().at(Settings::OpenRouter)->setChecked(true);
     QVERIFY(!field->isHidden());
     closeDialog(control);
+}
+
+void SettingsTest::theConnectionTestAsksTheChosenProvider()
+{
+    // **Both ends of "Test connection"** (acceptance criterion of #127, moved
+    // to #38): what the button measures, and what the page then claims. Read
+    // back separately, because either one alone would be green over the other
+    // being wrong — the paths off the stand-in, the sentence off the label.
+    //
+    // The whole criterion rests on the run coming out **different** for two
+    // provider choices (finding 10). With Ollama chosen the stand-in has to see
+    // two endpoints and the line has to carry two latencies; with openrouter
+    // chosen, one endpoint and one latency plus the sentence saying where the
+    // embeddings come from instead. The same answer for both would carry
+    // nothing.
+    //
+    // Nothing leaves the machine: a QTcpServer on the loopback interface, and
+    // the page's openrouter backend is pointed at it the way setUrl() exists
+    // for. Without that it would talk to the real openrouter.ai, which nobody
+    // in this project has a key for (issue #38, customer 30.08.2026).
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+    const QString address = QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort());
+
+    auto asked = std::make_shared<QStringList>();
+    connect(&server, &QTcpServer::newConnection, this, [&server, asked] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, asked] {
+            request->append(socket->readAll());
+            const qsizetype end = request->indexOf("\r\n\r\n");
+            if (end < 0 || request->size() <= end + 4) {
+                return;
+            }
+            const QString path = QString::fromLatin1(request->split(' ').value(1));
+            asked->append(path);
+
+            QByteArray payload;
+            if (path == QLatin1String("/api/chat")) {
+                payload = R"({"message":{"role":"assistant","content":"pong"},"done":true})"
+                          "\n";
+            } else if (path == QLatin1String("/api/embed")) {
+                payload = R"({"embeddings":[[0.5,0.5]]})";
+            } else {
+                payload = "data: {\"choices\":[{\"delta\":{\"content\":\"pong\"}}]}\n"
+                          "data: [DONE]\n";
+            }
+            socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                          + QByteArray::number(payload.size()) + "\r\nConnection: close\r\n\r\n" + payload);
+            socket->disconnectFromHost();
+        });
+    });
+
+    // The key goes away whichever way this case ends (finding 42), and the
+    // guard on XDG_CONFIG_HOME is what keeps that deletion off the file of
+    // whoever runs the check.
+    const QByteArray configHome = qgetenv("XDG_CONFIG_HOME");
+    QVERIFY2(!configHome.isEmpty(), "XDG_CONFIG_HOME has to point into the build directory");
+    const auto tidy = qScopeGuard([] {
+        KConfig back(QStringLiteral("denkzettelrc"));
+        back.group(QStringLiteral("AI")).deleteEntry(QStringLiteral("Provider"));
+        back.sync();
+        Settings::self()->load();
+    });
+
+    struct Expectation {
+        int provider;
+        const char *name;
+        QStringList endpoints;
+        QString claim;
+    };
+    const QList<Expectation> cases{
+        {Settings::Ollama,
+         "Ollama",
+         {QStringLiteral("/api/chat"), QStringLiteral("/api/embed")},
+         QStringLiteral("embedding")},
+        {Settings::OpenRouter,
+         "OpenRouter",
+         {QStringLiteral("/api/v1/chat/completions")},
+         QStringLiteral("Embeddings are not asked of openrouter.ai")}};
+
+    for (const Expectation &expected : cases) {
+        asked->clear();
+        {
+            KConfig prefilled(QStringLiteral("denkzettelrc"));
+            prefilled.group(QStringLiteral("AI")).writeEntry("Provider", QString::fromLatin1(expected.name));
+            prefilled.sync();
+        }
+        Settings::self()->load();
+
+        SettingsDialog *dialog = openDialog();
+        QVERIFY(dialog);
+        QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+        // The Ollama address off the form, which is what the button works with
+        // — Apply has not been pressed and must not be.
+        auto *url = dialog->findChild<QLineEdit *>(QStringLiteral("kcfg_OllamaUrl"));
+        QVERIFY(url);
+        url->setText(address);
+        // And the remote backend, which has no address field by design: the
+        // service is the service (openrouterprovider.h).
+        auto *remote = dialog->findChild<OpenRouterProvider *>();
+        QVERIFY(remote);
+        remote->setUrl(QUrl(address + QStringLiteral("/api/v1/chat/completions")));
+        remote->setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
+
+        auto *button = dialog->findChild<QPushButton *>(QStringLiteral("testConnection"));
+        auto *result = dialog->findChild<QLabel *>(QStringLiteral("testResult"));
+        QVERIFY(button);
+        QVERIFY(result);
+        button->click();
+
+        QTRY_VERIFY_WITH_TIMEOUT(!result->text().isEmpty(), 10000);
+
+        // What was measured, off the stand-in.
+        QCOMPARE(*asked, expected.endpoints);
+        // And what the page claims about it. `contains` and not an equality:
+        // the two latencies are milliseconds and no two runs agree on them.
+        QVERIFY2(result->text().contains(expected.claim),
+                 qPrintable(QStringLiteral("%1: %2").arg(QString::fromLatin1(expected.name), result->text())));
+        // The error half of the line must not be here — a red line would carry
+        // the word above just as well in the openrouter case.
+        QVERIFY2(result->text().contains(QStringLiteral("Connection is up")), qPrintable(result->text()));
+
+        closeDialog(dialog);
+    }
 }
 
 void SettingsTest::theWindowSizeSurvivesEveryWayOut()

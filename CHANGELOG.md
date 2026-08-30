@@ -12,6 +12,37 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **openrouter.ai can be chosen again, and it is what writes the
+  classification.** With it picked, Denkzettel sends every note's
+  classification to openrouter's chat API and asks Ollama for the embeddings
+  and nothing else. The **API key** is entered on the settings page under
+  „KI-Anbieter" and is kept in KWallet, never in a configuration file — the
+  field is write-only, so an empty field keeps the key that is stored and a
+  field you clear removes it; the wallet is only ever opened when you really
+  enter one. **The page now shows the rows that belong to the chosen service**:
+  the key row under openrouter, and a language model row per service, so a
+  model name typed for one of them can no longer end up being asked of the
+  other. „Ollama-Adresse" and „Einbettungsmodell" stay under every provider,
+  with the sentence saying why — every embedding comes from Ollama, and without
+  a reachable one there are no topic bundles. **„Verbindung testen" asks the
+  service that is chosen**: two times under Ollama, the chat time alone under
+  openrouter, which is not asked for a vector at all. **OpenAI stays
+  unselectable** until its client is built (#39). A provider switched in the
+  settings takes hold at the next start of Denkzettel; the address and the
+  models keep taking hold at once. (#38)
+
+  **The default model is `openai/gpt-4o-mini`**, and it can be replaced by any
+  model name openrouter offers. Every call to this service is billed by
+  openrouter — Ollama stays the default and nothing about a local installation
+  changes.
+
+- **The API key field appears for whoever has openrouter stored.** It hung on
+  the Ollama button being switched, and a settings dialog that opened with
+  openrouter already chosen never switched it — so the field was missing for
+  exactly the people who need it, and only a detour over Ollama and back
+  brought it up. It now follows the stored provider (#38, found in #127).
+
+
 - **The search now also finds what you mistyped or wrote without umlauts.** If
   a search comes back empty, it runs a second time with the word corrected:
   „pruefen" finds „prüfen", „strassenbahn" finds „Straßenbahn", and the typo

@@ -74,9 +74,25 @@ public:
     virtual int embed(const QString &text) = 0;
 
     /**
-     * One mini `chat` call and one `embed` call, answered by
-     * connectionTested() with their latencies or with the first error
-     * (SPEC 7.1).
+     * Whether this backend is asked for vectors at all (SPEC 7.1, issue #38).
+     *
+     * **The two capabilities are separate, and a backend may have one of
+     * them.** openrouter is connected for chat and not for embeddings, so a
+     * connection test that asked it for a vector would report a failure of the
+     * service where there is none — and a missing local Ollama would look like
+     * a remote API failure, which is exactly the confusion the story was asked
+     * to prevent. What testConnection() below does instead is skip the second
+     * call and hand back -1 for its latency.
+     *
+     * True here rather than pure, because a backend that does both is the
+     * ordinary case and Ollama is not to repeat the answer.
+     */
+    virtual bool canEmbed() const;
+
+    /**
+     * One mini `chat` call and — where the backend embeds at all — one `embed`
+     * call, answered by connectionTested() with their latencies or with the
+     * first error (SPEC 7.1).
      *
      * It lives here and not in the implementation because the procedure is the
      * same for every backend; what differs is what chat() and embed() talk to.
@@ -107,6 +123,10 @@ Q_SIGNALS:
     /**
      * The answer to testConnection(): both latencies in milliseconds, or the
      * error of whichever call failed first — and then both latencies are -1.
+     *
+     * `embedMilliseconds` is -1 on its own for a backend that does not embed
+     * (canEmbed() above); the page then says which service the embeddings come
+     * from instead of printing a number nobody measured.
      */
     void connectionTested(qint64 chatMilliseconds, qint64 embedMilliseconds, const QString &error);
 

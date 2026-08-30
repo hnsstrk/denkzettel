@@ -113,6 +113,7 @@ private:
     qint32 m_provider = Ollama;
     QString m_ollamaUrl;
     QString m_chatModel;
+    QString m_openRouterModel;
     QString m_embeddingModel;
 
     // Page "Analysis" (SPEC 7.2).

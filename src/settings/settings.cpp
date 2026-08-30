@@ -3,6 +3,7 @@
 #include "analysis/analysisscheduler.h"
 #include "analysis/clustering.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/openrouterprovider.h"
 #include "transcribe/transcriber.h"
 
 namespace
@@ -50,6 +51,12 @@ Settings::Settings()
             QStringLiteral("Provider"));
     addItemString(QStringLiteral("OllamaUrl"), m_ollamaUrl, QString(ollama::DefaultUrl));
     addItemString(QStringLiteral("ChatModel"), m_chatModel, QString(ollama::DefaultChatModel));
+    // A key of its own for openrouter's model, and it is not tidiness: `ChatModel`
+    // is what OllamaProvider asks its server for, so a shared key would send
+    // `openai/gpt-4o-mini` to Ollama the moment the user switched back — an
+    // HTTP 404 for a setting they never changed. Two services, two model names
+    // (issue #38).
+    addItemString(QStringLiteral("OpenRouterModel"), m_openRouterModel, QString(openrouter::DefaultChatModel));
     addItemString(QStringLiteral("EmbeddingModel"), m_embeddingModel, QString(ollama::DefaultEmbeddingModel));
 
     setCurrentGroup(QStringLiteral("Analysis"));

@@ -101,6 +101,9 @@ add_library(denkzettelanalysis STATIC
     analysis/embedder.cpp
     analysis/modelanswer.cpp
     analysis/ollamaprovider.cpp
+    # The second backend of SPEC 7.1, chat only (issue #38). Its key comes out
+    # of KeyStore in denkzettelstore, which this library already links.
+    analysis/openrouterprovider.cpp
     analysis/suggester.cpp
 )
 
