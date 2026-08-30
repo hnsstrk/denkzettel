@@ -7,8 +7,8 @@
 #include "capture/recordingwindow.h"
 #include "platform/optionaltools.h"
 #include "platform/systemfonts.h"
-#include "settings/settings.h"
 #include "settings/settingsdialog.h"
+#include "settings/settingswiring.h"
 #include "shell/appidentity.h"
 #include "shell/daemonservice.h"
 #include "shell/firstrun.h"
@@ -103,25 +103,16 @@ int main(int argc, char *argv[])
     // it is doing and is the only thing that can stop it.
     ModelDownload modelDownload;
 
-    // What the settings page "Voice notes" writes reaches the running queue at
-    // once — model size and program path take hold without a restart (SPEC 13,
-    // issue #27). The connection hangs on the skeleton and not on the dialog:
-    // the dialog is built and destroyed per opening, this object lives as long
-    // as the process. KCoreConfigSkeleton::save() emits configChanged() once
-    // per save that changed something and not at all for one that did not
-    // (measured 29.08.2026), so this runs when there is something new to read
-    // and never on its own.
-    QObject::connect(Settings::self(), &Settings::configChanged,
-                     &transcriber, &Transcriber::reloadSettings);
-    // And the queue is taken up again after both roads that can put the
-    // missing model of SPEC 12 in place: a size that is already on disk chosen
-    // in the settings, and a download that has just finished. Without these
-    // two the job the queue stopped for would lie there until the next start
-    // of the daemon — it is still in the queue with its attempts untouched,
-    // and nothing else ever asks again. start() does nothing when there is no
-    // job and nothing when the model is still missing.
-    QObject::connect(Settings::self(), &Settings::configChanged,
-                     &transcriber, &Transcriber::start);
+    // The queue is taken up again once a download has put the missing model of
+    // SPEC 12 in place: otherwise the job it stopped for would lie there until
+    // the next start of the daemon — still in the queue with its attempts
+    // untouched, and nothing else ever asks again. start() does nothing when
+    // there is no job and nothing when the model is still missing.
+    //
+    // The other road to the same thing is a size that is already on disk being
+    // chosen in the settings, and that one is wired in
+    // connectSettingsToRunningObjects() below with the rest of them (issue
+    // #123).
     QObject::connect(&modelDownload, &ModelDownload::finished,
                      &transcriber, &Transcriber::start);
 
@@ -195,10 +186,6 @@ int main(int argc, char *argv[])
     OriginWatcher origins;
     QObject::connect(&origins, &OriginWatcher::originChanged, &capture, &CaptureWindow::setOrigin);
     QObject::connect(&origins, &OriginWatcher::originChanged, &recorder, &RecordingWindow::setOrigin);
-    // And the switch takes hold on a running daemon, the way the transcription
-    // settings above do: KCoreConfigSkeleton::save() emits configChanged()
-    // once per save that changed something.
-    QObject::connect(Settings::self(), &Settings::configChanged, &origins, &OriginWatcher::reloadSettings);
 
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     LibraryWindow library(&store);
@@ -292,28 +279,14 @@ int main(int argc, char *argv[])
     QObject::connect(&store, &Store::noteAdded, &analysis, &AnalysisScheduler::noteIsReady);
     QObject::connect(&transcriber, &Transcriber::transcribed, &analysis, &AnalysisScheduler::noteIsReady);
 
-    // What the settings dialog wrote reaches the running trigger here, and only
-    // here: without it a switched mode would take effect at the next start of
-    // the daemon and look like a setting that does nothing (SPEC 13, issue #16).
-    QObject::connect(Settings::self(), &Settings::configChanged, &analysis, &AnalysisScheduler::applySettings);
-
-    // And the same for the backend itself (issue #119): the address and the two
-    // models of SPEC 7.1 were read once at construction, so a server or a model
-    // chosen in the dialog reached the running run at the next start of the
-    // daemon and not before — while "Test connection" on that very page, which
-    // works with the value out of the form, reported the new address as
-    // reachable. The check said yes and the analysis talked to the old server.
-    //
-    // Three connections and not one, because three objects hold the embedding
-    // model: the provider asks for the vector, the embedder writes the name
-    // beside it and the suggester looks the vectors up by it (SPEC 7.3). Left
-    // out, either of the two latter would go on with the old name while the
-    // provider asked the new model — vectors of two models under one name, or a
-    // corpus that comes out empty. They read it out of one function for that
-    // reason (ollama::configuredEmbeddingModel()).
-    QObject::connect(Settings::self(), &Settings::configChanged, &provider, &OllamaProvider::reloadSettings);
-    QObject::connect(Settings::self(), &Settings::configChanged, &embedder, &Embedder::reloadSettings);
-    QObject::connect(Settings::self(), &Settings::configChanged, &suggester, &Suggester::reloadSettings);
+    // And here every value the settings dialog writes reaches the object that
+    // is already running with the old one (SPEC 13). All of them in one place
+    // and none of them here, because a connection missing from this file is a
+    // whole feature missing and nothing can see it: main.cpp is linked by no
+    // library, so no test set reaches it — the three connections of issue #119
+    // taken out left `ctest` at 14/14 green. The function called here is built
+    // into `denkzettelsettings`, and `settingstest` links that (issue #123).
+    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &embedder, &suggester, &analysis);
 
     QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
 

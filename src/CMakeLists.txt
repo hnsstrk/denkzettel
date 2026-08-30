@@ -135,6 +135,11 @@ add_library(denkzettelsettings STATIC
     settings/exportpage.cpp
     settings/settings.cpp
     settings/settingsdialog.cpp
+    # The road out of the skeleton into the objects that are already running
+    # (issue #123). It lives in this library because this is the one that links
+    # every side of it, and because a test set can link a library — main.cpp,
+    # where the connections stood, is linked by nothing.
+    settings/settingswiring.cpp
     settings/shortcutspage.cpp
     settings/voicenotespage.cpp
 )

@@ -1,6 +1,14 @@
+#include "analysis/analysisscheduler.h"
+#include "analysis/classifier.h"
+#include "analysis/embedder.h"
+#include "analysis/ollamaprovider.h"
+#include "analysis/suggester.h"
 #include "settings/settings.h"
 #include "settings/settingsdialog.h"
+#include "settings/settingswiring.h"
 #include "shell/globalshortcuts.h"
+#include "shell/originwatcher.h"
+#include "store/store.h"
 #include "transcribe/modeldownload.h"
 
 #include <KConfig>
@@ -50,6 +58,13 @@
  * 4. **Whether a refused vault folder stays out of the file** (issue #75). The
  *    red line under the field is looked at; that the value behind it did not
  *    reach denkzettelrc is not visible anywhere and is asserted here.
+ * 5. **Whether anybody is listening to what was saved** (issue #123). The
+ *    announcement is only half the road: without the connection at the other
+ *    end the dialog writes, the page confirms, and the running daemon goes on
+ *    with the old value. The connections live in
+ *    `settings/settingswiring.cpp`, which this set links through
+ *    `denkzettelsettings` — that is what makes this a guard rather than an
+ *    assertion (CLAUDE.md, finding 48).
  */
 class SettingsTest : public QObject
 {
@@ -64,6 +79,7 @@ private Q_SLOTS:
     void afterTheDefaultsARefusalGoesBackToNothing();
     void aRejectedProgramPathIsNotStored();
     void savingAnnouncesItself();
+    void everySettingReachesItsRunningObject();
     void reportsAModelPathItCouldNotTakeOver();
     void restoringTheDefaultsResetsThePathField();
     void helpIsHiddenAndNotReplaced();
@@ -462,6 +478,77 @@ void SettingsTest::savingAnnouncesItself()
              QStringLiteral("medium"));
 
     closeDialog(dialog);
+}
+
+void SettingsTest::everySettingReachesItsRunningObject()
+{
+    // The other half of the case above (issue #123). That one shows the
+    // announcement leaving the skeleton; this one shows that somebody is
+    // listening to it — and until now nobody could check that, because the
+    // connections stood in main.cpp, which no library links and therefore no
+    // test set reaches. Measured on 29.08.2026: the three connections of issue
+    // #119 deleted, that fault fully back, `ctest` **14/14 green** — the same
+    // output as the unchanged state.
+    //
+    // **What is read back is the connection, not what the slot does with the
+    // value.** QObject::disconnect() looks a connection up by sender, signal,
+    // receiver and the exact member function, and hands back whether there was
+    // one — so a line deleted from settingswiring.cpp comes out below by name.
+    // What each slot then makes of `denkzettelrc` is asserted where that slot
+    // lives; three of these seven have nothing here to read an answer off at
+    // all — Transcriber::start does nothing without a job in the queue,
+    // OriginWatcher wants a running KWin, and Suggester keeps its model to
+    // itself — and this is the one assertion that reaches all seven alike.
+    const QTemporaryDir data;
+    QVERIFY(data.isValid());
+    Store store(data.filePath(QStringLiteral("notes.db")));
+    QVERIFY(store.open());
+
+    Transcriber transcriber(&store);
+    OriginWatcher origins;
+    OllamaProvider provider;
+    Classifier classifier(&store, &provider);
+    Embedder embedder(&store, &provider);
+    Suggester suggester(&store, &provider, embedder.model());
+    AnalysisScheduler analysis(&classifier, &embedder, &suggester);
+
+    const Settings *settings = Settings::self();
+    // Nothing is attached before the call — the control without which "all
+    // seven are there" would not say who put them there. What it rules out is
+    // a receiver that connects itself in its own constructor; none of the six
+    // does today, so the control holds for all seven. (An earlier case of this
+    // run cannot leave anything behind here: every receiver below is built in
+    // this function and is gone when it ends.)
+    QVERIFY(!QObject::disconnect(settings, &Settings::configChanged, &transcriber, &Transcriber::reloadSettings));
+
+    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &embedder, &suggester, &analysis);
+
+    // Collected instead of asserted one by one: QCOMPARE ends the test function
+    // at the first failure, so a check per line would name the first missing
+    // connection and say nothing about the six behind it (CLAUDE.md, finding
+    // 35). Gathered this way the message names every one of them.
+    QStringList missing;
+    const auto reaches = [&missing](const char *name, bool connected) {
+        if (!connected) {
+            missing.append(QString::fromLatin1(name));
+        }
+    };
+    reaches("Transcriber::reloadSettings",
+            QObject::disconnect(settings, &Settings::configChanged, &transcriber, &Transcriber::reloadSettings));
+    reaches("Transcriber::start",
+            QObject::disconnect(settings, &Settings::configChanged, &transcriber, &Transcriber::start));
+    reaches("OriginWatcher::reloadSettings",
+            QObject::disconnect(settings, &Settings::configChanged, &origins, &OriginWatcher::reloadSettings));
+    reaches("AnalysisScheduler::applySettings",
+            QObject::disconnect(settings, &Settings::configChanged, &analysis, &AnalysisScheduler::applySettings));
+    reaches("OllamaProvider::reloadSettings",
+            QObject::disconnect(settings, &Settings::configChanged, &provider, &OllamaProvider::reloadSettings));
+    reaches("Embedder::reloadSettings",
+            QObject::disconnect(settings, &Settings::configChanged, &embedder, &Embedder::reloadSettings));
+    reaches("Suggester::reloadSettings",
+            QObject::disconnect(settings, &Settings::configChanged, &suggester, &Suggester::reloadSettings));
+
+    QCOMPARE(missing.join(QStringLiteral(", ")), QString());
 }
 
 void SettingsTest::reportsAModelPathItCouldNotTakeOver()
