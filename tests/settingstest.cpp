@@ -26,6 +26,7 @@
 #include <QListView>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QScopeGuard>
 #include <QSpinBox>
 #include <QStandardPaths>
 #include <QStyle>
@@ -65,6 +66,11 @@
  *    `settings/settingswiring.cpp`, which this set links through
  *    `denkzettelsettings` — that is what makes this a guard rather than an
  *    assertion (CLAUDE.md, finding 48).
+ * 6. **Whether a stored provider survives its disabled button** (issue #127).
+ *    That two of the three buttons are grey is looked at; that the choice
+ *    already standing in denkzettelrc comes back out of it unchanged is not
+ *    visible anywhere — a value quietly rewritten to Ollama would show up as a
+ *    different button checked at some later opening and nowhere else.
  */
 class SettingsTest : public QObject
 {
@@ -73,6 +79,7 @@ class SettingsTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void settingsSurviveARestart();
+    void aStoredProviderSurvivesItsDisabledButton();
     void theWindowSizeSurvivesEveryWayOut();
     void aRefusedVaultFolderIsNotStored();
     void theDefaultsComeBack();
@@ -223,6 +230,157 @@ void SettingsTest::settingsSurviveARestart()
     QVERIFY(!apply->isEnabled());
 
     closeDialog(dialog);
+}
+
+void SettingsTest::aStoredProviderSurvivesItsDisabledButton()
+{
+    // openrouter.ai and OpenAI are not selectable until #38 and #39 have built
+    // their clients (issue #127). A configuration that already names one of
+    // them — the customer's does, that is how the defect was found — has to
+    // arrive on the page all the same and go back into the file unchanged.
+    // **This is the half nobody can see**: were the greyed button dropped on
+    // the way in, opening the settings once and pressing OK would quietly
+    // write the choice back as Ollama, and the only sign of it would be a
+    // different button checked at some later opening.
+    //
+    // Everything visible about the change — that two buttons are grey and that
+    // a sentence stands under them — is looked at in the picture, not asserted
+    // here (CLAUDE.md, "What gets verified").
+    const QByteArray configHome = qgetenv("XDG_CONFIG_HOME");
+    QVERIFY2(!configHome.isEmpty(), "XDG_CONFIG_HOME has to point into the build directory");
+    QVERIFY(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+                .startsWith(QString::fromLocal8Bit(configHome)));
+
+    // The key goes away whichever way this case ends. It leaks into every case
+    // below otherwise, and a QCOMPARE that fails skips every tidy-up line
+    // written after it (CLAUDE.md, finding 42).
+    const auto tidy = qScopeGuard([] {
+        KConfig back(QStringLiteral("denkzettelrc"));
+        back.group(QStringLiteral("AI")).deleteEntry(QStringLiteral("Provider"));
+        back.sync();
+        Settings::self()->load();
+    });
+
+    struct Stored {
+        int provider;
+        const char *name;
+    };
+    // All three, because "the value comes back" only says something where it
+    // comes back **differently** at least once (finding 10) — and Ollama is
+    // the one the whole page falls back to if the greyed buttons are dropped.
+    const QList<Stored> cases{{Settings::Ollama, "Ollama"},
+                              {Settings::OpenRouter, "OpenRouter"},
+                              {Settings::OpenAi, "OpenAI"}};
+
+    for (const Stored &stored : cases) {
+        {
+            KConfig prefilled(QStringLiteral("denkzettelrc"));
+            prefilled.group(QStringLiteral("AI"))
+                .writeEntry("Provider", QString::fromLatin1(stored.name));
+            prefilled.sync();
+        }
+        // The skeleton is a singleton and read the file once, at the first
+        // opening of the dialog. A daemon started with this configuration
+        // would read it here; without this line the page would be handed
+        // whatever the previous case left in memory.
+        Settings::self()->load();
+
+        SettingsDialog *dialog = openDialog();
+        QVERIFY(dialog);
+        QVERIFY(QTest::qWaitForWindowExposed(dialog));
+
+        const auto *provider = dialog->findChild<QGroupBox *>(QStringLiteral("kcfg_Provider"));
+        QVERIFY(provider);
+        const QList<QRadioButton *> buttons = provider->findChildren<QRadioButton *>();
+        QCOMPARE(buttons.size(), 3);
+
+        // Breeze animates the dot (finding 43). The checked state itself does
+        // not wait for the animation, but the picture does, and this case and
+        // the picture runner read the same moment on purpose.
+        QTest::qWait(400);
+
+        for (int index = 0; index < buttons.size(); ++index) {
+            QCOMPARE(buttons.at(index)->isChecked(), index == stored.provider);
+            QCOMPARE(buttons.at(index)->isEnabled(), index == Settings::Ollama);
+        }
+
+        // **The wording, because the index cannot see itself.** The stored
+        // value is the position of the checked button, so both sides of the
+        // round trip above are that same position and a reordering of the
+        // three shifts them together — finding 10's case exactly. Measured
+        // 30.08.2026 in review: with `openrouter` and `openai` created the
+        // other way round all fourteen sets stayed green while a stored
+        // OpenRouter checked the button reading "OpenAI (API key)". The label
+        // is the one value here that is set from outside, and it is what makes
+        // the reordering visible. This set runs with LANGUAGE=en_US
+        // (tests/CMakeLists.txt), so the English wording is the stable one.
+        QCOMPARE(buttons.at(Settings::Ollama)->text(), QStringLiteral("Ollama"));
+        QCOMPARE(buttons.at(Settings::OpenRouter)->text(), QStringLiteral("openrouter.ai"));
+        QCOMPARE(buttons.at(Settings::OpenAi)->text(), QStringLiteral("OpenAI (API key)"));
+
+        // **The API key row is away for all three stored values**, measured
+        // 30.08.2026 while writing this case, and the second reason for it was
+        // a surprise: the row hangs on the Ollama button's `toggled` signal,
+        // and a freshly opened dialog whose stored value is *not* Ollama never
+        // emits it — no button is checked before the manager reads the
+        // setting, so checking button 1 or 2 toggles nothing. The row
+        // therefore never came up on an opening, only on a click, and with the
+        // two buttons disabled there are no more clicks. Nobody can type a key
+        // into the field that loses it (the UX decision of 30.08.2026), and
+        // for a reason one line stronger than that decision assumed.
+        //
+        // `isHidden()` and not `isVisible()`: the AI page is not the dialog's
+        // current one, so every widget on it is invisible whatever the row
+        // does — that readback would answer the same in every state and carry
+        // nothing. The control that makes this one carry stands after the
+        // loop.
+        const auto *apiKey = dialog->findChild<QLineEdit *>(QStringLiteral("apiKey"));
+        QVERIFY(apiKey);
+        QVERIFY(apiKey->isHidden());
+
+        // OK and not Apply: Apply is grey, because the form holds exactly what
+        // the file holds — and OK writes the same way (the reasoning of
+        // aRefusedVaultFolderIsNotStored, one page further on).
+        dialog->button(QDialogButtonBox::Ok)->click();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+
+        // Read with "Ollama" standing in for a missing key: a skeleton deletes
+        // an entry whose value equals the default instead of writing it, so
+        // the Ollama case legitimately leaves no line behind. What the two
+        // others must not come back as is precisely that fallback.
+        KConfig written(QStringLiteral("denkzettelrc"));
+        QCOMPARE(written.group(QStringLiteral("AI")).readEntry("Provider", QStringLiteral("Ollama")),
+                 QString::fromLatin1(stored.name));
+    }
+
+    // The control: hidden three times over says nothing unless the same
+    // readback can come out the other way on the same build. Checked by hand —
+    // the road a click would take if the button still took clicks — the row
+    // does appear, so the assertions above are about the state and not about a
+    // row that was never built. Closed and not OK'd: this flip must not reach
+    // the file.
+    //
+    // It starts from Ollama, and that is the whole reason the flip is visible
+    // at all: the row hangs on **this** button's signal, so it only moves when
+    // this button's state moves.
+    {
+        KConfig prefilled(QStringLiteral("denkzettelrc"));
+        prefilled.group(QStringLiteral("AI")).writeEntry("Provider", QStringLiteral("Ollama"));
+        prefilled.sync();
+    }
+    Settings::self()->load();
+
+    SettingsDialog *control = openDialog();
+    QVERIFY(control);
+    QVERIFY(QTest::qWaitForWindowExposed(control));
+    const auto *box = control->findChild<QGroupBox *>(QStringLiteral("kcfg_Provider"));
+    QVERIFY(box);
+    const auto *field = control->findChild<QLineEdit *>(QStringLiteral("apiKey"));
+    QVERIFY(field);
+    QVERIFY(field->isHidden());
+    box->findChildren<QRadioButton *>().at(Settings::OpenRouter)->setChecked(true);
+    QVERIFY(!field->isHidden());
+    closeDialog(control);
 }
 
 void SettingsTest::theWindowSizeSurvivesEveryWayOut()

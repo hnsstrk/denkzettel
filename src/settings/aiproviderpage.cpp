@@ -31,6 +31,20 @@ QComboBox *modelBox(QWidget *parent, const QString &suggestion)
     box->setInsertPolicy(QComboBox::NoInsert);
     return box;
 }
+
+/** A quiet line under a row, built the way the result line has always been. */
+QLabel *smallLine(QWidget *parent)
+{
+    auto *line = new QLabel(parent);
+    const QFont body = parent->font();
+    if (body.pointSizeF() > 0) {
+        QFont small = body;
+        small.setPointSizeF(body.pointSizeF() * 0.9);
+        line->setFont(small);
+    }
+    line->setWordWrap(true);
+    return line;
+}
 }
 
 AiProviderPage::AiProviderPage(QWidget *parent)
@@ -39,7 +53,7 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     , m_ollamaUrl(new QLineEdit(this))
     , m_embeddingModel(modelBox(this, QString(ollama::DefaultEmbeddingModel)))
     , m_test(new QPushButton(i18n("Test connection"), this))
-    , m_result(new QLabel(this))
+    , m_result(smallLine(this))
     , m_provider(new OllamaProvider(this))
 {
     auto *layout = new QVBoxLayout(this);
@@ -71,17 +85,55 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     provider->setContentsMargins(0, 0, 0, 0);
     auto *ollama = new QRadioButton(i18n("Ollama"), provider);
     choices->addWidget(ollama);
-    choices->addWidget(new QRadioButton(i18n("openrouter.ai"), provider));
-    choices->addWidget(new QRadioButton(i18n("OpenAI"), provider));
+    auto *openrouter = new QRadioButton(i18n("openrouter.ai"), provider);
+    choices->addWidget(openrouter);
+    // The access route in the label, because that is what tells the two OpenAI
+    // routes apart: SPEC 7.5 has a platform API key and expressly not "Sign in
+    // with ChatGPT", which hands out name, e-mail address and profile picture
+    // and no model access at all (customer's request, issue #127).
+    auto *openai = new QRadioButton(i18n("OpenAI (API key)"), provider);
+    choices->addWidget(openai);
     form->addRow(i18n("Provider:"), provider);
+
+    // **The page stops offering a choice the program cannot honour** (UX
+    // decision 30.08.2026, issue #127). main.cpp builds the Ollama backend
+    // under all three buttons, so under "OpenAI" the Ollama address is not a
+    // foreign row — it is the address of the server that really answers.
+    // Hiding the row would be the second untruth and labelling it the half
+    // one; what is wrong is the button above it, so that is what goes.
+    //
+    // The precedent is this project's own: wireframe 2c records the search
+    // field standing deliberately disabled until S6. The KDE HIG advises
+    // against permanently non-functional controls, so the exception is
+    // deliberate and temporary — with #38 and #39 the two lines below and the
+    // sentence under them go again.
+    openrouter->setEnabled(false);
+    openai->setEnabled(false);
+
+    QLabel *unbuilt = smallLine(this);
+    // The object name is what the picture runner asks the sentence by, so that
+    // a run whose catalogue was not found says so instead of printing nothing
+    // (CLAUDE.md, findings 31 and 59).
+    unbuilt->setObjectName(QStringLiteral("unbuiltProviders"));
+    unbuilt->setText(
+        i18n("openrouter.ai and OpenAI are not connected yet. Denkzettel currently always asks Ollama."));
+    form->addRow(unbuilt);
 
     // ponytail: the key is read here and stored nowhere — closing the dialog
     // loses it. Ceiling: nothing can authenticate against openrouter or OpenAI
     // yet, which is why no code asks for the value. Upgrade path: `KeyStore`,
-    // which issue #37 built for exactly this field — this page wires itself to
-    // it in #127. It deliberately has no `kcfg_` name — an API key in
-    // denkzettelrc is the one thing SPEC 5.2 forbids outright.
+    // which issue #37 built for exactly this field — the wiring belongs to
+    // #38 and #39, which build the clients that would use a key; #127
+    // deliberately did not do it, because with both buttons above disabled the
+    // row cannot be reached at all any more — see the note at the connect()
+    // below. It has no `kcfg_` name — an API key in denkzettelrc is the one
+    // thing SPEC 5.2 forbids outright.
+    //
+    // The object name is what the picture runner and settingstest ask the row
+    // by; it must not begin with `kcfg_`, or the dialog's manager would take
+    // the field for a stored setting.
     auto *apiKey = new QLineEdit(this);
+    apiKey->setObjectName(QStringLiteral("apiKey"));
     apiKey->setEchoMode(QLineEdit::Password);
     const int apiKeyRow = form->rowCount();
     form->addRow(i18n("API key:"), apiKey);
@@ -107,23 +159,24 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     actions->addWidget(m_test);
     form->addRow(actions);
 
-    const QFont bodyFont = font();
-    if (bodyFont.pointSizeF() > 0) {
-        QFont small = bodyFont;
-        small.setPointSizeF(bodyFont.pointSizeF() * 0.9);
-        m_result->setFont(small);
-    }
-    m_result->setWordWrap(true);
     form->addRow(m_result);
 
     // Nothing on these pages wants to grow (UX decision of 29.08.2026), so the
     // room a resized window brings goes underneath the form.
     layout->addStretch();
 
-    // The key is only asked for where SPEC 7.1 has one. No button is checked
-    // before the dialog's manager reads the setting, so the first state always
-    // arrives through this signal — the line below only covers the moment
-    // between the constructor and that read, in which the page is not shown.
+    // The key is only asked for where SPEC 7.5 has one, and the row follows a
+    // **change** of the Ollama button rather than the state of the setting.
+    //
+    // Measured 30.08.2026 on #127 and the note is for #38/#39: that is not the
+    // same thing. No button is checked before the dialog's manager reads the
+    // setting, so a stored value of OpenRouter or OpenAI checks button 1 or 2
+    // and toggles this one not at all — the row then stays away on a freshly
+    // opened dialog, and only a switch away from Ollama has ever brought it
+    // up. Today that is harmless, because the two buttons take no clicks and
+    // the field stores nothing anyway. Whoever makes them selectable again
+    // sets the row's visibility from the stored value as well, or the key
+    // field will be missing for exactly the users who need it.
     connect(ollama, &QRadioButton::toggled, this, [form, apiKeyRow](bool chosen) {
         form->setRowVisible(apiKeyRow, !chosen);
     });

@@ -270,6 +270,23 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Fixed
 
+- **Settings → KI-Anbieter no longer offers a choice the program cannot
+  honour.** Whichever of the three buttons you picked, Denkzettel asked Ollama
+  — and the page went on showing the Ollama address, `qwen3:8b` and `bge-m3`
+  underneath, which read like leftovers of the wrong provider. They were never
+  leftovers: they are the data of the server that really answers. So the rows
+  stay and the buttons go: **„openrouter.ai" and „OpenAI" are greyed out** and
+  under them stands the sentence that says why — „openrouter.ai und OpenAI sind
+  noch nicht angebunden. Denkzettel fragt zurzeit immer Ollama." The OpenAI
+  entry now names the way in, **„OpenAI (API-Schlüssel)"**: OpenAI's „Sign in
+  with ChatGPT" hands out name, e-mail address and profile picture and no model
+  access at all, so a key from the platform account is what it takes.
+
+  A choice you have already stored keeps standing — it shows checked and greyed
+  and nothing rewrites it — and the „API-Schlüssel" field, which took a key and
+  threw it away when the dialog closed, no longer comes up at all. Both locks
+  and the sentence go again the moment the two providers are really connected;
+  the label stays (#127).
 - **The empty library names the shortcut you actually have.** „Mit Meta+N einen
   Gedanken festhalten." stood there whatever key was set — the sequence was
   written into the sentence, and since the shortcut became yours to choose on

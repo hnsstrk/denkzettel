@@ -243,6 +243,26 @@ target_link_libraries(levelshots PRIVATE
     Qt6::Widgets
 )
 
+# The pictures of the page "AI provider" once two of its three buttons are no
+# longer selectable (issue #127). No add_test() for the reason readmeshots has
+# none — it produces pictures for a human to look at. Built by an ordinary
+# build all the same (CLAUDE.md, rule 4), and committed rather than improvised:
+# the state of the three buttons and of the API key row is read back beside
+# every picture, and that readback is what the UX decision of 30.08.2026 was
+# checked on.
+add_executable(providershots providershots.cpp)
+
+target_link_libraries(providershots PRIVATE
+    # AiProviderPage, the settings page of SPEC 13.
+    denkzettelsettings
+    # The German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name (#138).
+    KF6::I18n
+    Qt6::Test
+    Qt6::Widgets
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 11:10+0200\n"
+"POT-Creation-Date: 2026-08-30 11:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -187,57 +187,64 @@ msgstr ""
 msgid "The audio file %1 could not be copied."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:41
+#: src/settings/aiproviderpage.cpp:55
 #, kde-format
 msgid "Test connection"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:72
+#: src/settings/aiproviderpage.cpp:86
 #, kde-format
 msgid "Ollama"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:74
+#: src/settings/aiproviderpage.cpp:88
 #, kde-format
 msgid "openrouter.ai"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:75
+#: src/settings/aiproviderpage.cpp:94
 #, kde-format
-msgid "OpenAI"
+msgid "OpenAI (API key)"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:76
+#: src/settings/aiproviderpage.cpp:96
 #, kde-format
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:87
+#: src/settings/aiproviderpage.cpp:119
+#, kde-format
+msgid ""
+"openrouter.ai and OpenAI are not connected yet. Denkzettel currently always "
+"asks Ollama."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:139
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:90
+#: src/settings/aiproviderpage.cpp:142
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:97
+#: src/settings/aiproviderpage.cpp:149
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:100
+#: src/settings/aiproviderpage.cpp:152
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:177
+#: src/settings/aiproviderpage.cpp:230
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:180
+#: src/settings/aiproviderpage.cpp:233
 #, kde-format
 msgid ""
 "%1\n"
