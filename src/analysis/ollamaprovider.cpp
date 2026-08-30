@@ -265,6 +265,12 @@ int OllamaProvider::embed(const QString &text)
 void OllamaProvider::testReachability()
 {
     QNetworkRequest request(m_url.resolved(QUrl(QStringLiteral("/api/tags"))));
+    // **No total limit here, and that is a decision rather than an oversight**
+    // (issue #121). The 5 minutes in send() exist because streaming broke the
+    // equivalence: a limit on silence stopped being a limit on the call.
+    // `/api/tags` does not stream — it answers with one document, so the limit
+    // below is the whole call's bound, exactly as it was for every call before
+    // the chat one streamed. There is nothing here that could trickle.
     request.setTransferTimeout(m_timeout);
 
     QNetworkReply *reply = m_network.get(request);
@@ -310,10 +316,17 @@ void OllamaProvider::send(int id, OllamaCall call, const QString &path, const QJ
     //
     // Bound to the reply as its context object, so the answer arriving first
     // takes the timer with it — there is nothing to cancel by hand and nothing
-    // that can fire on a reply that is gone. The timer is a coarse one, which
-    // may go off up to 5 % early: measured 2026-08-30, a 3,000 ms limit fired
-    // at 2,849 ms. On five minutes that is a quarter of a minute, and a bound
-    // this generous is not the place to spend a precise timer.
+    // that can fire on a reply that is gone. That binding is what keeps the
+    // program standing: measured in review on 2026-08-30, a reply destroyed at
+    // 75 ms under an 800 ms limit never ran the lambda at all and the process
+    // ended with 0, while the same probe holding `qApp` as its context ran the
+    // lambda at 801 ms and died with SIGSEGV.
+    //
+    // The timer is a coarse one and goes off a few per cent either side of its
+    // interval: a 3,000 ms limit was measured at 2,849 ms here and at 3,149 ms
+    // in review. On five minutes that is a quarter of a minute in either
+    // direction, and a bound this generous is not the place to spend a precise
+    // timer.
     QTimer::singleShot(m_callLimit, reply, [reply] {
         reply->abort();
     });

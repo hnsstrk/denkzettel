@@ -1236,9 +1236,10 @@ find.
       blob does **not** get it out either, and the numbers reported from it —
       2.3 s and 6.5 s — were warm loads wearing a cold label, indistinguishable
       from the 1.96 s a plain reload measures. `mincore()` over an own `mmap`
-      says so in one line: 1275727 of 1275727 pages resident before the call
-      and after it, on two different models, while the same tool on a file of
-      the run's own on the same btrfs went 153600/153600 → **0**/153600. The
+      says so in one line: every page resident before the call and after it, on
+      two models — 1275727 of 1275727 for `qwen3:8b` and 1305644 of 1305644 for
+      `granite4.1:8b`, which was not even loaded — while the same tool on a file
+      of the run's own on the same btrfs went 153600/153600 → **0**/153600. The
       lever works, the object refuses it — most likely because the running
       service holds the blobs mapped. Whoever drops a cache reads the cache
       back, the way finding 28 reads the style name back.

@@ -793,18 +793,26 @@ the model reasons for.** At a throughput measured constant to 1.2 % — 92.5 to
 93.6 tokens per second over five runs — 30 s hold about **2,800 output
 tokens**, and a reasoning of that length is ordinary for a thinking model
 rather than exceptional. Identical input produced 477 to 1,385 tokens in those
-five runs and 730 to 4,300 in four runs with another note, which is 18.1 s to
-46.9 s of wall time for one and the same note. The conversion rate is what
-carries here; the seconds are a snapshot of one note on one machine and say
-nothing about how often the limit is reached.
+five runs and 1,466 to 4,153 in four runs of another note — both series
+`eval_count`, read off the answer. The second took 18.1 s to 46.9 s of wall
+time, and the same rate accounts for it once prompt evaluation and transfer are
+added: 1,466 tokens are 15.8 s of generation, 4,153 are 44.7 s. The conversion
+rate is what carries here; the seconds are a snapshot of one note on one
+machine and say nothing about how often the limit is reached.
 
 **The 5 minutes bound the call**, because the limit above no longer does: a
 server sending one byte every 29 s would hold an analysis run for ever, and
 nothing else ends one — 7.2 carries the interval between runs, not a bound on a
-call. Exceeded, the request is aborted and the failure counts one attempt like
-any other, because a run has to end and a hanging call reaches no reporting
-channel at all (§14). The bound is deliberately generous: healthy calls were
-measured up to 46.9 s, and a tight one would repeat issue #121 one storey up.
+call. Exceeded, the request is aborted, and what that costs depends on which
+step was calling — the two are not the same and 7.2 decides it, not this
+section. **Classification counts one attempt**, as it does for every failure:
+the chat answer carries no failure value, so the run goes on to the next note
+with this one a step nearer its limit. **Embedding counts none**: the failure
+is an unreachable backend, and there the run stops instead, on the ground that
+the next note would fare exactly the same. Either way the call ends, which is
+the point — a run has to end, and a hanging call reaches no reporting channel
+at all (§14). The bound is deliberately generous: healthy calls were measured
+up to 46.9 s, and a tight one would repeat issue #121 one storey up.
 
 **It is §12's number and not §12's rule.** Transcription allows five minutes
 per **job**, and the ground there is the product — Denkzettel is no audio
