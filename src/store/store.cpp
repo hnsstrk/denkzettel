@@ -1405,6 +1405,24 @@ std::optional<TranscribeJob> Store::pausedTranscribeJob() const
     return job;
 }
 
+int Store::pausedTranscribeJobCount() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // The same condition as the function above, and counted in the database
+    // rather than by reading the rows: what the tooltip of issue #118 says is
+    // a number, and a list read in to be measured would be a second reading of
+    // the same set.
+    query.prepare(QStringLiteral("SELECT COUNT(*) FROM transcribe_jobs WHERE attempts >= :limit"));
+    query.bindValue(QStringLiteral(":limit"), transcribeAttemptLimit);
+
+    if (!query.exec() || !query.next()) {
+        m_lastError = query.lastError().text();
+        return 0;
+    }
+    return query.value(0).toInt();
+}
+
 bool Store::noteInterruptedTranscribeJobs(const QString &reason)
 {
     m_lastError.clear();

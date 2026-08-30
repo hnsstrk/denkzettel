@@ -67,6 +67,7 @@ private Q_SLOTS:
     void asksForAnAnalysisRun();
     void asksForARecording();
     void showsAFailedTranscriptionAndTakesItBack();
+    void namesBothKindsOfStuckNoteAndFallsBackWithTheLastOfThem();
 
     void findsAProgramByItsPathAndByItsName();
     void countsAFileWithoutAnExecuteBitAsMissing();
@@ -485,17 +486,56 @@ void ShellTest::showsAFailedTranscriptionAndTakesItBack()
     const QString quiet = icon.item()->toolTipSubTitle();
     QVERIFY(!quiet.isEmpty());
 
-    const QString reason = QStringLiteral("/usr/bin/whisper-cli ended with code 1");
-    icon.setTranscriptionError(reason);
+    icon.setNotesWithoutTranscript(2);
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
-    // The cause travels with it: an icon that is set apart and says nothing
-    // leaves the user looking for the fault in their recording (SPEC 10).
-    QVERIFY2(icon.item()->toolTipSubTitle().contains(reason),
+    // How many travel with it: an icon that is set apart and says nothing
+    // leaves the user looking for the fault in their recording (SPEC 10). The
+    // number and no longer the reason — that is a sentence, and the one
+    // subtitle line has a second source since issue #118.
+    QVERIFY2(icon.item()->toolTipSubTitle().contains(QStringLiteral("2")),
              qPrintable(icon.item()->toolTipSubTitle()));
 
     // And back, because the next transcript that comes through does take it
     // back — the state must not stand for the rest of the session.
-    icon.setTranscriptionError({});
+    icon.setNotesWithoutTranscript(0);
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+    QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
+}
+
+void ShellTest::namesBothKindsOfStuckNoteAndFallsBackWithTheLastOfThem()
+{
+    // The acceptance of issue #118, and what breaks in silence about it: the
+    // one subtitle line has two writers whose troubles both stand for as long
+    // as their cause does, so whichever wrote last used to be the whole of
+    // what the user was told. There is no host to read the item offscreen
+    // (CLAUDE.md, finding 36), so it is read back from the item itself.
+    TrayIcon icon;
+    const QString quiet = icon.item()->toolTipSubTitle();
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+
+    // Both up: both named, each with its own number.
+    icon.setNotesWithoutTranscript(2);
+    icon.setNotesWithoutCategory(1);
+    const QString both = icon.item()->toolTipSubTitle();
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
+    QVERIFY2(both.contains(QStringLiteral("2")) && both.contains(QStringLiteral("1")),
+             qPrintable(both));
+    // The two halves are two parts of one line and not one text with the other
+    // in it: without the separator the check below would pass for a line that
+    // names only the longer of the two.
+    QCOMPARE(both.count(QStringLiteral(" · ")), 1);
+
+    // Only the analysis: the transcription's half is gone from the line and
+    // the state stands on the other one alone.
+    icon.setNotesWithoutTranscript(0);
+    const QString onlyTheAnalysis = icon.item()->toolTipSubTitle();
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
+    QVERIFY2(!onlyTheAnalysis.contains(QStringLiteral(" · ")), qPrintable(onlyTheAnalysis));
+    QVERIFY2(onlyTheAnalysis != both, qPrintable(onlyTheAnalysis));
+
+    // And the last note out of the set takes the state with it — the whole
+    // point of giving that set a place in the library (SPEC 7.2, issue #118).
+    icon.setNotesWithoutCategory(0);
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
     QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
 }
@@ -595,10 +635,9 @@ void ShellTest::namesTheMissingToolsBesideTheFailedTranscription()
     // never falls by itself, and a permanent NeedsAttention is read by nobody.
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
 
-    const QString reason = QStringLiteral("/usr/bin/whisper-cli ended with code 1");
-    icon.setTranscriptionError(reason);
+    icon.setNotesWithoutTranscript(3);
     const QString both = icon.item()->toolTipSubTitle();
-    QVERIFY2(both.contains(reason), qPrintable(both));
+    QVERIFY2(both.contains(QStringLiteral("3")), qPrintable(both));
     QVERIFY2(both.contains(QStringLiteral("task")), qPrintable(both));
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
 
@@ -607,12 +646,12 @@ void ShellTest::namesTheMissingToolsBesideTheFailedTranscription()
     // set again.
     icon.setUnavailableTools({QStringLiteral("ffmpeg")});
     const QString again = icon.item()->toolTipSubTitle();
-    QVERIFY2(again.contains(reason), qPrintable(again));
+    QVERIFY2(again.contains(QStringLiteral("3")), qPrintable(again));
     QVERIFY2(again.contains(QStringLiteral("ffmpeg")), qPrintable(again));
 
     // Both taken back, and what stands is the resting line again — not an
     // empty one, and not one that kept a remnant.
-    icon.setTranscriptionError({});
+    icon.setNotesWithoutTranscript(0);
     icon.setUnavailableTools({});
     QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);

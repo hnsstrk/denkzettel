@@ -209,11 +209,16 @@ int main(int argc, char *argv[])
     // the queue, and only the next start of the service would bring it back.
     //
     // Asked on both signals and not on failed(): a first attempt is followed
-    // by a second one, so pausedTranscribeJob() still answers nothing there,
-    // and a state raised for it would clear itself a moment later.
+    // by a second one, so pausedTranscribeJobCount() still answers 0 there, and
+    // a state raised for it would clear itself a moment later.
+    //
+    // What travels is the **number** of such jobs and no longer the reason the
+    // last one failed (issue #118): the one subtitle line has a second source
+    // since the analysis run reports into it, and a reason is a sentence that
+    // pushes the other half out. The reason goes to the log, which is where
+    // SPEC 14 sorts it, and to the notification below.
     const auto showWhereTheQueueStands = [&store, &tray] {
-        const std::optional<TranscribeJob> givenUp = store.pausedTranscribeJob();
-        tray.setTranscriptionError(givenUp.has_value() ? givenUp->lastError : QString());
+        tray.setNotesWithoutTranscript(store.pausedTranscribeJobCount());
     };
     QObject::connect(&transcriber, &Transcriber::paused, &tray, showWhereTheQueueStands);
     QObject::connect(&transcriber, &Transcriber::transcribed, &tray, showWhereTheQueueStands);
@@ -349,25 +354,61 @@ int main(int argc, char *argv[])
     provider.testReachability();
 
     // A note that has failed its classification twice is never handed to a model
-    // again (SPEC 7.2), and this line is what SPEC 14 asks to be reported of it.
+    // again (SPEC 7.2), and this line is the detail half of what SPEC 14 asks
+    // to be reported of it. The quiet half stands below.
     //
-    // ponytail: the log alone, although SPEC 14 names "tray tooltip + log" for
-    // it. Since issue #17 the tooltip does take a part per source rather than
-    // one writer's line (TrayIcon::showToolTip()), so covering the other
-    // trouble up is no longer the obstacle — the state standing for ever is:
-    // such a note is never taken up again, and there is no place yet where the
-    // user could work one off. **The ceiling is the missing entry
-    // "Unclassified" in the category column of issue #18**;
-    // with it the tooltip becomes a count of both halves ("2 notes without a
-    // transcript · 1 without a category") and this line stays as the detail
-    // (UX decision of 29.08.2026).
+    // The wording no longer says "without a category", and that is a
+    // correction rather than a rephrasing: since issue #133 a note whose
+    // *re*analysis failed twice can carry a category and its tags all along —
+    // `unanalysedNotes()` asks nothing about the category, so paused() fires
+    // for it too, while the count below deliberately leaves it out.
     //
     // Where it is read: `journalctl --user -t denkzetteld`. Qt's default handler
     // writes to the journal wherever stderr is not a terminal, so in the running
     // service the sentence never reaches a pipe (CLAUDE.md, finding 25).
     QObject::connect(&classifier, &Classifier::paused, &app, [](qint64 noteId, const QString &reason) {
-        qWarning("Note %lld is left without a category: %s", noteId, qUtf8Printable(reason));
+        qWarning("Note %lld is given up on by the analysis: %s", noteId, qUtf8Printable(reason));
     });
+
+    // And the quiet half of SPEC 7.2 and 14, which issue #118 is: the tooltip
+    // says how many notes the run has given up on, beside — never instead of —
+    // the transcription's own count above.
+    //
+    // **The number is `Store::categoryCounts().unclassified` and no query of
+    // its own.** That count is what the row "Unclassified" of the library is
+    // written with, and the story is that the two agree; two transcriptions of
+    // one condition agree until somebody edits one of them, and nothing would
+    // say which of the two the user is reading (CLAUDE.md, finding 48). Which
+    // also means the set is **narrower** than the sentence of SPEC 7.2 read on
+    // its own: a note carrying a category is not uneingeordnet whatever its
+    // attempt counter says, and it has a way into the window through the row
+    // of its own category.
+    //
+    // **No KNotification beside it**, unlike the transcription: SPEC 10 rules
+    // notifications out for routine runs, and the analysis run is the routine
+    // run — every 30 minutes by default. A note left unclassified is readable
+    // in the library all the same; it is missing its category and its tags,
+    // not its text (UX decision of 29.08.2026).
+    const auto showWhatTheAnalysisGaveUpOn = [&store, &tray] {
+        tray.setNotesWithoutCategory(store.categoryCounts().unclassified);
+    };
+    // Both edges, and for the same reason as with the transcription above: the
+    // state has to stand where the **library** stands and not where the last
+    // note ended, so a run that classifies the last given-up note takes the
+    // tooltip back and a run that gives one up raises it.
+    QObject::connect(&classifier, &Classifier::paused, &tray, showWhatTheAnalysisGaveUpOn);
+    QObject::connect(&classifier, &Classifier::classified, &tray, showWhatTheAnalysisGaveUpOn);
+    // The third road out of that set, and the one no analysis run announces:
+    // deleting such a note, editing it, or taking the deletion back. The
+    // library recounts on every reload and hands the number on, so the tooltip
+    // follows the column it points at.
+    QObject::connect(&library, &LibraryWindow::unclassifiedCountChanged, &tray,
+                     &TrayIcon::setNotesWithoutCategory);
+    // Once at start, because nothing emits for what was already given up on
+    // before this process began — the state stands as long as its cause does,
+    // a restart included (SPEC 14). The transcription's half gets the same
+    // through Transcriber::start(), which emits paused() for such a job.
+    showWhatTheAnalysisGaveUpOn();
 
     // The same for step 2: a note the backend refuses twice gets no vector and
     // is in no bundle from then on (SPEC 7.2, Embedder::paused).

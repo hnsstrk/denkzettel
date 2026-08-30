@@ -113,6 +113,21 @@ Q_SIGNALS:
      */
     void analysisRequested();
 
+    /**
+     * How many notes the analysis run has given up on — the counter beside the
+     * row "Unclassified", handed on for the tray tooltip of issue #118.
+     *
+     * **The number travels, not the fact.** The story is that the column and
+     * the tooltip say the same thing, and a listener that asked the store
+     * again would make them two reads with a window in between. So this is the
+     * very value the row is written with, out of `Store::categoryCounts()`.
+     *
+     * Emitted on every recount, which is every reload of the list — that is
+     * how a deletion, an edit and an undo reach the tooltip while the library
+     * stands open, none of which the analysis run announces.
+     */
+    void unclassifiedCountChanged(int count);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     void changeEvent(QEvent *event) override;

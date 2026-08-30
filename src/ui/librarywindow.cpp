@@ -621,6 +621,15 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
         if (!m_deletion->isPending()) {
             m_undoAction->setEnabled(false);
             m_message->animatedHide();
+            // The note is out of the store now, and until this line the column
+            // went on counting it: deleteCurrentNote() takes the row out of the
+            // list and leaves the counters standing, which is right while the
+            // grace period runs — the note is still there to be undone — and
+            // wrong from the moment it is over. "All" then read one more than
+            // the list showed. The tray tooltip is what made it visible: the
+            // last note out of the given-up set has to take the error state
+            // with it (issue #118), and the recount is what carries it there.
+            updateCategoryCounts();
             // The period is over, so a note that arrived during it can come in
             // now. A second deletion that has taken over leaves it waiting.
             if (m_newNoteWaits) {
@@ -888,6 +897,13 @@ void LibraryWindow::updateCategoryCounts()
         item->setText(1, QLocale().toString(count));
         item->setForeground(1, dimmed);
     }
+
+    // The one number this window has that somebody outside it needs: the tray
+    // tooltip names the notes the analysis gave up on, and it has to name the
+    // same ones this column offers a way to (issue #118). Sent from here and
+    // not read a second time on the other side — that is what makes the two
+    // agree rather than usually agree.
+    Q_EMIT unclassifiedCountChanged(counts.unclassified);
 }
 
 void LibraryWindow::categoryChosen()

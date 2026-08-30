@@ -49,7 +49,7 @@ TrayIcon::TrayIcon(QObject *parent)
     // Status and subtitle of the untroubled state, and they are set from the
     // one place that also takes them back: written out a second time here they
     // would be the copy that goes stale when the wording changes (issue #24).
-    setTranscriptionError({});
+    showToolTip();
     m_item->setStandardActionsEnabled(false);
     m_item->setContextMenu(buildMenu());
     // The left click is to open the same menu as the right one (issue #44,
@@ -72,19 +72,27 @@ const KStatusNotifierItem *TrayIcon::item() const
     return m_item;
 }
 
-void TrayIcon::setTranscriptionError(const QString &reason)
+void TrayIcon::setNotesWithoutTranscript(int count)
 {
-    m_item->setStatus(reason.isEmpty() ? KStatusNotifierItem::Active
-                                       : KStatusNotifierItem::NeedsAttention);
     // This is the quiet channel of SPEC 14 — tray state and tooltip — and it
-    // is all this class serves. The loud one stands beside these two lines and
-    // not in here: a transcription that has finally failed also sends one
+    // is all this class serves. The loud one stands beside this line and not
+    // in here: a transcription that has finally failed also sends one
     // KNotification, wired in main.cpp where the error path of the queue
     // reaches the user (SPEC 10, issue #115). The two carry different things.
     // The notification is for the moment it happens and goes out once; this
     // state stands as long as the queue holds a job that was given up on, a
     // restart included.
-    m_transcriptionError = reason;
+    //
+    // The state itself is raised in showToolTip() and not here, where it used
+    // to be: with a second count beside this one, whichever setter ran last
+    // would take the other one's state back (issue #118).
+    m_notesWithoutTranscript = count;
+    showToolTip();
+}
+
+void TrayIcon::setNotesWithoutCategory(int count)
+{
+    m_notesWithoutCategory = count;
     showToolTip();
 }
 
@@ -108,6 +116,16 @@ void TrayIcon::showToolTip()
     // from ever learning of the second trouble while the first stands, and
     // both of these stand for as long as their cause does. The order below is
     // fixed only so that the line does not reshuffle itself under the pointer.
+    //
+    // The error state goes with the line and out of the same two counts: an
+    // item set apart while its subtitle names nothing is a finding nobody can
+    // act on, and one that stays quiet while the line names a trouble is
+    // worse. The two counts are what raises it; the tools and the model above
+    // deliberately do not (see the header).
+    m_item->setStatus(m_notesWithoutTranscript > 0 || m_notesWithoutCategory > 0
+                          ? KStatusNotifierItem::NeedsAttention
+                          : KStatusNotifierItem::Active);
+
     QStringList parts;
     if (!m_unavailableTools.isEmpty()) {
         parts.append(i18n("Not available: %1", m_unavailableTools.join(QStringLiteral(", "))));
@@ -118,8 +136,18 @@ void TrayIcon::showToolTip()
         // get it**.
         parts.append(m_missingModel);
     }
-    if (!m_transcriptionError.isEmpty()) {
-        parts.append(i18n("Transcription failed: %1", m_transcriptionError));
+    // The two troubles that stand for as long as their cause does, each with
+    // its own number and each a whole statement: only with both of them up
+    // does the line read "2 notes without a transcript · 1 note without a
+    // category", and a half shortened for that one case would be a sentence
+    // fragment on every day the other half is quiet.
+    if (m_notesWithoutTranscript > 0) {
+        parts.append(i18np("%1 note without a transcript", "%1 notes without a transcript",
+                           m_notesWithoutTranscript));
+    }
+    if (m_notesWithoutCategory > 0) {
+        parts.append(i18np("%1 note without a category", "%1 notes without a category",
+                           m_notesWithoutCategory));
     }
     m_item->setToolTipSubTitle(parts.isEmpty() ? i18n("Capture thoughts quickly")
                                                : parts.join(QStringLiteral(" · ")));
