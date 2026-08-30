@@ -252,6 +252,24 @@ void Classifier::start()
         }
     }
 
+    // **An unusable backend is a precondition, not a failed attempt** (SPEC 12's
+    // rule of issue #23, decided for this run on 30.08.2026, issue #38). Asked
+    // after the report above and before the first note is handed to the model,
+    // because handing one over is what spends its attempt: with openrouter
+    // chosen and no model named, every note of every run would otherwise burn
+    // both of its attempts on the same sentence — unattended, every 30 minutes,
+    // and long before the user ever opened the settings page.
+    //
+    // The queue is emptied rather than the function left: takeNextNote() then
+    // emits finished(), and the **embedding run still happens**. It talks to
+    // Ollama and knows nothing of this backend, so stopping it here would take
+    // the topic bundles away for a reason that has nothing to do with them.
+    const QString missing = m_provider->unmetPrecondition();
+    Q_EMIT notReady(missing);
+    if (!missing.isEmpty()) {
+        m_queue.clear();
+    }
+
     m_busy = true;
     takeNextNote();
 }

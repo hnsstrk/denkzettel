@@ -155,6 +155,18 @@ Q_SIGNALS:
     void paused(qint64 noteId, const QString &reason);
 
     /**
+     * The run took no note at all, because the backend cannot be called yet —
+     * the sentence says what is missing (AiProvider::unmetPrecondition()).
+     *
+     * **Not failed() and not paused()**: both of those are about a note, and
+     * both move the counter of SPEC 7.2. Nothing here is about a note. The rule
+     * is SPEC 12's, taken from issue #23 — a precondition not yet met is not a
+     * failed attempt, the queue stands still and the counters stand with it.
+     * Empty takes the report back, the way Transcriber::modelMissing() does.
+     */
+    void notReady(const QString &reason);
+
+    /**
      * The run is through and nothing is outstanding.
      *
      * A signal and not a look at isBusy(): between two notes a run is not busy

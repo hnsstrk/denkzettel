@@ -853,6 +853,26 @@ Interface `AiProvider` with two capabilities: `chat(prompt) → text/json` and
 - **openrouter.ai**: OpenAI-compatible API, API key from KWallet.
 - **OpenAI**: by platform API key (see 7.5).
 
+**openrouter.ai and OpenAI carry no default model, and that is a decision**
+(customer, 30.08.2026, issues #38 and #39) — the counterpart of the two Ollama
+defaults above. The reason is the customer's own sentence of 29.08.2026, which
+names **two opposite** grounds for reaching past Ollama: a machine without the
+compute to run a model locally, *or* the wish for a distinctly stronger one. No
+model serves both, so any default written here would quietly make the choice he
+reserved for himself — and it would make it every 30 minutes, unattended, on a
+service that bills per call. The field stands empty until he fills it, and the
+settings page says what belongs in it.
+
+From which follows the rule that keeps an empty field harmless: **a model that
+is not set is a precondition not yet met and not a failed attempt.** That is
+§12's rule of issue #23, and it holds here for the same reason — the analysis
+run of 7.2 would otherwise spend both attempts of every note on "no model set"
+before the user ever opened the settings, leaving the notes in the error state
+with nothing wrong with them. The run takes no note, counts nothing, and says
+what is missing; the embedding run, which talks to Ollama, goes on unaffected.
+"Test connection" and the run name the missing model rather than a transport
+error.
+
 **Both capabilities are selectable per provider** (customer decision
 29.08.2026, issue #130). Until that date this section bound embeddings to
 Ollama for the whole of v1, on the ground that openrouter offered no embedding

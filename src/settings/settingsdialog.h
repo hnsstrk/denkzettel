@@ -2,6 +2,7 @@
 
 #include <KConfigDialog>
 
+class AiProviderPage;
 class GlobalShortcuts;
 class ModelDownload;
 class ShortcutsPage;
@@ -86,4 +87,8 @@ private:
     SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download);
 
     ShortcutsPage *m_shortcutsPage;
+    // The API key of SPEC 5.2 takes the same road as a global shortcut: it
+    // lives outside denkzettelrc, so no `kcfg_` widget carries it and the five
+    // overrides above are what save it (issue #38).
+    AiProviderPage *m_aiPage;
 };

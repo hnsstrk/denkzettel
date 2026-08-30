@@ -3,6 +3,7 @@
 class AnalysisScheduler;
 class Embedder;
 class OllamaProvider;
+class OpenRouterProvider;
 class OriginWatcher;
 class Suggester;
 class Transcriber;
@@ -36,7 +37,7 @@ class Transcriber;
  * where it is: those are signals of our own objects to one another, and each of
  * them carries a check or a window that would notice.
  *
- * ponytail: the assurance reaches the seven connections in this function and
+ * ponytail: the assurance reaches the eight connections in this function and
  * **not the one call that runs it**. Measured on 30.08.2026: with
  * `connectSettingsToRunningObjects()` deleted from main.cpp the build succeeds
  * and `ctest` stays at 14/14, because main.cpp is linked by no library and no
@@ -53,6 +54,7 @@ class Transcriber;
 void connectSettingsToRunningObjects(Transcriber *transcriber,
                                      OriginWatcher *origins,
                                      OllamaProvider *provider,
+                                     OpenRouterProvider *openRouter,
                                      Embedder *embedder,
                                      Suggester *suggester,
                                      AnalysisScheduler *analysis);

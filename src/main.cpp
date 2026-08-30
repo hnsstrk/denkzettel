@@ -2,6 +2,7 @@
 #include "analysis/classifier.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/openrouterprovider.h"
 #include "analysis/suggester.h"
 #include "capture/capturewindow.h"
 #include "capture/recordingwindow.h"
@@ -260,20 +261,38 @@ int main(int argc, char *argv[])
                                   reasonWithoutDirectories(reason)));
                      });
 
-    // The analysis run of SPEC 7.2 and what sets it going. Ollama without asking
-    // `[AI] Provider`: it is the only one of the three backends of SPEC 7.1 that
-    // is built, and a setting naming another would be answered by nobody.
+    // The analysis run of SPEC 7.2 and what sets it going. **Both backends are
+    // built and the two capabilities go different ways** (SPEC 7.1, issue #38):
+    // the classification and the bundle naming follow `[AI] Provider`, every
+    // embedding goes to Ollama, because openrouter's embedding side is issue
+    // #130 and is not built. Until #127 the choice reached nothing at all.
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     OllamaProvider provider;
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    Classifier classifier(&store, &provider);
+    OpenRouterProvider openRouter;
+    //
+    // ponytail: the choice is read **once, here**. Ceiling: a provider switched
+    // in the settings takes hold at the next start of the daemon, while the
+    // address and both model names take hold at once (issue #119) — so the one
+    // thing that still needs a restart is the rarest of them. Upgrade path: a
+    // setProvider() on Classifier and Suggester, connected in settingswiring
+    // like the seven that are there; not built here because no acceptance
+    // criterion of #38 asks for it and #130 rebuilds this junction anyway.
+    AiProvider *chat = &provider;
+    if (KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("AI"))
+            .readEntry("Provider", QStringLiteral("Ollama"))
+        == QLatin1String("OpenRouter")) {
+        chat = &openRouter;
+    }
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    Classifier classifier(&store, chat);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     Embedder embedder(&store, &provider);
     // The model of the vectors comes from the run that writes them and is not
     // read out of denkzettelrc a second time: two spellings would be two models,
     // and the clustering would find an empty corpus (Embedder::model()).
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    Suggester suggester(&store, &provider, embedder.model());
+    Suggester suggester(&store, chat, embedder.model());
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     AnalysisScheduler analysis(&classifier, &embedder, &suggester);
 
@@ -292,7 +311,8 @@ int main(int argc, char *argv[])
     // library, so no test set reaches it — the three connections of issue #119
     // taken out left `ctest` at 14/14 green. The function called here is built
     // into `denkzettelsettings`, and `settingstest` links that (issue #123).
-    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &embedder, &suggester, &analysis);
+    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &openRouter, &embedder, &suggester,
+                                    &analysis);
 
     QObject::connect(&tray, &TrayIcon::analysisRequested, &analysis, &AnalysisScheduler::analyzeNow);
 
@@ -368,6 +388,26 @@ int main(int argc, char *argv[])
     // service the sentence never reaches a pipe (CLAUDE.md, finding 25).
     QObject::connect(&classifier, &Classifier::paused, &app, [](qint64 noteId, const QString &reason) {
         qWarning("Note %lld is given up on by the analysis: %s", noteId, qUtf8Printable(reason));
+    });
+
+    // And the other reason a run classifies nothing, which is no note's fault
+    // and costs no note an attempt (SPEC 12's rule, issue #38): the chosen
+    // backend cannot be called yet. Read in the journal, like the line above —
+    // `journalctl --user -t denkzetteld`.
+    //
+    // ponytail: the journal and not the tray. Ceiling: a user who never opens
+    // the settings page learns of it only there. The tray has the right kind of
+    // channel already — TrayIcon::setMissingModel(), which SPEC 12 built for
+    // exactly this shape of news — but it carries the transcription's report,
+    // and a second sender on one line is the clobbering #118 has just been
+    // fixed for. Upgrade path: a part of its own in that subtitle, which is a
+    // UX decision and a story of its own. The road the user really walks is the
+    // settings page, where the field stands empty and "Test connection" names
+    // it.
+    QObject::connect(&classifier, &Classifier::notReady, &app, [](const QString &reason) {
+        if (!reason.isEmpty()) {
+            qWarning("The analysis run classified nothing: %s", qUtf8Printable(reason));
+        }
     });
 
     // And the quiet half of SPEC 7.2 and 14, which issue #118 is: the tooltip

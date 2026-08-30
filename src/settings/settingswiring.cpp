@@ -3,6 +3,7 @@
 #include "analysis/analysisscheduler.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/openrouterprovider.h"
 #include "analysis/suggester.h"
 #include "settings/settings.h"
 #include "shell/originwatcher.h"
@@ -13,6 +14,7 @@
 void connectSettingsToRunningObjects(Transcriber *transcriber,
                                      OriginWatcher *origins,
                                      OllamaProvider *provider,
+                                     OpenRouterProvider *openRouter,
                                      Embedder *embedder,
                                      Suggester *suggester,
                                      AnalysisScheduler *analysis)
@@ -67,4 +69,13 @@ void connectSettingsToRunningObjects(Transcriber *transcriber,
     QObject::connect(settings, &Settings::configChanged, provider, &OllamaProvider::reloadSettings);
     QObject::connect(settings, &Settings::configChanged, embedder, &Embedder::reloadSettings);
     QObject::connect(settings, &Settings::configChanged, suggester, &Suggester::reloadSettings);
+
+    // And the second backend beside it (issue #38). It carries **two** values a
+    // user changes in that dialog, and both of them silently: the model, which
+    // has no default and which the run stands still without, and the API key,
+    // which this slot forgets so the next call fetches the new one. Without
+    // this line a corrected key never reaches the running daemon and it goes on
+    // being billed against the old one — the very reason the class comment of
+    // OpenRouterProvider::reloadSettings() gives for forgetting it.
+    QObject::connect(settings, &Settings::configChanged, openRouter, &OpenRouterProvider::reloadSettings);
 }

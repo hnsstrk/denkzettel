@@ -49,6 +49,7 @@ void SettingsDialog::showSettings(GlobalShortcuts *shortcuts, ModelDownload *dow
 SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download)
     : KConfigDialog(nullptr, dialogName(), Settings::self())
     , m_shortcutsPage(new ShortcutsPage(shortcuts, this))
+    , m_aiPage(new AiProviderPage(this))
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setFaceType(KPageDialog::List);
@@ -59,7 +60,7 @@ SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *downlo
     // is `document-edit`, the same one the tray gives „Notiz erfassen", because
     // it is the same action.
     addPage(new CapturePage(this), i18n("Capture"), QStringLiteral("document-edit"));
-    addPage(new AiProviderPage(this),
+    addPage(m_aiPage,
             i18n("AI provider"),
             QStringLiteral("preferences-system-network-server"));
     addPage(new AnalysisPage(this), i18n("Analysis"), QStringLiteral("preferences-system-time"));
@@ -72,6 +73,9 @@ SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *downlo
     // The page carries no `kcfg_` widget, so nothing tells the dialog that
     // something changed — this does, and the five overrides below do the rest.
     connect(m_shortcutsPage, &ShortcutsPage::changed, this, &SettingsDialog::updateButtons);
+    // And the API key field on the AI page, for the same reason: it has no
+    // `kcfg_` name, so nothing else would ever light the Apply button for it.
+    connect(m_aiPage, &AiProviderPage::changed, this, &SettingsDialog::updateButtons);
 
     // Hidden, not removed: the button leads to KHelpCenter on help:/denkzettel,
     // and there is no handbook — the user would read "The requested help file
@@ -90,6 +94,7 @@ SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *downlo
 void SettingsDialog::updateSettings()
 {
     m_shortcutsPage->save();
+    m_aiPage->save();
 }
 
 void SettingsDialog::updateWidgets()
@@ -104,7 +109,7 @@ void SettingsDialog::updateWidgetsDefault()
 
 bool SettingsDialog::hasChanged()
 {
-    return m_shortcutsPage->hasChanged();
+    return m_shortcutsPage->hasChanged() || m_aiPage->hasChanged();
 }
 
 bool SettingsDialog::isDefault()
@@ -128,6 +133,9 @@ void SettingsDialog::done(int result)
         // value the service holds and writes nothing, which is why save() has
         // to leave the report standing when it wrote nothing (shortcutspage.cpp).
         m_shortcutsPage->save();
+        // The key goes with it on the OK road, which never reaches
+        // updateSettings() when the shortcut page holds the window back below.
+        m_aiPage->save();
         if (m_shortcutsPage->takeReadbackFailure()) {
             // The window stays where it is — otherwise the message SPEC 2.4
             // asks for would flash past with the closing dialog. Once, see

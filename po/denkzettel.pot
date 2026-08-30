@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 13:00+0200\n"
+"POT-Creation-Date: 2026-08-30 13:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,6 +84,67 @@ msgstr ""
 msgid "Ollama's answer carried no embedding."
 msgstr ""
 
+#: src/analysis/openrouterprovider.cpp:30
+#, kde-format
+msgid "openrouter.ai did not answer within the time limit."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:38
+#, kde-format
+msgid "openrouter.ai took longer over this call than it is allowed."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:59
+#: src/analysis/openrouterprovider.cpp:111
+#, kde-format
+msgid "openrouter.ai refused the request: %1"
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:63
+#, kde-format
+msgid "openrouter.ai could not be reached: %1"
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:67
+#, kde-format
+msgid "openrouter.ai answered with HTTP status %1."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:96
+#: src/analysis/openrouterprovider.cpp:130
+#, kde-format
+msgid "openrouter.ai sent an unreadable answer."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:134
+#, kde-format
+msgid "openrouter.ai's answer broke off."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:138
+#, kde-format
+msgid "openrouter.ai's answer carried no text."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:172
+#, kde-format
+msgid ""
+"No API key for openrouter.ai is stored. Enter it in the settings under \"AI "
+"provider\"."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:269
+#, kde-format
+msgid "openrouter.ai is not asked for embeddings; those come from Ollama."
+msgstr ""
+
+#: src/analysis/openrouterprovider.cpp:283
+#, kde-format
+msgid ""
+"No model for openrouter.ai is set. Enter one in the settings under \"AI "
+"provider\"."
+msgstr ""
+
 #: src/analysis/suggester.cpp:94
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
@@ -152,12 +213,12 @@ msgstr ""
 msgid "Recording not saved"
 msgstr ""
 
-#: src/main.cpp:257
+#: src/main.cpp:258
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:258
+#: src/main.cpp:259
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
@@ -231,69 +292,102 @@ msgstr ""
 msgid "The audio file %1 could not be copied."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:55
+#: src/settings/aiproviderpage.cpp:118
 #, kde-format
 msgid "Test connection"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:86
+#: src/settings/aiproviderpage.cpp:149
 #, kde-format
 msgid "Ollama"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:88
+#: src/settings/aiproviderpage.cpp:151
 #, kde-format
 msgid "openrouter.ai"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:94
+#: src/settings/aiproviderpage.cpp:157
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:96
+#: src/settings/aiproviderpage.cpp:159
 #, kde-format
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:119
+#: src/settings/aiproviderpage.cpp:174
 #, kde-format
-msgid ""
-"openrouter.ai and OpenAI are not connected yet. Denkzettel currently always "
-"asks Ollama."
+msgid "OpenAI is not connected yet. With it chosen, Denkzettel asks Ollama."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:139
+#: src/settings/aiproviderpage.cpp:188
+#, kde-format
+msgid "Kept in KWallet · empty keeps the stored key"
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:190
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:142
+#: src/settings/aiproviderpage.cpp:202 src/settings/aiproviderpage.cpp:223
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:149
+#: src/settings/aiproviderpage.cpp:212
+#, kde-format
+msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:235
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:152
+#: src/settings/aiproviderpage.cpp:238
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:230
+#: src/settings/aiproviderpage.cpp:244
 #, kde-format
-msgid "Connection is up · chat %1 ms · embedding %2 ms"
+msgid ""
+"The two rows above belong to Ollama: it is what answers the embedding call, "
+"whichever provider writes the classification. Without a reachable Ollama "
+"there are no topic bundles."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:233
+#: src/settings/aiproviderpage.cpp:301
+#, kde-format
+msgid "Waiting for the password store…"
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:312
+#, kde-format
+msgid "The key is in the password store."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:456
 #, kde-format
 msgid ""
 "%1\n"
 "Every embedding comes from Ollama: without it there are no topic bundles. "
 "The classification keeps running through the provider chosen above."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:466
+#, kde-format
+msgid ""
+"Connection is up · chat %1 ms. Embeddings are not asked of openrouter.ai; "
+"test them under Ollama."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:469
+#, kde-format
+msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""
 
 #: src/settings/analysispage.cpp:32
@@ -405,32 +499,32 @@ msgstr ""
 msgid "This folder can be written to."
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:61
+#: src/settings/settingsdialog.cpp:62
 #, kde-format
 msgid "Capture"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:63
+#: src/settings/settingsdialog.cpp:64
 #, kde-format
 msgid "AI provider"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:65
+#: src/settings/settingsdialog.cpp:66
 #, kde-format
 msgid "Analysis"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:66
+#: src/settings/settingsdialog.cpp:67
 #, kde-format
 msgid "Export"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:68
+#: src/settings/settingsdialog.cpp:69
 #, kde-format
 msgid "Voice notes"
 msgstr ""
 
-#: src/settings/settingsdialog.cpp:70
+#: src/settings/settingsdialog.cpp:71
 #, kde-format
 msgid "Shortcuts"
 msgstr ""

@@ -5,6 +5,7 @@
 #include "analysis/clustering.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
+#include "analysis/openrouterprovider.h"
 #include "analysis/suggester.h"
 #include "store/store.h"
 
@@ -74,6 +75,17 @@ private Q_SLOTS:
     void theTotalLimitEndsACallThatKeepsTrickling();
     void readsReachabilityWithoutLoadingAModel();
     void aChangedAddressAndModelReachTheRunningProvider();
+
+    void openRouterStreamIsPutBackTogether();
+    void openRouterStreamWithoutItsEndIsNoAnswer();
+    void openRouterRefusalBeatsTheStatusCode();
+    void openRouterRefusalInsideTheStreamIsStillTheRefusal();
+    void openRouterTimeoutAndTotalLimitAreNamedApart();
+    void openRouterBodyThatIsNoStreamIsReported();
+    void openRouterIsNotAskedForAVector();
+    void openRouterCarriesTheKeyAndTheModelOnTheWire();
+    void openRouterLeavesTheOneRetryToQt();
+    void anEmptyOpenRouterModelSpendsNoAttempt();
 
     void connectionTestMeasuresBothCallsSeparately();
     void connectionTestReportsTheFirstError();
@@ -720,6 +732,276 @@ void AiTest::aChangedAddressAndModelReachTheRunningProvider()
     QCOMPARE(askedChosen->size(), 1);
 }
 
+void AiTest::openRouterStreamIsPutBackTogether()
+{
+    // The happy road of the second backend (SPEC 7.1, issue #38), and the one
+    // shape a stand-in can carry: `data:` frames, a keep-alive comment among
+    // them, and `[DONE]` at the end. The pieces are three so that a reader
+    // taking only the first or only the last comes out wrong, and the middle
+    // one carries a German special character — a stream is read as bytes and
+    // cut at line boundaries, which is where an encoding is lost silently.
+    const OpenRouterAnswer answer = readOpenRouterReply(
+        QNetworkReply::NoError,
+        QString(),
+        200,
+        ": OPENROUTER PROCESSING\n"
+        "data: {\"choices\":[{\"delta\":{\"content\":\"Gr\"}}]}\n"
+        "\n"
+        "data: {\"choices\":[{\"delta\":{\"content\":\"üße, \"}}]}\n"
+        "data: {\"choices\":[{\"delta\":{\"content\":\"Welt\"}}]}\n"
+        "data: [DONE]\n");
+    QCOMPARE(answer.error, QString());
+    QCOMPARE(answer.text, QString::fromUtf8("Grüße, Welt"));
+}
+
+void AiTest::openRouterStreamWithoutItsEndIsNoAnswer()
+{
+    // **A stream counts as an answer only once `[DONE]` has been said** — the
+    // reasoning of OllamaProvider's `done` (issue #121). Every frame below
+    // parses and the text reads like a whole sentence; what is missing is the
+    // one line that says the model was finished, and without it a connection
+    // that fell over mid-answer would be handed to the classification of
+    // SPEC 7.2 as a complete one. The half-sentence is deliberate: it is what
+    // makes the case impossible to pass by looking at the text.
+    const OpenRouterAnswer answer =
+        readOpenRouterReply(QNetworkReply::NoError,
+                            QString(),
+                            200,
+                            "data: {\"choices\":[{\"delta\":{\"content\":\"Die Antwort ist\"}}]}\n");
+    QCOMPARE(answer.text, QString());
+    QCOMPARE(answer.error, QStringLiteral("openrouter.ai's answer broke off."));
+}
+
+void AiTest::openRouterRefusalBeatsTheStatusCode()
+{
+    // What the service says about itself beats what the status says about the
+    // transfer, the way it does for Ollama: an unknown model, a spent quota and
+    // a rejected key are three different things to the user and one HTTP
+    // number. The status is handed in as 400 on purpose — without the body
+    // being read first, the case below would come out "HTTP status 400".
+    const OpenRouterAnswer answer =
+        readOpenRouterReply(QNetworkReply::ProtocolInvalidOperationError,
+                            QStringLiteral("Bad Request"),
+                            400,
+                            R"({"error":{"message":"No endpoints found for wrong/model.","code":400}})");
+    QCOMPARE(answer.error,
+             QStringLiteral("openrouter.ai refused the request: No endpoints found for wrong/model."));
+}
+
+void AiTest::openRouterRefusalInsideTheStreamIsStillTheRefusal()
+{
+    // **The second shape a refusal takes**, found by the review of 30.08.2026
+    // against this very function: openrouter can start the stream and put the
+    // error in a frame of it. Read as an ordinary frame, that came out
+    // "the answer broke off" — a sentence about the transport standing over a
+    // refusal the service had spelled out, which is the one thing this whole
+    // branch exists to prevent.
+    //
+    // Two frames and not one: a reader that only looks at the first, or only at
+    // the last, cannot tell them apart. The status is 200 on purpose — the
+    // stream had already begun, so nothing outside the body says anything is
+    // wrong.
+    const OpenRouterAnswer answer =
+        readOpenRouterReply(QNetworkReply::NoError,
+                            QString(),
+                            200,
+                            "data: {\"choices\":[{\"delta\":{\"content\":\"Die \"}}]}\n"
+                            "data: {\"error\":{\"message\":\"Rate limit exceeded\"}}\n");
+    QCOMPARE(answer.text, QString());
+    QCOMPARE(answer.error, QStringLiteral("openrouter.ai refused the request: Rate limit exceeded"));
+
+    // And with `[DONE]` behind it, which is the shape that read as "carried no
+    // text" before — the same sentence has to come out.
+    const OpenRouterAnswer closed =
+        readOpenRouterReply(QNetworkReply::NoError,
+                            QString(),
+                            200,
+                            "data: {\"error\":{\"message\":\"Rate limit exceeded\"}}\n"
+                            "data: [DONE]\n");
+    QCOMPARE(closed.error, QStringLiteral("openrouter.ai refused the request: Rate limit exceeded"));
+}
+
+void AiTest::openRouterTimeoutAndTotalLimitAreNamedApart()
+{
+    // The two limits of SPEC 7.1 are two sentences, and they have to be: one
+    // says the service went quiet for 30 s, the other that it kept trickling
+    // past five minutes. Read as one, a user would tune the wrong thing.
+    const OpenRouterAnswer silence =
+        readOpenRouterReply(QNetworkReply::TimeoutError, QStringLiteral("Timeout"), 0, QByteArray());
+    QCOMPARE(silence.error, QStringLiteral("openrouter.ai did not answer within the time limit."));
+
+    const OpenRouterAnswer overall =
+        readOpenRouterReply(QNetworkReply::OperationCanceledError, QStringLiteral("Canceled"), 0, QByteArray());
+    QCOMPARE(overall.error, QStringLiteral("openrouter.ai took longer over this call than it is allowed."));
+}
+
+void AiTest::openRouterBodyThatIsNoStreamIsReported()
+{
+    // What a proxy or a captive portal answering with HTML looks like: status
+    // 200, and not one line of the protocol in it. Reported as unreadable
+    // rather than as an empty answer, because the two send the user looking in
+    // different places.
+    const OpenRouterAnswer answer = readOpenRouterReply(QNetworkReply::NoError,
+                                                        QString(),
+                                                        200,
+                                                        "<html><body>Sign in to the network</body></html>");
+    QCOMPARE(answer.error, QStringLiteral("openrouter.ai sent an unreadable answer."));
+}
+
+void AiTest::openRouterIsNotAskedForAVector()
+{
+    // **The two capabilities are separate** (SPEC 7.1, issue #38). Both halves
+    // are read back, because either one alone would be green over the other
+    // being wrong: canEmbed() is what the connection test asks before it makes
+    // the second call, and the answer is what a caller that asked anyway gets.
+    OpenRouterProvider provider;
+    QCOMPARE(provider.canEmbed(), false);
+
+    QSignalSpy finished(&provider, &AiProvider::embedFinished);
+    provider.embed(QStringLiteral("ping"));
+    // Through the event loop and not from inside embed(), or the caller would
+    // not have seen the id yet (aiprovider.h).
+    QCOMPARE(finished.count(), 0);
+    QVERIFY(finished.wait(std::chrono::seconds(5)));
+    QCOMPARE(finished.constFirst().at(2).toString(),
+             QStringLiteral("openrouter.ai is not asked for embeddings; those come from Ollama."));
+    // Unreachable and not Refused: nothing about the note was refused, and a
+    // run that counted this against it would burn the two attempts of SPEC 7.2
+    // on a call nobody should have made.
+    QCOMPARE(finished.constFirst().at(3).value<AiFailure>(), AiFailure::Unreachable);
+}
+
+void AiTest::openRouterCarriesTheKeyAndTheModelOnTheWire()
+{
+    // **What is actually put on the wire**, read off the stand-in and not off
+    // the client's result: a request without the Authorization header would
+    // come back as an ordinary HTTP 401, which reads like a wrong key and not
+    // like a header nobody wrote. The model goes with it, because it is the
+    // second thing a mistyped body would lose without a sound.
+    //
+    // The key is invented and belongs to nothing — there is no key for this
+    // service in this project, which is why the whole client is checked against
+    // a stand-in (issue #38, customer 30.08.2026).
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    auto seen = std::make_shared<QByteArray>();
+    connect(&server, &QTcpServer::newConnection, this, [&server, seen] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, seen] {
+            request->append(socket->readAll());
+            // Answered once the headers **and** a body have arrived, not on the
+            // first byte: a POST body may follow in a segment of its own, and
+            // the assertions below are about that body.
+            const qsizetype end = request->indexOf("\r\n\r\n");
+            if (end < 0 || request->size() <= end + 4) {
+                return;
+            }
+            *seen = *request;
+            const QByteArray stream = "data: {\"choices\":[{\"delta\":{\"content\":\"pong\"}}]}\n"
+                                      "data: [DONE]\n";
+            socket->write("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nContent-Length: "
+                          + QByteArray::number(stream.size()) + "\r\nConnection: close\r\n\r\n" + stream);
+            socket->disconnectFromHost();
+        });
+    });
+
+    OpenRouterProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
+    provider.setChatModel(QStringLiteral("some/model-of-the-check"));
+    provider.setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
+
+    QSignalSpy finished(&provider, &AiProvider::chatFinished);
+    provider.chat(QStringLiteral("ping"));
+    QVERIFY(finished.wait(std::chrono::seconds(10)));
+
+    QCOMPARE(finished.constFirst().at(2).toString(), QString());
+    QCOMPARE(finished.constFirst().at(1).toString(), QStringLiteral("pong"));
+    QVERIFY2(seen->contains("Authorization: Bearer sk-or-v1-invented-for-this-check"), seen->constData());
+    QVERIFY2(seen->contains("\"model\":\"some/model-of-the-check\""), seen->constData());
+    // Streamed, and that is what makes the 30 s of SPEC 7.1 a limit on silence
+    // rather than on thinking (issue #121, and the class comment).
+    QVERIFY2(seen->contains("\"stream\":true"), seen->constData());
+}
+
+void AiTest::openRouterLeavesTheOneRetryToQt()
+{
+    // **The guarantee that costs money if it breaks** (SPEC 7.1, issue #38): a
+    // second request of ours would be a second generation and a second bill for
+    // one job. The total is read off the **stand-in** and not off the client's
+    // result, and the stand-in makes the fault permanent — CLAUDE.md finding
+    // 41, where a stand-in built to be survived measured the first failure and
+    // stopped.
+    //
+    // **The number is measured and it is 1**, and the control is what makes it
+    // evidence: with a repeat on `RemoteHostClosedError` written into `post()`
+    // by hand, the same stand-in saw **2** and this case passed at 2.
+    // Unchanged it is 1 (30.08.2026, this machine, Qt 6.11.2).
+    //
+    // The stand-in reads the request before it closes, and that is deliberate:
+    // one that aborts at the moment of connecting also shows 1, so it could not
+    // come out any other way and would prove nothing.
+    //
+    // **Whether Qt repeats on any road of its own is not measured for this
+    // client**, and an earlier wording here claimed it did. The review of
+    // 30.08.2026 built five stand-in forms against this very class — the
+    // request read and then closed by RST and by FIN, a pooled connection
+    // closed after the second request, and a pooled connection closed while
+    // idle, which is the case `ollamaprovider.h` names as the one genuinely
+    // transient one — and **not one of them produced a repetition**: every form
+    // came out one request per call, and only the hand-written repeat made it
+    // two. The measurement that says Qt repeats belongs to `OllamaProvider`
+    // and issue #13; carried over to here it was a borrowed result.
+    //
+    // So what this case carries is the half that costs money, and it is the
+    // half the story needs: this client sends one request per chat() call and
+    // no second one of its own.
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    int connections = 0;
+    connect(&server, &QTcpServer::newConnection, this, [&server, &connections] {
+        ++connections;
+        QTcpSocket *socket = server.nextPendingConnection();
+        // **The request is read first and only then closed**, and that is not
+        // decoration: a stand-in that aborts at the moment of connecting was
+        // measured here on 30.08.2026 at **one** attempt, because Qt repeats a
+        // connection that died with the request already on it and not one that
+        // never took a request at all. Closed before it is read, this case
+        // would be green over a client that repeats — it would simply never
+        // reach the road it is about.
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request] {
+            request->append(socket->readAll());
+            const qsizetype end = request->indexOf("\r\n\r\n");
+            if (end < 0 || request->size() <= end + 4) {
+                return;
+            }
+            // Every time, with no exception for the first — that is the whole
+            // point of the case (finding 41).
+            socket->abort();
+            socket->deleteLater();
+        });
+    });
+
+    OpenRouterProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
+    provider.setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
+    // Named, or nothing is sent at all: with no model this backend answers out
+    // of unmetPrecondition() and makes no request, which is what
+    // anEmptyModelSpendsNoAttempt() below is about.
+    provider.setChatModel(QStringLiteral("some/model-of-the-check"));
+    provider.setTimeout(std::chrono::seconds(5));
+
+    QSignalSpy finished(&provider, &AiProvider::chatFinished);
+    provider.chat(QStringLiteral("ping"));
+
+    QVERIFY(finished.wait(std::chrono::seconds(10)));
+    QVERIFY2(!finished.constFirst().at(2).toString().isEmpty(), "a closed connection is no answer");
+    QCOMPARE(connections, 1);
+}
+
 void AiTest::connectionTestMeasuresBothCallsSeparately()
 {
     AiProviderMock provider;
@@ -1148,6 +1430,106 @@ void AiTest::aDueDateOutsideTheNotesReachIsDropped()
     QCOMPARE(dueOf(QStringLiteral("2023-10-03")), QString());
     // And the other direction, one day past the bound.
     QCOMPARE(dueOf(QStringLiteral("2027-08-02")), QString());
+}
+
+void AiTest::anEmptyOpenRouterModelSpendsNoAttempt()
+{
+    // **A precondition not yet met is not a failed attempt** — SPEC 12's rule
+    // of issue #23, decided for the analysis run on 30.08.2026 (issue #38).
+    // openrouter carries no default model on purpose, so between choosing the
+    // provider and naming a model there is a window in which the backend cannot
+    // be called at all. The run of SPEC 7.2 comes round every 30 minutes
+    // unattended: without this rule it would spend **both** attempts of every
+    // note on the same sentence, and the notes would stand in the error state
+    // with nothing whatever wrong with them.
+    //
+    // The two halves below are one field apart and have to come out
+    // **differently**, or "the counter did not move" would be a run in which
+    // nothing could have moved it (CLAUDE.md, verification stance).
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QDateTime written = QDateTime::fromString(QStringLiteral("2026-08-03T08:00:00.000"), Qt::ISODateWithMs);
+    const qint64 note = addNote(*store, QStringLiteral("Reifendruck vorne prüfen, der Mantel sieht weich aus."), written);
+    QVERIFY(note > 0);
+
+    // A stand-in that refuses everything it is asked. It must see **nothing**
+    // in the first half — that is the second reading of the same guarantee, and
+    // the one a counter alone could not give: a request that went out has been
+    // paid for whatever the counter says afterwards.
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+    // Shared and not captured by reference: the inner lambda outlives this
+    // function's scope as far as the compiler can tell, and clazy says so.
+    auto requests = std::make_shared<int>(0);
+    connect(&server, &QTcpServer::newConnection, this, [&server, requests] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, requests] {
+            request->append(socket->readAll());
+            const qsizetype end = request->indexOf("\r\n\r\n");
+            if (end < 0 || request->size() <= end + 4) {
+                return;
+            }
+            ++*requests;
+            const QByteArray body = R"({"error":{"message":"No endpoints found for wrong/model.","code":400}})";
+            socket->write("HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
+                          + QByteArray::number(body.size()) + "\r\nConnection: close\r\n\r\n" + body);
+            socket->disconnectFromHost();
+        });
+    });
+
+    OpenRouterProvider provider;
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
+    provider.setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
+    // Left empty: this is the state a fresh switch to openrouter leaves behind.
+    provider.setChatModel(QString());
+
+    Classifier classifier(store.get(), &provider);
+    const QSignalSpy notReady(&classifier, &Classifier::notReady);
+    const QSignalSpy failed(&classifier, &Classifier::failed);
+    const QSignalSpy paused(&classifier, &Classifier::paused);
+    const QSignalSpy done(&classifier, &Classifier::finished);
+    classifier.start();
+    // QTRY and not wait(): with an empty queue takeNextNote() emits finished()
+    // **inside** start(), so a wait() afterwards would sit waiting for a second
+    // one that never comes — measured 30.08.2026, where exactly that read as a
+    // run that never ended.
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    // Nothing was asked, nothing failed, nothing was given up on.
+    QCOMPARE(*requests, 0);
+    QCOMPARE(failed.count(), 0);
+    QCOMPARE(paused.count(), 0);
+    // The note is untouched and stands in the next run — counter at 0 and no
+    // error written beside it.
+    QCOMPARE(store->note(note)->analysisAttempts, 0);
+    QCOMPARE(store->note(note)->analysisLastError, QString());
+    QCOMPARE(store->note(note)->state, Note::State::New);
+
+    // And the run says which precondition it is standing on, rather than being
+    // silent about it (the guided path, issue #38).
+    QCOMPARE(notReady.count(), 1);
+    QCOMPARE(notReady.constFirst().at(0).toString(),
+             QStringLiteral("No model for openrouter.ai is set."
+                            " Enter one in the settings under \"AI provider\"."));
+
+    // **The counter-run, one field apart**: with a model named, the very same
+    // note reaches the very same refusing stand-in and the attempt *is* spent.
+    // Without this half, the assertions above would hold over a classifier that
+    // never counts anything at all.
+    provider.setChatModel(QStringLiteral("some/model-of-the-check"));
+
+    QSignalSpy secondRun(&classifier, &Classifier::finished);
+    classifier.start();
+    QVERIFY(secondRun.wait(std::chrono::seconds(10)));
+
+    QCOMPARE(*requests, 1);
+    QCOMPARE(failed.count(), 1);
+    QCOMPARE(store->note(note)->analysisAttempts, 1);
+    QCOMPARE(store->note(note)->analysisLastError,
+             QStringLiteral("openrouter.ai refused the request: No endpoints found for wrong/model."));
 }
 
 void AiTest::everyNoteGetsItsOwnAnswer()

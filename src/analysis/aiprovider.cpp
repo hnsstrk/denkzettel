@@ -33,6 +33,17 @@ AiProvider::AiProvider(QObject *parent)
             return;
         }
         m_testChatMilliseconds = m_testClock.elapsed();
+
+        // A backend that does not embed is not asked for a vector, and the
+        // test is over with the one call it could make (SPEC 7.1, issue #38).
+        // -1 for the second latency is what the page reads as "not measured
+        // here"; the alternative, asking anyway, would report openrouter as
+        // broken for doing exactly what it says it does.
+        if (!canEmbed()) {
+            Q_EMIT connectionTested(m_testChatMilliseconds, -1, QString());
+            return;
+        }
+
         m_testClock.restart();
         m_testEmbedId = embed(probe());
     });
@@ -51,6 +62,16 @@ AiProvider::AiProvider(QObject *parent)
 }
 
 AiProvider::~AiProvider() = default;
+
+bool AiProvider::canEmbed() const
+{
+    return true;
+}
+
+QString AiProvider::unmetPrecondition() const
+{
+    return {};
+}
 
 void AiProvider::testConnection()
 {
