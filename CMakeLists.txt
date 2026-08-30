@@ -132,8 +132,15 @@ find_program(RUN_CLANG_TIDY_EXECUTABLE run-clang-tidy)
 if(RUN_CLANG_TIDY_EXECUTABLE)
     # The positional arguments are regular expressions on the paths in the
     # compile database; an absolute path matches itself.
+    #
+    # -j4 and not the default: without it run-clang-tidy takes os.cpu_count()
+    # processes, which is right for one run on an idle machine and wrong for
+    # every other case. Measured on 30.08.2026 with several worktrees checking
+    # at once — 144 clang-tidy processes on 24 threads, load average 179, and
+    # 8 GB of the machine in swap. clang-tidy holds a whole translation unit in
+    # memory, so the ceiling that bites is memory and not cores.
     add_custom_target(lint-tidy
-        COMMAND ${RUN_CLANG_TIDY_EXECUTABLE} -p ${DENKZETTEL_LINT_BUILD_PATH} -quiet ${DENKZETTEL_LINT_SOURCES}
+        COMMAND ${RUN_CLANG_TIDY_EXECUTABLE} -p ${DENKZETTEL_LINT_BUILD_PATH} -quiet -j4 ${DENKZETTEL_LINT_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "clang-tidy over src/ and tests/"
         USES_TERMINAL
