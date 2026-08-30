@@ -1547,6 +1547,20 @@ bool Store::removeProposal(qint64 id)
     return true;
 }
 
+bool Store::setProposalStatus(qint64 id, Proposal::Status status)
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("UPDATE proposals SET status = :status WHERE id = :id"));
+    query.bindValue(QStringLiteral(":status"), statusToText(status));
+    query.bindValue(QStringLiteral(":id"), id);
+    if (!query.exec()) {
+        m_lastError = query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
 bool Store::removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId)
 {
     m_lastError.clear();

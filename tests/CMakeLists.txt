@@ -263,6 +263,32 @@ target_link_libraries(providershots PRIVATE
     Qt6::Widgets
 )
 
+# The pictures of the bundle card of the suggestion review (issue #30). No
+# add_test() for the reason readmeshots has none — it produces pictures for a
+# human to look at. Built by an ordinary build all the same (CLAUDE.md, rule 4),
+# and committed rather than improvised: the preview printed beside every picture
+# is what says the deselection reached it, and a picture alone cannot tell a
+# preview that was written correctly from one that was never written at all
+# (finding 27).
+add_executable(proposalshots proposalshots.cpp)
+
+target_link_libraries(proposalshots PRIVATE
+    # bundleMarkdown() — the runner writes the stored payload of the suggestion
+    # with the same function the analysis run would (SPEC 7.3). Named although
+    # denkzettelui already carries it: this file includes its header, and a link
+    # that only holds by way of a third library is one a change there takes away
+    # without a word.
+    denkzettelanalysis
+    denkzettelstore
+    denkzettelui
+    # The German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name (#138).
+    KF6::I18n
+    Qt6::Test
+    Qt6::Widgets
+)
+
 add_executable(shelltest shelltest.cpp)
 
 target_link_libraries(shelltest PRIVATE

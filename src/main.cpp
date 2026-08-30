@@ -19,6 +19,7 @@
 #include "transcribe/modeldownload.h"
 #include "transcribe/transcriber.h"
 #include "ui/librarywindow.h"
+#include "ui/proposalwindow.h"
 #include "ui/timestampformat.h"
 
 #include <KConfigGroup>
@@ -191,6 +192,12 @@ int main(int argc, char *argv[])
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     LibraryWindow library(&store);
 
+    // The suggestion review of SPEC 9 (issue #30). Built at daemon start like
+    // the library and kept: it reads the store afresh every time it is shown,
+    // so a run that finished meanwhile is on the cards.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    ProposalWindow proposals(&store);
+
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     TrayIcon tray;
     // What the queue is waiting for, in the tooltip and without an error state
@@ -201,6 +208,7 @@ int main(int argc, char *argv[])
     QObject::connect(&tray, &TrayIcon::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&tray, &TrayIcon::recorderRequested, &recorder, &RecordingWindow::showRecorder);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
+    QObject::connect(&tray, &TrayIcon::proposalsRequested, &proposals, &ProposalWindow::showProposals);
     // The error path of the transcription reaches the user here and nowhere
     // else (SPEC 10 and 12, issue #24). Both edges ask the same question of the
     // database rather than each carrying its own answer: **the state has to

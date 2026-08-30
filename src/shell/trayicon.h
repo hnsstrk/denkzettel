@@ -96,6 +96,8 @@ Q_SIGNALS:
     void recorderRequested();
     void libraryRequested();
     void analysisRequested();
+    /** The suggestion review of SPEC 9 (issue #30). */
+    void proposalsRequested();
     void configureRequested();
 
 private:

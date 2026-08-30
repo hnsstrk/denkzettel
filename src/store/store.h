@@ -412,6 +412,23 @@ public:
     bool removeProposal(qint64 id);
 
     /**
+     * Writes the status of one suggestion — the "Later" of SPEC 9, and the one
+     * road SPEC 5.1 names beside deleting the row (issue #30).
+     *
+     * The two statuses are what the next analysis run reads: a note in an
+     * **open** bundle is held out of the corpus, a note in a **deferred** one
+     * goes back into it, and a cluster that forms again replaces the deferred
+     * suggestion rather than standing beside it (Suggester, SPEC 7.3). So
+     * deferring is not a way of hiding a card — it is what puts the notes back
+     * into circulation.
+     *
+     * An id no suggestion carries is not an error: the UPDATE touches nothing
+     * and answers true. What the caller asked for is a state, and that state is
+     * what it is.
+     */
+    bool setProposalStatus(qint64 id, Proposal::Status status);
+
+    /**
      * Deletes the exported notes **and** the suggestion in one transaction,
      * then their audio files — the second half of the Obsidian export
      * (SPEC 8.1, issue #32).
