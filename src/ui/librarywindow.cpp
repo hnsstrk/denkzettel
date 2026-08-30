@@ -70,8 +70,30 @@ constexpr int SidebarWidth = 158;
  */
 constexpr int MinimumListWidth = 220;
 
-/** The longest label of the category column plus its counter, measured at 1x. */
-constexpr int MinimumSidebarWidth = 120;
+/**
+ * The longest label of the category column plus its counter, measured at 1x.
+ *
+ * Measured in the built window on 2026-08-30 under Breeze at a device pixel
+ * ratio of 1, as the item delegate's own size hint per label plus the width the
+ * counter section takes (issue #133, finding 60 — the room is read where it is
+ * spent, not taken from the drawing): "Software ideas" 104 + 22 = 126,
+ * "Software-Ideen" 108 + 22 = 130, "Nicht eingeordnet" 125 + 22 = 147,
+ * "Wartet auf Analyse" 129 + 22 = 151, and the longest of them all
+ * "Waiting for analysis" 134 + 22 = **156**.
+ *
+ * The old value of 120 was already 6 px under its own definition — at 120 the
+ * English "Software ideas" elided. The new entry of issue #133 is the longest
+ * label the column has, and it sets the number.
+ *
+ * **What this does not cover**, measured in the same run: the counter section
+ * is sized to its contents, and at four digits it takes 45 px instead of 22.
+ * A library of a thousand notes therefore needs 179 px for the longest label,
+ * more than the 158 wireframe 1b gives the column — the label elides there and
+ * the counter stays readable, which is the right way round but is not what this
+ * constant promises. Widening the column is a change to the wireframe and
+ * belongs to the customer.
+ */
+constexpr int MinimumSidebarWidth = 156;
 
 /** Which notes the selected entry of the category column lets through. */
 enum class CategoryFilter : std::uint8_t {
@@ -79,13 +101,35 @@ enum class CategoryFilter : std::uint8_t {
     All,
     /** The notes carrying the short form in ValueRole. */
     Category,
+    /** The notes the analysis has not reached yet (issue #133). */
+    Waiting,
     /** The notes whose classification attempts are used up (SPEC 7.2). */
     Unclassified,
 };
 
+/**
+ * The two entries the search language of SPEC 6 has no word for.
+ *
+ * Both are states of the machine rather than categories, so both take the
+ * `kat:` out of the field instead of writing one in, and both narrow the list
+ * here rather than in the store.
+ */
+constexpr bool isMachineState(CategoryFilter kind)
+{
+    return kind == CategoryFilter::Waiting || kind == CategoryFilter::Unclassified;
+}
+
 /** Roles the entries of the category column carry their filter in. */
 constexpr int FilterRole = Qt::UserRole;
 constexpr int ValueRole = Qt::UserRole + 1;
+
+/** What the marked entry of the column filters by, "All" while nothing is marked. */
+CategoryFilter chosenFilter(const QTreeWidget *categories)
+{
+    const QTreeWidgetItem *current = categories->currentItem();
+    return current ? static_cast<CategoryFilter>(current->data(0, FilterRole).toInt())
+                   : CategoryFilter::All;
+}
 
 /** One entry of the category column: the stored short form and its label. */
 struct CategoryEntry {
@@ -670,6 +714,22 @@ QWidget *LibraryWindow::buildSidebar()
     for (const CategoryEntry &category : categories) {
         entry(category.label, CategoryFilter::Category, category.value);
     }
+    // The two machine states go under the five categories, in the order a note
+    // travels through them: waiting first, given up on second (issue #133).
+    //
+    // The first of them is what makes the column add up. Wireframe 1b writes
+    // "Alle 128" beside five counters that come to 128, so the column promises
+    // a sum; a note the analysis has not reached yet carried no category, was
+    // not given up on either, and so stood in "All" and in no row below it —
+    // the customer counted 23 against 20 and nothing on the page said where
+    // the three were. Not folded into "Unclassified": that row means "given up
+    // on" and the tray message of issue #118 counts exactly its condition.
+    //
+    // The wording deliberately avoids the word "classified": two rows telling
+    // each other apart by one word are two rows nobody reads apart.
+    entry(i18nc("@item:inlistbox notes the analysis has not reached yet", "Waiting for analysis"),
+          CategoryFilter::Waiting,
+          QLatin1StringView());
     // The way to the notes the analysis run has given up on (SPEC 7.2). It is
     // where such a note can be dealt with, and without it the tray message of
     // issue #118 would report a state the window offers no way into.
@@ -712,6 +772,14 @@ void LibraryWindow::updateCategoryCounts()
         case CategoryFilter::Category:
             count = counts.byCategory.value(item->data(0, ValueRole).toString());
             break;
+        case CategoryFilter::Waiting:
+            count = counts.waiting;
+            // A queue that is empty gets no permanent line either — with the
+            // analysis caught up the column is the five categories again, which
+            // is the state wireframe 1b draws. Same exception as below: never
+            // while it is the entry the list is standing on.
+            item->setHidden(count == 0 && item != m_categories->currentItem());
+            break;
         case CategoryFilter::Unclassified:
             count = counts.unclassified;
             // A fault that is not there gets no permanent line — the same rule
@@ -741,10 +809,10 @@ void LibraryWindow::categoryChosen()
         return;
     }
 
-    // "All" and "Unclassified" are no categories: the first is the **absence**
-    // of a `kat:`, and the second is a condition the search language has no
-    // word for (see applyCategoryFilter). Both therefore take the `kat:` out
-    // and leave everything else in the field standing.
+    // "All" and the two machine states are no categories: the first is the
+    // **absence** of a `kat:`, the other two are conditions the search language
+    // has no word for (see applyCategoryFilter). All three therefore take the
+    // `kat:` out and leave everything else in the field standing.
     const auto kind = static_cast<CategoryFilter>(current->data(0, FilterRole).toInt());
     const QString category =
         kind == CategoryFilter::Category ? current->data(0, ValueRole).toString() : QString();
@@ -773,15 +841,15 @@ void LibraryWindow::followTheSearchField()
     // which is the honest answer to "none of these".
     const QString category = categories.size() == 1 ? categories.constFirst() : QString();
 
-    // The one entry the field cannot contradict, because it cannot express it:
-    // a word typed while "Unclassified" is chosen narrows **within** the
-    // given-up notes and does not leave them. Only a `kat:` moves the mark
-    // away, and the loop below is what does that.
+    // The two entries the field cannot contradict, because it cannot express
+    // them: a word typed while a machine state is chosen narrows **within**
+    // that state and does not leave it. Only a `kat:` moves the mark away, and
+    // the loop below is what does that.
     //
     // Measured 2026-08-29: without this the mark fell back to "All" at the
     // first keystroke and the bucket was gone without a word — the list then
     // answered out of the whole library.
-    if (categories.isEmpty() && isUnclassifiedChosen()) {
+    if (categories.isEmpty() && isMachineState(chosenFilter(m_categories))) {
         return;
     }
 
@@ -808,38 +876,46 @@ void LibraryWindow::followTheSearchField()
     m_categories->setCurrentItem(mark);
 }
 
-bool LibraryWindow::isUnclassifiedChosen() const
-{
-    const QTreeWidgetItem *current = m_categories->currentItem();
-    return current
-        && static_cast<CategoryFilter>(current->data(0, FilterRole).toInt())
-        == CategoryFilter::Unclassified;
-}
-
 void LibraryWindow::applyCategoryFilter(QList<Note> &notes) const
 {
     // The five categories are gone from here: a click writes `kat:` into the
     // search field, so the store answers them and there is exactly one
     // comparison in the program (SPEC 6, UX decision 2026-08-29).
     //
-    // "Unclassified" is the entry that stays behind, because the search
+    // The two machine states are what stays behind, because the search
     // language of SPEC 6 has no operator for "the classification was given up
-    // on". Inventing one is a change to that language and belongs to the
-    // customer, not here.
-    if (!isUnclassifiedChosen()) {
-        return;
-    }
+    // on" or "the analysis has not been here yet". Inventing one is a change to
+    // that language and belongs to the customer, not here.
 
     // The condition Classifier::start() skips by, and the one
-    // Store::categoryCounts() counts — written here over notes already read
-    // rather than as a query of its own. All three parts of it, the empty text
-    // included: a note without text never reaches the queue
+    // Store::categoryCounts() counts as `unclassified` — written here over
+    // notes already read rather than as a query of its own. All three parts of
+    // it, the empty text included: a note without text never reaches the queue
     // (Store::unanalysedNotes()), so it is not one the run gave up on, and the
     // entry has to show what its counter counted.
-    notes.removeIf([](const Note &note) {
-        return note.state == Note::State::Analysed || note.content.trimmed().isEmpty()
-            || note.analysisAttempts < Store::analysisAttemptLimit;
-    });
+    const auto givenUp = [](const Note &note) {
+        return note.state != Note::State::Analysed && !note.content.trimmed().isEmpty()
+            && note.analysisAttempts >= Store::analysisAttemptLimit;
+    };
+
+    switch (chosenFilter(m_categories)) {
+    case CategoryFilter::Unclassified:
+        notes.removeIf([&givenUp](const Note &note) {
+            return !givenUp(note);
+        });
+        break;
+    case CategoryFilter::Waiting:
+        // The complement `Store::categoryCounts()` counts, written with the
+        // same `givenUp` the row above uses — so the two rows cannot drift
+        // apart here while the store still adds them up.
+        notes.removeIf([&givenUp](const Note &note) {
+            return !note.category.isEmpty() || givenUp(note);
+        });
+        break;
+    case CategoryFilter::All:
+    case CategoryFilter::Category:
+        break;
+    }
 }
 
 QWidget *LibraryWindow::buildDetail()
@@ -1339,7 +1415,8 @@ void LibraryWindow::updatePages()
     const SearchQuery query = parseSearchQuery(m_search->text());
     const bool searching = !query.tags.isEmpty() || !query.types.isEmpty() || query.before.isValid()
         || query.after.isValid() || !query.terms.isEmpty();
-    const bool byCategory = !query.categories.isEmpty() || isUnclassifiedChosen();
+    const CategoryFilter chosen = chosenFilter(m_categories);
+    const bool byCategory = !query.categories.isEmpty() || isMachineState(chosen);
 
     if (hasNotes) {
         m_listPages->setCurrentWidget(m_list);
@@ -1354,13 +1431,15 @@ void LibraryWindow::updatePages()
         // often: until the analysis run of M3 has been through the library
         // every category is empty, and "change the search term" would point at
         // a field the user never touched (issue #18).
-        // And the entry for the given-up notes says a third thing: it stays
-        // standing while it is chosen even after its last note has been
-        // classified, and that is the moment this sentence is for.
+        // And the two machine-state entries say a third and a fourth thing:
+        // each stays standing while it is chosen even after its last note has
+        // left it, and that is the moment these sentences are for.
         if (searching) {
             m_noResultsHint->setText(i18n("Change the search term or clear the field."));
-        } else if (isUnclassifiedChosen()) {
+        } else if (chosen == CategoryFilter::Unclassified) {
             m_noResultsHint->setText(i18n("Every note has been classified."));
+        } else if (chosen == CategoryFilter::Waiting) {
+            m_noResultsHint->setText(i18n("The analysis has caught up."));
         } else {
             m_noResultsHint->setText(i18n("No note carries this category yet."));
         }

@@ -242,6 +242,18 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Fixed
 
+- **The category column adds up again.** It read „Alle 23" over five categories
+  that came to 20, and nothing on the page said where the other three notes
+  were. They were on their way: notes the analysis had not reached yet carried
+  no category, and the row „Nicht eingeordnet" could not take them, because that
+  row means the analysis has **given up** — it counts what the tray message
+  counts, and folding two states into it would have made both unreadable. There
+  is now a row of its own, „Wartet auf Analyse", under the five categories and
+  above „Nicht eingeordnet", in the order a note travels through them. It filters
+  the list like any other row and disappears once the analysis has caught up, so
+  a library that is up to date looks exactly as it did. A voice note whose
+  transcript has not arrived stands there too — it has no text to classify yet.
+  What „Alle" names is once more the sum of the rows underneath it (#133).
 - **A changed Ollama address or a changed model takes hold at once.** Whoever
   entered a different server or a different model on the page "AI provider"
   changed the file and nothing else: the running service went on asking the old

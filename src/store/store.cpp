@@ -1499,5 +1499,28 @@ CategoryCounts Store::categoryCounts() const
     }
     counts.unclassified = unclassified.value(0).toInt();
 
+    // What is left over once the two pots above have taken theirs (issue #133):
+    // no category, and not one of the given-up notes. Written as the
+    // complement of the clause four lines up rather than as a condition of its
+    // own — `state != 'analysed' AND analysis_attempts < 2` would read the same
+    // today and drift apart the moment either side is touched, and the column's
+    // promise is the **sum**, not the wording.
+    //
+    // The negation carries the voice note without a transcript by itself:
+    // `TRIM(content) != ''` is false for it, so `NOT(...)` is true and it lands
+    // here instead of nowhere.
+    QSqlQuery waiting(m_db);
+    waiting.prepare(QStringLiteral("SELECT COUNT(*) FROM notes"
+                                   " WHERE (category IS NULL OR category = '')"
+                                   " AND NOT (state != :state AND TRIM(content) != ''"
+                                   " AND analysis_attempts >= :limit)"));
+    waiting.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
+    waiting.bindValue(QStringLiteral(":limit"), analysisAttemptLimit);
+    if (!waiting.exec() || !waiting.next()) {
+        m_lastError = waiting.lastError().text();
+        return {};
+    }
+    counts.waiting = waiting.value(0).toInt();
+
     return counts;
 }

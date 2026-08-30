@@ -54,6 +54,34 @@ struct CategoryCounts {
      * message of issue #118 would name notes the window offers no way to.
      */
     int unclassified = 0;
+
+    /**
+     * Notes the analysis has not reached yet (issue #133).
+     *
+     * Written as the **complement** of the two pots beside it — no category,
+     * and not among the given-up notes — so that
+     * `total = Σ byCategory + unclassified + waiting` holds by construction
+     * and not by a case distinction somebody moves later. Wireframe 1b adds
+     * its five counters up to the number beside "All", so the column promises
+     * that sum and not merely a list of filters; a note the classifier has
+     * neither reached nor given up on fell out of all three counts and left
+     * that promise broken by exactly its own number.
+     *
+     * A voice note whose transcript has not arrived lands here too, for a
+     * second reason: `TRIM(content) != ''` keeps it out of `unclassified`, and
+     * a category it has none.
+     *
+     * **The one combination that would break the sum** is a note carrying a
+     * category *and* used-up attempts at `state != 'analysed'`: it is counted
+     * in `byCategory` and in `unclassified` both. The classifier does not
+     * write it — `completeAnalysis()` sets category, `state` and
+     * `analysis_attempts = 0` in one UPDATE, so a note that has a category has
+     * no attempts left standing — and no migration produces it either.
+     * Written down rather than argued
+     * away: it is the only input for which the column's promise fails, and
+     * `storetest` builds that row by hand so the number is on the record.
+     */
+    int waiting = 0;
 };
 
 /**

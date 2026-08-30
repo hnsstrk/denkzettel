@@ -188,6 +188,7 @@ private Q_SLOTS:
     void staysPutWhenTheWindowIsActivatedWithoutADayChange();
     void filtersTheListWithTheSearchField();
     void offersEveryCategoryTheClassifierMayWrite();
+    void theShownRowsAddUpToTheNumberBesideAll();
     void carriesOutAPendingDeletionWhenTheSearchChanges();
     void doesNotReadTheStoreAgainWhileADeletionIsCountingDown();
     void readsTheStoreAgainWhenTheOpenWindowIsShownAgain();
@@ -2088,8 +2089,9 @@ void LibraryTest::offersEveryCategoryTheClassifierMayWrite()
     QStringList offered;
     for (int row = 0; row < column->topLevelItemCount(); ++row) {
         const QTreeWidgetItem *item = column->topLevelItem(row);
-        // "All" and "Unclassified" carry no value: they are no categories, and
-        // the entries that are carry theirs in the same role the filter reads.
+        // "All", "Waiting for analysis" and "Unclassified" carry no value: they
+        // are no categories, and the entries that are carry theirs in the same
+        // role the filter reads.
         const QString value = item->data(0, Qt::UserRole + 1).toString();
         if (!value.isEmpty()) {
             offered.append(value);
@@ -2103,6 +2105,159 @@ void LibraryTest::offersEveryCategoryTheClassifierMayWrite()
     // the classifier list them, and a comparison of sorted lists would not say
     // that.
     QCOMPARE(offered, analysisCategories());
+}
+
+void LibraryTest::theShownRowsAddUpToTheNumberBesideAll()
+{
+    // Wireframe 1b writes "Alle 128" beside five counters that come to 128, so
+    // the column promises a **sum** and not merely a list of filters. That
+    // promise breaks in total silence: every counter is right on its own, no
+    // error, no warning, and the only way to notice is to add the column up by
+    // hand — which is what the customer did on 29.08.2026, counting 23 against
+    // 20 with no row saying where the other three were (issue #133).
+    //
+    // The eye cannot reach this. It is arithmetic over four numbers the window
+    // shows in four places, and it goes wrong only for populations nobody
+    // arranges on purpose.
+
+    // Both sides of the identity are anchored outside Store::categoryCounts(),
+    // which is the code under test (finding 10): `expected` is the number of
+    // notes this function put in, counted by hand as it writes them, and
+    // search() reads the same table through a query of its own.
+    int expected = 0;
+    const auto add = [this, &expected](const QString &content, Note::State state, int attempts,
+                                       const QString &category) {
+        // Written through addNote() with a placeholder and set to the real
+        // text afterwards: the note of case 4 has **no** text at all, which is
+        // the state a voice note waiting for its transcript is in, and the
+        // capture road never produces it.
+        const qint64 id = storedNote(QStringLiteral("Platzhalter"));
+        const std::optional<Note> stored = m_store->note(id);
+        QVERIFY2(stored.has_value(), qPrintable(m_store->lastError()));
+        Note note = *stored;
+        note.content = content;
+        note.state = state;
+        note.analysisAttempts = attempts;
+        note.category = category;
+        QVERIFY2(m_store->updateNote(note), qPrintable(m_store->lastError()));
+        ++expected;
+    };
+
+    // What the window says, read where the user reads it: the rows that are
+    // **shown**, and the counter as text out of column 1.
+    struct Shown {
+        int all = 0;
+        int belowAll = 0;
+        QStringList rows;
+        int counterWidth = 0;
+        int viewportWidth = 0;
+    };
+    const auto shown = [](const QTreeWidget *column) {
+        Shown result;
+        for (int row = 0; row < column->topLevelItemCount(); ++row) {
+            const QTreeWidgetItem *item = column->topLevelItem(row);
+            if (item->isHidden()) {
+                continue;
+            }
+            const int count = QLocale().toInt(item->text(1));
+            if (row == 0) {
+                result.all = count;
+            } else {
+                result.belowAll += count;
+            }
+            result.rows.append(QStringLiteral("%1=%2").arg(item->text(0)).arg(count));
+        }
+        result.counterWidth = column->columnWidth(1);
+        result.viewportWidth = column->viewport()->width();
+        return result;
+    };
+
+    // An out-parameter and not a return value: the QVERIFY macros below expand
+    // to `return;`, so a lambda holding them has the return type void whatever
+    // else it says.
+    const auto measure = [this, &shown, &expected](const char *population, Shown &out) -> void {
+        LibraryWindow window(m_store.get());
+        window.showLibrary();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        const auto *column = window.findChild<QTreeWidget *>();
+        QVERIFY(column);
+        const Shown seen = shown(column);
+
+        // Finding 51: the value can be set and stand outside the viewport —
+        // `text(1)` answers correctly either way, and that is exactly how the
+        // counters were once invisible in this very column. So the width of the
+        // counter section is read beside the value.
+        QVERIFY2(seen.counterWidth > 0 && seen.counterWidth < seen.viewportWidth,
+                 qPrintable(QStringLiteral("%1: counter column %2 px in a viewport of %3")
+                                .arg(QLatin1StringView(population))
+                                .arg(seen.counterWidth)
+                                .arg(seen.viewportWidth)));
+
+        // The database side, through a query that is not the column's:
+        // search("") reads every note out of the same table.
+        QCOMPARE(m_store->search(QString()).count(), expected);
+        QCOMPARE(seen.all, expected);
+        out = seen;
+    };
+
+    // 1. Nothing waiting, nothing given up — both machine rows are gone and the
+    //    column is the five categories of wireframe 1b.
+    add(QStringLiteral("erledigt"), Note::State::Analysed, 0, QStringLiteral("todos"));
+    add(QStringLiteral("auch erledigt"), Note::State::Analysed, 0, QStringLiteral("ideen"));
+    Shown seen;
+    measure("nothing waiting", seen);
+    QCOMPARE(seen.belowAll, seen.all);
+    QVERIFY2(!seen.rows.join(QLatin1Char(' ')).contains(QLatin1StringView("Waiting")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+    QVERIFY2(!seen.rows.join(QLatin1Char(' ')).contains(QLatin1StringView("Unclassified")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+
+    // 2. Something waiting, nothing given up — one row appears, and it is the
+    //    new one. Before issue #133 this note stood in "All" and nowhere else.
+    add(QStringLiteral("noch nicht analysiert"), Note::State::New, 0, QString());
+    measure("something waiting", seen);
+    QCOMPARE(seen.belowAll, seen.all);
+    QVERIFY2(seen.rows.contains(QStringLiteral("Waiting for analysis=1")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+    QVERIFY2(!seen.rows.join(QLatin1Char(' ')).contains(QLatin1StringView("Unclassified")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+
+    // 3. Both — the two machine rows stand side by side and the sum still holds.
+    add(QStringLiteral("aufgegeben"), Note::State::New, Store::analysisAttemptLimit, QString());
+    measure("waiting and given up", seen);
+    QCOMPARE(seen.belowAll, seen.all);
+    QVERIFY2(seen.rows.contains(QStringLiteral("Waiting for analysis=1")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+    QVERIFY2(seen.rows.contains(QStringLiteral("Unclassified=1")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+
+    // 4. A voice note whose transcript has not arrived. It has no text to
+    //    classify, so `TRIM(content) != ''` keeps it out of "Unclassified" — it
+    //    belongs to the waiting notes, and for a second reason than the others.
+    //    Its attempts are used up on purpose: without the empty-text clause it
+    //    would land in the given-up row, which is what this case pins.
+    add(QString(), Note::State::New, Store::analysisAttemptLimit, QString());
+    measure("voice note without a transcript", seen);
+    QCOMPARE(seen.belowAll, seen.all);
+    QVERIFY2(seen.rows.contains(QStringLiteral("Waiting for analysis=2")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+    QVERIFY2(seen.rows.contains(QStringLiteral("Unclassified=1")),
+             qPrintable(seen.rows.join(QLatin1Char(' '))));
+
+    // 5. The one population in which the promise fails, written down rather
+    //    than argued away (issue #133, store.h `CategoryCounts::waiting`): a
+    //    note with a category **and** used-up attempts at `state != analysed`
+    //    is counted in `byCategory` and in `unclassified` both, and the shown
+    //    rows come to one more than "All".
+    //
+    //    `completeAnalysis()` cannot write it — category, state and
+    //    `analysis_attempts = 0` go into one UPDATE — so the row is built here
+    //    by hand. The day some road does write it, this case says so instead of
+    //    the customer counting again.
+    add(QStringLiteral("Kategorie und Versuche"), Note::State::New, Store::analysisAttemptLimit,
+        QStringLiteral("cli"));
+    measure("category and used-up attempts", seen);
+    QCOMPARE(seen.belowAll, seen.all + 1);
 }
 
 void LibraryTest::carriesOutAPendingDeletionWhenTheSearchChanges()
