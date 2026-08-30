@@ -127,12 +127,14 @@ void KeyStore::openWallet()
     // exist — measured, that request then never completes.
     //
     // ponytail: this call and openWallet() below each spend one D-Bus round
-    // trip on the stack — 85 to 90 ms once, while the wallet service is being
-    // activated, and 0 ms from then on. KWallet offers no asynchronous form of
-    // either, and moving the name lookup alone off the event loop buys nothing:
-    // with the name written out by hand, openWallet() pays the same 90 ms
-    // itself. The upgrade path, if a wedged wallet service ever holds a window
-    // for the D-Bus reply timeout, is a thread of its own.
+    // trip on the stack, and together they cost one activation of the wallet
+    // service — measured between 85 ms and 1.4 s depending on the machine and
+    // on how cold the service was, and a few milliseconds for every call after
+    // it. KWallet offers no asynchronous form of either, and moving the name
+    // lookup alone off the event loop buys nothing: with the name written out
+    // by hand, openWallet() pays that same activation itself. The upgrade path,
+    // if a wedged wallet service ever holds a window for the D-Bus reply
+    // timeout, is a thread of its own.
     const QString wallet = KWallet::Wallet::LocalWallet();
     if (!wallet.isEmpty()) {
         // Asynchronous is the whole point of this class: the call returns
@@ -234,7 +236,9 @@ void KeyStore::run(const Request &request)
     }
 
     // The one call of this interface with an error channel of its own: `ok`
-    // says whether the wallet answered at all, and only then does the map say
+    // false means the wallet did not answer — or, the header adds
+    // (`kwallet.h:432-434`), that something in the folder was not written as a
+    // password, which nothing here does. Only with it true does the map say
     // whether the entry is there. `passwordList()` rather than the
     // `entriesList()` beside it, because it hands the value back as the
     // QString it was written as — one call where a `hasEntry()` and a

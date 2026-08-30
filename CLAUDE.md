@@ -1231,8 +1231,13 @@ find.
       wallet service is reachable** — that, and not a difference between the
       two functions, is what makes the empty-name check in
       `KeyStore::openWallet()` carry. With a service reachable the first of the
-      two costs 70 to 181 ms while it is activated and the second 0 to 1 ms,
-      and `LocalWallet()` answered `kdewallet` in every state measured. What
+      two costs **one activation of the wallet service** and every one after it
+      is negligible — that is the part that holds across machines, and the
+      numbers are not: 70 to 181 ms for the first call and 0 to 3 ms for the
+      second here, 1422 ms and 7 to 12 ms on the machine beside this one, where
+      `ksecretd` had to come up cold. A span measured on one machine is the
+      entry that damages the list; what to write down is the shape.
+      `LocalWallet()` answered `kdewallet` in every state measured. What
       `NetworkWallet()` answers depends on the state behind the service and is
       not to be relied on: on a session whose Secret Service held a collection
       it answered `kdewallet` too, on one whose did not — `kwalletd6` logging
@@ -1279,13 +1284,22 @@ find.
     a read then hands out an empty key **with no error**, and a removal reports
     success while the secret provably stays in the wallet — read back from the
     wallet's own side, never from the code that claimed to have deleted it
-    (finding 62). Of the 35 methods of `KWallet::Wallet` exactly **three**
-    carry an error channel of their own — `entriesList(bool *ok)`,
-    `mapList(bool *ok)` and `passwordList(bool *ok)` (`kwallet.h:412`, `:426`,
-    `:441`); everything else answers `bool`, or one collecting non-zero `int`
-    for everything that went wrong. `passwordList(&ok)` on the same binary
-    reads `ok=true` against the healthy store and `ok=false` against the broken
-    one, and it is the only call that tells them apart. The rule is more
+    (finding 62). Only **three** methods of `KWallet::Wallet` carry an error
+    channel of their own — `entriesList(bool *ok)`, `mapList(bool *ok)` and
+    `passwordList(bool *ok)` (`kwallet.h:412`, `:426`, `:441`); everything else
+    answers `bool`, or one collecting non-zero `int` for everything that went
+    wrong. Three of how many is left out on purpose: counted as declarations
+    without the signals and the constructors it is 35, by distinct name 33, and
+    two readers of the same header came to 35 and 39 — a number nobody
+    reproduces the same way carries nothing, and the three named ones carry the
+    whole statement. `passwordList(&ok)` on the same binary reads `ok=true`
+    against the healthy store and `ok=false` against the broken one, and it is
+    the only call that tells them apart. Its `ok` is not quite "did the wallet
+    answer" either: the header (`kwallet.h:432–434`) says it is set false **also**
+    when an entry in the folder was not written as a password. That direction is
+    the harmless one — an error rather than a silent empty answer — but it is
+    what the interface promises, and the narrower sentence is the kind the next
+    reader does not check. The rule is more
     general than KWallet: **wherever a foreign interface answers a question
     with a plain `bool` or a bare list, ask what it answers when the call
     itself fails** — and if that is the same value, the guarantee built on it
