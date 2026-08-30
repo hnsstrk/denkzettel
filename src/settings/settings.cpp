@@ -56,7 +56,12 @@ Settings::Settings()
     // `openai/gpt-4o-mini` to Ollama the moment the user switched back — an
     // HTTP 404 for a setting they never changed. Two services, two model names
     // (issue #38).
-    addItemString(QStringLiteral("OpenRouterModel"), m_openRouterModel, QString(openrouter::DefaultChatModel));
+    // **No default** (customer decision 30.08.2026, SPEC 7.1): the two reasons
+    // he names for reaching past Ollama are opposite ones, and any model put
+    // here would make his choice for him — every 30 minutes and billed. Empty
+    // is a precondition the analysis run asks about, not a fault; see
+    // OpenRouterProvider::unmetPrecondition().
+    addItemString(QStringLiteral("OpenRouterModel"), m_openRouterModel, QString());
     addItemString(QStringLiteral("EmbeddingModel"), m_embeddingModel, QString(ollama::DefaultEmbeddingModel));
 
     setCurrentGroup(QStringLiteral("Analysis"));

@@ -68,6 +68,11 @@ bool AiProvider::canEmbed() const
     return true;
 }
 
+QString AiProvider::unmetPrecondition() const
+{
+    return {};
+}
+
 void AiProvider::testConnection()
 {
     m_testEmbedId = -1;

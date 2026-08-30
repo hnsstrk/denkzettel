@@ -90,6 +90,22 @@ public:
     virtual bool canEmbed() const;
 
     /**
+     * Why this backend cannot be called at all, and empty when nothing is in
+     * the way (SPEC 12's rule of issue #23, applied to SPEC 7.2).
+     *
+     * **A precondition that is not met is not a failed attempt.** The analysis
+     * run asks this before it takes a note out of the queue — taking one out is
+     * what spends an attempt, and a backend nobody has finished configuring
+     * would otherwise burn both attempts of every note on the same sentence,
+     * unattended, every 30 minutes.
+     *
+     * Empty here rather than pure: a backend that is ready as soon as it exists
+     * is the ordinary case, and Ollama carries defaults for all three of its
+     * settings.
+     */
+    virtual QString unmetPrecondition() const;
+
+    /**
      * One mini `chat` call and — where the backend embeds at all — one `embed`
      * call, answered by connectionTested() with their latencies or with the
      * first error (SPEC 7.1).

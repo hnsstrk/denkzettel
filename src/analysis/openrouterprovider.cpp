@@ -38,10 +38,17 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
         return {{}, i18n("openrouter.ai took longer over this call than it is allowed.")};
     }
 
-    // A refusal is one JSON document and no stream, whatever the status says,
-    // and its own sentence beats the status code: an unknown model, a spent
-    // quota and a rejected key are three different things to the user and one
-    // HTTP number.
+    // A refusal that arrives as one JSON document, which is what a request
+    // rejected before the stream starts looks like. Its own sentence beats the
+    // status code: an unknown model, a spent quota and a rejected key are three
+    // different things to the user and one HTTP number.
+    //
+    // **It is not the only shape a refusal takes** — the review of 30.08.2026
+    // measured the other one against this very function: openrouter can put the
+    // error *inside* the stream, as a `data:` frame carrying `error`, and read
+    // as an ordinary frame that came out "the answer broke off" or "carried no
+    // text" — the service's own sentence lost, which is the whole point of this
+    // branch. The frame loop below therefore asks the same question again.
     const QString refusal = QJsonDocument::fromJson(body)
                                 .object()
                                 .value(QLatin1String("error"))
@@ -89,6 +96,20 @@ OpenRouterAnswer readOpenRouterReply(QNetworkReply::NetworkError transport,
             return {{}, i18n("openrouter.ai sent an unreadable answer.")};
         }
         readable = true;
+
+        // **The service's own sentence, wherever it stands.** A stream that
+        // turns into an error mid-way carries it in a frame like any other, and
+        // without this the loop would go on collecting empty deltas and end in
+        // "broke off" — a sentence about the transport over a refusal the
+        // service spelled out (review of 30.08.2026).
+        const QString streamed = frame.object()
+                                     .value(QLatin1String("error"))
+                                     .toObject()
+                                     .value(QLatin1String("message"))
+                                     .toString();
+        if (!streamed.isEmpty()) {
+            return {{}, i18n("openrouter.ai refused the request: %1", streamed)};
+        }
 
         // `delta.content` and not `message.content`: a streamed choice carries
         // the piece, not the whole. What a thinking model reasons stands in
@@ -162,7 +183,9 @@ OpenRouterProvider::OpenRouterProvider(QObject *parent)
 void OpenRouterProvider::reloadSettings()
 {
     const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
-    m_model = group.readEntry("OpenRouterModel", QString(openrouter::DefaultChatModel));
+    // No default, and the header says why: any model here would make a choice
+    // the customer reserved for himself, every 30 minutes and billed.
+    m_model = group.readEntry("OpenRouterModel", QString());
     m_keyKnown = false;
     m_key.clear();
 }
@@ -202,6 +225,20 @@ int OpenRouterProvider::chat(const QString &prompt)
 {
     const int id = nextRequestId();
 
+    // **The guided sentence instead of the transport's** (issue #38): with no
+    // model set, a request would go out as `"model":""` and come back as
+    // whatever openrouter makes of that — an HTTP status or a refusal, which
+    // sends the user looking at their network for a field they never filled
+    // in. Answered here rather than in the connection test alone, because this
+    // is the one place every caller routes through.
+    const QString missing = unmetPrecondition();
+    if (!missing.isEmpty()) {
+        QTimer::singleShot(0, this, [this, id, missing] {
+            Q_EMIT chatFinished(id, QString(), missing);
+        });
+        return id;
+    }
+
     if (m_keyKnown) {
         post(id, prompt);
         return id;
@@ -238,6 +275,15 @@ int OpenRouterProvider::embed(const QString &text)
 bool OpenRouterProvider::canEmbed() const
 {
     return false;
+}
+
+QString OpenRouterProvider::unmetPrecondition() const
+{
+    if (m_model.isEmpty()) {
+        return i18n("No model for openrouter.ai is set."
+                    " Enter one in the settings under \"AI provider\".");
+    }
+    return {};
 }
 
 void OpenRouterProvider::releaseWaiting(const QString &error)

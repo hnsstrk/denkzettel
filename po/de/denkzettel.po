@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 12:52+0200\n"
+"POT-Creation-Date: 2026-08-30 13:24+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -98,38 +98,39 @@ msgid "openrouter.ai took longer over this call than it is allowed."
 msgstr ""
 "openrouter.ai hat für diesen Aufruf länger gebraucht, als er dauern darf."
 
-#: src/analysis/openrouterprovider.cpp:52
+#: src/analysis/openrouterprovider.cpp:59
+#: src/analysis/openrouterprovider.cpp:111
 #, kde-format
 msgid "openrouter.ai refused the request: %1"
 msgstr "openrouter.ai hat die Anfrage abgelehnt: %1"
 
-#: src/analysis/openrouterprovider.cpp:56
+#: src/analysis/openrouterprovider.cpp:63
 #, kde-format
 msgid "openrouter.ai could not be reached: %1"
 msgstr "openrouter.ai war nicht erreichbar: %1"
 
-#: src/analysis/openrouterprovider.cpp:60
+#: src/analysis/openrouterprovider.cpp:67
 #, kde-format
 msgid "openrouter.ai answered with HTTP status %1."
 msgstr "openrouter.ai hat mit HTTP-Status %1 geantwortet."
 
-#: src/analysis/openrouterprovider.cpp:89
-#: src/analysis/openrouterprovider.cpp:109
+#: src/analysis/openrouterprovider.cpp:96
+#: src/analysis/openrouterprovider.cpp:130
 #, kde-format
 msgid "openrouter.ai sent an unreadable answer."
 msgstr "openrouter.ai hat eine unlesbare Antwort geschickt."
 
-#: src/analysis/openrouterprovider.cpp:113
+#: src/analysis/openrouterprovider.cpp:134
 #, kde-format
 msgid "openrouter.ai's answer broke off."
 msgstr "Die Antwort von openrouter.ai brach ab."
 
-#: src/analysis/openrouterprovider.cpp:117
+#: src/analysis/openrouterprovider.cpp:138
 #, kde-format
 msgid "openrouter.ai's answer carried no text."
 msgstr "Die Antwort von openrouter.ai enthielt keinen Text."
 
-#: src/analysis/openrouterprovider.cpp:150
+#: src/analysis/openrouterprovider.cpp:172
 #, kde-format
 msgid ""
 "No API key for openrouter.ai is stored. Enter it in the settings under \"AI "
@@ -138,11 +139,20 @@ msgstr ""
 "Für openrouter.ai ist kein API-Schlüssel hinterlegt. Tragen Sie ihn in den "
 "Einstellungen unter „KI-Anbieter“ ein."
 
-#: src/analysis/openrouterprovider.cpp:231
+#: src/analysis/openrouterprovider.cpp:269
 #, kde-format
 msgid "openrouter.ai is not asked for embeddings; those come from Ollama."
 msgstr ""
 "openrouter.ai wird nicht nach Einbettungen gefragt; die kommen von Ollama."
+
+#: src/analysis/openrouterprovider.cpp:283
+#, kde-format
+msgid ""
+"No model for openrouter.ai is set. Enter one in the settings under \"AI "
+"provider\"."
+msgstr ""
+"Für openrouter.ai ist kein Modell eingetragen. Tragen Sie eines in den "
+"Einstellungen unter „KI-Anbieter“ ein."
 
 #: src/analysis/suggester.cpp:94
 #, kde-format
@@ -254,63 +264,68 @@ msgstr "Die Notiz %1 konnte nicht geschrieben werden."
 msgid "The audio file %1 could not be copied."
 msgstr "Die Audiodatei %1 konnte nicht kopiert werden."
 
-#: src/settings/aiproviderpage.cpp:107
+#: src/settings/aiproviderpage.cpp:118
 #, kde-format
 msgid "Test connection"
 msgstr "Verbindung testen"
 
-#: src/settings/aiproviderpage.cpp:138
+#: src/settings/aiproviderpage.cpp:149
 #, kde-format
 msgid "Ollama"
 msgstr "Ollama"
 
-#: src/settings/aiproviderpage.cpp:140
+#: src/settings/aiproviderpage.cpp:151
 #, kde-format
 msgid "openrouter.ai"
 msgstr "openrouter.ai"
 
-#: src/settings/aiproviderpage.cpp:146
+#: src/settings/aiproviderpage.cpp:157
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr "OpenAI (API-Schlüssel)"
 
-#: src/settings/aiproviderpage.cpp:148
+#: src/settings/aiproviderpage.cpp:159
 #, kde-format
 msgid "Provider:"
 msgstr "Anbieter:"
 
-#: src/settings/aiproviderpage.cpp:163
+#: src/settings/aiproviderpage.cpp:174
 #, kde-format
 msgid "OpenAI is not connected yet. With it chosen, Denkzettel asks Ollama."
 msgstr ""
 "OpenAI ist noch nicht angebunden. Ist es gewählt, fragt Denkzettel Ollama."
 
-#: src/settings/aiproviderpage.cpp:177
+#: src/settings/aiproviderpage.cpp:188
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr "Liegt in KWallet · leer behält den Schlüssel"
 
-#: src/settings/aiproviderpage.cpp:179
+#: src/settings/aiproviderpage.cpp:190
 #, kde-format
 msgid "API key:"
 msgstr "API-Schlüssel:"
 
-#: src/settings/aiproviderpage.cpp:191 src/settings/aiproviderpage.cpp:198
+#: src/settings/aiproviderpage.cpp:202 src/settings/aiproviderpage.cpp:223
 #, kde-format
 msgid "Language model:"
 msgstr "Sprachmodell:"
 
-#: src/settings/aiproviderpage.cpp:210
+#: src/settings/aiproviderpage.cpp:212
+#, kde-format
+msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
+msgstr "Zum Beispiel openai/gpt-4o-mini · openrouter.ai/models"
+
+#: src/settings/aiproviderpage.cpp:235
 #, kde-format
 msgid "Ollama address:"
 msgstr "Ollama-Adresse:"
 
-#: src/settings/aiproviderpage.cpp:213
+#: src/settings/aiproviderpage.cpp:238
 #, kde-format
 msgid "Embedding model:"
 msgstr "Einbettungsmodell:"
 
-#: src/settings/aiproviderpage.cpp:219
+#: src/settings/aiproviderpage.cpp:244
 #, kde-format
 msgid ""
 "The two rows above belong to Ollama: it is what answers the embedding call, "
@@ -321,17 +336,17 @@ msgstr ""
 "Einbettungsaufruf, gleich welcher Anbieter die Klassifizierung schreibt. "
 "Ohne erreichbares Ollama gibt es keine Themenbündel."
 
-#: src/settings/aiproviderpage.cpp:276
+#: src/settings/aiproviderpage.cpp:301
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr "Warte auf den Passwortspeicher …"
 
-#: src/settings/aiproviderpage.cpp:287
+#: src/settings/aiproviderpage.cpp:312
 #, kde-format
 msgid "The key is in the password store."
 msgstr "Der Schlüssel liegt im Passwortspeicher."
 
-#: src/settings/aiproviderpage.cpp:417
+#: src/settings/aiproviderpage.cpp:456
 #, kde-format
 msgid ""
 "%1\n"
@@ -342,7 +357,7 @@ msgstr ""
 "Jede Einbettung kommt von Ollama: ohne es gibt es keine Themenbündel. Die "
 "Klassifizierung läuft über den oben gewählten Anbieter weiter."
 
-#: src/settings/aiproviderpage.cpp:427
+#: src/settings/aiproviderpage.cpp:466
 #, kde-format
 msgid ""
 "Connection is up · chat %1 ms. Embeddings are not asked of openrouter.ai; "
@@ -351,7 +366,7 @@ msgstr ""
 "Verbindung steht · Chat %1 ms. Einbettungen werden nicht bei openrouter.ai "
 "erfragt; prüfen Sie sie unter Ollama."
 
-#: src/settings/aiproviderpage.cpp:430
+#: src/settings/aiproviderpage.cpp:469
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr "Verbindung steht · Chat %1 ms · Einbettung %2 ms"

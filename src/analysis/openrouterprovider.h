@@ -58,11 +58,18 @@ struct OpenRouterAnswer {
  * - that `stream: true` really produces `data: ` frames closed by
  *   `data: [DONE]`, and that the text stands in `choices[0].delta.content`;
  * - that a refusal really carries `error.message`, and which HTTP statuses it
- *   comes with;
+ *   comes with — **and in which of the two shapes**: as one document before the
+ *   stream starts, or as a frame inside it. Both are read here, because the
+ *   documentation describes both and neither has been seen;
  * - that a bitten transfer timeout over TLS really arrives as `TimeoutError`
  *   — measured for Ollama over plain HTTP on 2026-08-30, not for this service;
  * - that openrouter's keep-alive comment lines really begin with `:`, which is
- *   what is supposed to keep the silence limit from biting on a slow model.
+ *   what is supposed to keep the silence limit from biting on a slow model;
+ * - **that the endpoint above and the `Bearer` scheme are what this service
+ *   accepts at all.** Both come from the documentation. The check
+ *   `openRouterCarriesTheKeyAndTheModelOnTheWire()` proves that *we* write that
+ *   header to that path — it cannot prove that openrouter reads it, and no
+ *   stand-in can (review of 30.08.2026).
  *
  * `OperationCanceledError` is the one value here that does **not** need a live
  * run: it is what Qt's own abort() produces, measured on 2026-08-30 against a
@@ -86,15 +93,17 @@ namespace openrouter
 inline constexpr QLatin1StringView Endpoint("https://openrouter.ai/api/v1/chat/completions");
 
 /**
- * The model asked when `denkzettelrc` says nothing.
+ * **There is deliberately no default model** (customer decision 30.08.2026,
+ * SPEC 7.1) — hence a constant that is missing here rather than an empty one.
  *
- * **Not settled by SPEC 7.1, which names no model for this service**, and it
- * is a decision with a price tag: every call is billed. Reported as open with
- * issue #38 — a cheap model that answers JSON is what the classification of
- * SPEC 7.2 needs, and this is the implementer's choice until the customer
- * makes one.
+ * The customer names two opposite reasons for reaching past Ollama: a machine
+ * without the compute to run a model locally, *or* the wish for a distinctly
+ * stronger one. No model serves both, so any default would quietly make the
+ * choice he reserved for himself — and it would make it every 30 minutes,
+ * unattended and billed. The field therefore stands empty until he fills it,
+ * and an empty field is a precondition and not a fault: see
+ * unmetPrecondition() below.
  */
-inline constexpr QLatin1StringView DefaultChatModel("openai/gpt-4o-mini");
 
 /** The entry KeyStore keeps this service's key under (SPEC 5.2, issue #37). */
 inline constexpr QLatin1StringView KeyName("openrouter");
@@ -135,7 +144,7 @@ class OpenRouterProvider : public AiProvider
 public:
     explicit OpenRouterProvider(QObject *parent = nullptr);
 
-    /** `openrouter::DefaultChatModel` unless `denkzettelrc` says otherwise. */
+    /** `[AI] OpenRouterModel`, and empty until the user names one. */
     void setChatModel(const QString &model);
     QString chatModel() const;
 
@@ -170,6 +179,22 @@ public:
 
     /** False: this backend does chat and nothing else, see the class comment. */
     bool canEmbed() const override;
+
+    /**
+     * Why this backend cannot be called at all — the missing model, or empty
+     * when there is nothing in the way.
+     *
+     * **The rule is SPEC 12's, applied to the analysis run of SPEC 7.2**: a
+     * missing model is a precondition not yet met, not a failed attempt
+     * (decision 29.08.2026, issue #23). Without it the 30-minute run of SPEC
+     * 7.2 would spend **both** attempts of every note on "model required"
+     * before the user ever opened the settings page — and the notes would
+     * stand in the error state with nothing wrong with them.
+     *
+     * Asked by Classifier::start() before a note is taken out, because taking
+     * one out is what spends the attempt.
+     */
+    QString unmetPrecondition() const override;
 
 public Q_SLOTS:
     /**

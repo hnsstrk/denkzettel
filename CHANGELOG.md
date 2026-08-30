@@ -28,13 +28,20 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   service that is chosen**: two times under Ollama, the chat time alone under
   openrouter, which is not asked for a vector at all. **OpenAI stays
   unselectable** until its client is built (#39). A provider switched in the
-  settings takes hold at the next start of Denkzettel; the address and the
-  models keep taking hold at once. (#38)
+  settings takes hold at the next start of Denkzettel; the address, the models
+  and a corrected key all take hold at once, without a restart. (#38)
 
-  **The default model is `openai/gpt-4o-mini`**, and it can be replaced by any
-  model name openrouter offers. Every call to this service is billed by
-  openrouter — Ollama stays the default and nothing about a local installation
-  changes.
+  **The model field starts empty, and that is deliberate** (customer decision
+  30.08.2026): openrouter is worth reaching for on a machine that cannot run a
+  model locally *and* for models distinctly stronger than the local one, and no
+  model serves both — so Denkzettel does not choose for you, on a service that
+  bills per call. Enter the name of the model you want; the field says what one
+  looks like. **Until you do, nothing is asked of openrouter and no note is
+  spent on it**: the analysis run leaves every note untouched and its counter
+  where it was, exactly as it does while a voice-note model is still
+  downloading. „Verbindung testen" and the run then say that no model is set,
+  rather than reporting a network fault. Ollama stays the default provider and
+  nothing about a local installation changes.
 
 - **The API key field appears for whoever has openrouter stored.** It hung on
   the Ollama button being switched, and a settings dialog that opened with

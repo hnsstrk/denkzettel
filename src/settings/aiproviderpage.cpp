@@ -23,7 +23,13 @@
 
 namespace
 {
-/** An editable box that offers the default of SPEC 7.1 and takes anything. */
+/**
+ * An editable box that offers the default of SPEC 7.1 and takes anything.
+ *
+ * An empty `suggestion` means the service has no default to offer — which for
+ * openrouter is a decision and not a gap (customer, 30.08.2026). The box then
+ * carries no entry at all, so nothing can be picked that nobody chose.
+ */
 QComboBox *modelBox(QWidget *parent, const QString &suggestion)
 {
     auto *box = new QComboBox(parent);
@@ -31,7 +37,9 @@ QComboBox *modelBox(QWidget *parent, const QString &suggestion)
     // The one entry is the default the SPEC names, so the way back to it is a
     // click rather than a typing exercise. What Ollama actually holds is a
     // question to the server (/api/tags) and belongs to whoever needs the list.
-    box->addItem(suggestion);
+    if (!suggestion.isEmpty()) {
+        box->addItem(suggestion);
+    }
     box->setInsertPolicy(QComboBox::NoInsert);
     return box;
 }
@@ -100,7 +108,10 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     , m_apiKey(new QLineEdit(this))
     , m_keyState(smallLine(this))
     , m_chatModel(modelBox(this, QString(ollama::DefaultChatModel)))
-    , m_openRouterModel(modelBox(this, QString(openrouter::DefaultChatModel)))
+    // Empty, and it carries no suggestion to fall back to: SPEC 7.1 names no
+    // model for this service on purpose (customer decision 30.08.2026), so
+    // there is nothing to offer and the placeholder says what to do instead.
+    , m_openRouterModel(modelBox(this, QString()))
     , m_ollamaUrl(new QLineEdit(this))
     , m_embeddingModel(modelBox(this, QString(ollama::DefaultEmbeddingModel)))
     , m_embeddingsFromOllama(smallLine(this))
@@ -194,6 +205,20 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     // two names are two settings: `ChatModel` is what OllamaProvider asks its
     // server for (settings.cpp says why). One of the two is shown at a time.
     m_openRouterModel->setObjectName(QStringLiteral("kcfg_OpenRouterModel"));
+    // The field is empty on the first switch, so it has to say what belongs in
+    // it — the models the service offers are #128/#129 and this does not wait
+    // for them.
+    m_openRouterModel->lineEdit()->setPlaceholderText(
+        i18n("For example openai/gpt-4o-mini · openrouter.ai/models"));
+    // **And it has to have room for that.** A combo box sizes itself to its
+    // content, and this one has none — measured 30.08.2026 in the picture,
+    // where the field came out 122 device pixels wide and the placeholder read
+    // "Zum B…". The Ollama box beside it goes on sizing to the entry it has;
+    // this one is a free-text field for a name like
+    // `anthropic/claude-3.5-sonnet` and takes the width the line edits above it
+    // take.
+    m_openRouterModel->setSizePolicy(QSizePolicy::Expanding,
+                                     m_openRouterModel->sizePolicy().verticalPolicy());
     m_openRouterModelRow = m_form->rowCount();
     m_form->addRow(i18n("Language model:"), m_openRouterModel);
 
@@ -380,7 +405,21 @@ void AiProviderPage::startTest()
 
     if (chosenProvider() == Settings::OpenRouter) {
         m_openRouter->setChatModel(m_openRouterModel->currentText());
-        m_openRouter->setKey(m_apiKey->text());
+        // **Only a key that was typed**, and this line is the one the review of
+        // 30.08.2026 found: the field is write-only and therefore empty on
+        // every opening, so handing its text over unconditionally wiped the
+        // stored key and the user read "openrouter.ai refused the request" over
+        // an installation that was perfectly fine. Measured, and it comes out
+        // different: 0 bytes of key on the wire with the field untouched, 32
+        // with one typed.
+        //
+        // Untouched, nothing is set and the provider fetches the stored key
+        // from KeyStore itself — which is what its own placeholder promises and
+        // what KeyStore's rule allows: **a key press may open the wallet, the
+        // opening of a dialog may not.**
+        if (m_keyEdited) {
+            m_openRouter->setKey(m_apiKey->text());
+        }
         m_openRouter->testConnection();
         return;
     }
