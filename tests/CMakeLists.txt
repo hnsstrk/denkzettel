@@ -395,6 +395,25 @@ set_tests_properties(systemfontstest PROPERTIES
 # a list build goes (issue #110). No add_test(): it measures, it does not
 # assert, and its numbers belong in a report, not in a suite that goes red on a
 # busy machine.
+# The pictures and the keystroke count of the tolerant search (issue #69). No
+# add_test() for the reason readmeshots has none — it produces pictures for a
+# human to look at. Built by an ordinary build all the same (CLAUDE.md,
+# rule 4), and committed rather than improvised: the UX decision of 30.08.2026
+# rests on the claim that the line cannot flicker while the user types, and the
+# number this runner prints is the only measurement of that claim.
+add_executable(correctionshots correctionshots.cpp)
+
+target_link_libraries(correctionshots PRIVATE
+    denkzettelstore
+    denkzettelui
+    # The German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name.
+    KF6::I18n
+    Qt6::Test
+    Qt6::Widgets
+)
+
 add_executable(searchbench searchbench.cpp)
 
 target_link_libraries(searchbench PRIVATE

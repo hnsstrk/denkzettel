@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(denkzettel VERSION 0.7.0 LANGUAGES CXX)
+# C beside C++ for one file: third_party/spellfix/spellfix.c, the SQLite
+# extension the tolerant search of SPEC 6 is built on (issue #69).
+project(denkzettel VERSION 0.7.0 LANGUAGES C CXX)
 
 set(QT_MIN_VERSION 6.7.0)
 set(KF_MIN_VERSION 6.0.0)

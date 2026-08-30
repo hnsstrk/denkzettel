@@ -12,6 +12,8 @@
 
 #include <optional>
 
+struct SearchQuery;
+
 /**
  * One row of `transcribe_jobs` (SPEC 5.1, 12).
  *
@@ -206,8 +208,31 @@ public:
      * inherit the ASCII-only case folding of the short-term route: `tag:` and
      * `kat:` compare COLLATE NOCASE, so `tag:BACKUP` finds `backup` and
      * `tag:BÜCHER` does not find `bücher`.
+     *
+     * **A search that finds nothing is run a second time with the words
+     * corrected** (SPEC 6, issue #69): every term of three characters or more
+     * is looked up in the word list of the corpus, and the closest word within
+     * the cost ceiling takes its place. That second pass runs **only** on an
+     * empty result — while a search has hits, they are hits on what the user
+     * actually typed, and nothing is added beside them.
+     *
+     * `correctedTo` reports the words that were searched for **instead** of
+     * what was typed, and only those that are a real correction: „pruefen"
+     * finding „prüfen" is a spelling variant and leaves the list empty, while
+     * „prüfem" finding „prüfen" fills it. The list is empty as well when the
+     * second pass found nothing either.
      */
-    QList<Note> search(const QString &text) const;
+    QList<Note> search(const QString &text, QStringList *correctedTo = nullptr) const;
+
+    /**
+     * Whether spellfix1 answered on this connection (SPEC 6, issue #69).
+     *
+     * Read back from the database and not from the return value of the
+     * registration: `SQLITE_OK` says the call returned. With this false the
+     * search works and is not tolerant — every other function of this class is
+     * unaffected.
+     */
+    bool correctionsReady() const;
 
     /** Deletes note and tags in one transaction, then its audio file. */
     bool removeNote(qint64 id);
@@ -469,9 +494,25 @@ private:
     /** Replaces the tags of one note. The caller owns the transaction. */
     bool replaceTags(qint64 noteId, const QStringList &tags);
 
+    /** One pass of the query of SPEC 6 — what search() runs once or twice. */
+    QList<Note> notesMatching(const SearchQuery &parsed) const;
+
+    /** Registers spellfix1 on this connection and reads it back. */
+    bool registerSpellfix();
+
+    /** Builds the spellfix1 table in `temp` unless it is current. */
+    bool prepareCorrections() const;
+
+    /** Closest word of the corpus to `term`, or empty if none is close enough. */
+    QString correctionFor(const QString &term) const;
+
     QString m_databasePath;
     QString m_connectionName;
     QSqlDatabase m_db;
     int m_schemaVersion = 0;
+    bool m_spellfixReady = false;
+    mutable bool m_correctionsReady = false;
+    /** `sqlite3_total_changes()` when the spellfix1 table was last filled. */
+    mutable int m_correctionsBuiltAt = 0;
     mutable QString m_lastError;
 };

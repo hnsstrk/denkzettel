@@ -43,6 +43,8 @@ private Q_SLOTS:
 
     void findsNotesByFullText();
     void searchFindsWordsSpelledWithoutUmlauts();
+    void searchCorrectsAWordThatFindsNothing();
+    void searchCorrectsAWordOutOfANoteJustWritten();
     void searchMatchesAnyPartOfAWord();
     void searchFindsTermsShorterThanThreeCharacters();
     void searchTakesQueryTextLiterally();
@@ -122,7 +124,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 7);
+    QCOMPARE(m_store->schemaVersion(), 8);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -522,7 +524,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 7);
+    QCOMPARE(m_store->schemaVersion(), 8);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -580,11 +582,118 @@ void StoreTest::searchFindsWordsSpelledWithoutUmlauts()
     // The other direction works as well: typing the umlaut finds the note.
     QCOMPARE(searchContents(QStringLiteral("BÜCHER")), QStringList({books.content}));
 
-    // Documented limit: `remove_diacritics 1` folds diacritics, and ß carries
-    // none — it is a letter of its own. „strassenbahnen" therefore does not
-    // find „Straßenbahnen" (SPEC 6).
-    QVERIFY(m_store->search(QStringLiteral("strassenbahnen")).isEmpty());
+    // The tokenizer still does not fold ß — it carries no diacritic and is a
+    // letter of its own. What finds the note is the second pass of SPEC 6: the
+    // literal search comes back empty, `ss`→`ß` costs 1 in the `editcost`
+    // table of migration 8, and „strassenbahnen" is searched for again as
+    // „straßenbahnen" (issue #69, which took over S30).
+    QCOMPARE(searchContents(QStringLiteral("strassenbahnen")), QStringList({books.content}));
     QCOMPARE(searchContents(QStringLiteral("straßenbahnen")), QStringList({books.content}));
+
+    // And it happens without a word: writing ss for ß is the same case as
+    // writing ue for ü — the user has not mistyped anything.
+    QStringList corrected;
+    QCOMPARE(m_store->search(QStringLiteral("strassenbahnen"), &corrected).size(), 1);
+    QCOMPARE(corrected, QStringList());
+}
+
+void StoreTest::searchCorrectsAWordThatFindsNothing()
+{
+    // The two cases of the customer acceptance (issues #51 and #52), and the
+    // difference between them is the story: the one is a spelling variant and
+    // says nothing, the other is a typo and says so.
+    //
+    // Three notes, and the one that is looked for stands **in the middle** by
+    // date: first or last it would also be what a second pass returning the
+    // whole library, or the newest note, would deliver.
+    Note milk = sampleNote();
+    milk.content = QStringLiteral("Milch kaufen");
+    milk.createdAt = QDateTime::fromString(QStringLiteral("2026-07-31T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(milk).has_value());
+
+    Note backup = sampleNote();
+    backup.content = QStringLiteral("Backup der Bücher-Datenbank prüfen");
+    backup.createdAt = QDateTime::fromString(QStringLiteral("2026-07-30T09:00:00.000"), Qt::ISODateWithMs);
+    const std::optional<qint64> backupId = m_store->addNote(backup);
+    QVERIFY(backupId.has_value());
+
+    Note trams = sampleNote();
+    trams.content = QStringLiteral("Straßenbahnen fotografieren");
+    trams.createdAt = QDateTime::fromString(QStringLiteral("2026-07-29T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(trams).has_value());
+
+    // The registration of spellfix1 read back from the database, not from the
+    // return value of the call (SPEC 6, condition 2 of spike #62). Without it
+    // every assertion below would be measuring a search that never corrects.
+    QVERIFY(m_store->correctionsReady());
+
+    QStringList corrected;
+
+    // #51 — a keyboard without umlauts. The correction runs and stays quiet:
+    // „pruefen" and „prüfen" are the same text once the German folding of
+    // SPEC 6 has been applied.
+    QCOMPARE(searchContents(QStringLiteral("pruefen")), QStringList({backup.content}));
+    QCOMPARE(m_store->search(QStringLiteral("pruefen"), &corrected).size(), 1);
+    QCOMPARE(corrected, QStringList());
+
+    // #52 — a typo on the neighbouring key. Same note, and this time the
+    // library is told which word was searched for instead.
+    QCOMPARE(searchContents(QStringLiteral("prüfem")), QStringList({backup.content}));
+    QCOMPARE(m_store->search(QStringLiteral("prüfem"), &corrected).size(), 1);
+    QCOMPARE(corrected, QStringList({QStringLiteral("prüfen")}));
+
+    // A word that resembles nothing in the corpus stays empty, and says
+    // nothing: the correction widens the search, it does not invent a hit.
+    QVERIFY(m_store->search(QStringLiteral("Kaltluftschleuse"), &corrected).isEmpty());
+    QCOMPARE(corrected, QStringList());
+
+    // The word list is external content like the trigram index, and it has to
+    // lose the old words of an edited note — otherwise the correction goes on
+    // offering a word that stands in no note, and the second pass then finds
+    // nothing while reporting that it searched for something.
+    Note edited = backup;
+    edited.id = *backupId;
+    edited.content = QStringLiteral("Backup der Bücher-Datenbank verschieben");
+    QVERIFY2(m_store->updateNote(edited), qPrintable(m_store->lastError()));
+    QVERIFY(m_store->search(QStringLiteral("prüfem"), &corrected).isEmpty());
+    QCOMPARE(corrected, QStringList());
+}
+
+void StoreTest::searchCorrectsAWordOutOfANoteJustWritten()
+{
+    // The word list of migration 8 is kept current by triggers, but the
+    // spellfix1 table it feeds is a copy in `temp` that nothing keeps current
+    // by itself — Store::prepareCorrections() has to notice the write and
+    // build it again. **This is the fault that breaks silently:** a note
+    // written a moment ago would not be reachable through a corrected search
+    // until the next start of the daemon, and neither the list nor the log
+    // would say why.
+    //
+    // The order is what makes the case one. The table has to exist **before**
+    // the note is written, or the first search below builds it from scratch,
+    // finds the new word in it, and passes over a store that notices nothing
+    // (finding 34: the input is arranged so that the wrong implementation
+    // cannot give the right answer).
+    Note first = sampleNote();
+    first.content = QStringLiteral("Backup der Bücher-Datenbank prüfen");
+    QVERIFY(m_store->addNote(first).has_value());
+
+    QStringList corrected;
+    QCOMPARE(m_store->search(QStringLiteral("prüfem"), &corrected).size(), 1);
+    QCOMPARE(corrected, QStringList({QStringLiteral("prüfen")}));
+
+    // Now a word the table cannot know yet.
+    Note second = sampleNote();
+    second.content = QStringLiteral("Zeppelin über dem Feld beobachtet");
+    second.createdAt = QDateTime::fromString(QStringLiteral("2026-07-30T09:00:00.000"), Qt::ISODateWithMs);
+    QVERIFY(m_store->addNote(second).has_value());
+
+    // The line that differs is the **hit count**: a stale table offers no
+    // correction at all, so the search stays empty and `corrected` stays empty
+    // with it — asserting only on `corrected` would pass over both states.
+    QCOMPARE(searchContents(QStringLiteral("zeppelim")), QStringList({second.content}));
+    QCOMPARE(m_store->search(QStringLiteral("zeppelim"), &corrected).size(), 1);
+    QCOMPARE(corrected, QStringList({QStringLiteral("zeppelin")}));
 }
 
 void StoreTest::searchMatchesAnyPartOfAWord()
@@ -646,11 +755,16 @@ void StoreTest::searchTakesQueryTextLiterally()
     // Both terms are in the note, so the search finds it.
     QCOMPARE(searchContents(QStringLiteral("Backup Notizen")), QStringList({note.content}));
 
-    // Adding AND in between finds nothing — and that is the point: AND is
-    // searched for as a word, and the note has none starting with „and". Were
-    // it read as an FTS5 operator, the note would still show up. The parser of
-    // S7 knows five operators and AND is not one of them.
-    QVERIFY(m_store->search(QStringLiteral("Backup AND Notizen")).isEmpty());
+    // AND is searched for as a word: the parser of S7 knows five operators and
+    // AND is not one of them. What says so is the **correction**: the note is
+    // found, and only after „and" was replaced by „und", which is the one word
+    // of this note that comes close. Read as an FTS5 operator, AND would have
+    // dropped out of the query and the first pass would have found the note
+    // with nothing to correct — so the reported word is what tells the two
+    // readings apart (issue #69).
+    QStringList corrected;
+    QCOMPARE(m_store->search(QStringLiteral("Backup AND Notizen"), &corrected).size(), 1);
+    QCOMPARE(corrected, QStringList({QStringLiteral("und")}));
 
     // Punctuation that is FTS5 syntax must not raise a search error either;
     // outside a phrase it separates terms like any other character.
@@ -1095,7 +1209,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 7);
+    QCOMPARE(m_store->schemaVersion(), 8);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -1195,7 +1309,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 7);
+    QCOMPARE(m_store->schemaVersion(), 8);
     QCOMPARE(m_store->notes().size(), 3);
 }
 

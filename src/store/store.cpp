@@ -6,12 +6,23 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSet>
+#include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QStandardPaths>
 #include <QUuid>
+#include <QVariant>
+
+#include <sqlite3.h>
 
 #include <cstring>
+
+// third_party/spellfix/spellfix.c, compiled into this library with
+// SQLITE_CORE=1 (src/CMakeLists.txt). The entry point keeps C linkage; the
+// api-routines argument stays a null pointer, which is what a statically
+// linked extension passes.
+struct sqlite3_api_routines;
+extern "C" int sqlite3_spellfix_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
 
 namespace
 {
@@ -221,6 +232,74 @@ const QList<QStringList> &migrations()
             QStringLiteral("ALTER TABLE notes ADD COLUMN origin TEXT"),
             QStringLiteral("ALTER TABLE notes ADD COLUMN origin_app TEXT"),
         },
+        // Version 8 — what the tolerant search of SPEC 6 needs beside the
+        // trigram index (issue #69): a list of the words the corpus holds, and
+        // a table of German edit costs. The spellfix1 table itself is **not**
+        // here — it is built in `temp`, see Store::prepareCorrections().
+        //
+        // **A second index and not the existing one**, because the trigram
+        // index has no words in it: its vocabulary is three-character
+        // fragments, and a correction offered out of it would be a fragment.
+        // `unicode61` is the tokenizer that cuts at word boundaries, and it is
+        // read for nothing else — no query touches `notes_words`, only the
+        // `fts5vocab` view of it.
+        //
+        // **`remove_diacritics 0`, and that is a condition rather than a
+        // preference** (spike #62): with 1 the word list would read „prufen",
+        // the correction would hand the user a word that stands in no note,
+        // and the second pass would search for it and find nothing. The word
+        // list has to be spelled the way the notes are.
+        {
+            QStringLiteral("CREATE VIRTUAL TABLE notes_words USING fts5("
+                           "  content,"
+                           "  content='notes',"
+                           "  content_rowid='id',"
+                           "  tokenize='unicode61 remove_diacritics 0')"),
+            // The three triggers of migration 2, for the same reason: a
+            // deletion is written as a 'delete' command carrying the *old*
+            // text. With the new text the old words stay in the list, and the
+            // correction offers a word nobody wrote any more.
+            QStringLiteral("CREATE TRIGGER notes_words_after_insert AFTER INSERT ON notes BEGIN"
+                           "  INSERT INTO notes_words (rowid, content) VALUES (new.id, new.content);"
+                           " END"),
+            QStringLiteral("CREATE TRIGGER notes_words_after_delete AFTER DELETE ON notes BEGIN"
+                           "  INSERT INTO notes_words (notes_words, rowid, content)"
+                           "  VALUES ('delete', old.id, old.content);"
+                           " END"),
+            QStringLiteral("CREATE TRIGGER notes_words_after_update AFTER UPDATE ON notes BEGIN"
+                           "  INSERT INTO notes_words (notes_words, rowid, content)"
+                           "  VALUES ('delete', old.id, old.content);"
+                           "  INSERT INTO notes_words (rowid, content) VALUES (new.id, new.content);"
+                           " END"),
+            // Every note written before this migration, as migration 2 does it.
+            QStringLiteral("INSERT INTO notes_words (notes_words) VALUES ('rebuild')"),
+            // One row per distinct word — the vocabulary the correction picks
+            // from.
+            QStringLiteral("CREATE VIRTUAL TABLE notes_words_vocab USING fts5vocab('notes_words', 'row')"),
+            // The German rules of SPEC 6. The four column names are the ones
+            // spellfix1 reads; the table name is what `edit_cost_table=` is
+            // pointed at.
+            //
+            // **Both directions of every rule**, because the cost is asked of
+            // the way from the typed word to the stored one, and the user
+            // types „prüfen" as readily as „pruefen".
+            //
+            // **Cost 1 and not 0**: at 0 „pruefen" and „prüfen" would be the
+            // same word to editdist3, and the ranking could not tell the
+            // spelling variant from a second word standing at the same
+            // distance. 1 is as close to free as this table goes while staying
+            // a difference.
+            QStringLiteral("CREATE TABLE editcost ("
+                           "  iLang INTEGER NOT NULL,"
+                           "  cFrom TEXT NOT NULL,"
+                           "  cTo TEXT NOT NULL,"
+                           "  iCost INTEGER NOT NULL)"),
+            QStringLiteral("INSERT INTO editcost (iLang, cFrom, cTo, iCost) VALUES"
+                           " (0, 'ue', 'ü', 1), (0, 'ü', 'ue', 1),"
+                           " (0, 'ae', 'ä', 1), (0, 'ä', 'ae', 1),"
+                           " (0, 'oe', 'ö', 1), (0, 'ö', 'oe', 1),"
+                           " (0, 'ss', 'ß', 1), (0, 'ß', 'ss', 1)"),
+        },
     };
     return steps;
 }
@@ -357,6 +436,60 @@ QString noteColumns()
 constexpr qsizetype trigramLength = 3;
 
 /**
+ * The `sqlite3*` behind a Qt connection, or nullptr if the driver is not
+ * QSQLITE.
+ *
+ * The one instance of SQLite in the process: the Qt driver links the shared
+ * `libsqlite3` and spellfix.c is compiled against the same one, which is the
+ * first of the five conditions of spike #62.
+ */
+sqlite3 *sqliteHandle(const QSqlDatabase &db)
+{
+    const QVariant handle = db.driver()->handle();
+    if (!handle.isValid() || qstrcmp(handle.typeName(), "sqlite3*") != 0) {
+        return nullptr;
+    }
+    return *static_cast<sqlite3 *const *>(handle.constData());
+}
+
+/**
+ * Most a correction of SPEC 6 may cost, in the units of `editdist3`.
+ *
+ * spellfix1 counts **costs**, not edits: an ordinary substitution is 150 and
+ * an insertion or a deletion 100, while the `editcost` table of migration 8
+ * puts the German umlaut rules at 1 apiece. So 150 means „any number of
+ * umlaut spellings, and at most one ordinary typo" — which is exactly the two
+ * cases the story is for, „pruefen" (cost 1) and „prüfem" (cost 150).
+ *
+ * A ceiling read as a number of edits does not work here and that was
+ * measured in spike #62: a threshold of 2 or less admits the spelling
+ * variants and locks every typo out.
+ */
+constexpr int correctionCostCeiling = 150;
+
+/**
+ * The German folding of SPEC 6: „ü" and „ue" become the same text.
+ *
+ * It decides whether a correction is one the user has to be told about. Whoever
+ * types „pruefen" and gets „prüfen" has not mistyped anything — they wrote on a
+ * keyboard without umlauts, which is what SPEC 6 already answers silently for
+ * „bucher" → „Bücher". Whoever types „prüfem" has, and the library says so.
+ *
+ * A comparison and not a cost, on the UX decision of 30.08.2026: the boundary
+ * between the two cases is a spelling rule with four entries, and a number
+ * beside it would have to be calibrated and maintained.
+ */
+QString germanFold(const QString &word)
+{
+    QString folded = word.toCaseFolded();
+    folded.replace(QStringLiteral("ü"), QStringLiteral("ue"));
+    folded.replace(QStringLiteral("ö"), QStringLiteral("oe"));
+    folded.replace(QStringLiteral("ä"), QStringLiteral("ae"));
+    folded.replace(QStringLiteral("ß"), QStringLiteral("ss"));
+    return folded;
+}
+
+/**
  * Wraps a search term as a LIKE pattern that matches it anywhere.
  *
  * A term out of the parser is a word of letters and digits **or** a phrase the
@@ -443,7 +576,117 @@ bool Store::open()
         return false;
     }
 
+    m_spellfixReady = registerSpellfix();
+
     return migrate();
+}
+
+bool Store::registerSpellfix()
+{
+    // The registration applies **per connection** and not per database file
+    // (spike #62), which is why it stands here and not in a migration: every
+    // Store that opens this file registers the extension again on its own
+    // handle.
+    sqlite3 *const db = sqliteHandle(m_db);
+    if (db == nullptr || sqlite3_spellfix_init(db, nullptr, nullptr) != SQLITE_OK) {
+        return false;
+    }
+
+    // Read back at the service and not trusted: `SQLITE_OK` says the call
+    // returned, this query says the function is there. Without the extension
+    // it fails with „no such function".
+    QSqlQuery probe(m_db);
+    return probe.exec(QStringLiteral("SELECT editdist3('prüfem', 'prüfen')")) && probe.next();
+}
+
+bool Store::correctionsReady() const
+{
+    return m_spellfixReady;
+}
+
+bool Store::prepareCorrections() const
+{
+    if (!m_spellfixReady) {
+        return false;
+    }
+
+    // The spellfix1 table lives in `temp` and is built when it is first
+    // needed. It is derived data with no way of keeping itself current —
+    // spellfix1 offers no hook a trigger could hang on — so a copy in the
+    // database file would drift away from the notes: offering words nobody
+    // wrote any more, missing the ones just written, and saying so nowhere.
+    //
+    // What says it is out of date is SQLite's own row counter for this
+    // connection. It counts every INSERT, UPDATE and DELETE, the ones the FTS
+    // triggers make included, so no write to a note can slip past it — which
+    // a list of call sites in this file could. It counts a little too much
+    // (a tag, a job row and a schema version move it as well) and that costs
+    // one rebuild that would not have been needed. It does not see a **second
+    // process** writing the same file; the daemon is single-instance
+    // (SPEC 2.3) and there is no second writer.
+    sqlite3 *const db = sqliteHandle(m_db);
+    if (m_correctionsReady && sqlite3_total_changes(db) == m_correctionsBuiltAt) {
+        return true;
+    }
+
+    // ponytail: the build reads the whole word list. Ceiling: **62 ms** at
+    // 20,000 notes and a list of 17,030 words (measured 30.08.2026, machine at
+    // load 0.3 — 114 ms for the first search that finds nothing against 52 ms
+    // for every one after it). It is paid on that first search and again on
+    // the first such search after a write; while a search has hits the second
+    // pass of SPEC 6 does not run at all. The way up is an incremental update,
+    // which needs a word list of our own instead of fts5vocab: spellfix1 takes
+    // INSERT and DELETE, but nothing tells us which words a changed note added
+    // and which it took away.
+    static const QStringList steps = {
+        QStringLiteral("DROP TABLE IF EXISTS temp.notes_spellfix"),
+        QStringLiteral("CREATE VIRTUAL TABLE temp.notes_spellfix USING spellfix1"),
+        QStringLiteral("INSERT INTO temp.notes_spellfix (word) SELECT term FROM notes_words_vocab"),
+        // The German rules of migration 8. The name is unqualified because
+        // spellfix1 builds the query itself; SQLite resolves it against
+        // `temp` first and then against `main`, where the table stands.
+        QStringLiteral("INSERT INTO temp.notes_spellfix (command) VALUES ('edit_cost_table=editcost')"),
+    };
+    for (const QString &statement : steps) {
+        QSqlQuery query(m_db);
+        if (!query.exec(statement)) {
+            // Not into `m_lastError`: the correction is a widening of the
+            // search, and its failure is not the search's. Written there it
+            // would leave a **successful** search reporting an error, because
+            // search() clears the field on the way in and nothing clears it
+            // again afterwards. The journal is where a fault of this kind
+            // belongs (CLAUDE.md, "Before handover").
+            qWarning("the correction of SPEC 6 is unavailable: %s", qUtf8Printable(query.lastError().text()));
+            return false;
+        }
+    }
+
+    m_correctionsReady = true;
+    // Read **after** the build: filling the table is itself a few thousand
+    // row changes, and taken beforehand the mark would be stale the moment it
+    // is written — every following search would rebuild.
+    m_correctionsBuiltAt = sqlite3_total_changes(db);
+    return true;
+}
+
+QString Store::correctionFor(const QString &term) const
+{
+    QSqlQuery query(m_db);
+    // `top = 1` asks for the single best candidate; without it spellfix1
+    // answers with twenty. The ceiling is a constraint of the query rather
+    // than a comparison afterwards, so spellfix1 stops looking once it is
+    // exceeded.
+    query.prepare(QStringLiteral("SELECT word FROM temp.notes_spellfix"
+                                 " WHERE word MATCH :term AND top = 1 AND distance <= :ceiling"));
+    // Condition 5 of spike #62: the word list is what the `unicode61`
+    // tokenizer wrote, and that is lower case. A term in any other spelling
+    // would be measured against a vocabulary spelled differently.
+    query.bindValue(QStringLiteral(":term"), term.toCaseFolded());
+    query.bindValue(QStringLiteral(":ceiling"), correctionCostCeiling);
+    if (!query.exec() || !query.next()) {
+        return {};
+    }
+    return query.value(0).toString();
 }
 
 bool Store::migrate()
@@ -634,14 +877,73 @@ QList<Note> Store::notes() const
     return notes;
 }
 
-QList<Note> Store::search(const QString &text) const
+QList<Note> Store::search(const QString &text, QStringList *correctedTo) const
 {
+    if (correctedTo != nullptr) {
+        correctedTo->clear();
+    }
+
     m_lastError.clear();
     const SearchQuery parsed = parseSearchQuery(text);
     if (parsed.isEmpty()) {
         return notes();
     }
 
+    // Not const: it is handed back on two roads below, and a const local
+    // cannot be moved out of.
+    QList<Note> literal = notesMatching(parsed);
+    // **The second pass runs on nothing found and not on few found**
+    // (UX decision 30.08.2026): every hit of the first pass is a hit on what
+    // the user really typed, and putting hits on another word beside them
+    // would push their own result out of the list. The trigram tokenizer finds
+    // parts of words at any position, so „p", „pr" and „prüfe" all have hits
+    // while a correct word is being typed — the correction therefore fires at
+    // the moment a wrong word is finished, and not on the way there.
+    if (!literal.isEmpty() || !prepareCorrections()) {
+        return literal;
+    }
+
+    SearchQuery corrected = parsed;
+    QStringList replaced;
+    bool changed = false;
+    for (QString &term : corrected.terms) {
+        // A phrase carries spaces and is searched for as it stands; the word
+        // list holds single words, so there is nothing to look a phrase up in.
+        // Terms below three characters take the substring route, where a
+        // correction would turn „ad" into some word of the corpus.
+        if (term.size() < trigramLength || term.contains(QLatin1Char(' '))) {
+            continue;
+        }
+        const QString candidate = correctionFor(term);
+        if (candidate.isEmpty() || candidate.compare(term, Qt::CaseInsensitive) == 0) {
+            continue;
+        }
+        // Only a real typo is reported. „pruefen" and „prüfen" fold to the
+        // same text, and then nothing happened the user has to be told about.
+        if (germanFold(candidate) != germanFold(term)) {
+            replaced.append(candidate);
+        }
+        term = candidate;
+        changed = true;
+    }
+    if (!changed) {
+        return literal;
+    }
+
+    const QList<Note> found = notesMatching(corrected);
+    if (found.isEmpty()) {
+        // Nothing was gained, so nothing is said: the library keeps its "No
+        // matches" page with the sentence it has always carried.
+        return found;
+    }
+    if (correctedTo != nullptr) {
+        *correctedTo = replaced;
+    }
+    return found;
+}
+
+QList<Note> Store::notesMatching(const SearchQuery &parsed) const
+{
     // Terms of three characters and more go through the trigram index. Shorter
     // ones cannot be in it — a trigram is three characters by definition — and
     // take a plain substring comparison instead, so that „KI" or „PO" find

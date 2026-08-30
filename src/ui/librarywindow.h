@@ -473,6 +473,24 @@ private:
     KMessageWidget *m_message;
 
     QStackedWidget *m_listPages;
+
+    /**
+     * The one line the tolerant search of SPEC 6 says anything in (issue #69,
+     * UX decision 30.08.2026).
+     *
+     * It stands above the list and reads „Ergebnisse für „prüfen““ when the
+     * search was run a second time with a **corrected** word. A spelling
+     * variant — „pruefen" for „prüfen" — leaves it hidden: the user has not
+     * mistyped anything, and SPEC 6 already answers that case silently for
+     * „bucher" → „Bücher". It is not clickable and needs no way back: what was
+     * typed stands unchanged in the search field, and the field's clear button
+     * is the way back.
+     *
+     * Hidden it takes no height, the rule the message band follows for itself
+     * (wireframe 2c).
+     */
+    QLabel *m_correctionLine;
+
     QWidget *m_emptyLibraryPage;
 
     /**

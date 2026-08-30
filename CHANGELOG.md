@@ -12,6 +12,26 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **The search now also finds what you mistyped or wrote without umlauts.** If
+  a search comes back empty, it runs a second time with the word corrected:
+  „pruefen" finds „prüfen", „strassenbahn" finds „Straßenbahn", and the typo
+  „prüfem" finds it as well. Whoever only left the umlauts out notices nothing
+  of it — that is not a typo but a keyboard without umlauts. Where it really
+  was a typo, a dimmed line stands above the list, „Ergebnisse für „prüfen““;
+  it cannot be clicked, because what was typed stands unchanged in the search
+  field and the field's clear button is the way back. If the correction finds
+  nothing either, „Keine Treffer" stands as before. A search that finds
+  something straight away changes in nothing — neither in its result nor in its
+  speed: the second pass runs only on no hits at all (#69, replaces #51 and
+  #52).
+
+  **Schema change to version 8.** At the next start the database gains a second
+  word index and a table of German correction rules; that happens by itself on
+  opening and takes no noticeable time for an ordinary collection. Notes, tags
+  and vectors are untouched. On disk the new index costs 1.3 MiB beside the
+  16.1 MiB the same collection took at 20,000 notes. There is no way back to
+  the previous version — an older Denkzettel will not open the file any more.
+
 - **An analysis run can be started from the library.** The application menu
   behind the hamburger button carries „Jetzt analysieren" as its first entry,
   in the wording and with the symbol the tray entry has always had — it is the

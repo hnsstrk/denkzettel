@@ -29,7 +29,16 @@ Amalgamation noch als ausgeliefertes Modul. Anwendungen, die es wollen,
 kompilieren diese eine C-Datei mit ein und registrieren sie am Datenbank-Handle
 (`recherche/2026-08-02-fuzzy-suche.md`, Befund 1).
 
-Stand 02.08.2026 ist das **Spike-Material zu Issue #62**, kein Produktivcode:
-Der Bauschalter `DENKZETTEL_SPIKE_SPELLFIX` steht standardmäßig auf `OFF`, und
-ohne ihn wird die Datei nicht übersetzt. Ob sie bleibt, entscheidet die
-Umsetzungs-Story.
+Seit Issue #69 (30.08.2026) ist das **Produktivcode**: Die Datei wird ohne
+Schalter mitübersetzt (`SQLITE_CORE=1`, `src/CMakeLists.txt`), und
+`Store::open()` registriert sie an dem `sqlite3*`, den der Qt-Treiber
+herausgibt. Der Bauschalter `DENKZETTEL_SPIKE_SPELLFIX` des Spikes ist damit
+weg — die tolerante Suche aus SPEC 6 hängt daran, und ein Bau ohne sie wäre ein
+anderes Produkt.
+
+Die Lint-Sperre ist doppelt und beide Hälften sind gemessen (30.08.2026): Die
+Dateiliste der Lint-Ziele sammelt nur `src/*.cpp` und `tests/*.cpp` ein, deshalb
+kommt `spellfix.c` in keinem der 71 Läufe von `lint-tidy` und `lint-clazy` vor,
+obwohl es dreimal in der Compile-Datenbank steht. Und die `.clang-tidy` daneben
+fängt den Lauf von Hand ab: `clang-tidy -p build/lint third_party/spellfix/spellfix.c`
+meldet mit ihr keinen einzigen Befund und ohne sie **27**.
