@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 10:29+0200\n"
+"POT-Creation-Date: 2026-08-30 10:51+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,37 +39,47 @@ msgstr ""
 msgid "The answer carried no embedding vector."
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:34
+#: src/analysis/ollamaprovider.cpp:32
 #, kde-format
 msgid "Ollama did not answer within the time limit."
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:46
+#: src/analysis/ollamaprovider.cpp:49
+#, kde-format
+msgid "Ollama took longer over this call than it is allowed."
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:89
 #, kde-format
 msgid "Ollama refused the request: %1"
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:50
+#: src/analysis/ollamaprovider.cpp:94
 #, kde-format
 msgid "Ollama could not be reached: %1"
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:54
+#: src/analysis/ollamaprovider.cpp:98
 #, kde-format
 msgid "Ollama answered with HTTP status %1."
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:58
+#: src/analysis/ollamaprovider.cpp:102
 #, kde-format
 msgid "Ollama sent an unreadable answer: %1"
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:64
+#: src/analysis/ollamaprovider.cpp:124
+#, kde-format
+msgid "Ollama's answer broke off."
+msgstr ""
+
+#: src/analysis/ollamaprovider.cpp:136
 #, kde-format
 msgid "Ollama's answer carried no text."
 msgstr ""
 
-#: src/analysis/ollamaprovider.cpp:74
+#: src/analysis/ollamaprovider.cpp:147
 #, kde-format
 msgid "Ollama's answer carried no embedding."
 msgstr ""

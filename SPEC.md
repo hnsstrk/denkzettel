@@ -776,9 +776,52 @@ Without a reachable provider for embeddings, Denkzettel degrades visibly:
 classification through the chosen provider keeps working, topic bundles are
 dropped (hint in the settings and the tray tooltip).
 
-All calls through Qt Network, asynchronous, with a timeout (30 s) and one
-retry. "Test connection" in the settings makes one mini `chat` call and (with
-Ollama) one `embed` call each and shows the latency or the error.
+All calls through Qt Network, asynchronous, with one retry and **two limits per
+call**: 30 s in which nothing at all arrives, and 5 minutes for the whole call
+(decision 30.08.2026, issue #121).
+
+**The 30 s measure silence.** The chat call streams and its lines are put back
+together before anybody sees them, so 7.2 still reads one JSON document per
+note. Unstreamed, the limit covered the model load and the whole generation in
+one budget, and the first note after a start paid one of its two attempts for a
+server that was merely cold. Measured on 30.08.2026 against Ollama 0.32.15 and
+`qwen3:8b`: reading the 5.2 GB blob at 5.9 GB/s of cold throughput takes under
+a second, an 18 GB model about 3.1 s.
+
+**The load is the smaller half, and what decides the time is how many tokens
+the model reasons for.** At a throughput measured constant to 1.2 % — 92.5 to
+93.6 tokens per second over five runs — 30 s hold about **2,800 output
+tokens**, and a reasoning of that length is ordinary for a thinking model
+rather than exceptional. Identical input produced 477 to 1,385 tokens in those
+five runs and 1,466 to 4,153 in four runs of another note — both series
+`eval_count`, read off the answer. The second took 18.1 s to 46.9 s of wall
+time, and the same rate accounts for it once prompt evaluation and transfer are
+added: 1,466 tokens are 15.8 s of generation, 4,153 are 44.7 s. The conversion
+rate is what carries here; the seconds are a snapshot of one note on one
+machine and say nothing about how often the limit is reached.
+
+**The 5 minutes bound the call**, because the limit above no longer does: a
+server sending one byte every 29 s would hold an analysis run for ever, and
+nothing else ends one — 7.2 carries the interval between runs, not a bound on a
+call. Exceeded, the request is aborted, and what that costs depends on which
+step was calling — the two are not the same and 7.2 decides it, not this
+section. **Classification counts one attempt**, as it does for every failure:
+the chat answer carries no failure value, so the run goes on to the next note
+with this one a step nearer its limit. **Embedding counts none**: the failure
+is an unreachable backend, and there the run stops instead, on the ground that
+the next note would fare exactly the same. Either way the call ends, which is
+the point — a run has to end, and a hanging call reaches no reporting channel
+at all (§14). The bound is deliberately generous: healthy calls were measured
+up to 46.9 s, and a tight one would repeat issue #121 one storey up.
+
+**It is §12's number and not §12's rule.** Transcription allows five minutes
+per **job**, and the ground there is the product — Denkzettel is no audio
+recorder. Here it is five minutes per **call**, and the ground is the loop
+discipline of 7.2: turn a silent hang into an error the attempt counter can
+deal with. Same number, two reasons, and neither follows from the other.
+
+"Test connection" in the settings makes one mini `chat` call and (with Ollama)
+one `embed` call each and shows the latency or the error.
 
 ### 7.2 Analysis run
 

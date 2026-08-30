@@ -44,9 +44,16 @@ struct OllamaAnswer {
  *
  * A pure function and not a method, so the mapping can be checked without a
  * server: every case below is one an `aitest` function hands in directly.
+ *
+ * **The body is read as lines, not as one document** (issue #121): the chat
+ * call streams, so it arrives as one JSON object per line, and an embedding —
+ * which does not stream — is one such line. What the six cases say is
+ * unchanged by it.
+ *
  * The order the cases are tried in is the order of what the user needs told:
  *
- * 1. **The transfer ran out of time** — the timeout of SPEC 7.1 bit. It
+ * 1. **The transfer ran out of time** — the timeout of SPEC 7.1 bit, meaning
+ *    30 s in which nothing arrived at all. It
  *    arrives as `TimeoutError`, measured; `OperationCanceledError`, which Qt's
  *    documentation of `setTransferTimeout` names, is mapped beside it and is
  *    unreachable in this program today (see the comment at the case).
@@ -110,9 +117,14 @@ QString configuredEmbeddingModel();
  * afterwards — the settings dialog of SPEC 13 writes them, and a check points
  * them at a port that is not listening.
  *
- * Non-streaming on purpose: SPEC 7.2 wants one JSON document per note, not a
- * token trickle, and with `stream: false` the transfer timeout below is a
- * deadline for the whole answer.
+ * **The chat call streams and the answer is put back together here** (issue
+ * #121). SPEC 7.2 still gets one JSON document per note; what the stream
+ * changes is the transfer timeout below, which measured the whole answer while
+ * nothing arrived until it was finished. A cold Ollama loads the model on the
+ * first call, and that load fell into the same 30 s as the thinking — so the
+ * first note after a start paid one of its two attempts for having been first.
+ * Streamed, the limit is what SPEC 7.1 means by it: 30 s in which the server
+ * said nothing.
  */
 class OllamaProvider : public AiProvider
 {
@@ -131,10 +143,25 @@ public:
     QString embeddingModel() const;
 
     /**
-     * The 30 s of SPEC 7.1, settable because a check that waits half a minute
-     * for the limit to bite is one nobody runs.
+     * The 30 s of silence of SPEC 7.1, settable because a check that waits half
+     * a minute for the limit to bite is one nobody runs.
      */
     void setTimeout(std::chrono::milliseconds timeout);
+
+    /**
+     * The 5 minutes one call may take all told (SPEC 7.1, decision
+     * 30.08.2026), settable for the reason above and rather more so.
+     *
+     * Since the chat call streams, setTimeout() above bounds a **stretch of
+     * silence** and no longer bounds the call: a server sending one byte every
+     * 29 s holds an analysis run for ever, and nothing else in the tree ends it
+     * — AnalysisScheduler carries the interval between runs, not a bound on
+     * one. The number is SPEC 12's, and deliberately generous: healthy calls
+     * were measured up to 46.9 s, and a tight bound would repeat issue #121 one
+     * storey up. What it is for is to turn a silent hang into an error the
+     * attempt counter of SPEC 7.2 can deal with.
+     */
+    void setCallLimit(std::chrono::milliseconds limit);
 
     int chat(const QString &prompt) override;
     int embed(const QString &text) override;
@@ -233,4 +260,5 @@ private:
     QString m_chatModel;
     QString m_embeddingModel;
     std::chrono::milliseconds m_timeout = std::chrono::seconds(30);
+    std::chrono::milliseconds m_callLimit = std::chrono::minutes(5);
 };

@@ -1193,6 +1193,68 @@ find.
     process found and not only the first, and a run that starts a daemon ends
     it again, or it outlives the shell that started it.
 
+76. **How long a thinking model takes is no property of the note, so a limit
+    near that range fails by a coin toss — and a before/after run against the
+    real server comes out green on the broken build.** Measured 2026-08-30 on
+    #121, and each of the three parts cost a run:
+
+    - **The reproduction.** The first walk put a 316-word note through the
+      **unfixed** daemon against a cold Ollama and came back
+      `analysiert | persoenlich | 0 attempts` — which reads as "the bug is not
+      here". Four runs of the same note through the same prompt on the same
+      server then took 18.1 s, 46.9 s, 22.5 s and 45.7 s, two of them over the
+      30 s of SPEC 7.1 and two under it. Nothing about the note decides which.
+      So a fault that hangs on a limit is not shown by a run against a live
+      model, and the control has to be a stand-in that takes the same time
+      **every** time — here one that sends nothing for 45 s unstreamed and a
+      chunk a second streamed, which is what the real server was measured to
+      do. Against that the same pair came out different at once:
+      `neu | 1 attempt | "Ollama did not answer within the time limit."`
+      against `analysiert | todos | 0 attempts`.
+    - **And four seconds-values are not a frequency.** The review's own five
+      runs on another note reached 5.2 to 15.0 s and broke the limit **not
+      once**, which reads like a contradiction and is none: the throughput was
+      constant to 1.2 % (92.5 to 93.6 tokens per second, `prompt_eval_count`
+      identical, `load_duration` zero) while the token count ran from 477 to
+      1,385. The time is a linear reading of the reasoning tokens and of
+      nothing else, so both series lie on one line and the seconds are a
+      snapshot of one note on one machine. What generalises is the rate — at
+      93 tok/s the 30 s hold about 2,800 output tokens — and that is what
+      belongs in a binding text; the seconds may stand beside it as an example,
+      never as a measure.
+    - **A shortened prompt is a different measurement.** The first number
+      written into the commit message, 34.8 s, came from a probe that sent an
+      abbreviated version of `classificationPrompt()`. The real prompt, with
+      its schema and its rules, makes the same model reason **less**. A probe
+      that rebuilds a prompt by hand measures the prompt it rebuilt (finding
+      58's family for the input rather than the placeholders); the review's
+      probe linked `libdenkzettelanalysis` and called the function.
+    - **A lever is read back, or the run measures nothing** — and this is the
+      part that was reported wrong before the review caught it. `ollama stop`
+      is not a cold start: it frees the graphics card, the model file stays in
+      the page cache. But `posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED)` on the
+      blob does **not** get it out either, and the numbers reported from it —
+      2.3 s and 6.5 s — were warm loads wearing a cold label, indistinguishable
+      from the 1.96 s a plain reload measures. `mincore()` over an own `mmap`
+      says so in one line: every page resident before the call and after it, on
+      two models — 1275727 of 1275727 for `qwen3:8b` and 1305644 of 1305644 for
+      `granite4.1:8b`, which was not even loaded — while the same tool on a file
+      of the run's own on the same btrfs went 153600/153600 → **0**/153600. The
+      lever works, the object refuses it — most likely because the running
+      service holds the blobs mapped. Whoever drops a cache reads the cache
+      back, the way finding 28 reads the style name back.
+
+      **And the control has to be able to fail.** The review's first control
+      file lay under `/tmp`, which is tmpfs — there the pages *are* the file
+      and `DONTNEED` can never discard anything. That run looked exactly like a
+      confirmation of the finding and was a property of the file system.
+
+      What carried in the end needed no lever at all: on a file measured
+      **empty** by the same readback, cold throughput is 5.9 GB/s, so the
+      5.2 GB blob is read in under a second and an 18 GB model in about 3.1 s.
+      The conclusion the numbers were for — the load is the smaller half — came
+      out stronger for being reckoned instead of staged.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
