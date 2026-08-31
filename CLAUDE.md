@@ -1168,6 +1168,21 @@ find.
     a default can be overruled by a stored value, read the store beside the
     code — two actions with the same code are not two runs of the same case.
 
+    **Two corrections from 2026-08-31, when #142 settled where the `none` came
+    from: our own registration writes it, at every login, because the desktop
+    file declares no `X-KDE-Shortcuts`.** With that the mechanism above stands
+    unchanged and the sentence "not established" is retired. But **the dating
+    does not hold, and the entry cannot be reproduced as written**: an hourly
+    backup of the customer's real `kglobalshortcutsrc` shows no group of ours
+    in any of 36 snapshots from 24.08. to 29.08. 23:02, and the group appears
+    for the first time on 30.08. 08:03. So on the day this was measured, that
+    `none` was not in the file this entry names. The likeliest reading is that
+    it was read out of one of the dozens of isolated sessions running that day,
+    each with an `XDG_CONFIG_HOME` of its own — finding 21 in its purest form,
+    and unproven either way. Whoever cites this entry cites the mechanism, never
+    the date; and whoever measures a user's configuration says **which** file
+    the run actually opened (finding 54).
+
 73. **A prompt to the user inside a running tool call reaches them only after
     the call has ended.** Measured 2026-08-29 on #125: a bus capture was to
     show whether a key press puts anything on the wire, and the line asking for
@@ -1418,6 +1433,65 @@ find.
       --statistics` is: **193 → 202**, and it counts no header. Where a
       catalogue is reported on, the total comes from `msgfmt` and the departures
       come from a set comparison whose entries are read.
+
+81. **The modification time of a shared configuration file names its last
+    writer, never the writer of the value you are reading — and a value that
+    renews itself has no age at all.** Measured 2026-08-31 on #142, and it sent
+    the diagnosis to the wrong application twice. The customer reported both
+    global shortcuts dead and suspected a dictation tool he had just installed;
+    `~/.config/kglobalshortcutsrc` held `show-capture=none` and
+    `show-recorder=none`, and its mtime fell in **the same minute** as that
+    tool's start. Two facts, one minute apart, and the wrong conclusion. The
+    file is written by kglobalacceld for **every** component: `writeSettings()`
+    opens with `config.deleteGroup()` and writes the whole component back, so
+    any foreign registration restamps our entries without touching their
+    content. The tool was cleared three times over, and only the third way
+    needed no reading of anybody's source: its own source never names
+    `kglobalshortcutsrc`, `kwriteconfig` or `kreadconfig`, it calls neither
+    `setForeignShortcut` nor `stealGlobalShortcutSystemwide`, and the package
+    log has it installed at **30.08. 11:22:58** while an hourly backup carries
+    the first `none` at **30.08. 08:03** — three hours and nineteen minutes
+    before the suspect reached the machine, and a day and a half before the
+    start that restamped the file and raised the suspicion. The same backup
+    shows **no** group of ours at all in 36 snapshots from 24.08. to 29.08.,
+    so the value has no earlier occurrence in that file to argue about.
+    What actually wrote the value was our own start, at every login, out of a
+    missing `X-KDE-Shortcuts=` in the desktop file. **The general rule:** where
+    several producers write one file, its timestamp answers a question nobody
+    asked. What carries is the history — a backup, a snapshot, a version — and
+    a value the system regenerates each session has no first occurrence in the
+    file at all, only in the code that regenerates it. Ask what **rewrites**
+    the file before reading its age as evidence.
+
+    **And the reason our entry can be regenerated wrong at all is that the two
+    writers of that one file are asymmetric.** `Component::writeSettings`
+    (`component.cpp:373-377`) writes three fields — active keys, **default
+    keys** and friendly name — so an ordinary component's default stands on
+    disk and survives anything: `Edit Tiles=Meta+T,Meta+T,…`.
+    `KServiceActionComponent::writeSettings` (`kserviceactioncomponent.cpp:132`)
+    writes the active keys and **nothing else**, because a service action
+    component's default is meant to come out of `X-KDE-Shortcuts` afresh every
+    session. Without that key the default is neither stored nor recoverable,
+    and the same file that would have carried another component safely through
+    carries ours as a bare `none`. Which half of a config file is authoritative
+    can differ **per writer within one file** — read the writer of your own
+    entries, not the neighbouring line that looks like it.
+
+    **And the neighbouring trap, which cost the same run:** the value looked
+    corrupted, and was not. Beside our two lines stood a foreign component's
+    entry, `dictation=Meta+Ctrl+,none,…` — the product is left unnamed because
+    this repository is public and what a user has installed is not ours to
+    publish; the statement carries without it. Its active field reads
+    as a truncated `Meta+Ctrl+` — so the file looked damaged and a damaged file
+    looked like the cause. It is a **modifier-only** binding, and
+    `QKeySequence::toString()` writes exactly that: `encodeString` appends the
+    key name unconditionally after its `+`, and `keyName(0, …)` returns empty
+    because every one of its branches tests a truthy key. The discriminator was
+    the byte that was **not** there: KConfig escapes an embedded comma as `\,`
+    in `serializeList` with no path around it, and `cat -A` showed no
+    backslash — which refutes the comma reading rather than supporting it.
+    A field separator that can also be payload is read with `cat -A`, and the
+    absent escape is the evidence, not the plausible-looking string.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been

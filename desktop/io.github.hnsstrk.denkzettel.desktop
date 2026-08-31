@@ -48,6 +48,25 @@ Actions=show-capture;show-recorder;
 Name=Capture note
 Name[de]=Notiz erfassen
 Exec=denkzetteld
+# The only source of the default key, and it has to repeat what
+# GlobalShortcuts::defaultSequence() returns (globalshortcuts.cpp:85-91) —
+# shelltest's theDesktopFileCarriesTheDefaultSequenceOfEveryShortcut() holds the
+# two against each other, because it is the only set that links the shell
+# library and can read this file. Not installtest: that one says of itself that
+# it cannot see the code side (installtest.cmake:44-50). Whoever changes one
+# side changes both.
+#
+# Without this line the shortcut is dead from the first session and cannot heal
+# itself (issue #142, measured 31.08.2026). For a service action component
+# KServiceActionComponent::loadSettings() builds the default out of this key and
+# out of nothing else, while the autoloading road our own registration takes is
+# closed to it: Component::registerShortcut() sets isFresh(false)
+# unconditionally for an action born from a desktop file, and
+# KGlobalAccelD::setShortcutKeys() returns early for anything that is not fresh.
+# The active keys then stay empty against a set default, and writeSettings()
+# writes exactly that difference into kglobalshortcutsrc as "none" — which the
+# next session reads back, so the damage renews itself every login.
+X-KDE-Shortcuts=Meta+N
 
 # One group per shortcut, and this is the second one (SPEC 2.4): without it
 # Meta+Shift+N would register, show up in the system settings and do nothing —
@@ -60,3 +79,8 @@ Exec=denkzetteld
 Name=Record voice note
 Name[de]=Sprachnotiz aufnehmen
 Exec=denkzetteld
+# Same as the key above, and for the same reason — see the comment there. A
+# comma would separate alternative sequences here (KServiceActionComponent
+# replaces it with the tab KGlobalAccel splits a list on), so one shortcut is
+# one value with no comma in it.
+X-KDE-Shortcuts=Meta+Shift+N

@@ -1,5 +1,6 @@
 #include "platform/optionaltools.h"
 #include "shell/daemonservice.h"
+#include "shell/globalshortcuts.h"
 #include "shell/originwatcher.h"
 #include "shell/shortcutconflict.h"
 #include "shell/shortcutregistration.h"
@@ -16,6 +17,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QIcon>
+#include <QKeySequence>
 #include <QMenu>
 #include <QSet>
 #include <QSignalSpy>
@@ -23,6 +25,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <array>
 #include <memory>
 
 /**
@@ -60,6 +63,7 @@ private Q_SLOTS:
     void readsAnEmptyAnswerWithDesktopFileAsADaemonThatKeptNothing();
     void readsAnUndeclaredDesktopActionAsAFailure();
     void readsTheActionsOfADesktopFile();
+    void theDesktopFileCarriesTheDefaultSequenceOfEveryShortcut();
     void hasAMessageForEveryFailureAndNoneForSuccess();
 
     void hintsTheShortcutWithoutBindingItASecondTime();
@@ -655,6 +659,60 @@ void ShellTest::namesTheMissingToolsBesideTheFailedTranscription()
     icon.setUnavailableTools({});
     QCOMPARE(icon.item()->toolTipSubTitle(), quiet);
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+}
+
+// The one check that can see both sides of issue #142. `X-KDE-Shortcuts=` in the
+// desktop file is the only source kglobalacceld builds the default key from, and
+// GlobalShortcuts::defaultSequence() is the only source the program itself uses
+// — two copies of one value, in two files, in two languages. Nothing else here
+// can hold them against each other: installtest reads the staged desktop file
+// but cannot call into the shell library, and the shell library never reads the
+// desktop file for this. So this case takes one side out of the code and the
+// other out of the file on disk, and that is what makes it a guard rather than
+// an assertion (CLAUDE.md, finding 48).
+//
+// Without the line the shortcut is dead from the first session on and writes
+// `none` into kglobalshortcutsrc, which the next session reads back — the fault
+// renews itself at every login and no readback inside the program can see it.
+// That is why the check is worth its lines although the value never changes.
+void ShellTest::theDesktopFileCarriesTheDefaultSequenceOfEveryShortcut()
+{
+    QFile file(QStringLiteral(DENKZETTEL_DESKTOP_FILE));
+    QVERIFY2(file.open(QIODevice::ReadOnly | QIODevice::Text), qPrintable(file.errorString()));
+    const QString entry = QString::fromUtf8(file.readAll());
+
+    // Read out of the file, not typed here: whichever way the ids are spelled in
+    // the code is the way they have to be spelled in the desktop file, and a
+    // rename on one side alone lands on the QVERIFY2 below.
+    const std::array shortcuts = {GlobalShortcuts::Shortcut::Capture, GlobalShortcuts::Shortcut::Recorder};
+    for (const GlobalShortcuts::Shortcut which : shortcuts) {
+        const QString group = QStringLiteral("[Desktop Action %1]").arg(GlobalShortcuts::actionId(which));
+        const qsizetype start = entry.indexOf(group);
+        QVERIFY2(start >= 0, qPrintable(QStringLiteral("no group %1 in the desktop file").arg(group)));
+
+        // Only as far as the next group, or a value belonging to the other
+        // action would satisfy this one — the two sit a few lines apart and
+        // both carry a sequence, so a search over the whole file is green
+        // whatever it finds (CLAUDE.md, finding 59).
+        const qsizetype next = entry.indexOf(QStringLiteral("\n["), start + group.size());
+        const QString body = entry.mid(start, next < 0 ? -1 : next - start);
+
+        // PortableText and not NativeText: the string out of X-KDE-Shortcuts
+        // travels loadSettings() → registerShortcut() → keysFromString() into
+        // `QKeySequence::fromString(s, QKeySequence::PortableText)`
+        // (component.cpp:30). For these two values the two forms happen to be
+        // identical, so this line is right for a reason the values cannot show
+        // — a sequence where they differ would (finding 10: hold one side
+        // against a value set from outside).
+        const QString expected = GlobalShortcuts::defaultSequence(which).toString(QKeySequence::PortableText);
+
+        // The trailing newline is deliberate and it costs one thing worth
+        // naming: a desktop file whose last line is this key, without a final
+        // newline, fails here although its content is right. False-red, never
+        // false-green, and the installed file always ends on a newline.
+        QVERIFY2(body.contains(QStringLiteral("\nX-KDE-Shortcuts=%1\n").arg(expected)),
+                 qPrintable(QStringLiteral("group %1 does not carry X-KDE-Shortcuts=%2").arg(group, expected)));
+    }
 }
 
 QTEST_MAIN(ShellTest)

@@ -376,6 +376,24 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Fixed
 
+- **Meta+N and Meta+Shift+N work again, and they keep working after a
+  restart.** Both shortcuts died at the first login and stayed dead, and KDE
+  reported at every start that they were no longer active. Setting them by hand
+  in the settings helped until the next login and then lost them again — which
+  looked like a shortcut that would not stick, and was one.
+
+  The installed desktop file carried no default key. For an application whose
+  shortcuts KDE starts through desktop actions, that file is the only place the
+  default can come from, and Denkzettel's own registration cannot supply it
+  afterwards. What KDE then stored was „no key", and it read that back at every
+  login — so each repair was overwritten by the state that caused the fault.
+
+  **On a machine where this has already happened, the stored „no key" wins over
+  the restored default.** It has to go once, and after that both shortcuts come
+  back on their own at the next login: in Systemeinstellungen → Kurzbefehle
+  under Denkzettel, or by deleting the two `show-capture` and `show-recorder`
+  lines from `~/.config/kglobalshortcutsrc` while no session is writing it.
+
 - **Settings → KI-Anbieter no longer offers a choice the program cannot
   honour.** Whichever of the three buttons you picked, Denkzettel asked Ollama
   — and the page went on showing the Ollama address, `qwen3:8b` and `bge-m3`
