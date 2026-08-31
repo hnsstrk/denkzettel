@@ -1419,6 +1419,42 @@ find.
       catalogue is reported on, the total comes from `msgfmt` and the departures
       come from a set comparison whose entries are read.
 
+81. **The modification time of a shared configuration file names its last
+    writer, never the writer of the value you are reading — and a value that
+    renews itself has no age at all.** Measured 2026-08-31 on #142, and it sent
+    the diagnosis to the wrong application twice. The customer reported both
+    global shortcuts dead and suspected a dictation tool he had just installed;
+    `~/.config/kglobalshortcutsrc` held `show-capture=none` and
+    `show-recorder=none`, and its mtime fell in **the same minute** as that
+    tool's start. Two facts, one minute apart, and the wrong conclusion. The
+    file is written by kglobalacceld for **every** component: `writeSettings()`
+    opens with `config.deleteGroup()` and writes the whole component back, so
+    any foreign registration restamps our entries without touching their
+    content. The tool was cleared twice over — its source never names
+    `kglobalshortcutsrc`, `kwriteconfig` or `kreadconfig` anywhere, and an
+    hourly backup dated the first `none` to a **day** before it was installed.
+    What actually wrote the value was our own start, at every login, out of a
+    missing `X-KDE-Shortcuts=` in the desktop file. **The general rule:** where
+    several producers write one file, its timestamp answers a question nobody
+    asked. What carries is the history — a backup, a snapshot, a version — and
+    a value the system regenerates each session has no first occurrence in the
+    file at all, only in the code that regenerates it. Ask what **rewrites**
+    the file before reading its age as evidence.
+
+    **And the neighbouring trap, which cost the same run:** the value looked
+    corrupted, and was not. Beside our two lines stood
+    `dictation=Meta+Ctrl+,none,OpenWhispr dictation`, whose active field reads
+    as a truncated `Meta+Ctrl+` — so the file looked damaged and a damaged file
+    looked like the cause. It is a **modifier-only** binding, and
+    `QKeySequence::toString()` writes exactly that: `encodeString` appends the
+    key name unconditionally after its `+`, and `keyName(0, …)` returns empty
+    because every one of its branches tests a truthy key. The discriminator was
+    the byte that was **not** there: KConfig escapes an embedded comma as `\,`
+    in `serializeList` with no path around it, and `cat -A` showed no
+    backslash — which refutes the comma reading rather than supporting it.
+    A field separator that can also be payload is read with `cat -A`, and the
+    absent escape is the evidence, not the plausible-looking string.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

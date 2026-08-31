@@ -293,6 +293,13 @@ target_link_libraries(shelltest PRIVATE
     Qt6::Test
 )
 
+# The source desktop file, so the set can hold its X-KDE-Shortcuts lines against
+# GlobalShortcuts::defaultSequence() (issue #142). The source tree and not the
+# staged copy: what installtest stages is built from this file, and a check that
+# reads an installed path says nothing about the source (CLAUDE.md, finding 16).
+target_compile_definitions(shelltest PRIVATE
+    DENKZETTEL_DESKTOP_FILE="${CMAKE_SOURCE_DIR}/desktop/io.github.hnsstrk.denkzettel.desktop")
+
 add_test(NAME shelltest COMMAND shelltest)
 
 # The tray item carries a menu, so the test needs a QApplication and with it a
