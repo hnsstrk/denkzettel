@@ -697,10 +697,19 @@ void ShellTest::theDesktopFileCarriesTheDefaultSequenceOfEveryShortcut()
         const qsizetype next = entry.indexOf(QStringLiteral("\n["), start + group.size());
         const QString body = entry.mid(start, next < 0 ? -1 : next - start);
 
-        // PortableText and not NativeText: that is what
-        // KServiceActionComponent::loadSettings() hands to QKeySequence when it
-        // reads the key back.
+        // PortableText and not NativeText: the string out of X-KDE-Shortcuts
+        // travels loadSettings() → registerShortcut() → keysFromString() into
+        // `QKeySequence::fromString(s, QKeySequence::PortableText)`
+        // (component.cpp:30). For these two values the two forms happen to be
+        // identical, so this line is right for a reason the values cannot show
+        // — a sequence where they differ would (finding 10: hold one side
+        // against a value set from outside).
         const QString expected = GlobalShortcuts::defaultSequence(which).toString(QKeySequence::PortableText);
+
+        // The trailing newline is deliberate and it costs one thing worth
+        // naming: a desktop file whose last line is this key, without a final
+        // newline, fails here although its content is right. False-red, never
+        // false-green, and the installed file always ends on a newline.
         QVERIFY2(body.contains(QStringLiteral("\nX-KDE-Shortcuts=%1\n").arg(expected)),
                  qPrintable(QStringLiteral("group %1 does not carry X-KDE-Shortcuts=%2").arg(group, expected)));
     }

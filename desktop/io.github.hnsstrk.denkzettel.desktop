@@ -50,8 +50,11 @@ Name[de]=Notiz erfassen
 Exec=denkzetteld
 # The only source of the default key, and it has to repeat what
 # GlobalShortcuts::defaultSequence() returns (globalshortcuts.cpp:85-91) —
-# installtest holds the two against each other, because nothing else can.
-# Whoever changes one changes both.
+# shelltest's theDesktopFileCarriesTheDefaultSequenceOfEveryShortcut() holds the
+# two against each other, because it is the only set that links the shell
+# library and can read this file. Not installtest: that one says of itself that
+# it cannot see the code side (installtest.cmake:44-50). Whoever changes one
+# side changes both.
 #
 # Without this line the shortcut is dead from the first session and cannot heal
 # itself (issue #142, measured 31.08.2026). For a service action component

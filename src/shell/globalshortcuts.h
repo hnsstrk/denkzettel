@@ -28,7 +28,17 @@ class GlobalShortcuts : public QObject
     Q_OBJECT
 
 public:
-    /** The two shortcuts, in the order the settings page lists them. */
+    /**
+     * The two shortcuts, in the order the settings page lists them.
+     *
+     * **A third one has to be added to `theDesktopFileCarriesTheDefaultSequence
+     * OfEveryShortcut()` in `tests/shelltest.cpp` by hand.** The switches in
+     * `actionId()` and `defaultSequence()` are exhaustive, so the compiler
+     * catches those; that test's list is a copy of this enum and it does not.
+     * A shortcut missing from it silently keeps no guard that its
+     * `X-KDE-Shortcuts=` line exists — which is the fault of issue #142: dead
+     * from the first login, and renewing itself at every one after.
+     */
     enum class Shortcut : std::uint8_t {
         Capture, //< Meta+N, shows the capture window
         Recorder, //< Meta+Shift+N, shows the recorder

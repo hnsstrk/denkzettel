@@ -1478,8 +1478,10 @@ find.
     entries, not the neighbouring line that looks like it.
 
     **And the neighbouring trap, which cost the same run:** the value looked
-    corrupted, and was not. Beside our two lines stood
-    `dictation=Meta+Ctrl+,none,OpenWhispr dictation`, whose active field reads
+    corrupted, and was not. Beside our two lines stood a foreign component's
+    entry, `dictation=Meta+Ctrl+,none,…` — the product is left unnamed because
+    this repository is public and what a user has installed is not ours to
+    publish; the statement carries without it. Its active field reads
     as a truncated `Meta+Ctrl+` — so the file looked damaged and a damaged file
     looked like the cause. It is a **modifier-only** binding, and
     `QKeySequence::toString()` writes exactly that: `encodeString` appends the
