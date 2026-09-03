@@ -11,22 +11,6 @@
 #include <QIcon>
 #include <QMenu>
 
-namespace
-{
-/**
- * Menu entry for a feature that is not implemented yet.
- *
- * The icon comes from the theme like every other one: only a themed icon
- * carries a name, and only the name travels to Plasma over the tray protocol
- * (wireframe 5a).
- */
-void addStub(QMenu *menu, const QString &text, const QString &iconName)
-{
-    QAction *action = menu->addAction(QIcon::fromTheme(iconName), text);
-    action->setEnabled(false);
-}
-}
-
 TrayIcon::TrayIcon(QObject *parent)
     : QObject(parent)
     , m_item(new KStatusNotifierItem(QStringLiteral("denkzettel"), this))
@@ -191,7 +175,12 @@ QMenu *TrayIcon::buildMenu()
         menu->addAction(QIcon::fromTheme(QStringLiteral("system-run")), i18n("Analyze now"));
     connect(analyzeAction, &QAction::triggered, this, &TrayIcon::analysisRequested);
 
-    addStub(menu, i18n("Suggestions"), QStringLiteral("tools-wizard"));
+    // The door into the review of SPEC 9 (issue #30). It stood here as a
+    // disabled entry until the review existed; the wording and the symbol are
+    // the ones it carried, because it is the same entry and not a new one.
+    const QAction *proposalsAction =
+        menu->addAction(QIcon::fromTheme(QStringLiteral("tools-wizard")), i18n("Suggestions"));
+    connect(proposalsAction, &QAction::triggered, this, &TrayIcon::proposalsRequested);
 
     menu->addSeparator();
 

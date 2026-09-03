@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-08-30 13:58+0200\n"
+"POT-Creation-Date: 2026-09-03 15:10+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -174,7 +174,7 @@ msgstr ""
 #: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
 #: src/capture/recordingwindow.cpp:312 src/capture/recordingwindow.cpp:320
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:115
-#: src/shell/trayicon.cpp:47 src/shell/trayicon.cpp:48
+#: src/shell/trayicon.cpp:31 src/shell/trayicon.cpp:32
 #, kde-format
 msgid "Denkzettel"
 msgstr "Denkzettel"
@@ -229,12 +229,12 @@ msgstr "Noch %1 — bei %2 endet die Aufnahme."
 msgid "Recording not saved"
 msgstr "Aufnahme nicht gespeichert"
 
-#: src/main.cpp:258
+#: src/main.cpp:266
 #, kde-format
 msgid "Transcription failed"
 msgstr "Transkription fehlgeschlagen"
 
-#: src/main.cpp:259
+#: src/main.cpp:267
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
@@ -705,7 +705,7 @@ msgstr "Erwartet unter %1"
 msgid "Lies at %1"
 msgstr "Liegt unter %1"
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:152
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:136
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr "Gedanken schnell festhalten"
@@ -738,12 +738,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr "%1 — %2"
 
-#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:161
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:145
 #, kde-format
 msgid "Capture note"
 msgstr "Notiz erfassen"
 
-#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:172
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:156
 #, kde-format
 msgid "Record voice note"
 msgstr "Sprachnotiz aufnehmen"
@@ -805,52 +805,52 @@ msgstr ""
 "Neuinstallation bringt ihn zurück. Bis dahin bleibt Denkzettel über das "
 "Symbol im Systemabschnitt erreichbar."
 
-#: src/shell/trayicon.cpp:131
+#: src/shell/trayicon.cpp:115
 #, kde-format
 msgid "Not available: %1"
 msgstr "Nicht verfügbar: %1"
 
-#: src/shell/trayicon.cpp:145
+#: src/shell/trayicon.cpp:129
 #, kde-format
 msgid "%1 note without a transcript"
 msgid_plural "%1 notes without a transcript"
 msgstr[0] "%1 Notiz ohne Transkript"
 msgstr[1] "%1 Notizen ohne Transkript"
 
-#: src/shell/trayicon.cpp:149
+#: src/shell/trayicon.cpp:133
 #, kde-format
 msgid "%1 note without a category"
 msgid_plural "%1 notes without a category"
 msgstr[0] "%1 Notiz ohne Einordnung"
 msgstr[1] "%1 Notizen ohne Einordnung"
 
-#: src/shell/trayicon.cpp:184
+#: src/shell/trayicon.cpp:168
 #, kde-format
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:191 src/ui/librarywindow.cpp:433
+#: src/shell/trayicon.cpp:175 src/ui/librarywindow.cpp:433
 #: src/ui/librarywindow.cpp:2287
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:194
+#: src/shell/trayicon.cpp:182
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:204 src/ui/librarywindow.cpp:767
+#: src/shell/trayicon.cpp:193 src/ui/librarywindow.cpp:767
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr "Denkzettel einrichten …"
 
-#: src/shell/trayicon.cpp:214
+#: src/shell/trayicon.cpp:203
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:246
+#: src/shell/trayicon.cpp:235
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"
@@ -886,7 +886,7 @@ msgid "The API key could not be removed from the password store."
 msgstr ""
 "Der API-Schlüssel konnte nicht aus dem Passwortspeicher entfernt werden."
 
-#: src/store/store.cpp:1562
+#: src/store/store.cpp:1576
 #, kde-format
 msgid "The note %1 is no longer in the database."
 msgstr "Die Notiz %1 steht nicht mehr in der Datenbank."
@@ -1288,6 +1288,87 @@ msgstr[1] "%1 Notizen sind ohne ihre Aufnahme, siehe Protokoll."
 msgctxt "@item:inlistbox play symbol and length of a voice note"
 msgid "▶ %1"
 msgstr "▶ %1"
+
+#: src/ui/proposalwindow.cpp:75
+#, kde-format
+msgid "No suggestions waiting"
+msgstr "Keine Vorschläge offen"
+
+#: src/ui/proposalwindow.cpp:82
+#, kde-format
+msgid "The analysis run offers a bundle once several notes belong together."
+msgstr ""
+"Der Analyselauf schlägt ein Bündel vor, sobald mehrere Notizen "
+"zusammengehören."
+
+#: src/ui/proposalwindow.cpp:104
+#, kde-format
+msgctxt "@title:window"
+msgid "Review suggestions"
+msgstr "Vorschläge prüfen"
+
+#: src/ui/proposalwindow.cpp:238
+#, kde-format
+msgctxt "@title, the name of a bundle suggestion"
+msgid "Bundle: %1"
+msgstr "Bündel: %1"
+
+#: src/ui/proposalwindow.cpp:246
+#, kde-format
+msgctxt "@info, where an accepted bundle is written"
+msgid "→ Obsidian _INBOX"
+msgstr "→ Obsidian _INBOX"
+
+#: src/ui/proposalwindow.cpp:293
+#, kde-format
+msgctxt "@action:button"
+msgid "Accept"
+msgstr "Übernehmen"
+
+#: src/ui/proposalwindow.cpp:296
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Write the collective note and take the notes out of the library"
+msgstr "Die Sammelnotiz schreiben und die Notizen aus der Bibliothek nehmen"
+
+#: src/ui/proposalwindow.cpp:298
+#, kde-format
+msgctxt "@action:button"
+msgid "Later"
+msgstr "Später"
+
+#: src/ui/proposalwindow.cpp:300
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Put the suggestion aside; the notes stay in the library"
+msgstr "Den Vorschlag zurückstellen; die Notizen bleiben in der Bibliothek"
+
+#: src/ui/proposalwindow.cpp:302
+#, kde-format
+msgctxt "@action:button"
+msgid "Discard"
+msgstr "Verwerfen"
+
+#: src/ui/proposalwindow.cpp:304
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Drop the suggestion; no note is deleted"
+msgstr "Den Vorschlag fallen lassen; es wird keine Notiz gelöscht"
+
+#: src/ui/proposalwindow.cpp:433
+#, kde-format
+msgid "The collective note was written to %1."
+msgstr "Die Sammelnotiz wurde nach %1 geschrieben."
+
+#: src/ui/proposalwindow.cpp:440
+#, kde-format
+msgid "The suggestion could not be put aside: %1"
+msgstr "Der Vorschlag konnte nicht zurückgestellt werden: %1"
+
+#: src/ui/proposalwindow.cpp:452
+#, kde-format
+msgid "The suggestion could not be discarded: %1"
+msgstr "Der Vorschlag konnte nicht verworfen werden: %1"
 
 #: src/ui/timestampformat.cpp:124
 #, kde-format

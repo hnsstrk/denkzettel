@@ -12,6 +12,20 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **The suggestions the analysis run finds can now be answered.** „Vorschläge"
+  in the tray menu — until now a greyed entry — opens a window with one card
+  per waiting bundle: what the bundle is called, the notes it holds each with a
+  tick, a preview of the collective note that would be written, and the hint
+  that it goes to `→ Obsidian _INBOX`. Taking the tick off a note changes the
+  preview at once, so what stands there is what will be written. Three answers
+  per card: **Übernehmen** writes the collective note into the vault and clears
+  the ticked notes out of Denkzettel; **Später** puts the card aside and gives
+  its notes back to the next analysis run; **Verwerfen** drops the suggestion
+  and nothing else — no note is ever deleted by it, whichever answer is given
+  to a card that was not accepted. A bundle whose notes have all been deleted
+  in the meantime does not turn up as an empty card; it goes away with them
+  (#30).
+
 - **Accepting a bundle writes it into the Obsidian vault and clears the notes
   out of Denkzettel.** The collective note lands in `_INBOX/` of the vault
   folder from the settings, named `Denkzettel <topic> <date>.md`, with the

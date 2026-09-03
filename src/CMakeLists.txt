@@ -279,6 +279,7 @@ add_library(denkzettelui STATIC
     ui/notelistdelegate.cpp
     ui/notelistmodel.cpp
     ui/pendingdeletion.cpp
+    ui/proposalwindow.cpp
     ui/searchmarks.cpp
     ui/timestampformat.cpp
 )
@@ -286,6 +287,12 @@ add_library(denkzettelui STATIC
 target_include_directories(denkzettelui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(denkzettelui PUBLIC
+    # bundleMarkdown() — the collective note of SPEC 8.1 as the review shows it
+    # and as an accepted card hands it to exportBundle() (issue #30). The
+    # analysis run wrote the stored payload with that very function (SPEC 7.3),
+    # and a second copy of it here would be a second place for the one text the
+    # user really typed.
+    denkzettelanalysis
     denkzettelplatform
     # The full export behind the library's hamburger menu (SPEC 8.3, issue #36).
     denkzettelproposals

@@ -4,9 +4,11 @@
 #include "analysis/classifier.h"
 #include "analysis/embedder.h"
 #include "analysis/suggester.h"
+#include "store/proposal.h"
 #include "store/store.h"
 #include "ui/librarywindow.h"
 #include "ui/notelistmodel.h"
+#include "ui/proposalwindow.h"
 #include "ui/pendingdeletion.h"
 #include "ui/searchmarks.h"
 #include "ui/timestampformat.h"
@@ -20,10 +22,13 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QIcon>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QListWidget>
 #include <QApplication>
 #include <QLocale>
 #include <QPlainTextEdit>
@@ -242,6 +247,11 @@ private Q_SLOTS:
 
     void startsAnalysisRunFromTheApplicationMenu();
 
+    void discardingABundleKeepsItsNotes();
+    void puttingABundleAsideSetsItsStatus();
+    void acceptingExportsOnlyTheTickedNotes();
+    void dropsABundleWhoseNotesAreAllGone();
+
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
     void carriesOutTheDeletionWhenTheApplicationQuits();
@@ -281,6 +291,18 @@ private:
 
     /** Fills in what the analysis run fills in — category, tags and state. */
     void analysed(qint64 id, const QString &category, const QStringList &tags);
+
+    /**
+     * A bundle suggestion over `noteIds`, in the shape step 3 writes it
+     * (SPEC 7.3): title and Markdown in the payload, the notes in
+     * `proposal_notes`.
+     *
+     * The Markdown comes from `bundleMarkdown()` and not from a literal here,
+     * because that is what the analysis run stores — a text written twice
+     * would let the check pass over a review showing something else than the
+     * run produced.
+     */
+    qint64 storedBundle(const QString &title, const QList<qint64> &noteIds);
 
     /** Texts of the labels the window shows right now. */
     static QStringList visibleLabels(const QWidget &window);
@@ -904,6 +926,36 @@ void LibraryTest::analysed(qint64 id, const QString &category, const QStringList
     note.state = Note::State::Analysed;
     QVERIFY2(m_store->updateNote(note), qPrintable(m_store->lastError()));
     QVERIFY2(m_store->setTags(id, tags), qPrintable(m_store->lastError()));
+}
+
+qint64 LibraryTest::storedBundle(const QString &title, const QList<qint64> &noteIds)
+{
+    QList<Note> notes;
+    for (const qint64 id : noteIds) {
+        const std::optional<Note> note = m_store->note(id);
+        Q_ASSERT(note.has_value());
+        notes.append(*note);
+    }
+    // Oldest first, which is the order Suggester lays a cluster out in and the
+    // order Store::proposals() hands the ids back in — so the Markdown stored
+    // here is the one the run would have written.
+    std::sort(notes.begin(), notes.end(), [](const Note &left, const Note &right) {
+        return left.createdAt < right.createdAt;
+    });
+
+    Proposal proposal;
+    proposal.kind = Proposal::Kind::Bundle;
+    proposal.createdAt = QDateTime::currentDateTime();
+    proposal.status = Proposal::Status::Open;
+    proposal.payload = QString::fromUtf8(
+        QJsonDocument(QJsonObject{{QLatin1String("title"), title},
+                                  {QLatin1String("markdown"), bundleMarkdown(title, notes)}})
+            .toJson(QJsonDocument::Compact));
+    proposal.noteIds = noteIds;
+
+    const std::optional<qint64> id = m_store->addProposal(proposal);
+    Q_ASSERT(id.has_value());
+    return *id;
 }
 
 QPushButton *LibraryTest::buttonNamed(const QWidget &window, const QString &text)
@@ -3860,6 +3912,195 @@ void LibraryTest::startsAnalysisRunFromTheApplicationMenu()
     QVERIFY(analyze->isEnabled());
     QCOMPARE(analyze->text(), QStringLiteral("Analyze now"));
     QCOMPARE(band->text(), QStringLiteral("Analysis finished."));
+}
+
+namespace
+{
+/**
+ * Clears `[Export]` and puts it back on the way out, the way
+ * clearedWindowGroup() does for the window group (CLAUDE.md, finding 42).
+ *
+ * The review reads the vault folder out of that group, and the case below
+ * writes one into it. Through a qScopeGuard, because a case that dies on an
+ * assertion would otherwise leave the folder standing for every case after it
+ * — and `QStandardPaths::setTestModeEnabled()` redirects the file but does not
+ * throw it away between runs.
+ */
+[[nodiscard]] auto clearedExportGroup()
+{
+    const auto clear = [] {
+        KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Export"));
+        group.deleteGroup();
+        group.sync();
+    };
+    clear();
+    return qScopeGuard(clear);
+}
+
+/** The card of `id` in the review window, or nullptr. */
+QWidget *cardOf(const QWidget &window, qint64 id)
+{
+    return window.findChild<QWidget *>(QStringLiteral("card-%1").arg(id));
+}
+
+/**
+ * The button of one card, addressed by its object name and not by its wording.
+ *
+ * Three cards carry three buttons reading "Discard", and a lookup by wording
+ * takes the first of them (CLAUDE.md, finding 61).
+ */
+QPushButton *cardButton(const QWidget &window, const QString &role, qint64 id)
+{
+    return window.findChild<QPushButton *>(QStringLiteral("%1-%2").arg(role).arg(id));
+}
+}
+
+void LibraryTest::discardingABundleKeepsItsNotes()
+{
+    const qint64 first = storedNote(QStringLiteral("Bündel-Export erst ab fünf Notizen"),
+                                    QStringLiteral("2026-07-29T09:00:00"));
+    const qint64 second = storedNote(QStringLiteral("Whisper-Warteschlange bei Suspend"),
+                                     QStringLiteral("2026-07-30T09:00:00"));
+    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {first, second});
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QVERIFY2(cardOf(window, bundle), "the review shows no card for the open bundle");
+
+    QPushButton *discard = cardButton(window, QStringLiteral("discard"), bundle);
+    QVERIFY2(discard, "the card carries no button for discarding");
+    discard->click();
+
+    // The whole of the acceptance criterion: the suggestion is gone and **both**
+    // notes are where they were. Asserted on the store and not on the window,
+    // because a card that is merely not drawn any more would satisfy a check
+    // made on the window alone.
+    QVERIFY(m_store->proposals().isEmpty());
+    QVERIFY2(m_store->note(first).has_value(), "discarding deleted a note");
+    QVERIFY2(m_store->note(second).has_value(), "discarding deleted a note");
+    QCOMPARE(m_store->notes().size(), qsizetype(2));
+
+    QVERIFY(!cardOf(window, bundle));
+}
+
+void LibraryTest::puttingABundleAsideSetsItsStatus()
+{
+    const qint64 note = storedNote(QStringLiteral("Kategorien-Prompt: Beispiele mitgeben"),
+                                   QStringLiteral("2026-07-30T11:00:00"));
+    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {note});
+
+    // Asserted before the press as well: "open" all along would let the case
+    // pass over a button that writes nothing (CLAUDE.md, finding 27).
+    QCOMPARE(m_store->proposals().constFirst().status, Proposal::Status::Open);
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QPushButton *later = cardButton(window, QStringLiteral("later"), bundle);
+    QVERIFY2(later, "the card carries no button for putting the suggestion aside");
+    later->click();
+
+    // Put aside, not deleted: the row stays and its notes stay, and the next
+    // analysis run takes them back into the corpus (SPEC 7.3).
+    const QList<Proposal> standing = m_store->proposals();
+    QCOMPARE(standing.size(), qsizetype(1));
+    QCOMPARE(standing.constFirst().status, Proposal::Status::Deferred);
+    QCOMPARE(standing.constFirst().noteIds, QList<qint64>{note});
+    QVERIFY(m_store->note(note).has_value());
+
+    // And it leaves the review, which shows the open suggestions (SPEC 9).
+    QVERIFY(!cardOf(window, bundle));
+}
+
+void LibraryTest::acceptingExportsOnlyTheTickedNotes()
+{
+    const auto restored = clearedExportGroup();
+
+    const QString vault = m_dir->filePath(QStringLiteral("vault"));
+    QVERIFY(QDir().mkpath(vault));
+    // Written through the same KSharedConfig the window reads it back from, so
+    // the two cannot be looking at two files (CLAUDE.md, finding 42). Test mode
+    // is on since initTestCase(), so this is not the user's denkzettelrc.
+    KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    exportGroup.writeEntry("VaultPath", vault);
+    exportGroup.sync();
+
+    // The younger note is written **first**, so the order of the card is the
+    // order Store::proposals() reads out of the timestamps and not the order
+    // the rows were inserted in (CLAUDE.md, finding 34): row 0 is the older
+    // note, although it was added second.
+    const qint64 younger = storedNote(QStringLiteral("Whisper-Warteschlange bei Suspend prüfen"),
+                                      QStringLiteral("2026-07-30T09:00:00"));
+    const qint64 older = storedNote(QStringLiteral("Bündel-Export erst ab fünf Notizen"),
+                                    QStringLiteral("2026-07-29T09:00:00"));
+    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {younger, older});
+    QCOMPARE(m_store->proposals().constFirst().noteIds, (QList<qint64>{older, younger}));
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto *notes = window.findChild<QListWidget *>(QStringLiteral("notes-%1").arg(bundle));
+    QVERIFY2(notes, "the card carries no note list");
+    QCOMPARE(notes->count(), 2);
+    // The first row is the older note, and it is ticked — everything is in the
+    // bundle until the user takes it out (wireframe 1c).
+    QCOMPARE(notes->item(0)->text(), QStringLiteral("Bündel-Export erst ab fünf Notizen"));
+    QCOMPARE(notes->item(0)->checkState(), Qt::Checked);
+    QCOMPARE(notes->item(1)->checkState(), Qt::Checked);
+
+    notes->item(0)->setCheckState(Qt::Unchecked);
+
+    QPushButton *accept = cardButton(window, QStringLiteral("accept"), bundle);
+    QVERIFY2(accept, "the card carries no button for accepting");
+    accept->click();
+
+    // The deselected note is in neither half of what accepting does: not in the
+    // collective note, and not in the deletion that follows it (SPEC 8.1).
+    QVERIFY2(m_store->note(older).has_value(), "a deselected note was deleted with the export");
+    QVERIFY2(!m_store->note(younger).has_value(), "an exported note stayed in the corpus");
+    QVERIFY(m_store->proposals().isEmpty());
+
+    const QStringList written =
+        QDir(vault + QStringLiteral("/_INBOX")).entryList(QDir::Files);
+    QCOMPARE(written.size(), qsizetype(1));
+    QFile file(vault + QStringLiteral("/_INBOX/") + written.constFirst());
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const QString content = QString::fromUtf8(file.readAll());
+    QVERIFY2(content.contains(QStringLiteral("Whisper-Warteschlange bei Suspend prüfen")),
+             qPrintable(content));
+    QVERIFY2(!content.contains(QStringLiteral("Bündel-Export erst ab fünf Notizen")),
+             qPrintable(content));
+    // The day heading of the deselected note goes with it: the Markdown is
+    // written again from the notes that are left, not cut out of the stored
+    // text (SPEC 8.1).
+    QVERIFY2(!content.contains(QStringLiteral("## 2026-07-29")), qPrintable(content));
+}
+
+void LibraryTest::dropsABundleWhoseNotesAreAllGone()
+{
+    const qint64 note = storedNote(QStringLiteral("die letzte Notiz des Bündels"),
+                                   QStringLiteral("2026-07-30T12:00:00"));
+    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {note});
+
+    // The state the review of issue #29 measured: deleting the note takes its
+    // `proposal_notes` row with it by ON DELETE CASCADE and leaves the
+    // suggestion standing over nothing.
+    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+    QCOMPARE(m_store->proposals().size(), qsizetype(1));
+    QVERIFY(m_store->proposals().constFirst().noteIds.isEmpty());
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    // The decision of this story: such a bundle does not stand as an empty
+    // card, and it is not left in the database as a row nothing can reach —
+    // the review carries out the deletion the note's own deletion could not.
+    QVERIFY(!cardOf(window, bundle));
+    QVERIFY2(m_store->proposals().isEmpty(), "the empty bundle stayed in the database");
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()

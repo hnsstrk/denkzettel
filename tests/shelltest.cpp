@@ -70,6 +70,7 @@ private Q_SLOTS:
     void asksForTheSettingsDialog();
     void asksForAnAnalysisRun();
     void asksForARecording();
+    void opensTheSuggestionReview();
     void showsAFailedTranscriptionAndTakesItBack();
     void namesBothKindsOfStuckNoteAndFallsBackWithTheLastOfThem();
 
@@ -445,6 +446,31 @@ void ShellTest::asksForAnAnalysisRun()
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy requested(&icon, &TrayIcon::analysisRequested);
     analyze->trigger();
+    QCOMPARE(requested.count(), 1);
+}
+
+void ShellTest::opensTheSuggestionReview()
+{
+    // The door into the review of SPEC 9 (issue #30). The entry stood in the
+    // menu before this story as a greyed stub, so what breaks without a sound
+    // is not that it is there but that it is **live** — the reasoning of
+    // asksForAnAnalysisRun() above, and the same shape.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    TrayIcon icon;
+    QAction *suggestions = nullptr;
+    const QList<QAction *> entries = icon.item()->contextMenu()->actions();
+    for (QAction *entry : entries) {
+        if (entry->text() == QStringLiteral("Suggestions")) {
+            suggestions = entry;
+        }
+    }
+    QVERIFY2(suggestions, "the tray menu carries no entry for the suggestion review");
+    QVERIFY(suggestions->isEnabled());
+    QCOMPARE(suggestions->icon().name(), QStringLiteral("tools-wizard"));
+
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy requested(&icon, &TrayIcon::proposalsRequested);
+    suggestions->trigger();
     QCOMPARE(requested.count(), 1);
 }
 
