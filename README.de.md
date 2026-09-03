@@ -53,9 +53,26 @@ entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
 - **Das Erfassungsfenster trägt die Hülle des Desktop-Themes** — Rundung,
   Kontur, Schatten, der Rahmen des Eingabefeldes und seine Fokusschicht werden
   von dort gezeichnet, nicht aus fest eingebauten Werten.
+- **KI-Analyse, und du entscheidest, wo sie läuft.** Jede Notiz wird
+  klassifiziert, bekommt Schlagworte und landet in einer Kategorienspalte neben
+  der Liste. Das Modell ist von Haus aus Ollama auf dem eigenen Rechner;
+  openrouter.ai oder OpenAI sind stattdessen wählbar, der Schlüssel liegt in
+  KWallet und nie in einer Konfigurationsdatei.
+- **Eine Durchsicht für das, was die Analyse vorschlägt.** Notizen, die
+  zusammengehören, werden gebündelt, und das Bündel wird als Karte vorgelegt:
+  sein Titel, seine Notizen je mit einem Haken, und eine Vorschau der Notiz,
+  die geschrieben würde. Nimmt man einen Haken weg, ändert sich die Vorschau
+  sofort. **Übernehmen** schreibt sie in den Ordner `_INBOX/` des
+  Obsidian-Vaults und räumt diese Notizen aus Denkzettel heraus, **Später**
+  stellt die Karte zurück, **Verwerfen** verwirft den Vorschlag — und keine
+  Antwort außer der ersten löscht jemals eine Notiz.
 - **Läuft im Hintergrund**, sitzt im Systemabschnitt der Kontrollleiste, startet
   mit der Sitzung.
-- **Alles bleibt lokal** in einer SQLite-Datei. Nichts verlässt den Rechner.
+- **Lokal, solange du es so lässt** — eine SQLite-Datei, und mit Ollama
+  verlässt nichts den Rechner. Wer openrouter.ai oder OpenAI wählt, schickt den
+  Text jeder klassifizierten Notiz an diesen Dienst. Die Wahl ist deine, die
+  Folge sollte man kennen — und Denkzettel sagt sie an der Stelle, an der man
+  wählt, noch nicht.
 
 ![Das Aufnahmefenster: ein roter Punkt, eine Pegelanzeige und die laufende Zeit 0:23, darunter der Hinweis „Esc verwirft · Strg+Enter speichert"](docs/images/de/aufnahmefenster.png)
 

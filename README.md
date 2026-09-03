@@ -51,8 +51,23 @@ set the goals, the priorities and the acceptance —
 - **The capture window wears the shell of the desktop theme** — rounding,
   outline, shadow, the frame of the input field and its focus layer are drawn
   from the theme, not from built-in values.
+- **AI analysis, and you choose where it runs.** Every note is classified, gets
+  tags and lands in a category column beside the list. The model is Ollama on
+  your own machine by default; openrouter.ai or OpenAI can be picked instead,
+  with the key kept in KWallet and never in a configuration file.
+- **A review for what the analysis proposes.** Notes that belong together are
+  bundled, and the bundle is laid before you as a card: its title, its notes
+  each with a tick, and a preview of the note that would be written. Take a
+  tick off and the preview changes at once. **Übernehmen** writes it into the
+  `_INBOX/` of your Obsidian vault and clears those notes out of Denkzettel,
+  **Später** puts the card aside, **Verwerfen** drops the suggestion — and no
+  answer but the first one ever deletes a note.
 - **Runs in the background**, sits in the system tray, starts with the session.
-- **Everything stays local** in one SQLite file. Nothing leaves the machine.
+- **Local by default** in one SQLite file, and with Ollama picked nothing
+  leaves the machine at all. Pick openrouter.ai or OpenAI and the text of every
+  note being classified goes to that service — the choice is yours, the
+  consequence is worth knowing, and Denkzettel does not yet say so at the place
+  where you pick it.
 
 ![The recording window: a red dot, a level meter and the running time 0:23, below it the hint "Esc discards · Ctrl+Enter saves"](docs/images/aufnahmefenster.png)
 
