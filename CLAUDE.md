@@ -1509,12 +1509,22 @@ services stand there and nowhere else.
 
 ## UI review
 
-The yardstick is `wireframes/Denkzettel Wireframes.dc.html` as the project's UI
-reference and the KDE Human Interface Guidelines (develop.kde.org/hig) —
-Denkzettel is a Qt6/KF6 app for KDE Plasma. The check points come from the
-wireframe, not from memory: every drawn area produces exactly one check
-question, the division of space included. Images that carry a finding go
-under `docs/images/reviews/` — the directory is created with the first one.
+The yardstick is the KDE Human Interface Guidelines (develop.kde.org/hig) —
+Denkzettel is a Qt6/KF6 app for KDE Plasma — together with what SPEC and the
+issue's own acceptance criteria lay down.
+
+**`wireframes/Denkzettel Wireframes.dc.html` is a rough guide and nothing more**
+(the user's correction, 03.09.2026). It says which areas exist and roughly
+where; it does not say what is correct. So it supplies check questions — every
+drawn area produces one, the division of space included, and asking them from
+the drawing beats asking them from memory — but a departure from it is not a
+finding on its own. A drawing that has fallen behind the built state is a
+drawing that has fallen behind, not a defect in the product; where it matters,
+correct it with a dated addendum, and never report "differs from the wireframe"
+as a fault without saying what is actually wrong with the result.
+
+Images that carry a finding go under `docs/images/reviews/` — the directory is
+created with the first one.
 
 ## When nothing moves forward
 
