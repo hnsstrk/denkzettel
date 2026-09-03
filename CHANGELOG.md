@@ -54,8 +54,7 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   with the sentence saying why — every embedding comes from Ollama, and without
   a reachable one there are no topic bundles. **„Verbindung testen" asks the
   service that is chosen**: two times under Ollama, the chat time alone under
-  openrouter, which is not asked for a vector at all. **OpenAI stays
-  unselectable** until its client is built (#39). A provider switched in the
+  openrouter, which is not asked for a vector at all. A provider switched in the
   settings takes hold at the next start of Denkzettel; the address, the models
   and a corrected key all take hold at once, without a restart. (#38)
 
@@ -76,6 +75,23 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   openrouter already chosen never switched it — so the field was missing for
   exactly the people who need it, and only a detour over Ollama and back
   brought it up. It now follows the stored provider (#38, found in #127).
+
+- **OpenAI can be chosen too, with a key from the platform account.** The third
+  provider on the settings page is selectable now, and with it picked Denkzettel
+  sends every note's classification to OpenAI's chat API — the same road
+  openrouter takes, and the embeddings keep coming from Ollama. The key is
+  entered under „KI-Anbieter" and kept in KWallet under an entry of its own, so
+  the two services never reach for each other's key, and it never stands in a
+  configuration file. OpenAI gets a **language model row of its own** as well,
+  and it starts empty for the same reason openrouter's does: no default is
+  chosen for you on a service that bills per call, and until you name a model
+  nothing is asked of OpenAI and no note is spent on it.
+
+  **Why there is no „Mit ChatGPT anmelden":** the page says so where the key is
+  asked for. „Sign in with ChatGPT" hands an application your name, e-mail
+  address and profile picture — no model access at all — so an API key from the
+  OpenAI platform account is the only route there is. With the last provider
+  built, the sentence that two of them were not connected yet is gone. (#39)
 
 
 - **A confirmed task suggestion can now be carried into Taskwarrior.** It

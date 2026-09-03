@@ -1492,6 +1492,59 @@ find.
     backslash — which refutes the comma reading rather than supporting it.
     A field separator that can also be payload is read with `cat -A`, and the
     absent escape is the evidence, not the plausible-looking string.
+82. **`QTcpServer::newConnection` counts sockets, and Qt opens one that carries
+    no request — after the answer has already been given.** Measured 2026-08-30
+    on #39, where the same client came out at **1** request for openrouter and
+    **2** for OpenAI on identical code, deterministic over five runs. Neither
+    number was about requests: `QNetworkAccessManager` opens a second TCP
+    connection on which `readyRead` never fires — the stand-in's log named one
+    `POST` and one connection with nothing on it — and it opens that one
+    **after** `chatFinished`, so the count read at the moment of the answer had
+    not seen it yet, and the first service's spare socket arrived inside the
+    second service's window and was counted there. The one-per-call figure
+    #38 reported was therefore right about generations and taken off the wrong
+    quantity; a case counting sockets would have gone red for a client that had
+    not repeated anything. What carries: count the **request line**, once per
+    socket, and let the loop run after the answer before reading the total —
+    with the wait and without it the request count is the same, which is what
+    says the wait hides nothing. The control is finding 41's: a repeat written
+    into `post()` by hand takes the same case to 2, on the assertion it is aimed
+    at.
+
+83. **`msgcomm` counts an obsolete `#~` entry as present, so a merged catalogue
+    reports only the departures msgmerge did not keep.** Measured 2026-08-30 on
+    #39, and it undercut finding 80's own procedure on this project's own files:
+    thirteen messages left the catalogue, and `msgcomm --unique` followed by an
+    intersection with the base named **four**. The nine missing ones stand in
+    the branch's `.po` as `#~ msgid` — `po/Messages.sh` runs `msgmerge`, which
+    keeps a removed translation as obsolete — and msgcomm reads them as
+    ordinary entries of both files. The four it did name were the ones msgmerge
+    had consumed as fuzzy matches for their new twins, so they really were gone
+    from the file. `msgattrib --no-obsolete` before the comparison is what puts
+    it right; without it the check answers "nothing was lost" about a catalogue
+    that lost thirteen. And the totals reconcile only afterwards: 224 − 13 + 14
+    = 225, which is what `msgfmt --statistics` reads on both sides. Control per
+    finding 80: one real message (`Recording failed`) deleted from a copy, and
+    the same comparison named it — fourteen departures instead of thirteen.
+
+84. **A picture runner that resizes a page by a number of its own measures that
+    number, not what the page needs.** Measured 2026-08-30 on #39:
+    `providershots` did `resize(470, 260)`, `resize()` was clamped to the
+    layout's minimum of 359, and the page needs 410 at that width — the picture
+    came out with the type clipped along every wrapped row and the provider
+    buttons drawn **over** the note beneath them. Read as rule 2 asks a picture
+    to be read, that is a broken settings page; the dialog gives the page its
+    sizeHint (461) and shows it whole. Two different faults were tangled in that
+    one picture, and only the numbers read back beside it told them apart: the
+    **product's** half is that a word-wrapped `QLabel` answers
+    `minimumSizeHint()` with about one line, so `QFormLayout` reserves too
+    little and the rows overlap — `QSizePolicy::setHeightForWidth(true)` on the
+    label is what makes the layout ask; the **runner's** half is the invented
+    height, and the fix is `resize(width, page.heightForWidth(width))`. So a
+    runner takes the height from the page and only the width from the design,
+    and it prints `sizeHint`, `minimumSizeHint` and `heightForWidth` beside
+    every picture — that is finding 60's rule for a widget applied to the page
+    that holds it.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been

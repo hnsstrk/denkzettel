@@ -3,7 +3,7 @@
 class AnalysisScheduler;
 class Embedder;
 class OllamaProvider;
-class OpenRouterProvider;
+class OpenAiCompatibleProvider;
 class OriginWatcher;
 class Suggester;
 class Transcriber;
@@ -26,7 +26,10 @@ class Transcriber;
  * rather than claimed: that set links `denkzettelsettings`, which is the
  * library this file is built into, and
  * `SettingsTest::everySettingReachesItsRunningObject()` reads every connection
- * below back one by one (CLAUDE.md, finding 48).
+ * below back one by one (CLAUDE.md, finding 48). **The two remote backends are
+ * two receivers of the same class**, so that readback has to name each of them
+ * by its own pointer — one `disconnect()` per object, or the second line could
+ * go missing while the first one answers for both (issue #39).
  *
  * **What belongs here** is every connection whose sender is `Settings::self()`
  * *and* whose receiver outlives the settings dialog — a value out of
@@ -37,12 +40,12 @@ class Transcriber;
  * where it is: those are signals of our own objects to one another, and each of
  * them carries a check or a window that would notice.
  *
- * ponytail: the assurance reaches the eight connections in this function and
+ * ponytail: the assurance reaches the nine connections in this function and
  * **not the one call that runs it**. Measured on 30.08.2026: with
  * `connectSettingsToRunningObjects()` deleted from main.cpp the build succeeds
  * and `ctest` stays at 14/14, because main.cpp is linked by no library and no
  * test set reaches it whatever stands in it. **The ceiling is therefore one
- * silent hole instead of seven**, and it is the call site. The way up is the
+ * silent hole instead of nine**, and it is the call site. The way up is the
  * other reading of issue #123 — a run that starts the daemon, writes a setting
  * and reads the arrival off its behaviour; the first end-to-end harness in this
  * project, which is why it was not built here.
@@ -54,7 +57,8 @@ class Transcriber;
 void connectSettingsToRunningObjects(Transcriber *transcriber,
                                      OriginWatcher *origins,
                                      OllamaProvider *provider,
-                                     OpenRouterProvider *openRouter,
+                                     OpenAiCompatibleProvider *openRouter,
+                                     OpenAiCompatibleProvider *openAi,
                                      Embedder *embedder,
                                      Suggester *suggester,
                                      AnalysisScheduler *analysis);

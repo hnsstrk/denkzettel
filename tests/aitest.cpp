@@ -5,8 +5,9 @@
 #include "analysis/clustering.h"
 #include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 #include "analysis/suggester.h"
+#include "store/keystore.h"
 #include "store/store.h"
 
 #include <KConfigGroup>
@@ -83,8 +84,9 @@ private Q_SLOTS:
     void openRouterTimeoutAndTotalLimitAreNamedApart();
     void openRouterBodyThatIsNoStreamIsReported();
     void openRouterIsNotAskedForAVector();
-    void openRouterCarriesTheKeyAndTheModelOnTheWire();
-    void openRouterLeavesTheOneRetryToQt();
+    void theKeyAndTheModelGoOnTheWire();
+    void eachRemoteServiceAsksTheWalletForItsOwnEntry();
+    void neitherRemoteServiceRepeatsARequestOfItsOwn();
     void anEmptyOpenRouterModelSpendsNoAttempt();
 
     void connectionTestMeasuresBothCallsSeparately();
@@ -740,7 +742,8 @@ void AiTest::openRouterStreamIsPutBackTogether()
     // taking only the first or only the last comes out wrong, and the middle
     // one carries a German special character — a stream is read as bytes and
     // cut at line boundaries, which is where an encoding is lost silently.
-    const OpenRouterAnswer answer = readOpenRouterReply(
+    const OpenAiCompatibleAnswer answer = readOpenAiCompatibleReply(openrouter::Service.name,
+                            
         QNetworkReply::NoError,
         QString(),
         200,
@@ -763,8 +766,9 @@ void AiTest::openRouterStreamWithoutItsEndIsNoAnswer()
     // that fell over mid-answer would be handed to the classification of
     // SPEC 7.2 as a complete one. The half-sentence is deliberate: it is what
     // makes the case impossible to pass by looking at the text.
-    const OpenRouterAnswer answer =
-        readOpenRouterReply(QNetworkReply::NoError,
+    const OpenAiCompatibleAnswer answer =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::NoError,
                             QString(),
                             200,
                             "data: {\"choices\":[{\"delta\":{\"content\":\"Die Antwort ist\"}}]}\n");
@@ -779,8 +783,9 @@ void AiTest::openRouterRefusalBeatsTheStatusCode()
     // a rejected key are three different things to the user and one HTTP
     // number. The status is handed in as 400 on purpose — without the body
     // being read first, the case below would come out "HTTP status 400".
-    const OpenRouterAnswer answer =
-        readOpenRouterReply(QNetworkReply::ProtocolInvalidOperationError,
+    const OpenAiCompatibleAnswer answer =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::ProtocolInvalidOperationError,
                             QStringLiteral("Bad Request"),
                             400,
                             R"({"error":{"message":"No endpoints found for wrong/model.","code":400}})");
@@ -801,8 +806,9 @@ void AiTest::openRouterRefusalInsideTheStreamIsStillTheRefusal()
     // the last, cannot tell them apart. The status is 200 on purpose — the
     // stream had already begun, so nothing outside the body says anything is
     // wrong.
-    const OpenRouterAnswer answer =
-        readOpenRouterReply(QNetworkReply::NoError,
+    const OpenAiCompatibleAnswer answer =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::NoError,
                             QString(),
                             200,
                             "data: {\"choices\":[{\"delta\":{\"content\":\"Die \"}}]}\n"
@@ -812,8 +818,9 @@ void AiTest::openRouterRefusalInsideTheStreamIsStillTheRefusal()
 
     // And with `[DONE]` behind it, which is the shape that read as "carried no
     // text" before — the same sentence has to come out.
-    const OpenRouterAnswer closed =
-        readOpenRouterReply(QNetworkReply::NoError,
+    const OpenAiCompatibleAnswer closed =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::NoError,
                             QString(),
                             200,
                             "data: {\"error\":{\"message\":\"Rate limit exceeded\"}}\n"
@@ -826,12 +833,14 @@ void AiTest::openRouterTimeoutAndTotalLimitAreNamedApart()
     // The two limits of SPEC 7.1 are two sentences, and they have to be: one
     // says the service went quiet for 30 s, the other that it kept trickling
     // past five minutes. Read as one, a user would tune the wrong thing.
-    const OpenRouterAnswer silence =
-        readOpenRouterReply(QNetworkReply::TimeoutError, QStringLiteral("Timeout"), 0, QByteArray());
+    const OpenAiCompatibleAnswer silence =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::TimeoutError, QStringLiteral("Timeout"), 0, QByteArray());
     QCOMPARE(silence.error, QStringLiteral("openrouter.ai did not answer within the time limit."));
 
-    const OpenRouterAnswer overall =
-        readOpenRouterReply(QNetworkReply::OperationCanceledError, QStringLiteral("Canceled"), 0, QByteArray());
+    const OpenAiCompatibleAnswer overall =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::OperationCanceledError, QStringLiteral("Canceled"), 0, QByteArray());
     QCOMPARE(overall.error, QStringLiteral("openrouter.ai took longer over this call than it is allowed."));
 }
 
@@ -841,7 +850,8 @@ void AiTest::openRouterBodyThatIsNoStreamIsReported()
     // 200, and not one line of the protocol in it. Reported as unreadable
     // rather than as an empty answer, because the two send the user looking in
     // different places.
-    const OpenRouterAnswer answer = readOpenRouterReply(QNetworkReply::NoError,
+    const OpenAiCompatibleAnswer answer = readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::NoError,
                                                         QString(),
                                                         200,
                                                         "<html><body>Sign in to the network</body></html>");
@@ -854,7 +864,7 @@ void AiTest::openRouterIsNotAskedForAVector()
     // are read back, because either one alone would be green over the other
     // being wrong: canEmbed() is what the connection test asks before it makes
     // the second call, and the answer is what a caller that asked anyway gets.
-    OpenRouterProvider provider;
+    OpenAiCompatibleProvider provider(openrouter::Service);
     QCOMPARE(provider.canEmbed(), false);
 
     QSignalSpy finished(&provider, &AiProvider::embedFinished);
@@ -871,7 +881,7 @@ void AiTest::openRouterIsNotAskedForAVector()
     QCOMPARE(finished.constFirst().at(3).value<AiFailure>(), AiFailure::Unreachable);
 }
 
-void AiTest::openRouterCarriesTheKeyAndTheModelOnTheWire()
+void AiTest::theKeyAndTheModelGoOnTheWire()
 {
     // **What is actually put on the wire**, read off the stand-in and not off
     // the client's result: a request without the Authorization header would
@@ -879,9 +889,17 @@ void AiTest::openRouterCarriesTheKeyAndTheModelOnTheWire()
     // like a header nobody wrote. The model goes with it, because it is the
     // second thing a mistyped body would lose without a sound.
     //
-    // The key is invented and belongs to nothing — there is no key for this
+    // **Both remote services, with a different key and a different model
+    // each** (issue #39). One client class serves them, so a run against one
+    // service says nothing about the other holding its own values: with the two
+    // fields shared, the second pass would carry the first one's key and this
+    // case is the only place that would notice. What it cannot say is that the
+    // endpoint constants are right — no stand-in can, and the header names that
+    // among the unmeasured values.
+    //
+    // The keys are invented and belong to nothing — there is no key for either
     // service in this project, which is why the whole client is checked against
-    // a stand-in (issue #38, customer 30.08.2026).
+    // a stand-in (issues #38 and #39, customer 30.08.2026).
     QTcpServer server;
     QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
 
@@ -907,25 +925,94 @@ void AiTest::openRouterCarriesTheKeyAndTheModelOnTheWire()
         });
     });
 
-    OpenRouterProvider provider;
-    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
-    provider.setChatModel(QStringLiteral("some/model-of-the-check"));
-    provider.setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
+    struct Case {
+        AiService service;
+        QByteArray key;
+        QByteArray model;
+    };
+    const QList<Case> cases{
+        {openrouter::Service, "sk-or-v1-invented-for-this-check", "some/model-of-the-check"},
+        {openai::Service, "sk-proj-invented-for-this-check", "gpt-of-the-check"}};
 
-    QSignalSpy finished(&provider, &AiProvider::chatFinished);
-    provider.chat(QStringLiteral("ping"));
-    QVERIFY(finished.wait(std::chrono::seconds(10)));
+    for (const Case &probe : cases) {
+        seen->clear();
+        OpenAiCompatibleProvider provider(probe.service);
+        provider.setUrl(
+            QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
+        provider.setChatModel(QString::fromLatin1(probe.model));
+        provider.setKey(QString::fromLatin1(probe.key));
 
-    QCOMPARE(finished.constFirst().at(2).toString(), QString());
-    QCOMPARE(finished.constFirst().at(1).toString(), QStringLiteral("pong"));
-    QVERIFY2(seen->contains("Authorization: Bearer sk-or-v1-invented-for-this-check"), seen->constData());
-    QVERIFY2(seen->contains("\"model\":\"some/model-of-the-check\""), seen->constData());
-    // Streamed, and that is what makes the 30 s of SPEC 7.1 a limit on silence
-    // rather than on thinking (issue #121, and the class comment).
-    QVERIFY2(seen->contains("\"stream\":true"), seen->constData());
+        QSignalSpy finished(&provider, &AiProvider::chatFinished);
+        provider.chat(QStringLiteral("ping"));
+        QVERIFY(finished.wait(std::chrono::seconds(10)));
+
+        QCOMPARE(finished.constFirst().at(2).toString(), QString());
+        QCOMPARE(finished.constFirst().at(1).toString(), QStringLiteral("pong"));
+        // Built into a QByteArray first: with QStringBuilder on, the sum of two
+        // is an expression type QByteArray::contains() has no overload for.
+        const QByteArray header = QByteArrayLiteral("Authorization: Bearer ") + probe.key;
+        const QByteArray model = QByteArrayLiteral("\"model\":\"") + probe.model + '"';
+        QVERIFY2(seen->contains(header), seen->constData());
+        QVERIFY2(seen->contains(model), seen->constData());
+        // And the other service's values must **not** be there — the assertions
+        // above would both hold on a client that appended instead of replacing.
+        QVERIFY2(!seen->contains(cases.constFirst().key == probe.key ? cases.constLast().key
+                                                                    : cases.constFirst().key),
+                 seen->constData());
+        // Streamed, and that is what makes the 30 s of SPEC 7.1 a limit on
+        // silence rather than on thinking (issue #121, and the class comment).
+        QVERIFY2(seen->contains("\"stream\":true"), seen->constData());
+    }
 }
 
-void AiTest::openRouterLeavesTheOneRetryToQt()
+void AiTest::eachRemoteServiceAsksTheWalletForItsOwnEntry()
+{
+    // **Which entry of the password store each service reaches for** (SPEC 5.2,
+    // issue #39), and it is the one value the wire check above cannot see: the
+    // key travels from KeyStore into the client, and a client asking for the
+    // wrong entry sends the **other** service's key — a secret on a foreign
+    // wire and a bill on the wrong account, with an error message that reads
+    // like a rejected key and nothing that says why.
+    //
+    // Both listen on the one KeyStore, so the name is asked **and** the answer
+    // is filtered by it. Read off KeyStore's own signal rather than off the
+    // provider, which never says what it asked for.
+    //
+    // No wallet is reached here and none may be: testsilence.cpp points the
+    // session bus at nothing for every binary under tests/ (issue #126), so
+    // KeyStore answers with its refusal — which is exactly the road this case
+    // needs, because the refusal carries the entry name that was asked for.
+    struct Case {
+        AiService service;
+        QString entry;
+    };
+    // Different once, or the readback says nothing (CLAUDE.md, finding 10).
+    const QList<Case> cases{{openrouter::Service, QStringLiteral("openrouter")},
+                            {openai::Service, QStringLiteral("openai")}};
+
+    for (const Case &probe : cases) {
+        OpenAiCompatibleProvider provider(probe.service);
+        // Named, or chat() answers out of unmetPrecondition() and never asks
+        // the wallet at all — the case would then be green over a client that
+        // asks for nothing.
+        provider.setChatModel(QStringLiteral("model-of-the-check"));
+
+        QSignalSpy asked(KeyStore::self(), &KeyStore::keyRead);
+        QSignalSpy finished(&provider, &AiProvider::chatFinished);
+        provider.chat(QStringLiteral("ping"));
+
+        QVERIFY(asked.wait(std::chrono::seconds(10)));
+        QCOMPARE(asked.constFirst().at(0).toString(), probe.entry);
+        // And the answer reaches the caller, so the filter above lets its own
+        // service's answer through — a filter comparing against the wrong name
+        // would leave this call waiting for ever.
+        QVERIFY(finished.count() == 1 || finished.wait(std::chrono::seconds(5)));
+        QVERIFY2(!finished.constFirst().at(2).toString().isEmpty(),
+                 "a session without a wallet is no answer");
+    }
+}
+
+void AiTest::neitherRemoteServiceRepeatsARequestOfItsOwn()
 {
     // **The guarantee that costs money if it breaks** (SPEC 7.1, issue #38): a
     // second request of ours would be a second generation and a second bill for
@@ -938,6 +1025,21 @@ void AiTest::openRouterLeavesTheOneRetryToQt()
     // evidence: with a repeat on `RemoteHostClosedError` written into `post()`
     // by hand, the same stand-in saw **2** and this case passed at 2.
     // Unchanged it is 1 (30.08.2026, this machine, Qt 6.11.2).
+    //
+    // **What is counted is requests and not connections, and that correction
+    // cost a run** (30.08.2026, issue #39). Counting `newConnection` the case
+    // read 1 for openrouter and 2 for OpenAI on the same code — deterministic
+    // over five runs — which looked exactly like one service repeating and the
+    // other not. It is neither: Qt opens a **second TCP connection that carries
+    // no request at all** (`readyRead` never fires on it), and it opens it
+    // *after* `chatFinished` has already been emitted. So the first service's
+    // spare socket was arriving during the second service's window and was
+    // counted against it, while the socket count read at the moment of the
+    // answer had simply not seen it yet. Both numbers were about sockets and
+    // the guarantee is about generations: one POST is one bill. The case
+    // therefore counts request lines, and waits after the answer so that a late
+    // one would be seen — with the wait and without it the request count is the
+    // same, which is what says the wait is not hiding anything.
     //
     // The stand-in reads the request before it closes, and that is deliberate:
     // one that aborts at the moment of connecting also shows 1, so it could not
@@ -957,12 +1059,20 @@ void AiTest::openRouterLeavesTheOneRetryToQt()
     // So what this case carries is the half that costs money, and it is the
     // half the story needs: this client sends one request per chat() call and
     // no second one of its own.
+    //
+    // **Both services, and each counted on its own** (issue #39). They share a
+    // class and they do not share a `QNetworkAccessManager` — each provider
+    // holds one — so the number is a property of the object and not of the
+    // code, and one measured service says nothing about the other. Measured
+    // 30.08.2026 for OpenAI as well: **1** request per call, the same as
+    // openrouter, so SPEC 7.1's one retry is not established for either.
     QTcpServer server;
     QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
 
-    int connections = 0;
-    connect(&server, &QTcpServer::newConnection, this, [&server, &connections] {
-        ++connections;
+    // Shared and not captured by reference: the inner lambda outlives this
+    // function's scope as far as the compiler can tell, and clazy says so.
+    auto requests = std::make_shared<int>(0);
+    connect(&server, &QTcpServer::newConnection, this, [&server, requests] {
         QTcpSocket *socket = server.nextPendingConnection();
         // **The request is read first and only then closed**, and that is not
         // decoration: a stand-in that aborts at the moment of connecting was
@@ -972,8 +1082,15 @@ void AiTest::openRouterLeavesTheOneRetryToQt()
         // would be green over a client that repeats — it would simply never
         // reach the road it is about.
         auto request = std::make_shared<QByteArray>();
-        connect(socket, &QTcpSocket::readyRead, socket, [socket, request] {
+        auto counted = std::make_shared<bool>(false);
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, counted, requests] {
             request->append(socket->readAll());
+            // Counted on the request line, once per socket: the spare
+            // connection Qt opens beside it never sends one.
+            if (!*counted && request->startsWith("POST ")) {
+                *counted = true;
+                ++*requests;
+            }
             const qsizetype end = request->indexOf("\r\n\r\n");
             if (end < 0 || request->size() <= end + 4) {
                 return;
@@ -985,21 +1102,29 @@ void AiTest::openRouterLeavesTheOneRetryToQt()
         });
     });
 
-    OpenRouterProvider provider;
-    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
-    provider.setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
-    // Named, or nothing is sent at all: with no model this backend answers out
-    // of unmetPrecondition() and makes no request, which is what
-    // anEmptyModelSpendsNoAttempt() below is about.
-    provider.setChatModel(QStringLiteral("some/model-of-the-check"));
-    provider.setTimeout(std::chrono::seconds(5));
+    for (const AiService &service : {openrouter::Service, openai::Service}) {
+        *requests = 0;
+        OpenAiCompatibleProvider provider(service);
+        provider.setUrl(
+            QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
+        provider.setKey(QStringLiteral("sk-invented-for-this-check"));
+        // Named, or nothing is sent at all: with no model this backend answers
+        // out of unmetPrecondition() and makes no request, which is what
+        // anEmptyModelSpendsNoAttempt() below is about.
+        provider.setChatModel(QStringLiteral("model-of-the-check"));
+        provider.setTimeout(std::chrono::seconds(5));
 
-    QSignalSpy finished(&provider, &AiProvider::chatFinished);
-    provider.chat(QStringLiteral("ping"));
+        QSignalSpy finished(&provider, &AiProvider::chatFinished);
+        provider.chat(QStringLiteral("ping"));
 
-    QVERIFY(finished.wait(std::chrono::seconds(10)));
-    QVERIFY2(!finished.constFirst().at(2).toString().isEmpty(), "a closed connection is no answer");
-    QCOMPARE(connections, 1);
+        QVERIFY(finished.wait(std::chrono::seconds(10)));
+        QVERIFY2(!finished.constFirst().at(2).toString().isEmpty(), "a closed connection is no answer");
+        // The answer is not the end of what the transport may still do, so the
+        // loop runs on before the count is read (see the comment above).
+        QTest::qWait(500);
+        QVERIFY2(*requests == 1,
+                 qPrintable(QStringLiteral("%1: %2 requests").arg(QString(service.name)).arg(*requests)));
+    }
 }
 
 void AiTest::connectionTestMeasuresBothCallsSeparately()
@@ -1480,7 +1605,7 @@ void AiTest::anEmptyOpenRouterModelSpendsNoAttempt()
         });
     });
 
-    OpenRouterProvider provider;
+    OpenAiCompatibleProvider provider(openrouter::Service);
     provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/chat/completions").arg(server.serverPort())));
     provider.setKey(QStringLiteral("sk-or-v1-invented-for-this-check"));
     // Left empty: this is the state a fresh switch to openrouter leaves behind.

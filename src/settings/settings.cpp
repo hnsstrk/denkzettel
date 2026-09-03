@@ -3,7 +3,7 @@
 #include "analysis/analysisscheduler.h"
 #include "analysis/clustering.h"
 #include "analysis/ollamaprovider.h"
-#include "analysis/openrouterprovider.h"
+#include "analysis/openaicompatibleprovider.h"
 #include "transcribe/transcriber.h"
 
 namespace
@@ -61,8 +61,18 @@ Settings::Settings()
     // he names for reaching past Ollama are opposite ones, and any model put
     // here would make his choice for him — every 30 minutes and billed. Empty
     // is a precondition the analysis run asks about, not a fault; see
-    // OpenRouterProvider::unmetPrecondition().
-    addItemString(QStringLiteral("OpenRouterModel"), m_openRouterModel, QString());
+    // OpenAiCompatibleProvider::unmetPrecondition().
+    // **Out of the descriptor and not spelled out here**, because the provider
+    // reads the same key back out of `denkzettelrc` and two spellings would be
+    // two settings — the field would be written and never read, in silence
+    // (CLAUDE.md, finding 48: where two sides have to agree, the guard is the
+    // build). Renaming `modelKey` now stops the compiler in this file.
+    addItemString(QString(openrouter::Service.modelKey), m_openRouterModel, QString());
+    // And the third service's own, for the same two reasons (issue #39): one
+    // shared key would carry an OpenAI model id to openrouter and back, and
+    // there is no default here either — the customer's decision covers both
+    // remote services alike (SPEC 7.1).
+    addItemString(QString(openai::Service.modelKey), m_openAiModel, QString());
     addItemString(QStringLiteral("EmbeddingModel"), m_embeddingModel, QString(ollama::DefaultEmbeddingModel));
 
     setCurrentGroup(QStringLiteral("Analysis"));
