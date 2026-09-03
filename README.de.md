@@ -63,19 +63,33 @@ entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
 
 ### Noch nicht gebaut
 
-Die Spezifikation beschreibt erheblich mehr, als das Programm heute tut. Was
+Die Spezifikation beschreibt mehr, als das Programm heute tut. Was
 aufgeschrieben und nicht gebaut ist:
 
-- **KI-Analyse** — Klassifikation, Tags, Kategorien-Sidebar, Ollama und
-  OpenAI-kompatible Anbieter. Der Tray-Eintrag ist da und inaktiv.
-- **Vorschläge** — Embeddings, Themen-Clustering, Bündel- und Task-Vorschläge
-  mit Review-Oberfläche. Der Tray-Eintrag ist da und inaktiv.
-- **Überführungen** nach Obsidian und Taskwarrior sowie ein Voll-Export als
-  Rettungsweg.
-- **Ein Einstellungsdialog.** Es gibt keinen; was einstellbar ist, steht in
-  `denkzettelrc` oder gar nicht.
-- **Such-Operatoren** (`tag:`, Datumsbereiche und der Rest von SPEC 6). Die
-  Suche nimmt heute einfache Begriffe und verknüpft sie mit UND.
+- **Task-Vorschläge in der Durchsicht.** Die Taskwarrior-Überführung nach
+  SPEC 8.2 ist gebaut und geprüft, und **niemand ruft sie auf** — die
+  Durchsicht zeigt nur Bündel-Karten, ein Task-Vorschlag wird übergangen.
+  Bündel lassen sich übernehmen, zurückstellen und verwerfen.
+- **Eine Datei je Notiz im Obsidian-Export.** Der Export schreibt heute die
+  Sammelnotiz aus SPEC 8.1. Eine Datei je Notiz ist entschieden und nicht
+  gebaut.
+- **Die Überlaufsicherung** aus SPEC 11 — nichts erinnert daran, dass sich
+  nicht überführte Notizen anhäufen.
+- **Modelllisten.** Die Modellfelder bieten einen Eintrag und fragen den
+  Anbieter nie, was er hält; ein Modell muss also von Hand richtig getippt
+  werden.
+- **Externe Anbieter für die Transkription.** Sprachnotizen laufen über das
+  lokale whisper.cpp und über nichts sonst.
+- **Der Anbieter für die Einbettungen** ist immer Ollama, ganz gleich, wer
+  klassifiziert. Ohne Ollama gibt es keine Themenbündel, und die
+  Einstellungsseite sagt das.
+
+Gebaut, seit dieser Abschnitt zuletzt geschrieben wurde — und hier stand es
+als fehlend: die KI-Analyse mit Klassifikation, Tags und Kategorienspalte; die
+drei Anbieter Ollama, openrouter.ai und OpenAI; Embeddings, Themen-Clustering
+und die Bündel-Durchsicht; der Obsidian-Export und der Voll-Export als
+Rettungsweg; der Einstellungsdialog mit seinen sechs Seiten; und die
+Such-Operatoren `tag:`, `kat:`, `typ:`, `vor:` und `nach:`.
 
 Was gerade ansteht, steht in den
 [Issues](https://github.com/hnsstrk/denkzettel/issues); die bindende

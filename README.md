@@ -60,18 +60,32 @@ set the goals, the priorities and the acceptance —
 
 ### Not built yet
 
-The specification describes considerably more than the program does today. What
-is written down and not built:
+The specification describes more than the program does today. What is written
+down and not built:
 
-- **AI analysis** — classification, tags, a category sidebar, Ollama and
-  OpenAI-compatible providers. The tray entry exists and is disabled.
-- **Suggestions** — embeddings, topic clustering, bundle and task proposals with
-  a review UI. The tray entry exists and is disabled.
-- **Export** to Obsidian and Taskwarrior, and a full export as a way out.
-- **A settings dialog.** There is none; what can be configured is configured in
-  `denkzettelrc` or not at all.
-- **Search operators** (`tag:`, date ranges and the rest of SPEC 6). The search
-  takes plain terms today and combines them with AND.
+- **Task proposals in the review.** The Taskwarrior transfer of SPEC 8.2 is
+  built and checked, and **nothing calls it** — the review shows bundle cards
+  only, and a task suggestion is passed over. Bundles can be accepted, put
+  aside and discarded.
+- **One file per note in the Obsidian export.** The export writes the
+  collective note of SPEC 8.1 today. One file per note is decided and not
+  built.
+- **The overflow guard** of SPEC 11 — nothing reminds you that unexported notes
+  are piling up.
+- **Model lists.** The model fields offer one entry and never ask the provider
+  what it holds, so a model has to be typed correctly by hand.
+- **External providers for transcription.** Voice notes go through the local
+  whisper.cpp and nothing else.
+- **The embedding provider** is always Ollama, whichever provider does the
+  chatting. Without Ollama there are no topic bundles, and the settings page
+  says so.
+
+Built since this section was last written, and it stood here as missing:
+AI analysis with classification, tags and the category sidebar; the three
+providers Ollama, openrouter.ai and OpenAI; embeddings, topic clustering and
+the bundle review; the Obsidian export and the full export as a way out; the
+settings dialog with its six pages; and the search operators `tag:`, `kat:`,
+`typ:`, `vor:` and `nach:`.
 
 What is currently being worked on is in the
 [issues](https://github.com/hnsstrk/denkzettel/issues); the binding
