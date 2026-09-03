@@ -164,16 +164,42 @@ int main(int argc, char **argv)
     // into the journal (finding 25) — while an abort withholds the picture.
     const QStringList languages = KLocalizedString::languages();
     const QSet<QString> catalogues = KLocalizedString::availableApplicationTranslations();
+    QStringList catalogueNames(catalogues.cbegin(), catalogues.cend());
+    // Sorted, because a QSet hands its members back in no defined order: the
+    // same run printed "de en_US" here and "en_US de" in the neighbouring
+    // runner, and whoever compares two logs sees a difference that is none.
+    catalogueNames.sort();
     qWarning("language: %s · catalogue for: %s", qUtf8Printable(languages.join(QLatin1Char(' '))),
-             qUtf8Printable(QStringList(catalogues.cbegin(), catalogues.cend()).join(QLatin1Char(' '))));
-    if (std::none_of(languages.cbegin(), languages.cend(), [&catalogues](const QString &language) {
-            return catalogues.contains(language);
-        })) {
+             qUtf8Printable(catalogueNames.join(QLatin1Char(' '))));
+
+    // **A request for the source language is always satisfiable**, and two
+    // shapes of it reach here: an empty list, because no locale variable was
+    // set at all, and the C or POSIX locale, which *is* the source language.
+    // std::all_of over an empty range is true, so both are covered by one
+    // condition — and without it the run aborted on a picture that would have
+    // come out right. Measured in the review of this change: an unset locale
+    // and LANG=C.UTF-8 both ended at 134 with 0 pictures, while a runner
+    // without this guard drew the correct English window in the same
+    // environment.
+    const bool wantsSourceLanguage = std::all_of(languages.cbegin(), languages.cend(), [](const QString &language) {
+        return language.isEmpty() || language == QLatin1String("C") || language == QLatin1String("POSIX");
+    });
+    if (!wantsSourceLanguage
+        && std::none_of(languages.cbegin(), languages.cend(), [&catalogues](const QString &language) {
+               return catalogues.contains(language);
+           })) {
         qFatal("no message catalogue for %s: every picture would come out in the source "
                "language. Install into a staging root and point XDG_DATA_DIRS at it, see the "
                "usage block above",
                qUtf8Printable(languages.join(QLatin1Char(' '))));
     }
+    // ponytail: presence, not currency. The guard says a catalogue for the
+    // wanted language is reachable, never which file that is — the documented
+    // invocation leaves /usr/share at the end of XDG_DATA_DIRS, so a forgotten
+    // staging root resolves to the installed copy, which can lag behind the
+    // source (findings 21 and 57). Upgrade path: the marker readback this
+    // change was proved with — a msgstr altered in the staged catalogue, read
+    // back out of the run — turned into a check of its own.
 
     // Read back what the run really drew with, rather than trusting that the
     // variables were set (findings 28 and 38).
