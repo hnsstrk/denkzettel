@@ -224,6 +224,10 @@ target_link_libraries(originshots PRIVATE
     denkzettelsettings
     denkzettelstore
     denkzettelui
+    # A German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name (#138).
+    KF6::I18n
     Qt6::Test
     Qt6::Widgets
 )
@@ -258,6 +262,10 @@ add_executable(levelshots levelshots.cpp)
 
 target_link_libraries(levelshots PRIVATE
     denkzettelcapture
+    # A German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name (#138).
+    KF6::I18n
     Qt6::Test
     Qt6::Widgets
 )

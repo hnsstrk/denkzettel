@@ -3,6 +3,8 @@
 #include "ui/librarywindow.h"
 #include "ui/notelistmodel.h"
 
+#include <KLocalizedString>
+
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -10,11 +12,15 @@
 #include <QListView>
 #include <QPixmap>
 #include <QPushButton>
+#include <QSet>
 #include <QSplitter>
 #include <QStandardPaths>
+#include <QStringList>
 #include <QStyle>
 #include <QTemporaryDir>
 #include <QTest>
+
+#include <algorithm>
 
 /**
  * The pictures of issue #47: the origin of a note in the reading pane, and the
@@ -52,13 +58,28 @@
  * and a window title is personal data, so no run of this may ever take its
  * material out of the session somebody is working in.
  *
- * Usage — the environment is not optional, see rule 2 and finding 28:
+ * Usage — the environment is not optional, see rule 2 and finding 28. **The
+ * committed pictures are the English ones**, and this is the call that
+ * reproduces them:
  *
  *   cmake --build build --target originshots
  *   env -u LANGUAGE LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
  *       QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
  *       QT_FORCE_STDERR_LOGGING=1 \
  *       build/bin/originshots docs/images/reviews
+ *
+ * For a German picture the catalogue has to be findable at runtime, and the
+ * **build** is what compiles it (finding 57), so the order is build, install
+ * into a throwaway root, run — into a directory of its own, never over the
+ * committed English set of the same file names:
+ *
+ *   cmake --build build
+ *   dest=$(mktemp -d); DESTDIR="$dest" cmake --install build
+ *   env LANGUAGE=de LANG=de_DE.UTF-8 LC_ALL=de_DE.UTF-8 \
+ *       XDG_DATA_DIRS="$dest/usr/share:/usr/share" \
+ *       QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+ *       QT_FORCE_STDERR_LOGGING=1 \
+ *       build/bin/originshots /tmp/originshots-de
  */
 namespace
 {
@@ -142,6 +163,27 @@ int main(int argc, char **argv)
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QApplication app(argc, argv);
     app.setApplicationName(QStringLiteral("denkzettel"));
+    // Without the domain no catalogue is ever consulted, and the run writes an
+    // English picture whatever LANGUAGE says (#138).
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
+    // The domain alone does not make a catalogue findable, and a missing one
+    // shows up as a picture in the wrong language that looks finished. So the
+    // run stops instead of writing it: a line on stderr would travel the very
+    // channel this defect hid behind — without QT_FORCE_STDERR_LOGGING it goes
+    // into the journal (finding 25) — while an abort withholds the picture.
+    const QStringList languages = KLocalizedString::languages();
+    const QSet<QString> catalogues = KLocalizedString::availableApplicationTranslations();
+    qWarning("language: %s · catalogue for: %s", qUtf8Printable(languages.join(QLatin1Char(' '))),
+             qUtf8Printable(QStringList(catalogues.cbegin(), catalogues.cend()).join(QLatin1Char(' '))));
+    if (std::none_of(languages.cbegin(), languages.cend(), [&catalogues](const QString &language) {
+            return catalogues.contains(language);
+        })) {
+        qFatal("no message catalogue for %s: every picture would come out in the source "
+               "language. Install into a staging root and point XDG_DATA_DIRS at it, see the "
+               "usage block above",
+               qUtf8Printable(languages.join(QLatin1Char(' '))));
+    }
 
     // Read back what the run really drew with, rather than trusting that the
     // variables were set (findings 28 and 38).

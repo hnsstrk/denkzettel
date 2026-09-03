@@ -13,6 +13,17 @@
  * Run it the way the pictures are run, so the type is the user's:
  *   QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
  *       ./build/bin/searchbench
+ *
+ * **No `KLocalizedString::setApplicationDomain()` here, deliberately** — the
+ * question #138 asks of every runner in this directory. It does build a
+ * `LibraryWindow` and a `QListView`, so `i18n()` does run in it; but it writes
+ * no picture and reports no translated string, so there is nothing a wrong
+ * language could mislabel. What the table carries — query times, the fill of
+ * the model, the font metrics — is measured on the invented notes below, and
+ * the domain would only make the numbers depend on the `LANGUAGE` of whoever
+ * runs the bench, which is the opposite of what a bench is compared across
+ * machines for. Whoever adds an output here that reads back a translated
+ * string sets the domain with it.
  */
 
 #include "platform/systemfonts.h"
