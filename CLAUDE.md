@@ -1692,9 +1692,10 @@ find.
     **What makes it worth an entry is the shape of the wrong readback**, not
     the caching. The run printed `shown=0 text=""` — the answer for "this
     provider is local, no sentence needed" — while also printing the geometry
-    `90..124` for a label that had just lost its row. Read on its own, the
-    pair says the page is behaving correctly under Ollama; read together, it
-    says a widget is occupying space it should not have. Finding 79 is the
+    `90..124` for a **hidden** label, a geometry it can only have been given
+    while its row was still shown. Read on its own, the pair says the page is
+    behaving correctly under Ollama; read together, it says the row existed
+    and then vanished after the page was built. Finding 79 is the
     same object from the other side, and finding 42's the source: the file and
     the skeleton are two sources, and whoever writes one reads the other
     unless told otherwise.
