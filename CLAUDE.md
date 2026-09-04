@@ -1568,6 +1568,22 @@ find.
     `git log --oneline -1 <branch>` after it. A merge tells you it merged; it
     does not tell you where.
 
+    **The same hour produced the worse half, and it is worse because
+    everything reported success.** With the lead's `main` checked out in that
+    same worktree, the implementer's `git commit` landed its eleven files
+    directly on `main`: `bee5d7d` has `fc8020b` as its parent, `git branch
+    --contains` names `main` and not `issue-34`, and the branch called after
+    the story is empty. So a story went onto the trunk without the review the
+    project requires before every commit, the lead's next commit sat on top of
+    it, and the lead's own report to the implementer — that its work was
+    unversioned and at risk — was wrong in the other direction. The
+    implementer read git back and contradicted it; that is the only reason it
+    was found. **A worktree is a shared resource with one HEAD, and `git
+    commit` writes to whatever that HEAD says at the moment it runs** — not to
+    the branch you created ten minutes earlier. The cure is the same worktree
+    per agent, and the readback is `git log --oneline -1 <your branch>` after
+    committing, not the commit's own output.
+
 86. **A `QTemporaryDir` destructor that runs is no proof the directory is
     gone — a library static writes it back after `main()` has returned.**
     Measured 2026-09-03 on #136, where `systemfontstest` left exactly one
