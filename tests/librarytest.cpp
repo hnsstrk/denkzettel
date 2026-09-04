@@ -251,6 +251,7 @@ private Q_SLOTS:
     void puttingABundleAsideSetsItsStatus();
     void acceptingExportsOnlyTheTickedNotes();
     void dropsABundleWhoseNotesAreAllGone();
+    void dropsADeferredBundleWhoseNotesAreAllGone();
 
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
@@ -4051,7 +4052,22 @@ void LibraryTest::acceptingExportsOnlyTheTickedNotes()
     QCOMPARE(notes->item(0)->checkState(), Qt::Checked);
     QCOMPARE(notes->item(1)->checkState(), Qt::Checked);
 
+    // The preview is the guard of criterion 1 of issue #30, "deselecting acts
+    // on the preview at once" (issue #147): read back with both notes ticked
+    // and again after the tick is taken away. Without the first reading the
+    // second one would be green over a preview that never showed the note at
+    // all.
+    auto *preview = window.findChild<QTextBrowser *>(QStringLiteral("preview-%1").arg(bundle));
+    QVERIFY2(preview, "the card carries no preview");
+    QVERIFY2(preview->toPlainText().contains(QStringLiteral("Bündel-Export erst ab fünf Notizen")),
+             qPrintable(preview->toPlainText()));
+
     notes->item(0)->setCheckState(Qt::Unchecked);
+
+    QVERIFY2(!preview->toPlainText().contains(QStringLiteral("Bündel-Export erst ab fünf Notizen")),
+             "the preview still shows the deselected note");
+    QVERIFY2(preview->toPlainText().contains(QStringLiteral("Whisper-Warteschlange bei Suspend")),
+             qPrintable(preview->toPlainText()));
 
     QPushButton *accept = cardButton(window, QStringLiteral("accept"), bundle);
     QVERIFY2(accept, "the card carries no button for accepting");
@@ -4101,6 +4117,31 @@ void LibraryTest::dropsABundleWhoseNotesAreAllGone()
     // the review carries out the deletion the note's own deletion could not.
     QVERIFY(!cardOf(window, bundle));
     QVERIFY2(m_store->proposals().isEmpty(), "the empty bundle stayed in the database");
+}
+
+void LibraryTest::dropsADeferredBundleWhoseNotesAreAllGone()
+{
+    const qint64 note = storedNote(QStringLiteral("die letzte Notiz des zurückgestellten Bündels"),
+                                   QStringLiteral("2026-07-30T12:00:00"));
+    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {note});
+    QVERIFY2(m_store->setProposalStatus(bundle, Proposal::Status::Deferred),
+             qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+
+    // Asserted before the window is built, or the check below would pass over a
+    // row that was never there (CLAUDE.md, finding 27).
+    QCOMPARE(m_store->proposals().size(), qsizetype(1));
+    QCOMPARE(m_store->proposals().constFirst().status, Proposal::Status::Deferred);
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    // Measured on the table and not on the card (issue #147): a deferred
+    // suggestion never gets a card, so a check for "no card was built" would be
+    // green over the old order as well as the new one. What the old order
+    // leaves behind is the row.
+    QVERIFY2(m_store->proposals().isEmpty(), "the empty deferred bundle stayed in the database");
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()
