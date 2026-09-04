@@ -141,6 +141,7 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     , m_test(new QPushButton(i18n("Test connection"), this))
     , m_result(smallLine(this))
     , m_openAiNote(smallLine(this))
+    , m_privacyNote(smallLine(this))
     , m_ollama(new OllamaProvider(this))
     , m_openRouter(new OpenAiCompatibleProvider(openrouter::Service, this))
     , m_openAi(new OpenAiCompatibleProvider(openai::Service, this))
@@ -196,6 +197,29 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     // unlocks OpenAI. Both the lock and the sentence go with it — a page that
     // says a provider is not connected while it is, is the same untruth the
     // other way round (wireframe supplement 1d, UX decision 30.08.2026).
+
+    // **What the choice above costs, said where the choice is made** (issue
+    // #144). SPEC 1 promises "Everything stays local", and that held until #38
+    // and #39 made the two remote services selectable; it still holds under
+    // Ollama, which is the default. Under the other two the text of every
+    // classified note goes to a third party (SPEC 7.1), and until now the page
+    // said where the **key** is kept and never where the **text** goes. It is
+    // the one claim about Denkzettel a reader is most likely to have taken from
+    // the README, where the same overpromise stood until 03.09.2026.
+    //
+    // Directly under the provider row and above everything else, because that
+    // is what the criterion "visible without scrolling and without opening
+    // anything" means on a page whose rows come and go: a consequence read
+    // after the fields it applies to is read too late.
+    //
+    // The text is **set in showRowsOfTheChosenProvider() and cleared there**,
+    // not written once here like the two notes below. A hidden label that keeps
+    // its last sentence answers the same thing for "nothing to say" as for
+    // "said it and wrongly hidden" (CLAUDE.md, finding 79), and this is the one
+    // line on the page whose absence is itself a statement.
+    m_privacyNote->setObjectName(QStringLiteral("privacyNote"));
+    m_privacyNoteRow = m_form->rowCount();
+    m_form->addRow(m_privacyNote);
 
     // **Why there is no "Sign in with ChatGPT"**, and the wording is not
     // invented here: SPEC 7.5 settled it on the research of 2026-07-31, and
@@ -399,7 +423,23 @@ void AiProviderPage::showRowsOfTheChosenProvider()
     const bool needsKey = !keyNameOf(chosen).isEmpty();
     // Both remote services now, and that is the whole of the row rule: what
     // used to read "openrouter" reads "not Ollama" (issue #39).
-    const bool remoteChat = serviceOf(chosen) != nullptr;
+    const AiService *service = serviceOf(chosen);
+    const bool remoteChat = service != nullptr;
+
+    // **The sentence and its row go together** (issue #144, CLAUDE.md finding
+    // 79): under Ollama nothing leaves the machine, so there is nothing to say
+    // and the label is emptied rather than merely hidden — otherwise a readback
+    // cannot tell "nothing to report" from "reported and wrongly hidden", and
+    // for a privacy statement those are the two states that matter most.
+    //
+    // The service is named rather than spelled into the sentence, for the
+    // reason the result line below names it: with two remote backends a fixed
+    // wording would tell the user about the service they did not choose.
+    m_privacyNote->setText(remoteChat ? i18n("The text of every note that is classified is sent to %1."
+                                             " With Ollama nothing leaves this machine.",
+                                             QString(service->name))
+                                      : QString());
+    m_form->setRowVisible(m_privacyNoteRow, remoteChat);
 
     m_form->setRowVisible(m_apiKeyRow, needsKey);
     // The note about "Sign in with ChatGPT" belongs to the one provider it is
