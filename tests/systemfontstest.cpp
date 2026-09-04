@@ -130,13 +130,22 @@ bool allAt(const QList<QLabel *> &labels, int pointSize)
     });
 }
 
-/** The throwaway HOME, kept for the handler below. Set once, in main(). */
-QString temporaryHome;
+/** The throwaway HOME, kept for the handler below. Set once, in main().
+ *  Function-local and not a global: a non-POD global is a clazy finding
+ *  (non-pod-global-static), and its destruction would additionally have to be
+ *  ordered against the handler that reads it. Assigned before the atexit()
+ *  call, so it is built first and destroyed last — after the handler has run
+ *  ([basic.start.term], the same clause the comment in main() rests on). */
+QString &temporaryHome()
+{
+    static QString path;
+    return path;
+}
 
 /** Removes it — see the comment on the atexit() call in main(). */
 void removeTemporaryHome()
 {
-    QDir(temporaryHome).removeRecursively();
+    QDir(temporaryHome()).removeRecursively();
 }
 }
 
@@ -228,7 +237,7 @@ int main(int argc, char *argv[])
     // it precedes ([basic.start.term]), so this runs last and reaches the file
     // KSvg leaves behind.
     home.setAutoRemove(false);
-    temporaryHome = home.path();
+    temporaryHome() = home.path();
     if (std::atexit(removeTemporaryHome) != 0) {
         qFatal("no cleanup for the temporary home");
     }
