@@ -792,11 +792,16 @@ void ShellTest::remindsWhenTheOldestNoteHasWaitedTooLong()
 
 void ShellTest::namesTheCountWhenBothCriteriaGiveWayAtOnce()
 {
-    // The third of the three states, and the only one that pins the rule: with
-    // **both** criteria over, the line names the count (UX decision of
-    // 04.09.2026). The two cases above each leave one criterion out of reach,
-    // so neither of them can tell a guard that always writes the count from one
-    // that writes the criterion that gave way — this one can.
+    // The third of the three states: with **both** criteria over, the line names
+    // the count (UX decision of 04.09.2026).
+    //
+    // What only this case can see is the **precedence**, and nothing else about
+    // the branch. A guard that always writes the count is already caught by the
+    // age case above — measured, that mutation's one red. But
+    // `tooMany ? count : age` and `!tooOld ? count : age` answer **identically**
+    // wherever one criterion is over on its own, and they part only here; with
+    // the count branch taken on `tooMany && !tooOld`, this case is the only one
+    // that goes red.
     QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
              "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
     KConfigGroup group = exportGroupOfTheTestSet();
