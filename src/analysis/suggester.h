@@ -121,20 +121,14 @@ public:
     /**
      * Neither `store` nor `provider` is owned; both outlive the suggester.
      *
-     * `embeddingModel` is the model the vectors were made with —
-     * Embedder::model() at the moment this is built: what is clustered has to
-     * be what the embedding run wrote, or the corpus comes out empty and
-     * nothing says why.
-     *
-     * Since issue #119 the value can change while the daemon runs, and then
-     * reloadSettings() below reads it again — out of the same
-     * ollama::configuredEmbeddingModel() the embedder reads, on the same
-     * signal, so the two still say the same thing. That is not "the setting
-     * read a second time" as the older wording here forbade: the second place
-     * that read the key on its own has gone, and what is left is one function
-     * two objects ask.
+     * **The model and the service of the vectors come off the provider**, which
+     * since issue #130 is the one that writes them as well: what is clustered
+     * has to be what the embedding run wrote, or the corpus comes out empty and
+     * nothing says why. Handed in as a parameter it was a second copy of a
+     * value that can change while the daemon runs (issue #119) — asked of the
+     * provider it is the same object the embedder asks.
      */
-    Suggester(Store *store, AiProvider *provider, const QString &embeddingModel, QObject *parent = nullptr);
+    Suggester(Store *store, AiProvider *provider, QObject *parent = nullptr);
 
     /**
      * Takes up the notes and the clusters and returns at once — the work runs
@@ -147,13 +141,12 @@ public:
 
 public Q_SLOTS:
     /**
-     * Re-reads `[AI] EmbeddingModel` out of `denkzettelrc`, the third of the
-     * three that have to agree on it (issue #119).
+     * Takes the model and the service off the provider again, the third of the
+     * three that have to agree on them (issues #119 and #130).
      *
-     * Out of the same ollama::configuredEmbeddingModel() the embedder reads,
-     * and hung on the same signal: read a moment apart from the same file, the
-     * two hold the same name — read out of two places they would be two names,
-     * and this class would ask the store for a model nothing had written.
+     * The same object the embedder asks, and hung on the same signal after the
+     * provider's own slot: read out of two places they would be two names, and
+     * this class would ask the store for a model nothing had written.
      */
     void reloadSettings();
 
@@ -173,6 +166,8 @@ private:
     Store *m_store;
     AiProvider *m_provider;
     QString m_embeddingModel;
+    /** The service that made them, beside the name (issue #130). */
+    QString m_embeddingService;
     /** The clusters of this run that are still outstanding. */
     QList<QList<Note>> m_clusters;
     /** The cluster laid before the model, in the order it was numbered in. */

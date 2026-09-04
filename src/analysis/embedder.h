@@ -20,12 +20,13 @@ class Store;
  *
  * - **The backend never answered** — a timeout, a refused connection, a
  *   transport error. That says nothing about the note that was first in the
- *   queue: every embedding of v1 comes from the one Ollama (SPEC 7.1), so the
+ *   queue: one provider answers every embedding of a run (SPEC 7.1), so the
  *   next note fares the same. The run ends and **no counter moves**. Counted,
  *   two outages would leave the whole corpus given up on for good; carried on
  *   with, the run spends a timeout per note to be told the same thing fifty
- *   times. This is what SPEC 7.1 means by the bundles falling away while
- *   Ollama is unreachable: the classification keeps working, the vectors wait.
+ *   times. This is what SPEC 7.1 means by the bundles falling away while the
+ *   provider is unreachable: the classification keeps working, the vectors
+ *   wait.
  * - **The backend answered and refused this text** — an HTTP error, an
  *   unreadable body, an answer without a vector in it. It answered, so it is
  *   there; what it choked on is this note. That one is counted the way
@@ -61,27 +62,49 @@ public:
     bool isBusy() const;
 
     /**
-     * The embedding model of SPEC 7.1 out of `denkzettelrc`, as reloadSettings()
-     * last read it.
+     * The embedding model of SPEC 7.1, as reloadSettings() last read it off the
+     * provider.
      *
      * It is written beside every vector and it is what the clustering asks the
      * store for (Store::embeddings()) — so whoever clusters what this run
-     * wrote takes the name from here rather than reading the setting a second
-     * time. The same key OllamaProvider reads, for the same reason: two
-     * spellings would be two models.
+     * wrote takes the name from here rather than reading a setting a second
+     * time. Which key holds it depends on which backend is chosen, and the
+     * backend is the one that knows: two readers would be two chances to open
+     * the wrong key.
      */
     QString model() const;
 
+    /**
+     * The service the vectors of this run come from, kept beside the model name
+     * (Store::setEmbedding(), issue #130).
+     *
+     * The same name exists on two services — `bge-m3` is an Ollama model and
+     * `baai/bge-m3` stands in openrouter's list, and the model field is a free
+     * one — so since the provider choice opened, the name alone stopped being
+     * an identifier.
+     */
+    QString service() const;
+
 public Q_SLOTS:
     /**
-     * Re-reads `[AI] EmbeddingModel` out of `denkzettelrc`.
+     * Takes the model and the service off the provider again.
      *
-     * It hangs on the same `Settings::configChanged` as
-     * OllamaProvider::reloadSettings() and for the same reason (issue #119):
-     * the provider would otherwise ask a **new** model for the vector while
-     * this class went on writing the **old** name beside it, and the
-     * clustering, which looks the vectors up by that name, would compare two
-     * models' vectors as if they were one.
+     * It hangs on the same `Settings::configChanged` as the provider's own
+     * reloadSettings() and for the same reason (issue #119): the provider would
+     * otherwise ask a **new** model for the vector while this class went on
+     * writing the **old** name beside it, and the clustering, which looks the
+     * vectors up by that name, would compare two models' vectors as if they
+     * were one. **It has to run after the provider's**, which is what the order
+     * of the connections in settingswiring.cpp gives it.
+     *
+     * **A change marks the whole corpus for re-embedding** (SPEC 7.1, PO
+     * decision 04.09.2026): vectors of two models are not comparable, so the
+     * flag of SPEC 9 goes on every note and the next runs work it off within
+     * the budget of §14 — at most 50 a run, nothing in bulk and nothing
+     * refused. Only a **change**, and only from a pair that was already set:
+     * marked at construction too, every start of the daemon would embed a
+     * corpus again that has perfectly good vectors, unattended and on a billed
+     * service.
      *
      * **It takes hold from the next request on, and a call already on its way
      * keeps the name it was sent with** — see m_sentModel. Not "a run that is
@@ -111,6 +134,19 @@ Q_SIGNALS:
      */
     void paused(qint64 noteId, const QString &reason);
 
+    /**
+     * The run took no note at all, because the backend cannot embed yet — the
+     * sentence says what is missing
+     * (AiProvider::unmetEmbeddingPrecondition()).
+     *
+     * Classifier::notReady()'s counterpart, and for the same rule of SPEC 12: a
+     * precondition not yet met is not a failed attempt. Without it a remote
+     * provider whose embedding model the user has not filled in yet would spend
+     * both attempts of every note on that sentence, every 30 minutes. Empty
+     * takes the report back.
+     */
+    void notReady(const QString &reason);
+
     /** The run is through and nothing is outstanding. */
     void finished();
 
@@ -124,6 +160,8 @@ private:
     Store *m_store;
     AiProvider *m_provider;
     QString m_model;
+    /** The service the model above belongs to (issue #130). */
+    QString m_service;
     /**
      * The model the outstanding request was sent with, and what its vector is
      * stored under.
@@ -134,6 +172,8 @@ private:
      * would never ask for that row again.
      */
     QString m_sentModel;
+    /** The service the outstanding request went to, for the reason above. */
+    QString m_sentService;
     /** The notes of this run that are still outstanding, oldest first. */
     QList<Note> m_queue;
     /** The note being embedded, and -1 between two of them. */

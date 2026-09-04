@@ -137,7 +137,12 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     , m_openAiModel(modelBox(this, QString()))
     , m_ollamaUrl(new QLineEdit(this))
     , m_embeddingModel(modelBox(this, QString(ollama::DefaultEmbeddingModel)))
-    , m_embeddingsFromOllama(smallLine(this))
+    // Empty for the reason the two chat model boxes above are empty, and one
+    // degree stronger: an embedding run touches every note, repeatedly (SPEC
+    // 7.1, issue #130).
+    , m_openRouterEmbeddingModel(modelBox(this, QString()))
+    , m_openAiEmbeddingModel(modelBox(this, QString()))
+    , m_thresholdNote(smallLine(this))
     , m_test(new QPushButton(i18n("Test connection"), this))
     , m_result(smallLine(this))
     , m_openAiNote(smallLine(this))
@@ -306,30 +311,60 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     m_openAiModelRow = m_form->rowCount();
     m_form->addRow(i18n("Language model:"), m_openAiModel);
 
-    // **The address stays under openrouter, and that is a deviation with a
-    // reason** (issue #38, reported with the story). The row rule of 30.08.2026
-    // has the Ollama address only under Ollama — written for the world after
-    // issue #130, where each provider serves both capabilities. Until then the
-    // embedding run of SPEC 7.2 really does ask this address whatever is chosen
-    // above, so hiding it would hide the one field the topic bundles depend on,
-    // and offering an openrouter embedding model in its place would send an
-    // openrouter model id to Ollama. The label names its service, which is the
-    // branch #127's criterion allows.
+    // **The address stands under Ollama and nowhere else**, which is the row
+    // rule of 30.08.2026 as it was written. #38 kept it under all three on
+    // purpose and said so: until this story the embedding run asked this
+    // address whatever was chosen above, so hiding it would have hidden the one
+    // field the topic bundles depend on. That premise is gone — the chosen
+    // service answers the embedding call — and the sentence that used to stand
+    // under the two rows goes with it, at the same moment and on the same
+    // condition (issue #130, the criterion inherited from #38).
     m_ollamaUrl->setObjectName(QStringLiteral("kcfg_OllamaUrl"));
+    m_ollamaUrlRow = m_form->rowCount();
     m_form->addRow(i18n("Ollama address:"), m_ollamaUrl);
 
+    // Three boxes for one row, the way the language model above has three: the
+    // three keys are three settings, and one shared field would carry an Ollama
+    // model name to openrouter — where `baai/bge-m3` is what the list holds and
+    // `bge-m3` is a name their server does not know. One of the three is shown
+    // at a time.
     m_embeddingModel->setObjectName(QStringLiteral("kcfg_EmbeddingModel"));
+    m_embeddingModelRow = m_form->rowCount();
     m_form->addRow(i18n("Embedding model:"), m_embeddingModel);
 
-    // Said where the two rows above stand, so the page tells the truth about
-    // which service each of them talks to (SPEC 7.1, issue #127's criterion).
-    m_embeddingsFromOllama->setObjectName(QStringLiteral("embeddingsFromOllama"));
-    m_embeddingsFromOllama->setText(
-        i18n("The two rows above belong to Ollama: it is what answers the embedding call,"
-             " whichever provider writes the classification. Without a reachable Ollama"
-             " there are no topic bundles."));
-    m_embeddingsFromOllamaRow = m_form->rowCount();
-    m_form->addRow(m_embeddingsFromOllama);
+    m_openRouterEmbeddingModel->setObjectName(QStringLiteral("kcfg_OpenRouterEmbeddingModel"));
+    m_openRouterEmbeddingModel->lineEdit()->setPlaceholderText(
+        i18n("For example baai/bge-m3 · openrouter.ai/models"));
+    // The width, for the reason the chat model rows carry it: an empty editable
+    // combo box sizes itself to nothing and elides its own placeholder.
+    m_openRouterEmbeddingModel->setSizePolicy(QSizePolicy::Expanding,
+                                              m_openRouterEmbeddingModel->sizePolicy().verticalPolicy());
+    m_openRouterEmbeddingModelRow = m_form->rowCount();
+    m_form->addRow(i18n("Embedding model:"), m_openRouterEmbeddingModel);
+
+    m_openAiEmbeddingModel->setObjectName(QStringLiteral("kcfg_OpenAiEmbeddingModel"));
+    m_openAiEmbeddingModel->lineEdit()->setPlaceholderText(
+        i18n("For example text-embedding-3-small · platform.openai.com/docs/models"));
+    m_openAiEmbeddingModel->setSizePolicy(QSizePolicy::Expanding,
+                                          m_openAiEmbeddingModel->sizePolicy().verticalPolicy());
+    m_openAiEmbeddingModelRow = m_form->rowCount();
+    m_form->addRow(i18n("Embedding model:"), m_openAiEmbeddingModel);
+
+    // **What the threshold of SPEC 7.3 was measured against, said where the
+    // model is chosen** (PO decision 04.09.2026, issue #130). One value serves
+    // every provider because the program can calibrate nothing about a model
+    // the user names freely — there is no reference corpus in it — so what is
+    // owed the user is the sentence, not a slider.
+    //
+    // Under all three and not only under the remote two: the field is a free
+    // one under Ollama as well, and a condition here would be a second thing to
+    // forget beside the address row.
+    m_thresholdNote->setObjectName(QStringLiteral("thresholdNote"));
+    m_thresholdNote->setText(
+        i18n("The topic bundles are tuned to bge-m3. Another model may group more"
+             " freely or hardly at all. Changing the model marks every note to be"
+             " embedded again, at most 50 per run."));
+    m_form->addRow(m_thresholdNote);
 
     // The action at the end of its row, the result as a small coloured line
     // right underneath (wireframe 1d:172–173). Not a KMessageWidget: that one
@@ -456,14 +491,13 @@ void AiProviderPage::showRowsOfTheChosenProvider()
     // also makes the readback come out **three** ways instead of two, so a row
     // shown under the wrong provider cannot pass for the right one (finding 10).
     //
-    // ponytail: when #130 lands and one provider answers the embedding too,
-    // this sentence gets shorter rather than rebuilt — "The text of every note
-    // leaves the machine and goes to %1.", because then every note is affected
-    // and not only the ones classified. Two words out, one string, and it
-    // matches SPEC 7.1's "every note leaves the machine" word for word.
+    // **Every note, and not only the ones being classified** — the two words
+    // #144 left in on purpose came out with #130, which makes the chosen
+    // service answer the embedding as well: an embedding run touches every
+    // note, after every edit again. That is SPEC 7.1's "every note leaves the
+    // machine" word for word.
     m_remoteTextNote->setText(
-        remoteChat ? i18n("The text of every note Denkzettel classifies leaves the machine and goes to %1.",
-                          QString(service->name))
+        remoteChat ? i18n("The text of every note leaves the machine and goes to %1.", QString(service->name))
                    : QString());
     m_form->setRowVisible(m_remoteTextNoteRow, remoteChat);
 
@@ -483,11 +517,14 @@ void AiProviderPage::showRowsOfTheChosenProvider()
     m_form->setRowVisible(m_chatModelRow, !remoteChat);
     m_form->setRowVisible(m_openRouterModelRow, chosen == Settings::OpenRouter);
     m_form->setRowVisible(m_openAiModelRow, chosen == Settings::OpenAi);
-    // The address and the embedding model carry no line here: they stand under
-    // all three providers, because Ollama is what answers the embedding call
-    // whatever is chosen — the reason is at the row itself. What the other two
-    // providers add is the sentence that says so.
-    m_form->setRowVisible(m_embeddingsFromOllamaRow, remoteChat);
+    // The address of the local service, under the local service and nowhere
+    // else (issue #130).
+    m_form->setRowVisible(m_ollamaUrlRow, !remoteChat);
+    // And the embedding model row of the chosen service, the way the language
+    // model row above works.
+    m_form->setRowVisible(m_embeddingModelRow, !remoteChat);
+    m_form->setRowVisible(m_openRouterEmbeddingModelRow, chosen == Settings::OpenRouter);
+    m_form->setRowVisible(m_openAiEmbeddingModelRow, chosen == Settings::OpenAi);
 
     // Emptied on a switch, because what stands in it belongs to the provider
     // that was chosen when it was typed: applied under the other one it would
@@ -541,8 +578,14 @@ void AiProviderPage::startTest()
     m_result->clear();
 
     if (OpenAiCompatibleProvider *remote = chosenRemote(); remote != nullptr) {
-        remote->setChatModel(chosenProvider() == Settings::OpenRouter ? m_openRouterModel->currentText()
-                                                                     : m_openAiModel->currentText());
+        const bool openRouter = chosenProvider() == Settings::OpenRouter;
+        remote->setChatModel(openRouter ? m_openRouterModel->currentText() : m_openAiModel->currentText());
+        // **Both models, because the test makes both calls under every provider
+        // now** (issue #130): the embedding half is what the topic bundles hang
+        // on, and a test that skipped it would leave the user's one way of
+        // checking it unmeasured.
+        remote->setEmbeddingModel(openRouter ? m_openRouterEmbeddingModel->currentText()
+                                             : m_openAiEmbeddingModel->currentText());
         // **Only a key that was typed**, and this line is the one the review of
         // 30.08.2026 found: the field is write-only and therefore empty on
         // every opening, so handing its text over unconditionally wiped the
@@ -582,34 +625,18 @@ void AiProviderPage::showResult(qint64 chatMilliseconds, qint64 embedMillisecond
     m_result->setPalette(colours);
 
     if (!error.isEmpty()) {
-        // **The sentence names the service that answered**, because the
-        // provider's own error sentences do — "openrouter.ai refused the
-        // request" and "Ollama could not be reached" are not the same news, and
-        // a missing local service must not read like a remote API failure
-        // (issue #38). What an unreachable Ollama costs is added only where
-        // Ollama was what was asked: with openrouter chosen the embedding call
-        // was not part of this test at all.
-        m_result->setText(chosenRemote() != nullptr
-                              ? error
-                              : i18n("%1\nEvery embedding comes from Ollama: without it there are no topic bundles."
-                                     " The classification keeps running through the provider chosen above.",
-                                     error));
+        // **The sentence names the service that answered** and is left as the
+        // backend wrote it, because the backend's own error sentences do that —
+        // "openrouter.ai refused the request" and "Ollama could not be reached"
+        // are not the same news, and a missing local service must not read like
+        // a remote API failure (issue #38). The line that used to be appended
+        // under Ollama went with issue #130: one service answers both calls
+        // now, so "the classification keeps running" is no longer true of the
+        // case this branch is in.
+        m_result->setText(error);
         return;
     }
 
-    // -1 for the second latency is a backend that does not embed (AiProvider),
-    // and then the line says which service the embeddings come from rather than
-    // printing a number nobody measured.
-    // The service is named rather than spelled into the sentence: with two
-    // remote backends a fixed "openrouter.ai" here would be a line claiming the
-    // wrong service measured the call (issue #39).
-    const AiService *service = serviceOf(chosenProvider());
-    m_result->setText(embedMilliseconds < 0 && service != nullptr
-                          ? i18n("Connection is up · chat %1 ms."
-                                 " Embeddings are not asked of %2; test them under Ollama.",
-                                 chatMilliseconds,
-                                 QString(service->name))
-                          : i18n("Connection is up · chat %1 ms · embedding %2 ms",
-                                 chatMilliseconds,
-                                 embedMilliseconds));
+    m_result->setText(
+        i18n("Connection is up · chat %1 ms · embedding %2 ms", chatMilliseconds, embedMilliseconds));
 }

@@ -358,11 +358,12 @@ public:
      * The notes step 2 of an analysis run has to embed (SPEC 7.2), oldest
      * first.
      *
-     * Three cases, and the query is the only place they are written down:
+     * Four cases, and the query is the only place they are written down:
      * a note that carries no vector yet, one whose vector was made by a
-     * **different** model than the one asked for, and one the user has edited
-     * since — that is `needs_reembed`, which SPEC 9 sets on saving and
-     * setEmbedding() clears.
+     * **different** model than the one asked for, one whose vector came from a
+     * **different service** under the same model name (issue #130), and one the
+     * user has edited since — that is `needs_reembed`, which SPEC 9 sets on
+     * saving and setEmbedding() clears.
      *
      * Only analysed notes, because only those are clustered (SPEC 7.3): a note
      * whose classification failed is not in the corpus, and an `embed` call for
@@ -370,7 +371,7 @@ public:
      * out for the reason unanalysedNotes() leaves them out — a voice note
      * waiting for its transcript has nothing to embed yet.
      */
-    QList<Note> notesToEmbed(const QString &model) const;
+    QList<Note> notesToEmbed(const QString &model, const QString &service) const;
 
     /**
      * Writes the vector of one note and clears its `needs_reembed`, in one
@@ -378,18 +379,33 @@ public:
      *
      * An existing vector of the same note is replaced: there is one current
      * text per note and therefore one current vector.
+     *
+     * `service` is AiProvider::serviceId() of the backend that made it. It is
+     * kept beside the name because the same name exists on two services since
+     * SPEC 7.1 opened the choice — see migration 10.
      */
-    bool setEmbedding(qint64 noteId, const QString &model, const QList<float> &vector);
+    bool setEmbedding(qint64 noteId, const QString &model, const QString &service, const QList<float> &vector);
+
+    /**
+     * Sets `needs_reembed` on every note, for the change of embedding model or
+     * service of SPEC 7.1 (PO decision 04.09.2026, issue #130).
+     *
+     * **Lazily and not in bulk**: the flag is what the next runs work off,
+     * within the budget of §14 — at most 50 notes a run. A bulk run would spend
+     * money unattended on a billed service, and refusing the switch would block
+     * the choice the user has just made.
+     */
+    bool markAllForReembedding();
 
     /**
      * What the topic clustering of SPEC 7.3 compares: the embeddings of all
-     * unexported, analysed notes made by `model`, oldest first.
+     * unexported, analysed notes made by `model` on `service`, oldest first.
      *
-     * The model is a parameter and not a setting read here, because it is the
-     * embedding run that knows which one wrote the vectors — the store keeps
-     * the name, the analysis owns it (SPEC 7.1).
+     * Both are parameters and not settings read here, because it is the
+     * embedding run that knows what wrote the vectors — the store keeps the
+     * pair, the analysis owns it (SPEC 7.1).
      */
-    QList<NoteEmbedding> embeddings(const QString &model) const;
+    QList<NoteEmbedding> embeddings(const QString &model, const QString &service) const;
 
     /**
      * Writes one suggestion together with its note references, in one

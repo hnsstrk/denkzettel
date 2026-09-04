@@ -101,7 +101,10 @@ private:
     QComboBox *m_openAiModel;
     QLineEdit *m_ollamaUrl;
     QComboBox *m_embeddingModel;
-    QLabel *m_embeddingsFromOllama;
+    QComboBox *m_openRouterEmbeddingModel;
+    QComboBox *m_openAiEmbeddingModel;
+    /** What the 0.60 of SPEC 7.3 was calibrated against; shown under all three. */
+    QLabel *m_thresholdNote;
     QPushButton *m_test;
     QLabel *m_result;
     /** Why there is no "Sign in with ChatGPT" (SPEC 7.5); shown under OpenAI. */
@@ -120,7 +123,10 @@ private:
     int m_openAiModelRow = -1;
     int m_openAiNoteRow = -1;
     int m_remoteTextNoteRow = -1;
-    int m_embeddingsFromOllamaRow = -1;
+    int m_ollamaUrlRow = -1;
+    int m_embeddingModelRow = -1;
+    int m_openRouterEmbeddingModelRow = -1;
+    int m_openAiEmbeddingModelRow = -1;
 
     /** True once the user has typed in the key field, see save(). */
     bool m_keyEdited = false;

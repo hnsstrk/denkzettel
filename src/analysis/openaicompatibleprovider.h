@@ -27,12 +27,26 @@
 struct AiService {
     /** What the user reads in a sentence about this service. */
     QLatin1StringView name;
+    /**
+     * What a vector out of this service is kept under in the store
+     * (AiProvider::serviceId(), issue #130) — the same string `[AI] Provider`
+     * carries for this choice.
+     *
+     * A field of its own and not `name` or `keyName`: those two are a display
+     * string and a wallet entry, and renaming either of them is a cosmetic act
+     * that would silently devalue every stored vector.
+     */
+    QLatin1StringView id;
     /** The chat endpoint. Not a setting: the service is the service. */
     QLatin1StringView endpoint;
+    /** The embedding endpoint, for the same reason (SPEC 7.1, issue #130). */
+    QLatin1StringView embedEndpoint;
     /** The entry KeyStore keeps this service's key under (SPEC 5.2, issue #37). */
     QLatin1StringView keyName;
-    /** The `[AI]` key in `denkzettelrc` that carries this service's model. */
+    /** The `[AI]` key in `denkzettelrc` that carries this service's chat model. */
     QLatin1StringView modelKey;
+    /** The `[AI]` key that carries this service's embedding model (issue #130). */
+    QLatin1StringView embeddingModelKey;
 };
 
 /** What a finished reply says: the text, or the reason there is none. */
@@ -41,6 +55,16 @@ struct OpenAiCompatibleAnswer {
     QString text;
     /** Empty exactly when `text` carries the answer. */
     QString error;
+};
+
+/** The same for an embedding call, and it carries the failure kind with it. */
+struct OpenAiCompatibleEmbedding {
+    /** The vector the service made of the text. */
+    QList<double> vector;
+    /** Empty exactly when `vector` carries the embedding. */
+    QString error;
+    /** Which kind of failure it was — the embedding run decides on it. */
+    AiFailure failure = AiFailure::None;
 };
 
 /**
@@ -115,6 +139,35 @@ OpenAiCompatibleAnswer readOpenAiCompatibleReply(QLatin1StringView service,
                                                  const QByteArray &body);
 
 /**
+ * The same for `/v1/embeddings` (SPEC 7.1, issue #130), and a second function
+ * because the two calls answer in two shapes.
+ *
+ * The embedding call does **not** stream — it answers with one JSON document
+ * carrying `data[0].embedding` — so the whole frame apparatus above has nothing
+ * to read here, and the seven cases that are left are the transport ones plus
+ * "the document carried no vector". The order is the one above, for the reason
+ * it is: it is the order of what the user needs told.
+ *
+ * **It carries the failure kind, which the chat reader does not need**: SPEC
+ * 7.2 counts a refusal against the note and stops the run on an unreachable
+ * backend, and only the embedding run makes that distinction (aiprovider.h).
+ * A timeout, an aborted call and a connection that failed are unreachable; a
+ * document the service refused, an unreadable body and an answer without a
+ * vector in it are refusals — the service answered, so it is there.
+ *
+ * ponytail: unmeasured against both live services for the reason the chat
+ * reader is, and the list of what a key would buy is the same one, `data`,
+ * `embedding` and the shape of a refusal in place of the stream fields. That
+ * `POST /v1/embeddings` exists at all on both services **is** measured —
+ * 401 against a 404 control on each, 04.09.2026, issue #130.
+ */
+OpenAiCompatibleEmbedding readOpenAiCompatibleEmbedding(QLatin1StringView service,
+                                                        QNetworkReply::NetworkError transport,
+                                                        const QString &transportMessage,
+                                                        int httpStatus,
+                                                        const QByteArray &body);
+
+/**
  * The defaults of SPEC 7.1 for this backend, and the one place they stand —
  * `ollama::` beside it carries the same reasoning.
  *
@@ -133,9 +186,12 @@ OpenAiCompatibleAnswer readOpenAiCompatibleReply(QLatin1StringView service,
 namespace openrouter
 {
 inline constexpr AiService Service{QLatin1StringView("openrouter.ai"),
+                                   QLatin1StringView("OpenRouter"),
                                    QLatin1StringView("https://openrouter.ai/api/v1/chat/completions"),
+                                   QLatin1StringView("https://openrouter.ai/api/v1/embeddings"),
                                    QLatin1StringView("openrouter"),
-                                   QLatin1StringView("OpenRouterModel")};
+                                   QLatin1StringView("OpenRouterModel"),
+                                   QLatin1StringView("OpenRouterEmbeddingModel")};
 }
 
 namespace openai
@@ -151,27 +207,31 @@ namespace openai
  * settings page says so where the key is asked for.
  */
 inline constexpr AiService Service{QLatin1StringView("OpenAI"),
+                                   QLatin1StringView("OpenAI"),
                                    QLatin1StringView("https://api.openai.com/v1/chat/completions"),
+                                   QLatin1StringView("https://api.openai.com/v1/embeddings"),
                                    QLatin1StringView("openai"),
-                                   QLatin1StringView("OpenAiModel")};
+                                   QLatin1StringView("OpenAiModel"),
+                                   QLatin1StringView("OpenAiEmbeddingModel")};
 }
 
 /**
  * One of the two remote services of SPEC 7.1 over its OpenAI-compatible HTTP
- * API: chat, and chat only.
+ * API: chat **and** embedding.
  *
- * **The two capabilities are kept apart** (SPEC 7.1, issues #38 and #39).
- * `embed()` below answers with the sentence saying so and canEmbed() reports
- * it, so nothing asks these services for a vector and no missing local Ollama
- * can look like a remote API failure. Since the customer decision of 29.08.2026
- * SPEC 7.1 allows both capabilities per provider; building the embedding side
- * is issue #130 and expressly not these stories.
+ * **Both capabilities, since the PO decision of 04.09.2026** (issue #130): the
+ * provider is chosen once and answers both. Until then `embed()` here answered
+ * with a sentence saying the vectors come from Ollama, on the premise —
+ * measured 2026-07-31 and true then — that openrouter had no embedding
+ * endpoint. It has: `POST /api/v1/embeddings` answers 401 where an invented
+ * route answers 404, and the same holds for OpenAI (04.09.2026).
  *
- * The model is a setting out of `denkzettelrc` (`[AI]` and the descriptor's
- * `modelKey`), read at construction and re-read on reloadSettings(). **The key
- * is not**: SPEC 5.2 forbids it in a configuration file, so it comes from
- * `KeyStore` under the descriptor's `keyName` and from nowhere else, and the
- * first call is what fetches it.
+ * **Two models and therefore two settings keys** (`modelKey` and
+ * `embeddingModelKey`), read at construction and re-read on reloadSettings().
+ * One key would carry a chat model id into the embedding call and back. **The
+ * key is not a setting**: SPEC 5.2 forbids it in a configuration file, so it
+ * comes from `KeyStore` under the descriptor's `keyName` and from nowhere else,
+ * and the first call is what fetches it.
  *
  * **The chat call streams**, for the reason OllamaProvider's does (issue #121):
  * unstreamed, the 30 s of SPEC 7.1 bound the whole answer, and a reasoning
@@ -211,6 +271,13 @@ public:
     void setChatModel(const QString &model);
     QString chatModel() const;
 
+    /** The same for the embedding model, and empty for the same reason. */
+    void setEmbeddingModel(const QString &model);
+    QString embeddingModel() const override;
+
+    /** The descriptor's `id`. */
+    QString serviceId() const override;
+
     /**
      * The key, set past `KeyStore` — for the settings page, which tests what
      * stands on the form rather than what stands in the wallet, and for a check,
@@ -219,8 +286,11 @@ public:
      */
     void setKey(const QString &key);
 
-    /** The descriptor's endpoint unless a check points it at a stand-in. */
+    /** The descriptor's chat endpoint unless a check points it at a stand-in. */
     void setUrl(const QUrl &url);
+
+    /** The same for the embedding endpoint. */
+    void setEmbedUrl(const QUrl &url);
 
     /** The 30 s of silence of SPEC 7.1; settable for the reason it is on Ollama. */
     void setTimeout(std::chrono::milliseconds timeout);
@@ -231,17 +301,13 @@ public:
     int chat(const QString &prompt) override;
 
     /**
-     * Answers with the sentence that this service is not asked for vectors —
-     * through the event loop, like every other answer here.
+     * One `POST` to the descriptor's `embedEndpoint`, answered by
+     * embedFinished() (SPEC 7.1, issue #130).
      *
-     * `AiFailure::Unreachable` and not `Refused`: nothing about the note was
-     * refused, and a run that counted this against the note would burn its two
-     * attempts of SPEC 7.2 on a call nobody should have made.
+     * The same road chat() takes, key and all — the wallet is asked once for
+     * however many calls come in meanwhile.
      */
     int embed(const QString &text) override;
-
-    /** False: these backends do chat and nothing else, see the class comment. */
-    bool canEmbed() const override;
 
     /**
      * Why this backend cannot be called at all — the missing model, or empty
@@ -259,6 +325,17 @@ public:
      */
     QString unmetPrecondition() const override;
 
+    /**
+     * The same for the embedding model, and asked by Embedder::start() for the
+     * same reason (issue #130).
+     *
+     * Two questions and not one, because the two models are two settings: a
+     * user who has named a chat model and no embedding model has the
+     * classification running, and one answer for both would either stop that
+     * over a field it does not need or send an empty model name to the service.
+     */
+    QString unmetEmbeddingPrecondition() const override;
+
 public Q_SLOTS:
     /**
      * Re-reads the service's model out of `denkzettelrc` and forgets the key.
@@ -271,21 +348,24 @@ public Q_SLOTS:
     void reloadSettings();
 
 private:
-    /** One call waiting for the wallet to answer. */
+    /** One call waiting for the wallet to answer, chat or embedding. */
     struct Waiting {
         int id;
-        QString prompt;
+        QString text;
+        bool embedding;
     };
 
     /** Posts one request and answers it. Once — see the class comment. */
-    void post(int id, const QString &prompt);
+    void post(int id, const QString &text, bool embedding);
     /** Answers everything in m_waiting with `error`, or sends it. */
     void releaseWaiting(const QString &error);
 
     AiService m_service;
     QNetworkAccessManager m_network;
     QUrl m_url;
+    QUrl m_embedUrl;
     QString m_model;
+    QString m_embeddingModel;
     QString m_key;
     /** False until the wallet has answered once, or setKey() has been called. */
     bool m_keyKnown = false;

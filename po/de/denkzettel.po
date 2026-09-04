@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 20:22+0200\n"
+"POT-Creation-Date: 2026-09-04 20:41+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:89
+#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:88
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr "Die Antwort des Modells enthielt kein JSON-Objekt."
@@ -37,7 +37,7 @@ msgstr ""
 msgid "The model's answer carried no tag."
 msgstr "Die Antwort des Modells enthielt kein Schlagwort."
 
-#: src/analysis/embedder.cpp:48
+#: src/analysis/embedder.cpp:49
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr "Die Antwort enthielt keinen Einbettungsvektor."
@@ -88,33 +88,39 @@ msgid "Ollama's answer carried no embedding."
 msgstr "Die Antwort von Ollama enthielt kein Embedding."
 
 #: src/analysis/openaicompatibleprovider.cpp:34
+#: src/analysis/openaicompatibleprovider.cpp:163
 #, kde-format
 msgid "%1 did not answer within the time limit."
 msgstr "%1 hat nicht innerhalb der Zeitgrenze geantwortet."
 
 #: src/analysis/openaicompatibleprovider.cpp:42
+#: src/analysis/openaicompatibleprovider.cpp:166
 #, kde-format
 msgid "%1 took longer over this call than it is allowed."
 msgstr "%1 hat für diesen Aufruf länger gebraucht, als er dauern darf."
 
 #: src/analysis/openaicompatibleprovider.cpp:64
 #: src/analysis/openaicompatibleprovider.cpp:116
+#: src/analysis/openaicompatibleprovider.cpp:178
 #, kde-format
 msgid "%1 refused the request: %2"
 msgstr "%1 hat die Anfrage abgelehnt: %2"
 
 #: src/analysis/openaicompatibleprovider.cpp:68
+#: src/analysis/openaicompatibleprovider.cpp:182
 #, kde-format
 msgid "%1 could not be reached: %2"
 msgstr "%1 war nicht erreichbar: %2"
 
 #: src/analysis/openaicompatibleprovider.cpp:72
+#: src/analysis/openaicompatibleprovider.cpp:186
 #, kde-format
 msgid "%1 answered with HTTP status %2."
 msgstr "%1 hat mit HTTP-Status %2 geantwortet."
 
 #: src/analysis/openaicompatibleprovider.cpp:101
 #: src/analysis/openaicompatibleprovider.cpp:135
+#: src/analysis/openaicompatibleprovider.cpp:190
 #, kde-format
 msgid "%1 sent an unreadable answer."
 msgstr "%1 hat eine unlesbare Antwort geschickt."
@@ -129,7 +135,12 @@ msgstr "Die Antwort von %1 brach ab."
 msgid "%1's answer carried no text."
 msgstr "Die Antwort von %1 enthielt keinen Text."
 
-#: src/analysis/openaicompatibleprovider.cpp:184
+#: src/analysis/openaicompatibleprovider.cpp:200
+#, kde-format
+msgid "%1's answer carried no embedding."
+msgstr "Die Antwort von %1 enthielt kein Embedding."
+
+#: src/analysis/openaicompatibleprovider.cpp:247
 #, kde-format
 msgid ""
 "No API key for %1 is stored. Enter it in the settings under \"AI provider\"."
@@ -137,12 +148,7 @@ msgstr ""
 "Für %1 ist kein API-Schlüssel hinterlegt. Tragen Sie ihn in den "
 "Einstellungen unter „KI-Anbieter“ ein."
 
-#: src/analysis/openaicompatibleprovider.cpp:282
-#, kde-format
-msgid "%1 is not asked for embeddings; those come from Ollama."
-msgstr "%1 wird nicht nach Einbettungen gefragt; die kommen von Ollama."
-
-#: src/analysis/openaicompatibleprovider.cpp:297
+#: src/analysis/openaicompatibleprovider.cpp:392
 #, kde-format
 msgid ""
 "No model for %1 is set. Enter one in the settings under \"AI provider\"."
@@ -150,12 +156,21 @@ msgstr ""
 "Für %1 ist kein Modell eingetragen. Tragen Sie eines in den Einstellungen "
 "unter „KI-Anbieter“ ein."
 
-#: src/analysis/suggester.cpp:94
+#: src/analysis/openaicompatibleprovider.cpp:402
+#, kde-format
+msgid ""
+"No embedding model for %1 is set. Enter one in the settings under \"AI "
+"provider\"."
+msgstr ""
+"Für %1 ist kein Einbettungsmodell eingetragen. Tragen Sie eines in den "
+"Einstellungen unter „KI-Anbieter“ ein."
+
+#: src/analysis/suggester.cpp:93
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr "Die Antwort des Modells enthielt keinen Titel für das Bündel."
 
-#: src/analysis/suggester.cpp:112
+#: src/analysis/suggester.cpp:111
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr "Die Antwort des Modells nannte keine der Notizen des Bündels."
@@ -235,7 +250,7 @@ msgstr "Transkription fehlgeschlagen"
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
 
-#: src/main.cpp:522
+#: src/main.cpp:535
 #, kde-format
 msgid "Notes waiting for export"
 msgstr "Notizen warten auf den Export"
@@ -341,32 +356,32 @@ msgstr ""
 "%1 hat die Aufgabe angelegt, aber nicht benannt; der Notiztext wurde nicht "
 "angehängt."
 
-#: src/settings/aiproviderpage.cpp:141
+#: src/settings/aiproviderpage.cpp:146
 #, kde-format
 msgid "Test connection"
 msgstr "Verbindung testen"
 
-#: src/settings/aiproviderpage.cpp:182
+#: src/settings/aiproviderpage.cpp:187
 #, kde-format
 msgid "Ollama"
 msgstr "Ollama"
 
-#: src/settings/aiproviderpage.cpp:184
+#: src/settings/aiproviderpage.cpp:189
 #, kde-format
 msgid "openrouter.ai"
 msgstr "openrouter.ai"
 
-#: src/settings/aiproviderpage.cpp:190
+#: src/settings/aiproviderpage.cpp:195
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr "OpenAI (API-Schlüssel)"
 
-#: src/settings/aiproviderpage.cpp:192
+#: src/settings/aiproviderpage.cpp:197
 #, kde-format
 msgid "Provider:"
 msgstr "Anbieter:"
 
-#: src/settings/aiproviderpage.cpp:242
+#: src/settings/aiproviderpage.cpp:247
 #, kde-format
 msgid ""
 "A route over \"Sign in with ChatGPT\" is not possible: the procedure hands "
@@ -377,93 +392,80 @@ msgstr ""
 "Name, E-Mail-Adresse und Profilbild heraus, keinen Modellzugriff. Denkzettel "
 "braucht deshalb einen API-Schlüssel aus dem OpenAI-Plattformkonto."
 
-#: src/settings/aiproviderpage.cpp:259
+#: src/settings/aiproviderpage.cpp:264
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr "Liegt in KWallet · leer behält den Schlüssel"
 
-#: src/settings/aiproviderpage.cpp:261
+#: src/settings/aiproviderpage.cpp:266
 #, kde-format
 msgid "API key:"
 msgstr "API-Schlüssel:"
 
-#: src/settings/aiproviderpage.cpp:273 src/settings/aiproviderpage.cpp:294
-#: src/settings/aiproviderpage.cpp:307
+#: src/settings/aiproviderpage.cpp:278 src/settings/aiproviderpage.cpp:299
+#: src/settings/aiproviderpage.cpp:312
 #, kde-format
 msgid "Language model:"
 msgstr "Sprachmodell:"
 
-#: src/settings/aiproviderpage.cpp:283
+#: src/settings/aiproviderpage.cpp:288
 #, kde-format
 msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
 msgstr "Zum Beispiel openai/gpt-4o-mini · openrouter.ai/models"
 
-#: src/settings/aiproviderpage.cpp:302
+#: src/settings/aiproviderpage.cpp:307
 #, kde-format
 msgid "For example gpt-4o-mini · platform.openai.com/docs/models"
 msgstr "Zum Beispiel gpt-4o-mini · platform.openai.com/docs/models"
 
-#: src/settings/aiproviderpage.cpp:319
+#: src/settings/aiproviderpage.cpp:324
 #, kde-format
 msgid "Ollama address:"
 msgstr "Ollama-Adresse:"
 
-#: src/settings/aiproviderpage.cpp:322
+#: src/settings/aiproviderpage.cpp:333 src/settings/aiproviderpage.cpp:343
+#: src/settings/aiproviderpage.cpp:351
 #, kde-format
 msgid "Embedding model:"
 msgstr "Einbettungsmodell:"
 
-#: src/settings/aiproviderpage.cpp:328
+#: src/settings/aiproviderpage.cpp:337
+#, kde-format
+msgid "For example baai/bge-m3 · openrouter.ai/models"
+msgstr "Zum Beispiel baai/bge-m3 · openrouter.ai/models"
+
+#: src/settings/aiproviderpage.cpp:347
+#, kde-format
+msgid "For example text-embedding-3-small · platform.openai.com/docs/models"
+msgstr "Zum Beispiel text-embedding-3-small · platform.openai.com/docs/models"
+
+#: src/settings/aiproviderpage.cpp:364
 #, kde-format
 msgid ""
-"The two rows above belong to Ollama: it is what answers the embedding call, "
-"whichever provider writes the classification. Without a reachable Ollama "
-"there are no topic bundles."
+"The topic bundles are tuned to bge-m3. Another model may group more freely "
+"or hardly at all. Changing the model marks every note to be embedded again, "
+"at most 50 per run."
 msgstr ""
-"Die beiden Zeilen darüber gehören zu Ollama: Es beantwortet den "
-"Einbettungsaufruf, gleich welcher Anbieter die Klassifizierung schreibt. "
-"Ohne erreichbares Ollama gibt es keine Themenbündel."
+"Die Themenbündel sind auf bge-m3 eingestellt. Ein anderes Modell kann "
+"großzügiger oder kaum gruppieren. Ein Wechsel des Modells merkt jede Notiz "
+"zur erneuten Einbettung vor, höchstens 50 je Lauf."
 
-#: src/settings/aiproviderpage.cpp:385
+#: src/settings/aiproviderpage.cpp:420
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr "Warte auf den Passwortspeicher …"
 
-#: src/settings/aiproviderpage.cpp:396
+#: src/settings/aiproviderpage.cpp:431
 #, kde-format
 msgid "The key is in the password store."
 msgstr "Der Schlüssel liegt im Passwortspeicher."
 
-#: src/settings/aiproviderpage.cpp:465
+#: src/settings/aiproviderpage.cpp:500
 #, kde-format
-msgid ""
-"The text of every note Denkzettel classifies leaves the machine and goes to "
-"%1."
-msgstr ""
-"Der Text jeder Notiz, die Denkzettel einordnet, verlässt den Rechner und "
-"geht an %1."
+msgid "The text of every note leaves the machine and goes to %1."
+msgstr "Der Text jeder Notiz verlässt den Rechner und geht an %1."
 
-#: src/settings/aiproviderpage.cpp:594
-#, kde-format
-msgid ""
-"%1\n"
-"Every embedding comes from Ollama: without it there are no topic bundles. "
-"The classification keeps running through the provider chosen above."
-msgstr ""
-"%1\n"
-"Jede Einbettung kommt von Ollama: ohne es gibt es keine Themenbündel. Die "
-"Klassifizierung läuft über den oben gewählten Anbieter weiter."
-
-#: src/settings/aiproviderpage.cpp:608
-#, kde-format
-msgid ""
-"Connection is up · chat %1 ms. Embeddings are not asked of %2; test them "
-"under Ollama."
-msgstr ""
-"Verbindung steht · Chat %1 ms. %2 wird nicht nach Einbettungen gefragt; "
-"testen Sie sie unter Ollama."
-
-#: src/settings/aiproviderpage.cpp:612
+#: src/settings/aiproviderpage.cpp:641
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr "Verbindung steht · Chat %1 ms · Einbettung %2 ms"
@@ -935,7 +937,7 @@ msgid "The API key could not be removed from the password store."
 msgstr ""
 "Der API-Schlüssel konnte nicht aus dem Passwortspeicher entfernt werden."
 
-#: src/store/store.cpp:1682
+#: src/store/store.cpp:1755
 #, kde-format
 msgid "The note %1 is no longer in the database."
 msgstr "Die Notiz %1 steht nicht mehr in der Datenbank."
@@ -1557,6 +1559,46 @@ msgstr "Letzte Woche"
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
 msgstr "Älter"
+
+#, kde-format
+#~ msgid ""
+#~ "The text of every note Denkzettel classifies leaves the machine and goes "
+#~ "to %1."
+#~ msgstr ""
+#~ "Der Text jeder Notiz, die Denkzettel einordnet, verlässt den Rechner und "
+#~ "geht an %1."
+
+#, kde-format
+#~ msgid "%1 is not asked for embeddings; those come from Ollama."
+#~ msgstr "%1 wird nicht nach Einbettungen gefragt; die kommen von Ollama."
+
+#, kde-format
+#~ msgid ""
+#~ "The two rows above belong to Ollama: it is what answers the embedding "
+#~ "call, whichever provider writes the classification. Without a reachable "
+#~ "Ollama there are no topic bundles."
+#~ msgstr ""
+#~ "Die beiden Zeilen darüber gehören zu Ollama: Es beantwortet den "
+#~ "Einbettungsaufruf, gleich welcher Anbieter die Klassifizierung schreibt. "
+#~ "Ohne erreichbares Ollama gibt es keine Themenbündel."
+
+#, kde-format
+#~ msgid ""
+#~ "%1\n"
+#~ "Every embedding comes from Ollama: without it there are no topic bundles. "
+#~ "The classification keeps running through the provider chosen above."
+#~ msgstr ""
+#~ "%1\n"
+#~ "Jede Einbettung kommt von Ollama: ohne es gibt es keine Themenbündel. Die "
+#~ "Klassifizierung läuft über den oben gewählten Anbieter weiter."
+
+#, kde-format
+#~ msgid ""
+#~ "Connection is up · chat %1 ms. Embeddings are not asked of %2; test them "
+#~ "under Ollama."
+#~ msgstr ""
+#~ "Verbindung steht · Chat %1 ms. %2 wird nicht nach Einbettungen gefragt; "
+#~ "testen Sie sie unter Ollama."
 
 #, kde-format
 #~ msgid "Notes are piling up"

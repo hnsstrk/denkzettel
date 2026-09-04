@@ -19,14 +19,14 @@
 #include <QTest>
 
 /**
- * The pictures of issues #38, #39 and #144: the page "AI provider" once **all
- * three**
- * providers take clicks, with the row rule the Product Owner settled on
- * 30.08.2026 — the key row under a provider that needs one, the language model
- * row of the chosen service, and the sentence naming Ollama as what answers the
- * embedding call whatever is chosen. Under OpenAI the note of SPEC 7.5 stands
- * with it, saying why the field wants an API key and not a "Sign in with
- * ChatGPT".
+ * The pictures of issues #144 and #130: the page "AI provider" once the chosen
+ * service answers both capabilities, with the row rule the Product Owner
+ * settled on 30.08.2026 — the key row under a provider that needs one, and the
+ * language model row, the embedding model row and the Ollama address each
+ * under the service they belong to. The sentence naming Ollama as what answers
+ * the embedding call is gone with the premise it stated. Under OpenAI the note
+ * of SPEC 7.5 stands with the key row, saying why the field wants an API key
+ * and not a "Sign in with ChatGPT".
  *
  * Since #144 they carry one row more: the sentence that the text of every
  * classified note leaves the machine and goes to the chosen remote service. It is the picture that
@@ -36,7 +36,7 @@
  * half a picture cannot carry: that under Ollama the label is **empty** and not
  * merely undrawn.
  *
- * They replace nothing: the `127-`, `38-` and `39-anbieter-*.png` beside them
+ * They replace nothing: the `127-`, `38-`, `39-` and `144-anbieter-*.png` beside them
  * are the record of the states before, and each of those stories changed that
  * state. #144 is the newest, so this runner writes the `144-` set — **and its
  * Ollama picture is byte for byte the one #39 wrote**. That is not a duplicate
@@ -85,8 +85,9 @@
  * **The committed pictures under `docs/images/reviews/` are the German ones**,
  * and the call below is the one that reproduces them byte for byte. The run
  * writes one language set per call under **the same three file names**
- * (`144-anbieter-*.png`), so an English run pointed at that directory
- * overwrites them with English pictures
+ * (`130-anbieter-*.png` since #130; the `144-*` and `39-*` beside them are the
+ * record of the states before it, and are not overwritten), so an English run
+ * pointed at that directory overwrites them with English pictures
  * of the same state — it belongs in a throwaway directory. Read it back: run
  * the line, then `git status`, and nothing may have changed.
  *
@@ -135,27 +136,38 @@ void report(const QString &what, QWidget &page)
     qWarning("%s  API key row shown=%d", qUtf8Printable(what), int(!key->isHidden()));
 
     // The row rule of 30.08.2026, read back beside the picture: one language
-    // model row per provider, and the sentence that says which service the
-    // address and the embedding model belong to. Three model rows since #39,
-    // and the note of SPEC 7.5 beside them — a row shown under the wrong
-    // provider is what the picture alone cannot tell from a row shown under all
-    // of them (CLAUDE.md, finding 79).
+    // model row and one embedding model row per provider, and the Ollama
+    // address under Ollama alone (issue #130). Six model rows since then, and
+    // the note of SPEC 7.5 beside them — a row shown under the wrong provider
+    // is what the picture alone cannot tell from a row shown under all of them
+    // (CLAUDE.md, finding 79).
     const auto *ollamaModel = page.findChild<QComboBox *>(QStringLiteral("kcfg_ChatModel"));
     const auto *remoteModel = page.findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterModel"));
     const auto *openAiModel = page.findChild<QComboBox *>(QStringLiteral("kcfg_OpenAiModel"));
-    const auto *fromOllama = page.findChild<QLabel *>(QStringLiteral("embeddingsFromOllama"));
+    const auto *ollamaEmbedding = page.findChild<QComboBox *>(QStringLiteral("kcfg_EmbeddingModel"));
+    const auto *remoteEmbedding = page.findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterEmbeddingModel"));
+    const auto *openAiEmbedding = page.findChild<QComboBox *>(QStringLiteral("kcfg_OpenAiEmbeddingModel"));
+    const auto *address = page.findChild<QLineEdit *>(QStringLiteral("kcfg_OllamaUrl"));
+    const auto *threshold = page.findChild<QLabel *>(QStringLiteral("thresholdNote"));
     const auto *openAiNote = page.findChild<QLabel *>(QStringLiteral("openAiNote"));
     if (ollamaModel == nullptr || remoteModel == nullptr || openAiModel == nullptr
-        || fromOllama == nullptr || openAiNote == nullptr) {
+        || ollamaEmbedding == nullptr || remoteEmbedding == nullptr || openAiEmbedding == nullptr
+        || address == nullptr || threshold == nullptr || openAiNote == nullptr) {
         qFatal("the page carries no model rows to report on");
     }
-    qWarning("%s  model rows shown: Ollama=%d openrouter=%d OpenAI=%d"
-             "  embedding note shown=%d  OpenAI note shown=%d",
+    qWarning("%s  model rows shown: Ollama=%d openrouter=%d OpenAI=%d",
              qUtf8Printable(what),
              int(!ollamaModel->isHidden()),
              int(!remoteModel->isHidden()),
-             int(!openAiModel->isHidden()),
-             int(!fromOllama->isHidden()),
+             int(!openAiModel->isHidden()));
+    qWarning("%s  embedding rows shown: Ollama=%d openrouter=%d OpenAI=%d"
+             "  Ollama address shown=%d  threshold note shown=%d  OpenAI note shown=%d",
+             qUtf8Printable(what),
+             int(!ollamaEmbedding->isHidden()),
+             int(!remoteEmbedding->isHidden()),
+             int(!openAiEmbedding->isHidden()),
+             int(!address->isHidden()),
+             int(!threshold->isHidden()),
              int(!openAiNote->isHidden()));
 
     // The sentence of issue #144, and **both** halves of it: whether the row is
@@ -176,6 +188,11 @@ void report(const QString &what, QWidget &page)
              qUtf8Printable(what),
              int(!remoteText->isHidden()),
              qUtf8Printable(remoteText->text()));
+
+    // The wording of the threshold sentence as it really resolved, for the
+    // reason the OpenAI note is printed: it is the line that says whether the
+    // catalogue was found, and it is the one issue #130 added.
+    qWarning("%s  threshold note: \"%s\"", qUtf8Printable(what), qUtf8Printable(threshold->text()));
 }
 
 void shoot(QWidget &page, const QString &directory, const QString &name)
@@ -236,9 +253,9 @@ int main(int argc, char **argv)
         const char *stored;
         QString file;
     };
-    const QList<State> states{{Settings::Ollama, "Ollama", QStringLiteral("144-anbieter-ollama.png")},
-                              {Settings::OpenRouter, "OpenRouter", QStringLiteral("144-anbieter-openrouter.png")},
-                              {Settings::OpenAi, "OpenAI", QStringLiteral("144-anbieter-openai.png")}};
+    const QList<State> states{{Settings::Ollama, "Ollama", QStringLiteral("130-anbieter-ollama.png")},
+                              {Settings::OpenRouter, "OpenRouter", QStringLiteral("130-anbieter-openrouter.png")},
+                              {Settings::OpenAi, "OpenAI", QStringLiteral("130-anbieter-openai.png")}};
 
     for (const State &state : states) {
         // **The setting first, then the page**: the page reads `[AI] Provider`

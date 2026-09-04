@@ -261,9 +261,10 @@ void Classifier::start()
     // and long before the user ever opened the settings page.
     //
     // The queue is emptied rather than the function left: takeNextNote() then
-    // emits finished(), and the **embedding run still happens**. It talks to
-    // Ollama and knows nothing of this backend, so stopping it here would take
-    // the topic bundles away for a reason that has nothing to do with them.
+    // emits finished(), and the **embedding run still happens**. Since issue
+    // #130 it asks the same backend, but it asks it about a **second** setting
+    // — Embedder::start() reads unmetEmbeddingPrecondition() for itself — so a
+    // missing chat model must not take the topic bundles away with it.
     const QString missing = m_provider->unmetPrecondition();
     Q_EMIT notReady(missing);
     if (!missing.isEmpty()) {

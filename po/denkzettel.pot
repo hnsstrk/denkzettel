@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 20:22+0200\n"
+"POT-Creation-Date: 2026-09-04 20:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:89
+#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:88
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr ""
@@ -34,7 +34,7 @@ msgstr ""
 msgid "The model's answer carried no tag."
 msgstr ""
 
-#: src/analysis/embedder.cpp:48
+#: src/analysis/embedder.cpp:49
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr ""
@@ -85,33 +85,39 @@ msgid "Ollama's answer carried no embedding."
 msgstr ""
 
 #: src/analysis/openaicompatibleprovider.cpp:34
+#: src/analysis/openaicompatibleprovider.cpp:163
 #, kde-format
 msgid "%1 did not answer within the time limit."
 msgstr ""
 
 #: src/analysis/openaicompatibleprovider.cpp:42
+#: src/analysis/openaicompatibleprovider.cpp:166
 #, kde-format
 msgid "%1 took longer over this call than it is allowed."
 msgstr ""
 
 #: src/analysis/openaicompatibleprovider.cpp:64
 #: src/analysis/openaicompatibleprovider.cpp:116
+#: src/analysis/openaicompatibleprovider.cpp:178
 #, kde-format
 msgid "%1 refused the request: %2"
 msgstr ""
 
 #: src/analysis/openaicompatibleprovider.cpp:68
+#: src/analysis/openaicompatibleprovider.cpp:182
 #, kde-format
 msgid "%1 could not be reached: %2"
 msgstr ""
 
 #: src/analysis/openaicompatibleprovider.cpp:72
+#: src/analysis/openaicompatibleprovider.cpp:186
 #, kde-format
 msgid "%1 answered with HTTP status %2."
 msgstr ""
 
 #: src/analysis/openaicompatibleprovider.cpp:101
 #: src/analysis/openaicompatibleprovider.cpp:135
+#: src/analysis/openaicompatibleprovider.cpp:190
 #, kde-format
 msgid "%1 sent an unreadable answer."
 msgstr ""
@@ -126,29 +132,36 @@ msgstr ""
 msgid "%1's answer carried no text."
 msgstr ""
 
-#: src/analysis/openaicompatibleprovider.cpp:184
+#: src/analysis/openaicompatibleprovider.cpp:200
+#, kde-format
+msgid "%1's answer carried no embedding."
+msgstr ""
+
+#: src/analysis/openaicompatibleprovider.cpp:247
 #, kde-format
 msgid ""
 "No API key for %1 is stored. Enter it in the settings under \"AI provider\"."
 msgstr ""
 
-#: src/analysis/openaicompatibleprovider.cpp:282
-#, kde-format
-msgid "%1 is not asked for embeddings; those come from Ollama."
-msgstr ""
-
-#: src/analysis/openaicompatibleprovider.cpp:297
+#: src/analysis/openaicompatibleprovider.cpp:392
 #, kde-format
 msgid ""
 "No model for %1 is set. Enter one in the settings under \"AI provider\"."
 msgstr ""
 
-#: src/analysis/suggester.cpp:94
+#: src/analysis/openaicompatibleprovider.cpp:402
+#, kde-format
+msgid ""
+"No embedding model for %1 is set. Enter one in the settings under \"AI "
+"provider\"."
+msgstr ""
+
+#: src/analysis/suggester.cpp:93
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:112
+#: src/analysis/suggester.cpp:111
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr ""
@@ -221,7 +234,7 @@ msgstr ""
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
 
-#: src/main.cpp:522
+#: src/main.cpp:535
 #, kde-format
 msgid "Notes waiting for export"
 msgstr ""
@@ -321,32 +334,32 @@ msgid ""
 "%1 created the task but did not name it; the note text was not attached."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:141
+#: src/settings/aiproviderpage.cpp:146
 #, kde-format
 msgid "Test connection"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:182
+#: src/settings/aiproviderpage.cpp:187
 #, kde-format
 msgid "Ollama"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:184
+#: src/settings/aiproviderpage.cpp:189
 #, kde-format
 msgid "openrouter.ai"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:190
+#: src/settings/aiproviderpage.cpp:195
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:192
+#: src/settings/aiproviderpage.cpp:197
 #, kde-format
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:242
+#: src/settings/aiproviderpage.cpp:247
 #, kde-format
 msgid ""
 "A route over \"Sign in with ChatGPT\" is not possible: the procedure hands "
@@ -354,83 +367,77 @@ msgid ""
 "therefore needs an API key from the OpenAI platform account."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:259
+#: src/settings/aiproviderpage.cpp:264
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:261
+#: src/settings/aiproviderpage.cpp:266
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:273 src/settings/aiproviderpage.cpp:294
-#: src/settings/aiproviderpage.cpp:307
+#: src/settings/aiproviderpage.cpp:278 src/settings/aiproviderpage.cpp:299
+#: src/settings/aiproviderpage.cpp:312
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:283
+#: src/settings/aiproviderpage.cpp:288
 #, kde-format
 msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:302
+#: src/settings/aiproviderpage.cpp:307
 #, kde-format
 msgid "For example gpt-4o-mini · platform.openai.com/docs/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:319
+#: src/settings/aiproviderpage.cpp:324
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:322
+#: src/settings/aiproviderpage.cpp:333 src/settings/aiproviderpage.cpp:343
+#: src/settings/aiproviderpage.cpp:351
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:328
+#: src/settings/aiproviderpage.cpp:337
 #, kde-format
-msgid ""
-"The two rows above belong to Ollama: it is what answers the embedding call, "
-"whichever provider writes the classification. Without a reachable Ollama "
-"there are no topic bundles."
+msgid "For example baai/bge-m3 · openrouter.ai/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:385
+#: src/settings/aiproviderpage.cpp:347
+#, kde-format
+msgid "For example text-embedding-3-small · platform.openai.com/docs/models"
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:364
+#, kde-format
+msgid ""
+"The topic bundles are tuned to bge-m3. Another model may group more freely "
+"or hardly at all. Changing the model marks every note to be embedded again, "
+"at most 50 per run."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:420
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:396
+#: src/settings/aiproviderpage.cpp:431
 #, kde-format
 msgid "The key is in the password store."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:465
+#: src/settings/aiproviderpage.cpp:500
 #, kde-format
-msgid ""
-"The text of every note Denkzettel classifies leaves the machine and goes to "
-"%1."
+msgid "The text of every note leaves the machine and goes to %1."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:594
-#, kde-format
-msgid ""
-"%1\n"
-"Every embedding comes from Ollama: without it there are no topic bundles. "
-"The classification keeps running through the provider chosen above."
-msgstr ""
-
-#: src/settings/aiproviderpage.cpp:608
-#, kde-format
-msgid ""
-"Connection is up · chat %1 ms. Embeddings are not asked of %2; test them "
-"under Ollama."
-msgstr ""
-
-#: src/settings/aiproviderpage.cpp:612
+#: src/settings/aiproviderpage.cpp:641
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""
@@ -868,7 +875,7 @@ msgstr ""
 msgid "The API key could not be removed from the password store."
 msgstr ""
 
-#: src/store/store.cpp:1682
+#: src/store/store.cpp:1755
 #, kde-format
 msgid "The note %1 is no longer in the database."
 msgstr ""

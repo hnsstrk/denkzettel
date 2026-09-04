@@ -12,6 +12,38 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **The chosen AI provider now answers the embedding as well.** Until now every
+  vector came from a local Ollama whichever provider was picked, on a premise
+  that has since expired: openrouter had no embedding endpoint when the decision
+  was made and has one now, and OpenAI always did. On the settings page
+  „KI-Anbieter" the embedding model is therefore a row of the chosen service,
+  the Ollama address stands under Ollama alone, and „Verbindung testen" makes
+  both calls against whichever service is picked. Under openrouter and OpenAI
+  the embedding model **starts empty** and has to be entered, for the reason the
+  language model does: an embedding run touches every note, and on a billed
+  service that is not a choice the program makes for you. A model that is not
+  entered is a missing precondition and not a failed attempt — the run says
+  what is missing, takes no note and counts nothing against any of them.
+
+  **What it costs is said where the choice is made.** Under the provider row
+  the page now reads „Der Text jeder Notiz verlässt den Rechner und geht an
+  openrouter.ai" — every note, and no longer only the ones being classified,
+  because the embedding touches all of them after every edit again. And beside
+  the embedding row it says the other half: the topic bundles are tuned to
+  `bge-m3`, and another model may group more freely or hardly at all.
+
+- **Database schema, version 10:** `embeddings` gains a column `service`.
+  Existing vectors are entered as Ollama's, which is what they are — nothing is
+  devalued and nothing is embedded again by the update. The column is needed
+  because the same model name now exists on two services (`bge-m3` is an Ollama
+  model, `baai/bge-m3` stands in openrouter's list) and the model field takes
+  free text: without it, vectors from two services would lie under one name and
+  the topic clustering would compare two vector spaces with each other. Changing
+  the embedding model or the service marks every note to be embedded again, and
+  the next runs work that off within the budget of at most 50 notes per run —
+  nothing in bulk, nothing refused, and until it is through the bundles see a
+  smaller corpus.
+
 - **Denkzettel says once when the library is due an export.** Two thresholds
   decide it, both on the settings page „Export": the number of notes that have
   not been exported yet (200 by default) **or** the age of the oldest of them

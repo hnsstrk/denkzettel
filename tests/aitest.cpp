@@ -83,7 +83,9 @@ private Q_SLOTS:
     void openRouterRefusalInsideTheStreamIsStillTheRefusal();
     void openRouterTimeoutAndTotalLimitAreNamedApart();
     void openRouterBodyThatIsNoStreamIsReported();
-    void openRouterIsNotAskedForAVector();
+    void theEmbeddingReaderTellsARefusalFromAnOutage();
+    void theEmbeddingCallGoesToTheChosenService();
+    void anEmptyEmbeddingModelSpendsNoAttempt();
     void theKeyAndTheModelGoOnTheWire();
     void eachRemoteServiceAsksTheWalletForItsOwnEntry();
     void neitherRemoteServiceRepeatsARequestOfItsOwn();
@@ -128,6 +130,8 @@ private Q_SLOTS:
 
     void everyNoteGetsItsOwnVector();
     void aVectorIsStoredUnderTheModelItWasAskedOf();
+    void aSwitchOfEmbeddingModelIsWorkedOffLazily();
+    void anUnsetEmbeddingModelCostsTheNotesNothing();
     void aRefusedNoteDoesNotBlockTheOthers();
     void anUnreachableBackendCostsNoAttempt();
 
@@ -860,14 +864,179 @@ void AiTest::openRouterBodyThatIsNoStreamIsReported()
     QCOMPARE(answer.error, QStringLiteral("openrouter.ai sent an unreadable answer."));
 }
 
-void AiTest::openRouterIsNotAskedForAVector()
+void AiTest::theEmbeddingReaderTellsARefusalFromAnOutage()
 {
-    // **The two capabilities are separate** (SPEC 7.1, issue #38). Both halves
-    // are read back, because either one alone would be green over the other
-    // being wrong: canEmbed() is what the connection test asks before it makes
-    // the second call, and the answer is what a caller that asked anyway gets.
+    // The seven cases of readOpenAiCompatibleEmbedding(), and what they are
+    // for is the second value: SPEC 7.2 stops the run on an unreachable backend
+    // and counts a refusal against the note, so a case landing in the wrong one
+    // either burns a note's two attempts over an outage or keeps asking a
+    // service that will refuse for ever (issue #130).
+    //
+    // A pure function, so every case is handed in directly and no server is
+    // needed. The service name goes through, which is the half that would make
+    // a missing local Ollama read like a remote API failure (issue #38).
+    const auto read = [](QNetworkReply::NetworkError transport,
+                         const QString &message,
+                         int status,
+                         const QByteArray &body) {
+        return readOpenAiCompatibleEmbedding(openrouter::Service.name, transport, message, status, body);
+    };
+
+    const OpenAiCompatibleEmbedding good = read(QNetworkReply::NoError, QString(), 200,
+                                                R"({"data":[{"embedding":[0.5,-0.25,0.75]}]})");
+    QCOMPARE(good.error, QString());
+    QCOMPARE(good.vector, QList<double>({0.5, -0.25, 0.75}));
+    QCOMPARE(good.failure, AiFailure::None);
+
+    // The silence limit of SPEC 7.1 and the total limit beside it: the transfer
+    // ended, nothing about the note was refused.
+    const OpenAiCompatibleEmbedding silent = read(QNetworkReply::TimeoutError, QStringLiteral("Timeout"), 0, {});
+    QCOMPARE(silent.error, QStringLiteral("openrouter.ai did not answer within the time limit."));
+    QCOMPARE(silent.failure, AiFailure::Unreachable);
+    const OpenAiCompatibleEmbedding aborted =
+        read(QNetworkReply::OperationCanceledError, QStringLiteral("Aborted"), 200, {});
+    QCOMPARE(aborted.error, QStringLiteral("openrouter.ai took longer over this call than it is allowed."));
+    QCOMPARE(aborted.failure, AiFailure::Unreachable);
+
+    // The service's own sentence beats the status code, and it answered — so
+    // the note is what it choked on and the attempt is counted.
+    const OpenAiCompatibleEmbedding refused =
+        read(QNetworkReply::ProtocolInvalidOperationError, QStringLiteral("Bad Request"), 400,
+             R"({"error":{"message":"No endpoints found for wrong/embedding-model."}})");
+    QCOMPARE(refused.error,
+             QStringLiteral("openrouter.ai refused the request:"
+                            " No endpoints found for wrong/embedding-model."));
+    QCOMPARE(refused.failure, AiFailure::Refused);
+
+    // No answer at all — that says nothing about this note, so the run stops.
+    const OpenAiCompatibleEmbedding unreachable =
+        read(QNetworkReply::ConnectionRefusedError, QStringLiteral("Connection refused"), 0, {});
+    QCOMPARE(unreachable.error, QStringLiteral("openrouter.ai could not be reached: Connection refused"));
+    QCOMPARE(unreachable.failure, AiFailure::Unreachable);
+
+    // A status with nothing readable in the body to say why.
+    const OpenAiCompatibleEmbedding status = read(QNetworkReply::InternalServerError, QString(), 500, "oops");
+    QCOMPARE(status.error, QStringLiteral("openrouter.ai answered with HTTP status 500."));
+    QCOMPARE(status.failure, AiFailure::Refused);
+
+    // What a proxy or a captive portal answering with HTML looks like, and it
+    // arrives with a perfectly good 200.
+    const OpenAiCompatibleEmbedding html =
+        read(QNetworkReply::NoError, QString(), 200, "<html><body>Sign in to the network</body></html>");
+    QCOMPARE(html.error, QStringLiteral("openrouter.ai sent an unreadable answer."));
+    QCOMPARE(html.failure, AiFailure::Refused);
+
+    // **A document without a vector in it**, which is the case a store would
+    // otherwise take: a BLOB of nothing with `needs_reembed` cleared, a note
+    // that never clusters and is never asked about again (embedder.h).
+    const OpenAiCompatibleEmbedding empty = read(QNetworkReply::NoError, QString(), 200, R"({"data":[]})");
+    QCOMPARE(empty.error, QStringLiteral("openrouter.ai's answer carried no embedding."));
+    QCOMPARE(empty.failure, AiFailure::Refused);
+    QVERIFY(empty.vector.isEmpty());
+}
+
+void AiTest::theEmbeddingCallGoesToTheChosenService()
+{
+    // **The end that leaves the program** (SPEC 7.1, issue #130, and finding
+    // 62 asks for both ends of an assurance). Until this story these services
+    // answered `embed()` with a sentence and made no request at all; what has
+    // to be read back now is that the request goes to the **embedding**
+    // endpoint, carries the **embedding** model and not the chat model, and
+    // that the vector out of the answer arrives.
+    //
+    // The keys are invented and belong to nothing — there is no key for either
+    // service in this project (issues #38 and #39, customer 30.08.2026).
+    QTcpServer server;
+    QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
+
+    auto seen = std::make_shared<QByteArray>();
+    connect(&server, &QTcpServer::newConnection, this, [&server, seen] {
+        QTcpSocket *socket = server.nextPendingConnection();
+        auto request = std::make_shared<QByteArray>();
+        connect(socket, &QTcpSocket::readyRead, socket, [socket, request, seen] {
+            request->append(socket->readAll());
+            const qsizetype end = request->indexOf("\r\n\r\n");
+            if (end < 0 || request->size() <= end + 4) {
+                return;
+            }
+            *seen = *request;
+            // One document and no stream: that is the shape of `/v1/embeddings`
+            // and the reason it has a reader of its own.
+            const QByteArray answer = R"({"data":[{"embedding":[0.5,-0.25,0.75]}]})";
+            socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                          + QByteArray::number(answer.size()) + "\r\nConnection: close\r\n\r\n" + answer);
+            socket->disconnectFromHost();
+        });
+    });
+
+    struct Case {
+        AiService service;
+        QByteArray key;
+        QByteArray model;
+    };
+    const QList<Case> cases{{openrouter::Service, "sk-or-v1-invented-for-this-check", "baai/bge-m3-of-the-check"},
+                            {openai::Service, "sk-proj-invented-for-this-check", "text-embedding-of-the-check"}};
+
+    for (const Case &probe : cases) {
+        seen->clear();
+        OpenAiCompatibleProvider provider(probe.service);
+        provider.setEmbedUrl(QUrl(QStringLiteral("http://127.0.0.1:%1/api/v1/embeddings").arg(server.serverPort())));
+        // **Different from the embedding model on purpose**: with the two read
+        // out of one field, an implementation that sent the chat model would
+        // pass every assertion below (finding 10).
+        provider.setChatModel(QStringLiteral("chat-model-of-the-check"));
+        provider.setEmbeddingModel(QString::fromLatin1(probe.model));
+        provider.setKey(QString::fromLatin1(probe.key));
+
+        QSignalSpy finished(&provider, &AiProvider::embedFinished);
+        provider.embed(QStringLiteral("Regentonne an die Fallrohre hängen."));
+        QVERIFY(finished.wait(std::chrono::seconds(10)));
+
+        QCOMPARE(finished.constFirst().at(2).toString(), QString());
+        QCOMPARE(finished.constFirst().at(1).value<QList<double>>(), QList<double>({0.5, -0.25, 0.75}));
+        QCOMPARE(finished.constFirst().at(3).value<AiFailure>(), AiFailure::None);
+
+        const QByteArray header = QByteArrayLiteral("Authorization: Bearer ") + probe.key;
+        const QByteArray model = QByteArrayLiteral("\"model\":\"") + probe.model + '"';
+        QVERIFY2(seen->startsWith("POST /api/v1/embeddings "), seen->constData());
+        QVERIFY2(seen->contains(header), seen->constData());
+        QVERIFY2(seen->contains(model), seen->constData());
+        QVERIFY2(!seen->contains("chat-model-of-the-check"), seen->constData());
+        // The note text goes as `input` and the chat body's `messages` is not
+        // built here — an embedding endpoint would refuse that body outright.
+        QVERIFY2(seen->contains("\"input\":"), seen->constData());
+        QVERIFY2(!seen->contains("\"messages\":"), seen->constData());
+    }
+
+    // **And the service is what the store keeps the vector under** — the other
+    // end of the assurance, and it comes out different for each of the three
+    // backends (issue #130).
+    QCOMPARE(OpenAiCompatibleProvider(openrouter::Service).serviceId(), QStringLiteral("OpenRouter"));
+    QCOMPARE(OpenAiCompatibleProvider(openai::Service).serviceId(), QStringLiteral("OpenAI"));
+    QCOMPARE(OllamaProvider().serviceId(), QStringLiteral("Ollama"));
+}
+
+void AiTest::anEmptyEmbeddingModelSpendsNoAttempt()
+{
+    // SPEC 7.1's rule of issue #23, for the second capability: a model that is
+    // not set is a precondition not yet met and not a failed attempt. Without
+    // it the run of SPEC 7.2 would send `"model":""` to the service every 30
+    // minutes and spend both attempts of every note on being refused.
+    //
+    // **The chat model is set and the embedding model is not**, which is the
+    // state one shared field could not produce: the classification runs and the
+    // embedding does not, and a single precondition for both would either stop
+    // the classification or let the empty name go out.
     OpenAiCompatibleProvider provider(openrouter::Service);
-    QCOMPARE(provider.canEmbed(), false);
+    provider.setChatModel(QStringLiteral("model-of-the-check"));
+    provider.setUrl(QUrl(QStringLiteral("http://127.0.0.1:1/never-listening")));
+    provider.setEmbedUrl(QUrl(QStringLiteral("http://127.0.0.1:1/never-listening")));
+    // Set, so the control run below really reaches the wire: without it the
+    // call would wait on a password store that is not there and the run would
+    // measure the wallet instead of the precondition.
+    provider.setKey(QStringLiteral("sk-invented-for-this-check"));
+    QCOMPARE(provider.unmetPrecondition(), QString());
+    QVERIFY(!provider.unmetEmbeddingPrecondition().isEmpty());
 
     QSignalSpy finished(&provider, &AiProvider::embedFinished);
     provider.embed(QStringLiteral("ping"));
@@ -876,11 +1045,21 @@ void AiTest::openRouterIsNotAskedForAVector()
     QCOMPARE(finished.count(), 0);
     QVERIFY(finished.wait(std::chrono::seconds(5)));
     QCOMPARE(finished.constFirst().at(2).toString(),
-             QStringLiteral("openrouter.ai is not asked for embeddings; those come from Ollama."));
-    // Unreachable and not Refused: nothing about the note was refused, and a
-    // run that counted this against it would burn the two attempts of SPEC 7.2
-    // on a call nobody should have made.
+             QStringLiteral("No embedding model for openrouter.ai is set."
+                            " Enter one in the settings under \"AI provider\"."));
+    // Unreachable and not Refused: nothing about this note was refused, so the
+    // run stops instead of counting (aiprovider.h).
     QCOMPARE(finished.constFirst().at(3).value<AiFailure>(), AiFailure::Unreachable);
+
+    // And with the model named, the same call really goes out — the control
+    // that says the branch above is the precondition and not a dead embed().
+    provider.setEmbeddingModel(QStringLiteral("baai/bge-m3-of-the-check"));
+    QCOMPARE(provider.unmetEmbeddingPrecondition(), QString());
+    QSignalSpy tried(&provider, &AiProvider::embedFinished);
+    provider.embed(QStringLiteral("ping"));
+    QVERIFY(tried.wait(std::chrono::seconds(10)));
+    QVERIFY2(tried.constFirst().at(2).toString().contains(QStringLiteral("could not be reached")),
+             qPrintable(tried.constFirst().at(2).toString()));
 }
 
 void AiTest::theKeyAndTheModelGoOnTheWire()
@@ -1243,16 +1422,22 @@ qint64 addAnalysedNote(Store &store, const QString &content, const QDateTime &cr
 }
 
 /**
- * The embedding model these checks write beside their vectors and hand to the
- * suggester.
+ * The model and the service these checks write beside their vectors.
  *
- * Named here rather than read out of Embedder::model(), because the point of
- * that parameter is that the two sides say the same thing: a suggester asking
- * for another model finds an empty corpus and reports nothing at all.
+ * Named here rather than read out of the stand-in, because the point of the
+ * pair is that the two sides say the same thing: a suggester asking for another
+ * model or another service finds an empty corpus and reports nothing at all.
+ * They are AiProviderMock's defaults, and a check that changes either of those
+ * has to change these with them — which is the case the guard is about.
  */
 QString testEmbeddingModel()
 {
     return QStringLiteral("bge-m3");
+}
+
+QString testEmbeddingService()
+{
+    return QStringLiteral("Ollama");
 }
 
 /**
@@ -1278,7 +1463,7 @@ qint64 addEmbeddedNote(Store &store, const QString &content, const QDateTime &cr
     }
     const double radians = qDegreesToRadians(degrees);
     const QList<float> vector = {float(std::cos(radians)), float(std::sin(radians))};
-    return store.setEmbedding(*id, testEmbeddingModel(), vector) ? *id : -1;
+    return store.setEmbedding(*id, testEmbeddingModel(), testEmbeddingService(), vector) ? *id : -1;
 }
 
 /** A suggestion already standing when a run begins. */
@@ -2085,7 +2270,7 @@ void AiTest::theTriggerFollowsTheSetting()
     // threshold no cluster comes out, so the prompts counted below are the
     // classification's alone.
     Embedder embedder(store.get(), &provider);
-    Suggester suggester(store.get(), &provider, embedder.model());
+    Suggester suggester(store.get(), &provider);
     AnalysisScheduler scheduler(&classifier, &embedder, &suggester);
     QCOMPARE(scheduler.interval(), std::chrono::milliseconds(0));
 
@@ -2172,7 +2357,7 @@ void AiTest::aNoteWrittenDuringARunIsNotLost()
 
     Classifier classifier(store.get(), &provider);
     Embedder embedder(store.get(), &provider);
-    Suggester suggester(store.get(), &provider, embedder.model());
+    Suggester suggester(store.get(), &provider);
     AnalysisScheduler scheduler(&classifier, &embedder, &suggester);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy done(&classifier, &Classifier::finished);
@@ -2319,9 +2504,11 @@ void AiTest::everyNoteGetsItsOwnVector()
 
     AiProviderMock provider;
     Embedder embedder(store.get(), &provider);
-    // Every embedding comes from Ollama in v1 (SPEC 7.1), and the model stands
-    // beside the vector — the clustering asks for the vectors of one model.
+    // The model and the service stand beside the vector, and both come off the
+    // backend that makes it (SPEC 7.1, issue #130) — the clustering asks for
+    // the vectors of exactly that pair.
     QCOMPARE(embedder.model(), QString(ollama::DefaultEmbeddingModel));
+    QCOMPARE(embedder.service(), QStringLiteral("Ollama"));
 
     // Four notes, and only two of them have anything outstanding.
     const QDateTime first = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
@@ -2331,8 +2518,8 @@ void AiTest::everyNoteGetsItsOwnVector()
     const qint64 unanalysed = addNote(*store, QStringLiteral("Noch nicht klassifiziert."), first.addSecs(180));
     QVERIFY(fresh > 0 && done > 0 && edited > 0 && unanalysed > 0);
 
-    QVERIFY2(store->setEmbedding(done, embedder.model(), {0.125F, 0.25F}), qPrintable(store->lastError()));
-    QVERIFY2(store->setEmbedding(edited, embedder.model(), {2.0F, 2.0F}), qPrintable(store->lastError()));
+    QVERIFY2(store->setEmbedding(done, embedder.model(), embedder.service(), {0.125F, 0.25F}), qPrintable(store->lastError()));
+    QVERIFY2(store->setEmbedding(edited, embedder.model(), embedder.service(), {2.0F, 2.0F}), qPrintable(store->lastError()));
     // What SPEC 9 sets when the user saves an edited note: the text has moved
     // on, the vector has not.
     std::optional<Note> reedit = store->note(edited);
@@ -2353,7 +2540,7 @@ void AiTest::everyNoteGetsItsOwnVector()
     QCOMPARE(provider.texts, QStringList({QStringLiteral("Regentonne an die Fallrohre hängen."),
                                           QStringLiteral("Der Kompost braucht mehr Braunmaterial.")}));
 
-    const QList<NoteEmbedding> stored = store->embeddings(embedder.model());
+    const QList<NoteEmbedding> stored = store->embeddings(embedder.model(), embedder.service());
     QCOMPARE(stored.size(), 3);
     QCOMPARE(stored.at(0).noteId, fresh);
     QCOMPARE(stored.at(0).vector, QList<float>({0.5F, -0.25F, 0.75F}));
@@ -2382,17 +2569,16 @@ void AiTest::aVectorIsStoredUnderTheModelItWasAskedOf()
     // the mixing this class re-reads the setting to avoid (issue #119), and
     // permanent: notesToEmbed(new) sees a note that already has a vector under
     // that name and never asks again, so nothing ever puts the row right.
+    //
+    // **Model and service both**, since issue #130: the switch under test is a
+    // provider switch, which changes the pair — and the vector belongs to the
+    // pair that made it, not to the one standing when the answer arrives.
     const QTemporaryDir directory;
     const std::unique_ptr<Store> store = openStore(directory);
     QVERIFY(store);
 
-    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
-    const auto forgetTheGroup = qScopeGuard([&group] {
-        group.deleteGroup();
-    });
-    group.writeEntry("EmbeddingModel", QStringLiteral("model-asked"));
-
     AiProviderMock provider;
+    provider.model = QStringLiteral("model-asked");
     // Long enough for the change to fall between the request and the answer,
     // short enough not to slow the set down.
     provider.embedDelay = std::chrono::milliseconds(300);
@@ -2406,20 +2592,33 @@ void AiTest::aVectorIsStoredUnderTheModelItWasAskedOf()
 
     QSignalSpy done(&embedder, &Embedder::finished);
     embedder.start();
+    // Nothing is flagged yet — the control that makes the readback below say
+    // something (finding 10).
+    QVERIFY(!store->note(note)->needsReembed);
 
-    // Mid-call, the way the dialog reaches the running daemon.
+    // Mid-call, the way the dialog reaches the running daemon: the backend has
+    // read the new value and the embedder takes it off the backend afterwards,
+    // which is the order settingswiring.cpp connects them in.
     QTest::qWait(50);
-    group.writeEntry("EmbeddingModel", QStringLiteral("model-set-meanwhile"));
+    provider.model = QStringLiteral("model-set-meanwhile");
+    provider.service = QStringLiteral("OpenRouter");
     embedder.reloadSettings();
     QCOMPARE(embedder.model(), QStringLiteral("model-set-meanwhile"));
+    QCOMPARE(embedder.service(), QStringLiteral("OpenRouter"));
+
+    // **And the switch marks the corpus** (SPEC 7.1, PO decision 04.09.2026):
+    // vectors of two models are not comparable, so every note is asked again —
+    // lazily, within the budget of §14. Read back off the row and not off the
+    // embedder, which is the object that asked for it.
+    QVERIFY(store->note(note)->needsReembed);
 
     QVERIFY(done.wait(std::chrono::seconds(5)));
 
     // The vector belongs to the model that made it. Both sides are asked, so
     // that a run storing under neither name cannot pass the first line alone.
-    QCOMPARE(store->embeddings(QStringLiteral("model-asked")).size(), 1);
-    QCOMPARE(store->embeddings(QStringLiteral("model-asked")).constFirst().noteId, note);
-    QVERIFY(store->embeddings(QStringLiteral("model-set-meanwhile")).isEmpty());
+    QCOMPARE(store->embeddings(QStringLiteral("model-asked"), QStringLiteral("Ollama")).size(), 1);
+    QCOMPARE(store->embeddings(QStringLiteral("model-asked"), QStringLiteral("Ollama")).constFirst().noteId, note);
+    QVERIFY(store->embeddings(QStringLiteral("model-set-meanwhile"), QStringLiteral("Ollama")).isEmpty());
 
     // The reload is not undone by this: from the next request on the new model
     // is what is asked and what is stored. And the note above is asked **again**
@@ -2432,12 +2631,146 @@ void AiTest::aVectorIsStoredUnderTheModelItWasAskedOf()
     QVERIFY(later > 0);
     embedder.start();
     QVERIFY(done.wait(std::chrono::seconds(5)));
-    QCOMPARE(store->embeddings(QStringLiteral("model-set-meanwhile")).size(), 2);
+    QCOMPARE(store->embeddings(QStringLiteral("model-set-meanwhile"), QStringLiteral("OpenRouter")).size(), 2);
     // A note carries exactly one vector (`note_id` is the primary key of
     // `embeddings`), so the repair replaces the old row rather than standing
     // beside it — which is why the name on it decides whether the note is ever
     // asked again at all.
-    QVERIFY(store->embeddings(QStringLiteral("model-asked")).isEmpty());
+    QVERIFY(store->embeddings(QStringLiteral("model-asked"), QStringLiteral("Ollama")).isEmpty());
+    // **And the service on the row is the new one and not the old**, which is
+    // the half the model name alone cannot show: asked under the old service
+    // the corpus is empty, asked under the new one it is whole (issue #130).
+    QVERIFY(store->embeddings(QStringLiteral("model-set-meanwhile"), QStringLiteral("Ollama")).isEmpty());
+}
+
+void AiTest::aSwitchOfEmbeddingModelIsWorkedOffLazily()
+{
+    // **The two roads a switch can take, and the control that makes them say
+    // something** (SPEC 7.1, PO decision 04.09.2026, issue #130).
+    //
+    // The criterion is the second half: after a switch the clustering sees no
+    // vector of the old pair. `needs_reembed` is one road there and
+    // notesToEmbed()'s comparison of model and service is the other, and the
+    // three cases below are measured apart because a run that only walked one
+    // of them could not tell a working switch from a program that marks
+    // **everything at every start** — which would re-embed a sound corpus
+    // unattended, on a service that bills per call.
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QDateTime first = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    QList<qint64> notes;
+    for (int index = 0; index < 3; ++index) {
+        const qint64 id = addAnalysedNote(*store,
+                                          QStringLiteral("Notiz %1 des Laufs.").arg(index),
+                                          first.addSecs(qint64(index) * 60));
+        QVERIFY(id > 0);
+        notes.append(id);
+    }
+
+    const auto flagged = [&store, &notes] {
+        int count = 0;
+        for (const qint64 id : notes) {
+            const std::optional<Note> note = store->note(id);
+            if (note.has_value() && note->needsReembed) {
+                ++count;
+            }
+        }
+        return count;
+    };
+
+    // A corpus embedded under the old pair, which is what all three cases start
+    // from. setEmbedding() clears the flag as it writes, so nothing is marked
+    // when the run is through.
+    AiProviderMock oldProvider;
+    oldProvider.embedVectors = {{1.0, 0.0}, {0.0, 1.0}, {-1.0, 0.0}};
+    Embedder embedder(store.get(), &oldProvider);
+    QSignalSpy done(&embedder, &Embedder::finished);
+    embedder.start();
+    QVERIFY(done.wait(std::chrono::seconds(5)));
+    QCOMPARE(store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("Ollama")).size(), 3);
+    QCOMPARE(flagged(), 0);
+
+    // **Case 3, and it comes first because it is the control**: no switch, a
+    // fresh Embedder on the same store — a restart of the daemon. Nothing is
+    // marked and there is nothing to do. Without this, a program that marked
+    // the whole corpus at every construction would pass cases 1 and 2 alike.
+    {
+        AiProviderMock unchanged;
+        const Embedder afterRestart(store.get(), &unchanged);
+        QCOMPARE(afterRestart.model(), QStringLiteral("bge-m3"));
+        QCOMPARE(flagged(), 0);
+        QVERIFY(store->notesToEmbed(afterRestart.model(), afterRestart.service()).isEmpty());
+    }
+
+    // **Case 2: switched and restarted.** The flag was never set, because
+    // nothing was running when the setting changed — and the corpus is picked
+    // up all the same, because notesToEmbed() compares the pair. That is what
+    // carries the criterion on this road.
+    {
+        AiProviderMock switched;
+        switched.model = QStringLiteral("baai/bge-m3");
+        switched.service = QStringLiteral("OpenRouter");
+        const Embedder afterSwitchAndRestart(store.get(), &switched);
+        QCOMPARE(flagged(), 0);
+        QCOMPARE(store->notesToEmbed(afterSwitchAndRestart.model(), afterSwitchAndRestart.service()).size(), 3);
+        // And the clustering sees nothing of the old pair under the new one,
+        // which is the criterion itself.
+        QVERIFY(store->embeddings(afterSwitchAndRestart.model(), afterSwitchAndRestart.service()).isEmpty());
+    }
+
+    // **Case 1: switched while the daemon runs**, the road the settings dialog
+    // takes. Now the flag is what carries it, and it stands on every note —
+    // read back off the rows and not off the embedder that asked for it.
+    oldProvider.model = QStringLiteral("baai/bge-m3");
+    oldProvider.service = QStringLiteral("OpenRouter");
+    embedder.reloadSettings();
+    QCOMPARE(flagged(), 3);
+}
+
+void AiTest::anUnsetEmbeddingModelCostsTheNotesNothing()
+{
+    // SPEC 7.1's rule of issue #23 where the run reaches it: with the embedding
+    // model of a remote service still empty, the run takes **no** note, counts
+    // nothing and says what is missing. Without it, a corpus would spend both
+    // attempts of every note on an empty model name, every 30 minutes and
+    // unattended (issue #130).
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QDateTime when = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    const qint64 note = addAnalysedNote(*store, QStringLiteral("Regentonne an die Fallrohre hängen."), when);
+    QVERIFY(note > 0);
+
+    AiProviderMock provider;
+    provider.embeddingPrecondition = QStringLiteral("No embedding model for the service of the check is set.");
+    Embedder embedder(store.get(), &provider);
+
+    const QSignalSpy said(&embedder, &Embedder::notReady);
+    const QSignalSpy failed(&embedder, &Embedder::failed);
+    QSignalSpy done(&embedder, &Embedder::finished);
+    embedder.start();
+
+    QCOMPARE(done.count(), 1);
+    QCOMPARE(said.count(), 1);
+    QCOMPARE(said.constFirst().constFirst().toString(), provider.embeddingPrecondition);
+    QVERIFY(failed.isEmpty());
+    // The two readbacks that say nothing was spent: the backend was never
+    // asked, and the note stands where it stood.
+    QVERIFY(provider.texts.isEmpty());
+    QCOMPARE(store->note(note)->analysisAttempts, 0);
+
+    // **The control, and it comes out different**: with the precondition met
+    // the same run takes the note and writes its vector.
+    provider.embeddingPrecondition.clear();
+    embedder.start();
+    QVERIFY(done.wait(std::chrono::seconds(5)));
+    QCOMPARE(said.count(), 2);
+    QVERIFY(said.constLast().constFirst().toString().isEmpty());
+    QCOMPARE(provider.texts.size(), 1);
+    QCOMPARE(store->embeddings(embedder.model(), embedder.service()).size(), 1);
 }
 
 void AiTest::aRefusedNoteDoesNotBlockTheOthers()
@@ -2470,7 +2803,7 @@ void AiTest::aRefusedNoteDoesNotBlockTheOthers()
     embedder.start();
     QVERIFY(finished.wait(std::chrono::seconds(5)));
     QCOMPARE(provider.texts.size(), 3);
-    QCOMPARE(store->embeddings(embedder.model()).size(), 2);
+    QCOMPARE(store->embeddings(embedder.model(), embedder.service()).size(), 2);
     QCOMPARE(failed.count(), 1);
     QCOMPARE(failed.constFirst().at(0).toLongLong(), poison);
     QCOMPARE(paused.count(), 0);
@@ -2548,8 +2881,8 @@ void AiTest::anUnreachableBackendCostsNoAttempt()
     // Nothing is written and nothing is given up on: both notes stand in the
     // next run, which is what SPEC 7.1 means by the bundles falling away while
     // Ollama is unreachable.
-    QVERIFY(store->embeddings(embedder.model()).isEmpty());
-    QCOMPARE(store->notesToEmbed(embedder.model()).size(), 2);
+    QVERIFY(store->embeddings(embedder.model(), embedder.service()).isEmpty());
+    QCOMPARE(store->notesToEmbed(embedder.model(), embedder.service()).size(), 2);
 }
 
 void AiTest::aClusterBecomesAnOpenBundleSuggestion()
@@ -2602,7 +2935,7 @@ void AiTest::aClusterBecomesAnOpenBundleSuggestion()
         "Here is the JSON you asked for:\n"
         "{\"title\": \"Backup der Fotos\", \"notes\": [1, 2, 3]}");
 
-    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    Suggester suggester(store.get(), &provider);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy done(&suggester, &Suggester::finished);
     suggester.start();
@@ -2653,7 +2986,7 @@ void AiTest::theModelMayDropAnOutlier()
     AiProviderMock provider;
     provider.chatAnswer = QStringLiteral(R"({"title": "Garten im Frühjahr", "notes": [1, 3, 4]})");
 
-    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    Suggester suggester(store.get(), &provider);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy done(&suggester, &Suggester::finished);
     suggester.start();
@@ -2688,7 +3021,7 @@ void AiTest::aNoteWithTaskFieldsBecomesATaskSuggestion()
     QVERIFY(filter > 0);
 
     AiProviderMock provider;
-    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    Suggester suggester(store.get(), &provider);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy done(&suggester, &Suggester::finished);
     suggester.start();
@@ -2742,7 +3075,7 @@ void AiTest::aDeferredBundleIsClusteredAgainAndReplaced()
     AiProviderMock provider;
     provider.chatAnswer = QStringLiteral(R"({"title": "Das Rad", "notes": [1, 2, 3]})");
 
-    Suggester suggester(store.get(), &provider, testEmbeddingModel());
+    Suggester suggester(store.get(), &provider);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy done(&suggester, &Suggester::finished);
     suggester.start();

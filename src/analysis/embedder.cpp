@@ -1,10 +1,11 @@
 #include "analysis/embedder.h"
 
 #include "analysis/aiprovider.h"
-#include "analysis/ollamaprovider.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
+
+#include <QtLogging>
 
 #include <optional>
 
@@ -68,7 +69,7 @@ Embedder::Embedder(Store *store, AiProvider *provider, QObject *parent)
         //
         // A database that will not take the vector is no fault of the note's
         // and none of the backend's, and the next note would meet it too.
-        if (!m_store->setEmbedding(m_noteId, m_sentModel, components)) {
+        if (!m_store->setEmbedding(m_noteId, m_sentModel, m_sentService, components)) {
             stop(m_store->lastError());
             return;
         }
@@ -85,7 +86,17 @@ void Embedder::start()
     }
 
     m_queue.clear();
-    const QList<Note> notes = m_store->notesToEmbed(m_model);
+
+    // **Asked before a note is taken out**, because taking one out is what
+    // spends an attempt of SPEC 7.2 (aiprovider.h). A remote provider whose
+    // embedding model nobody has filled in yet is a precondition not yet met,
+    // and the run says so and takes nothing — the shape Classifier::start()
+    // has for the chat model, down to the queue that is simply left empty so
+    // that a run always ends the one way.
+    const QString missing = m_provider->unmetEmbeddingPrecondition();
+    Q_EMIT notReady(missing);
+
+    const QList<Note> notes = missing.isEmpty() ? m_store->notesToEmbed(m_model, m_service) : QList<Note>();
     for (const Note &note : notes) {
         // What the counter of SPEC 7.2 skips is reported rather than passed
         // over — including after a restart, which is the only place the tray
@@ -111,9 +122,27 @@ QString Embedder::model() const
     return m_model;
 }
 
+QString Embedder::service() const
+{
+    return m_service;
+}
+
 void Embedder::reloadSettings()
 {
-    m_model = ollama::configuredEmbeddingModel();
+    const QString model = m_provider->embeddingModel();
+    const QString service = m_provider->serviceId();
+    // Only a real change, and only away from a pair that was already set — the
+    // constructor comes through here with both empty, and marking there would
+    // re-embed a sound corpus at every start of the daemon (see the header).
+    const bool changed = !m_model.isEmpty() && (model != m_model || service != m_service);
+    m_model = model;
+    m_service = service;
+    if (changed && !m_store->markAllForReembedding()) {
+        // Nothing else to do about it: the next run picks the notes up anyway,
+        // because notesToEmbed() compares the pair as well. The flag is what
+        // makes the switch readable in the database (SPEC 7.1).
+        qWarning("The corpus could not be marked for re-embedding: %s", qUtf8Printable(m_store->lastError()));
+    }
 }
 
 void Embedder::takeNextNote()
@@ -128,6 +157,7 @@ void Embedder::takeNextNote()
     const Note note = m_queue.takeFirst();
     m_noteId = note.id;
     m_sentModel = m_model;
+    m_sentService = m_service;
     m_requestId = m_provider->embed(note.content);
 }
 

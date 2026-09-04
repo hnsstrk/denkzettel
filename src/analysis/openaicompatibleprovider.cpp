@@ -146,10 +146,73 @@ OpenAiCompatibleAnswer readOpenAiCompatibleReply(QLatin1StringView service,
     return {text, {}};
 }
 
+OpenAiCompatibleEmbedding readOpenAiCompatibleEmbedding(QLatin1StringView service,
+                                                        QNetworkReply::NetworkError transport,
+                                                        const QString &transportMessage,
+                                                        int httpStatus,
+                                                        const QByteArray &body)
+{
+    const QString name(service);
+
+    // The two limits of SPEC 7.1, in the order and with the wording the chat
+    // reader above carries them: the silence limit arrives as TimeoutError, and
+    // an abort() of ours on a running reply as OperationCanceledError. Both are
+    // Unreachable — the note was not refused, the transfer ended — so the run
+    // stops instead of spending the note an attempt (aiprovider.h).
+    if (transport == QNetworkReply::TimeoutError) {
+        return {{}, i18n("%1 did not answer within the time limit.", name), AiFailure::Unreachable};
+    }
+    if (transport == QNetworkReply::OperationCanceledError) {
+        return {{}, i18n("%1 took longer over this call than it is allowed.", name), AiFailure::Unreachable};
+    }
+
+    // The service's own sentence beats the status code, for the reason it does
+    // above: an unknown model, a spent quota and a rejected key are three
+    // different things to the user and one HTTP number. Only one shape here,
+    // because this call does not stream and a refusal has nowhere else to
+    // stand.
+    const QJsonDocument document = QJsonDocument::fromJson(body);
+    const QString refusal =
+        document.object().value(QLatin1String("error")).toObject().value(QLatin1String("message")).toString();
+    if (!refusal.isEmpty()) {
+        return {{}, i18n("%1 refused the request: %2", name, refusal), AiFailure::Refused};
+    }
+
+    if (transport != QNetworkReply::NoError && httpStatus == 0) {
+        return {{}, i18n("%1 could not be reached: %2", name, transportMessage), AiFailure::Unreachable};
+    }
+
+    if (httpStatus != 0 && (httpStatus < 200 || httpStatus > 299)) {
+        return {{}, i18n("%1 answered with HTTP status %2.", name, httpStatus), AiFailure::Refused};
+    }
+
+    if (!document.isObject()) {
+        return {{}, i18n("%1 sent an unreadable answer.", name), AiFailure::Refused};
+    }
+
+    // `data` is a list because the endpoint takes a list of inputs; one text
+    // goes in, so the first entry is the one asked for — the same reading
+    // readOllamaReply() gives `/api/embed`.
+    const QJsonArray data = document.object().value(QLatin1String("data")).toArray();
+    const QJsonArray first =
+        data.isEmpty() ? QJsonArray() : data.constBegin()->toObject().value(QLatin1String("embedding")).toArray();
+    if (first.isEmpty()) {
+        return {{}, i18n("%1's answer carried no embedding.", name), AiFailure::Refused};
+    }
+
+    QList<double> vector;
+    vector.reserve(first.size());
+    for (const auto &component : first) {
+        vector.append(component.toDouble());
+    }
+    return {vector, {}, AiFailure::None};
+}
+
 OpenAiCompatibleProvider::OpenAiCompatibleProvider(const AiService &service, QObject *parent)
     : AiProvider(parent)
     , m_service(service)
     , m_url(QString(service.endpoint))
+    , m_embedUrl(QString(service.embedEndpoint))
 {
     reloadSettings();
 
@@ -197,8 +260,11 @@ void OpenAiCompatibleProvider::reloadSettings()
 {
     const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
     // No default, and the header says why: any model here would make a choice
-    // the customer reserved for himself, every 30 minutes and billed.
+    // the customer reserved for himself, every 30 minutes and billed. That
+    // holds for the embedding model twice over — an embedding run touches
+    // **every** note (SPEC 7.1, issue #130).
     m_model = group.readEntry(QString(m_service.modelKey), QString());
+    m_embeddingModel = group.readEntry(QString(m_service.embeddingModelKey), QString());
     m_keyKnown = false;
     m_key.clear();
 }
@@ -213,6 +279,21 @@ QString OpenAiCompatibleProvider::chatModel() const
     return m_model;
 }
 
+void OpenAiCompatibleProvider::setEmbeddingModel(const QString &model)
+{
+    m_embeddingModel = model;
+}
+
+QString OpenAiCompatibleProvider::embeddingModel() const
+{
+    return m_embeddingModel;
+}
+
+QString OpenAiCompatibleProvider::serviceId() const
+{
+    return QString(m_service.id);
+}
+
 void OpenAiCompatibleProvider::setKey(const QString &key)
 {
     m_key = key;
@@ -222,6 +303,11 @@ void OpenAiCompatibleProvider::setKey(const QString &key)
 void OpenAiCompatibleProvider::setUrl(const QUrl &url)
 {
     m_url = url;
+}
+
+void OpenAiCompatibleProvider::setEmbedUrl(const QUrl &url)
+{
+    m_embedUrl = url;
 }
 
 void OpenAiCompatibleProvider::setTimeout(std::chrono::milliseconds timeout)
@@ -253,7 +339,7 @@ int OpenAiCompatibleProvider::chat(const QString &prompt)
     }
 
     if (m_keyKnown) {
-        post(id, prompt);
+        post(id, prompt, false);
         return id;
     }
 
@@ -261,7 +347,7 @@ int OpenAiCompatibleProvider::chat(const QString &prompt)
     // call waits rather than failing (keystore.h). One readKey() for however
     // many calls come in meanwhile: three notes in a row would otherwise be
     // three requests to a store that answers them all from the same handle.
-    m_waiting.append({id, prompt});
+    m_waiting.append({id, prompt, false});
     if (!m_keyAsked) {
         m_keyAsked = true;
         KeyStore::self()->readKey(QString(m_service.keyName));
@@ -271,30 +357,49 @@ int OpenAiCompatibleProvider::chat(const QString &prompt)
 
 int OpenAiCompatibleProvider::embed(const QString &text)
 {
-    Q_UNUSED(text)
-
     const int id = nextRequestId();
-    // Through the event loop, because the caller has not seen the id yet while
-    // its own call is still on the stack (aiprovider.h).
-    QTimer::singleShot(0, this, [this, id] {
-        Q_EMIT embedFinished(id,
-                             {},
-                             i18n("%1 is not asked for embeddings; those come from Ollama.",
-                                  QString(m_service.name)),
-                             AiFailure::Unreachable);
-    });
-    return id;
-}
 
-bool OpenAiCompatibleProvider::canEmbed() const
-{
-    return false;
+    // The guided sentence for the reason chat() gives it, and here the price of
+    // getting it wrong is the note's two attempts of SPEC 7.2 — hence
+    // `Unreachable`: nothing about this note was refused, and the run is to
+    // stop rather than count.
+    const QString missing = unmetEmbeddingPrecondition();
+    if (!missing.isEmpty()) {
+        // Through the event loop, because the caller has not seen the id yet
+        // while its own call is still on the stack (aiprovider.h).
+        QTimer::singleShot(0, this, [this, id, missing] {
+            Q_EMIT embedFinished(id, {}, missing, AiFailure::Unreachable);
+        });
+        return id;
+    }
+
+    if (m_keyKnown) {
+        post(id, text, true);
+        return id;
+    }
+
+    m_waiting.append({id, text, true});
+    if (!m_keyAsked) {
+        m_keyAsked = true;
+        KeyStore::self()->readKey(QString(m_service.keyName));
+    }
+    return id;
 }
 
 QString OpenAiCompatibleProvider::unmetPrecondition() const
 {
     if (m_model.isEmpty()) {
         return i18n("No model for %1 is set."
+                    " Enter one in the settings under \"AI provider\".",
+                    QString(m_service.name));
+    }
+    return {};
+}
+
+QString OpenAiCompatibleProvider::unmetEmbeddingPrecondition() const
+{
+    if (m_embeddingModel.isEmpty()) {
+        return i18n("No embedding model for %1 is set."
                     " Enter one in the settings under \"AI provider\".",
                     QString(m_service.name));
     }
@@ -309,29 +414,46 @@ void OpenAiCompatibleProvider::releaseWaiting(const QString &error)
     const QList<Waiting> waiting = std::exchange(m_waiting, {});
     for (const Waiting &call : waiting) {
         if (error.isEmpty()) {
-            post(call.id, call.prompt);
+            post(call.id, call.text, call.embedding);
+        } else if (call.embedding) {
+            // Unreachable, because a wallet that did not answer says nothing
+            // about the note that happened to be first in the queue — the next
+            // one fares exactly the same (aiprovider.h).
+            Q_EMIT embedFinished(call.id, {}, error, AiFailure::Unreachable);
         } else {
             Q_EMIT chatFinished(call.id, QString(), error);
         }
     }
 }
 
-void OpenAiCompatibleProvider::post(int id, const QString &prompt)
+void OpenAiCompatibleProvider::post(int id, const QString &text, bool embedding)
 {
     const QJsonObject message{
         {QLatin1String("role"), QLatin1String("user")},
-        {QLatin1String("content"), prompt},
+        {QLatin1String("content"), text},
     };
-    const QJsonObject body{
-        {QLatin1String("model"), m_model},
-        {QLatin1String("messages"), QJsonArray{message}},
-        // Streamed, and the reason is issue #121's: unstreamed, the limit below
-        // measures the whole answer, and a reasoning model breaks it without
-        // anything being wrong. See the class comment.
-        {QLatin1String("stream"), true},
-    };
+    // **The embedding call is not streamed**, and that is the endpoint's shape
+    // rather than a decision of ours: `/v1/embeddings` answers with one
+    // document. The 30 s of SPEC 7.1 therefore bound the whole call here, which
+    // is what they used to do for chat before issue #121 — and it is right for
+    // this one, because an embedding does no reasoning and the case that broke
+    // there cannot arise.
+    const QJsonObject body =
+        embedding ? QJsonObject{
+                        {QLatin1String("model"), m_embeddingModel},
+                        {QLatin1String("input"), text},
+                    }
+                  : QJsonObject{
+                        {QLatin1String("model"), m_model},
+                        {QLatin1String("messages"), QJsonArray{message}},
+                        // Streamed, and the reason is issue #121's: unstreamed,
+                        // the limit below measures the whole answer, and a
+                        // reasoning model breaks it without anything being
+                        // wrong. See the class comment.
+                        {QLatin1String("stream"), true},
+                    };
 
-    QNetworkRequest request(m_url);
+    QNetworkRequest request(embedding ? m_embedUrl : m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     // The key never reaches a log, an error sentence or a settings file: it is
     // written onto the request here and lives nowhere else in this class but in
@@ -349,17 +471,24 @@ void OpenAiCompatibleProvider::post(int id, const QString &prompt)
         reply->abort();
     });
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, id] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, id, embedding] {
         reply->deleteLater();
+        const QNetworkReply::NetworkError transport = reply->error();
+        const QString transportMessage = reply->errorString();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        // An aborted reply is closed, and reading it anyway only earns a
+        // "device not open".
+        const QByteArray answerBody = reply->isOpen() ? reply->readAll() : QByteArray();
+
+        if (embedding) {
+            const OpenAiCompatibleEmbedding vector =
+                readOpenAiCompatibleEmbedding(m_service.name, transport, transportMessage, status, answerBody);
+            Q_EMIT embedFinished(id, vector.vector, vector.error, vector.failure);
+            return;
+        }
+
         const OpenAiCompatibleAnswer answer =
-            readOpenAiCompatibleReply(m_service.name,
-                                      reply->error(),
-                                      reply->errorString(),
-                                      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
-                                      // An aborted reply is closed, and reading
-                                      // it anyway only earns a "device not
-                                      // open".
-                                      reply->isOpen() ? reply->readAll() : QByteArray());
+            readOpenAiCompatibleReply(m_service.name, transport, transportMessage, status, answerBody);
         Q_EMIT chatFinished(id, answer.text, answer.error);
     });
 }

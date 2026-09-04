@@ -75,6 +75,13 @@ Settings::Settings()
     // remote services alike (SPEC 7.1).
     addItemString(QString(openai::Service.modelKey), m_openAiModel, QString());
     addItemString(QStringLiteral("EmbeddingModel"), m_embeddingModel, QString(ollama::DefaultEmbeddingModel));
+    // And the embedding model of each remote service, for the two reasons the
+    // chat models above carry (issue #130). One shared key would send `bge-m3`
+    // — an Ollama model — to openrouter, where `baai/bge-m3` is what the list
+    // holds; and there is no default here either, for the customer's reason one
+    // degree stronger: an embedding run touches **every** note, repeatedly.
+    addItemString(QString(openrouter::Service.embeddingModelKey), m_openRouterEmbeddingModel, QString());
+    addItemString(QString(openai::Service.embeddingModelKey), m_openAiEmbeddingModel, QString());
 
     setCurrentGroup(QStringLiteral("Analysis"));
     // Periodic and not "at once", although SPEC 7.2 lists that one first: the
