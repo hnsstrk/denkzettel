@@ -1410,9 +1410,17 @@ conceivable as an optional later additional path, but is not built for v1.
       2026-08-04), so that nobody later takes it for an oversight and removes
       it. Silent are the test and image runners alone: they steer libcanberra
       onto the null driver before `main()` (`tests/testsilence.cpp`).
-- If the note is part of an **open suggestion**, editing or deleting discards
-  that suggestion (its preview would be out of date); the next analysis run
-  generates it anew on the current state.
+- If the note is part of an **open suggestion**, the card follows its notes: a
+  bundle keeps standing until its **last** note is gone, and the preview is
+  written out of the notes at every showing, so it cannot be out of date. Until
+  04.09.2026 this section demanded that editing or deleting **one** note
+  discard the whole suggestion, on the ground that its preview would go stale —
+  the partial case was never built, and the ground stopped holding when the
+  review began rebuilding the preview from the notes rather than from a stored
+  payload. What is left is a bundle that deleting can push below the bundle
+  threshold of three, and the review already allows that state through
+  deselecting. So the sentence is corrected to the built state rather than the
+  code to the sentence (PO decision 04.09.2026, issue #30).
 - With voice notes: audio player (play/pause, progress, time) above the
   transcript.
 - **Suggestion review**: list of open suggestions of both kinds. Bundle card:
@@ -1420,7 +1428,12 @@ conceivable as an optional later additional path, but is not built for v1.
   "→ Obsidian _INBOX". Task card: editable fields (description, project, tags,
   due, priority), annotation preview, target "→ Taskwarrior". Actions per card:
   **Accept · Later · Discard** (Discard deletes only the suggestion, never
-  notes).
+  notes). A bundle whose notes have **all** been deleted is not shown
+  and does not stay in the database: the review removes it with the same call
+  Discard uses, the next time it reads the list. Deleting a note takes its
+  `proposal_notes` row with it (`ON DELETE CASCADE`) but not the suggestion, so
+  this is the one state the store can reach that the review has to end — and
+  there is nothing left to answer for it (PO decision 04.09.2026, issue #30).
 
 ## 10. Tray and notifications
 
