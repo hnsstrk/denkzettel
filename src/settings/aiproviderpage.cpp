@@ -141,6 +141,7 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     , m_test(new QPushButton(i18n("Test connection"), this))
     , m_result(smallLine(this))
     , m_openAiNote(smallLine(this))
+    , m_remoteTextNote(smallLine(this))
     , m_ollama(new OllamaProvider(this))
     , m_openRouter(new OpenAiCompatibleProvider(openrouter::Service, this))
     , m_openAi(new OpenAiCompatibleProvider(openai::Service, this))
@@ -196,6 +197,36 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     // unlocks OpenAI. Both the lock and the sentence go with it — a page that
     // says a provider is not connected while it is, is the same untruth the
     // other way round (wireframe supplement 1d, UX decision 30.08.2026).
+
+    // **What the choice above costs, said where the choice is made** (issue
+    // #144). SPEC 7.1 requires exactly this, and requires it here: "What the
+    // choice costs is said where it is made, on the settings page and not in a
+    // manual: every note leaves the machine". Until this row the page said
+    // where the **key** is kept and never where the **text** goes — the one
+    // claim about Denkzettel a reader is most likely to have taken from the
+    // README, where the same overpromise stood until 03.09.2026.
+    //
+    // Directly under the provider row and above everything else, because that
+    // is what the criterion "visible without scrolling" means on a page whose
+    // rows come and go: a consequence read after the fields it applies to is
+    // read too late. Measured in the built 640x480 dialog rather than on the
+    // page, which is where the question lives — KConfigDialog wraps every page
+    // in a QScrollArea, and under OpenAI the page is taller than its viewport.
+    // The sentence stands at viewport y 90..124 against a fold at 399.
+    //
+    // The text is **set in showRowsOfTheChosenProvider() and cleared there**,
+    // not written once here like the two notes below. A hidden label that keeps
+    // its last sentence answers the same thing for "nothing to say" as for
+    // "said it and wrongly hidden" (CLAUDE.md, finding 79), and this is the one
+    // line on the page whose absence is itself a statement.
+    //
+    // The name says when it shows rather than what it is about (UX, 04.09.2026):
+    // it is the note of the **remote** providers, and the picture runner asks
+    // the label by this name so a run whose catalogue was not found says so
+    // instead of printing nothing (findings 31 and 59).
+    m_remoteTextNote->setObjectName(QStringLiteral("remoteTextNote"));
+    m_remoteTextNoteRow = m_form->rowCount();
+    m_form->addRow(m_remoteTextNote);
 
     // **Why there is no "Sign in with ChatGPT"**, and the wording is not
     // invented here: SPEC 7.5 settled it on the research of 2026-07-31, and
@@ -399,7 +430,42 @@ void AiProviderPage::showRowsOfTheChosenProvider()
     const bool needsKey = !keyNameOf(chosen).isEmpty();
     // Both remote services now, and that is the whole of the row rule: what
     // used to read "openrouter" reads "not Ollama" (issue #39).
-    const bool remoteChat = serviceOf(chosen) != nullptr;
+    const AiService *service = serviceOf(chosen);
+    const bool remoteChat = service != nullptr;
+
+    // **The sentence and its row go together** (issue #144, CLAUDE.md finding
+    // 79): under Ollama there is nothing to say, and the label is emptied
+    // rather than merely hidden — otherwise a readback cannot tell "nothing to
+    // report" from "reported and wrongly hidden", and for a statement about
+    // where the note text goes those are the two states that matter most.
+    //
+    // **The wording is the UX expert's, not the implementer's** (04.09.2026,
+    // an acceptance criterion of #144), and "leaves the machine" is not a
+    // fresh phrase: SPEC 7.1 and SPEC 14 both use it, both times as the price
+    // of a choice rather than as a warning. A third formulation for one fact
+    // is one too many.
+    //
+    // **What it deliberately does not say** is that nothing leaves the machine
+    // under Ollama. `kcfg_OllamaUrl` is free text, so a user who points it at
+    // another host sends the text off just the same — an assurance a field on
+    // this very page can break is worse than none.
+    //
+    // The service is named rather than spelled into the sentence, for the
+    // reason the result line below names it: with two remote backends a fixed
+    // wording would tell the user about the service they did not choose. It
+    // also makes the readback come out **three** ways instead of two, so a row
+    // shown under the wrong provider cannot pass for the right one (finding 10).
+    //
+    // ponytail: when #130 lands and one provider answers the embedding too,
+    // this sentence gets shorter rather than rebuilt — "The text of every note
+    // leaves the machine and goes to %1.", because then every note is affected
+    // and not only the ones classified. Two words out, one string, and it
+    // matches SPEC 7.1's "every note leaves the machine" word for word.
+    m_remoteTextNote->setText(
+        remoteChat ? i18n("The text of every note Denkzettel classifies leaves the machine and goes to %1.",
+                          QString(service->name))
+                   : QString());
+    m_form->setRowVisible(m_remoteTextNoteRow, remoteChat);
 
     m_form->setRowVisible(m_apiKeyRow, needsKey);
     // The note about "Sign in with ChatGPT" belongs to the one provider it is

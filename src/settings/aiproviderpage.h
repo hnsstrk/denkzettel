@@ -39,6 +39,15 @@ class QRadioButton;
  * the service that is going to answer. Since #39 all three buttons take clicks,
  * so the lock and the "not connected yet" sentence #127 put here are gone.
  *
+ * **One of those rows says where the note text goes** (issue #144). SPEC 7.1
+ * demands it and demands it here — "What the choice costs is said where it is
+ * made, on the settings page and not in a manual" — and until #144 the page
+ * said where the *key* is kept and never where the *text* goes. The sentence
+ * therefore sits directly under the provider row, where the choice is made,
+ * and its text is set and cleared with its row rather than written once: the
+ * absence of this line is itself a statement, and a hidden label that keeps its
+ * last sentence cannot say which of the two it is (CLAUDE.md, finding 79).
+ *
  * **And it follows the stored value, not a toggle.**
  * Before the dialog's manager reads the setting no button is checked, so a
  * stored `Provider=OpenRouter` checks button 1 and toggles the Ollama button
@@ -97,6 +106,8 @@ private:
     QLabel *m_result;
     /** Why there is no "Sign in with ChatGPT" (SPEC 7.5); shown under OpenAI. */
     QLabel *m_openAiNote;
+    /** That the note text leaves the machine; shown under a remote provider. */
+    QLabel *m_remoteTextNote;
     OllamaProvider *m_ollama;
     OpenAiCompatibleProvider *m_openRouter;
     OpenAiCompatibleProvider *m_openAi;
@@ -108,6 +119,7 @@ private:
     int m_openRouterModelRow = -1;
     int m_openAiModelRow = -1;
     int m_openAiNoteRow = -1;
+    int m_remoteTextNoteRow = -1;
     int m_embeddingsFromOllamaRow = -1;
 
     /** True once the user has typed in the key field, see save(). */

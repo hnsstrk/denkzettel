@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 18:50+0200\n"
+"POT-Creation-Date: 2026-09-04 19:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -326,27 +326,27 @@ msgstr ""
 msgid "Test connection"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:181
+#: src/settings/aiproviderpage.cpp:182
 #, kde-format
 msgid "Ollama"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:183
+#: src/settings/aiproviderpage.cpp:184
 #, kde-format
 msgid "openrouter.ai"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:189
+#: src/settings/aiproviderpage.cpp:190
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:191
+#: src/settings/aiproviderpage.cpp:192
 #, kde-format
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:211
+#: src/settings/aiproviderpage.cpp:242
 #, kde-format
 msgid ""
 "A route over \"Sign in with ChatGPT\" is not possible: the procedure hands "
@@ -354,43 +354,43 @@ msgid ""
 "therefore needs an API key from the OpenAI platform account."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:228
+#: src/settings/aiproviderpage.cpp:259
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:230
+#: src/settings/aiproviderpage.cpp:261
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:242 src/settings/aiproviderpage.cpp:263
-#: src/settings/aiproviderpage.cpp:276
+#: src/settings/aiproviderpage.cpp:273 src/settings/aiproviderpage.cpp:294
+#: src/settings/aiproviderpage.cpp:307
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:252
+#: src/settings/aiproviderpage.cpp:283
 #, kde-format
 msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:271
+#: src/settings/aiproviderpage.cpp:302
 #, kde-format
 msgid "For example gpt-4o-mini · platform.openai.com/docs/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:288
+#: src/settings/aiproviderpage.cpp:319
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:291
+#: src/settings/aiproviderpage.cpp:322
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:297
+#: src/settings/aiproviderpage.cpp:328
 #, kde-format
 msgid ""
 "The two rows above belong to Ollama: it is what answers the embedding call, "
@@ -398,17 +398,24 @@ msgid ""
 "there are no topic bundles."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:354
+#: src/settings/aiproviderpage.cpp:385
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:365
+#: src/settings/aiproviderpage.cpp:396
 #, kde-format
 msgid "The key is in the password store."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:528
+#: src/settings/aiproviderpage.cpp:465
+#, kde-format
+msgid ""
+"The text of every note Denkzettel classifies leaves the machine and goes to "
+"%1."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:594
 #, kde-format
 msgid ""
 "%1\n"
@@ -416,14 +423,14 @@ msgid ""
 "The classification keeps running through the provider chosen above."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:542
+#: src/settings/aiproviderpage.cpp:608
 #, kde-format
 msgid ""
 "Connection is up · chat %1 ms. Embeddings are not asked of %2; test them "
 "under Ollama."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:546
+#: src/settings/aiproviderpage.cpp:612
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""

@@ -19,7 +19,8 @@
 #include <QTest>
 
 /**
- * The pictures of issues #38 and #39: the page "AI provider" once **all three**
+ * The pictures of issues #38, #39 and #144: the page "AI provider" once **all
+ * three**
  * providers take clicks, with the row rule the Product Owner settled on
  * 30.08.2026 — the key row under a provider that needs one, the language model
  * row of the chosen service, and the sentence naming Ollama as what answers the
@@ -27,8 +28,21 @@
  * with it, saying why the field wants an API key and not a "Sign in with
  * ChatGPT".
  *
- * They replace nothing: the three `127-anbieter-*.png` beside them are the
- * record of the state before, and these stories changed that state.
+ * Since #144 they carry one row more: the sentence that the text of every
+ * classified note leaves the machine and goes to the chosen remote service. It is the picture that
+ * has to show it — the criterion is "visible without scrolling and without
+ * opening anything", and that is a statement about the drawn page and not about
+ * a value in a widget (CLAUDE.md, finding 51). What the readback adds is the
+ * half a picture cannot carry: that under Ollama the label is **empty** and not
+ * merely undrawn.
+ *
+ * They replace nothing: the `127-`, `38-` and `39-anbieter-*.png` beside them
+ * are the record of the states before, and each of those stories changed that
+ * state. #144 is the newest, so this runner writes the `144-` set — **and its
+ * Ollama picture is byte for byte the one #39 wrote**. That is not a duplicate
+ * by accident, it is the evidence: under the default provider this story
+ * changes nothing at all, and `cmp` on the two files is what says so
+ * (CLAUDE.md, finding 39).
  *
  * Not a test and out of `add_test()`, for the reason `readmeshots` is out of
  * it: a broken picture writer must not turn the suite red. It is built with
@@ -71,8 +85,8 @@
  * **The committed pictures under `docs/images/reviews/` are the German ones**,
  * and the call below is the one that reproduces them byte for byte. The run
  * writes one language set per call under **the same three file names**
- * (`39-anbieter-*.png`), so an
- * English run pointed at that directory overwrites them with English pictures
+ * (`144-anbieter-*.png`), so an English run pointed at that directory
+ * overwrites them with English pictures
  * of the same state — it belongs in a throwaway directory. Read it back: run
  * the line, then `git status`, and nothing may have changed.
  *
@@ -143,6 +157,25 @@ void report(const QString &what, QWidget &page)
              int(!openAiModel->isHidden()),
              int(!fromOllama->isHidden()),
              int(!openAiNote->isHidden()));
+
+    // The sentence of issue #144, and **both** halves of it: whether the row is
+    // shown, and what the label holds. The second one is what the criterion
+    // asks for — under Ollama the text has to be empty and not merely hidden,
+    // or the readback answers the same for "nothing to say" as for "said it and
+    // wrongly hidden" (CLAUDE.md, finding 79). Printed as a quoted string, so
+    // an empty text is visible as `""` rather than as a missing line, and
+    // printed for **all three** providers rather than only the two that have
+    // something to say (UX, 04.09.2026) — with the service named in the
+    // sentence the three come out three different ways, which is the readback
+    // that can be wrong (finding 10).
+    const auto *remoteText = page.findChild<QLabel *>(QStringLiteral("remoteTextNote"));
+    if (remoteText == nullptr) {
+        qFatal("the page carries no note named remoteTextNote");
+    }
+    qWarning("%s  remote-text note shown=%d text=\"%s\"",
+             qUtf8Printable(what),
+             int(!remoteText->isHidden()),
+             qUtf8Printable(remoteText->text()));
 }
 
 void shoot(QWidget &page, const QString &directory, const QString &name)
@@ -203,9 +236,9 @@ int main(int argc, char **argv)
         const char *stored;
         QString file;
     };
-    const QList<State> states{{Settings::Ollama, "Ollama", QStringLiteral("39-anbieter-ollama.png")},
-                              {Settings::OpenRouter, "OpenRouter", QStringLiteral("39-anbieter-openrouter.png")},
-                              {Settings::OpenAi, "OpenAI", QStringLiteral("39-anbieter-openai.png")}};
+    const QList<State> states{{Settings::Ollama, "Ollama", QStringLiteral("144-anbieter-ollama.png")},
+                              {Settings::OpenRouter, "OpenRouter", QStringLiteral("144-anbieter-openrouter.png")},
+                              {Settings::OpenAi, "OpenAI", QStringLiteral("144-anbieter-openai.png")}};
 
     for (const State &state : states) {
         // **The setting first, then the page**: the page reads `[AI] Provider`
