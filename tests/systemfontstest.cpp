@@ -18,6 +18,7 @@
 #include <QTest>
 
 #include <algorithm>
+#include <cstdlib>
 
 /**
  * That a change of the system font still reaches both windows while they are
@@ -128,6 +129,24 @@ bool allAt(const QList<QLabel *> &labels, int pointSize)
         return label->font().pointSize() == pointSize;
     });
 }
+
+/** The throwaway HOME, kept for the handler below. Set once, in main().
+ *  Function-local and not a global: a non-POD global is a clazy finding
+ *  (non-pod-global-static), and its destruction would additionally have to be
+ *  ordered against the handler that reads it. Assigned before the atexit()
+ *  call, so it is built first and destroyed last — after the handler has run
+ *  ([basic.start.term], the same clause the comment in main() rests on). */
+QString &temporaryHome()
+{
+    static QString path;
+    return path;
+}
+
+/** Removes it — see the comment on the atexit() call in main(). */
+void removeTemporaryHome()
+{
+    QDir(temporaryHome()).removeRecursively();
+}
 }
 
 void SystemFontsTest::bothWindowsFollowAFontChangeUnderTheRunningProcess()
@@ -199,10 +218,30 @@ int main(int argc, char *argv[])
     // A HOME of its own, in place before QApplication — see the class comment.
     // It lives to the end of main(), so the directory outlasts every read of
     // it.
-    const QTemporaryDir home;
+    QTemporaryDir home;
     if (!home.isValid()) {
         qFatal("no temporary home");
     }
+
+    // And it is removed at exit() rather than by its own destructor, which is
+    // measured and not taste (issue #136). KSvg keeps the KSharedConfig of its
+    // element cache in a static object of libKF6Svg, built the first time a
+    // frame is painted; that object is destroyed after main() has returned,
+    // KConfig::sync() runs in its destructor, and QDir::mkpath() puts
+    // `<home>/.cache` back on disk to write `ksvg-elements` into it. So the
+    // destructor did remove the directory and KSvg wrote it again, one
+    // survivor per run, for as long as the machine went without a /tmp clear.
+    //
+    // Registered here, before that static exists: the standard orders an
+    // atexit() handler after the destructor of every object whose construction
+    // it precedes ([basic.start.term]), so this runs last and reaches the file
+    // KSvg leaves behind.
+    home.setAutoRemove(false);
+    temporaryHome() = home.path();
+    if (std::atexit(removeTemporaryHome) != 0) {
+        qFatal("no cleanup for the temporary home");
+    }
+
     const QString config = home.path() + QStringLiteral("/.config");
     if (!QDir().mkpath(config)) {
         qFatal("no configuration directory");

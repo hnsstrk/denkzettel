@@ -1568,6 +1568,43 @@ find.
     `git log --oneline -1 <branch>` after it. A merge tells you it merged; it
     does not tell you where.
 
+85. **A `QTemporaryDir` destructor that runs is no proof the directory is
+    gone — a library static writes it back after `main()` has returned.**
+    Measured 2026-09-03 on #136, where `systemfontstest` left exactly one
+    `/tmp/qt_temp-*` per run, holding nothing but `.cache/ksvg-elements`. The
+    comment beside the throwaway `HOME` said the destructor of a local of
+    `main()` cleans up, and it does: the trace shows the whole tree removed,
+    down to the `rmdir` of the temporary directory itself. **Three `mkdir`
+    calls follow it**, from inside `exit()` — a static object of
+    `libKF6Svg.so.6` holds the `KSharedConfig` of KSvg's element cache,
+    `KConfig::~KConfig()` calls `KConfig::sync()`, and that `QDir::mkpath()`s
+    `<home>/.cache` back on disk to write `ksvg-elements` into it. So the
+    directory was removed and re-created, and the reading „the destructor never
+    ran" — the obvious one, and the one the issue offered first — is wrong.
+    What carries: **a leftover is counted after the process has exited, never
+    from inside it.** Finding 29 is the same object from the other side (it
+    tidies too early and hides the fault in the check); a check inside the
+    process cannot see this one at all, because at every point it could look,
+    the directory really is gone. And the fix follows the same ordering rule:
+    `std::atexit()` registered **before** the library static exists runs after
+    that static's destructor ([basic.start.term]), which is the one place from
+    which the write can still be reached.
+
+    **And the tool for it was not the one the issue named.** `strace` is not
+    installed here; `gdb -batch` with breakpoints on `mkdir`, `rmdir` and
+    `QTemporaryDir::~QTemporaryDir`, each printing `bt`, answers the same
+    question and answers it better — the backtrace names the **library** that
+    re-creates the path, which a syscall trace alone does not. The breakpoints
+    have to be set after `start`, not before `run`: on a dynamically linked
+    binary the libc symbols do not exist yet, and gdb aborts the whole script
+    on the first `Function "mkdir" not defined.`
+
+    **The counting needs a `TMPDIR` of its own** (finding 55's family): several
+    worktrees write `/tmp` at the same time here, and a bare count of
+    `/tmp/qt_temp-*` cannot say whose they are. Under a `TMPDIR` set for the
+    run the counter-run comes out different — a full `ctest` leaves **1** on
+    the unchanged state and **0** on the changed one, 15 of 15 green in both.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
