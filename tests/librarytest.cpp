@@ -2285,9 +2285,18 @@ void LibraryTest::theShownRowsAddUpToTheNumberBesideAll()
         Note note = *stored;
         note.content = content;
         note.state = state;
-        note.analysisAttempts = attempts;
         note.category = category;
         QVERIFY2(m_store->updateNote(note), qPrintable(m_store->lastError()));
+        // **The attempts are spent afterwards and through failAnalysis()**, not
+        // written along with the text: since issue #137 a changed text puts the
+        // counter back to 0, so the two in one updateNote() would have produced
+        // a population the database cannot hold — and the row would have landed
+        // in the waiting pot instead of the given-up one.
+        for (int attempt = 0; attempt < attempts; ++attempt) {
+            QVERIFY2(m_store->failAnalysis(id, QStringLiteral("kein Backend")).has_value(),
+                     qPrintable(m_store->lastError()));
+        }
+        QCOMPARE(m_store->note(id)->analysisAttempts, attempts);
         ++expected;
     };
 
@@ -2429,8 +2438,16 @@ void LibraryTest::eachMachineRowHoldsTheNotesItsCounterCounted()
         Note note = *stored;
         note.content = content;
         note.state = state;
-        note.analysisAttempts = attempts;
         QVERIFY2(m_store->updateNote(note), qPrintable(m_store->lastError()));
+        // Spent afterwards, for the reason the sibling case above names: a
+        // changed text resets the counter since issue #137. Here both sides of
+        // the comparison would have moved together and the case would have
+        // stayed green over a population that no longer exists (finding 10).
+        for (int attempt = 0; attempt < attempts; ++attempt) {
+            QVERIFY2(m_store->failAnalysis(id, QStringLiteral("kein Backend")).has_value(),
+                     qPrintable(m_store->lastError()));
+        }
+        QCOMPARE(m_store->note(id)->analysisAttempts, attempts);
     };
     add(QStringLiteral("noch nicht analysiert"), Note::State::New, 0);
     add(QStringLiteral("aufgegeben"), Note::State::New, Store::analysisAttemptLimit);

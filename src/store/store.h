@@ -98,12 +98,18 @@ struct CategoryCounts {
      * comment called that unwritable because `completeAnalysis()` sets category,
      * `state` and `analysis_attempts = 0` in one UPDATE — true, and it looked at
      * one of **three** writers. `completeTranscription()` rewrites `content` and
-     * `state` and leaves category, task and attempts standing, so a transcript
+     * `state` and leaves category and task standing, so a transcript
      * arriving after a hand-written text has been analysed puts the note back
      * into the queue with its category still on it; two failed reanalyses
      * complete the combination. Every step of that road is a public `Store`
      * call, which is why it is a test case and not a remark
      * (`librarytest::aNoteThatKeepsItsCategoryAcrossALateTranscript`).
+     *
+     * The attempts it leaves standing were the third part of that road until
+     * issue #137; since migration 9 a replaced text resets them, so the two
+     * failures have to come **after** the transcript, which is the order the
+     * case walks. The combination itself is unchanged — the reset is about the
+     * counter, not about the category.
      */
     int waiting = 0;
 };
@@ -173,7 +179,15 @@ public:
     /** Inserts a note and returns its new id. */
     std::optional<qint64> addNote(const Note &note);
 
-    /** Writes all fields of an existing note, identified by note.id. */
+    /**
+     * Writes all fields of an existing note, identified by note.id.
+     *
+     * **`analysis_attempts` is not among them when the text changes**: the
+     * trigger of migration 9 sets it back to 0 and clears
+     * `analysis_last_error`, whatever the note handed in carries, because the
+     * two attempts of SPEC 7.2 belong to one text (issue #137). A save that
+     * leaves the text as it is — the origin band, an undo — keeps the count.
+     */
     bool updateNote(const Note &note);
 
     std::optional<Note> note(qint64 id) const;
@@ -500,6 +514,12 @@ public:
      * Writes the transcript onto the note and takes the job out of the queue,
      * in one transaction: an interruption in between would otherwise leave a
      * transcribed note in the queue and transcribe it a second time.
+     *
+     * A late transcript can land on a note the user has meanwhile filled in by
+     * hand and the classifier has already given up on. The count of SPEC 7.2
+     * then belongs to a text that is gone, and the trigger of migration 9 sets
+     * it back with the text (issue #137) — otherwise the note would never be
+     * classified again and nothing would say why.
      */
     bool completeTranscription(qint64 noteId, const QString &transcript);
 
