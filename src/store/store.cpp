@@ -1123,6 +1123,8 @@ bool Store::removeNote(qint64 id)
         return false;
     }
 
+    Q_EMIT notesRemoved();
+
     // Database and file system cannot be committed together. The database is
     // the authority, so the file goes last: an interruption in between leaves
     // an orphaned audio file — never a note pointing at a missing file. The
@@ -1612,6 +1614,8 @@ bool Store::removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId
         m_db.rollback();
         return false;
     }
+
+    Q_EMIT notesRemoved();
 
     // Database and file system cannot be committed together, so the files go
     // last for the reason removeNote() puts them last: an interruption here

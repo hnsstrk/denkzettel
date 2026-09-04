@@ -568,6 +568,18 @@ Q_SIGNALS:
      */
     void noteAdded(qint64 id);
 
+    /**
+     * One or more notes have left the table — the counterpart of noteAdded()
+     * (issue #34).
+     *
+     * No id, and one emission for a whole bundle: what hangs on this asks the
+     * store afresh anyway, and the export of SPEC 8.1 deletes a bundle in one
+     * transaction. Emitted **after** the commit and not in deleteNoteRow(),
+     * where both roads meet: inside the transaction a rollback would have
+     * announced a deletion that never happened.
+     */
+    void notesRemoved();
+
 private:
     bool migrate();
 

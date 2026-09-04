@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 19:22+0200\n"
+"POT-Creation-Date: 2026-09-04 19:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -223,7 +223,7 @@ msgstr ""
 
 #: src/main.cpp:519
 #, kde-format
-msgid "Notes are piling up"
+msgid "Notes waiting for export"
 msgstr ""
 
 #: src/proposals/bundleexport.cpp:150
@@ -746,17 +746,17 @@ msgid_plural "The oldest note has been waiting %1 days for export"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/overflowguard.cpp:88
+#: src/shell/overflowguard.cpp:89
 #, kde-format
-msgid "%1 note is waiting for an export."
-msgid_plural "%1 notes are waiting for an export."
+msgid "%1 note has not been exported yet."
+msgid_plural "%1 notes have not been exported yet."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/overflowguard.cpp:90
+#: src/shell/overflowguard.cpp:91
 #, kde-format
-msgid "The oldest note has been waiting for an export for %1 day."
-msgid_plural "The oldest note has been waiting for an export for %1 days."
+msgid "The oldest unexported note is %1 day old."
+msgid_plural "The oldest unexported note is %1 days old."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -861,7 +861,7 @@ msgstr ""
 msgid "The API key could not be removed from the password store."
 msgstr ""
 
-#: src/store/store.cpp:1576
+#: src/store/store.cpp:1578
 #, kde-format
 msgid "The note %1 is no longer in the database."
 msgstr ""

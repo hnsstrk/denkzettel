@@ -82,6 +82,7 @@ private Q_SLOTS:
     void saysNothingAfterARestartAboutAnOverflowAlreadyReported();
     void remindsWhenTheOldestNoteHasWaitedTooLong();
     void namesTheCountWhenBothCriteriaGiveWayAtOnce();
+    void announcesADeletionSoTheLineCanGoWithItsCause();
     void putsTheOverflowLastInTheLineAndRaisesNoErrorState();
 
     void findsAProgramByItsPathAndByItsName();
@@ -661,7 +662,7 @@ void ShellTest::remindsOnceWhenTheLibraryFillsUp()
 
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
     const OverflowReport crossing = overflowReport(*m_store, group);
-    QCOMPARE(crossing.reminder, QStringLiteral("3 notes are waiting for an export."));
+    QCOMPARE(crossing.reminder, QStringLiteral("3 notes have not been exported yet."));
     QCOMPARE(crossing.state, QStringLiteral("3 notes waiting for export"));
 
     // No permanent alarm: the state is the same one, so nothing more is **said**
@@ -721,7 +722,7 @@ void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
     KConfigGroup afterTheExport(&reopened, QStringLiteral("Export"));
     QCOMPARE(afterTheExport.readEntry("OverflowReminded", true), false);
     QCOMPARE(overflowReport(*m_store, afterTheExport).reminder,
-             QStringLiteral("2 notes are waiting for an export."));
+             QStringLiteral("2 notes have not been exported yet."));
 }
 
 void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
@@ -777,8 +778,12 @@ void ShellTest::remindsWhenTheOldestNoteHasWaitedTooLong()
     // one, so a guard reading the newest would stay quiet here.
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-40)));
     const OverflowReport crossed = overflowReport(*m_store, group);
+    // Both channels branch, so both are read back: with only one of them
+    // asserted a guard that always takes the count branch in the other would
+    // pass (UX decision of 04.09.2026, which gave the notification its own
+    // age sentence).
     QCOMPARE(crossed.reminder,
-             QStringLiteral("The oldest note has been waiting for an export for 40 days."));
+             QStringLiteral("The oldest unexported note is 40 days old."));
     // And the tray line names the **age**, not the two notes: with the count
     // out of reach, "2 notes waiting for export" would be a riddle rather than
     // a message (UX decision of 04.09.2026).
@@ -807,7 +812,41 @@ void ShellTest::namesTheCountWhenBothCriteriaGiveWayAtOnce()
     const OverflowReport both = overflowReport(*m_store, group);
     QCOMPARE(both.state, QStringLiteral("2 notes waiting for export"));
     // The count wins in the loud channel too, and out of the same branch.
-    QCOMPARE(both.reminder, QStringLiteral("2 notes are waiting for an export."));
+    QCOMPARE(both.reminder, QStringLiteral("2 notes have not been exported yet."));
+}
+
+void ShellTest::announcesADeletionSoTheLineCanGoWithItsCause()
+{
+    // The tray part claims to stand for as long as its cause does, and the
+    // guard only runs on a note added, on the hour, and at start — so an export
+    // reached it through none of them, and the line kept the old number until
+    // the next note or up to an hour (found by the review of 14f741f). The
+    // store now says when notes leave, and this is what says it does.
+    //
+    // The signal and not a count read afterwards: without it there is nothing
+    // to run the guard, and a check that simply calls overflowReport() again
+    // would be green over the daemon that never learns of the export.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy removed(m_store.get(), &Store::notesRemoved);
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
+    QCOMPARE(removed.count(), 0);
+
+    const QList<Note> written = m_store->notes();
+    QCOMPARE(written.size(), 2);
+    QVERIFY(m_store->removeNote(written.constFirst().id));
+    QCOMPARE(removed.count(), 1);
+
+    // The road the export of SPEC 8.1 really takes, and the one a check on
+    // removeNote() alone would miss: a whole bundle in one transaction, one
+    // announcement.
+    const std::optional<qint64> proposalId =
+        m_store->addProposal({-1, Proposal::Kind::Bundle, QDateTime::currentDateTime(),
+                              Proposal::Status::Open, QStringLiteral("{}"),
+                              {written.constLast().id}});
+    QVERIFY(proposalId.has_value());
+    QVERIFY2(m_store->removeExportedBundle({written.constLast().id}, *proposalId),
+             qPrintable(m_store->lastError()));
+    QCOMPARE(removed.count(), 2);
 }
 
 void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()

@@ -79,15 +79,16 @@ OverflowReport overflowReport(const Store &store, KConfigGroup &configuration)
     }
     configuration.writeEntry("OverflowReminded", true);
     configuration.sync();
-    // Which of the two criteria crossed decides the sentence, because the two
-    // read as different news: at the default thresholds a library of five
-    // notes that has lain untouched for a month is nothing the count could
-    // explain. Both crossed at once is reported as the count, which is the
-    // number the user acts on.
-    report.reminder =
-        tooMany ? i18np("%1 note is waiting for an export.",
-                        "%1 notes are waiting for an export.", notes)
-                : i18np("The oldest note has been waiting for an export for %1 day.",
-                        "The oldest note has been waiting for an export for %1 days.", days);
+    // The same branch as the line above, and deliberately **not** the same
+    // words (UX decision of 04.09.2026): the tray part is one item of a list
+    // that gets skimmed and carries no full stop, like the four parts beside
+    // it; a notification is a sentence that stands alone and carries one, like
+    // every other notification here. Two msgids saved would have cost each
+    // channel what it needs.
+    report.reminder = tooMany
+                          ? i18np("%1 note has not been exported yet.",
+                                  "%1 notes have not been exported yet.", notes)
+                          : i18np("The oldest unexported note is %1 day old.",
+                                  "The oldest unexported note is %1 days old.", days);
     return report;
 }
