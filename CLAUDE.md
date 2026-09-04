@@ -1730,6 +1730,27 @@ find.
     QTest that line reaches no pipe), or it stages the `notifyrc` into the run's
     own `XDG_DATA_DIRS` and says so.
 
+92. **A build that runs into a pipe hands its exit code to the pipe, and
+    `ctest` then measures the previous binary.** Measured 2026-09-04 on #130,
+    twice on the same day by two different agents. The shape is the one every
+    run in this project uses — `cmake --build build 2>&1 | grep -c warning`,
+    or a redirect read back afterwards — and a shell reports the **last**
+    command of a pipeline. So a compiler error becomes `grep`'s exit code,
+    the run continues, and `ctest -R aitest` answers `100% tests passed` over
+    binaries built before the edit. Both times it took an `rm -rf build` to
+    find, and both times the green number had already been written into a
+    report.
+
+    This is finding 11's neighbour for a **failed** build rather than a stale
+    directory, and finding 70's for an ordinary edit rather than a mutation —
+    what is new is the mechanism, and it is the one this project reaches for
+    every time it counts warnings. `set -o pipefail` is what the CI uses and
+    it is written into `.github/workflows/ci.yml` for exactly this reason; a
+    run by hand gets the same, or it reads the build's own exit code into a
+    variable before the pipe (`cmake --build build > log 2>&1; rc=$?`) and
+    reports **that** number. A test result is only a test result once the
+    build behind it is known to have succeeded.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
