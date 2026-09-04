@@ -1429,11 +1429,20 @@ conceivable as an optional later additional path, but is not built for v1.
   due, priority), annotation preview, target "→ Taskwarrior". Actions per card:
   **Accept · Later · Discard** (Discard deletes only the suggestion, never
   notes). A suggestion whose notes have **all** been deleted is not
-  shown and does not stay in the database: the review removes it with the same
-  call Discard uses, the next time it reads the list. That holds for a task
-  card as much as for a bundle — a task suggestion carries exactly one note, so
-  "the last note" is the only one it ever had (extended 04.09.2026 with the
-  task cards of issue #31; until then there was no other kind to state it for). Deleting a note takes its
+  shown and does not stay in the database. That holds for a task card as much
+  as for a bundle — a task suggestion carries exactly one note, so "the last
+  note" is the only one it ever had (extended 04.09.2026 with the task cards of
+  issue #31; until then there was no other kind to state it for).
+
+  **The store is the first door and the review the second.** Deleting a note
+  sweeps every suggestion the deletion leaves without one, in the same
+  transaction, so the moment never arrives where a counter can show a
+  suggestion nobody can answer — that is what the library's badge needs, and it
+  counts before the review has read anything. The review removes such a row all
+  the same, with the same call Discard uses, the next time it reads the list:
+  a row can reach that state without going through `removeNote()`, and a
+  screenful of cards is the wrong place to find out (both stated 04.09.2026,
+  issues #30, #31 and #147). Deleting a note takes its
   `proposal_notes` row with it (`ON DELETE CASCADE`) but not the suggestion, so
   this is the one state the store can reach that the review has to end — and
   there is nothing left to answer for it (PO decision 04.09.2026, issue #30).
