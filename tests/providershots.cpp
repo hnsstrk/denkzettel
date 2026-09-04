@@ -29,7 +29,7 @@
  * ChatGPT".
  *
  * Since #144 they carry one row more: the sentence that the text of every
- * classified note is sent to the chosen remote service. It is the picture that
+ * classified note leaves the machine and goes to the chosen remote service. It is the picture that
  * has to show it — the criterion is "visible without scrolling and without
  * opening anything", and that is a statement about the drawn page and not about
  * a value in a widget (CLAUDE.md, finding 51). What the readback adds is the
@@ -163,15 +163,19 @@ void report(const QString &what, QWidget &page)
     // asks for — under Ollama the text has to be empty and not merely hidden,
     // or the readback answers the same for "nothing to say" as for "said it and
     // wrongly hidden" (CLAUDE.md, finding 79). Printed as a quoted string, so
-    // an empty text is visible as `""` rather than as a missing line.
-    const auto *privacy = page.findChild<QLabel *>(QStringLiteral("privacyNote"));
-    if (privacy == nullptr) {
-        qFatal("the page carries no note named privacyNote");
+    // an empty text is visible as `""` rather than as a missing line, and
+    // printed for **all three** providers rather than only the two that have
+    // something to say (UX, 04.09.2026) — with the service named in the
+    // sentence the three come out three different ways, which is the readback
+    // that can be wrong (finding 10).
+    const auto *remoteText = page.findChild<QLabel *>(QStringLiteral("remoteTextNote"));
+    if (remoteText == nullptr) {
+        qFatal("the page carries no note named remoteTextNote");
     }
-    qWarning("%s  privacy note shown=%d text=\"%s\"",
+    qWarning("%s  remote-text note shown=%d text=\"%s\"",
              qUtf8Printable(what),
-             int(!privacy->isHidden()),
-             qUtf8Printable(privacy->text()));
+             int(!remoteText->isHidden()),
+             qUtf8Printable(remoteText->text()));
 }
 
 void shoot(QWidget &page, const QString &directory, const QString &name)
