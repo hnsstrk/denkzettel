@@ -1546,6 +1546,28 @@ find.
     every picture — that is finding 60's rule for a widget applied to the page
     that holds it.
 
+85. **Two agents in one worktree pull the branch out from under each other, and
+    git records the result as if it were intended.** Measured 2026-09-04, and
+    it is finding 55's sibling for the repository rather than the scratchpad:
+    an implementer ran `git checkout -b issue-34` in the shared worktree while
+    the lead was on `main`, and the lead's next two merges — of two reviewed,
+    finished branches — were committed onto **issue-34**. Nothing failed.
+    `git merge` reported "Merge made by the 'ort' strategy" both times, the
+    build of the merged state came out 15/15 green, and the two issues were
+    closed against it. Only a later `git log main` showed `main` still standing
+    where it had been three commits earlier, with the merges reachable from a
+    branch that has nothing to do with them. The mirror image cost the same
+    minute: when HEAD went back to `main`, the implementer's ten uncommitted
+    files went with it, so unversioned work sat on the wrong branch and any
+    third checkout would have destroyed it.
+
+    What carries: **every agent gets a worktree of its own**
+    (`git worktree add <path> -b <branch> main`), and nobody switches branches
+    in the shared one. And the readback is the branch, not the command's
+    output — `git rev-parse --abbrev-ref HEAD` before a commit or a merge, and
+    `git log --oneline -1 <branch>` after it. A merge tells you it merged; it
+    does not tell you where.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
