@@ -32,7 +32,8 @@ OverflowReport overflowReport(const Store &store, KConfigGroup &configuration)
         oldest.isValid() ? static_cast<int>(oldest.daysTo(QDateTime::currentDateTime())) : 0;
 
     const bool tooMany = notes >= noteLimit;
-    const bool over = tooMany || days >= dayLimit;
+    const bool tooOld = days >= dayLimit;
+    const bool over = tooMany || tooOld;
 
     OverflowReport report;
     if (!over) {
@@ -47,20 +48,27 @@ OverflowReport overflowReport(const Store &store, KConfigGroup &configuration)
         return report;
     }
 
-    // **One wording under both criteria, carrying both numbers** (UX decision
-    // of 04.09.2026). The two triggers are not two troubles: SPEC 11 calls
-    // them one guard and joins them with an `or`, so a sentence naming the
-    // count and the age is true under either — "213 notes waiting for export,
-    // the oldest for 4 days" is a statement about the count, "6 notes …, the
-    // oldest for 41 days" one about the age, and nothing has to decide which.
-    // Two wordings would have needed a rule for the case where both criteria
-    // give way at once, and that rule is the ranking issue #118 threw out.
+    // **The criterion that gave way writes the line, and each of the two
+    // carries exactly one number** (UX decision of 04.09.2026, which replaced
+    // a single wording carrying both).
     //
-    // The count alone would not do it: under the age trigger "6 notes waiting
-    // for export" is a riddle rather than a message — a harmless number with
-    // no reason beside it.
-    report.state = i18np("%1 note waiting for export for %2 days",
-                         "%1 notes waiting for export, the oldest for %2 days", notes, days);
+    // One sentence with two numbers had to be given up for a reason a check
+    // could not have found, only a readback off the running item: at the count
+    // trigger it read "2 notes waiting for export, the oldest for **0 days**"
+    // — not a grammatical slip but a claim that is untrue, and it stands on
+    // every day somebody captures a lot. Beside it, `i18np` picks its form by
+    // the count and never by the second number, so "the oldest for 1 days" was
+    // unavoidable in the same sentence.
+    //
+    // **This is no ranking in the sense of issue #118.** There a second
+    // *trouble* was being hidden. Here there is one trouble — SPEC 11 calls it
+    // one guard and joins its two criteria with an `or` — and the line says
+    // which of the two is the reason. Both at once takes the count, which is
+    // the number the user acts on.
+    report.state = tooMany
+                       ? i18np("%1 note waiting for export", "%1 notes waiting for export", notes)
+                       : i18np("The oldest note has been waiting %1 day for export",
+                               "The oldest note has been waiting %1 days for export", days);
 
     // The whole of "exactly one reminder per state": nothing is **said** while
     // the state is the one already recorded, although the line above stands on

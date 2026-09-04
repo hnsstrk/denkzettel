@@ -81,6 +81,7 @@ private Q_SLOTS:
     void remindsAgainOnceAnEmptiedLibraryFillsUpAnew();
     void saysNothingAfterARestartAboutAnOverflowAlreadyReported();
     void remindsWhenTheOldestNoteHasWaitedTooLong();
+    void namesTheCountWhenBothCriteriaGiveWayAtOnce();
     void putsTheOverflowLastInTheLineAndRaisesNoErrorState();
 
     void findsAProgramByItsPathAndByItsName();
@@ -661,7 +662,7 @@ void ShellTest::remindsOnceWhenTheLibraryFillsUp()
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
     const OverflowReport crossing = overflowReport(*m_store, group);
     QCOMPARE(crossing.reminder, QStringLiteral("3 notes are waiting for an export."));
-    QCOMPARE(crossing.state, QStringLiteral("3 notes waiting for export, the oldest for 0 days"));
+    QCOMPARE(crossing.state, QStringLiteral("3 notes waiting for export"));
 
     // No permanent alarm: the state is the same one, so nothing more is **said**
     // — not on the next note either, which would be the road a running daemon
@@ -674,7 +675,7 @@ void ShellTest::remindsOnceWhenTheLibraryFillsUp()
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
     const OverflowReport fourth = overflowReport(*m_store, group);
     QVERIFY2(fourth.reminder.isEmpty(), "reminded again while still over");
-    QCOMPARE(fourth.state, QStringLiteral("4 notes waiting for export, the oldest for 0 days"));
+    QCOMPARE(fourth.state, QStringLiteral("4 notes waiting for export"));
 }
 
 void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
@@ -762,8 +763,38 @@ void ShellTest::remindsWhenTheOldestNoteHasWaitedTooLong()
     // A second note, older than the first: the age criterion asks the oldest
     // one, so a guard reading the newest would stay quiet here.
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-40)));
-    QCOMPARE(overflowReport(*m_store, group).reminder,
+    const OverflowReport crossed = overflowReport(*m_store, group);
+    QCOMPARE(crossed.reminder,
              QStringLiteral("The oldest note has been waiting for an export for 40 days."));
+    // And the tray line names the **age**, not the two notes: with the count
+    // out of reach, "2 notes waiting for export" would be a riddle rather than
+    // a message (UX decision of 04.09.2026).
+    QCOMPARE(crossed.state, QStringLiteral("The oldest note has been waiting 40 days for export"));
+}
+
+void ShellTest::namesTheCountWhenBothCriteriaGiveWayAtOnce()
+{
+    // The third of the three states, and the only one that pins the rule: with
+    // **both** criteria over, the line names the count (UX decision of
+    // 04.09.2026). The two cases above each leave one criterion out of reach,
+    // so neither of them can tell a guard that always writes the count from one
+    // that writes the criterion that gave way — this one can.
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup group = exportGroupOfTheTestSet();
+    const auto tidy = qScopeGuard([&group] {
+        group.deleteGroup();
+        group.sync();
+    });
+    group.writeEntry("OverflowNotes", 2);
+    group.writeEntry("OverflowDays", 30);
+    group.sync();
+
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime().addDays(-40)));
+    const OverflowReport both = overflowReport(*m_store, group);
+    QCOMPARE(both.state, QStringLiteral("2 notes waiting for export"));
+    // The count wins in the loud channel too, and out of the same branch.
+    QCOMPARE(both.reminder, QStringLiteral("2 notes are waiting for an export."));
 }
 
 void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
@@ -778,7 +809,7 @@ void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
     const QString withoutOverflow = icon.item()->toolTipSubTitle();
     QCOMPARE(withoutOverflow.count(QStringLiteral(" · ")), 1);
 
-    icon.setOverflow(QStringLiteral("213 notes waiting for export, the oldest for 4 days"));
+    icon.setOverflow(QStringLiteral("213 notes waiting for export"));
     const QString withOverflow = icon.item()->toolTipSubTitle();
     // Three parts now, and the two that were there are untouched: the line
     // begins with what it began with before.
@@ -786,7 +817,7 @@ void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
     QVERIFY2(withOverflow.startsWith(withoutOverflow), qPrintable(withOverflow));
     // Last, and that is where the order was decided to put it (04.09.2026).
     QVERIFY2(withOverflow.endsWith(
-                 QStringLiteral("213 notes waiting for export, the oldest for 4 days")),
+                 QStringLiteral("213 notes waiting for export")),
              qPrintable(withOverflow));
     // **No error state of its own**: the two kinds of trouble above are what
     // raised it and it stays theirs. Read back after they are gone, because
@@ -796,7 +827,7 @@ void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
     icon.setNotesWithoutCategory(0);
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
     QCOMPARE(icon.item()->toolTipSubTitle(),
-             QStringLiteral("213 notes waiting for export, the oldest for 4 days"));
+             QStringLiteral("213 notes waiting for export"));
 
     // And empty takes it back to the untroubled line, like every other part.
     icon.setOverflow(QString());

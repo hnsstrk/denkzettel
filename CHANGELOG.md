@@ -22,8 +22,9 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   time it fills up says so again. **Nothing is ever exported by itself**; the
   reminder is a reminder and the export stays where it was, in the suggestions
   and in the library's menu. While the library stands over the threshold the
-  tray's short info says so too — „213 Notizen warten auf den Export, die
-  älteste seit 4 Tagen", as the last part of the line and without setting the
+  tray's short info says so too, and it names the criterion that gave way —
+  „213 Notizen warten auf den Export" or „Die älteste Notiz wartet seit 41
+  Tagen auf den Export". As the last part of the line and without setting the
   icon apart: a backlog is not a fault, and it stands until the user exports.
 
 - **The suggestions the analysis run finds can now be answered.** „Vorschläge"

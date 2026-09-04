@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 19:10+0200\n"
+"POT-Creation-Date: 2026-09-04 19:22+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -779,21 +779,28 @@ msgstr ""
 "%1 gehört bereits zu: %2. Der Tastendruck erreicht Denkzettel womöglich "
 "nicht. Zum Ändern die Systemeinstellungen unter „Kurzbefehle“ öffnen."
 
-#: src/shell/overflowguard.cpp:62
+#: src/shell/overflowguard.cpp:69
 #, kde-format
-msgid "%1 note waiting for export for %2 days"
-msgid_plural "%1 notes waiting for export, the oldest for %2 days"
-msgstr[0] "%1 Notiz wartet seit %2 Tagen auf den Export"
-msgstr[1] "%1 Notizen warten auf den Export, die älteste seit %2 Tagen"
+msgid "%1 note waiting for export"
+msgid_plural "%1 notes waiting for export"
+msgstr[0] "%1 Notiz wartet auf den Export"
+msgstr[1] "%1 Notizen warten auf den Export"
 
-#: src/shell/overflowguard.cpp:80
+#: src/shell/overflowguard.cpp:70
+#, kde-format
+msgid "The oldest note has been waiting %1 day for export"
+msgid_plural "The oldest note has been waiting %1 days for export"
+msgstr[0] "Die älteste Notiz wartet seit %1 Tag auf den Export"
+msgstr[1] "Die älteste Notiz wartet seit %1 Tagen auf den Export"
+
+#: src/shell/overflowguard.cpp:88
 #, kde-format
 msgid "%1 note is waiting for an export."
 msgid_plural "%1 notes are waiting for an export."
 msgstr[0] "%1 Notiz wartet auf einen Export."
 msgstr[1] "%1 Notizen warten auf einen Export."
 
-#: src/shell/overflowguard.cpp:82
+#: src/shell/overflowguard.cpp:90
 #, kde-format
 msgid "The oldest note has been waiting for an export for %1 day."
 msgid_plural "The oldest note has been waiting for an export for %1 days."
@@ -1432,6 +1439,12 @@ msgstr "Letzte Woche"
 msgctxt "@title:group notes older than the previous week"
 msgid "Older"
 msgstr "Älter"
+
+#, kde-format
+#~ msgid "%1 note waiting for export for %2 days"
+#~ msgid_plural "%1 notes waiting for export, the oldest for %2 days"
+#~ msgstr[0] "%1 Notiz wartet seit %2 Tagen auf den Export"
+#~ msgstr[1] "%1 Notizen warten auf den Export, die älteste seit %2 Tagen"
 
 #, kde-format
 #~ msgid "openrouter.ai did not answer within the time limit."
