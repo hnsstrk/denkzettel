@@ -15,10 +15,11 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 - **Denkzettel says once when the library is due an export.** Two thresholds
   decide it, both on the settings page „Export": the number of notes that have
   not been exported yet (200 by default) **or** the age of the oldest of them
-  (30 days). Crossing either one gives **one** notification — „Es sammeln sich
-  Notizen an" — and then silence: while the library stays over the threshold
-  nothing more is said, a restart included, because what has already been
-  reported is written down. Once an export has emptied the library, the next
+  (30 days). Crossing either one gives **one** notification — „Notizen warten
+  auf den Export", naming the criterion that gave way — and then silence:
+  while the library stays over the threshold nothing more is said, a restart
+  included, because what has already been reported is written down. Once an
+  export has emptied the library, the next
   time it fills up says so again. **Nothing is ever exported by itself**; the
   reminder is a reminder and the export stays where it was, in the suggestions
   and in the library's menu. While the library stands over the threshold the
