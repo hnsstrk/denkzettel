@@ -1428,9 +1428,12 @@ conceivable as an optional later additional path, but is not built for v1.
   "→ Obsidian _INBOX". Task card: editable fields (description, project, tags,
   due, priority), annotation preview, target "→ Taskwarrior". Actions per card:
   **Accept · Later · Discard** (Discard deletes only the suggestion, never
-  notes). A bundle whose notes have **all** been deleted is not shown
-  and does not stay in the database: the review removes it with the same call
-  Discard uses, the next time it reads the list. Deleting a note takes its
+  notes). A suggestion whose notes have **all** been deleted is not
+  shown and does not stay in the database: the review removes it with the same
+  call Discard uses, the next time it reads the list. That holds for a task
+  card as much as for a bundle — a task suggestion carries exactly one note, so
+  "the last note" is the only one it ever had (extended 04.09.2026 with the
+  task cards of issue #31; until then there was no other kind to state it for). Deleting a note takes its
   `proposal_notes` row with it (`ON DELETE CASCADE`) but not the suggestion, so
   this is the one state the store can reach that the review has to end — and
   there is nothing left to answer for it (PO decision 04.09.2026, issue #30).
