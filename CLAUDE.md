@@ -1652,6 +1652,34 @@ find.
     file — never against one retyped beside it. Whatever a schema declares and
     a probe leaves out is exactly where the fault hides.
 
+88. **A check that reads a value back through the object it wrote through
+    measures memory, not the disk — and the write it was built for is never
+    measured at all.** Measured 2026-09-04 on #34, where the overflow marker
+    has to survive a restart on **both** flanks: it goes to `true` when the
+    threshold is crossed and back to `false` when the library falls under it
+    again, and only the second one lets a refilled library speak a second
+    time. The case for the falling flank asked the same `KConfigGroup` it had
+    written through, so the in-memory value answered and `sync()` was never
+    part of the question. Deleting the `sync()` on that flank left **every**
+    case green; deleting the one on the rising flank reddened exactly its own
+    case. Half the guarantee stood unguarded and looked measured.
+
+    The fix is one object and one assertion, not a new case: read the last
+    stage through a `KConfig` of its own from disk, and assert the marker is
+    `false` there **before** refilling — then the same deletion reddens that
+    case on that assertion, 1 against 0. The neighbouring case in the same set
+    already did it that way; the fault was not knowing it, it was not carrying
+    it across when the code was restructured.
+
+    What the case guards is a silence nobody can notice: without a stored
+    falling flank, a daemon that restarts between an export and the next
+    filling reads the marker still standing and never reports anything again.
+    No error, no output, nothing. This is finding 42's family — there a QTest
+    binary wrote a config file under the wrong name, here a check reads the
+    right file through the wrong door — and finding 22's, where a write had to
+    be a **replacement** before a watch would see it. Whenever a check is
+    about something reaching the disk, it opens the file again.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
