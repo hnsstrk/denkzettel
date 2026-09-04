@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 18:50+0200\n"
+"POT-Creation-Date: 2026-09-04 19:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -221,7 +221,7 @@ msgstr ""
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
 
-#: src/main.cpp:515
+#: src/main.cpp:519
 #, kde-format
 msgid "Notes are piling up"
 msgstr ""
@@ -676,7 +676,7 @@ msgstr ""
 msgid "Lies at %1"
 msgstr ""
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:136
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:149
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr ""
@@ -705,12 +705,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:145
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:158
 #, kde-format
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:156
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:169
 #, kde-format
 msgid "Record voice note"
 msgstr ""
@@ -732,14 +732,21 @@ msgid ""
 "that, open the system settings under “Shortcuts”."
 msgstr ""
 
-#: src/shell/overflowguard.cpp:54
+#: src/shell/overflowguard.cpp:62
+#, kde-format
+msgid "%1 note waiting for export for %2 days"
+msgid_plural "%1 notes waiting for export, the oldest for %2 days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/shell/overflowguard.cpp:80
 #, kde-format
 msgid "%1 note is waiting for an export."
 msgid_plural "%1 notes are waiting for an export."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/overflowguard.cpp:56
+#: src/shell/overflowguard.cpp:82
 #, kde-format
 msgid "The oldest note has been waiting for an export for %1 day."
 msgid_plural "The oldest note has been waiting for an export for %1 days."
@@ -772,52 +779,52 @@ msgid ""
 "then Denkzettel stays reachable through the icon in the system tray."
 msgstr ""
 
-#: src/shell/trayicon.cpp:115
+#: src/shell/trayicon.cpp:121
 #, kde-format
 msgid "Not available: %1"
 msgstr ""
 
-#: src/shell/trayicon.cpp:129
+#: src/shell/trayicon.cpp:135
 #, kde-format
 msgid "%1 note without a transcript"
 msgid_plural "%1 notes without a transcript"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/trayicon.cpp:133
+#: src/shell/trayicon.cpp:139
 #, kde-format
 msgid "%1 note without a category"
 msgid_plural "%1 notes without a category"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/trayicon.cpp:168
+#: src/shell/trayicon.cpp:181
 #, kde-format
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:175 src/ui/librarywindow.cpp:433
+#: src/shell/trayicon.cpp:188 src/ui/librarywindow.cpp:433
 #: src/ui/librarywindow.cpp:2302
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:182
+#: src/shell/trayicon.cpp:195
 #, kde-format
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:193 src/ui/librarywindow.cpp:767
+#: src/shell/trayicon.cpp:206 src/ui/librarywindow.cpp:767
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
 
-#: src/shell/trayicon.cpp:203
+#: src/shell/trayicon.cpp:216
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:235
+#: src/shell/trayicon.cpp:248
 #, kde-format
 msgid "Quit"
 msgstr ""

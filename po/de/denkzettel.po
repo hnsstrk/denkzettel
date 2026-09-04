@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 18:50+0200\n"
+"POT-Creation-Date: 2026-09-04 19:10+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -235,7 +235,7 @@ msgstr "Transkription fehlgeschlagen"
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
 
-#: src/main.cpp:515
+#: src/main.cpp:519
 #, kde-format
 msgid "Notes are piling up"
 msgstr "Es sammeln sich Notizen an"
@@ -717,7 +717,7 @@ msgstr "Erwartet unter %1"
 msgid "Lies at %1"
 msgstr "Liegt unter %1"
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:136
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:149
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr "Gedanken schnell festhalten"
@@ -750,12 +750,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr "%1 — %2"
 
-#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:145
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:158
 #, kde-format
 msgid "Capture note"
 msgstr "Notiz erfassen"
 
-#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:156
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:169
 #, kde-format
 msgid "Record voice note"
 msgstr "Sprachnotiz aufnehmen"
@@ -779,14 +779,21 @@ msgstr ""
 "%1 gehört bereits zu: %2. Der Tastendruck erreicht Denkzettel womöglich "
 "nicht. Zum Ändern die Systemeinstellungen unter „Kurzbefehle“ öffnen."
 
-#: src/shell/overflowguard.cpp:54
+#: src/shell/overflowguard.cpp:62
+#, kde-format
+msgid "%1 note waiting for export for %2 days"
+msgid_plural "%1 notes waiting for export, the oldest for %2 days"
+msgstr[0] "%1 Notiz wartet seit %2 Tagen auf den Export"
+msgstr[1] "%1 Notizen warten auf den Export, die älteste seit %2 Tagen"
+
+#: src/shell/overflowguard.cpp:80
 #, kde-format
 msgid "%1 note is waiting for an export."
 msgid_plural "%1 notes are waiting for an export."
 msgstr[0] "%1 Notiz wartet auf einen Export."
 msgstr[1] "%1 Notizen warten auf einen Export."
 
-#: src/shell/overflowguard.cpp:56
+#: src/shell/overflowguard.cpp:82
 #, kde-format
 msgid "The oldest note has been waiting for an export for %1 day."
 msgid_plural "The oldest note has been waiting for an export for %1 days."
@@ -831,52 +838,52 @@ msgstr ""
 "Neuinstallation bringt ihn zurück. Bis dahin bleibt Denkzettel über das "
 "Symbol im Systemabschnitt erreichbar."
 
-#: src/shell/trayicon.cpp:115
+#: src/shell/trayicon.cpp:121
 #, kde-format
 msgid "Not available: %1"
 msgstr "Nicht verfügbar: %1"
 
-#: src/shell/trayicon.cpp:129
+#: src/shell/trayicon.cpp:135
 #, kde-format
 msgid "%1 note without a transcript"
 msgid_plural "%1 notes without a transcript"
 msgstr[0] "%1 Notiz ohne Transkript"
 msgstr[1] "%1 Notizen ohne Transkript"
 
-#: src/shell/trayicon.cpp:133
+#: src/shell/trayicon.cpp:139
 #, kde-format
 msgid "%1 note without a category"
 msgid_plural "%1 notes without a category"
 msgstr[0] "%1 Notiz ohne Einordnung"
 msgstr[1] "%1 Notizen ohne Einordnung"
 
-#: src/shell/trayicon.cpp:168
+#: src/shell/trayicon.cpp:181
 #, kde-format
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:175 src/ui/librarywindow.cpp:433
+#: src/shell/trayicon.cpp:188 src/ui/librarywindow.cpp:433
 #: src/ui/librarywindow.cpp:2302
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:182
+#: src/shell/trayicon.cpp:195
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:193 src/ui/librarywindow.cpp:767
+#: src/shell/trayicon.cpp:206 src/ui/librarywindow.cpp:767
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr "Denkzettel einrichten …"
 
-#: src/shell/trayicon.cpp:203
+#: src/shell/trayicon.cpp:216
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:235
+#: src/shell/trayicon.cpp:248
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"

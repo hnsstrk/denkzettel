@@ -92,6 +92,12 @@ void TrayIcon::setMissingModel(const QString &report)
     showToolTip();
 }
 
+void TrayIcon::setOverflow(const QString &report)
+{
+    m_overflow = report;
+    showToolTip();
+}
+
 void TrayIcon::showToolTip()
 {
     // `setToolTipSubTitle()` takes ONE string, so every source that has
@@ -132,6 +138,13 @@ void TrayIcon::showToolTip()
     if (m_notesWithoutCategory > 0) {
         parts.append(i18np("%1 note without a category", "%1 notes without a category",
                            m_notesWithoutCategory));
+    }
+    // Last of the five, and it raises no state — the header says why. It is a
+    // whole sentence like the model's above, because SPEC 11 asks it to name
+    // the count **and** the age: only both together read as news under either
+    // of the two criteria.
+    if (!m_overflow.isEmpty()) {
+        parts.append(m_overflow);
     }
     m_item->setToolTipSubTitle(parts.isEmpty() ? i18n("Capture thoughts quickly")
                                                : parts.join(QStringLiteral(" · ")));

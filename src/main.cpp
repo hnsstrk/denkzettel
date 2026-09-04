@@ -504,15 +504,19 @@ int main(int argc, char *argv[])
     // through the skeleton: the skeleton is the dialog's, and this is no
     // setting the user sets.
     KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
-    const auto remindAboutOverflow = [&store, &exportGroup] {
-        const QString reminder = overflowReminder(store, exportGroup);
-        if (!reminder.isEmpty()) {
-            // `Notification` and not `Warning`, unlike the transcription that
-            // has finally failed (issue #115): nothing has gone wrong here and
-            // no note is at risk — the library is full, which is what a library
-            // in use does.
+    const auto remindAboutOverflow = [&store, &exportGroup, &tray] {
+        const OverflowReport report = overflowReport(store, exportGroup);
+        // The quiet half first and unconditionally: it stands for as long as
+        // its cause does and is taken back by the same call, so handing it over
+        // on every check is what keeps the line where the library is (SPEC 14).
+        tray.setOverflow(report.state);
+        if (!report.reminder.isEmpty()) {
+            // And the loud half, at the crossing only. `Notification` and not
+            // `Warning`, unlike the transcription that has finally failed
+            // (issue #115): nothing has gone wrong here and no note is at risk
+            // — the library is full, which is what a library in use does.
             KNotification::event(KNotification::Notification,
-                                 i18n("Notes are piling up"), reminder);
+                                 i18n("Notes are piling up"), report.reminder);
         }
     };
     // Two roads, and each of them reaches a threshold the other cannot: a note

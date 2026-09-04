@@ -81,6 +81,7 @@ private Q_SLOTS:
     void remindsAgainOnceAnEmptiedLibraryFillsUpAnew();
     void saysNothingAfterARestartAboutAnOverflowAlreadyReported();
     void remindsWhenTheOldestNoteHasWaitedTooLong();
+    void putsTheOverflowLastInTheLineAndRaisesNoErrorState();
 
     void findsAProgramByItsPathAndByItsName();
     void countsAFileWithoutAnExecuteBitAsMissing();
@@ -653,17 +654,27 @@ void ShellTest::remindsOnceWhenTheLibraryFillsUp()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded below the threshold");
+    const OverflowReport below = overflowReport(*m_store, group);
+    QVERIFY2(below.reminder.isEmpty(), "reminded below the threshold");
+    QVERIFY2(below.state.isEmpty(), "showed a tray part below the threshold");
 
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
-    QCOMPARE(overflowReminder(*m_store, group), QStringLiteral("3 notes are waiting for an export."));
+    const OverflowReport crossing = overflowReport(*m_store, group);
+    QCOMPARE(crossing.reminder, QStringLiteral("3 notes are waiting for an export."));
+    QCOMPARE(crossing.state, QStringLiteral("3 notes waiting for export, the oldest for 0 days"));
 
-    // No permanent alarm: the state is the same one, so nothing more is said —
-    // not on the next note either, which would be the road a running daemon
-    // takes.
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded twice for one state");
+    // No permanent alarm: the state is the same one, so nothing more is **said**
+    // — not on the next note either, which would be the road a running daemon
+    // takes. The tray part is the other rule and stands on every call, or the
+    // line would empty itself while the library is still full.
+    const OverflowReport again = overflowReport(*m_store, group);
+    QVERIFY2(again.reminder.isEmpty(), "reminded twice for one state");
+    QCOMPARE(again.state, crossing.state);
+
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded again while still over");
+    const OverflowReport fourth = overflowReport(*m_store, group);
+    QVERIFY2(fourth.reminder.isEmpty(), "reminded again while still over");
+    QCOMPARE(fourth.state, QStringLiteral("4 notes waiting for export, the oldest for 0 days"));
 }
 
 void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
@@ -680,7 +691,7 @@ void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QVERIFY(!overflowReminder(*m_store, group).isEmpty());
+    QVERIFY(!overflowReport(*m_store, group).reminder.isEmpty());
 
     // What an export of SPEC 8.1 leaves behind: the notes it wrote are gone
     // from the table. Falling back below says nothing itself...
@@ -689,12 +700,14 @@ void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
     for (const Note &note : written) {
         QVERIFY(m_store->removeNote(note.id));
     }
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "announced the falling back");
+    const OverflowReport emptied = overflowReport(*m_store, group);
+    QVERIFY2(emptied.reminder.isEmpty(), "announced the falling back");
+    QVERIFY2(emptied.state.isEmpty(), "kept the tray part after the library was emptied");
 
     // ...and it is what lets the next crossing speak again. Without that half
     // the reminder would be a one-off for the life of the configuration file.
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QCOMPARE(overflowReminder(*m_store, group), QStringLiteral("2 notes are waiting for an export."));
+    QCOMPARE(overflowReport(*m_store, group).reminder, QStringLiteral("2 notes are waiting for an export."));
 }
 
 void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
@@ -711,7 +724,7 @@ void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QVERIFY(!overflowReminder(*m_store, group).isEmpty());
+    QVERIFY(!overflowReport(*m_store, group).reminder.isEmpty());
 
     // The restart, and it is one: a KConfig of its own reads the file from
     // disk, so what answers here is what was written down and not what the
@@ -723,7 +736,7 @@ void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
     QVERIFY2(restarted.open(), qPrintable(restarted.lastError()));
 
     QCOMPARE(afterRestart.readEntry("OverflowNotes", 0), 2);
-    QVERIFY2(overflowReminder(restarted, afterRestart).isEmpty(),
+    QVERIFY2(overflowReport(restarted, afterRestart).reminder.isEmpty(),
              "greeted the restart with a reminder that had already been given");
 }
 
@@ -744,13 +757,50 @@ void ShellTest::remindsWhenTheOldestNoteHasWaitedTooLong()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-29)));
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded a day before the threshold");
+    QVERIFY2(overflowReport(*m_store, group).reminder.isEmpty(), "reminded a day before the threshold");
 
     // A second note, older than the first: the age criterion asks the oldest
     // one, so a guard reading the newest would stay quiet here.
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-40)));
-    QCOMPARE(overflowReminder(*m_store, group),
+    QCOMPARE(overflowReport(*m_store, group).reminder,
              QStringLiteral("The oldest note has been waiting for an export for 40 days."));
+}
+
+void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
+{
+    // The fourth writer of the one subtitle line, and what breaks in silence
+    // about a new one is what issue #118 measured: a setter that takes another
+    // writer's part with it. So the part is read back **beside** two that were
+    // already standing, and not on its own.
+    TrayIcon icon;
+    icon.setNotesWithoutTranscript(2);
+    icon.setNotesWithoutCategory(1);
+    const QString withoutOverflow = icon.item()->toolTipSubTitle();
+    QCOMPARE(withoutOverflow.count(QStringLiteral(" · ")), 1);
+
+    icon.setOverflow(QStringLiteral("213 notes waiting for export, the oldest for 4 days"));
+    const QString withOverflow = icon.item()->toolTipSubTitle();
+    // Three parts now, and the two that were there are untouched: the line
+    // begins with what it began with before.
+    QCOMPARE(withOverflow.count(QStringLiteral(" · ")), 2);
+    QVERIFY2(withOverflow.startsWith(withoutOverflow), qPrintable(withOverflow));
+    // Last, and that is where the order was decided to put it (04.09.2026).
+    QVERIFY2(withOverflow.endsWith(
+                 QStringLiteral("213 notes waiting for export, the oldest for 4 days")),
+             qPrintable(withOverflow));
+    // **No error state of its own**: the two kinds of trouble above are what
+    // raised it and it stays theirs. Read back after they are gone, because
+    // while they stand the answer would be NeedsAttention whatever this part
+    // does — the assertion has to be able to come out different.
+    icon.setNotesWithoutTranscript(0);
+    icon.setNotesWithoutCategory(0);
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+    QCOMPARE(icon.item()->toolTipSubTitle(),
+             QStringLiteral("213 notes waiting for export, the oldest for 4 days"));
+
+    // And empty takes it back to the untroubled line, like every other part.
+    icon.setOverflow(QString());
+    QCOMPARE(icon.item()->toolTipSubTitle(), QStringLiteral("Capture thoughts quickly"));
 }
 
 void ShellTest::findsAProgramByItsPathAndByItsName()

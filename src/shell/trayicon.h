@@ -91,6 +91,29 @@ public Q_SLOTS:
      */
     void setMissingModel(const QString &report);
 
+    /**
+     * Where the library stands against the two thresholds of SPEC 11 — the
+     * quiet half of the overflow guard (issue #34). Empty takes it back.
+     *
+     * The **last** part of the one subtitle line and, like the tools and the
+     * model above, **no error state**: an overflow is not a fault that
+     * happened, it is the user's own backlog, and it stands until they export
+     * — possibly for weeks. A `NeedsAttention` raised at every login that
+     * never falls again is the permanent finding nobody reads any more, which
+     * is the reasoning of issue #118; that state stays with the two kinds of
+     * trouble it was given to.
+     *
+     * Last and not somewhere in the middle, because it is neither an unmet
+     * precondition nor a trouble, and because appending it moves no existing
+     * part: the order in showToolTip() is fixed so the line does not reshuffle
+     * itself under the pointer.
+     *
+     * The sentence comes in whole, the way the model's does, and for the same
+     * reason — it carries two numbers whose wording is one decision, and it is
+     * made where they are counted (overflowguard.cpp).
+     */
+    void setOverflow(const QString &report);
+
 Q_SIGNALS:
     void captureRequested();
     void recorderRequested();
@@ -108,6 +131,7 @@ private:
     int m_notesWithoutTranscript = 0;
     int m_notesWithoutCategory = 0;
     QString m_missingModel;
+    QString m_overflow;
     QStringList m_unavailableTools;
     KStatusNotifierItem *m_item;
     /**
