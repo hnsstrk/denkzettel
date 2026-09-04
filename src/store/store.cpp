@@ -86,6 +86,8 @@ const QList<QStringList> &migrations()
                            "  INSERT INTO notes_fts (notes_fts, rowid, content)"
                            "  VALUES ('delete', old.id, old.content);"
                            " END"),
+            // Migration 9 replaces this one with `AFTER UPDATE OF content` —
+            // what a database actually carries is the later version.
             QStringLiteral("CREATE TRIGGER notes_fts_after_update AFTER UPDATE ON notes BEGIN"
                            "  INSERT INTO notes_fts (notes_fts, rowid, content)"
                            "  VALUES ('delete', old.id, old.content);"
@@ -268,6 +270,7 @@ const QList<QStringList> &migrations()
                            "  INSERT INTO notes_words (notes_words, rowid, content)"
                            "  VALUES ('delete', old.id, old.content);"
                            " END"),
+            // Migration 9 replaces this one with `AFTER UPDATE OF content` too.
             QStringLiteral("CREATE TRIGGER notes_words_after_update AFTER UPDATE ON notes BEGIN"
                            "  INSERT INTO notes_words (notes_words, rowid, content)"
                            "  VALUES ('delete', old.id, old.content);"
@@ -301,6 +304,69 @@ const QList<QStringList> &migrations()
                            " (0, 'ae', 'ä', 1), (0, 'ä', 'ae', 1),"
                            " (0, 'oe', 'ö', 1), (0, 'ö', 'oe', 1),"
                            " (0, 'ss', 'ß', 1), (0, 'ß', 'ss', 1)"),
+        },
+        // Version 9 — a new text is a new question (SPEC 7.2, issue #137).
+        //
+        // The two attempts of SPEC 7.2 bound the classification of **one**
+        // text. Once the text is replaced the count is a statement about
+        // something that is gone, and carrying it over spends a fresh text's
+        // budget on the failures of an old one — the note is then never
+        // classified again and nothing says why.
+        //
+        // It stands here and not in the writers for the reason the notes_fts
+        // triggers of migration 2 stand here: `content` has three writers
+        // today — addNote(), updateNote() and completeTranscription() — and
+        // whoever adds a fourth would have to know about this rule to keep it.
+        // The measured road was the late transcript
+        // (`completeTranscription()`), but `updateNote()` carries the same
+        // count over when the user edits a note by hand, and the embedder
+        // reads that count as well.
+        //
+        // `WHEN new.content <> old.content` is what makes the two attempts
+        // still bound a note whose text does **not** change: updateNote()
+        // writes every column, so an ordinary save fires `UPDATE OF content`
+        // with the text unchanged, and an unconditional reset would hand every
+        // such save a fresh budget. `content` is NOT NULL, so `<>` has no NULL
+        // case to fall through.
+        //
+        // `analysis_last_error` goes with the count, as it does in
+        // completeAnalysis(): the reason belongs to the text that produced it.
+        //
+        // **The two search triggers are narrowed to `UPDATE OF content` in the
+        // same breath, and that is not tidying — without it the reset corrupts
+        // the search index.** They were written as `AFTER UPDATE ON notes`, so
+        // they fire for every column; the UPDATE inside the trigger below
+        // touches only the counter and set them off all the same, and their
+        // 'delete' command then carries a text FTS5 has no entries for.
+        // Measured 04.09.2026 on the real schema: `updateNote()` came back
+        // "database disk image is malformed" for every changed text, and four
+        // test sets went red with it. The narrowing is also what the indexes
+        // want anyway — they hold `content` and nothing else, so an update of
+        // `state` or `origin` was rewriting them for no reason.
+        //
+        // The same probe with the default tokenizer instead of the trigram one
+        // of migration 2 came out **green**, which is the whole reason this
+        // paragraph names the tokenizer: it could not have come out any other
+        // way and proved nothing (CLAUDE.md, verification stance).
+        {
+            QStringLiteral("DROP TRIGGER notes_fts_after_update"),
+            QStringLiteral("CREATE TRIGGER notes_fts_after_update AFTER UPDATE OF content ON notes BEGIN"
+                           "  INSERT INTO notes_fts (notes_fts, rowid, content)"
+                           "  VALUES ('delete', old.id, old.content);"
+                           "  INSERT INTO notes_fts (rowid, content) VALUES (new.id, new.content);"
+                           " END"),
+            QStringLiteral("DROP TRIGGER notes_words_after_update"),
+            QStringLiteral("CREATE TRIGGER notes_words_after_update AFTER UPDATE OF content ON notes BEGIN"
+                           "  INSERT INTO notes_words (notes_words, rowid, content)"
+                           "  VALUES ('delete', old.id, old.content);"
+                           "  INSERT INTO notes_words (rowid, content) VALUES (new.id, new.content);"
+                           " END"),
+            QStringLiteral("CREATE TRIGGER notes_attempts_after_content_update"
+                           " AFTER UPDATE OF content ON notes"
+                           " WHEN new.content <> old.content BEGIN"
+                           "  UPDATE notes SET analysis_attempts = 0, analysis_last_error = NULL"
+                           "  WHERE id = new.id;"
+                           " END"),
         },
     };
     return steps;

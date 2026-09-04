@@ -112,6 +112,8 @@ private Q_SLOTS:
     void noteThatFailedTwiceIsSkippedAndReported();
     void theErrorCountSurvivesARestart();
     void successClearsTheErrorCount();
+    void aLateTranscriptGivesTheNoteItsAttemptsBack();
+    void aSaveThatLeavesTheTextAloneKeepsTheAttemptsSpent();
 
     void theBudgetStopsAtFiftyAndTheRestFollows();
     void theTriggerFollowsTheSetting();
@@ -1869,6 +1871,128 @@ void AiTest::successClearsTheErrorCount()
     QCOMPARE(analysed->category, QStringLiteral("software"));
     QCOMPARE(analysed->analysisAttempts, 0);
     QCOMPARE(analysed->analysisLastError, QString());
+}
+
+void AiTest::aLateTranscriptGivesTheNoteItsAttemptsBack()
+{
+    // Issue #137, and the six steps are the ones the issue measured — every one
+    // of them a public Store call, no UPDATE by hand.
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    Note recorded;
+    recorded.createdAt = QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs);
+    recorded.type = Note::Type::Audio;
+    recorded.audioPath = QStringLiteral("spaet.ogg");
+    const std::optional<qint64> noteId = store->addNote(recorded);
+    QVERIFY(noteId.has_value());
+    QVERIFY2(store->enqueueTranscription(*noteId), qPrintable(store->lastError()));
+
+    // Taken and never answered — what a killed daemon leaves behind.
+    QVERIFY(store->takeTranscribeJob().has_value());
+
+    // The user types the text in by hand while the transcript is still out, the
+    // way saveEdit() does it: read the row back, set the text, write.
+    const std::optional<Note> stored = store->note(*noteId);
+    QVERIFY(stored.has_value());
+    Note typed = *stored;
+    typed.content = QStringLiteral("von Hand getippt, bevor das Transkript kam");
+    QVERIFY2(store->updateNote(typed), qPrintable(store->lastError()));
+
+    QVERIFY2(store->completeAnalysis(*noteId, QStringLiteral("ideen"), {QStringLiteral("notiz")},
+                                     QString()),
+             qPrintable(store->lastError()));
+
+    // The two attempts of SPEC 7.2 are spent on that hand-typed text.
+    store->failAnalysis(*noteId, QStringLiteral("Ollama could not be reached"));
+    store->failAnalysis(*noteId, QStringLiteral("Ollama could not be reached"));
+    QCOMPARE(store->note(*noteId)->analysisAttempts, Store::analysisAttemptLimit);
+
+    // Step 6: the transcript arrives late and replaces the text.
+    QVERIFY2(store->completeTranscription(*noteId, QStringLiteral("das Transkript vom Band")),
+             qPrintable(store->lastError()));
+
+    AiProviderMock provider;
+    provider.chatAnswers = QStringList({answerFor(QStringLiteral("cli"), QStringLiteral(R"("band")"))});
+
+    Classifier classifier(store.get(), &provider);
+    const QSignalSpy givenUp(&classifier, &Classifier::paused);
+    QSignalSpy done(&classifier, &Classifier::finished);
+    classifier.start();
+    // A run with nothing to ask finishes inside start(), which is exactly what
+    // the unfixed state produces here — waiting unconditionally would take the
+    // case red on this line and say nothing about the assertions below
+    // (CLAUDE.md, finding 35; measured 04.09.2026 on the probe for this issue).
+    if (done.isEmpty()) {
+        QVERIFY(done.wait(std::chrono::seconds(5)));
+    }
+
+    // Read back at the scheduler and not at the counter: without the reset the
+    // classifier reports the note as given up on and asks nothing, and that is
+    // indistinguishable from a run that never started (CLAUDE.md, finding 27).
+    QVERIFY(givenUp.isEmpty());
+    QCOMPARE(provider.prompts.size(), 1);
+    QVERIFY2(provider.prompts.constFirst().contains(QStringLiteral("Transkript vom Band")),
+             qPrintable(provider.prompts.constFirst()));
+
+    // And at the note's state: the run reached it and wrote what it found.
+    const std::optional<Note> classified = store->note(*noteId);
+    QVERIFY(classified.has_value());
+    QCOMPARE(classified->state, Note::State::Analysed);
+    QCOMPARE(classified->category, QStringLiteral("cli"));
+}
+
+void AiTest::aSaveThatLeavesTheTextAloneKeepsTheAttemptsSpent()
+{
+    // The other half of issue #137: the reset hangs on the text, not on the
+    // write. updateNote() rewrites every column, so an ordinary save fires the
+    // same trigger — an unconditional reset would hand the note a fresh budget
+    // here and this case would stand red.
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    const QString text = QStringLiteral("An dieser Notiz scheitert jeder Versuch.");
+    const qint64 noteId =
+        addNote(*store, text, QDateTime::fromString(QStringLiteral("2026-08-01T09:00:00.000"), Qt::ISODateWithMs));
+    QVERIFY(noteId > 0);
+
+    const QString reason = QStringLiteral("Ollama could not be reached: Connection refused");
+    store->failAnalysis(noteId, reason);
+    store->failAnalysis(noteId, reason);
+
+    // A save that changes something other than the text — the origin band takes
+    // this road, and so does a Ctrl+Enter on an untouched editor.
+    const std::optional<Note> stored = store->note(noteId);
+    QVERIFY(stored.has_value());
+    Note stamped = *stored;
+    stamped.origin = QStringLiteral("Fenster B — Fahrplan");
+    QVERIFY2(store->updateNote(stamped), qPrintable(store->lastError()));
+    QCOMPARE(store->note(noteId)->content, text);
+    QCOMPARE(store->note(noteId)->analysisAttempts, Store::analysisAttemptLimit);
+    QCOMPARE(store->note(noteId)->analysisLastError, reason);
+
+    AiProviderMock provider;
+    provider.chatAnswers = QStringList({answerFor(QStringLiteral("cli"), QStringLiteral(R"("band")"))});
+
+    Classifier classifier(store.get(), &provider);
+    const QSignalSpy givenUp(&classifier, &Classifier::paused);
+    QSignalSpy done(&classifier, &Classifier::finished);
+    classifier.start();
+    // A run with nothing left to ask finishes inside start(), so the signal can
+    // already be in — waiting for it unconditionally would time out over a
+    // correct run, as it did here on 04.09.2026.
+    if (done.isEmpty()) {
+        QVERIFY(done.wait(std::chrono::seconds(5)));
+    }
+
+    // Still given up on, and nothing was asked of the model.
+    QCOMPARE(givenUp.size(), 1);
+    QCOMPARE(givenUp.constFirst().at(0).toLongLong(), noteId);
+    QCOMPARE(givenUp.constFirst().at(1).toString(), reason);
+    QVERIFY2(provider.prompts.isEmpty(), qPrintable(provider.prompts.join(QLatin1Char(' '))));
+    QCOMPARE(store->note(noteId)->category, QString());
 }
 
 void AiTest::theBudgetStopsAtFiftyAndTheRestFollows()
