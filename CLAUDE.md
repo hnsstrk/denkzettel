@@ -687,6 +687,18 @@ find.
     and was an artefact of the parser. Strip the comments first
     (`grep -v '^ *#'`), and treat a check that names something you know to be
     there as broken until proven otherwise.
+
+    **Its sibling: the file the check counted in was never read at all.**
+    Measured 2026-09-04 on #31, contradicting the lead three times before it
+    was caught. `git show "$rev:tests/librarytest.cpp"` inside double quotes
+    hands the shell a `\t`, so git was asked for `<rev><TAB>ests/…`, answered
+    "unknown commit or path" on standard error, and the `2>/dev/null` beside it
+    threw that away. `grep -c` on the resulting empty file answered **0** —
+    which reads exactly like "the string is not in this revision", and was used
+    to argue that a doc comment reported missing had never been there. It had.
+    A count of zero is the one answer a broken read and a true absence share,
+    so read the **size** back beside it (`wc -c`) or the exit code of the step
+    that produced the file, and never hide that step's standard error.
 45. **Ollama takes the reasoning out of the answer, so the backend at hand
     cannot show the case a robustness against it is built for.** Measured
     2026-08-29 on #14 with Ollama 0.32.15 and `qwen3:8b`: the classification of

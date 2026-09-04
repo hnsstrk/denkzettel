@@ -4325,6 +4325,25 @@ void LibraryTest::dropsADeferredTaskWhoseNoteIsGone()
     QVERIFY(!cardOf(window, task));
 }
 
+/**
+ * Acceptance criterion 1 of issue #31 and the first of issue #33: what the user
+ * has corrected on the card is what Taskwarrior is handed, and the note becomes
+ * an annotation.
+ *
+ * It breaks without a sound. Every field is typed over here, and a card that
+ * carried the **stored** payload into the export instead of the widgets would
+ * put the analysis run's guess into a real task list and delete the note in the
+ * same breath — nothing on any screen would say so, and the note is gone by
+ * then (CLAUDE.md, finding 34: the input is arranged so that the obvious wrong
+ * implementation cannot give the same answer).
+ *
+ * **All five fields are typed over on purpose, and that is not tidiness.** A
+ * later reader may simplify the case by leaving one of them at its stored
+ * value; from that moment the check can no longer tell "built out of the
+ * widgets" from "built out of the payload" for that field, and it says so
+ * nowhere — it stays green. Whoever shortens this case takes the guarantee of
+ * acceptance criterion 1 with it.
+ */
 void LibraryTest::theEditedFieldsAreWhatReachesTaskwarrior()
 {
     const auto restoredPath =
