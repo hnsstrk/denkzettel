@@ -1680,6 +1680,29 @@ find.
     be a **replacement** before a watch would see it. Whenever a check is
     about something reaching the disk, it opens the file again.
 
+89. **`Settings::self()` is a singleton that reads the file once, so a second
+    dialog in the same process shows the value the first one saw.** Measured
+    2026-09-04 while reviewing #144, in a runner that built the real
+    `SettingsDialog` three times over to read one label per provider. The
+    second run wrote `openrouter` into the configuration, built the dialog,
+    and got the buttons back on **Ollama** — the dialog manager had filled
+    them from the cached skeleton, not from the file. `Settings::self()->load()`
+    after every write is what makes the three states come out different.
+
+    **What makes it worth an entry is the shape of the wrong readback**, not
+    the caching. The run printed `shown=0 text=""` — the answer for "this
+    provider is local, no sentence needed" — while also printing the geometry
+    `90..124` for a label that had just lost its row. Read on its own, the
+    pair says the page is behaving correctly under Ollama; read together, it
+    says a widget is occupying space it should not have. Finding 79 is the
+    same object from the other side, and finding 42's the source: the file and
+    the skeleton are two sources, and whoever writes one reads the other
+    unless told otherwise.
+
+    `providershots` is not affected — it builds the page without a dialog
+    manager, which is why the pictures were right while the runner beside them
+    was not.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
