@@ -3839,7 +3839,7 @@ void LibraryTest::startsAnalysisRunFromTheApplicationMenu()
 
     Classifier classifier(m_store.get(), &provider);
     Embedder embedder(m_store.get(), &provider);
-    Suggester suggester(m_store.get(), &provider, embedder.model());
+    Suggester suggester(m_store.get(), &provider);
     AnalysisScheduler scheduler(&classifier, &embedder, &suggester);
 
     LibraryWindow window(m_store.get());

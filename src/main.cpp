@@ -273,11 +273,11 @@ int main(int argc, char *argv[])
                      });
 
     // The analysis run of SPEC 7.2 and what sets it going. **All three backends
-    // are built and the two capabilities go different ways** (SPEC 7.1, issues
-    // #38 and #39): the classification and the bundle naming follow
-    // `[AI] Provider`, every embedding goes to Ollama, because the remote
-    // embedding side is issue #130 and is not built. Until #127 the choice
-    // reached nothing at all.
+    // are built and the chosen one answers both capabilities** (SPEC 7.1, PO
+    // decision 04.09.2026, issue #130): classification, bundle naming and
+    // embedding all follow `[AI] Provider`. Until #127 the choice reached
+    // nothing at all; until #130 the embedding went to Ollama whatever was
+    // chosen, on a premise about openrouter that stopped being true.
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     OllamaProvider provider;
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
@@ -287,12 +287,14 @@ int main(int argc, char *argv[])
     //
     // ponytail: the choice is read **once, here**. Ceiling: a provider switched
     // in the settings takes hold at the next start of the daemon, while the
-    // address and all three model names take hold at once (issue #119) — so the
-    // one thing that still needs a restart is the rarest of them. Upgrade path:
-    // a setProvider() on Classifier and Suggester, connected in settingswiring
-    // like the ones that are there; not built here because no acceptance
-    // criterion of #38 or #39 asks for it and #130 rebuilds this junction
-    // anyway.
+    // address and all model names take hold at once (issue #119) — so the one
+    // thing that still needs a restart is the rarest of them. That the embedder
+    // and the suggester take their model and service off this same object is
+    // what keeps the state consistent meanwhile: they follow the backend that
+    // is running, not the one that is stored, so nothing is written under a
+    // service that did not make it. Upgrade path: a setProvider() on
+    // Classifier, Embedder and Suggester, connected in settingswiring like the
+    // ones that are there.
     //
     // The names are the ones settings.cpp declares as the enum's choices, and
     // AiProviderPage::storedProvider() reads the same three.
@@ -307,12 +309,13 @@ int main(int argc, char *argv[])
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     Classifier classifier(&store, chat);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    Embedder embedder(&store, &provider);
-    // The model of the vectors comes from the run that writes them and is not
-    // read out of denkzettelrc a second time: two spellings would be two models,
-    // and the clustering would find an empty corpus (Embedder::model()).
+    Embedder embedder(&store, chat);
+    // The model and the service of the vectors come off the same backend the
+    // embedding run asks, and are not read out of denkzettelrc a second time:
+    // two spellings would be two models, and the clustering would find an empty
+    // corpus (Embedder::model(), AiProvider::embeddingModel()).
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
-    Suggester suggester(&store, chat, embedder.model());
+    Suggester suggester(&store, chat);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     AnalysisScheduler analysis(&classifier, &embedder, &suggester);
 
@@ -427,6 +430,16 @@ int main(int argc, char *argv[])
     QObject::connect(&classifier, &Classifier::notReady, &app, [](const QString &reason) {
         if (!reason.isEmpty()) {
             qWarning("The analysis run classified nothing: %s", qUtf8Printable(reason));
+        }
+    });
+
+    // The same for step 2, and it is a second channel because the two
+    // capabilities have two settings since issue #130: a user who has named a
+    // chat model and no embedding model gets classified notes and no topic
+    // bundles, and this is the line that says why.
+    QObject::connect(&embedder, &Embedder::notReady, &app, [](const QString &reason) {
+        if (!reason.isEmpty()) {
+            qWarning("The analysis run embedded nothing: %s", qUtf8Printable(reason));
         }
     });
 

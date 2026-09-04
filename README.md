@@ -65,9 +65,10 @@ set the goals, the priorities and the acceptance —
 - **Runs in the background**, sits in the system tray, starts with the session.
 - **Local by default** in one SQLite file, and with Ollama picked nothing
   leaves the machine at all. Pick openrouter.ai or OpenAI and the text of every
-  note being classified goes to that service — the choice is yours, the
-  consequence is worth knowing, and Denkzettel does not yet say so at the place
-  where you pick it.
+  note goes to that service — the chosen service answers the classification and
+  the embedding alike, and the embedding touches every note, after every edit
+  as well. The choice is yours, the consequence is worth knowing, and Denkzettel
+  does not yet say so at the place where you pick it.
 
 ![The recording window: a red dot, a level meter and the running time 0:23, below it the hint "Esc discards · Ctrl+Enter saves"](docs/images/aufnahmefenster.png)
 
@@ -91,13 +92,15 @@ down and not built:
   what it holds, so a model has to be typed correctly by hand.
 - **External providers for transcription.** Voice notes go through the local
   whisper.cpp and nothing else.
-- **The embedding provider** is always Ollama, whichever provider does the
-  chatting. Without Ollama there are no topic bundles, and the settings page
-  says so.
+- **A similarity threshold per embedding model.** The 0.60 of SPEC 7.3 was
+  calibrated against `bge-m3` and one value serves every model, because the
+  program has no reference corpus to calibrate a model the user names freely.
+  The settings page says so beside the choice.
 
 Built since this section was last written, and it stood here as missing:
 AI analysis with classification, tags and the category sidebar; the three
-providers Ollama, openrouter.ai and OpenAI; embeddings, topic clustering and
+providers Ollama, openrouter.ai and OpenAI, each of which answers the
+classification **and** the embedding; embeddings, topic clustering and
 the bundle review; the Obsidian export and the full export as a way out; the
 settings dialog with its six pages; and the search operators `tag:`, `kat:`,
 `typ:`, `vor:` and `nach:`.

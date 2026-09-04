@@ -116,6 +116,8 @@ private:
     QString m_openRouterModel;
     QString m_openAiModel;
     QString m_embeddingModel;
+    QString m_openRouterEmbeddingModel;
+    QString m_openAiEmbeddingModel;
 
     // Page "Analysis" (SPEC 7.2).
     qint32 m_analysisTrigger = Periodically;

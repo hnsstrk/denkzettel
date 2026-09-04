@@ -564,7 +564,7 @@ void ExportTest::removesEverythingTheExportedNotesOwned()
     voice.audioPath = writeAudio(voice.createdAt, QByteArray("OggS-nicht-wirklich"));
     voice = add(voice, {QStringLiteral("backup")});
 
-    QVERIFY(m_store->setEmbedding(text.id, QStringLiteral("modell"), {1.0F, 0.0F}));
+    QVERIFY(m_store->setEmbedding(text.id, QStringLiteral("modell"), QStringLiteral("Ollama"), {1.0F, 0.0F}));
     QVERIFY(m_store->enqueueTranscription(voice.id));
     const Proposal proposal = bundle(QStringLiteral("Backup"),
                                      QStringLiteral("# Backup\n\n## 2026-07-31\n\nZettelkasten und Backup\n"),

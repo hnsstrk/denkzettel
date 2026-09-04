@@ -3,7 +3,6 @@
 #include "analysis/aiprovider.h"
 #include "analysis/clustering.h"
 #include "analysis/modelanswer.h"
-#include "analysis/ollamaprovider.h"
 #include "store/store.h"
 
 #include <KLocalizedString>
@@ -142,11 +141,12 @@ QString bundleMarkdown(const QString &title, const QList<Note> &notes)
     return markdown;
 }
 
-Suggester::Suggester(Store *store, AiProvider *provider, const QString &embeddingModel, QObject *parent)
+Suggester::Suggester(Store *store, AiProvider *provider, QObject *parent)
     : QObject(parent)
     , m_store(store)
     , m_provider(provider)
-    , m_embeddingModel(embeddingModel)
+    , m_embeddingModel(provider->embeddingModel())
+    , m_embeddingService(provider->serviceId())
 {
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) - the signature is AiProvider::chatFinished
     connect(m_provider, &AiProvider::chatFinished, this, [this](int id, const QString &answer, const QString &error) {
@@ -272,7 +272,7 @@ void Suggester::start()
     }
 
     QList<NoteEmbedding> corpus;
-    const QList<NoteEmbedding> stored = m_store->embeddings(m_embeddingModel);
+    const QList<NoteEmbedding> stored = m_store->embeddings(m_embeddingModel, m_embeddingService);
     for (const NoteEmbedding &embedding : stored) {
         if (!spokenFor.contains(embedding.noteId)) {
             corpus.append(embedding);
@@ -294,7 +294,8 @@ void Suggester::start()
 
 void Suggester::reloadSettings()
 {
-    m_embeddingModel = ollama::configuredEmbeddingModel();
+    m_embeddingModel = m_provider->embeddingModel();
+    m_embeddingService = m_provider->serviceId();
 }
 
 bool Suggester::isBusy() const

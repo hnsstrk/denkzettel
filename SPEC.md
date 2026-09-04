@@ -584,7 +584,10 @@ notes(id INTEGER PK, created_at TEXT ISO8601, type TEXT 'text'|'audio',
       origin TEXT NULL,        -- window title at capture time (opt-in, §13)
       origin_app TEXT NULL)    -- and the application id beside it
 tags(note_id FK, tag TEXT)
-embeddings(note_id FK PK, model TEXT, vector BLOB)  -- float32 array
+embeddings(note_id FK PK, model TEXT, service TEXT, vector BLOB)
+                           -- float32 array; `service` is the backend that made
+                           -- it (7.1), because the same model name exists on
+                           -- two of them
 proposals(id INTEGER PK, kind TEXT 'bundle'|'task', created_at TEXT,
           status TEXT 'offen'|'zurueckgestellt',
           payload TEXT JSON)   -- bundle: title+Markdown; task: fields
@@ -869,9 +872,12 @@ is not set is a precondition not yet met and not a failed attempt.** That is
 run of 7.2 would otherwise spend both attempts of every note on "no model set"
 before the user ever opened the settings, leaving the notes in the error state
 with nothing wrong with them. The run takes no note, counts nothing, and says
-what is missing; the embedding run, which talks to Ollama, goes on unaffected.
-"Test connection" and the run name the missing model rather than a transport
-error.
+what is missing. **It is asked once per capability**, because the two models
+are two settings (issue #130): whoever has named a chat model and no embedding
+model gets classified notes and no topic bundles, and one answer for both would
+either stop the classification over a field it does not need or send an empty
+model name to the service. "Test connection" and the run name the missing model
+rather than a transport error.
 
 **The provider is chosen once and answers both capabilities** (customer
 decision 29.08.2026 and PO decision 04.09.2026, issue #130): whichever of the

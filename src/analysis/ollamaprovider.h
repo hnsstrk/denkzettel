@@ -90,23 +90,21 @@ OllamaAnswer readOllamaReply(OllamaCall call,
  */
 namespace ollama
 {
+/**
+ * What a vector out of this backend is kept under (AiProvider::serviceId(),
+ * issue #130) — the same string `[AI] Provider` carries for this choice.
+ */
+inline constexpr QLatin1StringView Id("Ollama");
 inline constexpr QLatin1StringView DefaultUrl("http://localhost:11434");
 inline constexpr QLatin1StringView DefaultChatModel("qwen3:8b");
 inline constexpr QLatin1StringView DefaultEmbeddingModel("bge-m3");
 
-/**
- * `[AI] EmbeddingModel` as `denkzettelrc` currently spells it, or the default
- * above where it says nothing.
- *
- * Three objects have to agree on this one name inside a run — the provider
- * that asks for the vector, the embedder that writes it beside the note and the
- * suggester that clusters what carries it — and since issue #119 all three
- * re-read it when the settings dialog has written. Read out of one function so
- * that the group and the key have one place: three `readEntry` calls would be
- * three chances to spell it differently, and two spellings are two models with
- * nothing to say so.
- */
-QString configuredEmbeddingModel();
+// **Where the one name is read** (issue #119): three objects have to agree on
+// the embedding model inside a run — the backend that asks for the vector, the
+// embedder that writes it beside the note and the suggester that clusters what
+// carries it. Since issue #130 they all ask the backend
+// (AiProvider::embeddingModel()), which is the only one that knows which of the
+// three `[AI]` keys holds it.
 }
 
 /**
@@ -138,9 +136,12 @@ public:
     /** SPEC 7.1, `ollama::DefaultChatModel`. */
     void setChatModel(const QString &model);
     QString chatModel() const;
-    /** SPEC 7.1, `ollama::DefaultEmbeddingModel`; in v1 every embedding comes from here. */
+    /** SPEC 7.1, `ollama::DefaultEmbeddingModel`. */
     void setEmbeddingModel(const QString &model);
-    QString embeddingModel() const;
+    QString embeddingModel() const override;
+
+    /** `ollama::Id`. */
+    QString serviceId() const override;
 
     /**
      * The 30 s of silence of SPEC 7.1, settable because a check that waits half

@@ -81,10 +81,38 @@ public:
     /** How long embed() takes to answer. */
     std::chrono::milliseconds embedDelay{0};
 
+    /**
+     * What the store keeps this stand-in's vectors under (AiProvider,
+     * issue #130) — settable, so a check can let the pair change under a
+     * running Embedder the way the settings dialog does.
+     */
+    QString service = QStringLiteral("Ollama");
+    QString model = QStringLiteral("bge-m3");
+    /**
+     * Non-empty makes this backend one whose embedding model is not set yet —
+     * a precondition, not a failure (SPEC 7.1, issue #130).
+     */
+    QString embeddingPrecondition;
+
     /** Every prompt chat() was handed, in the order it was handed them. */
     QStringList prompts;
     /** Every text embed() was handed. */
     QStringList texts;
+
+    QString serviceId() const override
+    {
+        return service;
+    }
+
+    QString embeddingModel() const override
+    {
+        return model;
+    }
+
+    QString unmetEmbeddingPrecondition() const override
+    {
+        return embeddingPrecondition;
+    }
 
     int chat(const QString &prompt) override
     {

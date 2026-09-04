@@ -60,6 +60,7 @@ private Q_SLOTS:
     void listsOnlyTheTaskNotesThatCarryNoSuggestion();
     void keepsTheOriginOfANoteAndLetsItBeTakenBack();
     void migratesDatabaseFromSchemaVersion1();
+    void theStoredVectorsBecomeOllamasWhenTheServiceColumnArrives();
 
 private:
     QString databasePath() const;
@@ -124,7 +125,7 @@ Note StoreTest::sampleNote()
 void StoreTest::createsSchemaOnFirstOpen()
 {
     QVERIFY(QFile::exists(databasePath()));
-    QCOMPARE(m_store->schemaVersion(), 9);
+    QCOMPARE(m_store->schemaVersion(), 10);
 }
 
 void StoreTest::defaultPathLivesInApplicationDataDirectory()
@@ -524,7 +525,7 @@ void StoreTest::reopensExistingDatabaseWithoutMigrating()
     // second migration run on an up-to-date database would fail here.
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 9);
+    QCOMPARE(m_store->schemaVersion(), 10);
     const std::optional<Note> stored = m_store->note(*id);
     QVERIFY(stored.has_value());
     QCOMPARE(stored->content, sampleNote().content);
@@ -840,7 +841,8 @@ qint64 StoreTest::databaseNumber(const QString &select) const
 
 void StoreTest::storesTheEmbeddingAsAFloat32Array()
 {
-    // SPEC 5.1: `embeddings(note_id FK PK, model TEXT, vector BLOB)`, float32.
+    // SPEC 5.1: `embeddings(note_id FK PK, model TEXT, service TEXT, vector BLOB)`,
+    // float32.
     Note note = sampleNote();
     note.state = Note::State::Analysed;
     const std::optional<qint64> id = m_store->addNote(note);
@@ -851,14 +853,15 @@ void StoreTest::storesTheEmbeddingAsAFloat32Array()
     // negative and one of them zero: a reader that mistook the sign bit or
     // stopped at a nought would come out short.
     const QList<float> vector = {0.5F, -0.25F, 0.0F, 1.5F, -2.0F};
-    QVERIFY2(m_store->setEmbedding(*id, QStringLiteral("bge-m3"), vector), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(*id, QStringLiteral("bge-m3"), QStringLiteral("Ollama"), vector),
+             qPrintable(m_store->lastError()));
 
     // The number the database counts, and it counts bytes: five float32 are
     // twenty of them. Read as doubles the same BLOB is two values and a half,
     // and the round-trip below would still be green (finding 10).
     QCOMPARE(databaseNumber(QStringLiteral("SELECT LENGTH(vector) FROM embeddings")), 20);
 
-    const QList<NoteEmbedding> stored = m_store->embeddings(QStringLiteral("bge-m3"));
+    const QList<NoteEmbedding> stored = m_store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("Ollama"));
     QCOMPARE(stored.size(), 1);
     QCOMPARE(stored.constFirst().noteId, *id);
     QCOMPARE(stored.constFirst().vector.size(), 5);
@@ -866,7 +869,12 @@ void StoreTest::storesTheEmbeddingAsAFloat32Array()
 
     // Another model is another vector space (SPEC 7.1/7.3) — asked for one, the
     // store hands out none of the other.
-    QVERIFY(m_store->embeddings(QStringLiteral("nomic-embed-text")).isEmpty());
+    QVERIFY(m_store->embeddings(QStringLiteral("nomic-embed-text"), QStringLiteral("Ollama")).isEmpty());
+
+    // **And so is the same name on another service** (issue #130): `bge-m3` is
+    // an Ollama model and `baai/bge-m3` stands in openrouter's list, the model
+    // field is a free one, and until migration 10 the name alone was the key.
+    QVERIFY(m_store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("OpenRouter")).isEmpty());
 
     // Deleting the note takes its embedding with it (SPEC 5.1): left behind, it
     // would be clustered into a bundle carrying a note that is not there.
@@ -891,13 +899,23 @@ void StoreTest::listsWhatHasNoCurrentVector()
     const qint64 current = add(QStringLiteral("Mit Vektor"), 1, Note::State::Analysed);
     const qint64 edited = add(QStringLiteral("Bearbeitet"), 2, Note::State::Analysed);
     const qint64 otherModel = add(QStringLiteral("Anderes Modell"), 3, Note::State::Analysed);
-    const qint64 unanalysed = add(QStringLiteral("Noch nicht klassifiziert"), 4, Note::State::New);
-    QVERIFY(fresh > 0 && current > 0 && edited > 0 && otherModel > 0 && unanalysed > 0);
+    // **The same model name from another service** (issue #130) — the case the
+    // name alone cannot tell apart, and the one this list has to hand over.
+    const qint64 otherService = add(QStringLiteral("Anderer Dienst"), 4, Note::State::Analysed);
+    const qint64 unanalysed = add(QStringLiteral("Noch nicht klassifiziert"), 5, Note::State::New);
+    QVERIFY(fresh > 0 && current > 0 && edited > 0 && otherModel > 0 && otherService > 0 && unanalysed > 0);
 
-    QVERIFY2(m_store->setEmbedding(current, QStringLiteral("bge-m3"), {1.0F}), qPrintable(m_store->lastError()));
-    QVERIFY2(m_store->setEmbedding(edited, QStringLiteral("bge-m3"), {1.0F}), qPrintable(m_store->lastError()));
-    QVERIFY2(m_store->setEmbedding(otherModel, QStringLiteral("nomic-embed-text"), {1.0F}), qPrintable(m_store->lastError()));
-    QVERIFY2(m_store->setEmbedding(unanalysed, QStringLiteral("bge-m3"), {1.0F}), qPrintable(m_store->lastError()));
+    const QString ollama = QStringLiteral("Ollama");
+    QVERIFY2(m_store->setEmbedding(current, QStringLiteral("bge-m3"), ollama, {1.0F}),
+             qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(edited, QStringLiteral("bge-m3"), ollama, {1.0F}),
+             qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(otherModel, QStringLiteral("nomic-embed-text"), ollama, {1.0F}),
+             qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(otherService, QStringLiteral("bge-m3"), QStringLiteral("OpenRouter"), {1.0F}),
+             qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(unanalysed, QStringLiteral("bge-m3"), ollama, {1.0F}),
+             qPrintable(m_store->lastError()));
 
     // What SPEC 9 sets when the user saves an edited note.
     std::optional<Note> changed = m_store->note(edited);
@@ -906,17 +924,35 @@ void StoreTest::listsWhatHasNoCurrentVector()
     QVERIFY2(m_store->updateNote(*changed), qPrintable(m_store->lastError()));
 
     QList<qint64> outstanding;
-    const QList<Note> notes = m_store->notesToEmbed(QStringLiteral("bge-m3"));
+    const QList<Note> notes = m_store->notesToEmbed(QStringLiteral("bge-m3"), ollama);
     for (const Note &note : notes) {
         outstanding.append(note.id);
     }
-    QCOMPARE(outstanding, QList<qint64>({fresh, edited, otherModel}));
+    QCOMPARE(outstanding, QList<qint64>({fresh, edited, otherModel, otherService}));
 
     // And writing the vector takes the note out of the list, flag and all —
     // the two belong in one transaction, or the note would come back for ever.
-    QVERIFY2(m_store->setEmbedding(edited, QStringLiteral("bge-m3"), {2.0F}), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(edited, QStringLiteral("bge-m3"), ollama, {2.0F}),
+             qPrintable(m_store->lastError()));
     QVERIFY(!m_store->note(edited)->needsReembed);
-    QCOMPARE(m_store->notesToEmbed(QStringLiteral("bge-m3")).size(), 2);
+    QCOMPARE(m_store->notesToEmbed(QStringLiteral("bge-m3"), ollama).size(), 3);
+
+    // **The counter-probe to the service key, and it has to come out
+    // differently** (issue #130): two notes carry a vector under the very same
+    // model name, one from Ollama and one from openrouter. Asked for the pair,
+    // the store hands back **one** of them each way — with the service dropped
+    // from either query it would hand back two, and a run would cluster two
+    // vector spaces against each other while `notesToEmbed()` saw nothing to do.
+    QCOMPARE(m_store->embeddings(QStringLiteral("bge-m3"), ollama).size(), 2);
+    const QList<NoteEmbedding> fromOpenRouter =
+        m_store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("OpenRouter"));
+    QCOMPARE(fromOpenRouter.size(), 1);
+    QCOMPARE(fromOpenRouter.constFirst().noteId, otherService);
+
+    // And the switch of SPEC 7.1: every note is marked, read back out of the
+    // database and not off the object that asked for it.
+    QVERIFY2(m_store->markAllForReembedding(), qPrintable(m_store->lastError()));
+    QCOMPARE(databaseNumber(QStringLiteral("SELECT COUNT(*) FROM notes WHERE needs_reembed = 1")), 6);
 }
 
 bool StoreTest::writeSchemaVersion1Database(const QString &path, QString *error)
@@ -1209,7 +1245,7 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
 
-    QCOMPARE(m_store->schemaVersion(), 9);
+    QCOMPARE(m_store->schemaVersion(), 10);
 
     // Every field of the existing rows survives the upgrade.
     const QList<Note> notes = m_store->notes();
@@ -1261,8 +1297,9 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
 
     // And the embeddings of schema version 5 take a note that was written
     // before their table existed (SPEC 5.1, 7.3, issue #28).
-    QVERIFY2(m_store->setEmbedding(1, QStringLiteral("bge-m3"), {0.5F, -0.5F}), qPrintable(m_store->lastError()));
-    const QList<NoteEmbedding> embedded = m_store->embeddings(QStringLiteral("bge-m3"));
+    QVERIFY2(m_store->setEmbedding(1, QStringLiteral("bge-m3"), QStringLiteral("Ollama"), {0.5F, -0.5F}),
+             qPrintable(m_store->lastError()));
+    const QList<NoteEmbedding> embedded = m_store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("Ollama"));
     QCOMPARE(embedded.size(), 1);
     QCOMPARE(embedded.constFirst().noteId, qint64(1));
     QCOMPARE(embedded.constFirst().vector, QList<float>({0.5F, -0.5F}));
@@ -1309,8 +1346,69 @@ void StoreTest::migratesDatabaseFromSchemaVersion1()
     m_store.reset();
     m_store = std::make_unique<Store>(databasePath());
     QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
-    QCOMPARE(m_store->schemaVersion(), 9);
+    QCOMPARE(m_store->schemaVersion(), 10);
     QCOMPARE(m_store->notes().size(), 3);
+}
+
+void StoreTest::theStoredVectorsBecomeOllamasWhenTheServiceColumnArrives()
+{
+    // Migration 10 (issue #130). A schema migration is one of the things that
+    // break **silently** — the vectors would simply stop being found, and
+    // nothing about a corpus that clusters nothing says why.
+    //
+    // **The starting point is built by taking the column away again, and that
+    // really is a version 9 database for this one table** — measured, not
+    // assumed (04.09.2026, SQLite 3.53.4): after
+    // `ADD COLUMN service` followed by `DROP COLUMN service`, the CREATE
+    // statement in `sqlite_master` comes out **character for character** as the
+    // one migration 5 writes, and `PRAGMA table_info` matches in name, type,
+    // `notnull`, default and `pk` for all three columns. Nothing else can be
+    // left behind here: `embeddings` carries no index and no trigger of its own
+    // — the triggers of migrations 2, 8 and 9 sit on `notes`.
+    //
+    // The vector is deliberately written under `OpenRouter` first: found under
+    // `Ollama` afterwards, that is the migration's default landing and not the
+    // value that was already there — without that, this case would pass over a
+    // migration that does nothing at all. On a copy and never on the real
+    // corpus: `databasePath()` is this check's own temporary directory.
+    Note note = sampleNote();
+    note.state = Note::State::Analysed;
+    const std::optional<qint64> id = m_store->addNote(note);
+    QVERIFY2(id.has_value(), qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->setEmbedding(*id, QStringLiteral("bge-m3"), QStringLiteral("OpenRouter"), {0.5F, -0.25F}),
+             qPrintable(m_store->lastError()));
+    m_store.reset();
+
+    const QString connection =
+        QStringLiteral("undo9-%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        db.setDatabaseName(databasePath());
+        QVERIFY2(db.open(), qPrintable(db.lastError().text()));
+        QSqlQuery query(db);
+        QVERIFY2(query.exec(QStringLiteral("ALTER TABLE embeddings DROP COLUMN service")),
+                 qPrintable(query.lastError().text()));
+        QVERIFY2(query.exec(QStringLiteral("UPDATE meta SET value = '9' WHERE key = 'schema_version'")),
+                 qPrintable(query.lastError().text()));
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(connection);
+
+    m_store = std::make_unique<Store>(databasePath());
+    QVERIFY2(m_store->open(), qPrintable(m_store->lastError()));
+    QCOMPARE(m_store->schemaVersion(), 10);
+
+    // The vector is still there, and it is Ollama's — every vector an existing
+    // database holds came from Ollama, because nothing else was ever asked.
+    const QList<NoteEmbedding> kept = m_store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("Ollama"));
+    QCOMPARE(kept.size(), 1);
+    QCOMPARE(kept.constFirst().noteId, *id);
+    QCOMPARE(kept.constFirst().vector, QList<float>({0.5F, -0.25F}));
+    QVERIFY(m_store->embeddings(QStringLiteral("bge-m3"), QStringLiteral("OpenRouter")).isEmpty());
+
+    // And nothing is asked for again: the note has a current vector under the
+    // pair the run works with, so the corpus is not re-embedded by the update.
+    QVERIFY(m_store->notesToEmbed(QStringLiteral("bge-m3"), QStringLiteral("Ollama")).isEmpty());
 }
 
 void StoreTest::parsesSearchOperators()

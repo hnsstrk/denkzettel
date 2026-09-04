@@ -94,6 +94,7 @@ private Q_SLOTS:
     void afterTheDefaultsARefusalGoesBackToNothing();
     void aRejectedProgramPathIsNotStored();
     void savingAnnouncesItself();
+    void theBackendsReadTheirValuesBeforeTheReadersAsk();
     void everySettingReachesItsRunningObject();
     void reportsAModelPathItCouldNotTakeOver();
     void restoringTheDefaultsResetsThePathField();
@@ -396,6 +397,35 @@ void SettingsTest::aStoredProviderReachesTheButtonsAndTheRows()
         QCOMPARE(openRouterModel->isHidden(), stored.provider != Settings::OpenRouter);
         QCOMPARE(openAiModel->isHidden(), stored.provider != Settings::OpenAi);
 
+        // **The embedding model row follows the same rule since issue #130**,
+        // and it is three widgets for the reason the three above are: `bge-m3`
+        // is an Ollama model and `baai/bge-m3` is what openrouter's list holds,
+        // so one shared field would send a name to a server that cannot resolve
+        // it.
+        const auto *ollamaEmbedding = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_EmbeddingModel"));
+        const auto *openRouterEmbedding =
+            dialog->findChild<QComboBox *>(QStringLiteral("kcfg_OpenRouterEmbeddingModel"));
+        const auto *openAiEmbedding = dialog->findChild<QComboBox *>(QStringLiteral("kcfg_OpenAiEmbeddingModel"));
+        QVERIFY(ollamaEmbedding);
+        QVERIFY(openRouterEmbedding);
+        QVERIFY(openAiEmbedding);
+        QCOMPARE(ollamaEmbedding->isHidden(), stored.provider != Settings::Ollama);
+        QCOMPARE(openRouterEmbedding->isHidden(), stored.provider != Settings::OpenRouter);
+        QCOMPARE(openAiEmbedding->isHidden(), stored.provider != Settings::OpenAi);
+
+        // **And the Ollama address is under Ollama and nowhere else** — the
+        // condition #38 left standing on purpose and this story owns, together
+        // with the sentence that used to name Ollama as the answerer of the
+        // embedding call. The two hung on one condition so that whoever deleted
+        // the sentence stood at the visibility; the sentence is gone, and this
+        // is what says the visibility went with it rather than staying behind
+        // as an address nobody can reach.
+        const auto *address = dialog->findChild<QLineEdit *>(QStringLiteral("kcfg_OllamaUrl"));
+        QVERIFY(address);
+        QCOMPARE(address->isHidden(), stored.provider != Settings::Ollama);
+        QVERIFY2(dialog->findChild<QLabel *>(QStringLiteral("embeddingsFromOllama")) == nullptr,
+                 "the sentence naming Ollama as the answerer of the embedding call is gone");
+
         // OK and not Apply: Apply is grey, because the form holds exactly what
         // the file holds — and OK writes the same way (the reasoning of
         // aRefusedVaultFolderIsNotStored, one page further on).
@@ -488,14 +518,22 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
             // case would be green over a page that asked openrouter (issue
             // #39). Read off the stand-in, not off the page.
             //
-            // Only on the completions path: Ollama's two calls carry a model
+            // Only on the two remote paths: Ollama's two calls carry a model
             // as well, and it comes out of a row this case does not touch.
-            if (path == QLatin1String("/api/v1/chat/completions")) {
+            // **Both of them, and under two labels** (issue #130): the two
+            // model names come off two different rows now, and one label would
+            // be green over a page that sent the chat model to the embedding
+            // endpoint.
+            if (path == QLatin1String("/api/v1/chat/completions")
+                || path == QLatin1String("/api/v1/embeddings")) {
                 const QString model = QJsonDocument::fromJson(request->sliced(end + 4))
                                           .object()
                                           .value(QLatin1String("model"))
                                           .toString();
-                asked->append(QStringLiteral("model=") + model);
+                asked->append((path == QLatin1String("/api/v1/embeddings")
+                                   ? QStringLiteral("embedding-model=")
+                                   : QStringLiteral("model="))
+                              + model);
             }
 
             QByteArray payload;
@@ -504,6 +542,9 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
                           "\n";
             } else if (path == QLatin1String("/api/embed")) {
                 payload = R"({"embeddings":[[0.5,0.5]]})";
+            } else if (path == QLatin1String("/api/v1/embeddings")) {
+                // One document and no stream — the shape of `/v1/embeddings`.
+                payload = R"({"data":[{"embedding":[0.5,0.5]}]})";
             } else {
                 payload = "data: {\"choices\":[{\"delta\":{\"content\":\"pong\"}}]}\n"
                           "data: [DONE]\n";
@@ -532,6 +573,7 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
         /** The object name AiProviderPage gives that provider's backend. */
         const char *backend;
         QString model;
+        QString embeddingModel;
         QStringList endpoints;
         QString claim;
     };
@@ -545,24 +587,37 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
          "Ollama",
          "",
          QString(),
+         QString(),
          {QStringLiteral("/api/chat"), QStringLiteral("/api/embed")},
          QStringLiteral("embedding")},
+        // **Both calls under every provider since issue #130**, and the two
+        // model names come off two different rows: a page that sent the chat
+        // model to the embedding endpoint would pass the chat half and fail
+        // here.
         {Settings::OpenRouter,
          "OpenRouter",
          "openRouterProvider",
          QStringLiteral("some/model-of-the-check"),
+         QStringLiteral("baai/embedding-of-the-check"),
          {QStringLiteral("/api/v1/chat/completions"),
           QStringLiteral("key-survived"),
-          QStringLiteral("model=some/model-of-the-check")},
-         QStringLiteral("Embeddings are not asked of openrouter.ai")},
+          QStringLiteral("model=some/model-of-the-check"),
+          QStringLiteral("/api/v1/embeddings"),
+          QStringLiteral("key-survived"),
+          QStringLiteral("embedding-model=baai/embedding-of-the-check")},
+         QStringLiteral("embedding")},
         {Settings::OpenAi,
          "OpenAI",
          "openAiProvider",
          QStringLiteral("gpt-of-the-check"),
+         QStringLiteral("text-embedding-of-the-check"),
          {QStringLiteral("/api/v1/chat/completions"),
           QStringLiteral("key-survived"),
-          QStringLiteral("model=gpt-of-the-check")},
-         QStringLiteral("Embeddings are not asked of OpenAI")}};
+          QStringLiteral("model=gpt-of-the-check"),
+          QStringLiteral("/api/v1/embeddings"),
+          QStringLiteral("key-survived"),
+          QStringLiteral("embedding-model=text-embedding-of-the-check")},
+         QStringLiteral("embedding")}};
 
     for (const Expectation &expected : cases) {
         asked->clear();
@@ -592,6 +647,7 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
                 QString::fromLatin1(expected.backend));
             QVERIFY2(remote, expected.backend);
             remote->setUrl(QUrl(address + QStringLiteral("/api/v1/chat/completions")));
+            remote->setEmbedUrl(QUrl(address + QStringLiteral("/api/v1/embeddings")));
             remote->setKey(QStringLiteral("sk-invented-for-this-check"));
             // The model off the form, the way the button takes it. There is no
             // default for either remote service (SPEC 7.1, customer
@@ -604,6 +660,15 @@ void SettingsTest::theConnectionTestAsksTheChosenProvider()
                                                           : QStringLiteral("kcfg_OpenAiModel"));
             QVERIFY(remoteModel);
             remoteModel->setCurrentText(expected.model);
+
+            // And the embedding row of the same service, which is a second
+            // setting and a second widget for the reason the chat rows are
+            // (issue #130).
+            auto *remoteEmbedding = dialog->findChild<QComboBox *>(
+                expected.provider == Settings::OpenRouter ? QStringLiteral("kcfg_OpenRouterEmbeddingModel")
+                                                          : QStringLiteral("kcfg_OpenAiEmbeddingModel"));
+            QVERIFY(remoteEmbedding);
+            remoteEmbedding->setCurrentText(expected.embeddingModel);
         }
 
         auto *button = dialog->findChild<QPushButton *>(QStringLiteral("testConnection"));
@@ -969,6 +1034,88 @@ void SettingsTest::savingAnnouncesItself()
     closeDialog(dialog);
 }
 
+void SettingsTest::theBackendsReadTheirValuesBeforeTheReadersAsk()
+{
+    // **The order of the connections, which the case below cannot see** (issue
+    // #130, and it was a real fault in this story's first draft). Since the
+    // embedder and the suggester take the model and the service off the
+    // backend rather than out of the file, the chosen backend has to have read
+    // the new value **before** they ask — and Qt calls the slots of one signal
+    // in the order they were connected in.
+    //
+    // Wired the other way round, a run under openrouter would ask the **new**
+    // model for the vector and write the **old** name beside it: issue #119
+    // exactly, and permanent, because notesToEmbed() sees a note that already
+    // carries a vector for that name and never asks again. The case below
+    // reads back that the connections **exist**, which is green either way; the
+    // one assertion that tells the two orders apart is the last one here.
+    //
+    // The check writes into the configuration, so it takes the entry away
+    // again — and the guard on XDG_CONFIG_HOME is what keeps that deletion off
+    // the file of whoever runs it (CLAUDE.md, finding 42).
+    const QByteArray configHome = qgetenv("XDG_CONFIG_HOME");
+    QVERIFY2(!configHome.isEmpty(), "XDG_CONFIG_HOME has to point into the build directory");
+    const QString key(openrouter::Service.embeddingModelKey);
+    const auto tidy = qScopeGuard([&key] {
+        KConfig back(QStringLiteral("denkzettelrc"));
+        back.group(QStringLiteral("AI")).deleteEntry(key);
+        back.sync();
+        Settings::self()->load();
+    });
+
+    const QString before = QStringLiteral("first-of-the-check");
+    const QString after = QStringLiteral("second-of-the-check");
+    {
+        KConfig prefilled(QStringLiteral("denkzettelrc"));
+        prefilled.group(QStringLiteral("AI")).writeEntry(key, before);
+        prefilled.sync();
+    }
+    Settings::self()->load();
+
+    const QTemporaryDir data;
+    QVERIFY(data.isValid());
+    Store store(data.filePath(QStringLiteral("notes.db")));
+    QVERIFY(store.open());
+
+    Transcriber transcriber(&store);
+    OriginWatcher origins;
+    OllamaProvider provider;
+    OpenAiCompatibleProvider openRouter(openrouter::Service);
+    OpenAiCompatibleProvider openAi(openai::Service);
+    Classifier classifier(&store, &openRouter);
+    // **On the remote backend and not on Ollama**, because that is the state
+    // the trap lives in: main.cpp hands all three of these the chosen provider,
+    // and the two remote ones are connected after the local one.
+    Embedder embedder(&store, &openRouter);
+    Suggester suggester(&store, &openRouter);
+    AnalysisScheduler analysis(&classifier, &embedder, &suggester);
+
+    QCOMPARE(openRouter.embeddingModel(), before);
+    QCOMPARE(embedder.model(), before);
+
+    connectSettingsToRunningObjects(&transcriber, &origins, &provider, &openRouter, &openAi, &embedder,
+                                    &suggester, &analysis);
+
+    // The road the settings dialog takes: the skeleton writes and announces it
+    // once, and every slot below runs off that one signal.
+    KConfigSkeletonItem *item = Settings::self()->findItem(key);
+    QVERIFY(item);
+    item->setProperty(after);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy announced(Settings::self(), &Settings::configChanged);
+    Settings::self()->save();
+    QVERIFY2(announced.count() > 0, "the skeleton announced nothing, so nothing below was measured");
+
+    // The backend has the new value — that half is green in either order.
+    QCOMPARE(openRouter.embeddingModel(), after);
+    // **And this is the assertion the order decides.** Connected before the
+    // backend, the embedder would still hold `first-of-the-check` here while
+    // the backend asked for `second-of-the-check`, and every vector of the next
+    // run would go into the store under a name nobody chose.
+    QCOMPARE(embedder.model(), after);
+    QCOMPARE(embedder.model(), openRouter.embeddingModel());
+}
+
 void SettingsTest::everySettingReachesItsRunningObject()
 {
     // The other half of the case above (issue #123). That one shows the
@@ -1000,7 +1147,7 @@ void SettingsTest::everySettingReachesItsRunningObject()
     OpenAiCompatibleProvider openAi(openai::Service);
     Classifier classifier(&store, &provider);
     Embedder embedder(&store, &provider);
-    Suggester suggester(&store, &provider, embedder.model());
+    Suggester suggester(&store, &provider);
     AnalysisScheduler analysis(&classifier, &embedder, &suggester);
 
     const Settings *settings = Settings::self();

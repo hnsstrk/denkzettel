@@ -65,25 +65,33 @@ void connectSettingsToRunningObjects(Transcriber *transcriber,
     // beside it and the suggester looks the vectors up by it (SPEC 7.3). Left
     // out, either of the two latter would go on with the old name while the
     // provider asked the new model — vectors of two models under one name, or a
-    // corpus that comes out empty. They read it out of one function for that
-    // reason (ollama::configuredEmbeddingModel()).
+    // corpus that comes out empty.
     QObject::connect(settings, &Settings::configChanged, provider, &OllamaProvider::reloadSettings);
-    QObject::connect(settings, &Settings::configChanged, embedder, &Embedder::reloadSettings);
-    QObject::connect(settings, &Settings::configChanged, suggester, &Suggester::reloadSettings);
 
     // And the two remote backends beside it (issues #38 and #39). Each carries
-    // **two** values a user changes in that dialog, and both of them silently:
-    // the model, which has no default and which the run stands still without,
-    // and the API key, which this slot forgets so the next call fetches the new
-    // one. Without these lines a corrected key never reaches the running daemon
-    // and it goes on being billed against the old one — the very reason the
-    // class comment of OpenAiCompatibleProvider::reloadSettings() gives for
-    // forgetting it.
+    // **three** values a user changes in that dialog, and all of them silently:
+    // the two models, which have no default and which the run stands still
+    // without, and the API key, which this slot forgets so the next call
+    // fetches the new one. Without these lines a corrected key never reaches
+    // the running daemon and it goes on being billed against the old one — the
+    // very reason the class comment of
+    // OpenAiCompatibleProvider::reloadSettings() gives for forgetting it.
     //
     // Two lines and not one, although the class is the same: they are two
-    // objects with two wallet entries and two model keys, and one line would
-    // leave whichever service is not wired reading the values it was built with
-    // until the daemon restarts.
+    // objects with two wallet entries and two pairs of model keys, and one line
+    // would leave whichever service is not wired reading the values it was
+    // built with until the daemon restarts.
     QObject::connect(settings, &Settings::configChanged, openRouter, &OpenAiCompatibleProvider::reloadSettings);
     QObject::connect(settings, &Settings::configChanged, openAi, &OpenAiCompatibleProvider::reloadSettings);
+
+    // **And these two stand after all three backends, which is what makes them
+    // agree.** Since issue #130 the embedder and the suggester take the model
+    // and the service off the backend rather than out of the file, so whichever
+    // backend is the chosen one has to have read the new values before they
+    // ask — and Qt calls the slots of one signal in the order they were
+    // connected in. Wired before the remote two, they would write the vector of
+    // a **new** model under the **old** name for one run, which is issue #119
+    // exactly and is permanent: notesToEmbed() never asks for that note again.
+    QObject::connect(settings, &Settings::configChanged, embedder, &Embedder::reloadSettings);
+    QObject::connect(settings, &Settings::configChanged, suggester, &Suggester::reloadSettings);
 }

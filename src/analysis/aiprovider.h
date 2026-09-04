@@ -74,20 +74,28 @@ public:
     virtual int embed(const QString &text) = 0;
 
     /**
-     * Whether this backend is asked for vectors at all (SPEC 7.1, issue #38).
+     * What a vector out of this backend is kept under in the store, beside the
+     * model name — `"Ollama"`, `"OpenRouter"` or `"OpenAI"` (issue #130).
      *
-     * **The two capabilities are separate, and a backend may have one of
-     * them.** openrouter is connected for chat and not for embeddings, so a
-     * connection test that asked it for a vector would report a failure of the
-     * service where there is none — and a missing local Ollama would look like
-     * a remote API failure, which is exactly the confusion the story was asked
-     * to prevent. What testConnection() below does instead is skip the second
-     * call and hand back -1 for its latency.
-     *
-     * True here rather than pure, because a backend that does both is the
-     * ordinary case and Ollama is not to repeat the answer.
+     * The same three strings `[AI] Provider` carries in `denkzettelrc`, and a
+     * value of its own rather than the display name or the wallet entry:
+     * renaming either of those is a cosmetic act, and it would silently
+     * devalue every stored vector.
      */
-    virtual bool canEmbed() const;
+    virtual QString serviceId() const = 0;
+
+    /**
+     * The model this backend embeds with, as its settings currently stand.
+     *
+     * **Three objects have to agree on this one name inside a run** — the
+     * backend that asks for the vector, the embedder that writes it beside the
+     * note and the suggester that clusters what carries it (issue #119). Since
+     * issue #130 the name alone is not enough either, and serviceId() above
+     * goes with it. Asked of the backend rather than read out of `denkzettelrc`
+     * three times: which key holds it depends on which backend this is, and
+     * three readers would be three chances to pick the wrong one.
+     */
+    virtual QString embeddingModel() const = 0;
 
     /**
      * Why this backend cannot be called at all, and empty when nothing is in
@@ -106,9 +114,35 @@ public:
     virtual QString unmetPrecondition() const;
 
     /**
-     * One mini `chat` call and — where the backend embeds at all — one `embed`
-     * call, answered by connectionTested() with their latencies or with the
-     * first error (SPEC 7.1).
+     * The same question for the embedding run, and it is a second one because
+     * the two capabilities have two settings (SPEC 7.1, issue #130).
+     *
+     * A user who has named a chat model and no embedding model has the
+     * classification of SPEC 7.2 running and the embedding not — asked with the
+     * one answer for both, either the classification would stand still over a
+     * field it does not need or the embedding run would send an empty model
+     * name, be refused, and spend the note's two attempts on a precondition.
+     */
+    virtual QString unmetEmbeddingPrecondition() const;
+
+    /**
+     * One mini `chat` call and one `embed` call against this backend, answered
+     * by connectionTested() with their latencies or with the first error
+     * (SPEC 7.1).
+     *
+     * **Both calls under every provider since issue #130**: the chosen service
+     * answers both capabilities, so a test that made only one of them would
+     * leave the half the topic bundles depend on unmeasured.
+     *
+     * ponytail: there is no way to skip the second call any more. Ceiling: a
+     * backend with only one of the two capabilities. Until #130 that was
+     * openrouter, and a `canEmbed()` here answered `false` for it while
+     * connectionTested() handed back -1 for the second latency and the settings
+     * page read that as "not measured here". Both went with the story, because
+     * a branch nothing takes is read by the next person as a case that occurs.
+     * Upgrade path: put the virtual back, together with the -1 branch below and
+     * the sentence on the settings page that reads it — three places, and all
+     * three are needed or the page prints a number nobody measured.
      *
      * It lives here and not in the implementation because the procedure is the
      * same for every backend; what differs is what chat() and embed() talk to.
@@ -139,10 +173,6 @@ Q_SIGNALS:
     /**
      * The answer to testConnection(): both latencies in milliseconds, or the
      * error of whichever call failed first — and then both latencies are -1.
-     *
-     * `embedMilliseconds` is -1 on its own for a backend that does not embed
-     * (canEmbed() above); the page then says which service the embeddings come
-     * from instead of printing a number nobody measured.
      */
     void connectionTested(qint64 chatMilliseconds, qint64 embedMilliseconds, const QString &error);
 

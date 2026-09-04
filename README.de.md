@@ -70,9 +70,10 @@ entwickelt**, ich gebe Ziele, Prioritäten und Freigaben vor —
   mit der Sitzung.
 - **Lokal, solange du es so lässt** — eine SQLite-Datei, und mit Ollama
   verlässt nichts den Rechner. Wer openrouter.ai oder OpenAI wählt, schickt den
-  Text jeder klassifizierten Notiz an diesen Dienst. Die Wahl ist deine, die
-  Folge sollte man kennen — und Denkzettel sagt sie an der Stelle, an der man
-  wählt, noch nicht.
+  Text **jeder** Notiz an diesen Dienst: Der gewählte Dienst beantwortet
+  Klassifizierung und Einbettung, und die Einbettung berührt jede Notiz, nach
+  jeder Bearbeitung erneut. Die Wahl ist deine, die Folge sollte man kennen —
+  und Denkzettel sagt sie an der Stelle, an der man wählt, noch nicht.
 
 ![Das Aufnahmefenster: ein roter Punkt, eine Pegelanzeige und die laufende Zeit 0:23, darunter der Hinweis „Esc verwirft · Strg+Enter speichert"](docs/images/de/aufnahmefenster.png)
 
@@ -97,16 +98,18 @@ aufgeschrieben und nicht gebaut ist:
   werden.
 - **Externe Anbieter für die Transkription.** Sprachnotizen laufen über das
   lokale whisper.cpp und über nichts sonst.
-- **Der Anbieter für die Einbettungen** ist immer Ollama, ganz gleich, wer
-  klassifiziert. Ohne Ollama gibt es keine Themenbündel, und die
-  Einstellungsseite sagt das.
+- **Eine Ähnlichkeitsschwelle je Einbettungsmodell.** Die 0,60 aus SPEC 7.3
+  ist gegen `bge-m3` gemessen, und ein Wert gilt für jedes Modell — das
+  Programm hat keinen Referenzkorpus, um ein frei benanntes Modell zu
+  kalibrieren. Die Einstellungsseite sagt das neben der Wahl.
 
 Gebaut, seit dieser Abschnitt zuletzt geschrieben wurde — und hier stand es
 als fehlend: die KI-Analyse mit Klassifikation, Tags und Kategorienspalte; die
-drei Anbieter Ollama, openrouter.ai und OpenAI; Embeddings, Themen-Clustering
-und die Bündel-Durchsicht; der Obsidian-Export und der Voll-Export als
-Rettungsweg; der Einstellungsdialog mit seinen sechs Seiten; und die
-Such-Operatoren `tag:`, `kat:`, `typ:`, `vor:` und `nach:`.
+drei Anbieter Ollama, openrouter.ai und OpenAI, von denen jeder die
+Klassifizierung **und** die Einbettung beantwortet; Embeddings,
+Themen-Clustering und die Bündel-Durchsicht; der Obsidian-Export und der
+Voll-Export als Rettungsweg; der Einstellungsdialog mit seinen sechs Seiten;
+und die Such-Operatoren `tag:`, `kat:`, `typ:`, `vor:` und `nach:`.
 
 Was gerade ansteht, steht in den
 [Issues](https://github.com/hnsstrk/denkzettel/issues); die bindende

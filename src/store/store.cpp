@@ -368,6 +368,33 @@ const QList<QStringList> &migrations()
                            "  WHERE id = new.id;"
                            " END"),
         },
+        // Version 10 — the service a vector came from, beside the model name it
+        // was already kept under (issue #130).
+        //
+        // **The model name stopped being an identifier the moment the provider
+        // choice opened.** Until then every embedding came from Ollama, so
+        // `bge-m3` meant one thing; since SPEC 7.1 lets the chosen service
+        // answer the embedding call as well, `baai/bge-m3` stands in
+        // openrouter's list beside Ollama's `bge-m3`, and the model field on
+        // the settings page is a free text field. Two services' vectors would
+        // lie under one name, notesToEmbed() would see no difference, nothing
+        // would be embedded again, and the clustering of SPEC 7.3 would compare
+        // two vector spaces with each other — issue #119's trap one storey
+        // down, where the name went in wrong and here the name is no longer
+        // enough.
+        //
+        // **`DEFAULT 'Ollama'` is right for what is already stored** and
+        // devalues nothing: every vector in an existing database came from
+        // Ollama, because nothing else was ever asked. The cheaper road —
+        // qualifying the name itself as `ollama:bge-m3` — would devalue every
+        // stored vector on the mere update, without anybody having switched
+        // anything.
+        //
+        // The value is the id out of the provider (AiProvider::serviceId()),
+        // which is the same string `[AI] Provider` carries in `denkzettelrc`.
+        {
+            QStringLiteral("ALTER TABLE embeddings ADD COLUMN service TEXT NOT NULL DEFAULT 'Ollama'"),
+        },
     };
     return steps;
 }
@@ -1380,20 +1407,33 @@ std::optional<int> Store::failAnalysis(qint64 noteId, const QString &error)
     return read.value(0).toInt();
 }
 
-QList<Note> Store::notesToEmbed(const QString &model) const
+// The pair is two QStrings side by side, which clang-tidy reads as swappable —
+// and a swap here would write a corpus nothing ever finds again. A wrapper type
+// would be an abstraction for the three call sites there are (Embedder and
+// Suggester), each of which names its variables; what does catch a swap is
+// `storetest`, where the model and the service are different strings in every
+// case and the counter-probe of issue #130 goes red on one.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+QList<Note> Store::notesToEmbed(const QString &model, const QString &service) const
 {
     m_lastError.clear();
     QSqlQuery query(m_db);
     // Oldest first, like the classification run reads its notes.
+    //
+    // **Both columns, and that is the whole of migration 10**: the same model
+    // name can come from two services since issue #130, and a comparison on the
+    // name alone would hand back nothing for a corpus that has to be embedded
+    // again.
     query.prepare(QStringLiteral("SELECT %1 FROM notes"
                                  " LEFT JOIN embeddings ON embeddings.note_id = notes.id"
                                  " WHERE state = :state AND TRIM(content) != ''"
                                  " AND (embeddings.note_id IS NULL OR embeddings.model != :model"
-                                 "      OR needs_reembed = 1)"
+                                 "      OR embeddings.service != :service OR needs_reembed = 1)"
                                  " ORDER BY created_at, id")
                       .arg(noteColumns()));
     query.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
     query.bindValue(QStringLiteral(":model"), model);
+    query.bindValue(QStringLiteral(":service"), service);
 
     if (!query.exec()) {
         m_lastError = query.lastError().text();
@@ -1407,7 +1447,14 @@ QList<Note> Store::notesToEmbed(const QString &model) const
     return notes;
 }
 
-bool Store::setEmbedding(qint64 noteId, const QString &model, const QList<float> &vector)
+// The pair is two QStrings side by side, which clang-tidy reads as swappable —
+// and a swap here would write a corpus nothing ever finds again. A wrapper type
+// would be an abstraction for the three call sites there are (Embedder and
+// Suggester), each of which names its variables; what does catch a swap is
+// `storetest`, where the model and the service are different strings in every
+// case and the counter-probe of issue #130 goes red on one.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+bool Store::setEmbedding(qint64 noteId, const QString &model, const QString &service, const QList<float> &vector)
 {
     m_lastError.clear();
     if (!m_db.transaction()) {
@@ -1416,12 +1463,14 @@ bool Store::setEmbedding(qint64 noteId, const QString &model, const QList<float>
     }
 
     QSqlQuery write(m_db);
-    write.prepare(QStringLiteral("INSERT INTO embeddings (note_id, model, vector)"
-                                 " VALUES (:id, :model, :vector)"
+    write.prepare(QStringLiteral("INSERT INTO embeddings (note_id, model, service, vector)"
+                                 " VALUES (:id, :model, :service, :vector)"
                                  " ON CONFLICT(note_id) DO UPDATE SET"
-                                 " model = excluded.model, vector = excluded.vector"));
+                                 " model = excluded.model, service = excluded.service,"
+                                 " vector = excluded.vector"));
     write.bindValue(QStringLiteral(":id"), noteId);
     write.bindValue(QStringLiteral(":model"), model);
+    write.bindValue(QStringLiteral(":service"), service);
     write.bindValue(QStringLiteral(":vector"), vectorToBlob(vector));
     if (!write.exec()) {
         m_lastError = write.lastError().text();
@@ -1455,7 +1504,29 @@ bool Store::setEmbedding(qint64 noteId, const QString &model, const QList<float>
     return true;
 }
 
-QList<NoteEmbedding> Store::embeddings(const QString &model) const
+bool Store::markAllForReembedding()
+{
+    m_lastError.clear();
+    QSqlQuery write(m_db);
+    // Every note and not only the analysed ones: the flag says "the vector is
+    // older than what it should be", and a note that is classified later is
+    // embedded in the same run. Notes that already carry no vector are
+    // unaffected by it — notesToEmbed() hands them over anyway.
+    if (!write.exec(QStringLiteral("UPDATE notes SET needs_reembed = 1"))) {
+        m_lastError = write.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+// The pair is two QStrings side by side, which clang-tidy reads as swappable —
+// and a swap here would write a corpus nothing ever finds again. A wrapper type
+// would be an abstraction for the three call sites there are (Embedder and
+// Suggester), each of which names its variables; what does catch a swap is
+// `storetest`, where the model and the service are different strings in every
+// case and the counter-probe of issue #130 goes red on one.
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+QList<NoteEmbedding> Store::embeddings(const QString &model, const QString &service) const
 {
     m_lastError.clear();
     QSqlQuery query(m_db);
@@ -1465,9 +1536,11 @@ QList<NoteEmbedding> Store::embeddings(const QString &model) const
     // keeps two vector spaces from being compared with each other.
     query.prepare(QStringLiteral("SELECT embeddings.note_id, embeddings.vector FROM embeddings"
                                  " JOIN notes ON notes.id = embeddings.note_id"
-                                 " WHERE embeddings.model = :model AND notes.state = :state"
+                                 " WHERE embeddings.model = :model AND embeddings.service = :service"
+                                 " AND notes.state = :state"
                                  " ORDER BY notes.created_at, notes.id"));
     query.bindValue(QStringLiteral(":model"), model);
+    query.bindValue(QStringLiteral(":service"), service);
     query.bindValue(QStringLiteral(":state"), stateToText(Note::State::Analysed));
 
     if (!query.exec()) {
