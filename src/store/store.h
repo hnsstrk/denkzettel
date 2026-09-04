@@ -603,6 +603,26 @@ private:
      */
     bool deleteNoteRow(qint64 id);
 
+    /**
+     * Deletes every suggestion that has no note left, and reports how many —
+     * below zero on a database error. The caller owns the transaction.
+     *
+     * **A suggestion whose notes are all gone is a state SPEC 9 says must not
+     * stand**, and until now only the review ended it, the next time somebody
+     * opened it. That is too late for anything that counts: the badge of the
+     * library asks `proposals()`, which hands the row back over a LEFT JOIN,
+     * so a task whose one note was deleted went on being counted as a waiting
+     * question until the review was opened (found in the review of issue #31,
+     * customer decision 04.09.2026).
+     *
+     * It runs where the notes really go, not where the badge reads: one
+     * statement in the same transaction as the deletion, so no reader can see
+     * the corpus without the note and with the suggestion. Cleaning it up at
+     * the counting end instead would leave the wrong row in the database and
+     * hide it.
+     */
+    int sweepOrphanedProposals();
+
     /** One pass of the query of SPEC 6 — what search() runs once or twice. */
     QList<Note> notesMatching(const SearchQuery &parsed) const;
 

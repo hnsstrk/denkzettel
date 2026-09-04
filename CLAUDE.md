@@ -1722,6 +1722,32 @@ find.
     is. Two readings on one binary, 812 and 612, and the second is the one that
     matches the drawn picture.
 
+    **And "where the content overflows" is a condition, not a place** (the
+    review's finding on this entry): in that runner it held only because 612 is
+    larger than the 600 the window happens to open at. A shorter pair of cards
+    fits, nothing overflows, and the same line measures the window height again
+    — silently, and the picture looks right. So the reading carries only beside
+    the readback that it overflowed at all (`filled > window.height()`, which
+    `proposalshots` now aborts on), or it is taken from the widget instead of
+    from the window: `sizeHint()` of the widget inside the scroll area is the
+    size the widgets need, whatever the window is doing.
+
+91. **A control that cannot come out different is not a control, and a check
+    against a baseline can only be controlled with something the baseline
+    has.** Measured 2026-09-04 on #31, on the catalogue comparison findings 52,
+    80 and 83 prescribe. The real run reported 0 departures, and the control —
+    one message struck from a copy, exactly as finding 80 asks — reported 0 as
+    well, which reads as "the procedure is broken" and was not. The struck
+    message was one the **branch adds**; a message the baseline never had
+    cannot leave it, so that control could not have come out any other way.
+    Struck of a message both sides carry (`"The model's answer carried no
+    tag."`) the same comparison names it: 1 against 0. Only then does the 0 of
+    the real run say anything. This is the first rule of the verification
+    stance applied to the control rather than to the measurement — a step whose
+    subject cannot be missing proves nothing about the step — and the shape
+    generalises past catalogues: whenever a check asks "what did A lose against
+    B", the thing you delete for the control has to be **in B**.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

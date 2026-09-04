@@ -225,13 +225,19 @@ void ProposalWindow::reload()
         // would stay in the database for good, against the sentence SPEC 9
         // makes without a word about status.
         //
-        // **And it holds for a task suggestion too, which issue #31 made
-        // askable.** SPEC 9 writes the sentence for a bundle because a task
-        // card did not exist when it was written; nothing in the mechanism is a
-        // bundle's. Neither `proposal_notes` nor `Store::proposals()` knows the
-        // kind — the table carries `ON DELETE CASCADE` on the note and the
-        // query filters on nothing — so a task suggestion reaches the identical
+        // **And it holds for a task suggestion too**, which SPEC 9 says in so
+        // many words since 04.09.2026: nothing in the mechanism is a bundle's.
+        // Neither `proposal_notes` nor `Store::proposals()` knows the kind —
+        // the table carries `ON DELETE CASCADE` on the note and the query
+        // filters on nothing — so a task suggestion reaches the identical
         // state, and for it "the last note" is the only note it ever had.
+        //
+        // Since the same day the row rarely gets this far: Store::removeNote()
+        // sweeps a suggestion left without notes inside the deletion's own
+        // transaction, so the badge of the library cannot count a question that
+        // is gone. This stays as the second door — a row can reach the database
+        // by other roads than a deletion, and the review is where a card would
+        // otherwise stand for it.
         if (card.notes.isEmpty()) {
             m_store->removeProposal(proposal.id);
             continue;

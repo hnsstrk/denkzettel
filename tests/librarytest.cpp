@@ -257,6 +257,7 @@ private Q_SLOTS:
     void theEditedFieldsAreWhatReachesTaskwarrior();
     void aRefusedTaskLeavesTheNoteAndTheSuggestion();
     void theBadgeFollowsTheOpenSuggestions();
+    void deletingTheLastNoteTakesTheSuggestionAndTheBadge();
 
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
@@ -317,6 +318,21 @@ private:
     qint64 storedTask(const QString &payload, qint64 noteId);
 
 
+
+    /**
+     * A suggestion carrying **no** notes at all, written straight into the
+     * store.
+     *
+     * Since `Store::removeNote()` sweeps a suggestion its last note leaves
+     * behind (customer decision 04.09.2026), deleting a note is no longer a way
+     * to build this state — the sweep runs in the deletion's own transaction.
+     * The row is still reachable: `addProposal()` takes an empty note list, and
+     * `Store::proposals()` guards expressly against a row "hand-written into
+     * the database". So the second door the review keeps stays measurable, and
+     * the cases below measure the door rather than the road that no longer
+     * leads to it.
+     */
+    qint64 emptyProposal(Proposal::Kind kind, Proposal::Status status);
 
     /** Texts of the labels the window shows right now. */
     static QStringList visibleLabels(const QWidget &window);
@@ -966,6 +982,19 @@ qint64 LibraryTest::storedBundle(const QString &title, const QList<qint64> &note
                                   {QLatin1String("markdown"), bundleMarkdown(title, notes)}})
             .toJson(QJsonDocument::Compact));
     proposal.noteIds = noteIds;
+
+    const std::optional<qint64> id = m_store->addProposal(proposal);
+    Q_ASSERT(id.has_value());
+    return *id;
+}
+
+qint64 LibraryTest::emptyProposal(Proposal::Kind kind, Proposal::Status status)
+{
+    Proposal proposal;
+    proposal.kind = kind;
+    proposal.createdAt = QDateTime::currentDateTime();
+    proposal.status = status;
+    proposal.payload = QStringLiteral(R"({"title":"Denkzettel-Entwicklung","markdown":""})");
 
     const std::optional<qint64> id = m_store->addProposal(proposal);
     Q_ASSERT(id.has_value());
@@ -4022,17 +4051,21 @@ KMessageWidget *cardError(const QWidget &window, qint64 id)
     // Truncated on every call, so a case reads its own run and not the one
     // before it (CLAUDE.md, finding 55).
     QFile::remove(dir + QStringLiteral("/task.args"));
-    [&] {
-        QVERIFY(stub.open(QIODevice::WriteOnly));
-    }();
+    // qFatal and not QVERIFY: a QVERIFY inside an immediately called lambda
+    // leaves the lambda, not the case, so a stand-in that could not be written
+    // would fail further down on an assertion about the run instead of here
+    // (review of issue #31).
+    if (!stub.open(QIODevice::WriteOnly)) {
+        qFatal("could not write the task stand-in: %s", qUtf8Printable(stub.errorString()));
+    }
     stub.write(R"sh(#!/bin/sh
 printf '%s\0' "$@" >> "$0.args"
 )sh");
     stub.write(body);
     stub.close();
-    [&] {
-        QVERIFY(stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
-    }();
+    if (!stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner)) {
+        qFatal("could not make the task stand-in executable");
+    }
 
     const QByteArray previous = qgetenv("PATH");
     qputenv("PATH", QByteArray(dir.toLocal8Bit() + ':' + previous));
@@ -4208,14 +4241,13 @@ void LibraryTest::acceptingExportsOnlyTheTickedNotes()
 
 void LibraryTest::dropsABundleWhoseNotesAreAllGone()
 {
-    const qint64 note = storedNote(QStringLiteral("die letzte Notiz des Bündels"),
-                                   QStringLiteral("2026-07-30T12:00:00"));
-    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {note});
-
-    // The state the review of issue #29 measured: deleting the note takes its
-    // `proposal_notes` row with it by ON DELETE CASCADE and leaves the
-    // suggestion standing over nothing.
-    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+    // The state the review of issue #29 measured — a suggestion standing over
+    // nothing. It used to be built by deleting the note, whose `proposal_notes`
+    // row goes by ON DELETE CASCADE while the suggestion stays; since the
+    // customer decision of 04.09.2026 Store::removeNote() sweeps that row in
+    // the deletion's own transaction, so the state is written directly here.
+    // The review's own clearing is the second door and stays measured.
+    const qint64 bundle = emptyProposal(Proposal::Kind::Bundle, Proposal::Status::Open);
     QCOMPARE(m_store->proposals().size(), qsizetype(1));
     QVERIFY(m_store->proposals().constFirst().noteIds.isEmpty());
 
@@ -4232,12 +4264,12 @@ void LibraryTest::dropsABundleWhoseNotesAreAllGone()
 
 void LibraryTest::dropsADeferredBundleWhoseNotesAreAllGone()
 {
-    const qint64 note = storedNote(QStringLiteral("die letzte Notiz des zurückgestellten Bündels"),
-                                   QStringLiteral("2026-07-30T12:00:00"));
-    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {note});
-    QVERIFY2(m_store->setProposalStatus(bundle, Proposal::Status::Deferred),
-             qPrintable(m_store->lastError()));
-    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+    // Written directly rather than built by deleting the note: since the
+    // customer decision of 04.09.2026 Store::removeNote() sweeps the row it
+    // would leave behind, so that road no longer reaches this state. What this
+    // case is about is unchanged — the review clears an empty suggestion even
+    // while it is put aside, which is the order issue #147 corrected.
+    emptyProposal(Proposal::Kind::Bundle, Proposal::Status::Deferred);
 
     // Asserted before the window is built, or the check below would pass over a
     // row that was never there (CLAUDE.md, finding 27).
@@ -4275,13 +4307,10 @@ void LibraryTest::dropsADeferredBundleWhoseNotesAreAllGone()
  */
 void LibraryTest::dropsADeferredTaskWhoseNoteIsGone()
 {
-    const qint64 note = storedNote(QStringLiteral("restic prune-Policy prüfen"));
-    const qint64 task = storedTask(QStringLiteral(R"({"description":"restic prune-Policy prüfen"})"), note);
-    QVERIFY(m_store->setProposalStatus(task, Proposal::Status::Deferred));
-
-    // The state the store can reach on its own: deleting the note takes its
-    // `proposal_notes` row by ON DELETE CASCADE and leaves the suggestion.
-    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+    // Written directly, for the reason the two bundle cases above are: deleting
+    // the note is swept in the same transaction since 04.09.2026, so it no
+    // longer leaves this row. The review's clearing is what is measured here.
+    const qint64 task = emptyProposal(Proposal::Kind::Task, Proposal::Status::Deferred);
     const QList<Proposal> before = m_store->proposals();
     QCOMPARE(before.size(), qsizetype(1));
     QVERIFY(before.constFirst().noteIds.isEmpty());
@@ -4454,6 +4483,47 @@ void LibraryTest::theBadgeFollowsTheOpenSuggestions()
     const QSignalSpy asked(&window, &LibraryWindow::proposalsRequested);
     badge->click();
     QCOMPARE(asked.count(), 1);
+}
+
+/**
+ * Deleting the last note of a suggestion takes the suggestion with it, and the
+ * badge falls in the same breath (SPEC 9, customer decision 04.09.2026).
+ *
+ * The fault this pins was found in the review of #31: `Store::proposals()`
+ * hands an empty suggestion back over its LEFT JOIN, so the badge went on
+ * counting a task whose note had been deleted — a waiting question that no
+ * longer existed — until somebody opened the review, which is what used to
+ * clear the row. Nothing on any screen said so, and the number was wrong for
+ * as long as the library stood open.
+ *
+ * Both ends in one case (CLAUDE.md, finding 62): the row, read off the store,
+ * and the label, read off the button. Asserting only the label would pass over
+ * a badge that filters empty suggestions out while the wrong row stays in the
+ * database; asserting only the row would say nothing about what the user sees.
+ */
+void LibraryTest::deletingTheLastNoteTakesTheSuggestionAndTheBadge()
+{
+    const qint64 note = storedNote(QStringLiteral("Mara wegen Wochenende anrufen"));
+    storedTask(QStringLiteral(R"({"description":"Mara wegen Wochenende anrufen"})"), note);
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto *badge = window.findChild<QPushButton *>(QStringLiteral("proposals"));
+    QVERIFY2(badge, "the library header carries no button for the suggestions");
+    // The state before the deletion, or the case would pass over a badge that
+    // never counted anything (CLAUDE.md, finding 27).
+    QCOMPARE(badge->text(), QStringLiteral("Suggestion (1)"));
+    QCOMPARE(m_store->proposals().size(), qsizetype(1));
+
+    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+
+    // At once, and without the review being opened at all — that is the whole
+    // of it. The review is not built in this case on purpose: it is what used
+    // to do the clearing, and building it would measure the old road.
+    QVERIFY2(m_store->proposals().isEmpty(), "the suggestion outlived its last note");
+    QCOMPARE(badge->text(), QStringLiteral("Suggestions"));
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()

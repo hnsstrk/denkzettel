@@ -411,8 +411,16 @@ int main(int argc, char **argv)
         qFatal("the task card is not built");
     }
     const int filled = taskFrame->mapTo(&window, QPoint(0, 0)).y() + taskFrame->height() + CardMargin;
-    qWarning("31-zwei-karten.png  the two cards fill %d logical rows, window was %d",
-             filled, window.height());
+    // The overflow is read back, not assumed: this measurement is only the size
+    // the cards need while they are **taller** than the window — in a window
+    // with room to spare the box layout has already handed the surplus to them
+    // (CLAUDE.md, finding 90). A shorter pair of cards would quietly measure
+    // the window height instead, and nothing in the picture would say so.
+    qWarning("31-zwei-karten.png  the two cards fill %d logical rows, window was %d, overflowing=%d",
+             filled, window.height(), int(filled > window.height()));
+    if (filled <= window.height()) {
+        qFatal("the cards fit the window, so their height was not measured but taken from it");
+    }
     window.resize(WindowWidth, filled);
     QTest::qWait(200);
 
