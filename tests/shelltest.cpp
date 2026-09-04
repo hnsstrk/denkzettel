@@ -707,8 +707,21 @@ void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
 
     // ...and it is what lets the next crossing speak again. Without that half
     // the reminder would be a one-off for the life of the configuration file.
+    //
+    // **Through a KConfig of its own, and that is the whole reason this line is
+    // not `group`**: the falling back has to reach the **disk**, or a daemon
+    // restarted between the export and the next filling up reads the marker
+    // still standing and never says anything again — a silence nobody can
+    // notice, because nothing happens. Asked on the same object, the in-memory
+    // value answers and the writing is never measured (found by the review of
+    // `14f741f`: with the sync of the downward edge deleted, every case stayed
+    // green).
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QCOMPARE(overflowReport(*m_store, group).reminder, QStringLiteral("2 notes are waiting for an export."));
+    KConfig reopened(KSharedConfig::openConfig()->name());
+    KConfigGroup afterTheExport(&reopened, QStringLiteral("Export"));
+    QCOMPARE(afterTheExport.readEntry("OverflowReminded", true), false);
+    QCOMPARE(overflowReport(*m_store, afterTheExport).reminder,
+             QStringLiteral("2 notes are waiting for an export."));
 }
 
 void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
