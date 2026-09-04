@@ -1621,30 +1621,36 @@ find.
     run the counter-run comes out different — a full `ctest` leaves **1** on
     the unchanged state and **0** on the changed one, 15 of 15 green in both.
 
-87. **A probe of an FTS5 schema names the tokenizer it uses — `unicode61` and
-    `trigram` behave differently on an inconsistent `delete` command, and the
-    more convenient of the two says nothing.** Measured 2026-09-04 on #137,
-    where a trigger had to put `analysis_attempts` back to 0 whenever a note's
-    text changes. Tried out first in a plain `sqlite3` session against a schema
-    typed beside it: green, and it proved nothing — that session's FTS table
-    was built with the default tokenizer, while `notes_fts` is declared
-    `trigram`. Against the schema the product actually creates, the same
-    trigger made `updateNote()` come back "database disk image is malformed"
-    for **every** changed text, and four test sets went red.
+87. **A probe of a schema typed beside the product measures the schema it
+    typed.** Measured 2026-09-04 on #137, where the reset of the analysis
+    counter was to be built as a trigger on `notes`. The trigger was tried
+    first in `sqlite3` against a notes table, an `fts5` index and the two
+    triggers of migration 2 written out by hand — it came out green, the
+    counter went to 0 on a changed text and stayed on an unchanged one, and
+    both indexes passed their `integrity-check`. Against the real schema the
+    same trigger made `updateNote()` answer **"database disk image is
+    malformed" for every changed text**, and `storetest`, `transcribetest`,
+    `aitest` and `librarytest` went red together. The one difference was the
+    tokenizer: the probe took fts5's default, `notes_fts` is declared
+    `tokenize='trigram remove_diacritics 1'`, and under the default the same
+    inconsistent `delete` command goes through in silence. So the probe ran
+    against a schema in which the fault **could not occur** — the first rule
+    of the verification stance, one storey below the code.
 
-    The cause is worth knowing on its own, because it is not about tokenizers:
-    `notes_fts_after_update` and `notes_words_after_update` were written
-    `AFTER UPDATE ON notes`, so they fire for **every** column. The `UPDATE`
-    inside the new trigger therefore set them off a second time, and their
-    `delete` command then carried a text FTS5 has no entries for. Narrowing
-    both to `UPDATE OF content` is what puts it right — which is all they ever
-    wanted, they hold nothing but `content`.
+    **The mechanism is what the next reader needs**, not the message. An
+    `AFTER UPDATE` trigger whose body updates the same table sets off every
+    other trigger on it a second time, and `notes_fts_after_update` and
+    `notes_words_after_update` were written as `AFTER UPDATE ON notes` — they
+    fire for **every** column, not only for the one they index. Their `delete`
+    command then carries a text FTS5 has no entries for. Narrowing both to
+    `AFTER UPDATE OF content` is what the two indexes wanted anyway: they hold
+    `content` and nothing else, and until then every write of `state`,
+    `category`, `origin` or the attempt counter rewrote them for nothing.
 
-    So: a schema probe runs against the schema the **product** creates, never
-    against one typed beside it. Where that is impractical, the probe declares
-    every option the real one declares — tokenizer, `content=`,
-    `content_rowid=` — and the readback is the schema, not the absence of an
-    error message.
+    A probe of this database runs against the schema **`migrations()` builds**
+    — pointed at a copy through `XDG_DATA_HOME`, or read out of a migrated
+    file — never against one retyped beside it. Whatever a schema declares and
+    a probe leaves out is exactly where the fault hides.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
