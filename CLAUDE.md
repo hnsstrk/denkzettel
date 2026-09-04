@@ -1764,6 +1764,24 @@ So a report that says "not run, because the daemon may not be stopped" is
 saying the wrong thing. Say "not run" and why it was not worth the run, or run
 it.
 
+**The tray menu is reachable the same way, and one kind of button is not.**
+Measured 2026-09-04 while reviewing #34, where the question was whether the
+overflow line disappears once an export empties the library. The road that
+works: the tray entry over `com.canonical.dbusmenu`, `Event(6, "clicked")` —
+which is what plasmashell sends on a click — then the window's own buttons over
+AT-SPI. It came out different twice on the same road: with the `connect` the
+tooltip loses the overflow part three seconds after Accept, without it the part
+stays while the export happens all the same.
+
+**What cost two runs is the other kind of button.** The library's "Delete"
+button is **never disabled** — only the `QAction` behind it is
+(`librarywindow.cpp:1124-1125` against `:2242`), and that action needs a
+**current** index. AT-SPI's `select_child` sets the selection, not the current
+index, so `do_action` answers `True`, nothing happens, and the store still
+holds both notes. Both runs looked identical and measured nothing. Whenever a
+button only forwards to a `QAction`, press it and then **read the state back**
+— the return value of `do_action` is not one.
+
 ## UI review
 
 The yardstick is the KDE Human Interface Guidelines (develop.kde.org/hig) —
