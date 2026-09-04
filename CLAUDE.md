@@ -1568,7 +1568,7 @@ find.
     `git log --oneline -1 <branch>` after it. A merge tells you it merged; it
     does not tell you where.
 
-85. **A `QTemporaryDir` destructor that runs is no proof the directory is
+86. **A `QTemporaryDir` destructor that runs is no proof the directory is
     gone — a library static writes it back after `main()` has returned.**
     Measured 2026-09-03 on #136, where `systemfontstest` left exactly one
     `/tmp/qt_temp-*` per run, holding nothing but `.cache/ksvg-elements`. The
