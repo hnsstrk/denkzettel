@@ -873,22 +873,33 @@ what is missing; the embedding run, which talks to Ollama, goes on unaffected.
 "Test connection" and the run name the missing model rather than a transport
 error.
 
-**Both capabilities are selectable per provider** (customer decision
-29.08.2026, issue #130). Until that date this section bound embeddings to
-Ollama for the whole of v1, on the ground that openrouter offered no embedding
-endpoint — measured on 2026-07-31 and true then. It is not true now:
-openrouter lists 34 embedding models beside its chat models. The restriction
-therefore falls with its reason, and it falls for the same purpose the customer
-names for the whole provider choice: **a machine without the compute to run a
-model locally, or the wish to use a distinctly stronger one.** Ollama stays the
-default; nothing about a local installation changes.
+**The provider is chosen once and answers both capabilities** (customer
+decision 29.08.2026 and PO decision 04.09.2026, issue #130): whichever of the
+three is set writes the classification and the embedding. Until 29.08.2026 this
+section bound embeddings to Ollama for the whole of v1, on the ground that
+openrouter offered no embedding endpoint — measured on 2026-07-31 and true
+then, false since: openrouter lists embedding models beside its chat models,
+and OpenAI always did (`/v1/embeddings` answers 401 against a 404 control on
+both, measured 04.09.2026). The restriction falls with its reason, and it falls
+whole: the customer's grounds — **a machine without the compute to run a model
+locally, or the wish for a distinctly stronger one** — are properties of the
+machine and not of one capability, and the mixed state, classification remote
+and embedding local, is the one he objected to. Ollama stays the default;
+nothing about a local installation changes.
 
-What that costs, and it is owed before the switch rather than after (issue
-#130): vectors of two different models are not comparable, so a change of the
-embedding model invalidates the stored corpus and the cluster threshold of 7.3
-has to be calibrated again; and the note text leaves the machine, which the
-local route was the one way to avoid. Whoever offers the choice states both
-where it is made.
+What the choice costs is said where it is made, on the settings page and not in
+a manual: **every note leaves the machine**, for the embedding after every edit
+as well; and **vectors of two models are not comparable** — a change of the
+embedding model marks every note `needs_reembed`, the next runs re-embed them
+within the budget of §14, and until then the clustering of 7.3 sees a smaller
+corpus. Nothing is re-embedded in bulk and nothing is refused. The embedding
+model of a remote provider starts empty for the reason the chat model does.
+
+A vector is therefore kept under the **service** it came from as well as under
+the model name. The same name exists on two services — `bge-m3` is an Ollama
+model and `baai/bge-m3` stands in openrouter's list — and the model field is a
+free one, so the name alone stopped being an identifier the moment the choice
+opened (issue #130).
 
 Without a reachable provider for embeddings, Denkzettel degrades visibly:
 classification through the chosen provider keeps working, topic bundles are
@@ -938,8 +949,8 @@ recorder. Here it is five minutes per **call**, and the ground is the loop
 discipline of 7.2: turn a silent hang into an error the attempt counter can
 deal with. Same number, two reasons, and neither follows from the other.
 
-"Test connection" in the settings makes one mini `chat` call and (with Ollama)
-one `embed` call each and shows the latency or the error.
+"Test connection" in the settings makes one mini `chat` call and one `embed`
+call against the chosen provider and shows the latency or the error.
 
 ### 7.2 Analysis run
 
@@ -995,7 +1006,11 @@ self-healing.
   notes that is ≤ 20k comparisons — uncritical, no vector DB).
 - Method: single-linkage chaining — pairs of notes with a similarity ≥
   **0.60** (internal constant, calibratable, no user setting) land in the same
-  cluster.
+  cluster. The value was calibrated against `bge-m3`. One value serves every
+  provider because the program can calibrate nothing about a model the user
+  names freely; under another model the bundles may come too eagerly or not at
+  all, and the settings page says so beside the choice (PO decision
+  04.09.2026, issue #130).
 - Clusters with ≥ **bundle threshold** notes (setting, default **3**) are laid
   before the LLM: it names the topic and may remove obvious outliers (sanity
   check). Result: one `bundle` suggestion.
@@ -1611,6 +1626,15 @@ The periodic analysis run is a loop in the sense of the loop conventions:
 
 Reporting channels: tray state + tooltip (quiet), KNotification (important), log
 file `~/.local/share/denkzettel/denkzettel.log` (details, with rotation).
+
+The log file is a second road for the same message handler and not a second
+log: every line it takes goes to stderr as well, so `journalctl --user -t
+denkzetteld` keeps carrying it, and a data directory of its own
+(`XDG_DATA_HOME`) gets a log of its own — which the journal, filtering by
+process name, does not give. It rotates by size: at 1 MB the file is renamed to
+`denkzettel.log.1` and one predecessor is kept. Nothing in the user interface
+names the path; no KDE application shows its log (PO decision 04.09.2026,
+issue #40).
 
 **A transcription that has finally failed uses all three**, and that is what
 the split means in practice (§10, §12): the tray state and the tooltip stand as
