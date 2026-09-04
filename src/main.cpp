@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
     // The overflow guard of SPEC 11 (issue #34). It says once that the library
     // is due an export and never exports anything itself — SPEC 11 rules an
     // automatic export out in as many words, and nothing on this road could
-    // carry one: overflowReminder() reads two counts and writes one marker.
+    // carry one: overflowReport() reads two counts and writes one marker.
     //
     // The marker lies in the same group as the two thresholds, because it is
     // the state belonging to them, and it is what makes the reminder survive a
@@ -504,23 +504,35 @@ int main(int argc, char *argv[])
     // through the skeleton: the skeleton is the dialog's, and this is no
     // setting the user sets.
     KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
-    const auto remindAboutOverflow = [&store, &exportGroup] {
-        const QString reminder = overflowReminder(store, exportGroup);
-        if (!reminder.isEmpty()) {
-            // `Notification` and not `Warning`, unlike the transcription that
-            // has finally failed (issue #115): nothing has gone wrong here and
-            // no note is at risk — the library is full, which is what a library
-            // in use does.
+    const auto remindAboutOverflow = [&store, &exportGroup, &tray] {
+        const OverflowReport report = overflowReport(store, exportGroup);
+        // The quiet half first and unconditionally: it stands for as long as
+        // its cause does and is taken back by the same call, so handing it over
+        // on every check is what keeps the line where the library is (SPEC 14).
+        tray.setOverflow(report.state);
+        if (!report.reminder.isEmpty()) {
+            // And the loud half, at the crossing only. `Notification` and not
+            // `Warning`, unlike the transcription that has finally failed
+            // (issue #115): nothing has gone wrong here and no note is at risk
+            // — the library is full, which is what a library in use does.
             KNotification::event(KNotification::Notification,
-                                 i18n("Notes are piling up"), reminder);
+                                 i18n("Notes waiting for export"), report.reminder);
         }
     };
-    // Two roads, and each of them reaches a threshold the other cannot: a note
-    // written is what makes the count grow, and time passing is what makes the
-    // oldest note old. Without the clock a daemon left running for weeks would
-    // never notice the age criterion at all; an hour is fine for a threshold
-    // counted in days and costs one wakeup.
+    // Three roads, and each of them reaches something the others cannot: a note
+    // written is what makes the count grow, a note **deleted** is the only
+    // thing that takes the line back — an export of SPEC 8 goes that way and
+    // nothing else announces it — and time passing is what makes the oldest
+    // note old. Without the clock a daemon left running for weeks would never
+    // notice the age criterion at all; an hour is fine for a threshold counted
+    // in days and costs one wakeup.
+    //
+    // The deletion is what makes the sentence above true (found by the review
+    // of 14f741f): without it the line kept the old number after an export
+    // until the next note or the next hour, so the user did the right thing
+    // and was told they had not.
     QObject::connect(&store, &Store::noteAdded, &app, remindAboutOverflow);
+    QObject::connect(&store, &Store::notesRemoved, &app, remindAboutOverflow);
     QTimer overflowClock;
     QObject::connect(&overflowClock, &QTimer::timeout, &app, remindAboutOverflow);
     overflowClock.start(std::chrono::hours(1));

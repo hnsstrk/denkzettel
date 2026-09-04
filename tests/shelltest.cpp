@@ -81,6 +81,9 @@ private Q_SLOTS:
     void remindsAgainOnceAnEmptiedLibraryFillsUpAnew();
     void saysNothingAfterARestartAboutAnOverflowAlreadyReported();
     void remindsWhenTheOldestNoteHasWaitedTooLong();
+    void namesTheCountWhenBothCriteriaGiveWayAtOnce();
+    void announcesADeletionSoTheLineCanGoWithItsCause();
+    void putsTheOverflowLastInTheLineAndRaisesNoErrorState();
 
     void findsAProgramByItsPathAndByItsName();
     void countsAFileWithoutAnExecuteBitAsMissing();
@@ -653,17 +656,27 @@ void ShellTest::remindsOnceWhenTheLibraryFillsUp()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded below the threshold");
+    const OverflowReport below = overflowReport(*m_store, group);
+    QVERIFY2(below.reminder.isEmpty(), "reminded below the threshold");
+    QVERIFY2(below.state.isEmpty(), "showed a tray part below the threshold");
 
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
-    QCOMPARE(overflowReminder(*m_store, group), QStringLiteral("3 notes are waiting for an export."));
+    const OverflowReport crossing = overflowReport(*m_store, group);
+    QCOMPARE(crossing.reminder, QStringLiteral("3 notes have not been exported yet."));
+    QCOMPARE(crossing.state, QStringLiteral("3 notes waiting for export"));
 
-    // No permanent alarm: the state is the same one, so nothing more is said —
-    // not on the next note either, which would be the road a running daemon
-    // takes.
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded twice for one state");
+    // No permanent alarm: the state is the same one, so nothing more is **said**
+    // — not on the next note either, which would be the road a running daemon
+    // takes. The tray part is the other rule and stands on every call, or the
+    // line would empty itself while the library is still full.
+    const OverflowReport again = overflowReport(*m_store, group);
+    QVERIFY2(again.reminder.isEmpty(), "reminded twice for one state");
+    QCOMPARE(again.state, crossing.state);
+
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded again while still over");
+    const OverflowReport fourth = overflowReport(*m_store, group);
+    QVERIFY2(fourth.reminder.isEmpty(), "reminded again while still over");
+    QCOMPARE(fourth.state, QStringLiteral("4 notes waiting for export"));
 }
 
 void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
@@ -680,7 +693,7 @@ void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QVERIFY(!overflowReminder(*m_store, group).isEmpty());
+    QVERIFY(!overflowReport(*m_store, group).reminder.isEmpty());
 
     // What an export of SPEC 8.1 leaves behind: the notes it wrote are gone
     // from the table. Falling back below says nothing itself...
@@ -689,12 +702,27 @@ void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
     for (const Note &note : written) {
         QVERIFY(m_store->removeNote(note.id));
     }
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "announced the falling back");
+    const OverflowReport emptied = overflowReport(*m_store, group);
+    QVERIFY2(emptied.reminder.isEmpty(), "announced the falling back");
+    QVERIFY2(emptied.state.isEmpty(), "kept the tray part after the library was emptied");
 
     // ...and it is what lets the next crossing speak again. Without that half
     // the reminder would be a one-off for the life of the configuration file.
+    //
+    // **Through a KConfig of its own, and that is the whole reason this line is
+    // not `group`**: the falling back has to reach the **disk**, or a daemon
+    // restarted between the export and the next filling up reads the marker
+    // still standing and never says anything again — a silence nobody can
+    // notice, because nothing happens. Asked on the same object, the in-memory
+    // value answers and the writing is never measured (found by the review of
+    // `14f741f`: with the sync of the downward edge deleted, every case stayed
+    // green).
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QCOMPARE(overflowReminder(*m_store, group), QStringLiteral("2 notes are waiting for an export."));
+    KConfig reopened(KSharedConfig::openConfig()->name());
+    KConfigGroup afterTheExport(&reopened, QStringLiteral("Export"));
+    QCOMPARE(afterTheExport.readEntry("OverflowReminded", true), false);
+    QCOMPARE(overflowReport(*m_store, afterTheExport).reminder,
+             QStringLiteral("2 notes have not been exported yet."));
 }
 
 void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
@@ -711,7 +739,7 @@ void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
-    QVERIFY(!overflowReminder(*m_store, group).isEmpty());
+    QVERIFY(!overflowReport(*m_store, group).reminder.isEmpty());
 
     // The restart, and it is one: a KConfig of its own reads the file from
     // disk, so what answers here is what was written down and not what the
@@ -723,7 +751,7 @@ void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
     QVERIFY2(restarted.open(), qPrintable(restarted.lastError()));
 
     QCOMPARE(afterRestart.readEntry("OverflowNotes", 0), 2);
-    QVERIFY2(overflowReminder(restarted, afterRestart).isEmpty(),
+    QVERIFY2(overflowReport(restarted, afterRestart).reminder.isEmpty(),
              "greeted the restart with a reminder that had already been given");
 }
 
@@ -744,13 +772,129 @@ void ShellTest::remindsWhenTheOldestNoteHasWaitedTooLong()
     group.sync();
 
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-29)));
-    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded a day before the threshold");
+    QVERIFY2(overflowReport(*m_store, group).reminder.isEmpty(), "reminded a day before the threshold");
 
     // A second note, older than the first: the age criterion asks the oldest
     // one, so a guard reading the newest would stay quiet here.
     QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-40)));
-    QCOMPARE(overflowReminder(*m_store, group),
-             QStringLiteral("The oldest note has been waiting for an export for 40 days."));
+    const OverflowReport crossed = overflowReport(*m_store, group);
+    // Both channels branch, so both are read back: with only one of them
+    // asserted a guard that always takes the count branch in the other would
+    // pass (UX decision of 04.09.2026, which gave the notification its own
+    // age sentence).
+    QCOMPARE(crossed.reminder,
+             QStringLiteral("The oldest unexported note is 40 days old."));
+    // And the tray line names the **age**, not the two notes: with the count
+    // out of reach, "2 notes waiting for export" would be a riddle rather than
+    // a message (UX decision of 04.09.2026).
+    QCOMPARE(crossed.state, QStringLiteral("The oldest note has been waiting 40 days for export"));
+}
+
+void ShellTest::namesTheCountWhenBothCriteriaGiveWayAtOnce()
+{
+    // The third of the three states: with **both** criteria over, the line names
+    // the count (UX decision of 04.09.2026).
+    //
+    // What only this case can see is the **precedence**, and nothing else about
+    // the branch. A guard that always writes the count is already caught by the
+    // age case above — measured, that mutation's one red. But
+    // `tooMany ? count : age` and `!tooOld ? count : age` answer **identically**
+    // wherever one criterion is over on its own, and they part only here; with
+    // the count branch taken on `tooMany && !tooOld`, this case is the only one
+    // that goes red.
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup group = exportGroupOfTheTestSet();
+    const auto tidy = qScopeGuard([&group] {
+        group.deleteGroup();
+        group.sync();
+    });
+    group.writeEntry("OverflowNotes", 2);
+    group.writeEntry("OverflowDays", 30);
+    group.sync();
+
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime().addDays(-40)));
+    const OverflowReport both = overflowReport(*m_store, group);
+    QCOMPARE(both.state, QStringLiteral("2 notes waiting for export"));
+    // The count wins in the loud channel too, and out of the same branch.
+    QCOMPARE(both.reminder, QStringLiteral("2 notes have not been exported yet."));
+}
+
+void ShellTest::announcesADeletionSoTheLineCanGoWithItsCause()
+{
+    // The tray part claims to stand for as long as its cause does, and the
+    // guard only runs on a note added, on the hour, and at start — so an export
+    // reached it through none of them, and the line kept the old number until
+    // the next note or up to an hour (found by the review of 14f741f). The
+    // store now says when notes leave, and this is what says it does.
+    //
+    // The signal and not a count read afterwards: without it there is nothing
+    // to run the guard, and a check that simply calls overflowReport() again
+    // would be green over the daemon that never learns of the export.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy removed(m_store.get(), &Store::notesRemoved);
+    QVERIFY(fillLibrary(*m_store, 3, QDateTime::currentDateTime()));
+    QCOMPARE(removed.count(), 0);
+
+    const QList<Note> written = m_store->notes();
+    QCOMPARE(written.size(), 3);
+    QVERIFY(m_store->removeNote(written.constFirst().id));
+    QCOMPARE(removed.count(), 1);
+
+    // The road the export of SPEC 8.1 really takes, and the one a check on
+    // removeNote() alone would miss: a whole bundle in one transaction, one
+    // announcement.
+    //
+    // **Two notes and not one**, and that is the whole of what this half
+    // measures (found by the review of 169981c): with a bundle of one, "once
+    // per bundle after the commit" and "once per row inside the transaction"
+    // answer the same number, so the emission moved into deleteNoteRow() —
+    // exactly the mistake this placement avoids — left the case green. At two
+    // it comes out 3 against 2.
+    const QList<qint64> bundle = {written.at(1).id, written.constLast().id};
+    const std::optional<qint64> proposalId =
+        m_store->addProposal({-1, Proposal::Kind::Bundle, QDateTime::currentDateTime(),
+                              Proposal::Status::Open, QStringLiteral("{}"), bundle});
+    QVERIFY(proposalId.has_value());
+    QVERIFY2(m_store->removeExportedBundle(bundle, *proposalId), qPrintable(m_store->lastError()));
+    QCOMPARE(removed.count(), 2);
+}
+
+void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
+{
+    // The fourth writer of the one subtitle line, and what breaks in silence
+    // about a new one is what issue #118 measured: a setter that takes another
+    // writer's part with it. So the part is read back **beside** two that were
+    // already standing, and not on its own.
+    TrayIcon icon;
+    icon.setNotesWithoutTranscript(2);
+    icon.setNotesWithoutCategory(1);
+    const QString withoutOverflow = icon.item()->toolTipSubTitle();
+    QCOMPARE(withoutOverflow.count(QStringLiteral(" · ")), 1);
+
+    icon.setOverflow(QStringLiteral("213 notes waiting for export"));
+    const QString withOverflow = icon.item()->toolTipSubTitle();
+    // Three parts now, and the two that were there are untouched: the line
+    // begins with what it began with before.
+    QCOMPARE(withOverflow.count(QStringLiteral(" · ")), 2);
+    QVERIFY2(withOverflow.startsWith(withoutOverflow), qPrintable(withOverflow));
+    // Last, and that is where the order was decided to put it (04.09.2026).
+    QVERIFY2(withOverflow.endsWith(
+                 QStringLiteral("213 notes waiting for export")),
+             qPrintable(withOverflow));
+    // **No error state of its own**: the two kinds of trouble above are what
+    // raised it and it stays theirs. Read back after they are gone, because
+    // while they stand the answer would be NeedsAttention whatever this part
+    // does — the assertion has to be able to come out different.
+    icon.setNotesWithoutTranscript(0);
+    icon.setNotesWithoutCategory(0);
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+    QCOMPARE(icon.item()->toolTipSubTitle(),
+             QStringLiteral("213 notes waiting for export"));
+
+    // And empty takes it back to the untroubled line, like every other part.
+    icon.setOverflow(QString());
+    QCOMPARE(icon.item()->toolTipSubTitle(), QStringLiteral("Capture thoughts quickly"));
 }
 
 void ShellTest::findsAProgramByItsPathAndByItsName()
