@@ -224,6 +224,10 @@ target_link_libraries(originshots PRIVATE
     denkzettelsettings
     denkzettelstore
     denkzettelui
+    # A German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name (#138).
+    KF6::I18n
     Qt6::Test
     Qt6::Widgets
 )
@@ -258,6 +262,10 @@ add_executable(levelshots levelshots.cpp)
 
 target_link_libraries(levelshots PRIVATE
     denkzettelcapture
+    # A German picture needs the catalogue, and the catalogue needs the
+    # translation domain — without it every i18n() falls back to English and
+    # the run writes an English picture under a German name (#138).
+    KF6::I18n
     Qt6::Test
     Qt6::Widgets
 )
@@ -436,6 +444,11 @@ add_test(NAME installtest
         -DAUTOSTART_ENTRY=${KDE_INSTALL_FULL_AUTOSTARTDIR}/io.github.hnsstrk.denkzettel.desktop
         -DMETAINFO_ENTRY=${KDE_INSTALL_FULL_METAINFODIR}/io.github.hnsstrk.denkzettel.metainfo.xml
         -DDBUS_SERVICE_ENTRY=${KDE_INSTALL_FULL_DBUSSERVICEDIR}/io.github.hnsstrk.denkzettel.service
+        # The KWin script of SPEC 13 (issue #141). OriginWatcher loads it by the
+        # absolute path QStandardPaths hands back, so a file that never reaches
+        # the data directory leaves the origin empty for good — with one
+        # qWarning in the journal and nothing else.
+        -DSCRIPT_ENTRY=${KDE_INSTALL_FULL_DATADIR}/denkzettel/origin.js
         -DAPPSTREAMCLI=${APPSTREAMCLI}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/installtest.cmake
 )

@@ -4,6 +4,7 @@
 #include "analysis/clustering.h"
 #include "analysis/ollamaprovider.h"
 #include "analysis/openaicompatibleprovider.h"
+#include "shell/overflowguard.h"
 #include "transcribe/transcriber.h"
 
 namespace
@@ -107,20 +108,26 @@ Settings::Settings()
     // SPEC 11 names the two defaults, 200 notes and 30 days, and no key for
     // either of them; SPEC 7.3 names the third, 3 notes, the same way. So the
     // names below follow the form of the two groups above — one group per page
-    // of SPEC 13, the key written out — and whoever builds the overflow guard
-    // reads them from here rather than inventing a second spelling.
+    // of SPEC 13, the key written out — and the overflow guard of issue #34
+    // reads exactly these two keys.
     setCurrentGroup(QStringLiteral("Export"));
     // No default for the path on purpose (issue #75): it is a folder outside
     // this project that only the user knows, and a made-up one would send the
     // export of SPEC 8.1 somewhere nobody asked for. Empty means "not set".
     addItemString(QStringLiteral("VaultPath"), m_vaultPath, QString());
-    // The bounds are on the items and not only on the spin boxes, for the
-    // reason the analysis interval carries them: the guard of SPEC 11 reads a
-    // hand-written denkzettelrc that never passed through the dialog.
-    ItemInt *notes = addItemInt(QStringLiteral("OverflowNotes"), m_overflowNotes, 200);
+    // The two defaults are `overflow::` and no literal: the guard of SPEC 11
+    // reads a hand-written denkzettelrc through KConfigGroup and never through
+    // this skeleton, so a number written down twice would let the form show one
+    // and the reminder obey the other (overflowguard.h).
+    //
+    // The bounds stay on the items and not only on the spin boxes, for the
+    // reason the analysis interval carries them — a stored value comes back
+    // through the item. What they do **not** reach is the guard; the one bound
+    // it needs it carries itself, and overflowguard.cpp says which.
+    ItemInt *notes = addItemInt(QStringLiteral("OverflowNotes"), m_overflowNotes, overflow::DefaultNotes);
     notes->setMinValue(MinimumThreshold);
     notes->setMaxValue(MaximumOverflowNotes);
-    ItemInt *days = addItemInt(QStringLiteral("OverflowDays"), m_overflowDays, 30);
+    ItemInt *days = addItemInt(QStringLiteral("OverflowDays"), m_overflowDays, overflow::DefaultDays);
     days->setMinValue(MinimumThreshold);
     days->setMaxValue(MaximumOverflowDays);
     ItemInt *bundleNotes = addItemInt(QStringLiteral("BundleNotes"), m_bundleNotes, bundle::DefaultNotes);

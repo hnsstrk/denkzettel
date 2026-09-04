@@ -2,17 +2,22 @@
 #include "capture/recordingwindow.h"
 #include "store/store.h"
 
+#include <KLocalizedString>
+
 #include <QApplication>
 #include <QAudioBuffer>
 #include <QAudioFormat>
 #include <QDir>
 #include <QFile>
 #include <QImage>
+#include <QSet>
 #include <QSignalSpy>
+#include <QStringList>
 #include <QStyle>
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 
@@ -46,6 +51,18 @@
  *
  *   cmake --build build --target levelshots
  *   env -u LANGUAGE LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
+ *       QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
+ *       QT_FORCE_STDERR_LOGGING=1 \
+ *       build/bin/levelshots <target directory>
+ *
+ * For a German picture the catalogue has to be findable at runtime, and the
+ * **build** is what compiles it (finding 57), so the order is build, install
+ * into a throwaway root, run:
+ *
+ *   cmake --build build
+ *   dest=$(mktemp -d); DESTDIR="$dest" cmake --install build
+ *   env LANGUAGE=de LANG=de_DE.UTF-8 LC_ALL=de_DE.UTF-8 \
+ *       XDG_DATA_DIRS="$dest/usr/share:/usr/share" \
  *       QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=kde QT_SCALE_FACTOR=1.5 \
  *       QT_FORCE_STDERR_LOGGING=1 \
  *       build/bin/levelshots <target directory>
@@ -136,6 +153,53 @@ int main(int argc, char **argv)
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QApplication app(argc, argv);
     app.setApplicationName(QStringLiteral("denkzettel"));
+    // Without the domain no catalogue is ever consulted, and the run writes an
+    // English picture whatever LANGUAGE says (#138).
+    KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
+
+    // The domain alone does not make a catalogue findable, and a missing one
+    // shows up as a picture in the wrong language that looks finished. So the
+    // run stops instead of writing it: a line on stderr would travel the very
+    // channel this defect hid behind — without QT_FORCE_STDERR_LOGGING it goes
+    // into the journal (finding 25) — while an abort withholds the picture.
+    const QStringList languages = KLocalizedString::languages();
+    const QSet<QString> catalogues = KLocalizedString::availableApplicationTranslations();
+    QStringList catalogueNames(catalogues.cbegin(), catalogues.cend());
+    // Sorted, because a QSet hands its members back in no defined order: the
+    // same run printed "de en_US" here and "en_US de" in the neighbouring
+    // runner, and whoever compares two logs sees a difference that is none.
+    catalogueNames.sort();
+    qWarning("language: %s · catalogue for: %s", qUtf8Printable(languages.join(QLatin1Char(' '))),
+             qUtf8Printable(catalogueNames.join(QLatin1Char(' '))));
+
+    // **A request for the source language is always satisfiable**, and two
+    // shapes of it reach here: an empty list, because no locale variable was
+    // set at all, and the C or POSIX locale, which *is* the source language.
+    // std::all_of over an empty range is true, so both are covered by one
+    // condition — and without it the run aborted on a picture that would have
+    // come out right. Measured in the review of this change: an unset locale
+    // and LANG=C.UTF-8 both ended at 134 with 0 pictures, while a runner
+    // without this guard drew the correct English window in the same
+    // environment.
+    const bool wantsSourceLanguage = std::all_of(languages.cbegin(), languages.cend(), [](const QString &language) {
+        return language.isEmpty() || language == QLatin1String("C") || language == QLatin1String("POSIX");
+    });
+    if (!wantsSourceLanguage
+        && std::none_of(languages.cbegin(), languages.cend(), [&catalogues](const QString &language) {
+               return catalogues.contains(language);
+           })) {
+        qFatal("no message catalogue for %s: every picture would come out in the source "
+               "language. Install into a staging root and point XDG_DATA_DIRS at it, see the "
+               "usage block above",
+               qUtf8Printable(languages.join(QLatin1Char(' '))));
+    }
+    // ponytail: presence, not currency. The guard says a catalogue for the
+    // wanted language is reachable, never which file that is — the documented
+    // invocation leaves /usr/share at the end of XDG_DATA_DIRS, so a forgotten
+    // staging root resolves to the installed copy, which can lag behind the
+    // source (findings 21 and 57). Upgrade path: the marker readback this
+    // change was proved with — a msgstr altered in the staged catalogue, read
+    // back out of the run — turned into a check of its own.
 
     // Read back what the run really drew with, rather than trusting that the
     // variables were set (findings 28 and 38).

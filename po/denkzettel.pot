@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-04 19:03+0200\n"
+"POT-Creation-Date: 2026-09-04 18:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -211,14 +211,19 @@ msgstr ""
 msgid "Recording not saved"
 msgstr ""
 
-#: src/main.cpp:266
+#: src/main.cpp:269
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:267
+#: src/main.cpp:270
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
+msgstr ""
+
+#: src/main.cpp:515
+#, kde-format
+msgid "Notes are piling up"
 msgstr ""
 
 #: src/proposals/bundleexport.cpp:150
@@ -321,27 +326,27 @@ msgstr ""
 msgid "Test connection"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:182
+#: src/settings/aiproviderpage.cpp:181
 #, kde-format
 msgid "Ollama"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:184
+#: src/settings/aiproviderpage.cpp:183
 #, kde-format
 msgid "openrouter.ai"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:190
+#: src/settings/aiproviderpage.cpp:189
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:192
+#: src/settings/aiproviderpage.cpp:191
 #, kde-format
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:235
+#: src/settings/aiproviderpage.cpp:211
 #, kde-format
 msgid ""
 "A route over \"Sign in with ChatGPT\" is not possible: the procedure hands "
@@ -349,43 +354,43 @@ msgid ""
 "therefore needs an API key from the OpenAI platform account."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:252
+#: src/settings/aiproviderpage.cpp:228
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:254
+#: src/settings/aiproviderpage.cpp:230
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:266 src/settings/aiproviderpage.cpp:287
-#: src/settings/aiproviderpage.cpp:300
+#: src/settings/aiproviderpage.cpp:242 src/settings/aiproviderpage.cpp:263
+#: src/settings/aiproviderpage.cpp:276
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:276
+#: src/settings/aiproviderpage.cpp:252
 #, kde-format
 msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:295
+#: src/settings/aiproviderpage.cpp:271
 #, kde-format
 msgid "For example gpt-4o-mini · platform.openai.com/docs/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:312
+#: src/settings/aiproviderpage.cpp:288
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:315
+#: src/settings/aiproviderpage.cpp:291
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:321
+#: src/settings/aiproviderpage.cpp:297
 #, kde-format
 msgid ""
 "The two rows above belong to Ollama: it is what answers the embedding call, "
@@ -393,24 +398,17 @@ msgid ""
 "there are no topic bundles."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:378
+#: src/settings/aiproviderpage.cpp:354
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:389
+#: src/settings/aiproviderpage.cpp:365
 #, kde-format
 msgid "The key is in the password store."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:438
-#, kde-format
-msgid ""
-"The text of every note that is classified is sent to %1. With Ollama nothing "
-"leaves this machine."
-msgstr ""
-
-#: src/settings/aiproviderpage.cpp:568
+#: src/settings/aiproviderpage.cpp:528
 #, kde-format
 msgid ""
 "%1\n"
@@ -418,14 +416,14 @@ msgid ""
 "The classification keeps running through the provider chosen above."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:582
+#: src/settings/aiproviderpage.cpp:542
 #, kde-format
 msgid ""
 "Connection is up · chat %1 ms. Embeddings are not asked of %2; test them "
 "under Ollama."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:586
+#: src/settings/aiproviderpage.cpp:546
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""
@@ -586,7 +584,7 @@ msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
 #: src/settings/voicenotespage.cpp:78 src/ui/librarywindow.cpp:416
-#: src/ui/librarywindow.cpp:1218 src/ui/librarywindow.cpp:2162
+#: src/ui/librarywindow.cpp:1218 src/ui/librarywindow.cpp:2177
 #, kde-format
 msgid "Cancel"
 msgstr ""
@@ -734,6 +732,20 @@ msgid ""
 "that, open the system settings under “Shortcuts”."
 msgstr ""
 
+#: src/shell/overflowguard.cpp:54
+#, kde-format
+msgid "%1 note is waiting for an export."
+msgid_plural "%1 notes are waiting for an export."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/shell/overflowguard.cpp:56
+#, kde-format
+msgid "The oldest note has been waiting for an export for %1 day."
+msgid_plural "The oldest note has been waiting for an export for %1 days."
+msgstr[0] ""
+msgstr[1] ""
+
 #: src/shell/shortcutregistration.cpp:56
 #, kde-format
 msgid ""
@@ -785,7 +797,7 @@ msgid "Open library"
 msgstr ""
 
 #: src/shell/trayicon.cpp:175 src/ui/librarywindow.cpp:433
-#: src/ui/librarywindow.cpp:2287
+#: src/ui/librarywindow.cpp:2302
 #, kde-format
 msgid "Analyze now"
 msgstr ""
@@ -1013,7 +1025,7 @@ msgstr ""
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
 #: src/ui/librarywindow.cpp:415 src/ui/librarywindow.cpp:1215
-#: src/ui/librarywindow.cpp:2160
+#: src/ui/librarywindow.cpp:2175
 #, kde-format
 msgid "Save"
 msgstr ""
@@ -1153,12 +1165,12 @@ msgstr ""
 msgid "No note carries this category yet."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1998
+#: src/ui/librarywindow.cpp:2013
 #, kde-format
 msgid "Origin removed"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2139
+#: src/ui/librarywindow.cpp:2154
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -1166,60 +1178,60 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2143
+#: src/ui/librarywindow.cpp:2158
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2161
+#: src/ui/librarywindow.cpp:2176
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2244
+#: src/ui/librarywindow.cpp:2259
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
 "editor."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2278 src/ui/librarywindow.cpp:2287
+#: src/ui/librarywindow.cpp:2293 src/ui/librarywindow.cpp:2302
 #, kde-format
 msgid "Analysis running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2278 src/ui/librarywindow.cpp:2294
+#: src/ui/librarywindow.cpp:2293 src/ui/librarywindow.cpp:2309
 #, kde-format
 msgid "Analysis finished."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2336
+#: src/ui/librarywindow.cpp:2351
 #, kde-format
 msgctxt "@title:window"
 msgid "Export all notes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2344
+#: src/ui/librarywindow.cpp:2359
 #, kde-format
 msgid "Export running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2363
+#: src/ui/librarywindow.cpp:2378
 #, kde-format
 msgid "%1 note exported to %2."
 msgid_plural "%1 notes exported to %2."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2376
+#: src/ui/librarywindow.cpp:2391
 #, kde-format
 msgid "%1 note is missing, see the log."
 msgid_plural "%1 notes are missing, see the log."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2382
+#: src/ui/librarywindow.cpp:2397
 #, kde-format
 msgid "%1 note is without its recording, see the log."
 msgid_plural "%1 notes are without their recording, see the log."

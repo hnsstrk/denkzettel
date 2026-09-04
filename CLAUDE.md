@@ -1546,6 +1546,81 @@ find.
     every picture — that is finding 60's rule for a widget applied to the page
     that holds it.
 
+85. **Two agents in one worktree pull the branch out from under each other, and
+    git records the result as if it were intended.** Measured 2026-09-04, and
+    it is finding 55's sibling for the repository rather than the scratchpad:
+    an implementer ran `git checkout -b issue-34` in the shared worktree while
+    the lead was on `main`, and the lead's next two merges — of two reviewed,
+    finished branches — were committed onto **issue-34**. Nothing failed.
+    `git merge` reported "Merge made by the 'ort' strategy" both times, the
+    build of the merged state came out 15/15 green, and the two issues were
+    closed against it. Only a later `git log main` showed `main` still standing
+    where it had been three commits earlier, with the merges reachable from a
+    branch that has nothing to do with them. The mirror image cost the same
+    minute: when HEAD went back to `main`, the implementer's ten uncommitted
+    files went with it, so unversioned work sat on the wrong branch and any
+    third checkout would have destroyed it.
+
+    What carries: **every agent gets a worktree of its own**
+    (`git worktree add <path> -b <branch> main`), and nobody switches branches
+    in the shared one. And the readback is the branch, not the command's
+    output — `git rev-parse --abbrev-ref HEAD` before a commit or a merge, and
+    `git log --oneline -1 <branch>` after it. A merge tells you it merged; it
+    does not tell you where.
+
+    **The same hour produced the worse half, and it is worse because
+    everything reported success.** With the lead's `main` checked out in that
+    same worktree, the implementer's `git commit` landed its eleven files
+    directly on `main`: `bee5d7d` has `fc8020b` as its parent, `git branch
+    --contains` names `main` and not `issue-34`, and the branch called after
+    the story is empty. So a story went onto the trunk without the review the
+    project requires before every commit, the lead's next commit sat on top of
+    it, and the lead's own report to the implementer — that its work was
+    unversioned and at risk — was wrong in the other direction. The
+    implementer read git back and contradicted it; that is the only reason it
+    was found. **A worktree is a shared resource with one HEAD, and `git
+    commit` writes to whatever that HEAD says at the moment it runs** — not to
+    the branch you created ten minutes earlier. The cure is the same worktree
+    per agent, and the readback is `git log --oneline -1 <your branch>` after
+    committing, not the commit's own output.
+
+86. **A `QTemporaryDir` destructor that runs is no proof the directory is
+    gone — a library static writes it back after `main()` has returned.**
+    Measured 2026-09-03 on #136, where `systemfontstest` left exactly one
+    `/tmp/qt_temp-*` per run, holding nothing but `.cache/ksvg-elements`. The
+    comment beside the throwaway `HOME` said the destructor of a local of
+    `main()` cleans up, and it does: the trace shows the whole tree removed,
+    down to the `rmdir` of the temporary directory itself. **Three `mkdir`
+    calls follow it**, from inside `exit()` — a static object of
+    `libKF6Svg.so.6` holds the `KSharedConfig` of KSvg's element cache,
+    `KConfig::~KConfig()` calls `KConfig::sync()`, and that `QDir::mkpath()`s
+    `<home>/.cache` back on disk to write `ksvg-elements` into it. So the
+    directory was removed and re-created, and the reading „the destructor never
+    ran" — the obvious one, and the one the issue offered first — is wrong.
+    What carries: **a leftover is counted after the process has exited, never
+    from inside it.** Finding 29 is the same object from the other side (it
+    tidies too early and hides the fault in the check); a check inside the
+    process cannot see this one at all, because at every point it could look,
+    the directory really is gone. And the fix follows the same ordering rule:
+    `std::atexit()` registered **before** the library static exists runs after
+    that static's destructor ([basic.start.term]), which is the one place from
+    which the write can still be reached.
+
+    **And the tool for it was not the one the issue named.** `strace` is not
+    installed here; `gdb -batch` with breakpoints on `mkdir`, `rmdir` and
+    `QTemporaryDir::~QTemporaryDir`, each printing `bt`, answers the same
+    question and answers it better — the backtrace names the **library** that
+    re-creates the path, which a syscall trace alone does not. The breakpoints
+    have to be set after `start`, not before `run`: on a dynamically linked
+    binary the libc symbols do not exist yet, and gdb aborts the whole script
+    on the first `Function "mkdir" not defined.`
+
+    **The counting needs a `TMPDIR` of its own** (finding 55's family): several
+    worktrees write `/tmp` at the same time here, and a bare count of
+    `/tmp/qt_temp-*` cannot say whose they are. Under a `TMPDIR` set for the
+    run the counter-run comes out different — a full `ctest` leaves **1** on
+    the unchanged state and **0** on the changed one, 15 of 15 green in both.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

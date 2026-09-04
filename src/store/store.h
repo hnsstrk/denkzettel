@@ -277,6 +277,19 @@ public:
     CategoryCounts categoryCounts() const;
 
     /**
+     * When the oldest note that has not been exported was written, or an
+     * invalid time when the library is empty (SPEC 11).
+     *
+     * **Unexported means still there**, the same reading embeddings() carries:
+     * the export of SPEC 8.1 deletes the notes of a confirmed export in the
+     * same transaction, so the oldest row of the table is the oldest note the
+     * user still owes an export. The count beside it is
+     * `categoryCounts().total`, which is what the library writes beside "All"
+     * — one number and not a second query saying the same thing.
+     */
+    QDateTime oldestNoteTimestamp() const;
+
+    /**
      * How often one note is classified before it is left alone (SPEC 7.2:
      * "from the second failure on, the note is skipped").
      */

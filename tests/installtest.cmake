@@ -4,7 +4,10 @@
 # by logging out and in (manual M1 checklist, sprint-02 3.3) — that the install
 # rules exist at all is checked here. The AppStream metainfo rides along, and it
 # is validated as well: an invalid one costs the software centre its text and
-# its pictures without anything in the program going wrong (#73).
+# its pictures without anything in the program going wrong (#73). The KWin
+# script of SPEC 13 rides along for the same reason: it is loaded from the
+# installed data directory, and its absence costs every note its origin without
+# anything failing (#141).
 #
 # The installation goes into a staging directory via DESTDIR, so the test never
 # writes outside the build tree.
@@ -23,9 +26,14 @@ if(NOT install_result EQUAL 0)
     message(FATAL_ERROR "Die Installation schlug fehl:\n${install_output}")
 endif()
 
-foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}" "${METAINFO_ENTRY}" "${DBUS_SERVICE_ENTRY}")
-    if(NOT EXISTS "${STAGING_DIR}${entry}")
-        message(FATAL_ERROR "Die Installation legte ${entry} nicht an:\n${install_output}")
+foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}" "${METAINFO_ENTRY}" "${DBUS_SERVICE_ENTRY}"
+                       "${SCRIPT_ENTRY}")
+    # The empty string is caught on its own: an entry the add_test() call above
+    # forgot to hand in leaves "${STAGING_DIR}" standing, and that is a
+    # directory, which EXISTS answers yes for — the check would then be green
+    # over a file nobody looked for.
+    if(entry STREQUAL "" OR NOT EXISTS "${STAGING_DIR}${entry}")
+        message(FATAL_ERROR "Die Installation legte \"${entry}\" nicht an:\n${install_output}")
     endif()
 endforeach()
 

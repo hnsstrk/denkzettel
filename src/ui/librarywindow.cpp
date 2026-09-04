@@ -1942,9 +1942,24 @@ void LibraryWindow::removeOrigin()
         return;
     }
 
+    // And the row is asked what it now holds instead of the call being believed
+    // (issue #141). `updateNote()` says its statement ran, not which columns it
+    // wrote — the same shape that let #37 report a deleted secret that stayed
+    // and #47 restore an origin the next save took away again. Where the two
+    // disagree the band is not shown and the line keeps its text: what the user
+    // sees then says what the database says.
+    const std::optional<Note> written = m_store->note(note.id);
+    if (!written.has_value() || !written->origin.isEmpty() || !written->originApp.isEmpty()) {
+        qWarning("Removing the origin failed: %s",
+                 written.has_value() ? "the note still carries it" : qPrintable(m_store->lastError()));
+        m_removedOriginId = -1;
+        return;
+    }
+
     // As saveEdit() does it: the list is not read from the store again, because
-    // nothing about which notes belong in it has changed.
-    m_model->replaceNote(index, note);
+    // nothing about which notes belong in it has changed. What goes into the
+    // model is the row that was read back, not the copy that was sent.
+    m_model->replaceNote(index, *written);
     m_originText.clear();
     showOrigin();
     showOriginMessage();
