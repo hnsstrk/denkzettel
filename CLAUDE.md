@@ -1703,6 +1703,32 @@ find.
     manager, which is why the pictures were right while the runner beside them
     was not.
 
+91. **A `KNotification` with an event id of its own sends nothing at all
+    without a reachable `notifyrc` — and from a build directory there is
+    none.** Measured 2026-09-04 on #40, where the six notification call sites
+    were moved off `StandardEvent` and onto ids of the application's own. The
+    change is right: under `StandardEvent` the component on the wire is
+    `plasma_workspace`, so the user could only switch Denkzettel's messages off
+    together with Plasma's (measured against a stand-in: `app_name
+    "Systembenachrichtigungen"`, `x-kde-appname "plasma_workspace"`, against
+    `"Denkzettel"` / `"denkzettel"` / `x-kde-eventId "shortcutTaken"` after).
+
+    The price is that a run **out of the build directory** now loses every
+    notification it used to send: the stand-in saw zero calls, because
+    `${KDE_INSTALL_KNOTIFYRCDIR}/denkzettel.notifyrc` only exists once the
+    project is installed. This is finding 37's neighbour — there the bus had no
+    server, here the application has no catalogue — and it hits exactly the
+    verification stance of this project: whoever measures notifications from a
+    debug build measures a program that has been made mute by its own
+    configuration, and reads it as a feature that was never built.
+
+    **It is not silent, though**, and that is the one lever: the journal
+    carries `No event config could be found for event id "…" under notifyrc
+    file for app "denkzettel"`. So a run that expects a notification and sees
+    none reads the journal before it reports anything (finding 25 — outside
+    QTest that line reaches no pipe), or it stages the `notifyrc` into the run's
+    own `XDG_DATA_DIRS` and says so.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
