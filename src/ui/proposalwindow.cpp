@@ -169,7 +169,7 @@ void ProposalWindow::reload()
     for (const Proposal &proposal : proposals) {
         // Task suggestions belong to issue #31; until then they are passed
         // over rather than shown as a card with no answer behind it.
-        if (proposal.kind != Proposal::Kind::Bundle || proposal.status != Proposal::Status::Open) {
+        if (proposal.kind != Proposal::Kind::Bundle) {
             continue;
         }
 
@@ -196,8 +196,23 @@ void ProposalWindow::reload()
         // in a table. So the review carries the deletion out that the note's
         // own deletion could not reach, with the same call "Discard" uses —
         // the notes are untouched by it, because there are none.
+        // This stands **before** the status is looked at, and that is the whole
+        // of issue #147: a deferred bundle whose notes are gone is exactly as
+        // unanswerable as an open one — "Later" would put it aside a second
+        // time, "Accept" would export nothing — and nothing else can reach it
+        // afterwards. The analysis run clears a deferred suggestion only where
+        // a new bundle shares a note with it (Suggester::run()), which a
+        // bundle without notes can never do again. Skipped by status first, it
+        // would stay in the database for good, against the sentence SPEC 9
+        // makes without a word about status.
         if (card.notes.isEmpty()) {
             m_store->removeProposal(proposal.id);
+            continue;
+        }
+
+        // Put aside is answered: it carries no card until the next analysis run
+        // takes its notes back into the corpus (SPEC 7.3, SPEC 9).
+        if (proposal.status != Proposal::Status::Open) {
             continue;
         }
 
