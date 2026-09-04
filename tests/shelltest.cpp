@@ -833,24 +833,30 @@ void ShellTest::announcesADeletionSoTheLineCanGoWithItsCause()
     // would be green over the daemon that never learns of the export.
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy removed(m_store.get(), &Store::notesRemoved);
-    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
+    QVERIFY(fillLibrary(*m_store, 3, QDateTime::currentDateTime()));
     QCOMPARE(removed.count(), 0);
 
     const QList<Note> written = m_store->notes();
-    QCOMPARE(written.size(), 2);
+    QCOMPARE(written.size(), 3);
     QVERIFY(m_store->removeNote(written.constFirst().id));
     QCOMPARE(removed.count(), 1);
 
     // The road the export of SPEC 8.1 really takes, and the one a check on
     // removeNote() alone would miss: a whole bundle in one transaction, one
     // announcement.
+    //
+    // **Two notes and not one**, and that is the whole of what this half
+    // measures (found by the review of 169981c): with a bundle of one, "once
+    // per bundle after the commit" and "once per row inside the transaction"
+    // answer the same number, so the emission moved into deleteNoteRow() —
+    // exactly the mistake this placement avoids — left the case green. At two
+    // it comes out 3 against 2.
+    const QList<qint64> bundle = {written.at(1).id, written.constLast().id};
     const std::optional<qint64> proposalId =
         m_store->addProposal({-1, Proposal::Kind::Bundle, QDateTime::currentDateTime(),
-                              Proposal::Status::Open, QStringLiteral("{}"),
-                              {written.constLast().id}});
+                              Proposal::Status::Open, QStringLiteral("{}"), bundle});
     QVERIFY(proposalId.has_value());
-    QVERIFY2(m_store->removeExportedBundle({written.constLast().id}, *proposalId),
-             qPrintable(m_store->lastError()));
+    QVERIFY2(m_store->removeExportedBundle(bundle, *proposalId), qPrintable(m_store->lastError()));
     QCOMPARE(removed.count(), 2);
 }
 
