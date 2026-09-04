@@ -1984,3 +1984,22 @@ CategoryCounts Store::categoryCounts() const
 
     return counts;
 }
+
+QDateTime Store::oldestNoteTimestamp() const
+{
+    m_lastError.clear();
+    QSqlQuery query(m_db);
+    // MIN() over the text column, and it is the ordering notes() already sorts
+    // by: timestampToText() writes ISO 8601 with milliseconds and no offset, so
+    // the strings sort lexicographically exactly as the moments sort
+    // chronologically.
+    //
+    // An empty table answers NULL, which comes back as an empty string and
+    // therefore as an invalid QDateTime — which is what the caller reads as
+    // "there is no oldest note".
+    if (!query.exec(QStringLiteral("SELECT MIN(created_at) FROM notes")) || !query.next()) {
+        m_lastError = query.lastError().text();
+        return {};
+    }
+    return timestampFromText(query.value(0).toString());
+}

@@ -333,6 +333,11 @@ add_library(denkzettelshell STATIC
     shell/firstrun.cpp
     shell/globalshortcuts.cpp
     shell/originwatcher.cpp
+    # The overflow guard of SPEC 11 (issue #34). It lives beside the daemon's
+    # other state and not with the exports of SPEC 8, and that is the point:
+    # this library links `denkzettelproposals` nowhere, so nothing here can
+    # start an export by itself.
+    shell/overflowguard.cpp
     shell/shortcutconflict.cpp
     shell/shortcutregistration.cpp
     shell/trayicon.cpp

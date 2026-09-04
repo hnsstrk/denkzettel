@@ -2,11 +2,13 @@
 #include "shell/daemonservice.h"
 #include "shell/globalshortcuts.h"
 #include "shell/originwatcher.h"
+#include "shell/overflowguard.h"
 #include "shell/shortcutconflict.h"
 #include "shell/shortcutregistration.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
 
+#include <KConfig>
 #include <KConfigGroup>
 #include <KLocalizedString>
 #include <KSharedConfig>
@@ -22,6 +24,7 @@
 #include <QSet>
 #include <QSignalSpy>
 #include <QStringList>
+#include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -73,6 +76,11 @@ private Q_SLOTS:
     void opensTheSuggestionReview();
     void showsAFailedTranscriptionAndTakesItBack();
     void namesBothKindsOfStuckNoteAndFallsBackWithTheLastOfThem();
+
+    void remindsOnceWhenTheLibraryFillsUp();
+    void remindsAgainOnceAnEmptiedLibraryFillsUpAnew();
+    void saysNothingAfterARestartAboutAnOverflowAlreadyReported();
+    void remindsWhenTheOldestNoteHasWaitedTooLong();
 
     void findsAProgramByItsPathAndByItsName();
     void countsAFileWithoutAnExecuteBitAsMissing();
@@ -582,6 +590,167 @@ bool putProgram(const QString &path, QFile::Permissions mode)
     file.close();
     return file.setPermissions(mode);
 }
+}
+
+/**
+ * The overflow guard of SPEC 11 (issue #34).
+ *
+ * The four cases below hand the thresholds in **from outside** rather than
+ * leaning on the defaults: 200 notes and 30 days are what the product ships
+ * with, and a check that had to produce them would be measuring how fast this
+ * machine writes rows (CLAUDE.md, finding 10). The threshold that is not under
+ * test is put out of reach in every case, so that an `and` written where the
+ * `or` of SPEC 11 belongs takes each of them red on its own (finding 34).
+ */
+namespace
+{
+/** The group both the guard and these cases read, emptied before it is used. */
+KConfigGroup exportGroupOfTheTestSet()
+{
+    KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    group.deleteGroup();
+    return group;
+}
+
+/**
+ * `count` notes, all of them written at `writtenAt`.
+ *
+ * The moment and not a number of days: two adjacent `int` parameters are two
+ * parameters a caller can hand over the wrong way round, and clang-tidy says
+ * so (bugprone-easily-swappable-parameters).
+ */
+bool fillLibrary(Store &store, int count, const QDateTime &writtenAt)
+{
+    for (int index = 0; index < count; ++index) {
+        Note note;
+        note.createdAt = writtenAt;
+        note.content = QStringLiteral("Notiz %1").arg(index);
+        if (!store.addNote(note).has_value()) {
+            return false;
+        }
+    }
+    return true;
+}
+}
+
+void ShellTest::remindsOnceWhenTheLibraryFillsUp()
+{
+    // The guard writes into the configuration, so the file has to be this test
+    // set's own — the same guard the origin sink carries (CLAUDE.md, finding
+    // 42).
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup group = exportGroupOfTheTestSet();
+    // Through a scope guard and not as a last line: a case that dies on its own
+    // assertion would otherwise leave the group behind and take the next one
+    // with it (CLAUDE.md, finding 42).
+    const auto tidy = qScopeGuard([&group] {
+        group.deleteGroup();
+        group.sync();
+    });
+    group.writeEntry("OverflowNotes", 3);
+    group.writeEntry("OverflowDays", 3650);
+    group.sync();
+
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
+    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded below the threshold");
+
+    QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
+    QCOMPARE(overflowReminder(*m_store, group), QStringLiteral("3 notes are waiting for an export."));
+
+    // No permanent alarm: the state is the same one, so nothing more is said —
+    // not on the next note either, which would be the road a running daemon
+    // takes.
+    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded twice for one state");
+    QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime()));
+    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded again while still over");
+}
+
+void ShellTest::remindsAgainOnceAnEmptiedLibraryFillsUpAnew()
+{
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup group = exportGroupOfTheTestSet();
+    const auto tidy = qScopeGuard([&group] {
+        group.deleteGroup();
+        group.sync();
+    });
+    group.writeEntry("OverflowNotes", 2);
+    group.writeEntry("OverflowDays", 3650);
+    group.sync();
+
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
+    QVERIFY(!overflowReminder(*m_store, group).isEmpty());
+
+    // What an export of SPEC 8.1 leaves behind: the notes it wrote are gone
+    // from the table. Falling back below says nothing itself...
+    const QList<Note> written = m_store->notes();
+    QCOMPARE(written.size(), 2);
+    for (const Note &note : written) {
+        QVERIFY(m_store->removeNote(note.id));
+    }
+    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "announced the falling back");
+
+    // ...and it is what lets the next crossing speak again. Without that half
+    // the reminder would be a one-off for the life of the configuration file.
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
+    QCOMPARE(overflowReminder(*m_store, group), QStringLiteral("2 notes are waiting for an export."));
+}
+
+void ShellTest::saysNothingAfterARestartAboutAnOverflowAlreadyReported()
+{
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup group = exportGroupOfTheTestSet();
+    const auto tidy = qScopeGuard([&group] {
+        group.deleteGroup();
+        group.sync();
+    });
+    group.writeEntry("OverflowNotes", 2);
+    group.writeEntry("OverflowDays", 3650);
+    group.sync();
+
+    QVERIFY(fillLibrary(*m_store, 2, QDateTime::currentDateTime()));
+    QVERIFY(!overflowReminder(*m_store, group).isEmpty());
+
+    // The restart, and it is one: a KConfig of its own reads the file from
+    // disk, so what answers here is what was written down and not what the
+    // object above still holds. A store of its own beside it, because the
+    // daemon opens the database anew as well.
+    KConfig reopened(KSharedConfig::openConfig()->name());
+    KConfigGroup afterRestart(&reopened, QStringLiteral("Export"));
+    Store restarted(m_dir->filePath(QStringLiteral("denkzettel.db")));
+    QVERIFY2(restarted.open(), qPrintable(restarted.lastError()));
+
+    QCOMPARE(afterRestart.readEntry("OverflowNotes", 0), 2);
+    QVERIFY2(overflowReminder(restarted, afterRestart).isEmpty(),
+             "greeted the restart with a reminder that had already been given");
+}
+
+void ShellTest::remindsWhenTheOldestNoteHasWaitedTooLong()
+{
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("shelltest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup group = exportGroupOfTheTestSet();
+    const auto tidy = qScopeGuard([&group] {
+        group.deleteGroup();
+        group.sync();
+    });
+    // The count is out of reach, so only the age of SPEC 11 can answer here —
+    // and the sentence it produces is a different one, which is what says which
+    // of the two branches was taken.
+    group.writeEntry("OverflowNotes", 1000);
+    group.writeEntry("OverflowDays", 30);
+    group.sync();
+
+    QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-29)));
+    QVERIFY2(overflowReminder(*m_store, group).isEmpty(), "reminded a day before the threshold");
+
+    // A second note, older than the first: the age criterion asks the oldest
+    // one, so a guard reading the newest would stay quiet here.
+    QVERIFY(fillLibrary(*m_store, 1, QDateTime::currentDateTime().addDays(-40)));
+    QCOMPARE(overflowReminder(*m_store, group),
+             QStringLiteral("The oldest note has been waiting for an export for 40 days."));
 }
 
 void ShellTest::findsAProgramByItsPathAndByItsName()

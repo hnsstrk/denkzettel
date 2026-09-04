@@ -15,6 +15,7 @@
 #include "shell/firstrun.h"
 #include "shell/globalshortcuts.h"
 #include "shell/originwatcher.h"
+#include "shell/overflowguard.h"
 #include "shell/trayicon.h"
 #include "store/store.h"
 #include "transcribe/modeldownload.h"
@@ -34,7 +35,9 @@
 #include <QKeySequence>
 #include <QLocale>
 #include <QStringList>
+#include <QTimer>
 
+#include <chrono>
 #include <optional>
 
 int main(int argc, char *argv[])
@@ -489,6 +492,43 @@ int main(int argc, char *argv[])
     if (!daemon.registerOnSessionBus()) {
         qWarning("Exporting io.github.hnsstrk.denkzettel.Daemon failed; the D-Bus entry points are unavailable.");
     }
+
+    // The overflow guard of SPEC 11 (issue #34). It says once that the library
+    // is due an export and never exports anything itself — SPEC 11 rules an
+    // automatic export out in as many words, and nothing on this road could
+    // carry one: overflowReminder() reads two counts and writes one marker.
+    //
+    // The marker lies in the same group as the two thresholds, because it is
+    // the state belonging to them, and it is what makes the reminder survive a
+    // restart without repeating itself. Written through KConfigGroup and not
+    // through the skeleton: the skeleton is the dialog's, and this is no
+    // setting the user sets.
+    KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    const auto remindAboutOverflow = [&store, &exportGroup] {
+        const QString reminder = overflowReminder(store, exportGroup);
+        if (!reminder.isEmpty()) {
+            // `Notification` and not `Warning`, unlike the transcription that
+            // has finally failed (issue #115): nothing has gone wrong here and
+            // no note is at risk — the library is full, which is what a library
+            // in use does.
+            KNotification::event(KNotification::Notification,
+                                 i18n("Notes are piling up"), reminder);
+        }
+    };
+    // Two roads, and each of them reaches a threshold the other cannot: a note
+    // written is what makes the count grow, and time passing is what makes the
+    // oldest note old. Without the clock a daemon left running for weeks would
+    // never notice the age criterion at all; an hour is fine for a threshold
+    // counted in days and costs one wakeup.
+    QObject::connect(&store, &Store::noteAdded, &app, remindAboutOverflow);
+    QTimer overflowClock;
+    QObject::connect(&overflowClock, &QTimer::timeout, &app, remindAboutOverflow);
+    overflowClock.start(std::chrono::hours(1));
+    // And once at start, unlike the transcription's announcement above: there
+    // the marker of what has already been reported lives in the queue, here it
+    // lives in denkzettelrc, so a state crossed while the daemon was off is
+    // reported exactly once and a state already reported stays quiet.
+    remindAboutOverflow();
 
     // Store::open() above has created data directory and database; this
     // completes the first start of SPEC 2.5.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-09-03 15:17+0200\n"
+"POT-Creation-Date: 2026-09-04 18:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -211,14 +211,19 @@ msgstr ""
 msgid "Recording not saved"
 msgstr ""
 
-#: src/main.cpp:266
+#: src/main.cpp:269
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:267
+#: src/main.cpp:270
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
+msgstr ""
+
+#: src/main.cpp:515
+#, kde-format
+msgid "Notes are piling up"
 msgstr ""
 
 #: src/proposals/bundleexport.cpp:150
@@ -579,7 +584,7 @@ msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
 #: src/settings/voicenotespage.cpp:78 src/ui/librarywindow.cpp:416
-#: src/ui/librarywindow.cpp:1218 src/ui/librarywindow.cpp:2162
+#: src/ui/librarywindow.cpp:1218 src/ui/librarywindow.cpp:2177
 #, kde-format
 msgid "Cancel"
 msgstr ""
@@ -727,6 +732,20 @@ msgid ""
 "that, open the system settings under “Shortcuts”."
 msgstr ""
 
+#: src/shell/overflowguard.cpp:54
+#, kde-format
+msgid "%1 note is waiting for an export."
+msgid_plural "%1 notes are waiting for an export."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/shell/overflowguard.cpp:56
+#, kde-format
+msgid "The oldest note has been waiting for an export for %1 day."
+msgid_plural "The oldest note has been waiting for an export for %1 days."
+msgstr[0] ""
+msgstr[1] ""
+
 #: src/shell/shortcutregistration.cpp:56
 #, kde-format
 msgid ""
@@ -778,7 +797,7 @@ msgid "Open library"
 msgstr ""
 
 #: src/shell/trayicon.cpp:175 src/ui/librarywindow.cpp:433
-#: src/ui/librarywindow.cpp:2287
+#: src/ui/librarywindow.cpp:2302
 #, kde-format
 msgid "Analyze now"
 msgstr ""
@@ -1006,7 +1025,7 @@ msgstr ""
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
 #: src/ui/librarywindow.cpp:415 src/ui/librarywindow.cpp:1215
-#: src/ui/librarywindow.cpp:2160
+#: src/ui/librarywindow.cpp:2175
 #, kde-format
 msgid "Save"
 msgstr ""
@@ -1146,12 +1165,12 @@ msgstr ""
 msgid "No note carries this category yet."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1998
+#: src/ui/librarywindow.cpp:2013
 #, kde-format
 msgid "Origin removed"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2139
+#: src/ui/librarywindow.cpp:2154
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -1159,60 +1178,60 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2143
+#: src/ui/librarywindow.cpp:2158
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2161
+#: src/ui/librarywindow.cpp:2176
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2244
+#: src/ui/librarywindow.cpp:2259
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
 "editor."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2278 src/ui/librarywindow.cpp:2287
+#: src/ui/librarywindow.cpp:2293 src/ui/librarywindow.cpp:2302
 #, kde-format
 msgid "Analysis running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2278 src/ui/librarywindow.cpp:2294
+#: src/ui/librarywindow.cpp:2293 src/ui/librarywindow.cpp:2309
 #, kde-format
 msgid "Analysis finished."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2336
+#: src/ui/librarywindow.cpp:2351
 #, kde-format
 msgctxt "@title:window"
 msgid "Export all notes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2344
+#: src/ui/librarywindow.cpp:2359
 #, kde-format
 msgid "Export running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2363
+#: src/ui/librarywindow.cpp:2378
 #, kde-format
 msgid "%1 note exported to %2."
 msgid_plural "%1 notes exported to %2."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2376
+#: src/ui/librarywindow.cpp:2391
 #, kde-format
 msgid "%1 note is missing, see the log."
 msgid_plural "%1 notes are missing, see the log."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2382
+#: src/ui/librarywindow.cpp:2397
 #, kde-format
 msgid "%1 note is without its recording, see the log."
 msgid_plural "%1 notes are without their recording, see the log."
