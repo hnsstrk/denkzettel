@@ -1455,6 +1455,7 @@ std::optional<qint64> Store::addProposal(const Proposal &proposal)
         return std::nullopt;
     }
 
+    Q_EMIT proposalsChanged();
     return id;
 }
 
@@ -1544,6 +1545,7 @@ bool Store::removeProposal(qint64 id)
         m_lastError = query.lastError().text();
         return false;
     }
+    Q_EMIT proposalsChanged();
     return true;
 }
 
@@ -1558,6 +1560,10 @@ bool Store::setProposalStatus(qint64 id, Proposal::Status status)
         m_lastError = query.lastError().text();
         return false;
     }
+    // A status that did not change is announced too: the UPDATE answers true
+    // for an id no suggestion carries (see the header), and telling the two
+    // apart would cost a read for a recount that is one query either way.
+    Q_EMIT proposalsChanged();
     return true;
 }
 
@@ -1612,6 +1618,8 @@ bool Store::removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId
         m_db.rollback();
         return false;
     }
+
+    Q_EMIT proposalsChanged();
 
     // Database and file system cannot be committed together, so the files go
     // last for the reason removeNote() puts them last: an interruption here

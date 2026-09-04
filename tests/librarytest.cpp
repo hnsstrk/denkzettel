@@ -253,6 +253,11 @@ private Q_SLOTS:
     void dropsABundleWhoseNotesAreAllGone();
     void dropsADeferredBundleWhoseNotesAreAllGone();
 
+    void dropsADeferredTaskWhoseNoteIsGone();
+    void theEditedFieldsAreWhatReachesTaskwarrior();
+    void aRefusedTaskLeavesTheNoteAndTheSuggestion();
+    void theBadgeFollowsTheOpenSuggestions();
+
     // Qt emits aboutToQuit once per process, so the test of the quit path has
     // to be the last one of this class.
     void carriesOutTheDeletionWhenTheApplicationQuits();
@@ -304,6 +309,14 @@ private:
      * run produced.
      */
     qint64 storedBundle(const QString &title, const QList<qint64> &noteIds);
+
+    /**
+     * A task suggestion over one note, in the shape step 3 writes it
+     * (SPEC 7.4): the note's own `task` object as the payload.
+     */
+    qint64 storedTask(const QString &payload, qint64 noteId);
+
+
 
     /** Texts of the labels the window shows right now. */
     static QStringList visibleLabels(const QWidget &window);
@@ -953,6 +966,22 @@ qint64 LibraryTest::storedBundle(const QString &title, const QList<qint64> &note
                                   {QLatin1String("markdown"), bundleMarkdown(title, notes)}})
             .toJson(QJsonDocument::Compact));
     proposal.noteIds = noteIds;
+
+    const std::optional<qint64> id = m_store->addProposal(proposal);
+    Q_ASSERT(id.has_value());
+    return *id;
+}
+
+qint64 LibraryTest::storedTask(const QString &payload, qint64 noteId)
+{
+    Proposal proposal;
+    proposal.kind = Proposal::Kind::Task;
+    proposal.createdAt = QDateTime::currentDateTime();
+    proposal.status = Proposal::Status::Open;
+    // The note's own `task` object, handed on unchanged — that is what
+    // Suggester writes into the payload (SPEC 7.4).
+    proposal.payload = payload;
+    proposal.noteIds = {noteId};
 
     const std::optional<qint64> id = m_store->addProposal(proposal);
     Q_ASSERT(id.has_value());
@@ -3954,6 +3983,88 @@ QPushButton *cardButton(const QWidget &window, const QString &role, qint64 id)
 {
     return window.findChild<QPushButton *>(QStringLiteral("%1-%2").arg(role).arg(id));
 }
+
+/** One editable field of a task card, by its role (issue #31). */
+QLineEdit *cardField(const QWidget &window, const QString &role, qint64 id)
+{
+    return window.findChild<QLineEdit *>(QStringLiteral("%1-%2").arg(role).arg(id));
+}
+
+/** Where a task card reports an error of its own (SPEC 8.2, issue #33). */
+KMessageWidget *cardError(const QWidget &window, qint64 id)
+{
+    return window.findChild<KMessageWidget *>(QStringLiteral("error-%1").arg(id));
+}
+
+/**
+ * Writes an executable stand-in for `task` into `dir` and puts `dir` first on
+ * PATH; the returned guard takes PATH back.
+ *
+ * PATH and not a seam in ProposalWindow: `tools::TaskProgram` is the bare name
+ * `task`, which QProcess looks up along PATH — so the road under test is the
+ * road the daemon really walks, and the production code keeps no opening it
+ * would only ever have for a check.
+ *
+ * **No `task` is started here, and none may be.** SPEC 15 makes Taskwarrior an
+ * optional program, and a case that needed it would go red on a machine doing
+ * exactly what the specification allows; the CI container has none. The run
+ * against a real `task` with a TASKDATA directory of its own is SPEC 16's
+ * manual column, and what it measured stands in the header of taskexport.h.
+ *
+ * The stand-in appends its arguments NUL-separated to `task.args` — NUL and
+ * not newline, because a note text carries newlines and a line-based log could
+ * not tell one argument from two.
+ */
+[[nodiscard]] auto stubbedTaskProgram(const QString &dir, const QByteArray &body)
+{
+    const QString path = dir + QStringLiteral("/task");
+    QFile stub(path);
+    // Truncated on every call, so a case reads its own run and not the one
+    // before it (CLAUDE.md, finding 55).
+    QFile::remove(dir + QStringLiteral("/task.args"));
+    [&] {
+        QVERIFY(stub.open(QIODevice::WriteOnly));
+    }();
+    stub.write(R"sh(#!/bin/sh
+printf '%s\0' "$@" >> "$0.args"
+)sh");
+    stub.write(body);
+    stub.close();
+    [&] {
+        QVERIFY(stub.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
+    }();
+
+    const QByteArray previous = qgetenv("PATH");
+    qputenv("PATH", QByteArray(dir.toLocal8Bit() + ':' + previous));
+    return qScopeGuard([previous] {
+        qputenv("PATH", previous);
+    });
+}
+
+/** The arguments of every run of the stand-in, one list per run. */
+QList<QStringList> taskStubRuns(const QString &dir)
+{
+    QFile log(dir + QStringLiteral("/task.args"));
+    if (!log.open(QIODevice::ReadOnly)) {
+        return {};
+    }
+    // The trailing NUL of the last argument leaves an empty tail behind.
+    QList<QByteArray> parts = log.readAll().split('\0');
+    if (!parts.isEmpty()) {
+        parts.removeLast();
+    }
+    // Every run starts with the verbosity override, so that is where one run
+    // ends and the next begins — the add and the annotate write into one file.
+    QList<QStringList> runs;
+    for (const QByteArray &part : std::as_const(parts)) {
+        const QString argument = QString::fromUtf8(part);
+        if (argument == QLatin1String("rc.verbose=new-uuid") || runs.isEmpty()) {
+            runs.append(QStringList());
+        }
+        runs.last().append(argument);
+    }
+    return runs;
+}
 }
 
 void LibraryTest::discardingABundleKeepsItsNotes()
@@ -4142,6 +4253,207 @@ void LibraryTest::dropsADeferredBundleWhoseNotesAreAllGone()
     // green over the old order as well as the new one. What the old order
     // leaves behind is the row.
     QVERIFY2(m_store->proposals().isEmpty(), "the empty deferred bundle stayed in the database");
+}
+
+/**
+ * A task suggestion whose one note has been deleted goes out of the database
+ * (SPEC 9, PO decision 04.09.2026) — and it goes even while it is put aside.
+ *
+ * **Asserted on `Store::proposals()` and not on the window**, because a card
+ * that was never built looks the same as one that was cleared away: over the
+ * unfixed state the review simply passed a task suggestion by, and a check
+ * asking "is there a card" would have been green on both. The row is the
+ * object of the check, and the state before the press is asserted too — "no
+ * suggestions" all along would let the case pass over a review that removes
+ * nothing (CLAUDE.md, finding 27).
+ *
+ * Deferred rather than open, so the case measures two things at once: that the
+ * kind is no longer skipped, and that the empty check is asked **before** the
+ * status. Asked the other way round the row stands for good, because nothing
+ * else reaches a deferred suggestion that can never share a note again
+ * (issue #147).
+ */
+void LibraryTest::dropsADeferredTaskWhoseNoteIsGone()
+{
+    const qint64 note = storedNote(QStringLiteral("restic prune-Policy prüfen"));
+    const qint64 task = storedTask(QStringLiteral(R"({"description":"restic prune-Policy prüfen"})"), note);
+    QVERIFY(m_store->setProposalStatus(task, Proposal::Status::Deferred));
+
+    // The state the store can reach on its own: deleting the note takes its
+    // `proposal_notes` row by ON DELETE CASCADE and leaves the suggestion.
+    QVERIFY2(m_store->removeNote(note), qPrintable(m_store->lastError()));
+    const QList<Proposal> before = m_store->proposals();
+    QCOMPARE(before.size(), qsizetype(1));
+    QVERIFY(before.constFirst().noteIds.isEmpty());
+    QCOMPARE(before.constFirst().kind, Proposal::Kind::Task);
+    QCOMPARE(before.constFirst().status, Proposal::Status::Deferred);
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QVERIFY2(m_store->proposals().isEmpty(), "the empty task suggestion stayed in the database");
+    QVERIFY(!cardOf(window, task));
+}
+
+void LibraryTest::theEditedFieldsAreWhatReachesTaskwarrior()
+{
+    const auto restoredPath =
+        stubbedTaskProgram(m_dir->path(),
+                           "echo \"Created task 11111111-2222-3333-4444-555555555555.\"\n");
+
+    const qint64 note = storedNote(QStringLiteral("Mara wegen Wochenende anrufen\nKuchen nicht vergessen"));
+    const qint64 task = storedTask(QStringLiteral(R"({"description":"Mara anrufen","project":"arbeit",)"
+                                                  R"("tags":["anruf"],"due":"2026-09-01","priority":"L"})"),
+                                   note);
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QVERIFY2(cardOf(window, task), "the review shows no card for the open task suggestion");
+
+    // The card really read the suggestion — without this the case below would
+    // pass over a card that shows nothing and takes everything from the fields
+    // it was typed into (CLAUDE.md, finding 27).
+    QCOMPARE(cardField(window, QStringLiteral("description"), task)->text(), QStringLiteral("Mara anrufen"));
+    QCOMPARE(cardField(window, QStringLiteral("project"), task)->text(), QStringLiteral("arbeit"));
+    QCOMPARE(cardField(window, QStringLiteral("tags"), task)->text(), QStringLiteral("+anruf"));
+    QCOMPARE(cardField(window, QStringLiteral("due"), task)->text(), QStringLiteral("2026-09-01"));
+    QCOMPARE(cardField(window, QStringLiteral("priority"), task)->text(), QStringLiteral("L"));
+
+    // Every one of the five is typed over, and none of the new values occurs in
+    // the stored payload.
+    cardField(window, QStringLiteral("description"), task)->setText(QStringLiteral("Mara wegen Wochenende anrufen"));
+    cardField(window, QStringLiteral("project"), task)->setText(QStringLiteral("privat"));
+    cardField(window, QStringLiteral("tags"), task)->setText(QStringLiteral("+termin +wichtig"));
+    cardField(window, QStringLiteral("due"), task)->setText(QStringLiteral("2026-09-05"));
+    cardField(window, QStringLiteral("priority"), task)->setText(QStringLiteral("H"));
+
+    cardButton(window, QStringLiteral("accept"), task)->click();
+
+    const QList<QStringList> runs = taskStubRuns(m_dir->path());
+    QCOMPARE(runs.size(), qsizetype(2));
+
+    // Held against a literal and not against the fields read back: a comparison
+    // built out of the same widgets could not notice one of the five going
+    // missing on both sides at once (CLAUDE.md, finding 10). The `+` the field
+    // shows is Taskwarrior's mark and not part of the tag — left standing it
+    // would arrive here as `++termin`.
+    const QStringList expectedAdd{QStringLiteral("rc.verbose=new-uuid"),
+                                  QStringLiteral("rc.confirmation=no"),
+                                  QStringLiteral("add"),
+                                  QStringLiteral("project:privat"),
+                                  QStringLiteral("+termin"),
+                                  QStringLiteral("+wichtig"),
+                                  QStringLiteral("due:2026-09-05"),
+                                  QStringLiteral("priority:H"),
+                                  QStringLiteral("--"),
+                                  QStringLiteral("Mara wegen Wochenende anrufen")};
+    QCOMPARE(runs.at(0), expectedAdd);
+
+    // The note text itself, behind the separator and to the UUID the add named.
+    const QStringList expectedAnnotate{QStringLiteral("rc.verbose=new-uuid"),
+                                       QStringLiteral("rc.confirmation=no"),
+                                       QStringLiteral("11111111-2222-3333-4444-555555555555"),
+                                       QStringLiteral("annotate"),
+                                       QStringLiteral("--"),
+                                       QStringLiteral("Mara wegen Wochenende anrufen\nKuchen nicht vergessen")};
+    QCOMPARE(runs.at(1), expectedAnnotate);
+
+    // And the second half of SPEC 8.2: after a success the note is deleted and
+    // the suggestion is removed. Asserted on the store and not on the window,
+    // because a card that is merely not drawn any more would satisfy a check
+    // made on the window alone.
+    QVERIFY2(!m_store->note(note).has_value(), "the exported note stayed in the corpus");
+    QVERIFY(m_store->proposals().isEmpty());
+    QVERIFY(!cardOf(window, task));
+}
+
+/**
+ * Acceptance criterion 2 of issue #33: a refused `task add` loses nothing.
+ *
+ * The silent half is the deletion. A card that cleared up before it looked at
+ * the return value would take the note with it, and the user would find out
+ * when they went looking for a note that is not there and a task that was never
+ * created. Taskwarrior's own sentence is what the card carries — SPEC 8.2 tells
+ * a refusal from a missing program by exactly that.
+ */
+void LibraryTest::aRefusedTaskLeavesTheNoteAndTheSuggestion()
+{
+    const auto restoredPath =
+        stubbedTaskProgram(m_dir->path(), "echo \"A task must have a description.\" >&2\nexit 2\n");
+
+    const qint64 note = storedNote(QStringLiteral("restic prune-Policy prüfen"));
+    const qint64 task = storedTask(QStringLiteral(R"({"description":"restic prune-Policy prüfen"})"), note);
+
+    ProposalWindow window(m_store.get());
+    window.showProposals();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const KMessageWidget *error = cardError(window, task);
+    QVERIFY2(error, "the task card carries no place for an error");
+    // Hidden before the press: a row that was visible all along would let the
+    // case pass over a card that reports every state alike (finding 79).
+    QVERIFY(!error->isVisible());
+
+    cardButton(window, QStringLiteral("accept"), task)->click();
+
+    QVERIFY2(m_store->note(note).has_value(), "a refused task took the note with it");
+    const QList<Proposal> standing = m_store->proposals();
+    QCOMPARE(standing.size(), qsizetype(1));
+    QCOMPARE(standing.constFirst().status, Proposal::Status::Open);
+
+    // The card stays, and it says what Taskwarrior said — the refusal knows
+    // why, so its own message is passed on rather than replaced (SPEC 8.2).
+    QVERIFY2(cardOf(window, task), "the card of a refused task left the review");
+    QVERIFY(error->isVisible());
+    QCOMPARE(error->text(), QStringLiteral("A task must have a description."));
+}
+
+/**
+ * Acceptance criterion 2 of issue #31: the badge follows the store.
+ *
+ * The number itself is something to look at, and it is looked at. What a
+ * picture cannot show is the **movement** (CLAUDE.md, rule 2): a badge written
+ * once at build time and never again reads correctly in every still image and
+ * stands wrong the moment the analysis run writes a suggestion or the review
+ * answers one — both of which happen in another window while this one is open.
+ */
+void LibraryTest::theBadgeFollowsTheOpenSuggestions()
+{
+    const qint64 note = storedNote(QStringLiteral("Bündel-Export erst ab fünf Notizen"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto *badge = window.findChild<QPushButton *>(QStringLiteral("proposals"));
+    QVERIFY2(badge, "the library header carries no button for the suggestions");
+    QCOMPARE(badge->text(), QStringLiteral("Suggestions"));
+
+    // Written into the store from outside the window, which is where they
+    // really come from: the analysis run of SPEC 7.3 has no window at all.
+    const qint64 bundle = storedBundle(QStringLiteral("Denkzettel-Entwicklung"), {note});
+    QCOMPARE(badge->text(), QStringLiteral("Suggestion (1)"));
+
+    const qint64 second = storedBundle(QStringLiteral("Sprachnotizen"), {note});
+    QCOMPARE(badge->text(), QStringLiteral("Suggestions (2)"));
+
+    // "Later" takes a suggestion out of the review (SPEC 9), so it comes off
+    // the badge as well — the question has been answered.
+    QVERIFY(m_store->setProposalStatus(second, Proposal::Status::Deferred));
+    QCOMPARE(badge->text(), QStringLiteral("Suggestion (1)"));
+
+    QVERIFY(m_store->removeProposal(bundle));
+    QCOMPARE(badge->text(), QStringLiteral("Suggestions"));
+
+    // The other end of the button (CLAUDE.md, finding 62): it counts, and it
+    // is also the way into the review. What main() does with the signal is one
+    // connect beside the tray's own; what this window promises is that pressing
+    // the button asks for the review at all.
+    const QSignalSpy asked(&window, &LibraryWindow::proposalsRequested);
+    badge->click();
+    QCOMPARE(asked.count(), 1);
 }
 
 void LibraryTest::carriesOutTheDeletionWhenTheApplicationQuits()

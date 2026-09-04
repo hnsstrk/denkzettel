@@ -568,6 +568,24 @@ Q_SIGNALS:
      */
     void noteAdded(qint64 id);
 
+    /**
+     * The set of suggestions has changed — one was written, deleted, or put
+     * aside (issue #31).
+     *
+     * The badge of the library counts the open suggestions, and every road
+     * that changes that number leads through this class: the analysis run
+     * writes them, the review answers them, and an accepted bundle takes its
+     * own row with it. So the announcement stands here rather than at each of
+     * those callers, where the library would have to be wired to all of them
+     * and would still miss the next one.
+     *
+     * It carries no number. What a listener wants is the count of the **open**
+     * ones, and that is a question about the table, not about the row that
+     * just moved — `proposals()` answers it, and the badge is written from
+     * that one read.
+     */
+    void proposalsChanged();
+
 private:
     bool migrate();
 

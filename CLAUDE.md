@@ -1703,6 +1703,25 @@ find.
     manager, which is why the pictures were right while the runner beside them
     was not.
 
+90. **A geometry read in a window with room to spare is not the size the
+    widgets need — the box layout has already handed the surplus out.**
+    Measured 2026-09-04 on #31, one storey below finding 84: `proposalshots`
+    was to size its window from the two cards instead of from a number of its
+    own, so it made the window roomy first (1200 logical rows), read the lower
+    card's bottom edge back and resized to that. The reading was **812** and
+    the two cards are **611** tall. Nothing inside them had moved — the
+    annotation preview stayed 58, the bundle's Markdown 134, the description
+    field 32 — the two **card frames** took the surplus and took it in equal
+    shares, 219 → 388 and 357 → 388, the space going into their own layouts'
+    spacing. `QVBoxLayout` hands room over to every item that may grow, and a
+    `QFrame` at `QSizePolicy::Preferred` may; the `addStretch()` at the bottom
+    does not get it all. The picture then carries 200 rows of empty ground and
+    the runner reports a height nobody asked for. What carries: read the size
+    where the content **overflows** — at the window's own height the scroll
+    area gives its content the size it asks for, and that is the size it really
+    is. Two readings on one binary, 812 and 612, and the second is the one that
+    matches the drawn picture.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.

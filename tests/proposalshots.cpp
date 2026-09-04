@@ -1,6 +1,7 @@
 #include "analysis/suggester.h"
 #include "store/proposal.h"
 #include "store/store.h"
+#include "ui/librarywindow.h"
 #include "ui/proposalwindow.h"
 
 #include <KLocalizedString>
@@ -10,6 +11,8 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPixmap>
 #include <QPushButton>
@@ -80,10 +83,23 @@
  *
  * The check that turns the second call into evidence is the same call
  * **without** `XDG_DATA_DIRS`: the three buttons have to read
- * "Accept · Later · Discard" then, and the head row "Bundle: …".
+ * "Accept · Later · Discard" then, and the head rows "Bundle: …" and
+ * "Task: …".
+ *
+ * The third picture is the task card of issue #31 beside the bundle card, the
+ * way wireframe 1c draws the two. Its numbers answer the question the picture
+ * cannot: whether the five fields carry the suggestion's own values, and
+ * whether what the annotation preview offers is the note and not the
+ * description a second time.
  */
 namespace
 {
+/** The width ProposalWindow gives itself; the third picture keeps it. */
+constexpr int WindowWidth = 760;
+
+/** Room under the lower card, the margin the card layout already keeps. */
+constexpr int CardMargin = 12;
+
 /** One invented note, written with the timestamp the bundle is ordered by. */
 // Text and timestamp are the two columns of one note, and a type of their own
 // for two values used five times would be the abstraction nobody asked for —
@@ -176,6 +192,61 @@ void report(const QString &name, const QWidget &window, qint64 id)
     const QString buttons = labels.join(QStringLiteral(" · "));
     qWarning("%s  buttons: %s", qUtf8Printable(name), qUtf8Printable(buttons));
     qWarning("%s  preview [%s]", qUtf8Printable(name), qUtf8Printable(preview->toPlainText()));
+}
+
+/**
+ * Prints what one task card shows: the five fields with their values and the
+ * annotation preview (issue #31).
+ *
+ * The values are read out of the widgets and not out of the payload that was
+ * written: a field that never received its value looks exactly like one that
+ * did, and only the readback tells the two apart (finding 27). The preview is
+ * printed whole for the same reason — it says either the note text or the
+ * sentence that nothing is annotated, and a picture cropping a long note
+ * cannot show which.
+ */
+void reportTask(const QString &name, const QWidget &window, qint64 id)
+{
+    const auto *title = window.findChild<QLabel *>(QStringLiteral("title-%1").arg(id));
+    const auto *preview = window.findChild<QTextBrowser *>(QStringLiteral("preview-%1").arg(id));
+    const auto *accept = window.findChild<QPushButton *>(QStringLiteral("accept-%1").arg(id));
+    const auto *frame = window.findChild<QWidget *>(QStringLiteral("card-%1").arg(id));
+    if (!title || !preview || !accept || !frame) {
+        qFatal("the task card of suggestion %lld is not built", static_cast<long long>(id));
+    }
+
+    const QStringList roles{QStringLiteral("description"),
+                            QStringLiteral("project"),
+                            QStringLiteral("tags"),
+                            QStringLiteral("due"),
+                            QStringLiteral("priority")};
+    for (const QString &role : roles) {
+        const auto *field = window.findChild<QLineEdit *>(QStringLiteral("%1-%2").arg(role).arg(id));
+        if (!field) {
+            qFatal("the task card carries no field %s", qUtf8Printable(role));
+        }
+        // The width beside the value: a field is a value that is **set**, the
+        // width is what says it can be seen (finding 51).
+        qWarning("%s  field %s width=%d text=[%s]",
+                 qUtf8Printable(name), qUtf8Printable(role), field->width(),
+                 qUtf8Printable(field->text()));
+    }
+
+    const qreal ratio = window.devicePixelRatioF();
+    const QRect frameRect(frame->mapTo(&window, QPoint(0, 0)), frame->size());
+    qWarning("%s  card device x=%d..%d y=%d..%d  acceptEnabled=%d",
+             qUtf8Printable(name),
+             int(frameRect.left() * ratio), int(frameRect.right() * ratio),
+             int(frameRect.top() * ratio), int(frameRect.bottom() * ratio),
+             int(accept->isEnabled()));
+    qWarning("%s  title [%s]", qUtf8Printable(name), qUtf8Printable(title->text()));
+    qWarning("%s  annotation [%s]", qUtf8Printable(name), qUtf8Printable(preview->toPlainText()));
+
+    QStringList labels;
+    labels << accept->text();
+    labels << window.findChild<QPushButton *>(QStringLiteral("later-%1").arg(id))->text();
+    labels << window.findChild<QPushButton *>(QStringLiteral("discard-%1").arg(id))->text();
+    qWarning("%s  buttons: %s", qUtf8Printable(name), qUtf8Printable(labels.join(QStringLiteral(" · "))));
 }
 }
 
@@ -294,6 +365,85 @@ int main(int argc, char **argv)
 
     report(QStringLiteral("30-karte-ohne-erste-notiz.png"), window, *id);
     shoot(window, directory + QStringLiteral("/30-karte-ohne-erste-notiz.png"));
+
+    // The task card of issue #31, beside the bundle card the way wireframe 1c
+    // draws the two. The first row is ticked again, so this picture differs
+    // from the one above by the card that was added and by nothing else.
+    notesView->item(0)->setCheckState(Qt::Checked);
+
+    const qint64 callId = add(store, QStringLiteral("Mara wegen Wochenende anrufen\n"
+                                                    "Kuchen nicht vergessen, sie mag den mit Mohn"),
+                              QStringLiteral("2026-07-30T18:30:00"));
+    Proposal task;
+    task.kind = Proposal::Kind::Task;
+    // Later than the bundle, so the bundle card keeps the top of the window and
+    // the two pictures above stay the pictures they were.
+    task.createdAt = QDateTime::fromString(QStringLiteral("2026-07-30T18:31:00"), Qt::ISODate);
+    task.status = Proposal::Status::Open;
+    // The `task` object of SPEC 7.2, handed on unchanged — that is what
+    // Suggester writes into a task suggestion (SPEC 7.4).
+    task.payload = QStringLiteral(R"({"description":"Mara wegen Wochenende anrufen",)"
+                                  R"("project":"privat","tags":["anruf","familie"],)"
+                                  R"("due":"2026-08-01","priority":"M"})");
+    task.noteIds = {callId};
+    const std::optional<qint64> taskId = store.addProposal(task);
+    if (!taskId.has_value()) {
+        qFatal("addProposal: %s", qUtf8Printable(store.lastError()));
+    }
+
+    // Both cards at once: the review is a place to compare questions in, and a
+    // card that only exists below the fold says nothing about how the two kinds
+    // sit together.
+    //
+    // **The height comes from the cards, and it is read while they are still
+    // taller than the window** (CLAUDE.md, finding 84). In a window with room
+    // to spare the box layout hands the surplus out and the reading comes back
+    // 200 rows too large — measured on the first pair of this picture, where a
+    // window resized to 1200 first answered 812 and the same two cards then
+    // stood 611 tall. At the window's own height the cards overflow, the scroll
+    // area gives its content the size it asks for, and that is the size they
+    // really are.
+    window.showProposals();
+    QTest::qWait(400);
+
+    const auto *taskFrame = window.findChild<QWidget *>(QStringLiteral("card-%1").arg(*taskId));
+    if (!taskFrame) {
+        qFatal("the task card is not built");
+    }
+    const int filled = taskFrame->mapTo(&window, QPoint(0, 0)).y() + taskFrame->height() + CardMargin;
+    qWarning("31-zwei-karten.png  the two cards fill %d logical rows, window was %d",
+             filled, window.height());
+    window.resize(WindowWidth, filled);
+    QTest::qWait(200);
+
+    report(QStringLiteral("31-zwei-karten.png"), window, *id);
+    reportTask(QStringLiteral("31-zwei-karten.png"), window, *taskId);
+    shoot(window, directory + QStringLiteral("/31-zwei-karten.png"));
+
+    // The badge of SPEC 9 on the library header, over the same two open
+    // suggestions the cards above stand for — so the number in the picture and
+    // the number of cards beside it are one statement and not two.
+    //
+    // The picture is what says whether the counter fits the header row; that it
+    // follows the store is a movement and belongs in a check, not in a still
+    // image (CLAUDE.md, rule 2). `librarytest` holds that one.
+    LibraryWindow library(&store);
+    library.setReferenceTime(QDateTime::fromString(QStringLiteral("2026-07-31T15:30:00"), Qt::ISODate));
+    library.showLibrary();
+    if (!QTest::qWaitForWindowExposed(&library)) {
+        qFatal("the library never reached the screen");
+    }
+    QTest::qWait(200);
+
+    const auto *badge = library.findChild<QPushButton *>(QStringLiteral("proposals"));
+    if (!badge) {
+        qFatal("the library header carries no button for the suggestions");
+    }
+    // Read back beside the picture: a button that never received its number
+    // looks exactly like one that has none to show (finding 27).
+    qWarning("31-vorschlaege-plakette.png  badge [%s] width=%d visible=%d",
+             qUtf8Printable(badge->text()), badge->width(), int(badge->isVisible()));
+    shoot(library, directory + QStringLiteral("/31-vorschlaege-plakette.png"));
 
     return 0;
 }

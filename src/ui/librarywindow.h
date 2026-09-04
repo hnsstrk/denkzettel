@@ -128,6 +128,16 @@ Q_SIGNALS:
      */
     void unclassifiedCountChanged(int count);
 
+    /**
+     * The button "Suggestions" of the header asks for the review (SPEC 9,
+     * wireframe 1b; issue #31).
+     *
+     * Not opened here, for the reason the settings dialog is not: the review
+     * window is created in main() beside the tray entry that opens it, and a
+     * second creation point would give the user two windows for one list.
+     */
+    void proposalsRequested();
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     void changeEvent(QEvent *event) override;
@@ -173,6 +183,23 @@ private:
 
     /** Reads the notes matching the search field from the store into the list. */
     void reload(Selection selection);
+
+    /**
+     * Writes the number of open suggestions onto the button in the header
+     * (SPEC 9, issue #31).
+     *
+     * Counted over `Store::proposals()` and not over a query of its own: the
+     * review window reads the same list to build its cards, so the badge and
+     * the cards cannot say two different things. At the ~200 notes of the
+     * overflow guard that is a handful of rows.
+     *
+     * The number joins the label rather than sitting in a corner of the button
+     * as wireframe 1b draws it: QtWidgets has no badge, and the drawing itself
+     * settles the same question for the tray entry the other way — "the counter
+     * joins the label as soon as there are suggestions". One thing, one
+     * description.
+     */
+    void updateProposalBadge();
 
     /**
      * Writes the counters of the category column, asking the store for them.
@@ -475,6 +502,16 @@ private:
      */
     QByteArray m_columnSizes;
     QLineEdit *m_search;
+
+    /**
+     * The button "Suggestions" with its counter, right of the search field
+     * (SPEC 9, wireframe 1b).
+     *
+     * It stays pressable while nothing is waiting: the review then says so on
+     * a page of its own, and a button that switches itself off leaves the user
+     * guessing whether the list is empty or the function is gone.
+     */
+    QPushButton *m_proposalsButton;
 
     /**
      * The category column of wireframe 1b: entry and counter in two columns,

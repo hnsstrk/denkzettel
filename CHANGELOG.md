@@ -22,6 +22,29 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   time it fills up says so again. **Nothing is ever exported by itself**; the
   reminder is a reminder and the export stays where it was, in the suggestions
   and in the library's menu.
+- **A task the analysis run found can now be answered, and accepting it creates
+  the task in Taskwarrior.** Beside the bundle cards the review now shows one
+  card per waiting task: description, project, tags, due date and priority as
+  **editable** fields, and under them the note text that would be attached to
+  the task as an annotation. What stands in the fields when **Übernehmen** is
+  pressed is what Taskwarrior is given — what the analysis run guessed is a
+  proposal, and the review is the place it is corrected in; the card follows
+  along while it is typed, down to saying that a note which repeats the
+  description word for word is not attached a second time. Where the note does
+  say more, it goes to the task as an annotation. Afterwards the note is gone
+  from Denkzettel and the suggestion with it, in one step, the way an accepted
+  bundle goes. And if `task` is not installed or refuses, nothing is lost: the
+  suggestion stays open, the note stays where it is, and the card itself
+  carries what Taskwarrior said. The one case in between is named as well — if
+  the task was created and only the annotation failed, the card says so, so
+  that a second attempt is a decision and not a second task (#31, #33).
+
+- **The library says how many suggestions are waiting.** Beside the search
+  field stands the button „Vorschläge" with the number of open suggestions on
+  it, and a click opens the same review the tray entry opens. The number
+  follows the store rather than the moment the window was opened: a run that
+  finds something raises it while the library stands open, and a card answered
+  in the other window lowers it (#31).
 
 - **The suggestions the analysis run finds can now be answered.** „Vorschläge"
   in the tray menu — until now a greyed entry — opens a window with one card
