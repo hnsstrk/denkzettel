@@ -1137,6 +1137,23 @@ QList<Note> Store::notesMatching(const SearchQuery &parsed) const
     return found;
 }
 
+int Store::sweepOrphanedProposals()
+{
+    QSqlQuery query(m_db);
+    // The whole condition in one statement: a suggestion is orphaned when no
+    // `proposal_notes` row points at it any more. `NOT EXISTS` rather than
+    // `NOT IN`, which answers nothing at all once the subquery yields a NULL —
+    // and `proposal_id` is NOT NULL, so the two agree here and would stop
+    // agreeing the day somebody relaxes the column.
+    if (!query.exec(QStringLiteral("DELETE FROM proposals WHERE NOT EXISTS"
+                                   " (SELECT 1 FROM proposal_notes"
+                                   " WHERE proposal_notes.proposal_id = proposals.id)"))) {
+        m_lastError = query.lastError().text();
+        return -1;
+    }
+    return query.numRowsAffected();
+}
+
 bool Store::deleteNoteRow(qint64 id)
 {
     // `tags` is the one table referencing notes(id) WITHOUT ON DELETE CASCADE
@@ -1183,6 +1200,18 @@ bool Store::removeNote(qint64 id)
         return false;
     }
 
+    // In the same transaction as the note: a suggestion the note was the last
+    // one of has nothing left to ask, and SPEC 9 says it does not stay
+    // (customer decision 04.09.2026). Deleting it here and not when the review
+    // is next opened is what keeps the badge of the library honest — it counts
+    // out of `proposals()`, which hands an empty suggestion back like any
+    // other.
+    const int orphans = sweepOrphanedProposals();
+    if (orphans < 0) {
+        m_db.rollback();
+        return false;
+    }
+
     if (!m_db.commit()) {
         m_lastError = m_db.lastError().text();
         m_db.rollback();
@@ -1190,6 +1219,9 @@ bool Store::removeNote(qint64 id)
     }
 
     Q_EMIT notesRemoved();
+    if (orphans > 0) {
+        Q_EMIT proposalsChanged();
+    }
 
     // Database and file system cannot be committed together. The database is
     // the authority, so the file goes last: an interruption in between leaves
@@ -1523,6 +1555,7 @@ std::optional<qint64> Store::addProposal(const Proposal &proposal)
         return std::nullopt;
     }
 
+    Q_EMIT proposalsChanged();
     return id;
 }
 
@@ -1612,6 +1645,7 @@ bool Store::removeProposal(qint64 id)
         m_lastError = query.lastError().text();
         return false;
     }
+    Q_EMIT proposalsChanged();
     return true;
 }
 
@@ -1626,6 +1660,10 @@ bool Store::setProposalStatus(qint64 id, Proposal::Status status)
         m_lastError = query.lastError().text();
         return false;
     }
+    // A status that did not change is announced too: the UPDATE answers true
+    // for an id no suggestion carries (see the header), and telling the two
+    // apart would cost a read for a recount that is one query either way.
+    Q_EMIT proposalsChanged();
     return true;
 }
 
@@ -1675,6 +1713,14 @@ bool Store::removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId
         return false;
     }
 
+    // The same sweep as in removeNote(), for the other road: a note of this
+    // bundle can carry a task suggestion of its own, and that one has nothing
+    // left to ask either once the note is gone.
+    if (sweepOrphanedProposals() < 0) {
+        m_db.rollback();
+        return false;
+    }
+
     if (!m_db.commit()) {
         m_lastError = m_db.lastError().text();
         m_db.rollback();
@@ -1682,6 +1728,7 @@ bool Store::removeExportedBundle(const QList<qint64> &noteIds, qint64 proposalId
     }
 
     Q_EMIT notesRemoved();
+    Q_EMIT proposalsChanged();
 
     // Database and file system cannot be committed together, so the files go
     // last for the reason removeNote() puts them last: an interruption here

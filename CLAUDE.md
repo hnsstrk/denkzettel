@@ -687,6 +687,18 @@ find.
     and was an artefact of the parser. Strip the comments first
     (`grep -v '^ *#'`), and treat a check that names something you know to be
     there as broken until proven otherwise.
+
+    **Its sibling: the file the check counted in was never read at all.**
+    Measured 2026-09-04 on #31, contradicting the lead three times before it
+    was caught. `git show "$rev:tests/librarytest.cpp"` inside double quotes
+    hands the shell a `\t`, so git was asked for `<rev><TAB>ests/…`, answered
+    "unknown commit or path" on standard error, and the `2>/dev/null` beside it
+    threw that away. `grep -c` on the resulting empty file answered **0** —
+    which reads exactly like "the string is not in this revision", and was used
+    to argue that a doc comment reported missing had never been there. It had.
+    A count of zero is the one answer a broken read and a true absence share,
+    so read the **size** back beside it (`wc -c`) or the exit code of the step
+    that produced the file, and never hide that step's standard error.
 45. **Ollama takes the reasoning out of the answer, so the backend at hand
     cannot show the case a robustness against it is built for.** Measured
     2026-08-29 on #14 with Ollama 0.32.15 and `qwen3:8b`: the classification of
@@ -1704,6 +1716,35 @@ find.
     manager, which is why the pictures were right while the runner beside them
     was not.
 
+90. **A geometry read in a window with room to spare is not the size the
+    widgets need — the box layout has already handed the surplus out.**
+    Measured 2026-09-04 on #31, one storey below finding 84: `proposalshots`
+    was to size its window from the two cards instead of from a number of its
+    own, so it made the window roomy first (1200 logical rows), read the lower
+    card's bottom edge back and resized to that. The reading was **812** and
+    the two cards are **611** tall. Nothing inside them had moved — the
+    annotation preview stayed 58, the bundle's Markdown 134, the description
+    field 32 — the two **card frames** took the surplus and took it in equal
+    shares, 219 → 388 and 357 → 388, the space going into their own layouts'
+    spacing. `QVBoxLayout` hands room over to every item that may grow, and a
+    `QFrame` at `QSizePolicy::Preferred` may; the `addStretch()` at the bottom
+    does not get it all. The picture then carries 200 rows of empty ground and
+    the runner reports a height nobody asked for. What carries: read the size
+    where the content **overflows** — at the window's own height the scroll
+    area gives its content the size it asks for, and that is the size it really
+    is. Two readings on one binary, 812 and 612, and the second is the one that
+    matches the drawn picture.
+
+    **And "where the content overflows" is a condition, not a place** (the
+    review's finding on this entry): in that runner it held only because 612 is
+    larger than the 600 the window happens to open at. A shorter pair of cards
+    fits, nothing overflows, and the same line measures the window height again
+    — silently, and the picture looks right. So the reading carries only beside
+    the readback that it overflowed at all (`filled > window.height()`, which
+    `proposalshots` now aborts on), or it is taken from the widget instead of
+    from the window: `sizeHint()` of the widget inside the scroll area is the
+    size the widgets need, whatever the window is doing.
+
 91. **A `KNotification` with an event id of its own sends nothing at all
     without a reachable `notifyrc` — and from a build directory there is
     none.** Measured 2026-09-04 on #40, where the six notification call sites
@@ -1750,6 +1791,21 @@ find.
     variable before the pipe (`cmake --build build > log 2>&1; rc=$?`) and
     reports **that** number. A test result is only a test result once the
     build behind it is known to have succeeded.
+93. **A control that cannot come out different is not a control, and a check
+    against a baseline can only be controlled with something the baseline
+    has.** Measured 2026-09-04 on #31, on the catalogue comparison findings 52,
+    80 and 83 prescribe. The real run reported 0 departures, and the control —
+    one message struck from a copy, exactly as finding 80 asks — reported 0 as
+    well, which reads as "the procedure is broken" and was not. The struck
+    message was one the **branch adds**; a message the baseline never had
+    cannot leave it, so that control could not have come out any other way.
+    Struck of a message both sides carry (`"The model's answer carried no
+    tag."`) the same comparison names it: 1 against 0. Only then does the 0 of
+    the real run say anything. This is the first rule of the verification
+    stance applied to the control rather than to the measurement — a step whose
+    subject cannot be missing proves nothing about the step — and the shape
+    generalises past catalogues: whenever a check asks "what did A lose against
+    B", the thing you delete for the control has to be **in B**.
 
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been

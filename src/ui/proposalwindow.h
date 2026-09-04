@@ -10,6 +10,7 @@ class Store;
 
 class KMessageWidget;
 class QCheckBox;
+class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 class QStackedWidget;
@@ -26,11 +27,12 @@ class QVBoxLayout;
  * place to answer questions in, and the two are reached separately — the tray
  * entry "Suggestions" opens this one.
  *
- * **Bundle cards only, so far.** The task cards of SPEC 7.4 belong to issue
- * #31 together with the Taskwarrior road of SPEC 8.2; a task suggestion is
- * therefore passed over here rather than shown as a card nobody can answer.
- * The list this window is built around is `Store::proposals()`, so #31 adds a
- * branch and no second reader.
+ * **Two kinds of card, one frame.** A task suggestion (SPEC 7.4) is answered
+ * here as well since issue #31: the same head row, the same separator and the
+ * same three buttons, and only the body between them differs — a bundle shows
+ * its notes and the Markdown, a task shows its five fields and what would be
+ * annotated. The list both are built from is `Store::proposals()`, so the
+ * second kind added a branch and no second reader.
  */
 class ProposalWindow : public QWidget
 {
@@ -58,9 +60,19 @@ private:
         Proposal proposal;
         /** The notes of the suggestion, in the order `Store::proposals()` hands them over. */
         QList<Note> notes;
-        /** One row per note, checkable; same order as `notes`. */
+        /** One row per note, checkable; same order as `notes`. Bundle cards only. */
         QListWidget *noteList = nullptr;
+        /** The Markdown of a bundle, or what a task would annotate. */
         QTextBrowser *preview = nullptr;
+        /**
+         * Where an error of this card's own is reported (SPEC 8.2, issue #33).
+         *
+         * On the card and not in the band under the window title: the band
+         * says one thing for a window that can hold several cards, and a
+         * failed `task add` has to name the suggestion it belongs to. Hidden
+         * it takes no height.
+         */
+        KMessageWidget *error = nullptr;
         QWidget *frame = nullptr;
     };
 
@@ -69,6 +81,35 @@ private:
 
     /** Builds the widgets of one card and writes them into it. */
     void buildCard(Card &card);
+
+    /** The body of a bundle card: the notes on the left, the Markdown on the right. */
+    void buildBundleBody(Card &card, QVBoxLayout *layout);
+
+    /**
+     * The body of a task card: the five fields of SPEC 7.2 and the annotation
+     * preview under them (wireframe 1c, issue #31).
+     *
+     * The fields are editable, and what they say at the moment "Accept" is
+     * pressed is what reaches Taskwarrior — that is the whole of acceptance
+     * criterion 1. They are addressed by object name (`description-<id>` and
+     * so on), the way the buttons of this window are, because two cards carry
+     * two fields of every name.
+     */
+    void buildTaskBody(Card &card, QVBoxLayout *layout);
+
+    /** One field of a task card, or nullptr for a bundle card. */
+    QLineEdit *taskField(const Card &card, QLatin1StringView role) const;
+
+    /**
+     * The payload of SPEC 7.2 as the five fields of `card` now read.
+     *
+     * Built from the widgets and not from `card.proposal.payload`: the stored
+     * text is what the analysis run proposed, and the review is where the user
+     * corrects it. `tags` is split on whitespace — a tag with a blank in it is
+     * none for Taskwarrior (see taskAddArguments()), so the field cannot
+     * produce one.
+     */
+    QString taskPayload(const Card &card) const;
 
     /** The card of `id`; null once its suggestion is gone. */
     Card *cardFor(qint64 id);
@@ -90,8 +131,24 @@ private:
     void selectionChanged(qint64 id);
 
     void accept(qint64 id);
+
+    /**
+     * Carries an accepted task card into Taskwarrior and clears up after it
+     * (SPEC 8.2, issue #33).
+     *
+     * On an error nothing is cleared up: the note stays, the suggestion stays
+     * open, and the card says what happened. On success the note and the
+     * suggestion go the way an exported bundle goes — one transaction, through
+     * `Store::removeExportedBundle()`, so the two roads out of the corpus
+     * cannot drift apart.
+     */
+    void acceptTask(const Card &card);
+
     void defer(qint64 id);
     void discard(qint64 id);
+
+    /** Puts one line into the card's own error row, or hides it again. */
+    void showCardError(const Card &card, const QString &text);
 
     /**
      * One line in the band under the top of the window, in the make the

@@ -2,6 +2,7 @@
 
 #include "platform/systemfonts.h"
 #include "proposals/fullexport.h"
+#include "store/proposal.h"
 #include "store/searchquery.h"
 #include "store/store.h"
 #include "ui/audioplayer.h"
@@ -671,6 +672,14 @@ LibraryWindow::LibraryWindow(Store *store, QWidget *parent)
     // D-Bus method AddNote() writes without any window at all.
     connect(m_store, &Store::noteAdded, this, &LibraryWindow::takeUpNewNotes);
 
+    // The badge of SPEC 9, on the same principle: the store says that the set
+    // of suggestions has moved, whoever moved it. The analysis run writes them,
+    // the review window answers them, and both are outside this window — a
+    // recount at activation would leave the badge standing wrong for as long as
+    // the two windows are side by side.
+    connect(m_store, &Store::proposalsChanged, this, &LibraryWindow::updateProposalBadge);
+    updateProposalBadge();
+
     resize(WindowWidth, WindowHeight);
     // windowHandle() exists only once the window has a platform resource, and
     // the stored size has to be in before the first show.
@@ -769,9 +778,19 @@ QWidget *LibraryWindow::buildHeader()
 
     hamburger->setMenu(menu);
 
+    // The button of SPEC 9 with its counter, between the search field and the
+    // menu (wireframe 1b). Wording and symbol are the tray entry's, verbatim,
+    // because it is the same act seen twice — the settings entry above is the
+    // precedent.
+    m_proposalsButton = new QPushButton(QIcon::fromTheme(QStringLiteral("tools-wizard")), QString(), header);
+    m_proposalsButton->setObjectName(QStringLiteral("proposals"));
+    m_proposalsButton->setToolTip(i18nc("@info:tooltip", "Answer the suggestions of the analysis run"));
+    connect(m_proposalsButton, &QPushButton::clicked, this, &LibraryWindow::proposalsRequested);
+
     auto *row = new QHBoxLayout();
     row->setContentsMargins(0, 0, 0, 0);
     row->addWidget(m_search);
+    row->addWidget(m_proposalsButton);
     // requestWidget() is how a QWidgetAction hands out its button outside a
     // QToolBar; the header is a plain QWidget, so nobody asks for it otherwise.
     row->addWidget(hamburger->requestWidget(header));
@@ -879,6 +898,27 @@ QWidget *LibraryWindow::buildSidebar()
     layout->addWidget(m_categories, 1);
 
     return sidebar;
+}
+
+void LibraryWindow::updateProposalBadge()
+{
+    int open = 0;
+    const QList<Proposal> proposals = m_store->proposals();
+    for (const Proposal &proposal : proposals) {
+        // Only the open ones. A deferred suggestion is one the user has already
+        // answered with "Later" (SPEC 9); counting it would ask the same
+        // question again every time the library is looked at.
+        if (proposal.status == Proposal::Status::Open) {
+            ++open;
+        }
+    }
+
+    m_proposalsButton->setText(open > 0
+                                   ? i18ncp("@action:button, with the number of open suggestions",
+                                            "Suggestion (%1)",
+                                            "Suggestions (%1)",
+                                            open)
+                                   : i18nc("@action:button", "Suggestions"));
 }
 
 void LibraryWindow::updateCategoryCounts()

@@ -213,6 +213,9 @@ int main(int argc, char *argv[])
     QObject::connect(&tray, &TrayIcon::recorderRequested, &recorder, &RecordingWindow::showRecorder);
     QObject::connect(&tray, &TrayIcon::libraryRequested, &library, &LibraryWindow::showLibrary);
     QObject::connect(&tray, &TrayIcon::proposalsRequested, &proposals, &ProposalWindow::showProposals);
+    // The button in the library header takes the same road as the tray entry
+    // (SPEC 9, issue #31): one review window for one list of suggestions.
+    QObject::connect(&library, &LibraryWindow::proposalsRequested, &proposals, &ProposalWindow::showProposals);
     // The error path of the transcription reaches the user here and nowhere
     // else (SPEC 10 and 12, issue #24). Both edges ask the same question of the
     // database rather than each carrying its own answer: **the state has to
