@@ -1717,6 +1717,27 @@ After starting the daemon, look into the journal
 (`journalctl --user -t denkzetteld -n 20`) — silent faults of third-party
 services stand there and nowhere else.
 
+**A wiring in `main.cpp` can be driven, and "the user's daemon must not be
+stopped" is not a reason not to** (measured 2026-09-04 while reviewing #31).
+Finding 1 is about the **installed** state; a daemon of your own on a session
+bus of its own is a different process and touches nothing. The recipe, which
+came out different with the `connect` and without it (a window count of 0 → 1
+against 0 → 0):
+
+- nested `kwin_wayland --virtual` under `dbus-run-session`, with a throwaway
+  `HOME` and its own XDG directories
+- `QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1`, and the a11y bus plus
+  `at-spi2-registryd` started **by hand** — activation through the systemd
+  unit fails on such a bus
+- the window opened over D-Bus, the button then pressed through AT-SPI
+  (`do_action(0)`)
+- `readlink /proc/<pid>/exe` for **every** process found, to say which binary
+  answered (findings 30 and 75)
+
+So a report that says "not run, because the daemon may not be stopped" is
+saying the wrong thing. Say "not run" and why it was not worth the run, or run
+it.
+
 ## UI review
 
 The yardstick is the KDE Human Interface Guidelines (develop.kde.org/hig) —
