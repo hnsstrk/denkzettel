@@ -874,11 +874,19 @@ void AiTest::openRouterRefusalBeatsTheStatusCode()
     // reader handing the whole body on: behind it the run reddens at the
     // compare, in front of it here.
     QVERIFY2(!answer.error.contains(QLatin1String("user_id")), qPrintable(answer.error));
+    // And the **value** beside the field name, because the two are not the same
+    // guard: a reader that took the field name along is caught by the line
+    // above, one that took only what stands behind it is caught here. The
+    // marker is upper case and the model id in the sentence is lower, so this
+    // can only match what came out of `user_id` (`QString::contains()` is
+    // case-sensitive). It stood **behind** the comparison until 10.10.2026 and
+    // could not go red there: measured with a reader appending only the value,
+    // the run reddened at the compare and never reached this line.
+    QVERIFY2(!answer.error.contains(QLatin1String("OF-THE-CHECK")), qPrintable(answer.error));
 
     QCOMPARE(answer.error,
              QStringLiteral("openrouter.ai refused the request:"
                             " no-such-vendor/no-such-model-of-the-check is not a valid model ID"));
-    QVERIFY2(!answer.error.contains(QLatin1String("OF-THE-CHECK")), qPrintable(answer.error));
 
     // The rejected key, measured the same day. 401 beside a transport error of
     // its own, and the service's four words are the whole of what the user
