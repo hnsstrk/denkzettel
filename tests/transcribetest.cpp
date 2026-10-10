@@ -45,8 +45,12 @@
  * **A HOME of its own per run**, which is why this file ends in a `main()`
  * instead of `QTEST_GUILESS_MAIN` (issue #150). QStandardPaths test mode puts
  * the models and `transcribetestrc` under `$HOME/.qttest` — one directory for
- * every run of this user, which initTestCase() then clears out: two runs at
- * once took each other's models away. HOME has to be set before
+ * every run of this user, which initTestCase() clears out and cleanup()
+ * removes `ggml-base.bin*` from, so two runs at once can take each other's
+ * models away. **No run has been made to go red that way**: the window is
+ * narrow, four staggered runs came out green, and the red run of 04.09.2026
+ * stays unexplained — what is closed here is the coupling and not a measured
+ * fault. HOME has to be set before
  * QCoreApplication, because KSharedConfig hands out the instance of the first
  * read to everything afterwards. Test mode itself stays: it reads HOME and
  * ignores `XDG_*` (`qstandardpaths_unix.cpp`), so moving HOME moves all of it,
