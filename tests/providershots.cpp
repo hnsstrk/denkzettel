@@ -36,13 +36,18 @@
  * half a picture cannot carry: that under Ollama the label is **empty** and not
  * merely undrawn.
  *
- * They replace nothing: the `127-`, `38-`, `39-` and `144-anbieter-*.png` beside them
- * are the record of the states before, and each of those stories changed that
- * state. #144 is the newest, so this runner writes the `144-` set — **and its
- * Ollama picture is byte for byte the one #39 wrote**. That is not a duplicate
- * by accident, it is the evidence: under the default provider this story
- * changes nothing at all, and `cmp` on the two files is what says so
- * (CLAUDE.md, finding 39).
+ * They replace nothing: the `127-`, `38-`, `39-` and `144-anbieter-*.png` beside
+ * them are the record of the states before, and each of those stories changed
+ * that state. **#130 is the newest, so this runner writes the `130-` set** —
+ * the file names below are the readback of that sentence.
+ *
+ * The `144-` set is #144's own evidence, and **its Ollama picture is byte for
+ * byte the one #39 wrote**: that is not a duplicate by accident, it is what
+ * says #144 changed nothing at all under the default provider, and `cmp` on
+ * those two files is the measurement (CLAUDE.md, finding 39). #130 moved the
+ * embedding call to the chosen service, which the Ollama page names too, so no
+ * picture of the `130-` set repeats an earlier one — `cmp` against all four
+ * predecessors differs for all three pages.
  *
  * Not a test and out of `add_test()`, for the reason `readmeshots` is out of
  * it: a broken picture writer must not turn the suite red. It is built with
@@ -85,10 +90,11 @@
  * **The committed pictures under `docs/images/reviews/` are the German ones**,
  * and the call below is the one that reproduces them byte for byte. The run
  * writes one language set per call under **the same three file names**
- * (`130-anbieter-*.png` since #130; the `144-*` and `39-*` beside them are the
- * record of the states before it, and are not overwritten), so an English run
- * pointed at that directory overwrites them with English pictures
- * of the same state — it belongs in a throwaway directory. Read it back: run
+ * (`130-anbieter-*.png` since #130; the `127-*`, `38-*`, `39-*` and `144-*`
+ * beside them are the record of the states before it, and are not
+ * overwritten), so an English run pointed at that directory overwrites them
+ * with English pictures of the same state — it belongs in a throwaway
+ * directory. Read it back: run
  * the line, then `git status`, and nothing may have changed.
  *
  * Usage — the environment is not optional, see rule 2 and finding 28. The

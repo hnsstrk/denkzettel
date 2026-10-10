@@ -152,11 +152,13 @@ void AiTest::initTestCase()
     KLocalizedString::setApplicationDomain("denkzettel");
 
     // theTriggerFollowsTheSetting() writes a trigger into KSharedConfig, and
-    // KSharedConfig writes what it holds to disk when the process ends. A case
-    // that dies before its deleteGroup() therefore leaves a real value behind,
-    // and the NEXT run would read it as a setting somebody made — and read it
-    // before the case that sets one has run, which is the half that would look
-    // like a fault of the scheduler.
+    // KSharedConfig writes what it holds to disk when the process ends. Every
+    // case below that writes a group takes it away again through a qScopeGuard,
+    // which runs on the abort path as well (CLAUDE.md, finding 42); this line is
+    // what carries one written without such a guard. The stale value would
+    // reach the NEXT run as a setting somebody made — and reach it before the
+    // case that sets one has run, which is the half that would look like a
+    // fault of the scheduler.
     //
     // Before the first KSharedConfig::openConfig() of the run, or the stale
     // value would already be in memory and deleting the file would change
@@ -2402,6 +2404,14 @@ void AiTest::theTriggerFollowsTheSetting()
     // key names are the duplication that is left, and they carry a comment on
     // both sides rather than an assertion (see analysisscheduler.h).
     KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Analysis"));
+    // Taken away through a guard and not as a last line of the case: a last
+    // line only runs when the case passes, which is exactly when it is not
+    // needed (CLAUDE.md, finding 42). Nothing below reads this group without
+    // writing it first, so a leftover cannot redden a neighbour today — the
+    // guard is what keeps that from being the only protection.
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
 
     // "on demand only": a note that is written sets nothing going, and no timer
     // stands either.
@@ -2465,8 +2475,6 @@ void AiTest::theTriggerFollowsTheSetting()
     scheduler.applySettings();
     QCOMPARE(scheduler.interval(),
              std::chrono::milliseconds(std::chrono::minutes(analysis::MinimumIntervalMinutes)));
-
-    group.deleteGroup();
 }
 
 void AiTest::aNoteWrittenDuringARunIsNotLost()
@@ -2494,6 +2502,11 @@ void AiTest::aNoteWrittenDuringARunIsNotLost()
     provider.embedVectors = {{1.0, 0.0}, {0.0, 1.0}, {-1.0, 0.0}};
 
     KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Analysis"));
+    // Through a guard and not as a last line, for the reason
+    // theTriggerFollowsTheSetting() gives above (CLAUDE.md, finding 42).
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
     group.writeEntry("Trigger", QString::fromLatin1(analysis::TriggerAfterSaving));
 
     Classifier classifier(store.get(), &provider);
@@ -2521,8 +2534,6 @@ void AiTest::aNoteWrittenDuringARunIsNotLost()
     QCOMPARE(provider.prompts.size(), 3);
     QCOMPARE(store->note(late)->state, Note::State::Analysed);
     QVERIFY(store->unanalysedNotes().isEmpty());
-
-    group.deleteGroup();
 }
 
 void AiTest::cosineSimilarityIsTheAngleBetweenTwoVectors()
@@ -2614,6 +2625,18 @@ void AiTest::bundleThresholdIsClampedToWhatTheDialogAllows()
     // Written into the same KSharedConfig instance the reader opens, so what
     // the file is called plays no part (CLAUDE.md, finding 42).
     KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    // Taken away whatever happens below, and here that is not tidiness at all:
+    // `BundleNotes` is what clustering.cpp and suggester.cpp read their
+    // threshold out of, so a case dying on an assertion here leaves a
+    // hand-written threshold standing and the bundle cases further down go red
+    // over this one's leftovers — measured on a case made to die at the last
+    // assertion below as 1 failure with this guard against 6 without it, and
+    // the group empty against `BundleNotes=7` left on disk (CLAUDE.md,
+    // finding 42). The deletion at the end of the case stays all the same: the
+    // line after it measures what comes back with no entry.
+    const auto forgetTheGroup = qScopeGuard([&group] {
+        group.deleteGroup();
+    });
 
     // A hand-written value the dialog would never have produced. At 1 every
     // note is a cluster of its own and the whole corpus turns into bundles;
