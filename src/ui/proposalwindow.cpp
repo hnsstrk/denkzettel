@@ -13,6 +13,7 @@
 #include <KStandardShortcut>
 
 #include <QAction>
+#include <QFileInfo>
 #include <QFontDatabase>
 #include <QFormLayout>
 #include <QFrame>
@@ -654,7 +655,14 @@ void ProposalWindow::accept(qint64 id)
         return;
     }
 
-    showBandMessage(i18n("The collective note was written to %1.", result.file), false);
+    // The folder and the number, not the one file name there used to be: an
+    // export writes the collective note and a file per note (SPEC 8.1), and
+    // naming the first of N+1 would read like the only one.
+    showBandMessage(i18np("One file was written to %2.",
+                          "%1 files were written to %2.",
+                          result.files.size(),
+                          QFileInfo(result.files.constFirst()).absolutePath()),
+                    false);
     reload();
 }
 

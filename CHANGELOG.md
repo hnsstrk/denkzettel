@@ -476,6 +476,33 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Changed
 
+- **The Obsidian export writes one file per note beside the collective note.**
+  An accepted bundle used to leave a single `Denkzettel <topic>
+  <YYYY-MM-DD>.md` in `_INBOX/`; it now leaves that note and, beside it, one
+  `Denkzettel <timestamp>.md` per exported note — the same stem the note's
+  recording carries. The single file holds the note's text and nothing else
+  (for a voice note its transcript), and its `created` is the day of the note
+  rather than the day of the export, so what you file out of `_INBOX/` carries
+  its own date. The collective note is unchanged and keeps the bundle as one
+  readable artefact.
+
+  **Nothing links the files to each other.** They are held together by a tag:
+  the topic of the bundle stands in the frontmatter of all of them, under
+  `denkzettel`, so Obsidian's tag view shows the export as a group. A link
+  would not survive filing — the vault rewrites links on move, and a note moved
+  out of `_INBOX/` would then point back into it.
+
+  **And an export that fails after it has written takes its own files away
+  again.** Until now a failed export left its collective note standing, and
+  every retry wrote another one with a counter suffix. It now removes exactly
+  the files it created — read back from the file system, never a file it found
+  already there — and says what it could not remove. The notes stay in the
+  corpus either way: the deletion runs in one transaction and only after every
+  file is written (#32).
+
+  The success message in the review window therefore names the folder and the
+  number of files instead of one file name.
+
 - **The level meter of the recording window goes across the whole width.** It
   used to be seven bars standing as a small clump beside the red dot, with half
   the row empty next to them — seven was the number for the 280 px window of the

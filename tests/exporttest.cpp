@@ -35,9 +35,10 @@
  * same subject with the stakes reversed: that one only reads, this one deletes
  * what it has written. So what the cases below watch is not the file but the
  * corpus around it — that everything an exported note owned is gone, that
- * everything a failed export owned is still there, and that no name is ever
- * written over. All of it against a **test vault** the run creates itself
- * (SPEC 16); nothing here goes near a real one.
+ * everything a failed export owned is still there, that no name is ever
+ * written over, and that a run which fails after writing takes its own N+1
+ * files away again and nobody else's. All of it against a **test vault** the
+ * run creates itself (SPEC 16); nothing here goes near a real one.
  *
  * The counts are read through a connection of the check's own (see rows()),
  * not through the Store that did the deleting: a query that comes out of the
@@ -62,12 +63,14 @@ private Q_SLOTS:
     void refusesAFolderItCannotCreate();
 
     void writesTheCollectiveNoteIntoTheInbox();
+    void writesAFileForEveryNoteBesideTheCollectiveNote();
     void keepsUmlautsInTheNameAndTheFrontmatter();
     void removesEverythingTheExportedNotesOwned();
     void countsTheNameUpRatherThanOverwriting();
     void keepsTheCorpusWhenTheVaultIsNotThere();
     void keepsTheCorpusWhenTheInboxCannotBeMade();
     void keepsEveryNoteWhenOneOfThemIsAlreadyGone();
+    void removesOnlyTheFilesAFailedExportWroteItself();
     void leavesADeselectedNoteInTheCorpus();
     void refusesATaskSuggestion();
 
@@ -471,7 +474,13 @@ void ExportTest::writesTheCollectiveNoteIntoTheInbox()
     Note first;
     first.createdAt = QDateTime::fromString(QStringLiteral("2026-07-31T14:05:23.123"), Qt::ISODateWithMs);
     first.content = QStringLiteral("Erste Notiz");
-    first = add(first, {QStringLiteral("backup"), QStringLiteral("CLI")});
+    // The topic among the note's own tags, which is the ordinary case and not
+    // a curiosity — a bundle named "Backup-Strategie" over notes the
+    // classification tagged that way. It makes the expected text below the
+    // guard of the one place that takes the topic out of the note tags: left
+    // in, `- backup-strategie` would stand in the list twice.
+    first = add(first,
+                {QStringLiteral("backup"), QStringLiteral("CLI"), QStringLiteral("Backup-Strategie")});
 
     Note second;
     second.createdAt = QDateTime::fromString(QStringLiteral("2026-08-01T09:07:00.500"), Qt::ISODateWithMs);
@@ -488,17 +497,18 @@ void ExportTest::writesTheCollectiveNoteIntoTheInbox()
     QVERIFY2(result.ok(), qPrintable(result.error));
     // The name against a literal, not against the same clock or the same title
     // the code read.
-    QCOMPARE(result.file, inboxFile(QStringLiteral("Denkzettel Backup-Strategie 2026-08-29.md")));
+    QCOMPARE(result.files.constFirst(), inboxFile(QStringLiteral("Denkzettel Backup-Strategie 2026-08-29.md")));
 
     // The whole file against the whole expected text: the frontmatter is the
     // one part of this story that a foreign program reads, and a check that
     // only looked for `type: note` would pass over a broken list or a missing
     // separator.
-    QCOMPARE(read(result.file),
+    QCOMPARE(read(result.files.constFirst()),
              QStringLiteral("---\n"
                             "type: note\n"
                             "tags:\n"
                             "  - denkzettel\n"
+                            "  - backup-strategie\n"
                             "  - backup\n"
                             "  - cli\n"
                             "  - shell-skript\n"
@@ -507,11 +517,81 @@ void ExportTest::writesTheCollectiveNoteIntoTheInbox()
                             "\n")
                  + markdown);
 
-    // Flat in `_INBOX/`, and nothing beside it: the vault keeps no subfolders
-    // there, and nothing of ours writes an INDEX.md.
+    // Flat in `_INBOX/`, and nothing beside the N+1 files: the vault keeps no
+    // subfolders there, and nothing of ours writes an INDEX.md.
     QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name),
-             QStringList({QStringLiteral("Denkzettel Backup-Strategie 2026-08-29.md")}));
+             QStringList({QStringLiteral("Denkzettel 2026-07-31T14-05-23.123.md"),
+                          QStringLiteral("Denkzettel 2026-08-01T09-07-00.500.md"),
+                          QStringLiteral("Denkzettel Backup-Strategie 2026-08-29.md")}));
     QCOMPARE(QDir(vault()).entryList(QDir::Files, QDir::Name), QStringList());
+}
+
+void ExportTest::writesAFileForEveryNoteBesideTheCollectiveNote()
+{
+    QVERIFY(QDir().mkpath(vault()));
+
+    Note text;
+    text.createdAt = QDateTime::fromString(QStringLiteral("2026-07-31T14:05:23.123"), Qt::ISODateWithMs);
+    text.content = QStringLiteral("Erste Notiz");
+    text = add(text, {QStringLiteral("backup"), QStringLiteral("CLI")});
+
+    Note voice;
+    voice.createdAt = QDateTime::fromString(QStringLiteral("2026-08-01T09:07:00.500"), Qt::ISODateWithMs);
+    voice.type = Note::Type::Audio;
+    voice.content = QStringLiteral("Transkript über Backups");
+    voice = add(voice, {QStringLiteral("backup")});
+
+    const QString markdown = QStringLiteral("# Backup-Strategie\n\n## 2026-07-31\n\nErste Notiz\n"
+                                            "\n## 2026-08-01\n\nTranskript über Backups\n");
+    const Proposal proposal = bundle(QStringLiteral("Backup-Strategie"), markdown, {text, voice});
+
+    const BundleExportResult result =
+        exportBundle(*m_store, proposal, vault(), QDate::fromString(QLatin1String(ExportDate), Qt::ISODate));
+
+    QVERIFY2(result.ok(), qPrintable(result.error));
+    // N+1 files, the collective note first — what the window reports is the
+    // folder and this number (customer decision 10.10.2026).
+    QCOMPARE(result.files,
+             QStringList({inboxFile(QStringLiteral("Denkzettel Backup-Strategie 2026-08-29.md")),
+                          inboxFile(QStringLiteral("Denkzettel 2026-07-31T14-05-23.123.md")),
+                          inboxFile(QStringLiteral("Denkzettel 2026-08-01T09-07-00.500.md"))}));
+
+    // The whole file against the whole expected text, and the names as
+    // literals rather than through noteFileStem(): the frontmatter is what a
+    // foreign program reads, and a readback through the same function the code
+    // used cannot contradict it (CLAUDE.md, finding 10).
+    //
+    // Two things in it belong to the note and not to the export: `created` is
+    // the day of the note — 2026-07-31 against the export's 2026-08-29 — and
+    // the tags are this note's own, not the union the collective note carries
+    // (`shell-skript` is absent here). The topic stands in both, which is what
+    // holds the files of one bundle together without a link.
+    QCOMPARE(read(inboxFile(QStringLiteral("Denkzettel 2026-07-31T14-05-23.123.md"))),
+             QStringLiteral("---\n"
+                            "type: note\n"
+                            "tags:\n"
+                            "  - denkzettel\n"
+                            "  - backup-strategie\n"
+                            "  - backup\n"
+                            "  - cli\n"
+                            "created: 2026-07-31\n"
+                            "---\n"
+                            "\n"
+                            "Erste Notiz\n"));
+
+    // A voice note exports its transcript (SPEC 8.1) and dates itself from its
+    // own day, which is the second one of this bundle.
+    QCOMPARE(read(inboxFile(QStringLiteral("Denkzettel 2026-08-01T09-07-00.500.md"))),
+             QStringLiteral("---\n"
+                            "type: note\n"
+                            "tags:\n"
+                            "  - denkzettel\n"
+                            "  - backup-strategie\n"
+                            "  - backup\n"
+                            "created: 2026-08-01\n"
+                            "---\n"
+                            "\n"
+                            "Transkript über Backups\n"));
 }
 
 void ExportTest::keepsUmlautsInTheNameAndTheFrontmatter()
@@ -536,12 +616,13 @@ void ExportTest::keepsUmlautsInTheNameAndTheFrontmatter()
     // umlauts has to be the entry in the file system, not a string this run
     // built and handed back to itself.
     QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name),
-             QStringList({QStringLiteral("Denkzettel Bücher über Straßenbahnen 2026-08-29.md")}));
+             QStringList({QStringLiteral("Denkzettel 2026-07-31T14-05-23.123.md"),
+                          QStringLiteral("Denkzettel Bücher über Straßenbahnen 2026-08-29.md")}));
 
     // ä, ö, ü and ß come out of the file as they went into the note — read
     // back as UTF-8, which is what a local 8-bit codec would have turned into
     // question marks without a word.
-    const QString written = read(result.file);
+    const QString written = read(result.files.constFirst());
     QVERIFY2(written.contains(QStringLiteral("  - grüße-küsse\n")), qPrintable(written));
     QVERIFY2(written.contains(QStringLiteral("# Bücher über Straßenbahnen")), qPrintable(written));
     QVERIFY2(written.contains(QStringLiteral("Über Straßenbahnen")), qPrintable(written));
@@ -587,7 +668,10 @@ void ExportTest::removesEverythingTheExportedNotesOwned()
         exportBundle(*m_store, proposal, vault(), QDate::fromString(QLatin1String(ExportDate), Qt::ISODate));
 
     QVERIFY2(result.ok(), qPrintable(result.error));
-    QVERIFY(QFile::exists(result.file));
+    QCOMPARE(result.files.size(), 3);
+    for (const QString &file : result.files) {
+        QVERIFY2(QFile::exists(file), qPrintable(file));
+    }
 
     // Every table SPEC 8.1 names, counted on the database file through a
     // connection of this check's own.
@@ -620,7 +704,7 @@ void ExportTest::countsTheNameUpRatherThanOverwriting()
     const BundleExportResult one =
         exportBundle(*m_store, bundle(QStringLiteral("Thema"), firstMarkdown, {first}), vault(), date);
     QVERIFY2(one.ok(), qPrintable(one.error));
-    QCOMPARE(one.file, inboxFile(QStringLiteral("Denkzettel Thema 2026-08-29.md")));
+    QCOMPARE(one.files.constFirst(), inboxFile(QStringLiteral("Denkzettel Thema 2026-08-29.md")));
 
     Note second;
     second.createdAt = QDateTime::fromString(QStringLiteral("2026-08-02T11:00:00.000"), Qt::ISODateWithMs);
@@ -633,16 +717,19 @@ void ExportTest::countsTheNameUpRatherThanOverwriting()
         vault(),
         date);
     QVERIFY2(two.ok(), qPrintable(two.error));
-    QCOMPARE(two.file, inboxFile(QStringLiteral("Denkzettel Thema 2026-08-29 2.md")));
+    QCOMPARE(two.files.constFirst(), inboxFile(QStringLiteral("Denkzettel Thema 2026-08-29 2.md")));
 
     // Both stand there, and the first one still holds its own note. An
     // overwrite would be the one real data loss of this story: the notes of the
     // first export are deleted by now, so its file is all that is left of them.
     QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name),
-             QStringList({QStringLiteral("Denkzettel Thema 2026-08-29 2.md"),
+             QStringList({QStringLiteral("Denkzettel 2026-07-31T14-05-23.123.md"),
+                          QStringLiteral("Denkzettel 2026-08-02T11-00-00.000.md"),
+                          QStringLiteral("Denkzettel Thema 2026-08-29 2.md"),
                           QStringLiteral("Denkzettel Thema 2026-08-29.md")}));
-    QVERIFY2(read(one.file).endsWith(firstMarkdown), qPrintable(read(one.file)));
-    QVERIFY2(read(two.file).contains(QStringLiteral("Zweite Notiz")), qPrintable(read(two.file)));
+    QVERIFY2(read(one.files.constFirst()).endsWith(firstMarkdown), qPrintable(read(one.files.constFirst())));
+    QVERIFY2(read(two.files.constFirst()).contains(QStringLiteral("Zweite Notiz")),
+             qPrintable(read(two.files.constFirst())));
 }
 
 void ExportTest::keepsTheCorpusWhenTheVaultIsNotThere()
@@ -664,7 +751,7 @@ void ExportTest::keepsTheCorpusWhenTheVaultIsNotThere()
 
     QVERIFY(!result.ok());
     QVERIFY2(!result.error.isEmpty(), "the error path has to say something");
-    QVERIFY(result.file.isEmpty());
+    QVERIFY(result.files.isEmpty());
     // Not one byte of the corpus moved: an export that cannot write must not
     // have begun to delete.
     QCOMPARE(corpusFingerprint(), before);
@@ -694,7 +781,7 @@ void ExportTest::keepsTheCorpusWhenTheInboxCannotBeMade()
         exportBundle(*m_store, proposal, vault(), QDate::fromString(QLatin1String(ExportDate), Qt::ISODate));
 
     QVERIFY(!result.ok());
-    QVERIFY(result.file.isEmpty());
+    QVERIFY(result.files.isEmpty());
     QCOMPARE(corpusFingerprint(), before);
     QCOMPARE(rows(QStringLiteral("SELECT COUNT(*) FROM notes")), 1);
 }
@@ -724,11 +811,22 @@ void ExportTest::keepsEveryNoteWhenOneOfThemIsAlreadyGone()
     const BundleExportResult result =
         exportBundle(*m_store, proposal, vault(), QDate::fromString(QLatin1String(ExportDate), Qt::ISODate));
 
-    // The file is written — the write comes first, and that is what makes this
-    // failure the harmless one.
+    // The files are written first, and the failure then takes them away again
+    // (customer decision 30.08.2026): the corpus is unchanged at that moment,
+    // so an empty `_INBOX/` is the state before the attempt. Without the
+    // clean-up a second try would leave another set beside them.
     QVERIFY(!result.ok());
-    QVERIFY2(QFile::exists(inboxFile(QStringLiteral("Denkzettel Thema 2026-08-29.md"))),
-             "the collective note is written before anything is deleted");
+    QVERIFY(result.files.isEmpty());
+    QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name), QStringList());
+
+    // And that the run got as far as the third note, so the collective note
+    // and two note files stood there before it failed. Without this line an
+    // export that fails **before** writing would leave the case green — there
+    // would be nothing to clean up either, and an empty `_INBOX/` cannot tell
+    // the two apart (CLAUDE.md, the first rule of the verification stance).
+    // It stands after the assertions above so that a mutation of the clean-up
+    // reddens them and not this one (finding 35).
+    QVERIFY2(result.error.contains(QString::number(notes.at(2).id)), qPrintable(result.error));
 
     // And **neither** of the two surviving notes was deleted, nor the
     // suggestion. All or nothing: a loop of single deletions would have taken
@@ -736,6 +834,61 @@ void ExportTest::keepsEveryNoteWhenOneOfThemIsAlreadyGone()
     QCOMPARE(rows(QStringLiteral("SELECT COUNT(*) FROM notes")), 2);
     QCOMPARE(rows(QStringLiteral("SELECT COUNT(*) FROM tags")), 2);
     QCOMPARE(rows(QStringLiteral("SELECT COUNT(*) FROM proposals")), 1);
+}
+
+void ExportTest::removesOnlyTheFilesAFailedExportWroteItself()
+{
+    QVERIFY(QDir().mkpath(vault() + QStringLiteral("/_INBOX")));
+
+    QList<Note> notes;
+    for (int index = 0; index < 3; ++index) {
+        Note note;
+        note.createdAt =
+            QDateTime::fromString(QStringLiteral("2026-07-1%1T14:05:23.123").arg(index), Qt::ISODateWithMs);
+        note.content = QStringLiteral("Notiz %1").arg(index);
+        notes.append(add(note, {QStringLiteral("backup")}));
+    }
+    const Proposal proposal =
+        bundle(QStringLiteral("Thema"), QStringLiteral("# Thema\n\n## 2026-07-10\n\nNotiz 0\n"), notes);
+
+    // A file of the user's own, standing on the name the second note wants —
+    // the leftover of an earlier failure, or a copy they made. Written as a
+    // literal, not through noteFileStem(), and asserted **before** the run can
+    // touch anything (CLAUDE.md, finding 29).
+    const QString foreign = inboxFile(QStringLiteral("Denkzettel 2026-07-11T14-05-23.123.md"));
+    const QString foreignContent = QStringLiteral("Fremder Inhalt\n");
+    QFile stranger(foreign);
+    QVERIFY(stranger.open(QIODevice::WriteOnly));
+    QVERIFY(stranger.write(foreignContent.toUtf8()) == foreignContent.toUtf8().size());
+    stranger.close();
+    QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name),
+             QStringList({QStringLiteral("Denkzettel 2026-07-11T14-05-23.123.md")}));
+
+    // The third note goes before the export runs — the library deleted it
+    // while the suggestion stood. So the run writes the collective note and
+    // two note files, the second of them counted up because its name is taken,
+    // and then fails.
+    QVERIFY(m_store->removeNote(notes.at(2).id));
+
+    const BundleExportResult result =
+        exportBundle(*m_store, proposal, vault(), QDate::fromString(QLatin1String(ExportDate), Qt::ISODate));
+
+    QVERIFY(!result.ok());
+    QVERIFY(result.files.isEmpty());
+    // Everything this run wrote is gone and the file it did not write stands
+    // untouched — read off the file system, not off a return value (CLAUDE.md,
+    // finding 26). A clean-up that rebuilt the names out of the stems instead
+    // of reading them back off its own handles would have taken this one with
+    // it, because it is standing exactly where the run wanted to write.
+    QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name),
+             QStringList({QStringLiteral("Denkzettel 2026-07-11T14-05-23.123.md")}));
+    QCOMPARE(read(foreign), foreignContent);
+
+    // Last, and only now: that the run really got as far as the third note —
+    // so two note files and the collective note had been written before it
+    // failed. Before the assertions above, a mutation of the clean-up would
+    // make this line go red instead of them (CLAUDE.md, finding 35).
+    QVERIFY2(result.error.contains(QString::number(notes.at(2).id)), qPrintable(result.error));
 }
 
 void ExportTest::leavesADeselectedNoteInTheCorpus()
@@ -798,7 +951,7 @@ void ExportTest::refusesATaskSuggestion()
     // Taskwarrior is the other road (SPEC 8.2). Put through here it would write
     // a file with no collective note in it and delete the note behind it.
     QVERIFY(!result.ok());
-    QVERIFY(result.file.isEmpty());
+    QVERIFY(result.files.isEmpty());
     QVERIFY2(!QFileInfo::exists(vault() + QStringLiteral("/_INBOX")),
              "nothing may be created for a task suggestion");
     QCOMPARE(corpusFingerprint(), before);
