@@ -1842,15 +1842,37 @@ find.
     point.** First, it is a **source reading and not a run** — nobody has
     reproduced it in a nested session, and the implementer's opposite claim
     ("`NeedsAttention` without an attention icon is not drawn at all") was
-    refuted by reading, not by measuring. Second, the animation hangs on
-    `Kirigami.Units.longDuration > 0`: with Plasma's animation speed set to
-    instant (`AnimationDurationFactor=0`) nothing pulses, and for those users
-    the refuted claim may well be **true** — which would make an attention
-    icon of our own the only visible signal and an accessibility matter rather
-    than a design preference. So the honest reading of a host's animation is
-    "pulses under this condition", never "the state was always visible", and
-    the way to settle it is several grabs across one period in **both**
-    animation settings, with `longDuration` read back inside the run.
+    refuted by reading, not by measuring. Second, the obvious next worry —
+    the animation hangs on `Kirigami.Units.longDuration > 0`, so with Plasma's
+    animation speed set to instant it would stop — is **wrong, and was measured
+    the same day**: `AnimationDurationFactor=0` leaves
+    `Kirigami.Units.longDuration` at **1**, not 0, because Kirigami puts a
+    millisecond there rather than nothing. The pulse does not stop, it
+    collapses into a flicker between scale 1.0 and about 1.17.
+
+    **What carries instead is the weaker sentence, and it is the one that
+    matters to the user: without an attention icon of our own there is no
+    difference that holds independently of the moment.** Measured in a nested
+    `kwin_wayland --virtual` with a real plasmashell panel, the daemon of the
+    commit, and `setAttentionIconByName` removed as a whole statement
+    (finding 70, two different binaries, `AttentionIconName ""` against
+    `"dialog-warning"` read back on the bus at the same `Status
+    "NeedsAttention"`): still frames of the fault state come out **bit-identical**
+    with the normal state in 3 of 8 grabs with animations off and 3 of 6 at the
+    default, against an `Active` reference that is itself perfectly still over
+    eight grabs — while the remaining frames differ by 152,078 summed channel
+    difference, which is what says the identity is a property of the product
+    and not of the measurement. The only hint without an icon is a size change
+    of two logical pixels that is absent about half the time. That is an
+    accessibility matter rather than a design preference, and it is the KDE
+    HIG's own test for animation: disable animations globally and check that
+    every animated element still says what it means.
+
+    So the honest reading of a host's animation is "pulses under this
+    condition", never "the state was always visible" — and the way to settle it
+    is several grabs across one period in **both** animation settings, with
+    `longDuration` read back inside the run and the unmarked state measured
+    against a reference that stands still.
 
 96. **A linter run on the development machine counts the toolchain, not the
     change.** Measured 2026-10-10 on #40 and again on #149: `lint-tidy`
