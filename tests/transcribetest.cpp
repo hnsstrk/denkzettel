@@ -116,6 +116,21 @@ private:
      */
     QList<qint64> hangingChildren() const;
     QString keptWav() const;
+    /**
+     * What the queue has to say about itself, for a wait that did not come out.
+     *
+     * `"nothing happened at all"` said the same thing for a queue that never
+     * took the job and for a deadline of this file's that broke while the job
+     * was running — the two cases a red automated run has to be told apart by,
+     * and the message named neither (issue #148, four runs of 04.09.2026 with
+     * several build runs beside them). These readings do: a job nobody took is
+     * not busy, has no working directory and no attempt counted against it; one
+     * still running is busy and has both.
+     */
+    QString queueState(const Transcriber &transcriber,
+                       qint64 noteId,
+                       const QSignalSpy &transcribed,
+                       const QSignalSpy &failed) const;
     /** Working directories of a job — none of them may survive its job. */
     static QStringList leftOverWorkingDirectories();
     /** Where Transcriber::modelPath() puts the models of this run. */
@@ -123,6 +138,12 @@ private:
     /**
      * Everything the models directory holds for `size`, the model itself and
      * anything beside it — an empty list is what "no half file" means.
+     *
+     * Asked through QVERIFY2 and not QCOMPARE wherever that list has to be
+     * empty: QCOMPARE against an empty QStringList prints the two sizes and no
+     * file name, so a leftover could not say whether it was a model somebody
+     * committed or a temporary file of a QSaveFile, which the pattern catches
+     * as well (issue #148).
      */
     static QStringList modelFiles(const QString &size);
     /** Puts a file where the model of `size` belongs, so a job can run. */
@@ -136,6 +157,33 @@ private:
 
 namespace
 {
+/**
+ * How long a wait for a report out of the queue gives up after, and it is a net
+ * and nothing a case asserts.
+ *
+ * What guarantees a report is the transcriber's own limit: five minutes per
+ * **job** by default — started once in takeNextJob() and stopped in endJob()
+ * (transcriber.cpp:366 and :526, and the comment at the first of the two says
+ * why it covers the whole job and not a step of it) — after which the job is
+ * given up on and `failed` is emitted. This number is only here so that a queue
+ * reporting nothing at all ends the run instead of hanging it.
+ *
+ * It costs nothing where nothing goes wrong: of the 5.78 s this set takes,
+ * these waits carry **0 ms** (measured per case 10.10.2026 with the junitxml
+ * logger — the 5.6 s of issue #148 are the deliberate qWait() and setTimeout()
+ * of four cases plus the real ffmpeg behind every voice note, never a wait on
+ * this net). What it cannot be raised past is QTest's own watchdog, which ends
+ * a test function that runs too long with `QFATAL : … Test function timed out`
+ * and a stack trace naming the wait it was sitting in — measured 10.10.2026
+ * with QTEST_FUNCTION_TIMEOUT at 2000 ms over a 2.7 s case.
+ *
+ * **Whether 30 s is the right size is not settled here.** Nothing says what
+ * broke on 04.09.2026, and a run that was slow but working would have been
+ * helped by a wider net; a run whose report never comes would not. What was
+ * missing either way is the message, and that is queueState().
+ */
+constexpr int ReportDeadlineMs = 30000;
+
 /** One buffer of a 440 Hz tone at 48 kHz mono, continuing at `phase`. */
 QAudioBuffer tone(qint64 &phase, int frames)
 {
@@ -226,6 +274,24 @@ void TranscribeTest::cleanup()
 {
     m_store.reset();
     m_dir.reset();
+
+    // `base` is the size the download cases work on, and initTestCase() leaves
+    // it out of the model directory on purpose — "no half file" is read there
+    // as "nothing for base at all". A case that dies on its own assertion never
+    // reaches the removal at its end, so the model one case committed is what
+    // the next one finds (CLAUDE.md, finding 42). Measured 04.09.2026, and it
+    // is the whole of the second failure of issue #148:
+    // leavesNothingBehindWhenTheConnectionBreaks reported a finished download,
+    // committed ggml-base.bin and died one line before its own check, and
+    // leavesNothingBehindWhenWhatArrivesIsNotTheModel then found that file.
+    //
+    // After the case's own assertions and never before them, so that this
+    // cannot sweep away what a case was measuring (CLAUDE.md, finding 29).
+    QDir models = modelDirectory();
+    const QStringList leftOver = modelFiles(QStringLiteral("base"));
+    for (const QString &name : leftOver) {
+        QVERIFY2(models.remove(name), qPrintable(name));
+    }
 }
 
 QString TranscribeTest::databasePath() const
@@ -393,6 +459,23 @@ QString TranscribeTest::writeHangingStub()
     return path;
 }
 
+QString TranscribeTest::queueState(const Transcriber &transcriber,
+                                   qint64 noteId,
+                                   const QSignalSpy &transcribed,
+                                   const QSignalSpy &failed) const
+{
+    const std::optional<TranscribeJob> job = m_store->transcribeJob(noteId);
+    return QStringLiteral("no report within %1 ms: transcribed=%2 failed=%3 busy=%4 "
+                          "working directories=%5 attempts=%6 last error=\"%7\"")
+        .arg(ReportDeadlineMs)
+        .arg(transcribed.count())
+        .arg(failed.count())
+        .arg(transcriber.isBusy() ? 1 : 0)
+        .arg(leftOverWorkingDirectories().size())
+        .arg(job.has_value() ? job->attempts : -1)
+        .arg(job.has_value() ? job->lastError : QStringLiteral("<no job line>"));
+}
+
 QStringList TranscribeTest::leftOverWorkingDirectories()
 {
     // Asked of the same place the code writes to, and that place is the run's
@@ -418,8 +501,9 @@ void TranscribeTest::transcribesAnAudioNoteItWasHandedByTheStore()
     const qint64 id = addVoiceNote();
     QVERIFY(id > 0);
 
-    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, 30000),
-             failed.isEmpty() ? "nothing happened at all" : qPrintable(failed.first().at(1).toString()));
+    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, ReportDeadlineMs),
+             qPrintable(failed.isEmpty() ? queueState(transcriber, id, transcribed, failed)
+                                         : failed.first().at(1).toString()));
     QCOMPARE(failed.count(), 0);
     QCOMPARE(transcribed.count(), 1);
 
@@ -487,7 +571,7 @@ void TranscribeTest::takesUpAJobLeftBehindByAKilledRun()
     // only there. A queue kept in memory would be empty at this point.
     transcriber.start();
 
-    QVERIFY(QTest::qWaitFor([&transcribed] { return transcribed.count() == 1; }, 30000));
+    QVERIFY(QTest::qWaitFor([&transcribed] { return transcribed.count() == 1; }, ReportDeadlineMs));
     const std::optional<Note> note = m_store->note(id);
     QVERIFY(note.has_value());
     QCOMPARE(note->state, Note::State::Transcribed);
@@ -507,7 +591,7 @@ void TranscribeTest::pausesAfterTwoAttemptsAndKeepsTheJobLine()
     const qint64 id = addVoiceNote();
     QVERIFY(id > 0);
 
-    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() == Store::transcribeAttemptLimit; }, 30000));
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() == Store::transcribeAttemptLimit; }, ReportDeadlineMs));
 
     // The WAV of a failed attempt goes the same way as that of a finished one.
     // Asked here and not at the end of the case: start() below sweeps
@@ -562,7 +646,7 @@ void TranscribeTest::reportsThePauseOnlyWhenTheAttemptsAreUsedUp()
     // Waited for by the number of ends the queue can still produce and not by
     // isBusy(), which is false in the gap between two attempts as well
     // (CLAUDE.md, finding 32).
-    QVERIFY(QTest::qWaitFor([&road] { return road.count() >= 3; }, 30000));
+    QVERIFY(QTest::qWaitFor([&road] { return road.count() >= 3; }, ReportDeadlineMs));
     QTest::qWait(500);
 
     const QStringList expected{QStringLiteral("failed"), QStringLiteral("failed"), QStringLiteral("paused")};
@@ -693,7 +777,7 @@ void TranscribeTest::givesUpOnARunThatHangs()
         QSignalSpy failed(&standing, &Transcriber::failed);
         standing.start();
 
-        QVERIFY(QTest::qWaitFor([this] { return !hangingChildren().isEmpty(); }, 30000));
+        QVERIFY(QTest::qWaitFor([this] { return !hangingChildren().isEmpty(); }, ReportDeadlineMs));
         QTest::qWait(1000);
         QCOMPARE(failed.count(), 0);
         // Alive, and asserted while it is: without this line the run below
@@ -713,11 +797,11 @@ void TranscribeTest::givesUpOnARunThatHangs()
     QSignalSpy failed(&transcriber, &Transcriber::failed);
     transcriber.start();
 
-    QVERIFY(QTest::qWaitFor([this] { return !hangingChildren().isEmpty(); }, 30000));
+    QVERIFY(QTest::qWaitFor([this] { return !hangingChildren().isEmpty(); }, ReportDeadlineMs));
     const qint64 child = hangingChildren().constFirst();
     QVERIFY(QFile::exists(QStringLiteral("/proc/%1").arg(child)));
 
-    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 1; }, 30000));
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 1; }, ReportDeadlineMs));
     QCOMPARE(failed.first().at(0).toLongLong(), first);
     QVERIFY2(failed.first().at(1).toString().contains(QStringLiteral("did not finish")),
              qPrintable(failed.first().at(1).toString()));
@@ -728,7 +812,7 @@ void TranscribeTest::givesUpOnARunThatHangs()
 
     // And the queue moves on: the next job is a different note, not the one
     // that was given up on.
-    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 2; }, 30000));
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 2; }, ReportDeadlineMs));
     QCOMPARE(failed.at(1).at(0).toLongLong(), second);
 
     // The reason reaches the job line. Without it the attempt is counted and
@@ -742,8 +826,8 @@ void TranscribeTest::givesUpOnARunThatHangs()
     // had both. Waited for by that number and not by isBusy(), which is false
     // for a moment between two jobs as well — caught there, the checks below
     // would be measuring a queue that goes on running under them.
-    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 3; }, 30000));
-    QVERIFY(QTest::qWaitFor([&transcriber] { return !transcriber.isBusy(); }, 30000));
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() >= 3; }, ReportDeadlineMs));
+    QVERIFY(QTest::qWaitFor([&transcriber] { return !transcriber.isBusy(); }, ReportDeadlineMs));
     QCOMPARE(leftOverWorkingDirectories(), QStringList());
     // No run of the stand-in survived its job.
     const QList<qint64> children = hangingChildren();
@@ -772,7 +856,7 @@ void TranscribeTest::namesTheProgramWhenItIsNotInstalledAtAll()
     const qint64 id = addVoiceNote();
     QVERIFY(id > 0);
 
-    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() == Store::transcribeAttemptLimit; }, 30000));
+    QVERIFY(QTest::qWaitFor([&failed] { return failed.count() == Store::transcribeAttemptLimit; }, ReportDeadlineMs));
 
     // The reason names the program that is missing. Without the name the user
     // looks for the fault in their recording.
@@ -879,8 +963,9 @@ void TranscribeTest::aChangedSettingReachesTheRunningQueue()
     // the code does.
     const qint64 first = addVoiceNote();
     QVERIFY(first > 0);
-    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, 30000),
-             failed.isEmpty() ? "nothing happened at all" : qPrintable(failed.first().at(1).toString()));
+    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, ReportDeadlineMs),
+             qPrintable(failed.isEmpty() ? queueState(transcriber, first, transcribed, failed)
+                                         : failed.first().at(1).toString()));
     QCOMPARE(failed.count(), 0);
     std::optional<Note> note = m_store->note(first);
     QVERIFY(note.has_value());
@@ -897,8 +982,9 @@ void TranscribeTest::aChangedSettingReachesTheRunningQueue()
 
     const qint64 second = addVoiceNote();
     QVERIFY(second > 0);
-    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 2; }, 30000),
-             failed.isEmpty() ? "the second job never ended" : qPrintable(failed.first().at(1).toString()));
+    QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 2; }, ReportDeadlineMs),
+             qPrintable(failed.isEmpty() ? queueState(transcriber, second, transcribed, failed)
+                                         : failed.first().at(1).toString()));
     QCOMPARE(failed.count(), 0);
     note = m_store->note(second);
     QVERIFY(note.has_value());
@@ -925,8 +1011,8 @@ QString TranscribeTest::transcriptOfOneNote(Transcriber &transcriber)
     if (id <= 0) {
         return QStringLiteral("the note was not added");
     }
-    if (!QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, 30000)) {
-        return QStringLiteral("nothing happened at all");
+    if (!QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, ReportDeadlineMs)) {
+        return queueState(transcriber, id, transcribed, failed);
     }
     if (!failed.isEmpty()) {
         return failed.first().at(1).toString();
@@ -1080,7 +1166,7 @@ void TranscribeTest::waitsForAMissingModelWithoutSpendingAnAttempt()
 
     const qint64 id = addVoiceNote();
     QVERIFY(id > 0);
-    QTRY_COMPARE_WITH_TIMEOUT(missing.count(), 1, 30000);
+    QTRY_COMPARE_WITH_TIMEOUT(missing.count(), 1, ReportDeadlineMs);
     QCOMPARE(missing.constFirst().at(0).toString(),
              QStringLiteral("Model small is missing. Download it under Settings → Voice notes."));
 
@@ -1102,7 +1188,7 @@ void TranscribeTest::waitsForAMissingModelWithoutSpendingAnAttempt()
     // — the very same job runs through, both attempts still in hand.
     placeModel(QStringLiteral("small"));
     transcriber.start();
-    QTRY_COMPARE_WITH_TIMEOUT(transcribed.count(), 1, 30000);
+    QTRY_COMPARE_WITH_TIMEOUT(transcribed.count(), 1, ReportDeadlineMs);
     QCOMPARE(failed.count(), 0);
     QCOMPARE(missing.constLast().at(0).toString(), QString());
     QVERIFY(!m_store->transcribeJob(id).has_value());
@@ -1226,7 +1312,8 @@ void TranscribeTest::leavesNothingBehindWhenTheDownloadIsCancelled()
     // an inode with no name (O_TMPFILE) and links it in at commit(), so there
     // is no half file to be seen at any moment — a plain QFile in its place
     // would show a growing ggml-base.bin here.
-    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+    QVERIFY2(modelFiles(QStringLiteral("base")).isEmpty(),
+             qPrintable(modelFiles(QStringLiteral("base")).join(QLatin1Char(' '))));
 
     download.cancel();
     // Not finished.wait(): abort() takes the reply down **inside** cancel(),
@@ -1241,7 +1328,8 @@ void TranscribeTest::leavesNothingBehindWhenTheDownloadIsCancelled()
     QTest::qWait(200);
     QCOMPARE(finished.count(), 1);
 
-    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+    QVERIFY2(modelFiles(QStringLiteral("base")).isEmpty(),
+             qPrintable(modelFiles(QStringLiteral("base")).join(QLatin1Char(' '))));
 }
 
 void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
@@ -1276,20 +1364,36 @@ void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
     ModelDownload download;
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy finished(&download, &ModelDownload::finished);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy progressed(&download, &ModelDownload::progress);
     download.start(QStringLiteral("base"),
                    QUrl(QStringLiteral("http://127.0.0.1:%1/ggml-base.bin").arg(port)),
                    sha1Of(body));
     QVERIFY(finished.wait(std::chrono::seconds(20)));
 
+    // The reason alone cannot say how this came about, and on 04.09.2026 it had
+    // to: the line below stood red with an **empty** reason, which has exactly
+    // one source in ModelDownload — the success branch of complete(), reached
+    // only when the promised length has arrived and the SHA-1 agrees, and this
+    // stand-in can deliver neither out of one answer. The three numbers are
+    // what tells those roads apart, and `*requests` was asserted **below** the
+    // failing line, so its red carried none of them (CLAUDE.md, finding 35).
     QVERIFY2(!finished.constFirst().at(1).toString().isEmpty(),
-             "a connection that broke off is not a finished download");
+             qPrintable(QStringLiteral("a finished download instead of a broken connection: "
+                                       "requests=%1 received=%2 content length=%3, and this "
+                                       "stand-in promises %4")
+                            .arg(*requests)
+                            .arg(progressed.isEmpty() ? -1 : progressed.constLast().at(0).toLongLong())
+                            .arg(progressed.isEmpty() ? -1 : progressed.constLast().at(1).toLongLong())
+                            .arg(body.size() * 2)));
     // One request, measured: a body that broke off half way is not fetched
     // again by QNetworkAccessManager, and it must not be — the second answer
     // would be appended to the file the first one opened. What it does repeat
     // is a connection that closes before any answer (CLAUDE.md, finding 41),
     // and this stand-in fails **every** time, so a repeat could not hide.
     QCOMPARE(*requests, 1);
-    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+    QVERIFY2(modelFiles(QStringLiteral("base")).isEmpty(),
+             qPrintable(modelFiles(QStringLiteral("base")).join(QLatin1Char(' '))));
 }
 
 void TranscribeTest::leavesNothingBehindWhenWhatArrivesIsNotTheModel()
@@ -1329,7 +1433,8 @@ void TranscribeTest::leavesNothingBehindWhenWhatArrivesIsNotTheModel()
 
     QCOMPARE(finished.constFirst().at(1).toString(),
              QStringLiteral("what arrived is not the model base"));
-    QCOMPARE(modelFiles(QStringLiteral("base")), QStringList());
+    QVERIFY2(modelFiles(QStringLiteral("base")).isEmpty(),
+             qPrintable(modelFiles(QStringLiteral("base")).join(QLatin1Char(' '))));
 }
 
 QTEST_GUILESS_MAIN(TranscribeTest)
