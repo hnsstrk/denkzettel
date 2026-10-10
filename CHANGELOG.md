@@ -522,6 +522,22 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   one, reported success and changed nothing (found in the review of #34). The
   two buttons now follow the state of the action they trigger, so where there
   is no note they rest together with the keys Entf and F2 behind them.
+- **The tray now says when the topic bundles are falling away.** If the
+  embedding could not be done, no bundle was suggested and nothing said so —
+  the only hint stood in the log, which nobody reads in passing. „Nicht
+  verfügbar: Ollama" stood in its place, but it names a program rather than
+  what the user stops getting, and since the chosen provider answers both
+  capabilities it is not necessarily even the right program. The tooltip now
+  carries „Keine Themenbündel: Die Einbettung kam nicht durch", beside whatever
+  else stands there, and takes it back with the first vector that arrives
+  again.
+
+  It names no cause on purpose: a service that went silent, a password store
+  that would not open and a key that was never entered all mean the same thing
+  here, and „Verbindung testen" in the settings is where the reason is shown.
+  The classification keeps running meanwhile, and no note pays an attempt for
+  it — a service that does not answer says nothing about the note that happened
+  to be first in the queue.
 
 - **Meta+N and Meta+Shift+N work again, and they keep working after a
   restart.** Both shortcuts died at the first login and stayed dead, and KDE

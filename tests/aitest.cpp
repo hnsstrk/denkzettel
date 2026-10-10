@@ -1362,7 +1362,15 @@ void AiTest::neitherRemoteServiceRepeatsARequestOfItsOwn()
     // holds one — so the number is a property of the object and not of the
     // code, and one measured service says nothing about the other. Measured
     // 30.08.2026 for OpenAI as well: **1** request per call, the same as
-    // openrouter, so SPEC 7.1's one retry is not established for either.
+    // openrouter.
+    //
+    // **That does not leave SPEC 7.1's one retry unmet**, which an earlier
+    // wording here concluded (PO, 10.10.2026, issue #38): that retry is the
+    // second attempt of SPEC 7.2, counted per note in
+    // `notes.analysis_attempts` and across restarts — see
+    // `aRefusedNoteDoesNotBlockTheOthers()` below, which walks the three runs.
+    // What this case guards is the half that costs money, and it guards it
+    // *because* the retry lives a storey up: one POST is one bill.
     QTcpServer server;
     QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
 
@@ -2911,6 +2919,7 @@ void AiTest::aRefusedNoteDoesNotBlockTheOthers()
     Embedder embedder(store.get(), &provider);
     QSignalSpy failed(&embedder, &Embedder::failed);
     QSignalSpy paused(&embedder, &Embedder::paused);
+    const QSignalSpy dropped(&embedder, &Embedder::unreachable);
     QSignalSpy finished(&embedder, &Embedder::finished);
 
     // First run: the refusal costs that note an attempt, and the two healthy
@@ -2925,6 +2934,10 @@ void AiTest::aRefusedNoteDoesNotBlockTheOthers()
     QCOMPARE(paused.count(), 0);
     QCOMPARE(store->note(poison)->analysisAttempts, 1);
     QCOMPARE(store->note(second)->analysisAttempts, 0);
+    // **And the tray says nothing about dropped bundles**: the service answered
+    // and refused one note, so the bundles are not falling away (SPEC 7.1,
+    // issue #38). The counterpart stands in anUnreachableBackendCostsNoAttempt().
+    QCOMPARE(dropped.count(), 0);
 
     // Second run: only the refused note is outstanding, and its second refusal
     // is the last (SPEC 7.2). What SPEC 14 asks to be reported leaves as
@@ -2976,10 +2989,17 @@ void AiTest::anUnreachableBackendCostsNoAttempt()
     Embedder embedder(store.get(), &provider);
     const QSignalSpy failed(&embedder, &Embedder::failed);
     const QSignalSpy paused(&embedder, &Embedder::paused);
+    // The channel the tray's degradation hangs on (SPEC 7.1, issue #38). Read
+    // back here because this is the one case in the set whose failure kind is
+    // Unreachable: a refusal must not raise it, and
+    // aRefusedNoteDoesNotBlockTheOthers() above is where that comes out 0.
+    const QSignalSpy dropped(&embedder, &Embedder::unreachable);
     QSignalSpy finished(&embedder, &Embedder::finished);
     embedder.start();
     QVERIFY(finished.wait(std::chrono::seconds(5)));
 
+    QCOMPARE(dropped.count(), 1);
+    QCOMPARE(dropped.constFirst().at(0).toString(), provider.embedError);
     QCOMPARE(provider.texts.size(), 1);
     QCOMPARE(failed.count(), 1);
     QCOMPARE(failed.constFirst().at(0).toLongLong(), one);

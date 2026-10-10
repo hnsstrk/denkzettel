@@ -281,14 +281,16 @@ inline constexpr AiService Service{QLatin1StringView("OpenAI"),
  * call that trickles for ever.
  *
  * **No retry of ours**, and here the reason is money rather than time: a second
- * request would be a second generation and a second bill for one job. SPEC 7.1
- * asks for one retry and `ollamaprovider.h` reads that as **Qt's**, every
- * repetition of its own measured out under issue #13; for these two services
- * Qt's repetition is measured **absent** (five stand-in forms, review of
- * 30.08.2026), so SPEC's one retry is unmet here and is named as unmet rather
- * than quietly supplied. Whether it is worth a doubled bill on a connection
- * that dies before its first byte is a question about money and stands with
- * the customer (issue #38, 10.10.2026).
+ * request would be a second generation and a second bill for one job.
+ *
+ * **And SPEC 7.1's one retry is not missing here — it is one storey up** (PO,
+ * 10.10.2026, issue #38): it is the second attempt of SPEC 7.2, which the
+ * analysis run counts per **note** in `notes.analysis_attempts` and across
+ * restarts, skipping the note from its second failure. An earlier wording here
+ * read that retry as Qt's HTTP-level repetition — `ollamaprovider.h` says where
+ * that reading came from — and since Qt's repetition is measured **absent** for
+ * these two services (five stand-in forms, review of 30.08.2026), the retry
+ * looked unbuilt and was named as unmet. It is built, and not in this class.
  *
  * **Whether anything repeats at all is open for both of these backends**
  * (review of 30.08.2026 for openrouter, measured again for OpenAI on

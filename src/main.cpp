@@ -502,6 +502,32 @@ int main(int argc, char *argv[])
         qWarning("Note %lld is left without an embedding: %s", noteId, qUtf8Printable(reason));
     });
 
+    // **And the visible degradation of SPEC 7.1**, which is the only one of
+    // these five that the user is owed somewhere other than the log: "without a
+    // reachable provider for embeddings … topic bundles are dropped (hint in
+    // the settings and the tray tooltip)". The log line above is not that hint
+    // — outside QTest a `qWarning` does not even reach a pipe (CLAUDE.md,
+    // finding 25), and the tooltip was quiet about this until issue #38.
+    //
+    // The sentence says what the user is **not getting** and names no cause,
+    // and that is not vagueness: this signal comes up for a service that went
+    // silent, for a password store that would not open and for a key that was
+    // never entered (Embedder::unreachable), and a sentence naming any one of
+    // them would be wrong for the other two. The tooltip is the quiet channel
+    // of SPEC 14 anyway — the Ollama entry above carries the server's name and
+    // not the reason it was silent — and whoever wants the reason presses
+    // "Test connection", where the whole mapping is shown.
+    QObject::connect(&embedder, &Embedder::unreachable, &tray, [&tray](const QString &reason) {
+        qWarning("No topic bundles this run: %s", qUtf8Printable(reason));
+        tray.setBundlesDropped(i18n("No topic bundles: the embedding did not get through"));
+    });
+    // And it is taken back by the first vector that arrives, not by a run that
+    // merely ends: the state stands as long as its cause does (issue #118), and
+    // a run with nothing to embed says nothing about the service.
+    QObject::connect(&embedder, &Embedder::embedded, &tray, [&tray](qint64) {
+        tray.setBundlesDropped(QString());
+    });
+
     // And for step 3, where nothing is counted against a note: a cluster the
     // model could not name is taken up again by the next run, so the log is the
     // only place it is visible at all (SPEC 14, Suggester).

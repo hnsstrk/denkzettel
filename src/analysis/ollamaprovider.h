@@ -217,14 +217,39 @@ Q_SIGNALS:
 
 private:
     /**
-     * Posts one request and answers it. **Once** — the one retry of SPEC 7.1
-     * is Qt's, and a second one of ours was measured out (2026-08-29).
+     * Posts one request and answers it. **Once**, and a second one of ours was
+     * measured out (2026-08-29) — the list below is that measurement.
+     *
+     * **The one retry of SPEC 7.1 is the second attempt of SPEC 7.2** (PO,
+     * 10.10.2026, issue #38), and not the repetition Qt happens to do on the
+     * HTTP level. A note whose call fails is asked again in the **next**
+     * analysis run — `Store::analysisAttemptLimit`, counted persistently in
+     * `notes.analysis_attempts` and surviving a restart — and from the second
+     * failure it is skipped, which is what 7.2 means by "no endless retrying,
+     * no self-healing". An earlier wording here read 7.1's retry as Qt's; the
+     * behaviour it describes is right and the reason was not, and the same
+     * misreading then went into `openaicompatibleprovider.h`, where Qt's
+     * repetition is measured **absent** and the retry looked missing. It is not
+     * missing; it is one storey up. Measured either way:
+     * `aitest::aRefusedNoteDoesNotBlockTheOthers()` walks three runs, and with
+     * the limit set to 1 it reddens on the first refusal.
+     *
+     * **And it is one retry per step and not per call, which SPEC 7.1 says
+     * itself.** Classification counts every failure, so there the second
+     * attempt is the whole of it. Embedding counts a **refusal** the same way
+     * and an **unreachable backend not at all** — "Embedding counts none" —
+     * so a note whose embedding found no service is offered again in *every*
+     * following run and never given up on. Measured both ways:
+     * `anUnreachableBackendCostsNoAttempt()` reads 0 attempts and two notes
+     * still waiting, and a daemon run against a silent embedding endpoint read
+     * `analysis_attempts=0` on the note it had just failed (10.10.2026).
      *
      * Every error this class used to repeat was gone through with a stand-in
      * that fails the same way every time, and not one survived:
      *
-     * - `RemoteHostClosedError` — **Qt already repeats it**, which is what
-     *   SPEC 7.1 asks for. A stand-in that closes every connection after
+     * - `RemoteHostClosedError` — **Qt already repeats it**, which is why a
+     *   repeat of ours would be a third request rather than a second. A
+     *   stand-in that closes every connection after
      *   reading the request saw **3** of them with our repeat and **2**
      *   without. That is also the only genuinely transient case there is: a
      *   connection out of the keep-alive pool that the server shut while it
