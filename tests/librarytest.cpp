@@ -4300,12 +4300,20 @@ void LibraryTest::acceptingExportsOnlyTheTickedNotes()
     QVERIFY2(!m_store->note(younger).has_value(), "an exported note stayed in the corpus");
     QVERIFY(m_store->proposals().isEmpty());
 
+    // Two files: the collective note and one for the note that stayed ticked
+    // (SPEC 8.1, customer decision 10.10.2026). Read together rather than one
+    // of them, because the deselected note has to be in **neither** — a check
+    // on the collective note alone would pass over a single file written for
+    // it.
     const QStringList written =
         QDir(vault + QStringLiteral("/_INBOX")).entryList(QDir::Files);
-    QCOMPARE(written.size(), qsizetype(1));
-    QFile file(vault + QStringLiteral("/_INBOX/") + written.constFirst());
-    QVERIFY(file.open(QIODevice::ReadOnly));
-    const QString content = QString::fromUtf8(file.readAll());
+    QCOMPARE(written.size(), qsizetype(2));
+    QString content;
+    for (const QString &name : written) {
+        QFile file(vault + QStringLiteral("/_INBOX/") + name);
+        QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(name));
+        content += QString::fromUtf8(file.readAll());
+    }
     QVERIFY2(content.contains(QStringLiteral("Whisper-Warteschlange bei Suspend prüfen")),
              qPrintable(content));
     QVERIFY2(!content.contains(QStringLiteral("Bündel-Export erst ab fünf Notizen")),
@@ -4314,6 +4322,14 @@ void LibraryTest::acceptingExportsOnlyTheTickedNotes()
     // written again from the notes that are left, not cut out of the stored
     // text (SPEC 8.1).
     QVERIFY2(!content.contains(QStringLiteral("## 2026-07-29")), qPrintable(content));
+
+    // The band names the folder and the number, and it is read back because a
+    // plural message is the one string that comes out wrong without saying so:
+    // a swapped placeholder leaves the count where the path belongs, and the
+    // window would show „%1 files were written to 2." to the user.
+    const auto *band = window.findChild<KMessageWidget *>();
+    QVERIFY2(band, "the window carries no message band");
+    QCOMPARE(band->text(), QStringLiteral("2 files were written to %1.").arg(vault + QStringLiteral("/_INBOX")));
 }
 
 void LibraryTest::dropsABundleWhoseNotesAreAllGone()

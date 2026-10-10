@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 09:03+0200\n"
+"POT-Creation-Date: 2026-10-10 09:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -256,53 +256,61 @@ msgstr[1] ""
 msgid "Notes waiting for export"
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:150
+#: src/proposals/bundleexport.cpp:208 src/proposals/bundleexport.cpp:226
+#, kde-format
+msgid "The file %1 could not be written: %2"
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:213
+#, kde-format
+msgid "The folder %1 already holds %2 files named %3."
+msgstr ""
+
+#: src/proposals/bundleexport.cpp:243
 #, kde-format
 msgid "Only a bundle suggestion can be exported to Obsidian."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:159
+#: src/proposals/bundleexport.cpp:252
 #, kde-format
 msgid "The suggestion carries no collective note that could be exported."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:167
+#: src/proposals/bundleexport.cpp:260
 #, kde-format
 msgid ""
 "No vault folder is set. The export writes into the Obsidian vault of the "
 "settings."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:174
+#: src/proposals/bundleexport.cpp:267
 #, kde-format
 msgid "The vault folder %1 does not exist."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:178
+#: src/proposals/bundleexport.cpp:271
 #, kde-format
 msgid "%1 is not a folder."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:187 src/proposals/fullexport.cpp:110
+#: src/proposals/bundleexport.cpp:280 src/proposals/fullexport.cpp:110
 #, kde-format
 msgid "The folder %1 could not be created."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:212 src/proposals/bundleexport.cpp:233
+#: src/proposals/bundleexport.cpp:316
 #, kde-format
-msgid "The file %1 could not be written: %2"
+msgid "%1 What had already been written could not be removed: %2"
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:216
+#: src/proposals/bundleexport.cpp:344 src/store/store.cpp:1755
 #, kde-format
-msgid "The folder %1 already holds %2 collective notes of this topic and day."
+msgid "The note %1 is no longer in the database."
 msgstr ""
 
-#: src/proposals/bundleexport.cpp:247
+#: src/proposals/bundleexport.cpp:365
 #, kde-format
-msgid ""
-"The collective note %1 was written, but the exported notes could not be "
-"deleted: %2"
+msgid "The exported notes could not be deleted: %1"
 msgstr ""
 
 #: src/proposals/fullexport.cpp:102
@@ -898,11 +906,6 @@ msgstr ""
 msgid "The API key could not be removed from the password store."
 msgstr ""
 
-#: src/store/store.cpp:1755
-#, kde-format
-msgid "The note %1 is no longer in the database."
-msgstr ""
-
 #: src/transcribe/modeldownload.cpp:123
 #, kde-format
 msgid "%1 is no model size known here"
@@ -1315,167 +1318,169 @@ msgctxt "@item:inlistbox play symbol and length of a voice note"
 msgid "▶ %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:104
+#: src/ui/proposalwindow.cpp:105
 #, kde-format
 msgid "No suggestions waiting"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:111
+#: src/ui/proposalwindow.cpp:112
 #, kde-format
 msgid "The analysis run offers a bundle once several notes belong together."
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:133
+#: src/ui/proposalwindow.cpp:134
 #, kde-format
 msgctxt "@title:window"
 msgid "Review suggestions"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:300
+#: src/ui/proposalwindow.cpp:301
 #, kde-format
 msgctxt "@title, the name of a bundle suggestion"
 msgid "Bundle: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:305
+#: src/ui/proposalwindow.cpp:306
 #, kde-format
 msgctxt "@info, where an accepted task is written"
 msgid "→ Taskwarrior"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:306
+#: src/ui/proposalwindow.cpp:307
 #, kde-format
 msgctxt "@info, where an accepted bundle is written"
 msgid "→ Obsidian _INBOX"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:335
+#: src/ui/proposalwindow.cpp:336
 #, kde-format
 msgctxt "@action:button"
 msgid "Accept"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:338
+#: src/ui/proposalwindow.cpp:339
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Create the task and take the note out of the library"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:339
+#: src/ui/proposalwindow.cpp:340
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Write the collective note and take the notes out of the library"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:341
+#: src/ui/proposalwindow.cpp:342
 #, kde-format
 msgctxt "@action:button"
 msgid "Later"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:343
+#: src/ui/proposalwindow.cpp:344
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Put the suggestion aside; the notes stay in the library"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:345
+#: src/ui/proposalwindow.cpp:346
 #, kde-format
 msgctxt "@action:button"
 msgid "Discard"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:347
+#: src/ui/proposalwindow.cpp:348
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Drop the suggestion; no note is deleted"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:383
+#: src/ui/proposalwindow.cpp:384
 #, kde-format
 msgctxt "@title, the name of a task suggestion"
 msgid "Task: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:389
+#: src/ui/proposalwindow.cpp:390
 #, kde-format
 msgid "The note says no more than the description; nothing is annotated."
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:479
+#: src/ui/proposalwindow.cpp:480
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Description:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:481
+#: src/ui/proposalwindow.cpp:482
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Project:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:495
+#: src/ui/proposalwindow.cpp:496
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Tags:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:500
+#: src/ui/proposalwindow.cpp:501
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "+tag1 +tag2"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:502
+#: src/ui/proposalwindow.cpp:503
 #, kde-format
 msgctxt "@label:textbox, the due date of a task"
 msgid "Due:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:504
+#: src/ui/proposalwindow.cpp:505
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Priority:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:506
+#: src/ui/proposalwindow.cpp:507
 #, kde-format
 msgctxt "@info:placeholder, the three priorities Taskwarrior knows"
 msgid "H, M or L"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:515
+#: src/ui/proposalwindow.cpp:516
 #, kde-format
 msgctxt "@label, the note text a task carries as an annotation"
 msgid "Annotation (%1):"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:657
+#: src/ui/proposalwindow.cpp:661
 #, kde-format
-msgid "The collective note was written to %1."
-msgstr ""
+msgid "One file was written to %2."
+msgid_plural "%1 files were written to %2."
+msgstr[0] ""
+msgstr[1] ""
 
-#: src/ui/proposalwindow.cpp:683
+#: src/ui/proposalwindow.cpp:691
 #, kde-format
 msgid "The task was created, but the note text was not attached to it: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:693
+#: src/ui/proposalwindow.cpp:701
 #, kde-format
 msgid "The task was created, but the note could not be deleted: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:697
+#: src/ui/proposalwindow.cpp:705
 #, kde-format
 msgid "The task was created in Taskwarrior."
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:704
+#: src/ui/proposalwindow.cpp:712
 #, kde-format
 msgid "The suggestion could not be put aside: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:716
+#: src/ui/proposalwindow.cpp:724
 #, kde-format
 msgid "The suggestion could not be discarded: %1"
 msgstr ""

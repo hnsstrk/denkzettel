@@ -1,5 +1,6 @@
 #include "proposals/bundleexport.h"
 
+#include "store/note.h"
 #include "store/proposal.h"
 #include "store/store.h"
 
@@ -12,16 +13,18 @@
 #include <QJsonObject>
 #include <QSet>
 
+#include <optional>
+
 namespace
 {
 
 /**
- * How many collective notes of one topic and day `_INBOX/` may hold.
+ * How many files of one name `_INBOX/` may hold.
  *
- * A ceiling on the counting-up loop in exportBundle() rather than a rule about
+ * A ceiling on the counting-up loop in writeNewFile() rather than a rule about
  * vaults: the loop goes on while the name it tried is taken, and a directory
  * that answers "exists" for a name it will not open would otherwise spin. A
- * hundred exports of one topic on one day is a state to report, not to serve.
+ * hundred files of one name is a state to report, not to serve.
  */
 constexpr int NameAttempts = 100;
 
@@ -64,21 +67,22 @@ QString vaultTag(const QString &tag)
 }
 
 /**
- * The frontmatter of the collective note, against the vault's conventions.
+ * The frontmatter of one exported file, against the vault's conventions.
  *
- * `tags` carries `denkzettel` as the fixed mark of where the note came from,
- * and beneath it the tags of the exported notes as a union. Those come out of
- * the AI classification (SPEC 7.2) and are **not** in the vault's
+ * `tags` carries `denkzettel` as the fixed mark of where the file came from,
+ * and beneath it the tags the caller hands in. Those come out of the AI
+ * classification (SPEC 7.2) and are **not** in the vault's
  * `_META/taxonomy.md`, so some of them will read as unknown there. That is
  * right rather than a reason to leave them out: they are the information the
  * export is made for, this is the one step where the original note is deleted,
  * and `_INBOX/` is explicitly the staging area where unsorted material belongs
  * until the user files it.
  *
- * `created` is the day of the **export**, because that is when this file came
- * into being. When the notes in it were written stands in the body, at each
- * `## <YYYY-MM-DD>` section — putting it up here would make the field claim
- * something about the file that belongs to its contents.
+ * `created` is the day the contents belong to, which is why it is a parameter:
+ * for the collective note it is the day of the **export**, because what stands
+ * in it spans several days and each of them has its own `## <YYYY-MM-DD>`
+ * section in the body; for a note's own file it is the day of that note, which
+ * is the one day the file is about.
  */
 QString frontmatter(const QStringList &tags, const QDate &date)
 {
@@ -90,7 +94,7 @@ QString frontmatter(const QStringList &tags, const QDate &date)
     return text;
 }
 
-/** The tags of every exported note, in the vault's form, sorted and unique. */
+/** The tags of every note handed in, in the vault's form, sorted and unique. */
 QStringList collectedTags(const Store &store, const QList<qint64> &noteIds)
 {
     QSet<QString> found;
@@ -108,6 +112,35 @@ QStringList collectedTags(const Store &store, const QList<qint64> &noteIds)
     QStringList sorted(found.cbegin(), found.cend());
     sorted.sort();
     return sorted;
+}
+
+/**
+ * The `tags` list of one file: the topic of the bundle, then the note tags.
+ *
+ * **The topic tag is what holds the N+1 files of one export together, and it
+ * is there because nothing links them** (UX recommendation 03.09.2026, PO
+ * decision 10.10.2026). A tag groups the files in Obsidian's tag view,
+ * survives the filing out of `_INBOX/` and points nowhere, which a link does
+ * not: the vault updates links on move, so a link between two staged files
+ * turns into a link into `_INBOX/` as soon as one of them is filed.
+ *
+ * The topic is dropped out of the note tags rather than listed twice — a
+ * bundle named "Backup" over notes tagged `backup` is the ordinary case, not a
+ * curiosity.
+ */
+QStringList fileTags(const QString &topicTag, const QStringList &noteTags)
+{
+    QStringList tags;
+    tags.reserve(noteTags.size() + 1);
+    if (!topicTag.isEmpty()) {
+        tags.append(topicTag);
+    }
+    for (const QString &tag : noteTags) {
+        if (tag != topicTag) {
+            tags.append(tag);
+        }
+    }
+    return tags;
 }
 
 /**
@@ -135,6 +168,66 @@ QString fileNameTopic(const QString &title)
         result.remove(0, 1);
     }
     return result.trimmed();
+}
+
+/**
+ * Writes `content` into `<pathStem>.md`, counting the name up while it is
+ * taken, and appends the name the file really got to `written`.
+ *
+ * The name is taken by **creating** the file, not by asking whether it exists
+ * and writing afterwards: between those two steps lies a window in which
+ * somebody else writes the same name, and what would follow is an overwrite —
+ * the one outcome that really loses data here, because the notes of an earlier
+ * export are already deleted by then. `NewOnly` is O_EXCL, so a name that is
+ * taken fails to open and the counter goes up. A file of that name standing
+ * there can only be the leftover of an earlier failure that was not swept, or
+ * a copy of the user's own; neither may be written over.
+ *
+ * The name goes into `written` straight after the `open()` succeeded and not
+ * after the write — a short write leaves a torso behind, and the caller's
+ * clean-up is the one road that takes it away again.
+ *
+ * The content arrives as bytes and the caller encodes it: UTF-8 and nothing
+ * else, because the umlauts have to come out of the file the way they went
+ * into the note, and a local 8-bit codec would turn every one of them into a
+ * question mark without a word.
+ */
+bool writeNewFile(const QString &pathStem, const QByteArray &content, QStringList &written, QString &error)
+{
+    QFile file;
+    for (int attempt = 1;; ++attempt) {
+        file.setFileName(attempt == 1 ? pathStem + QStringLiteral(".md")
+                                      : pathStem + QStringLiteral(" %1.md").arg(attempt));
+        if (file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+            break;
+        }
+        // Told apart, because the two need different answers: a name that is
+        // taken is counted up, everything else — a folder with no write
+        // permission, a read-only file system, a full disk — ends the run.
+        if (!QFileInfo::exists(file.fileName())) {
+            error = i18n("The file %1 could not be written: %2", file.fileName(), file.errorString());
+            return false;
+        }
+        if (attempt >= NameAttempts) {
+            const QFileInfo wanted(pathStem);
+            error = i18n("The folder %1 already holds %2 files named %3.",
+                         wanted.path(),
+                         NameAttempts,
+                         wanted.fileName());
+            return false;
+        }
+    }
+
+    // The name off the handle, not the one assembled above: what the caller
+    // reports and what it may have to remove again is the file that exists.
+    written.append(QFileInfo(file).absoluteFilePath());
+
+    if (file.write(content) != content.size() || !file.flush()) {
+        error = i18n("The file %1 could not be written: %2", file.fileName(), file.errorString());
+        return false;
+    }
+    file.close();
+    return true;
 }
 
 }
@@ -188,65 +281,91 @@ BundleExportResult exportBundle(Store &store, const Proposal &proposal, const QS
         return result;
     }
 
-    const QString content = frontmatter(collectedTags(store, proposal.noteIds), date) + markdown;
+    // Every name this run read back off one of its own handles, in the order
+    // they were written. The clean-up below works off this list and off nothing
+    // else: a name rebuilt out of the stem and the folder would name the file
+    // the run *wanted*, and that can be the leftover of an earlier failure or
+    // a copy of the user's own rather than anything this run created.
+    QStringList written;
 
-    // The name is taken by **creating** the file, not by asking whether it
-    // exists and writing afterwards: between those two steps lies a window in
-    // which somebody else writes the same name, and what would follow is an
-    // overwrite — the one outcome that really loses data here, because the
-    // notes of the earlier export are already deleted by then. `NewOnly` is
-    // O_EXCL, so a name that is taken fails to open and the counter goes up.
-    const QString base = QStringLiteral("Denkzettel %1 %2").arg(topic, date.toString(Qt::ISODate));
-    QFile file;
-    for (int attempt = 1;; ++attempt) {
-        const QString name = attempt == 1 ? base : base + QStringLiteral(" %1").arg(attempt);
-        file.setFileName(inbox + QLatin1Char('/') + name + QStringLiteral(".md"));
-        if (file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
-            break;
+    // Removes what this run wrote and hands back what is still there
+    // afterwards. The file system and not the return value of remove() decides
+    // that: this project has been bitten by a deletion that reported success
+    // (CLAUDE.md, finding 26).
+    const auto undoWrites = [&written] {
+        QStringList left;
+        for (const QString &path : written) {
+            QFile::remove(path);
+            if (QFileInfo::exists(path)) {
+                left.append(path);
+            }
         }
-        // Told apart, because the two need different answers: a name that is
-        // taken is counted up, everything else — a folder with no write
-        // permission, a read-only file system, a full disk — ends the run with
-        // the corpus untouched.
-        if (!QFileInfo::exists(file.fileName())) {
-            result.error = i18n("The file %1 could not be written: %2", file.fileName(), file.errorString());
-            return result;
-        }
-        if (attempt >= NameAttempts) {
-            result.error = i18n("The folder %1 already holds %2 collective notes of this topic and day.",
-                                inbox,
-                                NameAttempts);
-            return result;
-        }
-    }
+        return left;
+    };
 
-    // UTF-8 and nothing else: the umlauts have to come out of the file the way
-    // they went into the note, and a local 8-bit codec would turn every one of
-    // them into a question mark without a word.
-    const QByteArray encoded = content.toUtf8();
-    if (file.write(encoded) != encoded.size() || !file.flush()) {
-        // A half-written file must not survive: the deletion below is skipped,
-        // so the notes stay — but the torso would stand in the vault under the
-        // name of a complete export, and the next run would count past it.
-        const QString message = file.errorString();
-        file.remove();
-        result.error = i18n("The file %1 could not be written: %2", file.fileName(), message);
+    // The message a failure after the first successful write reports: what went
+    // wrong, and what the clean-up could not take away again. The corpus is
+    // untouched at every point this is reached — the deletion is the last step
+    // and rolls back as a whole — so with the files gone the vault stands as it
+    // did before the attempt (customer decision 30.08.2026).
+    const auto failed = [&undoWrites](const QString &message) {
+        const QStringList left = undoWrites();
+        if (left.isEmpty()) {
+            return message;
+        }
+        return i18n("%1 What had already been written could not be removed: %2",
+                    message,
+                    left.join(QStringLiteral(", ")));
+    };
+
+    const QString topicTag = vaultTag(title);
+    QString error;
+
+    const QString collective = frontmatter(fileTags(topicTag, collectedTags(store, proposal.noteIds)), date) + markdown;
+    if (!writeNewFile(inbox + QStringLiteral("/Denkzettel %1 %2").arg(topic, date.toString(Qt::ISODate)),
+                      collective.toUtf8(),
+                      written,
+                      error)) {
+        result.error = failed(error);
         return result;
     }
-    file.close();
 
-    // The name off the handle, not the one assembled above: what the user is
-    // told is the file that exists.
-    result.file = QFileInfo(file).absoluteFilePath();
+    // And beside the collective note one file per note (customer decision
+    // 10.10.2026). Its body is the note's text and nothing else — for a voice
+    // note the transcript, which is what the store holds there; the
+    // `## <YYYY-MM-DD>` sections belong to the collective note.
+    for (const qint64 id : proposal.noteIds) {
+        const std::optional<Note> note = store.note(id);
+        if (!note.has_value()) {
+            // The library deleted the note while the suggestion stood.
+            // `removeExportedBundle()` would refuse the whole call for it
+            // below, so the run ends here — and it ends with the files it has
+            // written removed, which leaves the state before the attempt.
+            result.error = failed(i18n("The note %1 is no longer in the database.", id));
+            return result;
+        }
 
-    // Only now, and only in one transaction (SPEC 8.1). A failure here leaves
-    // the notes where they are, beside a collective note that already holds
-    // them — a duplicate the user can see and act on, which is the harmless
-    // half of the two ways this can end.
-    if (!store.removeExportedBundle(proposal.noteIds, proposal.id)) {
-        result.error = i18n("The collective note %1 was written, but the exported notes could not be deleted: %2",
-                            result.file,
-                            store.lastError());
+        QString body = note->content;
+        if (!body.endsWith(QLatin1Char('\n'))) {
+            body += QLatin1Char('\n');
+        }
+        const QString content =
+            frontmatter(fileTags(topicTag, collectedTags(store, {id})), note->createdAt.date()) + body;
+        if (!writeNewFile(inbox + QStringLiteral("/Denkzettel %1").arg(noteFileStem(note->createdAt)),
+                          content.toUtf8(),
+                          written,
+                          error)) {
+            result.error = failed(error);
+            return result;
+        }
     }
+
+    // Only now, and only in one transaction (SPEC 8.1).
+    if (!store.removeExportedBundle(proposal.noteIds, proposal.id)) {
+        result.error = failed(i18n("The exported notes could not be deleted: %1", store.lastError()));
+        return result;
+    }
+
+    result.files = written;
     return result;
 }

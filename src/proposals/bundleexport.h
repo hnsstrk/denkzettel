@@ -2,6 +2,7 @@
 
 #include <QDate>
 #include <QString>
+#include <QStringList>
 
 struct Proposal;
 class Store;
@@ -11,14 +12,17 @@ class Store;
  */
 struct BundleExportResult {
     /**
-     * The file that was written; empty when nothing was written.
+     * The files that were written — the collective note first, then one per
+     * exported note; empty when nothing was written and empty after a failure,
+     * because a run that fails after writing removes what it wrote.
      *
-     * Read back off the open handle rather than assembled a second time: the
+     * Read back off the open handles rather than assembled a second time: a
      * name is chosen by trying to create it (see exportBundle()), so the name
      * this run *wanted* and the name it *got* are two different things
-     * whenever a file of that name already stood there.
+     * whenever a file of that name already stood there. That is also what
+     * makes the clean-up safe — it removes these names and no others.
      */
-    QString file;
+    QStringList files;
     /** Why nothing was exported; empty when the run went through. */
     QString error;
 
@@ -29,18 +33,37 @@ struct BundleExportResult {
 };
 
 /**
- * Writes the collective note of one bundle suggestion into
- * `<vaultPath>/_INBOX/` and then deletes what it exported (SPEC 8.1, issue
- * #32).
+ * Writes one bundle suggestion into `<vaultPath>/_INBOX/` and then deletes
+ * what it exported (SPEC 8.1, issue #32).
  *
- * **Two steps in this order, and the order is the guarantee.** The file is
- * written first and the corpus is emptied only once that has succeeded, so no
- * road through this function loses a note without the note standing in a file:
- * a vault path that is missing, unwritable or full ends the run before
- * `Store::removeExportedBundle()` is reached. The other direction is the
- * cheaper failure — a deletion that fails after the file was written leaves
- * the notes standing beside a collective note that holds them, which is a
- * duplicate and not a loss.
+ * **N+1 files, not one** (customer decision 10.10.2026): the collective note
+ * of SPEC 8.1 and beside it a file per note. The collective note keeps the
+ * bundle as an artefact of its own; the single files are what the user files
+ * out of staging one by one. A note's file is named after its own stem — the
+ * same one its audio file and its file in the full export of 8.3 carry
+ * (`noteFileStem()`, SPEC 4) — and carries the note's text as its body. No
+ * title is made out of that text: `_INBOX/` is exempt from the vault's title
+ * rule, and the title is given when the user files the note (PO decision
+ * 10.10.2026).
+ *
+ * **Nothing links the files of one bundle; the topic tag holds them
+ * together.** `_INBOX/` is staging and nobody points at it (user decision
+ * 06.08.2026), and a link between two staged files becomes a link into
+ * `_INBOX/` the moment one of them is filed, because the vault updates links
+ * on move (measured 03.09.2026). The tag survives the filing and points
+ * nowhere. Nothing here touches `INDEX.md` either.
+ *
+ * **The files first, the deletion afterwards, and the order is the
+ * guarantee.** No road through this function loses a note without the note
+ * standing in a file: a vault path that is missing, unwritable or full ends
+ * the run before `Store::removeExportedBundle()` is reached. And a run that
+ * fails **after** it has written — a later file, or the deletion — removes
+ * exactly the files it wrote, under the names it read back from its own
+ * handles, checks on the file system that they are gone and says what it could
+ * not remove (customer decision 30.08.2026). At that moment the corpus is
+ * unchanged, the deletion runs in one transaction and rolls back, so removing
+ * the files restores the state before the attempt. Without it every retry
+ * would leave another set of orphans in `_INBOX/`.
  *
  * **What is exported is what the suggestion carries.** `proposal.payload`
  * holds the title and the Markdown that Suggester wrote (SPEC 7.3) and that
@@ -52,14 +75,10 @@ struct BundleExportResult {
  *
  * The frontmatter follows the conventions of the user's vault, researched for
  * this story on 30.08.2026: `type: note`, `tags` as a block list in lower case
- * with hyphens, `created` as an ISO day. The file name is the one SPEC 8.1
- * fixes, `Denkzettel <topic> <YYYY-MM-DD>.md`; `date` is passed in so a check
- * can hold it against a literal instead of against the same clock the code
- * read.
- *
- * Nothing here touches `INDEX.md` and nothing links to the file. `_INBOX/` is
- * staging and nobody points at it (user decision of 06.08.2026); a note earns
- * its links when the user files it out of staging, and not before.
+ * with hyphens, `created` as an ISO day. `date` is passed in so a check can
+ * hold the collective note's name and its `created` against a literal instead
+ * of against the same clock the code read; a note's file dates itself from the
+ * note.
  */
 BundleExportResult exportBundle(Store &store,
                                 const Proposal &proposal,
