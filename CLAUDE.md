@@ -2000,7 +2000,18 @@ find.
     slips under. Two checks beside it need no threshold at all and the first is
     the sharper guard — the **multiset of placeholders** on both sides
     (`%1`, `%2`, …), which came out 1 before and 0 after, and a search for a
-    `msgstr` that contains another `msgstr` of 15 characters or more. The threshold has to exclude the
+    `msgstr` that contains another `msgstr` of 15 characters or more.
+
+    **Two things about how it was found, and both explain why it had survived
+    so long.** It turned up only in the interdiff of a rebase — `msgmerge` had
+    re-wrapped the line during that run, so it stood in the `git diff` between
+    the implementer's own changes. **After `po/Messages.sh` the damage looks
+    like your own edit**: whoever reads a `po` diff sees a re-wrapped line, not
+    a find. And what settled it was reading the **compiled** catalogue back:
+    `msgfmt` into a `.mo` and `msgunfmt` out of it shows what is delivered,
+    while the `.po` source shows two harmless-looking literals one under the
+    other (finding 57's family — the catalogue is compiled by the build, so the
+    readback belongs on the artefact and not on the source). The threshold has to exclude the
     short messages or "Undo" turning into "Rückgängig" tops the list at 2.50.
 
 101. **A search whose output is cut off by `head` answers "does this occur?"
