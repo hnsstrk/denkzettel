@@ -1103,10 +1103,12 @@ conceivable as an optional later additional path, but is not built for v1.
   given when the user files the note (PO decision 10.10.2026). Every name is
   taken by creating the file exclusively; a name that is taken counts up
   (`… 2.md`) — for the collective note by topic and day, for a note's file
-  only ever over a leftover of the same note.
+  over anything already carrying that stem: a leftover of the same note, a
+  copy of the user's own, or a second note of the same millisecond (SPEC 4).
 - Structure: vault-conformant frontmatter (`type: note`; `tags` as a block
   list — `denkzettel`, the topic in the vault's tag form, then the tags of the
-  notes; `created`). Collective note: `# <topic>`, then `## <YYYY-MM-DD>`
+  notes: the union of them in the collective note, a note's own in its file;
+  `created`). Collective note: `# <topic>`, then `## <YYYY-MM-DD>`
   sections with the notes as paragraphs (chronological); its `created` is the
   day of the export. Note file: the note's text as the body and nothing else;
   its `created` is the note's own day.
