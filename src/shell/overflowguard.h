@@ -8,7 +8,6 @@
 
 #include <QString>
 
-class KConfigGroup;
 class Store;
 
 /**

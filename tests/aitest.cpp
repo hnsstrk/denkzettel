@@ -3385,10 +3385,12 @@ void AiTest::oldNotesWithoutAClusterBecomeTheMiscellaneousBundle()
     exportGroup.sync();
 
     // Counted from today, because the threshold is: a note on a fixed day in
-    // August is ten days old once and four hundred later. **Midnight** and not
-    // a time of day, so the whole number of days daysTo() answers does not
-    // depend on the hour the check runs in — the only moment left to it is a
-    // run falling across midnight.
+    // August is ten days old once and four hundred later. **The hour plays no
+    // part**, and that is measured rather than read: daysTo() counts the
+    // midnights between the two moments (10.10.2026, against Qt 6.11), so a
+    // note ten days back answers 10 at 00:01 and at 23:59 alike and whatever
+    // time of day it carries. What is left is a run falling across midnight
+    // between these notes and the days read back for the title below.
     const auto daysAgo = [](int days) {
         return QDateTime(QDate::currentDate().addDays(-days), QTime(0, 0));
     };
