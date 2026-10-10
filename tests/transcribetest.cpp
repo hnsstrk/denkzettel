@@ -41,6 +41,16 @@
  * explicitly, and the WAV it produces is measured here out of the file the
  * stand-in was handed: 16 kHz, one channel, held against numbers this file did
  * not compute.
+ *
+ * **A HOME of its own per run**, which is why this file ends in a `main()`
+ * instead of `QTEST_GUILESS_MAIN` (issue #150). QStandardPaths test mode puts
+ * the models and `transcribetestrc` under `$HOME/.qttest` — one directory for
+ * every run of this user, which initTestCase() then clears out: two runs at
+ * once took each other's models away. HOME has to be set before
+ * QCoreApplication, because KSharedConfig hands out the instance of the first
+ * read to everything afterwards. Test mode itself stays: it reads HOME and
+ * ignores `XDG_*` (`qstandardpaths_unix.cpp`), so moving HOME moves all of it,
+ * and the readback at the end of initTestCase() is what says it moved.
  */
 class TranscribeTest : public QObject
 {
@@ -126,11 +136,23 @@ private:
      * several build runs beside them). These readings do: a job nobody took is
      * not busy, has no working directory and no attempt counted against it; one
      * still running is busy and has both.
+     *
+     * **And the third case is the one the product itself has** (issue #150):
+     * with the model gone the job stays in the queue without an attempt (SPEC
+     * 12), which reads off the four numbers above exactly as a queue that was
+     * never taken up does — measured 10.10.2026, the two came out word for
+     * word the same. So the last word of `modelMissing` goes in beside them,
+     * and it tells all three apart: no report at all means takeNextJob() was
+     * never reached, the sentence means it ran and found no model, and an empty
+     * report means the model was there and the job was taken (transcriber.cpp
+     * :344-351 is the one place that asks). `modelReport` is what
+     * lastModelReport() makes of the spy on that signal.
      */
     QString queueState(const Transcriber &transcriber,
                        qint64 noteId,
                        const QSignalSpy &transcribed,
-                       const QSignalSpy &failed) const;
+                       const QSignalSpy &failed,
+                       const QString &modelReport) const;
     /** Working directories of a job — none of them may survive its job. */
     static QStringList leftOverWorkingDirectories();
     /** Where Transcriber::modelPath() puts the models of this run. */
@@ -184,6 +206,38 @@ namespace
  */
 constexpr int ReportDeadlineMs = 30000;
 
+/**
+ * The throwaway HOME of this run, for the readback in initTestCase(). Set
+ * once, in main().
+ *
+ * Function-local and not a global: a non-POD global is a clazy finding
+ * (non-pod-global-static). systemfontstest.cpp holds the same accessor for
+ * the same reason.
+ */
+QString &temporaryHome()
+{
+    static QString path;
+    return path;
+}
+
+/**
+ * The last word `Transcriber::modelMissing` had, for the message of
+ * queueState() — quoted where there is one, so that the empty report, which
+ * says the model was found, cannot be read as no report at all.
+ *
+ * Rendered here and handed over as a string rather than as the spy: three
+ * `const QSignalSpy &` in a row are three arguments a call can get in the
+ * wrong order, which is what clang-tidy says about the second and third
+ * (bugprone-easily-swappable-parameters).
+ */
+QString lastModelReport(const QSignalSpy &modelMissing)
+{
+    if (modelMissing.isEmpty()) {
+        return QStringLiteral("<never asked>");
+    }
+    return QLatin1Char('"') + modelMissing.constLast().at(0).toString() + QLatin1Char('"');
+}
+
 /** One buffer of a 440 Hz tone at 48 kHz mono, continuing at `phase`. */
 QAudioBuffer tone(qint64 &phase, int frames)
 {
@@ -230,9 +284,10 @@ void TranscribeTest::initTestCase()
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("denkzettel"));
 
     // The transcriber reads its two program paths and its model out of
-    // denkzettelrc. Test mode points QStandardPaths at a directory of the
-    // test's own, so no setting of the developer's reaches this run — and none
-    // of this run reaches theirs.
+    // denkzettelrc. Test mode points QStandardPaths at `$HOME/.qttest`, and
+    // main() has put HOME in a directory of this run's own — so no setting of
+    // the developer's reaches this run, none of this run reaches theirs, and
+    // no second run of this set reaches it either (issue #150).
     QStandardPaths::setTestModeEnabled(true);
 
     // And a runtime directory of its own, because test mode does **not**
@@ -250,12 +305,24 @@ void TranscribeTest::initTestCase()
     qputenv("XDG_RUNTIME_DIR", m_runtime->path().toUtf8());
     QCOMPARE(Transcriber::workingRoot(), m_runtime->path());
 
+    // And the readback that says the two lines above really took hold: the
+    // models of this run lie under the HOME main() made, not under the one the
+    // session was started with. Without it a HOME set too late — after the
+    // first QStandardPaths or KSharedConfig call — would leave this set in the
+    // shared `~/.qttest` and nothing would say so.
+    QVERIFY(!temporaryHome().isEmpty());
+    QVERIFY2(modelDirectory().absolutePath().startsWith(temporaryHome()),
+             qPrintable(modelDirectory().absolutePath() + QStringLiteral(" is not under ")
+                        + temporaryHome()));
+
     // A file where the models of this run belong, for the two sizes the cases
     // below let the queue run with. Since issue #23 a job that finds no model
     // stops before whisper-cli with the sentence that names the settings page,
     // so without these the checks would all measure that one sentence. The
     // download cases work on `base`, which is deliberately not here.
-    modelDirectory().removeRecursively();
+    //
+    // Nothing is cleared out first: the directory is this run's own and is
+    // empty, which the assertion above is what says.
     placeModel(QStringLiteral("small"));
     placeModel(QStringLiteral("tiny"));
     placeModel(QStringLiteral("medium"));
@@ -462,18 +529,20 @@ QString TranscribeTest::writeHangingStub()
 QString TranscribeTest::queueState(const Transcriber &transcriber,
                                    qint64 noteId,
                                    const QSignalSpy &transcribed,
-                                   const QSignalSpy &failed) const
+                                   const QSignalSpy &failed,
+                                   const QString &modelReport) const
 {
     const std::optional<TranscribeJob> job = m_store->transcribeJob(noteId);
     return QStringLiteral("no report within %1 ms: transcribed=%2 failed=%3 busy=%4 "
-                          "working directories=%5 attempts=%6 last error=\"%7\"")
+                          "working directories=%5 attempts=%6 last error=\"%7\" "
+                          "last model report=%8")
         .arg(ReportDeadlineMs)
         .arg(transcribed.count())
         .arg(failed.count())
         .arg(transcriber.isBusy() ? 1 : 0)
         .arg(leftOverWorkingDirectories().size())
         .arg(job.has_value() ? job->attempts : -1)
-        .arg(job.has_value() ? job->lastError : QStringLiteral("<no job line>"));
+        .arg(job.has_value() ? job->lastError : QStringLiteral("<no job line>"), modelReport);
 }
 
 QStringList TranscribeTest::leftOverWorkingDirectories()
@@ -495,6 +564,11 @@ void TranscribeTest::transcribesAnAudioNoteItWasHandedByTheStore()
     QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy failed(&transcriber, &Transcriber::failed);
+    // Only for the message a wait that did not come out carries — see
+    // queueState(). Nothing here asserts it; the case that does is
+    // waitsForAMissingModelWithoutSpendingAnAttempt().
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy missing(&transcriber, &Transcriber::modelMissing);
 
     // The road into the queue is the store's own signal: nobody has to tell the
     // transcriber about a note.
@@ -502,7 +576,7 @@ void TranscribeTest::transcribesAnAudioNoteItWasHandedByTheStore()
     QVERIFY(id > 0);
 
     QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, ReportDeadlineMs),
-             qPrintable(failed.isEmpty() ? queueState(transcriber, id, transcribed, failed)
+             qPrintable(failed.isEmpty() ? queueState(transcriber, id, transcribed, failed, lastModelReport(missing))
                                          : failed.first().at(1).toString()));
     QCOMPARE(failed.count(), 0);
     QCOMPARE(transcribed.count(), 1);
@@ -957,6 +1031,9 @@ void TranscribeTest::aChangedSettingReachesTheRunningQueue()
     QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy failed(&transcriber, &Transcriber::failed);
+    // Only for the message of queueState(), as above.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy missing(&transcriber, &Transcriber::modelMissing);
 
     // The loud state first (finding 27): what the queue runs BEFORE anything
     // changes has to be read, or "it takes the new value" is green whatever
@@ -964,7 +1041,7 @@ void TranscribeTest::aChangedSettingReachesTheRunningQueue()
     const qint64 first = addVoiceNote();
     QVERIFY(first > 0);
     QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, ReportDeadlineMs),
-             qPrintable(failed.isEmpty() ? queueState(transcriber, first, transcribed, failed)
+             qPrintable(failed.isEmpty() ? queueState(transcriber, first, transcribed, failed, lastModelReport(missing))
                                          : failed.first().at(1).toString()));
     QCOMPARE(failed.count(), 0);
     std::optional<Note> note = m_store->note(first);
@@ -983,7 +1060,7 @@ void TranscribeTest::aChangedSettingReachesTheRunningQueue()
     const qint64 second = addVoiceNote();
     QVERIFY(second > 0);
     QVERIFY2(QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 2; }, ReportDeadlineMs),
-             qPrintable(failed.isEmpty() ? queueState(transcriber, second, transcribed, failed)
+             qPrintable(failed.isEmpty() ? queueState(transcriber, second, transcribed, failed, lastModelReport(missing))
                                          : failed.first().at(1).toString()));
     QCOMPARE(failed.count(), 0);
     note = m_store->note(second);
@@ -1007,12 +1084,15 @@ QString TranscribeTest::transcriptOfOneNote(Transcriber &transcriber)
     QSignalSpy transcribed(&transcriber, &Transcriber::transcribed);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy failed(&transcriber, &Transcriber::failed);
+    // Only for the message of queueState(), as in the cases above.
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy missing(&transcriber, &Transcriber::modelMissing);
     const qint64 id = addVoiceNote();
     if (id <= 0) {
         return QStringLiteral("the note was not added");
     }
     if (!QTest::qWaitFor([&transcribed, &failed] { return transcribed.count() + failed.count() == 1; }, ReportDeadlineMs)) {
-        return queueState(transcriber, id, transcribed, failed);
+        return queueState(transcriber, id, transcribed, failed, lastModelReport(missing));
     }
     if (!failed.isEmpty()) {
         return failed.first().at(1).toString();
@@ -1095,9 +1175,10 @@ void TranscribeTest::fallsBackToTheDefaultForASizeItDoesNotKnow()
 
 QDir TranscribeTest::modelDirectory()
 {
-    // The run's own, through QStandardPaths test mode (initTestCase) — never
-    // the ~/.local/share/denkzettel/models of whoever runs the check, where
-    // their models lie.
+    // This run's own, through QStandardPaths test mode under the HOME main()
+    // made (initTestCase) — never the ~/.local/share/denkzettel/models of
+    // whoever runs the check, where their models lie, and no longer the
+    // ~/.qttest every run of theirs shared (issue #150).
     return QFileInfo(Transcriber::modelPath(QStringLiteral("tiny"))).absoluteDir();
 }
 
@@ -1366,16 +1447,28 @@ void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
     QSignalSpy finished(&download, &ModelDownload::finished);
     // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
     QSignalSpy progressed(&download, &ModelDownload::progress);
+    // The checksum of what the stand-in **promised**, not of what it sent, and
+    // that is what makes this case independent of Qt (issue #150). The reading
+    // it replaces — the SHA-1 of the half that arrives — is one ModelDownload
+    // would have agreed with: `complete()` asks the reply's error first, so the
+    // whole guarantee hung on Qt reporting a short body as a fault, and
+    // `qhttpprotocolhandler.cpp:40-47` (qtbase 6.11) ends a reading reply on a
+    // closed socket **without** looking at Content-Length. Measured
+    // 10.10.2026: with the stand-in's Content-Length put at what it really
+    // sends, the download came out finished with an empty reason and
+    // `ggml-base.bin` committed. Expected this way, both roads end in
+    // giveUp() — Qt's fault value, or a checksum that cannot agree — and
+    // nothing is committed either way.
     download.start(QStringLiteral("base"),
                    QUrl(QStringLiteral("http://127.0.0.1:%1/ggml-base.bin").arg(port)),
-                   sha1Of(body));
+                   sha1Of(body + body));
     QVERIFY(finished.wait(std::chrono::seconds(20)));
 
     // The reason alone cannot say how this came about, and on 04.09.2026 it had
     // to: the line below stood red with an **empty** reason, which has exactly
     // one source in ModelDownload — the success branch of complete(), reached
-    // only when the promised length has arrived and the SHA-1 agrees, and this
-    // stand-in can deliver neither out of one answer. The three numbers are
+    // only when the promised length has arrived and the SHA-1 agrees, and
+    // neither can come out of this stand-in's one answer. The three numbers are
     // what tells those roads apart, and `*requests` was asserted **below** the
     // failing line, so its red carried none of them (CLAUDE.md, finding 35).
     QVERIFY2(!finished.constFirst().at(1).toString().isEmpty(),
@@ -1437,6 +1530,39 @@ void TranscribeTest::leavesNothingBehindWhenWhatArrivesIsNotTheModel()
              qPrintable(modelFiles(QStringLiteral("base")).join(QLatin1Char(' '))));
 }
 
-QTEST_GUILESS_MAIN(TranscribeTest)
+int main(int argc, char *argv[])
+{
+    // A HOME of its own, in place before QCoreApplication — see the class
+    // comment. The name is spelled out rather than left to QTemporaryDir's
+    // default twice over: before the application object exists that default is
+    // `qt_temp-XXXXXX`, under which a leftover belongs to nobody — and
+    // `-home-` tells it from the runtime directory and the per-case
+    // directories of this same run, which carry the set's name as well.
+    //
+    // ponytail: removed by this local's destructor, and the ceiling is that an
+    // **empty** one can stay behind — twice over nine runs on 10.10.2026, both
+    // of them full-set runs. The GPU stack the real ffmpeg brings up writes
+    // `<home>/.cache` of its own accord (`mesa_shader_cache`, read out of a
+    // live run), so the closing rmdir of QDir::removeRecursively() can fail on
+    // a file that appeared mid-walk. `std::atexit` is no way up — unlike issue
+    // #136 nothing is written back after main(), and what stays is 0 bytes
+    // under a name that says whose it is. The way up is an `XDG_CACHE_HOME`
+    // outside this directory; test mode keeps the run's own cache under
+    // `$HOME/.qttest/cache` whatever that variable says.
+    const QTemporaryDir home(QDir::tempPath() + QStringLiteral("/transcribetest-home-XXXXXX"));
+    if (!home.isValid()) {
+        qFatal("no temporary home");
+    }
+    qputenv("HOME", home.path().toLocal8Bit());
+    temporaryHome() = home.path();
+
+    // const as in systemfontstest.cpp, the other set with a main() of its own.
+    const QCoreApplication app(argc, argv);
+    QCoreApplication::setAttribute(Qt::AA_Use96Dpi, true);
+
+    TranscribeTest test;
+
+    return QTest::qExec(&test, argc, argv);
+}
 
 #include "transcribetest.moc"
