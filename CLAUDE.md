@@ -1836,8 +1836,9 @@ find.
     suggestions" notification of SPEC 10 compared the number of open
     suggestions after `Suggester::finished` against a counter that
     `Store::proposalsChanged` had already moved to that same number during the
-    run. `addProposal()` emits synchronously, every connection in `src/` is
-    direct, and the difference is therefore 0 on every run — the one occasion
+    run. `addProposal()` emits synchronously and the connection that matters
+    here is direct — three `Qt::QueuedConnection` do stand in `src/`, all of
+    them in `store/keystore.cpp`, and none on this road — and the difference is therefore 0 on every run — the one occasion
     the story newly built is mute, and nothing says so. The comment beside it
     described the ordering correctly and drew the wrong conclusion: reading the
     count *again* does not help, the **baseline** is the problem. Proven
@@ -1854,9 +1855,8 @@ find.
     `if` — dead code that no run in that commit could have exercised. A
     measurement on one branch of a condition says nothing about the other.
 
-95. **A tray item in `NeedsAttention` pulses by itself, and one grab lands in
-    the 70 % of the cycle where it stands still — but only while animations are
-    on.** Read 2026-10-10 on #40 in the executing QML of the installed plasmoid
+95. **A tray item in `NeedsAttention` pulses by itself, and a grab can land in
+    a phase where it stands still.** Read 2026-10-10 on #40 in the executing QML of the installed plasmoid
     (plasma-workspace 6.7.5, `org.kde.plasma.systemtray.so`): `AbstractItem`
     runs a `PulseAnimation` for every item in that status — scale 1 → 1.2 → 1
     over 2×15 % of a period of about 2 s, then 70 % at rest, `loops:
@@ -1870,8 +1870,11 @@ find.
     the animation hangs on `Kirigami.Units.longDuration > 0`, so with Plasma's
     animation speed set to instant it would stop — is **wrong, and was measured
     the same day**: `AnimationDurationFactor=0` leaves
-    `Kirigami.Units.longDuration` at **1**, not 0, because Kirigami puts a
-    millisecond there rather than nothing. The pulse does not stop, it
+    `Kirigami.Units.longDuration` at **1**, not 0, because the `qMax(1, …)`
+    that guards it sits in qqc2-desktop-style's
+    `PlasmaDesktopUnits::updateAnimationSpeed()` — Kirigami's own `units.cpp`
+    has no such clamp, so which plugin serves the session decides it, and the
+    nested run's was not recorded. The pulse does not stop, it
     collapses into a flicker between scale 1.0 and about 1.17.
 
     **What carries instead is the weaker sentence, and it is the one that
@@ -1887,8 +1890,9 @@ find.
     eight grabs — while the remaining frames differ by 152,078 summed channel
     difference, which is what says the identity is a property of the product
     and not of the measurement. The only hint without an icon is a size change
-    from 23×24 to 27×28 device pixels, and **such an indistinguishable frame
-    exists** — which is the whole claim. **The counts are not a frequency**
+    of two logical pixels — the 23×24 against 27×28 device pixels measured
+    that day belong to the case **with** `dialog-warning` and not to this one —
+    and **such an indistinguishable frame exists** — which is the whole claim. **The counts are not a frequency**
     (finding 76): eight uncontrolled phases say that a frame without a
     difference occurs, not how often, and the 70 % the source reading suggests
     is neither confirmed nor refuted by them. A state indicator whose only mark
@@ -1897,7 +1901,8 @@ find.
     own test for animation (disable animations globally and check that every
     animated element either transitions instantly or shows a static image;
     measured, Plasma's attention hint does neither) next to its rule against
-    blinking elements other than the text cursor.
+    blinking elements other than the text insertion point, the page's own
+    wording).
 
     So the honest reading of a host's animation is "pulses under this
     condition", never "the state was always visible" — and the way to settle it
@@ -1909,8 +1914,12 @@ find.
     change.** Measured 2026-10-10 on #40 and again on #149: `lint-tidy`
     reported 68 findings on the one branch and 70 on unchanged `main` — same
     machine, LLVM 23.1.1 — while the CI, whose threshold is 0, is green on
-    that very `main`. 65 of the 70 are `misc-const-correctness` on pointer
-    pointees, a check a newer clang-tidy raises and the CI's does not. Read the
+    that very `main`. 65 of the 70 are `misc-const-correctness`, a check a newer
+    clang-tidy raises and the CI's does not — **and of those 65 only 32 are
+    about a pointer's pointee**, the other 33 asking for a local to be `const`.
+    This entry carried "on pointer pointees" for all 65 until the review of its
+    own commit counted them, which is the joke it deserves: the entry that
+    teaches an itemisation to add up had a part that did not. Read the
     way finding 92 asks a build to be read, a red linter is a finding only once
     it comes out **different** against the unchanged state on the same
     toolchain — and the comparison has to strip line and column numbers, **the
@@ -1984,8 +1993,14 @@ find.
     procedure measures the set of keys and the count of states. What finds it,
     with a control that comes out different: the length of `msgstr` against the
     length of `msgid`, for msgids of 20 characters and up — median 1.13 over
-    the catalogue's 257 messages, the damaged one 2.44, above a threshold of
-    1.6 exactly one hit before and none after. The threshold has to exclude the
+    the catalogue's messages with a text on both sides, the damaged one 2.44,
+    above a threshold of 1.6 exactly one hit before and none after. **The
+    threshold is thinner than it looks**: the highest legitimate value is 1.55,
+    five hundredths below it, so a short sentence glued to a long message
+    slips under. Two checks beside it need no threshold at all and the first is
+    the sharper guard — the **multiset of placeholders** on both sides
+    (`%1`, `%2`, …), which came out 1 before and 0 after, and a search for a
+    `msgstr` that contains another `msgstr` of 15 characters or more. The threshold has to exclude the
     short messages or "Undo" turning into "Rückgängig" tops the list at 2.50.
 
 101. **A search whose output is cut off by `head` answers "does this occur?"
