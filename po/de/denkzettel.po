@@ -320,7 +320,6 @@ msgstr "Der Ordner %1 konnte nicht angelegt werden."
 #, kde-format
 msgid "%1 What had already been written could not be removed: %2"
 msgstr "%1 Was bereits geschrieben war, konnte nicht entfernt werden: %2"
-"Die Aufgabe wurde angelegt, aber die Notiz konnte nicht gelöscht werden: %1"
 
 #: src/proposals/bundleexport.cpp:344 src/store/store.cpp:1755
 #, kde-format
