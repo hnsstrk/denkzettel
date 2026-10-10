@@ -627,6 +627,14 @@ Q_SIGNALS:
      * those callers, where the library would have to be wired to all of them
      * and would still miss the next one.
      *
+     * Five methods send it, and the list is the signal's whole promise —
+     * `addProposal()`, `removeProposal()`, `setProposalStatus()`,
+     * `removeExportedBundle()`, and `removeNote()`, which sends it when the
+     * deleted note left a suggestion behind and the orphan sweep took it with
+     * it (issue #31). The last one is the one a reader does not expect, and
+     * leaving it out of this list is what makes a counter look as though it
+     * hung on fewer roads than it does.
+     *
      * It carries no number. What a listener wants is the count of the **open**
      * ones, and that is a question about the table, not about the row that
      * just moved — `proposals()` answers it, and the badge is written from
