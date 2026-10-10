@@ -2100,6 +2100,57 @@ find.
     binding text reads it again at its new place, and the shortening is where
     the cases the decider still had in mind fall out.
 
+107. **`QTcpSocket::flush()` does not block, and what the stand-in calls after
+    it decides how many requests the check counts.** Measured 2026-10-10 on
+    #148: the same client against the same stand-in came out at **2** requests
+    with a bare `abort()` and at **1** with `waitForBytesWritten()` in front of
+    it. Nothing about the client changed. `flush()` writes what it can and
+    returns; `abort()` then discards whatever is still in the buffer, the peer
+    sees a connection that died mid-write, and `QNetworkAccessManager` repeats
+    it — which the check counts as a repetition of the **client's**. This is
+    finding 41's twin from the other end: there a stand-in built to be survived
+    measured the first failure and stopped, here a stand-in built to fail
+    manufactures a repetition that belongs to it. Whoever counts attempts
+    against a stand-in says in the same breath how that stand-in closes, and
+    reads the number back against a second closing form.
+
+108. **A table that counts fault patterns counts knock-on damage as a pattern.**
+    Measured 2026-10-10 while working on #148, against the three red cases
+    recorded on 04.09.2026 and carried in the issue as "three different fault
+    patterns". Two of the three were **one** fault and the file it left behind:
+    the first case died on a `QVERIFY2`, which aborts the function, so the
+    `QCOMPARE` below it never ran and its working directory stayed on disk —
+    and the next case found it there. The number in the issue was therefore a
+    statement about **abort points**, not about causes, and it had been used to
+    argue that the fault was load-dependent in three independent places.
+    Whoever counts red cases orders them in time first and asks of each whether
+    the one before it could have produced it.
+
+109. **`git checkout` as the restore of a mutation probe destroys unversioned
+    work, and pointed at another branch it drags that branch's new files into
+    the index and the worktree.** Measured 2026-10-10 on #35. The obvious
+    restore after a probe — `git checkout -- <file>` or, worse,
+    `git checkout <other-branch> -- <path>` — is the one with the widest reach:
+    the first discards everything uncommitted in that file including work the
+    probe did not make, and the second stages files that belong to a state the
+    run never meant to be in. The narrow restore is a copy of the file taken
+    before the mutation, put back with `cp` and a `touch` (finding 98), and
+    read back with `cmp` against `git show <commit>:<file>`. This is finding
+    55's shape for the repository rather than the scratchpad: the convenient
+    tool reaches further than the thing it was aimed at.
+
+110. **A lint baseline taken while the files are already rewritten measures a
+    mixed state.** Measured 2026-10-10, as the mistake: the lead reported the
+    breakdown of a linter run with the categories read off the **branch's** log
+    and the total off **`main`'s**, and the numbers were only caught because
+    63 + 3 + 2 is 68 and the total claimed was 70. The same day's hygiene run
+    shows the form that carries — `git stash` in the agent's own worktree,
+    `lint-tidy` over the unchanged commit, `git stash pop`, both logs
+    normalised line-number-independently: **70 against 70 with identical sets
+    and `diff` rc 0**. A baseline is a measurement like any other and belongs
+    to a named state: taken before the first edit, or taken out of a stash, and
+    never assembled out of two runs that look alike from outside.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
