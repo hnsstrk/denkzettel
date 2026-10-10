@@ -1,0 +1,2021 @@
+# Runs that prove nothing
+
+Measured cases in which something looked like evidence and was none. **Check
+against them before you report a proof, and extend the list with every new
+find.**
+
+**The numbers are permanent.** Code comments, commit messages, issues and
+reports cite them — 285 citations across this repository at the last count, so
+a finding keeps its number for ever. A correction is written **into** its
+entry, with the date; an entry that turns out wrong says so rather than
+disappearing. New finds are appended.
+
+**`CLAUDE.md` carries the index** — one line per finding, grouped by subject,
+with the cross-cutting ones marked. That file is loaded into every session; this
+one is read when the index points at it. So the index is the thing that has to
+make you look, and this is the thing that has to answer once you do.
+
+**The common denominator** of every entry below is the first rule of the
+verification stance in `CLAUDE.md`: the step would have delivered the same
+output if its subject had been missing.
+
+1. **`KGlobalAccel::setGlobalShortcut()` returns `true` even when the daemon is
+   not reachable.** Only reading the value back from the service proves
+   anything.
+2. **`KWindowShadow::create()` reports `true` even for the same image eight
+   times over instead of eight tiles.** Offscreen it is **always** `false` —
+   there neither `true` nor `false` proves anything.
+3. **`activateWindow()` does not fetch the focus back under Wayland.** No
+   process can assign itself the focus. An Alt+Tab cannot be triggered; the way
+   over the window lying on top stands above.
+4. **Two live `KSvg::ImageSet` of the same theme share their lookup paths.**
+   Otherwise every comparison of two versions of the same graphic runs against
+   itself — and is green. For the second version take a **different** theme.
+   `ImageSet(name, …)` looks its private up in a table keyed by that name and
+   reference-counts it, so **the selectors travel with it too**: a set built
+   later inherits what an earlier one selected. Measured 2026-08-28 on #93 —
+   `setSelectors({"opaque"})` set only in the no-blur case stayed behind when
+   the blur came back, and the window kept the opaque graphic. Whatever a set
+   selects gets selected on **every** branch, the empty one included.
+5. **A test set that does not choose its theme may well be testing on one that
+   does not know the difference.** Choose the object of the check so that the
+   choice changes anything at all.
+6. **With the session locked, `spectacle -f` delivers a black image with return
+   code 0.** Query the lock state beforehand and abort instead of measuring.
+7. **A fullscreen window as a backdrop for the check covers what you want to
+   measure** — the compositor puts it over the capture window.
+8. **A sandbox without `kdeglobals` colors the theme graphic differently from
+   the Qt palette** — the image then looks like a fault of the product.
+9. **`show()` instead of `showCapture()` delivers a window without a shadow** —
+   it is only bound in `present()`.
+10. **A comparison can be wrong on both sides and report "correct".** If you
+    compare two quantities that the same fault shifts together, you measure
+    nothing. Hold at least one side against a value **set from outside**.
+11. **A red result in a build directory that has been reconfigured proves
+    nothing.** Measured 2026-08-24: `librarytest` died with SIGSEGV in
+    `NoteListModel::insertNote` in six runs out of six — on the changed and on
+    the unchanged state alike, which looked like proof that the fault was older
+    than the change. The same commit built clean in a fresh directory passed on
+    the first try. Before a red result becomes a finding: `rm -rf build`, build
+    again, and only then believe it.
+12. **One window is not enough for a fault that lives in a shared table.**
+    Measured 2026-08-24 on #107: with an unresolvable desktop theme in
+    `plasmarc` the **first** capture window comes up without a murmur; only the
+    second one dies, because what the first leaves behind is a freed pointer in
+    KSvg's table of image sets. A check that builds one window stands green over
+    the unfixed bug. Whatever a library keys by name and hands out again gets
+    asked for **twice** in the check.
+13. **`spectacle -m` in a nested `--virtual` session delivers an empty white
+    picture with return code 0.** Measured 2026-08-24, beside the black one the
+    README already names for `-f`. `-a` is the only one that carries anything
+    there — and it refuses with "No active window" if the window under test has
+    not taken the activation, which a frameless one does not always do.
+14. **A hidden window cannot show a fault that only the layout produces.**
+    Measured 2026-08-24 on #79: emptied from eight lines the window goes back
+    to five while it is hidden and stays at eight while it is shown, because
+    only an activated layout writes a minimum onto the window that `resize()`
+    is then clamped by. The deleted `windowFollowsTheTextHeight()` asserted
+    exactly the right thing and was green for years, because it never showed
+    the window. Whatever depends on the layout gets checked after
+    `showCapture()` and `qWaitForWindowExposed()`.
+
+15. **`QDBusConnection::connect()` returns `true` for a signal that does not
+    exist.** Measured 2026-08-24 on #93: the window subscribed to
+    `effectLoaded` and `effectUnloaded` on `org.kde.kwin.Effects`, the call
+    reported success, and nothing ever arrived — the interface of KWin 6.7 has
+    **no signals at all**, only methods. The subscription looked built and was
+    a hole. Whatever a bus hands out, introspect the interface first
+    (`busctl introspect`), and read the state back afterwards.
+
+16. **A check that reads an installed path proves nothing about the source
+    tree.** Measured 2026-08-28 on #73: the ECM `appstreamtest` validates the
+    `/usr` path out of `install_manifest.txt`, which a run without root never
+    writes — so with no metainfo at all it printed `Could not find …` and
+    reported `Passed`, and with a deliberately broken file it passed just the
+    same. Once somebody does install to `/usr`, it validates the **installed**
+    copy, which can lag behind the source. A check of the installed state
+    belongs on a staging directory the run creates itself (`DESTDIR`), or it
+    measures the wrong file or none.
+
+17. **`GGML_BACKEND_PATH` does not switch a backend off — it adds one.**
+    Measured 2026-08-28 on #19: the plan was to prove the Vulkan backend by
+    running whisper-cli a second time with that variable pointing at an empty
+    directory. `ggml-backend-reg.cpp` reads it only **after**
+    `ggml_backend_load_best("vulkan", …)` has already loaded the backend from
+    the default path, so the control run loaded Vulkan just the same and took
+    the identical 371 ms. Read as the comparison it was meant to be, "no
+    difference" would have said the backend does nothing. The control that
+    works is `whisper-cli -ng` — 2633 ms on the CPU. Before a run is used to
+    switch something off, read in the source that the lever is connected.
+
+18. **`emits-change` in an introspection is a promise, not a signal.**
+    Measured 2026-08-28 on #93: `busctl introspect org.kde.KWin /Effects` marks
+    the properties `activeEffects`, `listOfEffects` and `loadedEffects` as
+    `emits-change`, which reads like the way out of finding 15. In a nested
+    session `blur` was unloaded — `isEffectLoaded` went from `true` to `false`,
+    `loadedEffects` no longer held it — and `dbus-monitor` recorded **not one**
+    `PropertiesChanged` in that window, only the bus daemon's own name signals.
+    The annotation is written by the adaptor, the emission is written by the
+    service, and here the second half is missing. What the introspection
+    promises is checked with `dbus-monitor` before anything is hung on it.
+
+19. **A KSvg graphic changes 100 ms after the call, not within it.**
+    Measured 2026-08-28 on #93: `ImageSet::setSelectors()` writes the
+    selectors and then only calls `scheduleImageSetChangeNotification()` —
+    a 100 ms timer, after which `discoveries.clear()` runs and
+    `imageSetChanged` is emitted, and only that makes every attached `Svg`
+    re-resolve its file. Whoever calls `reloadDesktopTheme()` and grabs the
+    window in the same turn measures the **old** graphic and reads it as proof
+    that the switch does not work; a check without a running event loop never
+    sees the new one at all. Let the loop run before the picture.
+
+20. **`org.kde.KGlobalAccel.shortcut()` answers an empty list for a wrong
+    action id, exactly as it does for a component that holds nothing.**
+    Measured 2026-08-28 on #109: the action id is a list of **four** strings
+    (component id, action id, component display name, action display name);
+    called with two, the service returns `ai 0` and nothing says why. The
+    neighbouring trap in the same interface: `setShortcut` with the flag
+    `IsDefault` (8) returns the keys handed to it while the **active** shortcut
+    stays empty — the return value looks like a registration and is none. Only
+    `SetPresent` (2) sets what a key press finds. Prove a readback by making it
+    come out **different** at least once.
+
+21. **A nested session with its own `HOME` looks isolated and is not — the
+    installed program lies beside it and the run finds it there.** A throwaway
+    `HOME` separates *configuration*: `XDG_CONFIG_HOME`, `XDG_DATA_HOME`,
+    `XDG_CACHE_HOME`. It separates nothing that the system directories carry,
+    and `XDG_DATA_DIRS` keeps pointing at `/usr/share`, `XDG_CONFIG_DIRS` at
+    `/etc/xdg` — where this project's own installation lies. So every run that
+    measures **what an installation does** is measuring the installed copy as
+    much as the one it staged: desktop and autostart entries, D-Bus service
+    files, KService and MIME data, icon themes, message catalogues, KPackage
+    and KCM plugins.
+
+    Measured 2026-08-28 on #109: the run was to show what the shortcut service
+    does once the desktop entry of the old name is gone, so that entry was left
+    out of the staging root — while `XDG_DATA_DIRS` still ended in
+    `/usr/share`, where the installed copy of that very file lies. The service
+    resolved it from there, and the run "proved" that a stale component
+    survives without its desktop entry. It does not: with the entry truly
+    unreachable, `getGlobalShortcutsByKey` returns **no** holder for the key,
+    although the group still stands in `kglobalshortcutsrc`. The opposite
+    conclusion, from a run that could not have come out any other way.
+
+    Before such a run, name the paths the object of the check can arrive
+    through, and take it away from **every** one of them. Never by deleting it
+    from the machine the user works on — mirror the system directory instead:
+    symlink every entry of `/usr/share` into a directory of the run's own,
+    rebuild the one subdirectory that holds the file by hand, and leave that
+    file out. Dropping `/usr/share` from the list altogether is no shortcut,
+    the session dies without its GSettings schemas. And the control that makes
+    the run evidence is the same one as everywhere: it has to come out
+    **different** once — with the file reachable and without.
+
+22. **`KDirWatch` swallows an overwrite in place inside the same second — a
+    replacement it always reports.** For a watched file it compares
+    `qMax(st_ctime, st_mtime)` in whole seconds, and beside it `st_ino` and
+    `st_nlink` (`kdirwatch.cpp:1279–1281`, `kdirwatch_p.h:111`). So a new inode
+    is a change whatever the clock says, and only a rewrite of the same inode
+    within one second goes unreported. Measured 2026-08-28 on #110: `kdeglobals`
+    rewritten in place twice inside one second — inotify logged `MODIFY` four
+    times over (`QT_LOGGING_RULES=kf.coreaddons.kdirwatch.debug=true`), `dirty`
+    was never emitted, and the check stood red with the fix in place and red
+    without it, so its red said nothing about the code. The same check writing
+    through `QSaveFile` runs in 80 ms and needs no waiting at all. **This is no
+    lost save:** KConfig replaces the file, so what Plasma writes always
+    arrives. Whatever a check rewrites for a file watch to notice gets replaced,
+    not overwritten — that is the road the real writer takes anyway.
+
+23. **`kwin_wayland` hangs without a word when the program behind its `--` is
+    not executable.** Measured 2026-08-28 on #50: the nested session came up
+    complete — the socket was there and `wayland-info` against it listed all 65
+    globals — but the measurement never started, and every step after it timed
+    out. Nothing in the output says so; three runs in a row looked like two
+    nested compositors getting in each other's way. Before every nested run:
+    `chmod +x` on the session program, and if nothing comes back, ask the
+    compositor over its socket whether it is up rather than guessing.
+
+    **And the quiet half of the same trap**, measured 2026-08-29 on #47: there
+    the session program did run, and the daemon *inside* it did not — the path
+    handed in was empty, because `readlink -f` on a path built out of `..`
+    segments hands back nothing. Nothing hung then; the run finished and
+    reported `isScriptLoaded b false` and zero calls on the bus, which is
+    **exactly** the right answer for the case it was measuring, the setting
+    switched off. A hang is read as a fault, a plausible answer is not. So a
+    nested run needs one line that says its subject was **there** — here the
+    `method return` of the `ShowCapture` call, printed beside the result — and
+    that line belongs in the output whether the run comes out empty or full.
+
+24. **`QAudioBufferInput` constructed with a format refuses every buffer, and
+    reports it nowhere.** Measured 2026-08-28 on #20 with Qt 6.11.2:
+    `sendAudioBuffer()` returned `false` for all ten buffers of the run,
+    `readyToSendAudioBuffer()` never fired once, `QMediaRecorder` stayed in
+    `RecordingState` without an error, and what stood on disk afterwards was a
+    valid 127-byte OGG header with return code 0. The default constructor takes
+    the format from the first buffer and works — and `QAudioBufferInput` has no
+    `setFormat()`, so construction is the only place the trap can be laid.
+    **Reproducing it needs a format that is already finished:** written as a
+    member initialiser, `QAudioBufferInput m_input{m_format}` does *not* trip
+    it, because `m_format` is still empty at that point and the setters only
+    run in the constructor body — a mutation probe built that way passes and
+    proves nothing. So: a recording is proven by the duration and the codec of
+    the file, never by the file existing.
+
+25. **Qt's own warnings do not reach a pipe — outside QTest.** Measured
+    2026-08-28: for an ordinary Qt program with stderr not a terminal (every
+    `2>&1 |`, every redirect into a log) the default message handler writes to
+    the journal instead — 0 hits through a pipe, 0 into a file, 4 in the
+    journal, and 1 back on stderr with `QT_FORCE_STDERR_LOGGING=1`. A run
+    grepped for a warning then looks clean because it is mute, not because it
+    is quiet. **QTest binaries are not affected**: QTest installs a message
+    handler of its own, and the same probes came through identically with and
+    without the variable (3 to 3). The rule is for `denkzetteld` and helper
+    programs, not for `ctest` runs.
+
+26. **`QMediaRecorder` invents a file name when the output is a directory.**
+    Measured 2026-08-28 on #20: to force an encoder error the check put a
+    directory where the file should go — `audio/<timestamp>.ogg/`. The muxer
+    neither refused nor complained; it wrote `record_0001.ogv` **inside** that
+    directory and reported a running recording. Same make as finding 24: a file
+    comes into being, the return value is right, and what was checked is not
+    what was meant. `outputLocation()` is what was ordered, `actualLocation()`
+    is what was written — `AudioRecorder::removeFile()` therefore deletes the
+    second, or a cancelled recording would stay on disk under a name nobody
+    looked for.
+
+27. **A player that was never started looks stopped.** Measured 2026-08-29 on
+    #26: the picture delivered as evidence for "the player is muted **and
+    stopped** while editing" was taken from a player that had never played —
+    it read `0:00 / 0:41`, which is what a paused, a stopped and an untouched
+    player all look like. The same trap in a check: an assertion on
+    `StoppedState` that is not preceded by an asserted `PlayingState` is green
+    whether the code stops anything or not. The evidence is the transition, so
+    assert the loud state first — and let the counter-run come out different:
+    without `stop()` the same picture shows the pause symbol, a bar at 35% and
+    `0:14 / 0:41`. A file long enough not to end by itself is part of it; a
+    player that finishes on its own passes the assertion without the code
+    doing anything.
+
+28. **`QT_QPA_PLATFORMTHEME=kde` selects the platform theme, not a font —
+    without it the run measures a different style.** Measured 2026-08-29 on
+    #26: with the variable, `QApplication::style()->objectName()` is `breeze`
+    (`Breeze::Style`) and `PM_DefaultFrameWidth` is 0; without it, `fusion`
+    and 1. The substitute font that rule 2 names is one consequence among
+    several — `QIcon::fromTheme()` hands back an empty icon without a
+    resolvable theme, and the platform integration replaces a built
+    `QMessageBox` with a substitute dialog of its own (both already noted in
+    `tests/CMakeLists.txt`). So **every** number that comes out of the style is
+    affected — `pixelMetric`, `sizeHint`, `frameWidth` and any geometry
+    assertion built on them — including in a run that never draws anything.
+    The proof is the style name read back inside the run, not the variable
+    being set: the variable can be set and the plugin still missing. And
+    `frameWidth() == 0` alone still only says "no space reserved": that Breeze
+    draws nothing there was settled by counting border pixels — 0 of 240 differ
+    from the middle for a plain `QFrame`, 240 of 240 for `QFrame::Box` and for
+    a `QTextBrowser` of the same shape.
+
+29. **A check that clears up before it looks measures its own tidying.**
+    Measured 2026-08-28 on #22: three cases asserted that no temporary working
+    directory survives a transcription job, and the cleanup was deliberately
+    taken out to see them go red. Two did; the third stayed green, because it
+    called `Transcriber::start()` one line earlier — and that sweeps abandoned
+    directories away before it takes up the queue. The same trap sits in
+    `QTemporaryDir`: it deletes what it holds in its **destructor**, so a
+    leftover check made after the owning object has gone is green whatever the
+    code does. Both were only visible because the check was run against the
+    unfixed state. Assert what has to be gone **before** anything that could
+    remove it — and while its owner is still alive.
+
+30. **`pgrep -f <path>` finds the shell that is running the check.** Measured
+    2026-08-29 on #22: a run was to show that a child process dies with its
+    daemon, and it looked up the daemon with `pgrep -f` on its path and took
+    the first hit. That hit was the harness's own shell, whose command line
+    holds that path because the command does — so the signal went to the shell,
+    the real daemon lived on, and the run reported "the child survived its
+    daemon", the exact opposite of what the code does. With the parent taken
+    from the child instead (`ps -o ppid=`), the same run came out the other way
+    round on the same binary. A process is identified by what the kernel says
+    it is — `pgrep -x`, `readlink /proc/<pid>/exe`, or the parentage — never by
+    a string that the measuring command itself contains.
+
+31. **`gh issue view <n> --comments` prints nothing at all for an issue that
+    has none, and exits 0.** The flag shows the comments and *only* the
+    comments, so a blank screen means "no comments" and looks exactly like a
+    call that failed, an expired login or a network that was not there.
+    Measured 2026-08-29 on #112: the command came back empty four times over —
+    sandboxed and not, with and without `--repo`, redirected into a file of 0
+    bytes — while the issue had a full body and `gh api` answered normally. The
+    first step of every issue here is reading the body and every comment, and
+    that step's output cannot say whether it read anything. Read the issue with
+    `gh issue view <n>`: it prints the body and a `comments: N` line, and that
+    number is the readback which says whether `--comments` has anything to
+    show.
+
+32. **A queue is idle between two jobs, and a check that waits for idle stops
+    there.** Measured 2026-08-29 on #113: after a run had been given up on, the
+    check waited for `Transcriber::isBusy()` to go false and then counted what
+    the given-up runs had left behind. `endJob()` sets the step to Idle and
+    posts the next take through the event loop, so `isBusy()` is false in that
+    gap — the wait returned after two of the three runs, and every assertion
+    behind it was taken while the queue went on working underneath. It came out
+    as a wrong count; it could as easily have come out green, because a working
+    directory that the next job has not created yet is a directory that is not
+    there. Wait for the number of ends the queue can still produce — here three
+    failures, one attempt left on the first note and two on the second — and use
+    the idle state only after that number is in.
+
+33. **A green `makepkg` on the development machine says nothing about
+    `depends` — every package it would name is already installed there.**
+    Measured 2026-08-29 on #41: `makepkg -e --nobuild` printed its two
+    dependency-check lines and nothing else, both with `kxmlgui` in `depends`
+    and with that line deleted. makepkg asks `pacman -T`, which
+    answers "satisfied" for a name that is installed and stays silent about a
+    name that is not written down at all — so the run that builds the package
+    is exactly the run in which a forgotten dependency cannot show up. The
+    package builds, installs, starts, and fails on the first machine that does
+    not happen to have the library. Two checks do carry, and neither needs a
+    clean chroot: whether every declared name resolves to a package
+    (`pacman -Ssq "^name$"`, which catches a typo), and whether the package
+    owning each `DT_NEEDED` entry of the built binary stands in the dependency
+    closure of what `depends` declares (`readelf -d` plus `ldd`, `pacman -Qoq`
+    and `pactree -u` — namcap's check, done by hand because namcap is not
+    installed here). Both were run against a control that came out different:
+    with `kxmlgui` and `kstatusnotifieritem` struck from the list the second
+    check named exactly those two libraries as uncovered, and a deliberately
+    misspelt `kxmlgu1` was the only name the first one rejected. **What neither
+    of them reaches** is a runtime dependency that is not linked — `ffmpeg` as
+    a program, `libplasma` as theme data, `breeze-icons` as icons. Those are
+    read out of the code and out of SPEC 15, and a machine that has them
+    installed can never contradict the list.
+
+    **And the closure has to resolve virtual provisions itself, or it invents
+    uncovered libraries.** Measured 2026-08-30 on #37 and again in its review:
+    the check named `libGLX.so.0` and `libOpenGL.so.0` as uncovered, on the
+    changed state and on the unchanged one alike, which read like a package
+    that would not start on a foreign machine. It is right that `pactree -u`
+    does not list `libglvnd` — `qt6-base` depends on the **virtual** name
+    `libgl`, which `libglvnd` provides together with `libGLX.so=0-64` and
+    `libOpenGL.so=0-64`, and `pactree` prints the virtual name without
+    resolving it to a provider. `libgl` does stand in the closure, the package
+    is sound, and the finding was a fault of the check. Whoever runs this check
+    resolves each uncovered library's owner against the provides table
+    (`pacman -Qi <provider> | grep -i provides`, or `pacman -Sddp`) before
+    reporting it — namcap does exactly that, which is why it does not raise it.
+
+34. **A check whose input is ordered so that two rival rules agree measures
+    neither of them.** Measured 2026-08-29 on #10: the parser narrows two date
+    boundaries of the same direction to the tighter one, and the case handed it
+    `vor:2026-06 vor:2026-01` — where the tighter one happens to be the last
+    one read as well. Taking the rule out and letting the last value simply
+    overwrite the first left the case **green**, because both rules produce
+    2026-01-01 for that input. With the narrower boundary written first
+    (`vor:2026-01 vor:2026-06`) the same probe came out red at once. The trap
+    is not the assertion, it is the order of the input: whenever a rule picks
+    between several values, arrange them so that the rule's answer is **not**
+    the one the obvious wrong implementation would give — first, last, largest,
+    the only one there is.
+
+35. **A mutation probe goes red on the first assertion of the function, and
+    that is rarely the case the acceptance criterion asks about.** `QCOMPARE`
+    aborts its test function, so a probe reports exactly one failure per
+    function and says nothing about everything below it. Measured 2026-08-29
+    on #114: the criterion demanded a case that comes out different before and
+    after — a note dated exactly on the boundary. With the old reading of
+    `nach:` restored, `storetest` did stand red, but on the two **month**
+    cases four and six lines further up; the day-exact pair the criterion was
+    about was never reached, and reporting that red as its proof would have
+    proved a neighbour. Only with those earlier expectations set to the old
+    values by hand did the probe reach `nach:2026-06-15` (`2026/06/16`
+    against `2026/06/15`) and `nach:2026-07-15` (one note against two), and a
+    third pass was needed for `nach:9999-12-31`, which came out `+10000/01/01`
+    — the shift into the year 10000 the issue described. A probe proves the
+    case it actually reached, so walk the earlier assertions out of the way
+    until the one under test is the one that fails.
+
+36. **A tray item without a `StatusNotifierWatcher` on the bus exports nothing,
+    and the item is never on the daemon's own bus name.** Measured 2026-08-29
+    on #24, where the run had to show what the tray announces while the built
+    daemon runs. Both halves look identical from outside — `UnknownObject` for
+    `/StatusNotifierItem` — and both read like a tray icon that was never
+    built:
+
+    - With no watcher registered, `KStatusNotifierItem` falls back to a legacy
+      `QSystemTrayIcon` and exports no D-Bus object at all. Nothing in the
+      daemon's output says so. A stand-in for plasmashell is therefore part of
+      the run: a `org.kde.StatusNotifierWatcher` at `/StatusNotifierWatcher`
+      that takes `RegisterStatusNotifierItem` and answers
+      `IsStatusNotifierHostRegistered` with `true` — forty lines of
+      python-gi, and the item goes into the real protocol at once.
+    - The item then registers on a **connection of its own**, not on
+      `io.github.hnsstrk.denkzettel`. `gdbus introspect --recurse` on the
+      daemon's name lists `/Daemon`, `/MainApplication` and the KDBusService
+      path, and no item — the address is the unique name the watcher was handed
+      in the registration, and the watcher's log is the only place to read it.
+
+    And the reading has to fall **between** the two states, not after them: the
+    first attempt asked for `Status` once the job was done and got `Active`,
+    which is also what a daemon that never reported anything answers (finding
+    27's family). With a stand-in for `whisper-cli` that sleeps three seconds,
+    the same run reads `NeedsAttention` at the start and `Active` after the
+    transcript — different twice on the same binary.
+
+37. **A `KNotification` on a bus with no notification server sends nothing at
+    all — not a failed call, not a warning, nothing.** Measured 2026-08-29 on
+    #115 in a `dbus-run-session`: the same binary that writes one `Notify` with
+    a stand-in on `org.freedesktop.Notifications` wrote **zero** with the name
+    unowned — `dbus-monitor "interface='org.freedesktop.Notifications'"`
+    recorded not one call, and the daemon's own log said nothing about it. The
+    output is identical to the build that never had the feature, so a run
+    watching for a notification is quiet for a reason that has nothing to do
+    with the code. This is finding 36's family for the other channel, and
+    finding 21's for the road it takes: `XDG_DATA_DIRS` still points at
+    `/usr/share`, where `org.kde.plasma.Notifications.service` maps that name
+    to `/usr/bin/plasma_waitforname` — the bus dutifully activates a program
+    that only waits for the name to appear, and the call stays in that wait. So
+    a stand-in owning the name is part of the run, and it is what the "already
+    activated" line in the daemon's output is really reporting.
+
+38. **`KColorScheme` never reads the application palette — a runner that sets
+    its palette by hand measures two sources at once.** Measured 2026-08-29 on
+    #77, where the mark under a hit is `NeutralBackground` of the View set.
+    `readmeshots` throws its configuration directory away and then sets a dark
+    palette in code; in such a run `QApplication::palette()` says
+    `Base #141618` and `Text #fcfcfc`, while
+    `KColorScheme(QPalette::Normal, KColorScheme::View)` hands back the
+    built-in **light** defaults — background `#ffffff`,
+    `NeutralBackground #fef1ea`, `NormalText #232629`. A picture taken that way
+    shows a near-white mark in a dark window and reads as a fault of the
+    product; it is a fault of the runner. That is finding 8 one storey further
+    down: not the theme graphic this time, but every colour role a widget asks
+    for. What works is a `kdeglobals` of the run's own — copy a `.colors` file
+    out of `/usr/share/color-schemes/` into the throwaway `XDG_CONFIG_HOME`
+    **before** `QApplication`, and the platform theme and `KColorScheme` read
+    the same file: `#3c1f05` on `#fcfcfc` under BreezeDark, `#fef1ea` on
+    `#232629` under BreezeLight. And read the colour back inside the run, the
+    way finding 28 reads the style name back.
+
+39. **A picture that looks right does not say the rest of the window is
+    unchanged — the difference against the unchanged build does.** Measured
+    2026-08-29 on #77: the lines carrying a mark were laid out through
+    `QTextLayout` while every other line went on through
+    `QPainter::drawText()`, and the marked line came out **one device pixel
+    higher** than its neighbours. Nothing in the picture said so — the mark sat
+    on the right letters and the row looked like the rest. The pixel difference
+    against the same picture taken from the unchanged build named it in one
+    step: not the mark alone but the **whole** line differed, x 20 to 425, and
+    moving the new picture down by one row cut the summed channel difference
+    over that line from 477,435 to 147,493. With the type going through the
+    same `drawText()` in both cases and only the mark's ground and its clipped
+    second pass added, the difference shrank to exactly the two mark
+    rectangles and nothing else. Whoever changes how something is drawn
+    compares pictures: what the change was not meant to touch has to come out
+    **bit for bit** as it was.
+
+40. **A unit test written from the documentation asserts the case the code
+    never reaches.** Measured 2026-08-29 on #13: `QNetworkRequest::
+    setTransferTimeout()` is documented to abort the reply with
+    `OperationCanceledError`, the error mapping was written for that value, and
+    the test case handing that value in was green. Against a real Ollama with
+    the limit at 5 ms the reply came back as **`TimeoutError`** — so the
+    timeout branch had never once fired, and a bitten limit reached the user as
+    "Ollama could not be reached: Zeitüberschreitung", the transport sentence
+    over a limit of our own. The check was green because it and the code read
+    the same documentation; nothing in the pair could contradict it. This is
+    finding 17's family — the lever the source says is connected — one storey
+    up: there it was a variable that did not switch anything off, here it is a
+    return value the library does not produce. **A mapping of foreign error
+    values gets one live run per value that a real service can actually
+    deliver**, and the value goes into the test from that run, not from the
+    documentation.
+
+41. **A stand-in that fails only the first time cannot show a repeat that is
+    not yours.** Measured 2026-08-29 on #13: the proof that the provider
+    retried once used a stub which closed the first connection per endpoint and
+    answered the second. It saw two requests, the run succeeded, and that was
+    reported as "the retry is proven". It was — and the number was wrong.
+    Against a stub that closes **every** connection the same call makes
+    **three** requests, because `QNetworkAccessManager` repeats a closed
+    connection by itself; the first stub had ended the experiment before the
+    third attempt could happen. The same shape hid the timeout: 30 s became 60,
+    and nothing in the successful run said so. A stand-in built to be survived
+    measures the first failure and stops. **Whoever counts attempts makes the
+    fault permanent** — closes every time, never answers — and reads the total
+    off the stand-in, not off the client's result.
+
+42. **`KSharedConfig::openConfig()` names its file after the application, and
+    a QTest binary is not the application.** Measured 2026-08-29 on #16: the new
+    `settingstest` pressed Apply on a `KConfigDialog` and read the result back
+    out of `denkzettelrc` — while the dialog had written `settingstestrc`,
+    because QTest fills `QCoreApplication::applicationName()` from the binary
+    and the skeleton takes its file name from there. The case stood **red over
+    a program that was doing exactly the right thing**; the same setup the other
+    way round — an assertion that a key is *absent* — would have stood green
+    for ever, on a file nobody ever wrote. So a check of a configuration file
+    sets `setApplicationName()` to the name the daemon registers, before the
+    first `KSharedConfig` call. **The second half of the same run:** with the
+    file name put right the case was green once and red on the next run. It
+    writes what it asserts, so the second run set the widgets to the values that
+    already stood in the file — no change, and Apply stays grey. In the other
+    order the same case would have been **green over a write that never
+    happened**. A check that writes into a configuration therefore deletes it
+    first, and that deletion carries a guard on `XDG_CONFIG_HOME`: the same line
+    without one deletes the file of whoever runs the check. **And the tidy-up line at
+    the end of a case only runs when the case passes — which is exactly when it
+    is not needed.** Measured 2026-08-29 on #119: the new case was the first in
+    `aitest` to write the shared `[AI]` group, it died on its own assertion,
+    and the model name it had set stayed in the group — which took
+    `everyNoteGetsItsOwnVector()` red with it four hundred lines further down,
+    a red saying nothing about the code under it. The deletion in
+    `initTestCase()` does not reach this: it runs before the first case, and
+    the leak happens **between** two cases of one run. So the group goes away
+    through a `qScopeGuard`, which runs on the abort path as well — measured in
+    review: a case that dies on `QCOMPARE` still leaves the group clean, and
+    the next case, which reads its default out of that very group, passed in
+    the same failing run. This is finding 29's mirror image: there the tidying
+    runs too early and hides the fault in the check that is measuring, here it
+    does not run at all and the damage lands on a case that has nothing to do
+    with it.
+
+43. **Breeze animates the dot in a radio button, so a `grab()` in the same turn
+    draws the state the animation starts from.** Measured 2026-08-29 while
+    reviewing #16: the picture showed „Ollama" checked while `choice()` read
+    back 2 (OpenAI) in the same run and the three button states were 0/0/1.
+    `QTest::qWait(400)` before the grab and the picture agrees. This is
+    finding 19's family for widget animations rather than for KSvg — and it was
+    only visible because a number was read back beside the picture. A picture
+    on its own would have been reported as a fault of the product, or worse,
+    have hidden a real one.
+
+44. **A shell check that parses a file can be fooled by a comment in it, and
+    `set -e` then ends the run mid-way with a plausible answer.** Measured
+    2026-08-29 on #36, running finding 33's dependency-hull check by hand: an
+    apostrophe inside a PKGBUILD comment („somebody else's machine") made the
+    name extraction invent the packages `s` and `machine.`, `pactree` failed on
+    them, and the loop died where it stood — with `kxmlgui` reported as
+    UNCOVERED although it stands in `depends`. The output looked like a finding
+    and was an artefact of the parser. Strip the comments first
+    (`grep -v '^ *#'`), and treat a check that names something you know to be
+    there as broken until proven otherwise.
+
+    **Its sibling: the file the check counted in was never read at all.**
+    Measured 2026-09-04 on #31, contradicting the lead three times before it
+    was caught. `git show "$rev:tests/librarytest.cpp"` hands the shell a `\t`
+    — **and the cause is the `:t` sequence, not the double quotes**, which this
+    entry blamed until 10.10.2026: single quotes avoid it, and so does a path
+    in a variable (`git show "$rev:$path"`), while double quotes around any
+    other path are harmless. So git was asked for `<rev><TAB>ests/…`, answered
+    "unknown commit or path" on standard error, and the `2>/dev/null` beside it
+    threw that away. `grep -c` on the resulting empty file answered **0** —
+    which reads exactly like "the string is not in this revision", and was used
+    to argue that a doc comment reported missing had never been there. It had.
+    A count of zero is the one answer a broken read and a true absence share,
+    so read the **size** back beside it (`wc -c`) or the exit code of the step
+    that produced the file, and never hide that step's standard error.
+45. **Ollama takes the reasoning out of the answer, so the backend at hand
+    cannot show the case a robustness against it is built for.** Measured
+    2026-08-29 on #14 with Ollama 0.32.15 and `qwen3:8b`: the classification of
+    SPEC 7.2 has to survive a thinking block, and against this server not one
+    ever arrived. `message.content` carried the bare JSON object every time,
+    while the reasoning — 8,184 characters for one note — stood in a
+    `thinking` field of its own; the same on `/api/chat` with `think` true and
+    with `think` false, and on `/api/generate`, where it is `response` beside
+    `thinking`. So a live run against this machine says nothing at all about
+    the parser: with the block stripping deleted it would have come out
+    identical, which is the first rule of the verification stance. The
+    robustness is still owed — SPEC 7.1 puts openrouter and OpenAI beside
+    Ollama, and those hand the text through as the model wrote it — and it is
+    checked against the stand-in, where the block is written by hand. That is
+    finding 40's family with the opposite ending: there the documented value
+    never occurred and the code was wrong, here the expected shape never
+    occurs and the code is right. Both times the question is the same, and it
+    is asked **per backend**: does this server produce the case at all, and
+    what does it produce instead?
+
+46. **A permission check run as root proves nothing — for root everything is
+    writable.** Measured 2026-08-29 on #75, whose criterion is that a
+    non-writable vault path is reported when it is set. `QFileInfo::isWritable()`
+    asks the *effective* user, and the CI runs in an Arch container as root, so
+    the case would have stood green over a program that happily stored the
+    rejected folder. Measured by hand as uid 1000 with `chmod 0500` it comes out
+    the other way: the message turns red and the field falls back to the last
+    accepted folder. **`isExecutable()` is not the same case, and that was
+    measured too**: on Linux X_OK is granted to uid 0 only where at least one
+    execute bit is set, so a file at 0644 is executable for nobody. Measured
+    2026-08-29 on #27 under `unshare -r` as uid 0 — the whole `settingstest`
+    came out 8 passed, 0 failed with a case that rejects exactly such a file,
+    while a file at 0000 *is* writable in that same namespace. The rule is
+    therefore about the checks root overrides — `isWritable()`, `isReadable()`,
+    reaching into a directory — and not about every mode bit. Where it bites:
+    either the check drops privileges for the run, or the
+    case stays out of the set and is measured by hand — but it never stands in
+    a set that runs as root, where it can only ever say yes.
+
+47. **A mutation probe run outside `ctest` goes red for a reason that is not the
+    mutation.** Measured 2026-08-29 on #15: `shelltest` was to show that a tray
+    entry connected to nothing fails its check, and the binary was started by
+    hand. It did fail — with "the tray menu carries no entry for an analysis
+    run", because without the `LANGUAGE=en_US` that `tests/CMakeLists.txt` sets
+    on that set, the installed German catalogue answers `i18n("Analyze now")`
+    with „Jetzt analysieren" and the check looks for the English wording. The
+    **unchanged** binary failed exactly the same way, so the red said nothing
+    at all. With the three variables of the test property in place the same
+    binary came out green unchanged and red with the connection taken away, on
+    the assertion the probe was aimed at (`requested.count()` 0 against 1).
+    This is finding 35's family from the other end: there the probe reached the
+    wrong assertion, here it reached the right set in the wrong environment. So
+    a probe is run the way `ctest` runs it — `ctest -R <set>`, or for a single
+    function the ENVIRONMENT of its `set_tests_properties` set by hand — and
+    its red is read on the assertion it was aimed at, never on the first one
+    that happens to fail.
+
+48. **A comment that presents a test set as a guard does not say the set can
+    reach the thing.** Measured 2026-08-29 on #15: `analysisscheduler.h` called
+    itself the one place the trigger names and the bounds stand, and `aitest`
+    claimed to pin "the three choices, which settings.cpp declares" — while both
+    values stood a second time in `settings.h`/`settings.cpp`, and the set reads
+    only the constants of its own library. `choice("AfterSaving")` renamed to
+    `"Immediately"` and the floor moved from 5 to 15: **all fourteen test sets
+    stayed green**, while the scheduler would have been reading a trigger nobody
+    can set any more. The same fault in #16, where a comment presented `aitest`
+    as the guard of defaults out of a library `denkzettelsettings` does not even
+    link. Whoever writes that two sides have to agree names the build target
+    that carries the other side — where the set does not link it, the guard is
+    an assertion and nothing else. What answered it here was not a check but one
+    source, because no check could: `aitest` cannot link `denkzettelsettings`,
+    which links the analysis library and not the other way round — the literal
+    put back into `settings.cpp` leaves all fourteen sets green today as well.
+    **The guard is then the build, and a guard is read back like any other
+    value**: renaming the constant at its one place stops the compiler in
+    `settings.cpp:56` with "is not a member of `analysis`", which is what says
+    the other side really is built from it.
+
+49. **The shortcut service is `kwin_wayland` itself, and a component whose
+    desktop file the run cannot reach is dropped whole.** Measured 2026-08-29
+    on #74, where the readback of SPEC 2.4 had to come out different once.
+    Two halves, both of which cost a run:
+
+    - `/usr/lib/kglobalacceld` started under a bare `dbus-run-session` **exits
+      at once and writes nothing** — not a line into the pipe, and the name
+      never appears on the bus (finding 25's family: what it has to say goes to
+      the journal). In a nested `kwin_wayland`, `busctl --user list` shows
+      `org.kde.kglobalaccel` owned by **kwin_wayland**, so starting a daemon
+      beside it changes nothing and killing that daemon changes nothing either
+      — a run built as "with and without kglobalacceld" comes out identical
+      twice and proves nothing.
+    - The lever that does work is the component. kglobalacceld resolves a
+      component name ending in `.desktop` through the desktop file and creates
+      **no component at all** without one. Same binary, same service, one
+      argument apart: with `io.github.hnsstrk.denkzettel` (installed under
+      `/usr/share/applications`, finding 21's road) the write arrives —
+      `isComponentActive` true, the readback hands back `Meta+Shift+K`, and a
+      **second process** in the same session still reads it. With a made-up
+      name the readback is empty for both actions, `isComponentActive` is
+      false, and the page reports the failure. So a run that has to make a
+      global shortcut fail does it by taking the desktop file away, not by
+      taking the service away.
+
+    And finding 20's trap stood in every one of those runs, on the same
+    service: `setDefaultShortcut()` (the `IsDefault` flag) returned **true**
+    while the readback stayed empty, next to a `setShortcut(..., NoAutoloading)`
+    — which carries `SetPresent` — that really landed.
+
+50. **A header comment is a statement of intent, not a measurement — findings
+    15 and 18 hold for library documentation as much as for D-Bus.** Measured
+    2026-08-29 on #74: `kkeysequencewidget.h:296` says the component name has to
+    be set or the application's own registered shortcut reports a conflict with
+    itself. It does not. With our own component holding the sequence,
+    `isGlobalShortcutAvailable` answered **0** for an empty name, for our own,
+    and for a foreign one alike, while a free sequence answered 1 in all three
+    — `Component::isShortcutAvailable` resolves the own name to
+    `shortcutContext("default")`, and that context holds the key. The line is
+    the documented way to build it and stays; only the reason beside it was
+    wrong.
+
+    **The way the error travelled is the finding.** The UX pass read it in the
+    header and wrote it into a decision, the implementer reported it as checked,
+    the lead carried it into two briefs — three stations, none of them measured,
+    because all three had read the same source and could not contradict each
+    other (finding 40). What an interface says about itself is an intention;
+    what it does is the measurement. Quote a header comment as a *source*, never
+    as a *result*.
+
+51. **An item view hands the value back that it is not showing.** Measured
+    2026-08-29 on #18: the category column is a `QTreeWidget` of two columns,
+    label left and counter right. Every counter was set and every readback said
+    so — `item->text(1)` answered `3`, `0`, `0` for the right rows — and the
+    picture showed a column of headings with no numbers at all. `QTreeView`
+    switches `stretchLastSection` on by itself, and that **beats** the resize
+    mode set on the section: with the sidebar 158 px wide the counter column
+    took 100 px (the style's own `minimumSectionSize`), the label column was
+    left 79, the labels elided to "CLI com…" and the numbers stood outside the
+    viewport. `setStretchLastSection(false)` plus a `setMinimumSectionSize()` of
+    its own put it right — 136 and 22. The model readback proves the value is
+    **set**, never that it is **visible**; that is finding 27's family for
+    layout rather than for state, and only the image told the two apart. Ask
+    `columnWidth()` beside the value, or look.
+
+52. **Two catalogues are compared by their set of msgids and against the common
+    ancestor, never by two numbers from two states.** Measured 2026-08-29 on
+    #17 — as the mistake: `msgfmt --statistics` fell from "139 on `main`" to
+    136, that was read as a loss, and a finding was written about it. Both
+    numbers came from different states; `main` had moved on by several merges
+    between the branch point and the comparison, and the difference was their
+    gain, not the branch's loss. Measured at the common ancestor the same thing
+    reads 147 → 150, the three additions being the story's own strings and
+    nothing gone at all. A difference between two numbers does not say **which**
+    message is missing, and without that it cannot be read: take
+    `git merge-base`, turn both catalogues into sets of msgids with
+    `msgattrib --no-obsolete --no-wrap`, and **name** every departure — then
+    hold each one against `grep -rn` in `src/`. And `grep '^msgid '` alone is
+    not enough for that: a msgid xgettext has wrapped (`msgid ""` with the text
+    beneath it) does not appear in its output.
+
+53. **`KColorUtils::contrastRatio()` uses the WCAG weights through a different
+    transfer function, and comes out more generous throughout.** Measured
+    2026-08-29 on #116: the channel weights are the same — pure primaries come
+    out identical on both (red on white 3.9985 against 3.9985), and that is
+    exactly what hides the difference. `KColorUtils::luma()` is a plain
+    `pow(v, 2.2)` per channel (identical to six decimal places at every point
+    of the grey ramp), WCAG uses the kinked sRGB curve; on dark colours KDE
+    therefore reads higher — `#232629` on `#fef1ea` gives 14.69 against 13.75.
+    Over the eighteen installed schemes the KDE value is above the WCAG value
+    in **all** eighteen, the worst type contrast reads 4.79 against 4.55, and
+    the closest case is CachyOSNord with 4.787 against 4.552 — five hundredths
+    above the promise instead of twenty-nine. From which follows that two pairs
+    of numbers for the same change can **both** be right when they are computed
+    on different scales: the implementer's 4.94 → 4.79 and the issue's
+    4.63 → 4.56 are the same measurement, once with `contrastRatio()` and once
+    by WCAG, and neither refutes the other. **Whoever writes a contrast
+    threshold names the scale beside the number, and where an accessibility
+    criterion is to be met, computes the WCAG value beside it** — a 4.5 : 1
+    written with `contrastRatio()` is not the 4.5 : 1 the guideline means.
+
+54. **A stand-in that answers every call with the same value does not weaken a
+    check — it builds a state the check is not about.** Measured 2026-08-29 on
+    #29: the embedding mock had one default vector, so every note of a run came
+    out identical, similarity 1.0, and any case with three or more notes
+    silently grew a cluster and a bundle call on top of what it was testing.
+    One case then stood at 4 prompts against 3 — measured five times out of
+    five with the mock's differing vectors taken away, and five green with them
+    back, so it is deterministic and not the flake the first report of it
+    claimed. That claim was checked because a list entry naming an observation
+    the next reader cannot reproduce damages the list. A
+    stand-in's constant answer is an input like any other: give it values that
+    differ, or the check runs against a corpus the product would never see.
+    Where the code computes a **relation** out of the answers — similarity,
+    distance, ranking, grouping — a constant stand-in is not a placeholder but
+    an instruction, and it instructs the degenerate case.
+
+55. **Every agent of a team writes into the same scratchpad, and an obvious
+    file name is overwritten by whoever writes it next.** Measured 2026-08-29
+    while reviewing #29: a `lint-tidy` run redirected into
+    `$SCRATCHPAD/tidy.log` was read back and named 58 files of a **foreign**
+    worktree, none of its own — `suggester.cpp` and `modelanswer.cpp`, the
+    files under review, appeared nowhere; two hours later the same path named a
+    **third** worktree. The directory held 800 entries from runs on nine other
+    issues, under one session directory for the whole team. The exit code stays
+    the running process's own, so the **verdict** was right and the
+    **evidence** belonged to somebody else — the worse half to get wrong,
+    because the authoritative-looking number is the one that survives. Not a
+    build-system fault: `USES_TERMINAL` was suspected and cleared, a redirected
+    custom target writes to its own file. **Worse than swapped logs**: the same
+    directory holds the `.orig` copies a mutation probe makes before it mutates
+    and plays back afterwards — two agents with the same name, and one restores
+    the **foreign** source over its own tree. What carries: every run writes
+    into a subdirectory of its own, and every scratchpad file carries a name
+    only this run can have — the issue number, the worktree hash — never a
+    generic `build.log`, `out.txt`, `probe.cpp`. And read the readback: a log
+    used as evidence has to name **your own** path, the way finding 28 reads
+    the style name back.
+
+56. **A review measures a commit, and a worktree is not a commit.** Measured
+    2026-08-29 on #21: the reviewer's verdict was written against `99a0bcd`,
+    the implementer was then sent the findings, and by the time a second
+    measurement was needed the same worktree stood eight files and 203 lines
+    further on — the fixes for the very findings under discussion. The first
+    re-run would have built that newer state and reported it under the old
+    commit's name, and nothing in the output says which state was built. This
+    is the lead's error before it is anybody's: whoever asks for a second look
+    while the branch is being worked on has to say **which** state it is on.
+    What carries: a review builds from `git archive <commit>` into a directory
+    of its own, and its report names the commit it holds for — not the branch,
+    which has moved by the time the report is read.
+
+    **And `--amend` takes that basis away without moving the branch anywhere
+    visible.** Measured 2026-10-10: one branch carried four identifiers in an
+    afternoon because its implementer kept amending, and an orphaned one of
+    them shared a seven-character prefix with another story's commit. A review
+    dispatched against an amended identifier measures a state that no longer
+    exists, and its report names it as if it did. On a branch a review points
+    at: new commits, never an amend, and the final identifier reported in one
+    sentence. The branch is squashed at the merge anyway, so the intermediate
+    steps cost nothing.
+
+57. **A staging directory installed from a stale build serves the old
+    catalogue.** Measured 2026-08-29 on #21: the `.mo` is compiled by the
+    **build**, not by `cmake --install`, so a readback taken after editing the
+    `.po` and installing to a `DESTDIR` named the **previous** wording — which
+    reads exactly like a translation nobody wrote, or like a string that never
+    reached the catalogue. Build first, then install, then read back. This is
+    finding 16's neighbour: there a check read an installed path and said
+    nothing about the source tree, here it reads an installed path that is
+    older than the source tree.
+
+58. **`QString::arg()` fills by the lowest free number, so a mutation that
+    deletes one placeholder rewires the rest.** Measured 2026-08-29 on #117:
+    the probe was to take the date out of the classification prompt and deleted
+    only the sentence carrying `%2`. `arg()` then filled `%1` and `%3`, the
+    date landed where the note text belongs, the note fell out of the prompt
+    altogether — **two unrelated cases went red and the case under test
+    passed**, on a prompt that carried the date in the note's place. A red for
+    a reason that is not the mutation, and it looked exactly like a finding.
+    With the placeholders renumbered so that nothing but the date is gone, the
+    same probe comes out 51 passed, 1 failed, on the case it was aimed at. This
+    is finding 35's family from a third side: there the probe reached the wrong
+    assertion, in 47 the wrong environment, here it made a second change nobody
+    wrote down. **Whoever mutates a format string renumbers its placeholders
+    with it, and reads the produced string back once before believing the
+    run.**
+
+59. **A check that searches a file for a value finds it in the file's own
+    comment.** Measured 2026-08-29 on #47: the KWin script filters on the
+    application id, and a rename leaves the filter matching nothing while
+    everything else reports success (that is what #112 did to the spike of
+    #50). The guard against it read the installed script and asked whether it
+    contained `QGuiApplication::desktopFileName()`. It always did — the id
+    stands in the script's own comment and in the bus name it calls back on as
+    well, so the control run with the constant blunted to the retired
+    `org.denkzettel.Denkzettel` came out **green**. Against the whole
+    assignment (`var OWN_CLASS = "…";`) the same control reads `isScriptLoaded
+    b false`, zero calls on the interface and one line in the journal naming
+    the file. Whatever a check looks for in a file, look for the **statement**
+    and not the token — a value that occurs three times in a file is a value
+    the check cannot tell apart.
+
+60. **A widget told to ignore its own width wish can be given none at all, and
+    `elidedText()` then returns an empty string.** Measured 2026-08-29 on #47:
+    the origin line carried `QSizePolicy::Ignored` so that a long window title
+    could not push the head row's minimum width — the price is that when the
+    row is over budget the line gets 0 px and disappears **without a word**. At
+    714 px window width that is what happened, and the case looked like a value
+    that never arrived; at 900 px the same note read `· Konsole …`. And the
+    room a design was measured against is read back in the **built** window,
+    not taken from the drawing: the UX pass reckoned with 256 logical px free
+    in that row, the built window gave the line 57 to 74 px, because the
+    reading pane is 440 px of the 900 and the timestamp takes 148 to 165 of
+    what is left. That measurement overturned the decision it was checking —
+    the origin moved into a line of its own. Whoever builds to a measured
+    number measures it again where it is spent, and reports it before the
+    picture looks finished.
+
+61. **Two actions with the same wording in one window: a lookup by wording
+    picks the wrong one, and the red lands in a neighbouring case.** Measured
+    2026-08-29 on #47: the origin removal got an "Undo" of its own beside the
+    deletion's, both added to the window with `addAction()`. `librarytest`'s
+    `actionNamed()` walks `window.actions()` and takes the first hit, so
+    `takesUpTheWaitingNoteWhenTheDeletionIsUndone` — a case that has nothing to
+    do with the new feature — triggered the new action, which did nothing, and
+    failed on a note count. Both readings of that red are wrong: it is neither
+    a broken deletion nor a broken test. What carries: an action that is only
+    reached through one button does not go into `window.actions()` at all.
+
+62. **A guarantee that hangs on one end is measured at one end, and the run
+    says yes.** Measured 2026-08-29 on #47, by the review: the switch of
+    SPEC 13 bars the *source* — with it off the KWin script is never loaded —
+    and the nested run showed exactly that, `isScriptLoaded b false` and zero
+    calls on the bus, twice over, with a control that came out different. Every
+    one of those numbers was right, and the assurance was still open at the
+    other end: the receiving method sat on the session bus and took a value
+    from anybody who called it, switch or no switch, so on that side the two
+    states were indistinguishable. The same shape in the same class: the load
+    was read back with `isScriptLoaded`, the **unload** was read back with
+    nothing. **Name both ends of an assurance before measuring either** — what
+    produces the data and what accepts it, what switches a thing on and what
+    switches it off — and read each of them back on its own. A run that only
+    ever asks the end you built is finding 40's family with the roles swapped:
+    there the check and the code read the same documentation, here they measure
+    the same half.
+
+63. **A check that walks the story's one road is green over the state the other
+    road leaves behind.** Measured 2026-08-29 on #47:
+    `takesTheOriginOffANoteAndPutsItBack()` removed the origin, undid it and
+    asserted the value was back — and it was, until the next save. `saveEdit()`
+    wrote the copy of the note the editor was opened with, `updateNote()` writes
+    every column, and so the restored value went away again without a word. The
+    case could not see it because it never opened the editor. Two things follow,
+    and the second is the one that costs: whatever a story writes gets asserted
+    **after every other road that writes the same row**, and a whole-row write
+    from a snapshot is the fault itself — not a fault of the column the story
+    added, but one waiting for every column any later story adds beside it. The
+    lazy fix and the root-cause fix were the same line: read the row back
+    instead of keeping a copy.
+
+64. **The bounding box of a picture difference is not the rectangle of the
+    widget that changed.** Measured 2026-08-29 while widening the level meter:
+    the difference between the unchanged and the changed picture came out
+    `x 92..806, y 59..88`, and read as finding 39 asks it to be read, that is a
+    change confined to one row and nothing else. It is not the meter. The meter
+    stands at device `x 75..806`; the box begins seventeen pixels further right
+    because the **first bar is drawn identically in both builds** and only the
+    second one moves, the gap having gone from 3 logical pixels to 4. A box that
+    starts inside the widget looks exactly like a widget that has moved right,
+    and the picture cannot tell the two apart. What told them apart was the
+    widget's geometry read back inside the run — `meter->x()`, `width()`, times
+    the device pixel ratio — held against the box. So a difference is read
+    against a rectangle **set from outside** (finding 10), and "the difference
+    lies inside the changed widget" is a statement about two numbers, only one
+    of which the picture carries.
+
+65. **The diagnosis starts in this project's own written record, not in a
+    measurement — and the record here is evidence, not intention.** Measured
+    2026-08-29 on #125: the customer reported that `Meta+Shift+N` does nothing.
+    An hour went into measuring the D-Bus channel — the component is active,
+    the sequence is registered, the active keys equal the defaults, no foreign
+    component claims them, and a control run proved the channel carries
+    signals; five minutes of real key presses produced **zero**, which was
+    read as "the key never reaches the service". The opposite conclusion.
+    SPEC 2.4 has said since 2026-08-01 what a key press really does: with an
+    installed application the component name ends in `.desktop`, so kglobalacceld
+    treats it as a service action component and **starts the desktop action of
+    the same name instead of sending a D-Bus signal**. Every measurement had
+    taken a road the key does not take. **The distinction that makes this a
+    rule:** finding 50 says a library's own words are an intention and have to
+    be measured — but `SPEC.md`, the issue comments and the vault entries of
+    this project record **measurements that were already made here**, each with
+    its date and its finding. Reading them is not trusting a promise, it is
+    reading a result. So before diagnosing a mechanism this project has already
+    written about — shortcuts, the bus, the compositor, the store — read its
+    section first, and let the measurement start where the record stops. The
+    customer's sentence that opened it: „Wir haben die Doku doch, damit du sie
+    auch nutzt."
+66. **A window with a clock in it differs from itself between two runs, and a
+    picture comparison reads that as the change.** Measured 2026-08-29 while
+    making the level meter more sensitive: the eight before-and-after pairs came
+    out clean except the last, which showed 133 differing pixels at device
+    `x 861..870` — outside the meter, and therefore exactly what finding 39 says
+    must not happen. It is the running time, `0:00` against `0:01`: it counts
+    the frames the encoder has taken, and how many that is by the eighth grab
+    depends on how fast the machine got through the seven before it. Nothing in
+    the code moved. So a picture pair from a window that shows a time is
+    compared with that field named beforehand as a region the run does not
+    control — and the way to tell the two apart is to crop it and **look**, not
+    to widen the tolerance.
+
+67. **Two desktop actions with the same `Exec` line are one action, and every
+    readback the shortcut service offers says the registration is fine.**
+    Measured 2026-08-29 on #125, as the fault: `Meta+Shift+N` reached nothing
+    for four weeks while the component was active, `show-recorder` held
+    `Meta+Shift+N`, no foreign component claimed the sequence, and
+    `invokeShortcut` delivered `globalShortcutPressed` with a control that came
+    out different. All of it was true and none of it was the key's road: a real
+    press starts the **desktop action** through an `ApplicationLauncherJob`
+    (SPEC 2.4), both actions carried `Exec=denkzetteld`, and the started process
+    handed itself to the running service as a plain activation — which shows the
+    capture window. `Meta+N` "worked" because its target is what happens anyway,
+    which is the worst kind of green: the one shortcut that could be checked by
+    hand was the one the fault could not touch. Whatever a key press does, walk
+    **the launcher's** road — `KService::serviceByDesktopName`, the
+    `KServiceAction` of that name, `KIO::ApplicationLauncherJob` — and read back
+    what lands on the bus, not what the shortcut service holds.
+
+68. **A launcher on the offscreen platform puts a different signature on the
+    wire.** Measured 2026-08-29 on #125: `DBusActivationRunner::startProcess()`
+    appends the platform-data map only under X11 or Wayland
+    (`KWindowSystem::isPlatformWayland()`), so with `QT_QPA_PLATFORM=offscreen`
+    the call goes out as `ActivateAction(sav)` while `KDBusService`'s adaptor is
+    `sava{sv}` — D-Bus dispatches by exact signature, and both presses came back
+    `No such method 'ActivateAction'`. On the fixed build. Read as the result it
+    looks like, that is a fix that does not work; the same run inside a nested
+    `kwin_wayland --virtual` came out right for both actions. Offscreen is not a
+    neutral platform for anything that asks **which** platform this is, and the
+    proof is the platform name read back inside the run, next to the call
+    (finding 28's family for the launcher rather than the style).
+
+69. **A bus-activated process inherits the environment the bus was started
+    with.** Measured 2026-08-29 on #125, proving that a key press starts the
+    daemon when none is running: the nested compositor came up *after*
+    `dbus-run-session`, so the activated daemon found no platform plugin and
+    died with signal 6 — `jobErrorText=Process … received signal 6`, which reads
+    like a broken service file. `UpdateActivationEnvironment` on
+    `org.freedesktop.DBus` is what a real session does and what the run has to
+    do too. And the control that makes the run evidence is the file itself: with
+    the service file staged, the name has no owner before the press and one
+    after it, with `Recording failed` arriving from the cold-started daemon;
+    without it, the same press answers `The name … was not provided by any
+    .service files` and nothing happens.
+
+70. **A mutation that cuts one line out of a multi-line call breaks the
+    configure, and the build directory keeps the rules the probe was meant to
+    remove.** Measured 2026-08-29 on #125: `grep -v` on the first line of a
+    two-line `install(FILES … DESTINATION …)` left a dangling argument, `cmake
+    -B` failed with its output redirected, `ctest` ran against the **previous**
+    configuration and reported `Passed` — a green that said nothing. Cutting the
+    whole call made the same check red on the right message. This is finding
+    58's family for build files: read the exit code of every step the mutation
+    depends on, and mutate the whole statement. **Its neighbour in the same
+    check:** `get_filename_component(… NAME_WE)` cuts at the **first** dot, so a
+    reverse-DNS file name gives `io` — the check went red over a correct file
+    until it used `NAME` and stripped the suffix itself.
+
+71. **A running compositor holds the desktop file as it stood at login, and
+    `kbuildsycoca6` does not reach it.** Measured 2026-08-29 on #125: after
+    installing to `/usr`, `kbuildsycoca6 --noincremental` and a restart of the
+    daemon — the checksum of the running file compared against the one on disk
+    — the key still did nothing, while a check program built for the purpose
+    took the D-Bus road at once. Same machine, same desktop file, same minute:
+    the real key press put **0** `ActivateAction` on the bus and started one
+    systemd unit `app-…@<hash>.service` with `ExecStart=/usr/bin/denkzetteld`;
+    the check program, walking exactly the three steps of the launcher
+    (`KService::serviceByDesktopName`, the `KServiceAction` of that name,
+    `KIO::ApplicationLauncherJob`), put **2** on the bus with `show-recorder`
+    and started no unit at all. A second check program read
+    `DBusActivatable=true` out of the installed file in a fresh process, so
+    the file on disk was right. What differs is the **age of the process**: the
+    shortcut service is `kwin_wayland` itself (finding 49), it read the desktop
+    file at login before `DBusActivatable` stood in it, and holds that reading.
+    That the unit name and the `ExecStart` are precisely what `KProcessRunner`
+    writes on its forking road is what says the service does go through
+    `KProcessRunner` and only picks the **wrong** runner. So a changed desktop
+    file reaches the shortcut service only in a new session, and the
+    counter-check came out different: after a restart of the machine the same
+    key press took the D-Bus road. Whatever a long-lived service read once,
+    measure it in a process of **its** age — a fresh one answers for itself and
+    for nobody else.
+
+72. **A stored `none` beats the default, and two actions of one component then
+    behave differently on identical code.** Measured 2026-08-29 on #125: after
+    the restart the daemon reported the shortcut was not ready, and the
+    readback said `Meta+N` had one holder, `show-capture`, while
+    `Meta+Shift+N` had **none**. The component's group in `kglobalshortcutsrc`
+    carried `show-recorder=none`, and for `show-capture` no line at all.
+    `registerShortcut()` deliberately uses the autoloading
+    `KGlobalAccel::setGlobalShortcut()` (SPEC 2.4), which writes the default
+    only at the very first registration and afterwards restores the stored
+    value — so a missing line lets the default land and a line reading `none`
+    does not, in every new session. The difference between a working and a dead
+    shortcut therefore stood in a configuration file, and no readback of the
+    registration the code performs could have shown it. Where the `none` came
+    from is **not established**. What overwrites it is a registration with
+    `NoAutoloading`, which carries `SetPresent` (findings 20 and 49); the
+    customer set the sequence on the application's own shortcut settings page,
+    and `Meta+Shift+N` opens the recording window on the installed state. Where
+    a default can be overruled by a stored value, read the store beside the
+    code — two actions with the same code are not two runs of the same case.
+
+    **Two corrections from 2026-08-31, when #142 settled where the `none` came
+    from: our own registration writes it, at every login, because the desktop
+    file declares no `X-KDE-Shortcuts`.** With that the mechanism above stands
+    unchanged and the sentence "not established" is retired. But **the dating
+    does not hold, and the entry cannot be reproduced as written**: an hourly
+    backup of the customer's real `kglobalshortcutsrc` shows no group of ours
+    in any of 36 snapshots from 24.08. to 29.08. 23:02, and the group appears
+    for the first time on 30.08. 08:03. So on the day this was measured, that
+    `none` was not in the file this entry names. The likeliest reading is that
+    it was read out of one of the dozens of isolated sessions running that day,
+    each with an `XDG_CONFIG_HOME` of its own — finding 21 in its purest form,
+    and unproven either way. Whoever cites this entry cites the mechanism, never
+    the date; and whoever measures a user's configuration says **which** file
+    the run actually opened (finding 54).
+
+73. **A prompt to the user inside a running tool call reaches them only after
+    the call has ended.** Measured 2026-08-29 on #125: a bus capture was to
+    show whether a key press puts anything on the wire, and the line asking for
+    the press stood in the same call as the capture, which ran for 25 seconds —
+    the user read it once the capture was over. It came back empty for the
+    working key as well, and was nearly reported as a finding; it could not
+    have come out any other way, which is the first rule of the verification
+    stance. What carries: the capture runs in the background, the request goes
+    to the user before it starts, and the reading happens after their answer.
+
+74. **`busctl` called with the wrong signature answers with an error, and a
+    `grep` over the output swallows it.** Measured 2026-08-29 on #125:
+    `getGlobalShortcutsByKey` takes **one** `i`, not `ii`; called with `ii` the
+    service answers `No such method … (signature 'ii')`, and because the output
+    ran through a `grep` for the application name, what came back was empty and
+    read as "no holder for this key" — the same shape as finding 31, where a
+    command that prints nothing looks like an answer. Look at the raw output
+    before filtering it, and read the interface with `busctl introspect` before
+    calling it.
+
+75. **A second daemon out of another build directory runs beside the real one
+    for hours, and nothing says so.** Measured 2026-08-29 while tidying up:
+    `pgrep -x denkzetteld` found **two** processes. One was the expected one;
+    the other had an `exe` pointing into a build directory outside the
+    installation, with `(deleted)` behind it, a start time over seven hours
+    back, an `XDG_DATA_HOME` of its own, and `systemd` as its parent — it had
+    been orphaned when the shell that started it ended. It did **not** hold the
+    bus name, read back with `busctl --user list`, so the notes went to the
+    right store; but that is the whole trap. `KDBusService::Unique` decides who
+    owns the name, and whoever does not own it is there all the same: it holds
+    files open, it listens on the same signals, and `pgrep` finds it. So a
+    measurement "on the running service" can be taken on the wrong process for
+    hours without a hint. This is finding 30's family — a process is what the
+    kernel says it is — and finding 1's, where the running process is not the
+    installed state. What carries: `busctl --user status <name>` answers who
+    the service **is**, `readlink /proc/<pid>/exe` gets asked for **every**
+    process found and not only the first, and a run that starts a daemon ends
+    it again, or it outlives the shell that started it.
+
+76. **How long a thinking model takes is no property of the note, so a limit
+    near that range fails by a coin toss — and a before/after run against the
+    real server comes out green on the broken build.** Measured 2026-08-30 on
+    #121, and each of the three parts cost a run:
+
+    - **The reproduction.** The first walk put a 316-word note through the
+      **unfixed** daemon against a cold Ollama and came back
+      `analysiert | persoenlich | 0 attempts` — which reads as "the bug is not
+      here". Four runs of the same note through the same prompt on the same
+      server then took 18.1 s, 46.9 s, 22.5 s and 45.7 s, two of them over the
+      30 s of SPEC 7.1 and two under it. Nothing about the note decides which.
+      So a fault that hangs on a limit is not shown by a run against a live
+      model, and the control has to be a stand-in that takes the same time
+      **every** time — here one that sends nothing for 45 s unstreamed and a
+      chunk a second streamed, which is what the real server was measured to
+      do. Against that the same pair came out different at once:
+      `neu | 1 attempt | "Ollama did not answer within the time limit."`
+      against `analysiert | todos | 0 attempts`.
+    - **And four seconds-values are not a frequency.** The review's own five
+      runs on another note reached 5.2 to 15.0 s and broke the limit **not
+      once**, which reads like a contradiction and is none: the throughput was
+      constant to 1.2 % (92.5 to 93.6 tokens per second, `prompt_eval_count`
+      identical, `load_duration` zero) while the token count ran from 477 to
+      1,385. The time is a linear reading of the reasoning tokens and of
+      nothing else, so both series lie on one line and the seconds are a
+      snapshot of one note on one machine. What generalises is the rate — at
+      93 tok/s the 30 s hold about 2,800 output tokens — and that is what
+      belongs in a binding text; the seconds may stand beside it as an example,
+      never as a measure.
+    - **A shortened prompt is a different measurement.** The first number
+      written into the commit message, 34.8 s, came from a probe that sent an
+      abbreviated version of `classificationPrompt()`. The real prompt, with
+      its schema and its rules, makes the same model reason **less**. A probe
+      that rebuilds a prompt by hand measures the prompt it rebuilt (finding
+      58's family for the input rather than the placeholders); the review's
+      probe linked `libdenkzettelanalysis` and called the function.
+    - **A lever is read back, or the run measures nothing** — and this is the
+      part that was reported wrong before the review caught it. `ollama stop`
+      is not a cold start: it frees the graphics card, the model file stays in
+      the page cache. But `posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED)` on the
+      blob does **not** get it out either, and the numbers reported from it —
+      2.3 s and 6.5 s — were warm loads wearing a cold label, indistinguishable
+      from the 1.96 s a plain reload measures. `mincore()` over an own `mmap`
+      says so in one line: every page resident before the call and after it, on
+      two models — 1275727 of 1275727 for `qwen3:8b` and 1305644 of 1305644 for
+      `granite4.1:8b`, which was not even loaded — while the same tool on a file
+      of the run's own on the same btrfs went 153600/153600 → **0**/153600. The
+      lever works, the object refuses it — most likely because the running
+      service holds the blobs mapped. Whoever drops a cache reads the cache
+      back, the way finding 28 reads the style name back.
+
+      **And the control has to be able to fail.** The review's first control
+      file lay under `/tmp`, which is tmpfs — there the pages *are* the file
+      and `DONTNEED` can never discard anything. That run looked exactly like a
+      confirmation of the finding and was a property of the file system.
+
+      What carried in the end needed no lever at all: on a file measured
+      **empty** by the same readback, cold throughput is 5.9 GB/s, so the
+      5.2 GB blob is read in under a second and an 18 GB model in about 3.1 s.
+      The conclusion the numbers were for — the load is the smaller half — came
+      out stronger for being reckoned instead of staged.
+77. **`XDG_DATA_DIRS` cannot take a service away from a session bus, and the
+    two ways of opening a wallet call two different D-Bus methods.** Measured
+    2026-08-30 on #37, four things in one run and each of them looked like a
+    result:
+
+    - `<standard_session_servicedirs/>` appends `/usr/share/dbus-1/services`
+      **whatever `XDG_DATA_DIRS` says**. The mirror of finding 21 is built,
+      `XDG_DATA_DIRS` points at it alone, and `dbus-run-session` still
+      activates the service out of `/usr/share` — a run meant to measure "no
+      wallet on this session" measured the installed one. What works is a bus
+      configuration of the run's own: `dbus-run-session --config-file=…` with a
+      single `<servicedir>`. The readback is `busctl --user list`, which then
+      does not even list the name as activatable — but **without**
+      `--acquired=no`, which hides activatable names and reports nothing for a
+      service that is very much reachable.
+    - `KWallet::Wallet::isEnabled()` answers **true** on a session with no
+      wallet service at all — it reads `kwalletrc` and nothing else. A guard
+      built on it lets every request through.
+    - `Wallet::LocalWallet()` and `Wallet::NetworkWallet()` are **both**
+      blocking D-Bus calls (`localWallet` and `networkWallet`, both in
+      `kf6_org.kde.KWallet.xml`) and **both answer the empty string when no
+      wallet service is reachable** — that, and not a difference between the
+      two functions, is what makes the empty-name check in
+      `KeyStore::openWallet()` carry. With a service reachable the first of the
+      two costs **one activation of the wallet service** and every one after it
+      is negligible — that is the part that holds across machines, and the
+      numbers are not: 70 to 181 ms for the first call and 0 to 3 ms for the
+      second here, 1422 ms and 7 to 12 ms on the machine beside this one, where
+      `ksecretd` had to come up cold. A span measured on one machine is the
+      entry that damages the list; what to write down is the shape.
+      `LocalWallet()` answered `kdewallet` in every state measured. What
+      `NetworkWallet()` answers depends on the state behind the service and is
+      not to be relied on: on a session whose Secret Service held a collection
+      it answered `kdewallet` too, on one whose did not — `kwalletd6` logging
+      `Error reading label: … 'org.freedesktop.Secret.Collection' was not
+      found` — it answered empty, four readings in two processes and in both
+      call orders. The first version of this entry said the empty string was a
+      property of `NetworkWallet()` on KWallet 6.29; a second measurement on
+      another session state contradicted it. **A statement about the return
+      value of either function is only one once it says what was reachable.**
+    - `openWallet(…, Synchronous)` calls `open` on the bus and
+      `openWallet(…, Asynchronous)` calls `openAsync`. A stand-in that
+      implements only one of them answers the other with `UnknownMethod`, so
+      the mutation probe "synchronous instead of asynchronous" came back in
+      1 ms and looked exactly like the fixed code. With the stand-in holding
+      **both** methods open, the same probe never returns from the call at all,
+      while the built code answers in 51 ms with 4042 event-loop ticks in
+      twenty seconds. Whoever mutates which call is made makes sure the other
+      end can receive it — otherwise the control measures a missing method.
+
+    And the wallet case has a fifth: in a headless session `kwalletd6` asks the
+    user before it opens anything (`Using kwallet without parent window!`, then
+    silence), so **no** run without a compositor can show a key arriving in a
+    real wallet. What carries is a stand-in on `org.kde.kwalletd6` speaking
+    `org.kde.KWallet` — a hundred lines of python-dbus — which puts the whole
+    road from the code down to the wire under test and keeps the entries in a
+    file the run can read without asking our own code (finding 62). Two things
+    about that stand-in, both of which cost a run: it has to **load** its state
+    file rather than write an empty one at startup, or a run that restarts it
+    to change its behaviour reads back an empty wallet and reports the deletion
+    it was measuring as done (finding 29's family, the harness tidying away its
+    own evidence); and a probe built against the newer interface does not
+    compile against the older one, so the "before" side of a comparison keeps
+    running the **previous** binary while the build fails beside it
+    (finding 11's family — read the exit code of the build, not only of the
+    run).
+
+78. **`QDBusReply<bool>` hands back its default when the call failed, so every
+    KWallet question that answers `bool` says `false` for "it is not there" and
+    for "the wallet did not answer" alike.** Measured 2026-08-30 in the review
+    of #37, against a wallet that opens and then refuses every call — the state
+    after `kwalletd6` dies with the handle still held. `hasFolder()`,
+    `hasEntry()` and `setFolder()` all read `true` on a healthy store and
+    `false` on a broken one, which is exactly what they read for an empty one:
+    a read then hands out an empty key **with no error**, and a removal reports
+    success while the secret provably stays in the wallet — read back from the
+    wallet's own side, never from the code that claimed to have deleted it
+    (finding 62). Only **three** methods of `KWallet::Wallet` carry an error
+    channel of their own — `entriesList(bool *ok)`, `mapList(bool *ok)` and
+    `passwordList(bool *ok)` (`kwallet.h:412`, `:426`, `:441`); everything else
+    answers `bool`, or one collecting non-zero `int` for everything that went
+    wrong. Three of how many is left out on purpose: counted as declarations
+    without the signals and the constructors it is 35, by distinct name 33, and
+    two readers of the same header came to 35 and 39 — a number nobody
+    reproduces the same way carries nothing, and the three named ones carry the
+    whole statement. `passwordList(&ok)` on the same binary reads `ok=true`
+    against the healthy store and `ok=false` against the broken one, and it is
+    the only call that tells them apart. Its `ok` is not quite "did the wallet
+    answer" either: the header (`kwallet.h:432–434`) says it is set false **also**
+    when an entry in the folder was not written as a password. That direction is
+    the harmless one — an error rather than a silent empty answer — but it is
+    what the interface promises, and the narrower sentence is the kind the next
+    reader does not check. The rule is more
+    general than KWallet: **wherever a foreign interface answers a question
+    with a plain `bool` or a bare list, ask what it answers when the call
+    itself fails** — and if that is the same value, the guarantee built on it
+    is not one. The neighbouring trap is the folder: with the return value of
+    `setFolder()` unusable for the same reason, letting it fail silently leaves
+    the wallet's **global** folder current, and the next `passwordList()` reads
+    entries that are not ours.
+
+79. **A hidden label that keeps its last sentence answers the same thing for
+    "nothing to say" and for "said it and hid it by mistake".** Measured
+    2026-08-30 on #69: the correction line above the library list was hidden
+    when there was nothing to report but its text was left standing, and the
+    readback beside the picture then printed
+    `line=0 text="Ergebnisse für „prüfen“"` for the spelling variant — a line
+    that reads like a fault and is none, and that would have read exactly the
+    same had the line been wrongly hidden over a real correction. Only
+    `isVisible()` told the two apart, and a picture cannot show a widget that
+    is not drawn. Clearing the text with the hiding made the same readback
+    `line=0 text=""`, which comes out **different** from the case that has
+    something to say. This is finding 51 from its other side: there a value
+    was set and not visible, here it is visible in the readback and not on the
+    screen. Whatever a check reads off a widget it may find hidden, put the
+    widget into **one** state per case — or the readback carries two.
+
+80. **`msgcomm --unique` answers symmetrically, and `--no-wrap` does not put a
+    multi-line msgid on one line — so both usual ways of comparing two
+    catalogues answer the same thing to "was something lost?" and "was
+    something added?".** Measured 2026-08-30 on #32, as a disagreement between
+    two readings of the same catalogue that were both partly wrong.
+
+    - **`--unique` is `--less-than=2`** (its own `--help` says so), so it hands
+      back the symmetric difference and cannot, on its own, tell an addition
+      from a departure. A report that names only that option has not stated a
+      direction, whatever number stands beside it. **The refinement does
+      carry**, and that was measured rather than argued: the difference
+      intersected back against each side with `--more-than=1` came out
+      **0 departures** on the real comparison and **2** on a control from which
+      one message had actually been removed. Different twice, so the procedure
+      discriminates — but the count includes the header entry, which is why
+      finding 52 asks for the departures to be **named** and not counted.
+    - **The other method is blind where it matters most.**
+      `grep '^msgid ' | sort -u` plus `comm` is the obvious way and it collapses
+      exactly the entries finding 52 already warned about: a msgid carrying an
+      embedded newline is written as `msgid ""` with the text beneath it **even
+      under `--no-wrap`**, which suppresses wrapping at the column and nothing
+      else. Three of this project's messages look like that, so four lines read
+      `msgid ""` — the header and three real messages — and `sort -u` makes one
+      of them. Control: one of those three deleted for real (`msgfmt` 202 → 201),
+      and `comm` reported **0** departures while the msgcomm procedure reported
+      it. A whole class of messages can leave the catalogue without that check
+      saying a word.
+    - **And the totals from either method are not the message count.** The two
+      readings of this branch were 194 → 203 and 190 → 199; both are right about
+      the change (+9) and neither is the number of messages. `msgfmt
+      --statistics` is: **193 → 202**, and it counts no header. Where a
+      catalogue is reported on, the total comes from `msgfmt` and the departures
+      come from a set comparison whose entries are read.
+
+81. **The modification time of a shared configuration file names its last
+    writer, never the writer of the value you are reading — and a value that
+    renews itself has no age at all.** Measured 2026-08-31 on #142, and it sent
+    the diagnosis to the wrong application twice. The customer reported both
+    global shortcuts dead and suspected a dictation tool he had just installed;
+    `~/.config/kglobalshortcutsrc` held `show-capture=none` and
+    `show-recorder=none`, and its mtime fell in **the same minute** as that
+    tool's start. Two facts, one minute apart, and the wrong conclusion. The
+    file is written by kglobalacceld for **every** component: `writeSettings()`
+    opens with `config.deleteGroup()` and writes the whole component back, so
+    any foreign registration restamps our entries without touching their
+    content. The tool was cleared three times over, and only the third way
+    needed no reading of anybody's source: its own source never names
+    `kglobalshortcutsrc`, `kwriteconfig` or `kreadconfig`, it calls neither
+    `setForeignShortcut` nor `stealGlobalShortcutSystemwide`, and the package
+    log has it installed at **30.08. 11:22:58** while an hourly backup carries
+    the first `none` at **30.08. 08:03** — three hours and nineteen minutes
+    before the suspect reached the machine, and a day and a half before the
+    start that restamped the file and raised the suspicion. The same backup
+    shows **no** group of ours at all in 36 snapshots from 24.08. to 29.08.,
+    so the value has no earlier occurrence in that file to argue about.
+    What actually wrote the value was our own start, at every login, out of a
+    missing `X-KDE-Shortcuts=` in the desktop file. **The general rule:** where
+    several producers write one file, its timestamp answers a question nobody
+    asked. What carries is the history — a backup, a snapshot, a version — and
+    a value the system regenerates each session has no first occurrence in the
+    file at all, only in the code that regenerates it. Ask what **rewrites**
+    the file before reading its age as evidence.
+
+    **And the reason our entry can be regenerated wrong at all is that the two
+    writers of that one file are asymmetric.** `Component::writeSettings`
+    (`component.cpp:373-377`) writes three fields — active keys, **default
+    keys** and friendly name — so an ordinary component's default stands on
+    disk and survives anything: `Edit Tiles=Meta+T,Meta+T,…`.
+    `KServiceActionComponent::writeSettings` (`kserviceactioncomponent.cpp:132`)
+    writes the active keys and **nothing else**, because a service action
+    component's default is meant to come out of `X-KDE-Shortcuts` afresh every
+    session. Without that key the default is neither stored nor recoverable,
+    and the same file that would have carried another component safely through
+    carries ours as a bare `none`. Which half of a config file is authoritative
+    can differ **per writer within one file** — read the writer of your own
+    entries, not the neighbouring line that looks like it.
+
+    **And the neighbouring trap, which cost the same run:** the value looked
+    corrupted, and was not. Beside our two lines stood a foreign component's
+    entry, `dictation=Meta+Ctrl+,none,…` — the product is left unnamed because
+    this repository is public and what a user has installed is not ours to
+    publish; the statement carries without it. Its active field reads
+    as a truncated `Meta+Ctrl+` — so the file looked damaged and a damaged file
+    looked like the cause. It is a **modifier-only** binding, and
+    `QKeySequence::toString()` writes exactly that: `encodeString` appends the
+    key name unconditionally after its `+`, and `keyName(0, …)` returns empty
+    because every one of its branches tests a truthy key. The discriminator was
+    the byte that was **not** there: KConfig escapes an embedded comma as `\,`
+    in `serializeList` with no path around it, and `cat -A` showed no
+    backslash — which refutes the comma reading rather than supporting it.
+    A field separator that can also be payload is read with `cat -A`, and the
+    absent escape is the evidence, not the plausible-looking string.
+82. **`QTcpServer::newConnection` counts sockets, and Qt opens one that carries
+    no request — after the answer has already been given.** Measured 2026-08-30
+    on #39, where the same client came out at **1** request for openrouter and
+    **2** for OpenAI on identical code, deterministic over five runs. Neither
+    number was about requests: `QNetworkAccessManager` opens a second TCP
+    connection on which `readyRead` never fires — the stand-in's log named one
+    `POST` and one connection with nothing on it — and it opens that one
+    **after** `chatFinished`, so the count read at the moment of the answer had
+    not seen it yet, and the first service's spare socket arrived inside the
+    second service's window and was counted there. The one-per-call figure
+    #38 reported was therefore right about generations and taken off the wrong
+    quantity; a case counting sockets would have gone red for a client that had
+    not repeated anything. What carries: count the **request line**, once per
+    socket, and let the loop run after the answer before reading the total —
+    with the wait and without it the request count is the same, which is what
+    says the wait hides nothing. The control is finding 41's: a repeat written
+    into `post()` by hand takes the same case to 2, on the assertion it is aimed
+    at.
+
+83. **`msgcomm` counts an obsolete `#~` entry as present, so a merged catalogue
+    reports only the departures msgmerge did not keep.** Measured 2026-08-30 on
+    #39, and it undercut finding 80's own procedure on this project's own files:
+    thirteen messages left the catalogue, and `msgcomm --unique` followed by an
+    intersection with the base named **four**. The nine missing ones stand in
+    the branch's `.po` as `#~ msgid` — `po/Messages.sh` runs `msgmerge`, which
+    keeps a removed translation as obsolete — and msgcomm reads them as
+    ordinary entries of both files. The four it did name were the ones msgmerge
+    had consumed as fuzzy matches for their new twins, so they really were gone
+    from the file. `msgattrib --no-obsolete` before the comparison is what puts
+    it right; without it the check answers "nothing was lost" about a catalogue
+    that lost thirteen. And the totals reconcile only afterwards: 224 − 13 + 14
+    = 225, which is what `msgfmt --statistics` reads on both sides. Control per
+    finding 80: one real message (`Recording failed`) deleted from a copy, and
+    the same comparison named it — fourteen departures instead of thirteen.
+
+84. **A picture runner that resizes a page by a number of its own measures that
+    number, not what the page needs.** Measured 2026-08-30 on #39:
+    `providershots` did `resize(470, 260)`, `resize()` was clamped to the
+    layout's minimum of 359, and the page needs 410 at that width — the picture
+    came out with the type clipped along every wrapped row and the provider
+    buttons drawn **over** the note beneath them. Read as rule 2 asks a picture
+    to be read, that is a broken settings page; the dialog gives the page its
+    sizeHint (461) and shows it whole. Two different faults were tangled in that
+    one picture, and only the numbers read back beside it told them apart: the
+    **product's** half is that a word-wrapped `QLabel` answers
+    `minimumSizeHint()` with about one line, so `QFormLayout` reserves too
+    little and the rows overlap — `QSizePolicy::setHeightForWidth(true)` on the
+    label is what makes the layout ask; the **runner's** half is the invented
+    height, and the fix is `resize(width, page.heightForWidth(width))`. So a
+    runner takes the height from the page and only the width from the design,
+    and it prints `sizeHint`, `minimumSizeHint` and `heightForWidth` beside
+    every picture — that is finding 60's rule for a widget applied to the page
+    that holds it.
+
+85. **Two agents in one worktree pull the branch out from under each other, and
+    git records the result as if it were intended.** Measured 2026-09-04, and
+    it is finding 55's sibling for the repository rather than the scratchpad:
+    an implementer ran `git checkout -b issue-34` in the shared worktree while
+    the lead was on `main`, and the lead's next two merges — of two reviewed,
+    finished branches — were committed onto **issue-34**. Nothing failed.
+    `git merge` reported "Merge made by the 'ort' strategy" both times, the
+    build of the merged state came out 15/15 green, and the two issues were
+    closed against it. Only a later `git log main` showed `main` still standing
+    where it had been three commits earlier, with the merges reachable from a
+    branch that has nothing to do with them. The mirror image cost the same
+    minute: when HEAD went back to `main`, the implementer's ten uncommitted
+    files went with it, so unversioned work sat on the wrong branch and any
+    third checkout would have destroyed it.
+
+    What carries: **every agent gets a worktree of its own**
+    (`git worktree add <path> -b <branch> main`), and nobody switches branches
+    in the shared one. And the readback is the branch, not the command's
+    output — `git rev-parse --abbrev-ref HEAD` before a commit or a merge, and
+    `git log --oneline -1 <branch>` after it. A merge tells you it merged; it
+    does not tell you where.
+
+    **The same hour produced the worse half, and it is worse because
+    everything reported success.** With the lead's `main` checked out in that
+    same worktree, the implementer's `git commit` landed its eleven files
+    directly on `main`: `bee5d7d` has `fc8020b` as its parent, `git branch
+    --contains` names `main` and not `issue-34`, and the branch called after
+    the story is empty. So a story went onto the trunk without the review the
+    project requires before every commit, the lead's next commit sat on top of
+    it, and the lead's own report to the implementer — that its work was
+    unversioned and at risk — was wrong in the other direction. The
+    implementer read git back and contradicted it; that is the only reason it
+    was found. **A worktree is a shared resource with one HEAD, and `git
+    commit` writes to whatever that HEAD says at the moment it runs** — not to
+    the branch you created ten minutes earlier. The cure is the same worktree
+    per agent, and the readback is `git log --oneline -1 <your branch>` after
+    committing, not the commit's own output.
+
+    **And the same rule binds the lead, which cost a second lesson on
+    2026-10-10.** The lead committed a SPEC passage into an implementer's
+    worktree twice that day — the tree was clean and the agent idle, both
+    checked beforehand, and nothing was lost. It was noticed only because the
+    implementer's next `git commit --amend` pointed at a parent it did not
+    expect and aborted with rc=128 before touching anything. **Had it made an
+    ordinary commit instead, nobody would have seen it**, and a review
+    measuring "its commit" would have carried a foreign one on top without a
+    word. Whoever wants a change in somebody else's worktree asks for it; the
+    round trip is cheaper than a review whose subject nobody can name.
+
+86. **A `QTemporaryDir` destructor that runs is no proof the directory is
+    gone — a library static writes it back after `main()` has returned.**
+    Measured 2026-09-03 on #136, where `systemfontstest` left exactly one
+    `/tmp/qt_temp-*` per run, holding nothing but `.cache/ksvg-elements`. The
+    comment beside the throwaway `HOME` said the destructor of a local of
+    `main()` cleans up, and it does: the trace shows the whole tree removed,
+    down to the `rmdir` of the temporary directory itself. **Three `mkdir`
+    calls follow it**, from inside `exit()` — a static object of
+    `libKF6Svg.so.6` holds the `KSharedConfig` of KSvg's element cache,
+    `KConfig::~KConfig()` calls `KConfig::sync()`, and that `QDir::mkpath()`s
+    `<home>/.cache` back on disk to write `ksvg-elements` into it. So the
+    directory was removed and re-created, and the reading „the destructor never
+    ran" — the obvious one, and the one the issue offered first — is wrong.
+    What carries: **a leftover is counted after the process has exited, never
+    from inside it.** Finding 29 is the same object from the other side (it
+    tidies too early and hides the fault in the check); a check inside the
+    process cannot see this one at all, because at every point it could look,
+    the directory really is gone. And the fix follows the same ordering rule:
+    `std::atexit()` registered **before** the library static exists runs after
+    that static's destructor ([basic.start.term]), which is the one place from
+    which the write can still be reached.
+
+    **And the tool for it was not the one the issue named.** `strace` is not
+    installed here; `gdb -batch` with breakpoints on `mkdir`, `rmdir` and
+    `QTemporaryDir::~QTemporaryDir`, each printing `bt`, answers the same
+    question and answers it better — the backtrace names the **library** that
+    re-creates the path, which a syscall trace alone does not. The breakpoints
+    have to be set after `start`, not before `run`: on a dynamically linked
+    binary the libc symbols do not exist yet, and gdb aborts the whole script
+    on the first `Function "mkdir" not defined.`
+
+    **The counting needs a `TMPDIR` of its own** (finding 55's family): several
+    worktrees write `/tmp` at the same time here, and a bare count of
+    `/tmp/qt_temp-*` cannot say whose they are. Under a `TMPDIR` set for the
+    run the counter-run comes out different — a full `ctest` leaves **1** on
+    the unchanged state and **0** on the changed one, 15 of 15 green in both.
+
+87. **A probe of a schema typed beside the product measures the schema it
+    typed.** Measured 2026-09-04 on #137, where the reset of the analysis
+    counter was to be built as a trigger on `notes`. The trigger was tried
+    first in `sqlite3` against a notes table, an `fts5` index and the two
+    triggers of migration 2 written out by hand — it came out green, the
+    counter went to 0 on a changed text and stayed on an unchanged one, and
+    both indexes passed their `integrity-check`. Against the real schema the
+    same trigger made `updateNote()` answer **"database disk image is
+    malformed" for every changed text**, and `storetest`, `transcribetest`,
+    `aitest` and `librarytest` went red together. The one difference was the
+    tokenizer: the probe took fts5's default, `notes_fts` is declared
+    `tokenize='trigram remove_diacritics 1'`, and under the default the same
+    inconsistent `delete` command goes through in silence. So the probe ran
+    against a schema in which the fault **could not occur** — the first rule
+    of the verification stance, one storey below the code.
+
+    **The mechanism is what the next reader needs**, not the message. An
+    `AFTER UPDATE` trigger whose body updates the same table sets off every
+    other trigger on it a second time, and `notes_fts_after_update` and
+    `notes_words_after_update` were written as `AFTER UPDATE ON notes` — they
+    fire for **every** column, not only for the one they index. Their `delete`
+    command then carries a text FTS5 has no entries for. Narrowing both to
+    `AFTER UPDATE OF content` is what the two indexes wanted anyway: they hold
+    `content` and nothing else, and until then every write of `state`,
+    `category`, `origin` or the attempt counter rewrote them for nothing.
+
+    A probe of this database runs against the schema **`migrations()` builds**
+    — pointed at a copy through `XDG_DATA_HOME`, or read out of a migrated
+    file — never against one retyped beside it. Whatever a schema declares and
+    a probe leaves out is exactly where the fault hides.
+
+88. **A check that reads a value back through the object it wrote through
+    measures memory, not the disk — and the write it was built for is never
+    measured at all.** Measured 2026-09-04 on #34, where the overflow marker
+    has to survive a restart on **both** flanks: it goes to `true` when the
+    threshold is crossed and back to `false` when the library falls under it
+    again, and only the second one lets a refilled library speak a second
+    time. The case for the falling flank asked the same `KConfigGroup` it had
+    written through, so the in-memory value answered and `sync()` was never
+    part of the question. Deleting the `sync()` on that flank left **every**
+    case green; deleting the one on the rising flank reddened exactly its own
+    case. Half the guarantee stood unguarded and looked measured.
+
+    The fix is one object and one assertion, not a new case: read the last
+    stage through a `KConfig` of its own from disk, and assert the marker is
+    `false` there **before** refilling — then the same deletion reddens that
+    case on that assertion, 1 against 0. The neighbouring case in the same set
+    already did it that way; the fault was not knowing it, it was not carrying
+    it across when the code was restructured.
+
+    What the case guards is a silence nobody can notice: without a stored
+    falling flank, a daemon that restarts between an export and the next
+    filling reads the marker still standing and never reports anything again.
+    No error, no output, nothing. This is finding 42's family — there a QTest
+    binary wrote a config file under the wrong name, here a check reads the
+    right file through the wrong door — and finding 22's, where a write had to
+    be a **replacement** before a watch would see it. Whenever a check is
+    about something reaching the disk, it opens the file again.
+
+89. **`Settings::self()` is a singleton that reads the file once, so a second
+    dialog in the same process shows the value the first one saw.** Measured
+    2026-09-04 while reviewing #144, in a runner that built the real
+    `SettingsDialog` three times over to read one label per provider. The
+    second run wrote `openrouter` into the configuration, built the dialog,
+    and got the buttons back on **Ollama** — the dialog manager had filled
+    them from the cached skeleton, not from the file. `Settings::self()->load()`
+    after every write is what makes the three states come out different.
+
+    **What makes it worth an entry is the shape of the wrong readback**, not
+    the caching. The run printed `shown=0 text=""` — the answer for "this
+    provider is local, no sentence needed" — while also printing the geometry
+    `90..124` for a **hidden** label, a geometry it can only have been given
+    while its row was still shown. Read on its own, the pair says the page is
+    behaving correctly under Ollama; read together, it says the row existed
+    and then vanished after the page was built. Finding 79 is the
+    same object from the other side, and finding 42's the source: the file and
+    the skeleton are two sources, and whoever writes one reads the other
+    unless told otherwise.
+
+    `providershots` is not affected — it builds the page without a dialog
+    manager, which is why the pictures were right while the runner beside them
+    was not.
+
+90. **A geometry read in a window with room to spare is not the size the
+    widgets need — the box layout has already handed the surplus out.**
+    Measured 2026-09-04 on #31, one storey below finding 84: `proposalshots`
+    was to size its window from the two cards instead of from a number of its
+    own, so it made the window roomy first (1200 logical rows), read the lower
+    card's bottom edge back and resized to that. The reading was **812** and
+    the two cards are **611** tall. Nothing inside them had moved — the
+    annotation preview stayed 58, the bundle's Markdown 134, the description
+    field 32 — the two **card frames** took the surplus and took it in equal
+    shares, 219 → 388 and 357 → 388, the space going into their own layouts'
+    spacing. `QVBoxLayout` hands room over to every item that may grow, and a
+    `QFrame` at `QSizePolicy::Preferred` may; the `addStretch()` at the bottom
+    does not get it all. The picture then carries 200 rows of empty ground and
+    the runner reports a height nobody asked for. What carries: read the size
+    where the content **overflows** — at the window's own height the scroll
+    area gives its content the size it asks for, and that is the size it really
+    is. Two readings on one binary, 812 and 612, and the second is the one that
+    matches the drawn picture.
+
+    **And "where the content overflows" is a condition, not a place** (the
+    review's finding on this entry): in that runner it held only because 612 is
+    larger than the 600 the window happens to open at. A shorter pair of cards
+    fits, nothing overflows, and the same line measures the window height again
+    — silently, and the picture looks right. So the reading carries only beside
+    the readback that it overflowed at all (`filled > window.height()`, which
+    `proposalshots` now aborts on), or it is taken from the widget instead of
+    from the window: `sizeHint()` of the widget inside the scroll area is the
+    size the widgets need, whatever the window is doing.
+
+91. **A `KNotification` with an event id of its own sends nothing at all
+    without a reachable `notifyrc` — and from a build directory there is
+    none.** Measured 2026-09-04 on #40, where the six notification call sites
+    were moved off `StandardEvent` and onto ids of the application's own. The
+    change is right: under `StandardEvent` the component on the wire is
+    `plasma_workspace`, so the user could only switch Denkzettel's messages off
+    together with Plasma's (measured against a stand-in: `app_name
+    "Systembenachrichtigungen"`, `x-kde-appname "plasma_workspace"`, against
+    `"Denkzettel"` / `"denkzettel"` / `x-kde-eventId "shortcutTaken"` after).
+
+    The price is that a run **out of the build directory** now loses every
+    notification it used to send: the stand-in saw zero calls, because
+    `${KDE_INSTALL_KNOTIFYRCDIR}/denkzettel.notifyrc` only exists once the
+    project is installed. This is finding 37's neighbour — there the bus had no
+    server, here the application has no catalogue — and it hits exactly the
+    verification stance of this project: whoever measures notifications from a
+    debug build measures a program that has been made mute by its own
+    configuration, and reads it as a feature that was never built.
+
+    **It is not silent, though**, and that is the one lever: the journal
+    carries `No event config could be found for event id "…" under notifyrc
+    file for app "denkzettel"`. So a run that expects a notification and sees
+    none reads the journal before it reports anything (finding 25 — outside
+    QTest that line reaches no pipe), or it stages the `notifyrc` into the run's
+    own `XDG_DATA_DIRS` and says so.
+
+92. **A build that runs into a pipe hands its exit code to the pipe, and
+    `ctest` then measures the previous binary.** Measured 2026-09-04 on #130,
+    twice on the same day by two different agents. The shape is the one every
+    run in this project uses — `cmake --build build 2>&1 | grep -c warning`,
+    or a redirect read back afterwards — and a shell reports the **last**
+    command of a pipeline. So a compiler error becomes `grep`'s exit code,
+    the run continues, and `ctest -R aitest` answers `100% tests passed` over
+    binaries built before the edit. Both times it took an `rm -rf build` to
+    find, and both times the green number had already been written into a
+    report.
+
+    This is finding 11's neighbour for a **failed** build rather than a stale
+    directory, and finding 70's for an ordinary edit rather than a mutation —
+    what is new is the mechanism, and it is the one this project reaches for
+    every time it counts warnings. `set -o pipefail` is what the CI uses and
+    it is written into `.github/workflows/ci.yml` for exactly this reason; a
+    run by hand gets the same, or it reads the build's own exit code into a
+    variable before the pipe (`cmake --build build > log 2>&1; rc=$?`) and
+    reports **that** number. A test result is only a test result once the
+    build behind it is known to have succeeded.
+93. **A control that cannot come out different is not a control, and a check
+    against a baseline can only be controlled with something the baseline
+    has.** Measured 2026-09-04 on #31, on the catalogue comparison findings 52,
+    80 and 83 prescribe. The real run reported 0 departures, and the control —
+    one message struck from a copy, exactly as finding 80 asks — reported 0 as
+    well, which reads as "the procedure is broken" and was not. The struck
+    message was one the **branch adds**; a message the baseline never had
+    cannot leave it, so that control could not have come out any other way.
+    Struck of a message both sides carry (`"The model's answer carried no
+    tag."`) the same comparison names it: 1 against 0. Only then does the 0 of
+    the real run say anything. This is the first rule of the verification
+    stance applied to the control rather than to the measurement — a step whose
+    subject cannot be missing proves nothing about the step — and the shape
+    generalises past catalogues: whenever a check asks "what did A lose against
+    B", the thing you delete for the control has to be **in B**.
+
+94. **A counter kept current by a signal cannot measure the growth of the run
+    that fires the signal.** Measured 2026-10-10 on #40: the "new package of
+    suggestions" notification of SPEC 10 compared the number of open
+    suggestions after `Suggester::finished` against a counter that
+    `Store::proposalsChanged` had already moved to that same number during the
+    run. `addProposal()` emits synchronously and the connection that matters
+    here is direct — three `Qt::QueuedConnection` do stand in `src/`, all of
+    them in `store/keystore.cpp`, and none on this road — and the difference is therefore 0 on every run — the one occasion
+    the story newly built is mute, and nothing says so. The comment beside it
+    described the ordering correctly and drew the wrong conclusion: reading the
+    count *again* does not help, the **baseline** is the problem. Proven
+    against the commit's own `libdenkzettelstore.a` with both lambdas taken
+    verbatim: wired as `main.cpp` has it, `NOT SENT (0 new)`; without the
+    `proposalsChanged` connection, `SENT (1 new)`. Same binary, different
+    twice. Whoever announces "what is new" takes the baseline from somewhere
+    the run does not write — and the better place is usually the producer
+    itself: a `finished(int newSuggestions)` out of the analysis library makes
+    the rule a named rule instead of a by-product of the counting, and it puts
+    it where a test set can reach it (finding 48). **The neighbouring trap in
+    the same place:** the wire measurement that *was* taken belonged to another
+    call site, and the clickable action of the mute notification sat inside the
+    `if` — dead code that no run in that commit could have exercised. A
+    measurement on one branch of a condition says nothing about the other.
+
+95. **A tray item in `NeedsAttention` pulses by itself, and a grab can land in
+    a phase where it stands still.** Read 2026-10-10 on #40 in the executing QML of the installed plasmoid
+    (plasma-workspace 6.7.5, `org.kde.plasma.systemtray.so`): `AbstractItem`
+    runs a `PulseAnimation` for every item in that status — scale 1 → 1.2 → 1
+    over 2×15 % of a period of about 2 s, then 70 % at rest, `loops:
+    Infinite`. A reported "channel difference 1005, that is antialiasing" was
+    therefore a single frame of an animated state, finding 43 for the panel
+    instead of for the radio button. **Two things about this entry are its
+    point.** First, it is a **source reading and not a run** — nobody has
+    reproduced it in a nested session, and the implementer's opposite claim
+    ("`NeedsAttention` without an attention icon is not drawn at all") was
+    refuted by reading, not by measuring. Second, the obvious next worry —
+    the animation hangs on `Kirigami.Units.longDuration > 0`, so with Plasma's
+    animation speed set to instant it would stop — is **wrong, and was measured
+    the same day**: `AnimationDurationFactor=0` leaves
+    `Kirigami.Units.longDuration` at **1**, not 0, because the `qMax(1, …)`
+    that guards it sits in qqc2-desktop-style's
+    `PlasmaDesktopUnits::updateAnimationSpeed()` — Kirigami's own `units.cpp`
+    has no such clamp, so which plugin serves the session decides it, and the
+    nested run's was not recorded. The pulse does not stop, it
+    collapses into a flicker between scale 1.0 and about 1.17.
+
+    **What carries instead is the weaker sentence, and it is the one that
+    matters to the user: without an attention icon of our own there is no
+    difference that holds independently of the moment.** Measured in a nested
+    `kwin_wayland --virtual` with a real plasmashell panel, the daemon of the
+    commit, and `setAttentionIconByName` removed as a whole statement
+    (finding 70, two different binaries, `AttentionIconName ""` against
+    `"dialog-warning"` read back on the bus at the same `Status
+    "NeedsAttention"`): still frames of the fault state come out **bit-identical**
+    with the normal state in 3 of 8 grabs with animations off and 3 of 6 at the
+    default, against an `Active` reference that is itself perfectly still over
+    eight grabs — while the remaining frames differ by 152,078 summed channel
+    difference, which is what says the identity is a property of the product
+    and not of the measurement. The only hint without an icon is a size change
+    of two logical pixels — the 23×24 against 27×28 device pixels measured
+    that day belong to the case **with** `dialog-warning` and not to this one —
+    and **such an indistinguishable frame exists** — which is the whole claim. **The counts are not a frequency**
+    (finding 76): eight uncontrolled phases say that a frame without a
+    difference occurs, not how often, and the 70 % the source reading suggests
+    is neither confirmed nor refuted by them. A state indicator whose only mark
+    can be absent at the moment you look is not one, and that is an
+    accessibility matter rather than a design preference — it is the KDE HIG's
+    own test for animation (disable animations globally and check that every
+    animated element either transitions instantly or shows a static image;
+    measured, Plasma's attention hint does neither) next to its rule against
+    blinking elements other than the text insertion point, the page's own
+    wording).
+
+    So the honest reading of a host's animation is "pulses under this
+    condition", never "the state was always visible" — and the way to settle it
+    is several grabs across one period in **both** animation settings, with
+    `longDuration` read back inside the run and the unmarked state measured
+    against a reference that stands still.
+
+96. **A linter run on the development machine counts the toolchain, not the
+    change.** Measured 2026-10-10 on #40 and again on #149: `lint-tidy`
+    reported 68 findings on the one branch and 70 on unchanged `main` — same
+    machine, LLVM 23.1.1 — while the CI, whose threshold is 0, is green on
+    that very `main`. 65 of the 70 are `misc-const-correctness`, a check a newer
+    clang-tidy raises and the CI's does not — **and of those 65 only 32 are
+    about a pointer's pointee**, the other 33 asking for a local to be `const`.
+    This entry carried "on pointer pointees" for all 65 until the review of its
+    own commit counted them, which is the joke it deserves: the entry that
+    teaches an itemisation to add up had a part that did not. Read the
+    way finding 92 asks a build to be read, a red linter is a finding only once
+    it comes out **different** against the unchanged state on the same
+    toolchain — and the comparison has to strip line and column numbers, **the
+    ones inside the `lambda at …` texts included**, or the shifted locations of
+    an ordinary edit report as two dozen new findings. On both branches the
+    difference was 0. `lint-clazy` was 0 on every state measured, and that is
+    the gate that says something here. **Two ways to get this wrong were both
+    taken on the same day.** The total was nearly reported as a blocker; and
+    the breakdown was reported with the categories read off the **branch's**
+    log and the total off **`main`'s** — 63 + 3 + 2 is 68 and not 70, which is
+    what gave it away. An itemisation whose parts do not add up to the total it
+    claims is the cheapest self-test such a table has, and the one that was
+    skipped.
+
+97. **A negative assertion placed behind an exact comparison of the same value
+    can never go red.** If the compare passes, the exact string already rules
+    the thing out; if it fails, the function aborts before the line is reached
+    (finding 35). Measured 2026-10-10 on #38: the guard that the openrouter
+    account identifier stays out of the error sentence stood at
+    `aitest.cpp:871`, behind the `QCOMPARE` at `:858`. With a reader handing
+    the whole body on instead of `error.message`, the run reddens at `:858`,
+    "Compared values are not the same", and the named guard is never reached;
+    moved in front of the compare, the same mutation reddens at the assertion
+    itself, with the field name in the failure message. The protection was
+    never in doubt — the compare carries it. **What was decorative is the line
+    the comment points at, and that is the worse half:** the next reader
+    believes a named guard is watching the thing it names.
+
+98. **A restore by `mv` is no restore as far as `make` is concerned.**
+    Measured 2026-10-10 while reviewing #148: a mutation probe saved the file
+    with `cp f f.orig` and put it back with `mv f.orig f`. `mv` keeps the
+    **old** timestamp, the object built from the mutation is younger, `make`
+    reports "up to date" with rc=0, and `ctest` measures the **mutated**
+    binary. The direction of the error is what makes it dangerous: a green run
+    then reads as "the mutation changes nothing", which is the opposite of what
+    the probe is for. It was noticed only because a `Loc:` line named a line
+    number one off from the original. What prevents it: `touch` the restored
+    source, and read back in the build output the one line that recompiles the
+    file (`grep -c <file>.o`: 1, not 0).
+
+99. **A branch whose base predates a signature change carries calls of the old
+    form into the merge, and git reports no conflict.** Measured 2026-10-10 on
+    the squash merge of #40: `aitest.cpp` still called
+    `Suggester(store, provider, model)`, the three-argument form from before
+    #130 removed it. Neither side could have caught it — each built on its own,
+    and nobody had built the two together until the merge. What found it is the
+    step this project asks for anyway: build the merged tree from a fresh
+    directory and run `ctest` **before** the merge commit is written.
+    **And the same pattern has a silent form**, predicted the same morning by
+    the implementer of #35 before the rebase ran: #40's `++m_newSuggestions`
+    sat in the block that #35 moves into a helper, git merges that textually
+    without a word, the tree builds, `ctest` is green — and the new bundle
+    never counts, so a run whose only new suggestion is that bundle reports 0
+    and SPEC 10's notification stays silent (finding 94's shape). From which
+    the working rule: **whoever rebases resolves the semantic part too**, and
+    only somebody who knows the rule can. Measured in two versions: the naive
+    resolution reddens the other story's cases and is therefore loud; the
+    careful one reddens only the two cases of the story doing the rebase, and
+    those two are the whole guard.
+
+100. **A count of messages does not see a glued-on sentence; a length ratio
+    does.** Measured 2026-10-10: the German catalogue carried another message's
+    sentence appended to one translation. Adjacent string literals concatenate
+    in the PO format, so the user would have seen two unrelated halves run
+    together, with `%1` in it twice. **None of the checks this project
+    prescribes for catalogues finds that**: `msgfmt -c --statistics` reads 269
+    translated and returns 0, and `-c` covers `--check-format`; the set
+    comparison of findings 52, 80 and 83 is blind because **no msgid changed**;
+    and finding 93's control has nothing to name because nothing departs and
+    nothing arrives. The fault sits **inside** a translation, and the whole
+    procedure measures the set of keys and the count of states. What finds it,
+    with a control that comes out different: the length of `msgstr` against the
+    length of `msgid`, for msgids of 20 characters and up — median 1.13 over
+    the catalogue's messages with a text on both sides, the damaged one 2.44,
+    above a threshold of 1.6 exactly one hit before and none after. **The
+    threshold is thinner than it looks**: the highest legitimate value is 1.55,
+    five hundredths below it, so a short sentence glued to a long message
+    slips under. Two checks beside it need no threshold at all and the first is
+    the sharper guard — the **multiset of placeholders** on both sides
+    (`%1`, `%2`, …), which came out 1 before and 0 after, and a search for a
+    `msgstr` that contains another `msgstr` of 15 characters or more.
+
+    **Two things about how it was found, and both explain why it had survived
+    so long.** It turned up only in the interdiff of a rebase — `msgmerge` had
+    re-wrapped the line during that run, so it stood in the `git diff` between
+    the implementer's own changes. **After `po/Messages.sh` the damage looks
+    like your own edit**: whoever reads a `po` diff sees a re-wrapped line, not
+    a find. And what settled it was reading the **compiled** catalogue back:
+    `msgfmt` into a `.mo` and `msgunfmt` out of it shows what is delivered,
+    while the `.po` source shows two harmless-looking literals one under the
+    other (finding 57's family — the catalogue is compiled by the build, so the
+    readback belongs on the artefact and not on the source). The threshold has to exclude the
+    short messages or "Undo" turning into "Rückgängig" tops the list at 2.50.
+
+101. **A search whose output is cut off by `head` answers "does this occur?"
+    with "I did not see it".** From outside the two are indistinguishable.
+    Measured 2026-10-10, three times in one day. The lead concluded from
+    `grep … | head -12` that a file stem stands nowhere in SPEC — it stands in
+    `SPEC.md:552`, behind the cut, and the wrong conclusion went into an
+    instruction to an implementer. An implementer got zero hits for its own
+    changelog entry from `grep -n … | head -8`, because those eight lines were
+    filled by somebody else's entry and its own stood at line 479. This is
+    finding 44's family with a different tool: there `2>/dev/null` swallowed
+    the error, here `head` cuts the answer. What catches it: **count before you
+    read** (`grep -c`) — a number above your display limit says by itself that
+    something stands behind it.
+
+102. **Whoever waits for a bus name with a call starts the installed copy.**
+    Measured 2026-10-10 on #40: a run waited with `gdbus call … Ping` for the
+    daemon it had started itself to hold its name. Every call on a name is an
+    **activation**: the bus started `/usr/bin/denkzetteld` out of
+    `/usr/share/dbus-1/services`, the installed one won the race for
+    `KDBusService::Unique`, and of two daemons in one run the second was not
+    the built one — while `readlink /proc/<started pid>/exe` dutifully named
+    the build binary, because that process was running, only without the name.
+    The answers on the wire came out of the old state and read like a fault of
+    the new one. What carries: wait with `busctl --user list`, which activates
+    nothing; ask who the owner is with `busctl --user status <name>` and hold
+    it against the started pid; and make activation impossible —
+    `dbus-run-session --config-file` with a single, **empty** `<servicedir>`,
+    because `XDG_DATA_DIRS` cannot take a service away from a session bus
+    (finding 77).
+
+103. **`CloseNotification` after an `ActionInvoked` comes with and without the
+    action.** Measured 2026-10-10 on #40: a stand-in on
+    `org.freedesktop.Notifications` sent `ActionInvoked(#5, "default")` and the
+    client answered `CloseNotification(#5)` — with the default action set
+    **and** with `addDefaultAction()` taken out. The readback therefore says
+    only that the client heard the signal, not that the action arrived, and a
+    run taking it as evidence reports an action that does not exist. What does
+    come out different is first the `actions` array on the wire, and second
+    what the action **sets off** — here `ProposalWindow::showProposals()` to
+    `reload()`, which sweeps a proposal whose notes are all gone: a note-less
+    row planted beforehand is afterwards gone (0) or still standing (1).
+    **An activation is measured by its effect, never by its receipt.**
+
+104. **A fault report that reads the mechanism out of the code names the wrong
+    state — and a criterion built on it argues from a run that would have gone
+    the other way.** Measured 2026-10-10 on #149: the issue said that over a
+    group head the action is off and the button on, and that an assertion on
+    `action->isEnabled()` would be green over both states. Measured on `main`:
+    over a head **both** were on — `hasNote` was `currentIndex().isValid()` and
+    a head's index is valid — and only with **no current index**, the state
+    AT-SPI's `select_child` leaves behind and the one the finder hit while
+    reviewing #34, was the action off and the button on. The mechanism was
+    right, the state was wrong, the fix needed two halves, and a case written
+    to the issue's wording would have reached one of them. Finding 65's family:
+    what the finder **measured** goes into the issue beside what the code
+    reading says, and a criterion's "would be green" is a run, not a sentence.
+
+105. **An error body carries an account identifier that no documentation
+    names.** Measured 2026-10-10 on #38, on the first live run against
+    openrouter: the answer to an invalid model id is
+    `{"error":{"message":"…","code":400},"user_id":"…"}`. The rule "collect the
+    field names first, then decide whether the values get looked at" is written
+    for exploring an interface; it holds for the **response body of a live
+    run** just as much, and there it is easier to forget, because the body
+    arrives as a measurement rather than as a query. What carries: the
+    redaction stands in the print **before** the first run — afterwards the
+    identifier has already been transmitted. And the assurance belongs in the
+    product rather than in the intention: that only `error.message` reaches the
+    user's sentence is a statement about the log of SPEC 14 and the settings
+    page, and it is proven with a counter-probe that hands the whole body on.
+
+106. **A sentence is not true or false by itself, but at the place where it
+    stands.** Measured 2026-10-10 on #35: the same clause — "while notes stand
+    that are at least the age threshold old and in no cluster, every run offers
+    them as one bundle" — reads **true** in SPEC 7.3 and **false** in SPEC 11.
+    The guard reads `MIN(created_at)` over **every** note; the run sees only
+    what `Store::embeddings(model, service)` returns, so a note never analysed,
+    one waiting to be re-embedded after a change of service, and one standing
+    while no embedding model is set each remind without being bundled. In 7.3
+    the reader has the ground in front of them — the section's first point
+    defines it as "the embeddings of all unexported, analysed notes" — and the
+    reader of §11 comes from the age of the oldest unexported note and does
+    not. The implementer therefore **refused to insert it** and reported back
+    instead of adapting it. Whoever carries a wording from a decision into a
+    binding text reads it again at its new place, and the shortening is where
+    the cases the decider still had in mind fall out.
+
+107. **`QTcpSocket::flush()` does not block, and what the stand-in calls after
+    it decides how many requests the check counts.** Measured 2026-10-10 on
+    #148: the same client against the same stand-in came out at **2** requests
+    with a bare `abort()` and at **1** with `waitForBytesWritten()` in front of
+    it. Nothing about the client changed. `flush()` writes what it can and
+    returns; `abort()` then discards whatever is still in the buffer, the peer
+    sees a connection that died mid-write, and `QNetworkAccessManager` repeats
+    it — which the check counts as a repetition of the **client's**. This is
+    finding 41's twin from the other end: there a stand-in built to be survived
+    measured the first failure and stopped, here a stand-in built to fail
+    manufactures a repetition that belongs to it. Whoever counts attempts
+    against a stand-in says in the same breath how that stand-in closes, and
+    reads the number back against a second closing form.
+
+108. **A table that counts fault patterns counts knock-on damage as a pattern.**
+    Measured 2026-10-10 while working on #148, against the three red cases
+    recorded on 04.09.2026 and carried in the issue as "three different fault
+    patterns". Two of the three were **one** fault and the file it left behind:
+    the first case died on a `QVERIFY2`, which aborts the function, so the
+    `QCOMPARE` below it never ran and its working directory stayed on disk —
+    and the next case found it there. The number in the issue was therefore a
+    statement about **abort points**, not about causes, and it had been used to
+    argue that the fault was load-dependent in three independent places.
+    Whoever counts red cases orders them in time first and asks of each whether
+    the one before it could have produced it.
+
+109. **`git checkout` as the restore of a mutation probe destroys unversioned
+    work, and pointed at another branch it drags that branch's new files into
+    the index and the worktree.** Measured 2026-10-10 on #35. The obvious
+    restore after a probe — `git checkout -- <file>` or, worse,
+    `git checkout <other-branch> -- <path>` — is the one with the widest reach:
+    the first discards everything uncommitted in that file including work the
+    probe did not make, and the second stages files that belong to a state the
+    run never meant to be in. The narrow restore is a copy of the file taken
+    before the mutation, put back with `cp` and a `touch` (finding 98), and
+    read back with `cmp` against `git show <commit>:<file>`. This is finding
+    55's shape for the repository rather than the scratchpad: the convenient
+    tool reaches further than the thing it was aimed at.
+
+110. **A lint baseline taken while the files are already rewritten measures a
+    mixed state.** Measured 2026-10-10, as the mistake: the lead reported the
+    breakdown of a linter run with the categories read off the **branch's** log
+    and the total off **`main`'s**, and the numbers were only caught because
+    63 + 3 + 2 is 68 and the total claimed was 70. The same day's hygiene run
+    shows the form that carries — `git stash` in the agent's own worktree,
+    `lint-tidy` over the unchanged commit, `git stash pop`, both logs
+    normalised line-number-independently: **70 against 70 with identical sets
+    and `diff` rc 0**. A baseline is a measurement like any other and belongs
+    to a named state: taken before the first edit, or taken out of a stash, and
+    never assembled out of two runs that look alike from outside.

@@ -13,8 +13,11 @@ change nothing — not one line. Your value is that you did not write this.
    the caller names) and the code around it. Does the change do what the issue
    asks? Which caller does it break? Qt/KF6 lifetimes, ownership, signal
    connections, null pointers, encoding.
-2. **The evidence.** `CLAUDE.md` carries a list "Runs that prove nothing".
-   Hold every proof the implementer reported against it, and against the first
+2. **The evidence.** `CLAUDE.md` carries the index of "Runs that prove
+   nothing"; the entries themselves, each with the measurement that carries it,
+   are in **`docs/findings.md`** — read the groups that match what the
+   implementer measured, and the ★ lines, which hold whatever the subject.
+   Hold every proof the implementer reported against them, and against the first
    rule of the verification stance: **what would this step have output if its
    subject were missing?** Same output means the step proved nothing — say so.
 3. **Scope.** Every changed line has to trace back to the issue. Name what was

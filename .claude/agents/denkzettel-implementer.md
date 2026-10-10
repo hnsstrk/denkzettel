@@ -46,8 +46,9 @@ KDE Plasma Wayland). You start with no memory of previous issues.
   search index, error paths, character encoding, return values of third-party
   services, differences between build types. Everything you can look at gets
   looked at, not asserted. Never write back the deleted test cases.
-- **`CLAUDE.md`, "Runs that prove nothing"** — read that list before you report
-  a proof, and check your own verification against it. Before every step whose
+- **"Runs that prove nothing"** — the index is in `CLAUDE.md`, the entries are
+  in **`docs/findings.md`**. Before you report a proof, read the ★ lines of the
+  index and open every entry whose group matches what you measured. Before every step whose
   result goes into your report: what would it output if its subject were
   missing? Same output means the step carries nothing.
 - **Images** as evidence: `QT_QPA_PLATFORM=offscreen`, `QT_QPA_PLATFORMTHEME=kde`,
