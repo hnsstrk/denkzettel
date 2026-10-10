@@ -50,7 +50,7 @@
  * QCoreApplication, because KSharedConfig hands out the instance of the first
  * read to everything afterwards. Test mode itself stays: it reads HOME and
  * ignores `XDG_*` (`qstandardpaths_unix.cpp`), so moving HOME moves all of it,
- * and the readback at the end of initTestCase() is what says it moved.
+ * and the readback in initTestCase() is what says it moved.
  */
 class TranscribeTest : public QObject
 {
@@ -321,8 +321,8 @@ void TranscribeTest::initTestCase()
     // so without these the checks would all measure that one sentence. The
     // download cases work on `base`, which is deliberately not here.
     //
-    // Nothing is cleared out first: the directory is this run's own and is
-    // empty, which the assertion above is what says.
+    // Nothing is cleared out first: the directory is this run's own and empty,
+    // which is what the assertion above says.
     placeModel(QStringLiteral("small"));
     placeModel(QStringLiteral("tiny"));
     placeModel(QStringLiteral("medium"));
