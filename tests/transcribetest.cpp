@@ -145,12 +145,21 @@ private:
      * with the model gone the job stays in the queue without an attempt (SPEC
      * 12), which reads off the four numbers above exactly as a queue that was
      * never taken up does — measured 10.10.2026, the two came out word for
-     * word the same. So the last word of `modelMissing` goes in beside them,
-     * and it tells all three apart: no report at all means takeNextJob() was
-     * never reached, the sentence means it ran and found no model, and an empty
-     * report means the model was there and the job was taken (transcriber.cpp
-     * :344-351 is the one place that asks). `modelReport` is what
-     * lastModelReport() makes of the spy on that signal.
+     * word the same. So the last word of `modelMissing` goes in beside them:
+     * no report at all means takeNextJob() was never reached, and the sentence
+     * means it ran and found no model (transcriber.cpp:344-351 is the one place
+     * that asks).
+     *
+     * **An empty report says less than it looks.** It means takeNextJob() found
+     * the model and nothing beyond that: it is sent before
+     * `takeTranscribeJob()` and on an empty queue just as well
+     * (transcriber.cpp:351), and endJob() posts the next take after every job
+     * (:533) — so from the second job of one transcriber onwards it already
+     * stands there before that job is taken. Whether **this** job was taken is
+     * what `busy` and `attempts` answer, which makes `""` beside `attempts=0`
+     * a fourth reading and not the third one repeated.
+     *
+     * `modelReport` is what lastModelReport() makes of the spy on that signal.
      */
     QString queueState(const Transcriber &transcriber,
                        qint64 noteId,
@@ -1475,7 +1484,8 @@ void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
     // neither can come out of this stand-in's one answer. The three numbers are
     // what tells those roads apart, and `*requests` was asserted **below** the
     // failing line, so its red carried none of them (CLAUDE.md, finding 35).
-    QVERIFY2(!finished.constFirst().at(1).toString().isEmpty(),
+    const QString reason = finished.constFirst().at(1).toString();
+    QVERIFY2(!reason.isEmpty(),
              qPrintable(QStringLiteral("a finished download instead of a broken connection: "
                                        "requests=%1 received=%2 content length=%3, and this "
                                        "stand-in promises %4")
@@ -1483,6 +1493,21 @@ void TranscribeTest::leavesNothingBehindWhenTheConnectionBreaks()
                             .arg(progressed.isEmpty() ? -1 : progressed.constLast().at(0).toLongLong())
                             .arg(progressed.isEmpty() ? -1 : progressed.constLast().at(1).toLongLong())
                             .arg(body.size() * 2)));
+    // And the reason is the transport's and not ours. The line above no longer
+    // needs the error branch of complete() — the promised checksum catches a
+    // short body by itself — so without this one that branch stands unguarded
+    // by the whole set, and what the user reads on a line that goes away
+    // changes from "Connection closed" to the checksum sentence with nothing
+    // saying so. Measured 10.10.2026 with `if (false && reply->error() != …)`
+    // in modeldownload.cpp:218: the set comes out 21 passed over that build
+    // without this line and red here with it.
+    //
+    // The wording is the one the checksum road produces, built the way the
+    // product builds it; that it really is that wording is asserted the other
+    // way round in leavesNothingBehindWhenWhatArrivesIsNotTheModel(), so a
+    // reword cannot leave this line quietly matching nothing.
+    QVERIFY2(reason != i18n("what arrived is not the model %1", QStringLiteral("base")),
+             qPrintable(reason));
     // One request, measured: a body that broke off half way is not fetched
     // again by QNetworkAccessManager, and it must not be — the second answer
     // would be appended to the file the first one opened. What it does repeat
