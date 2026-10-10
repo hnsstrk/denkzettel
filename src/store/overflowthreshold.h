@@ -28,6 +28,18 @@
  * shell, settings — names that component itself, so nothing here hangs on a
  * link that only holds by way of a third library.
  *
+ * **What the build actually guards, measured 2026-10-10 and narrower than the
+ * merge message of #35 claimed.** Renaming `DefaultDays` at its one place
+ * stops the compiler with two errors, and **both of them point at this
+ * header** — `settings.cpp` is the only other file that names the constant,
+ * and a use inside an included header is reported at the header rather than at
+ * the file that pulled it in. `overflowguard.cpp` and `suggester.cpp` do not
+ * name the constant at all; they call `overflowDayLimit()` below, so what
+ * binds them is a rename of the **function**, not of the value. The guard
+ * holds either way — but whoever reads an error location for "which side
+ * noticed" reads the wrong thing (finding 48: the guard is the build, and a
+ * guard is read back like any other value).
+ *
  * The **bounds** deliberately do not stand here. They are on the skeleton's
  * items so the form cannot write a number the user did not mean, and their
  * floor exists so a spin box never has to show a singular (settings.h) — both
