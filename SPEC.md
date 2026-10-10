@@ -1050,10 +1050,14 @@ self-healing.
   other way: what the classifier writes is what the user types. Whoever lets
   the model reformulate here changes what the export of 8.1 hands back to the
   user, in the one place where the original is then deleted.
-- **Notes without a cluster** simply stay in the corpus. If the age threshold
-  of the overflow guard is crossed, the service additionally generates a bundle
-  "Miscellaneous from <period>" out of the oldest notes without a cluster —
-  likewise only as a suggestion, every note deselectable.
+- **Notes without a cluster** simply stay in the corpus. While notes stand
+  that are at least the age threshold of the overflow guard old and in no
+  cluster, the service additionally offers them as one bundle "Miscellaneous
+  from <first day> to <last day>" — at least one note, no upper bound, no
+  model call: title and Markdown are written by the program (PO decision
+  10.10.2026, issues #35 and #145). Likewise only as a suggestion, every note
+  deselectable; its notes are held out of the corpus while it stands, like
+  those of any open bundle.
 - Notes already suggested but deferred (`status = 'zurueckgestellt'`) are
   clustered again in the next run — a "Later" only postpones, it hides nothing
   permanently.
