@@ -855,20 +855,27 @@ void AiTest::openRouterRefusalBeatsTheStatusCode()
                             400,
                             R"({"error":{"message":"no-such-vendor/no-such-model-of-the-check)"
                             R"( is not a valid model ID","code":400},"user_id":"user_OF-THE-CHECK"})");
-    QCOMPARE(answer.error,
-             QStringLiteral("openrouter.ai refused the request:"
-                            " no-such-vendor/no-such-model-of-the-check is not a valid model ID"));
-
-    // **And the account identifier stays out of the sentence.** The measured
-    // 400 body carries a `user_id` beside the message — an opaque identifier of
-    // the customer's openrouter account, which the documentation does not
-    // mention. The sentence goes into the log of SPEC 14, into the tray and
-    // onto the settings page, so a reader that handed the body on instead of
+    // **The account identifier stays out of the sentence, and this stands
+    // before the comparison below on purpose.** The measured 400 body carries a
+    // `user_id` beside the message — an opaque identifier of the customer's
+    // openrouter account, which the documentation does not mention. The
+    // sentence goes into the log of SPEC 14, into the tray and onto the
+    // settings page, so a reader that handed the body on instead of
     // `error.message` would publish it there. Nothing about such a change would
     // look wrong, which is why this is asserted rather than looked at: the
     // value in the body above is an invented one, and the field name is what
     // the check is about.
+    //
+    // Behind the exact comparison this line could never have gone red — a
+    // passing compare already rules the field out, and a failing one aborts the
+    // function before this (CLAUDE.md, finding 35). Measured both ways with a
+    // reader handing the whole body on: behind it the run reddens at the
+    // compare, in front of it here.
     QVERIFY2(!answer.error.contains(QLatin1String("user_id")), qPrintable(answer.error));
+
+    QCOMPARE(answer.error,
+             QStringLiteral("openrouter.ai refused the request:"
+                            " no-such-vendor/no-such-model-of-the-check is not a valid model ID"));
     QVERIFY2(!answer.error.contains(QLatin1String("OF-THE-CHECK")), qPrintable(answer.error));
 
     // The rejected key, measured the same day. 401 beside a transport error of
