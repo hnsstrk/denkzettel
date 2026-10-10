@@ -52,8 +52,8 @@ public:
      * none of them is owned: the two actions the page "Shortcuts" writes
      * through, the model download the page "Voice notes" shows, and the
      * embedding run whose outage the page "AI provider" reports (SPEC 7.1,
-     * issue #153). `embedder` may be nullptr, which means the page says
-     * nothing about it — see AiProviderPage's constructor.
+     * issue #153). None of the three may be null — see AiProviderPage's
+     * constructor for why the last one must not.
      */
     static void showSettings(GlobalShortcuts *shortcuts, ModelDownload *download, const Embedder *embedder);
 

@@ -72,12 +72,17 @@ class AiProviderPage : public QWidget
 
 public:
     /**
-     * `embedder` is the daemon's running embedding run, for the degradation of
-     * SPEC 7.1, and it is not owned — it outlives this page.
+     * `embedder` is the running embedding run the degradation of SPEC 7.1 is
+     * read off, and it is not owned — it outlives this page.
      *
-     * **nullptr is allowed and means "no statement"**: `providershots` and the
-     * degraded-state check build this page without a daemon behind it, and a
-     * page that invented a state there would be a picture of nothing.
+     * **Not optional, and that is the point** (CLAUDE.md, finding 79): a page
+     * built without one would answer `shown=0 text=""` for a service that is
+     * answering and for a page nobody ever told anything alike, which is
+     * exactly the pair a readback has to be able to separate. Every caller has
+     * one — the daemon hands in its own, `providershots` drives two of its own
+     * into the two states it photographs, and `settingstest` keeps one that is
+     * never started: an embedder that has not run answers `false`, which is
+     * what a daemon whose run has not broken off answers too.
      */
     explicit AiProviderPage(const Embedder *embedder, QWidget *parent = nullptr);
 
@@ -133,7 +138,7 @@ private:
     QLabel *m_remoteTextNote;
     /** That the topic bundles are falling away right now (SPEC 7.1, #153). */
     QLabel *m_bundlesNote;
-    /** Where the degradation of SPEC 7.1 is read, or nullptr — see the ctor. */
+    /** Where the degradation of SPEC 7.1 is read; never null, see the ctor. */
     const Embedder *m_embedder;
     OllamaProvider *m_ollama;
     OpenAiCompatibleProvider *m_openRouter;

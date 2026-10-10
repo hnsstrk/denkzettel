@@ -169,6 +169,29 @@ void SettingsTest::initTestCase()
              qgetenv("DBUS_SESSION_BUS_ADDRESS").constData());
 }
 
+namespace
+{
+/**
+ * An embedding run that is never started, for every dialog this set opens.
+ *
+ * A store of its own under a `QTemporaryDir`, so nothing here comes near the
+ * notes of whoever runs the check (SPEC 16). Nothing ever calls `start()` on
+ * it; what it is here for is to answer `isUnreachable()` with `false`.
+ */
+const Embedder *idleEmbedder()
+{
+    static const QTemporaryDir data;
+    static Store store(data.filePath(QStringLiteral("notes.db")));
+    static const bool opened = store.open();
+    static AiProviderMock backend;
+    static const Embedder embedder(&store, &backend);
+    if (!opened) {
+        qWarning("the idle store of the settings dialog could not be opened");
+    }
+    return &embedder;
+}
+}
+
 SettingsDialog *SettingsTest::openDialog(const Embedder *embedder)
 {
     // The two actions the page "Shortcuts" writes through. They are built and
@@ -181,10 +204,14 @@ SettingsDialog *SettingsTest::openDialog(const Embedder *embedder)
     // reaches the network.
     static ModelDownload download;
 
-    // No embedding run behind it unless a case hands one in: the page "AI
-    // provider" then says nothing about the degradation of SPEC 7.1, which is
-    // what a page with no daemon behind it has to do (issue #153).
-    SettingsDialog::showSettings(&shortcuts, &download, embedder);
+    // **An embedding run is not optional for the page "AI provider"**
+    // (issue #153): it would otherwise answer "nothing to report" for a
+    // service that is answering and for a page nobody told anything alike,
+    // which is the pair finding 79 is about. The one below has never been
+    // started, so `isUnreachable()` is false — what a daemon whose run has not
+    // broken off answers. The case that needs the other state builds an
+    // embedder of its own and hands it in.
+    SettingsDialog::showSettings(&shortcuts, &download, embedder != nullptr ? embedder : idleEmbedder());
     return qobject_cast<SettingsDialog *>(KConfigDialog::exists(QStringLiteral("settings")));
 }
 
@@ -1376,12 +1403,16 @@ void SettingsTest::theDroppedBundlesGoBackOffThePageWhenAVectorArrives()
     const auto *hint = dialog->findChild<QLabel *>(QStringLiteral("bundlesDroppedNote"));
     QVERIFY(hint);
 
-    // `isHidden()` and not `isVisible()`: a row the page hid and a row on a
-    // page the dialog is not showing look the same to `isVisible()`, and
-    // KPageDialog shows one page at a time. And the text beside it, because a
-    // hidden label that keeps its last sentence answers the same thing for
-    // "nothing to report" as for "reported and wrongly hidden" (CLAUDE.md,
-    // finding 79).
+    // **The second of these two is what carries the opening**, and that is
+    // worth saying because the first one reads like the guard and is not: a
+    // row added to a QFormLayout is visible until somebody hides it, so with
+    // the construction-time read deleted the row stands there **empty** and
+    // `isHidden()` stays green — measured, the probe reddens on the text.
+    // `isHidden()` and not `isVisible()` all the same: a row the page hid and
+    // a row on a page the dialog is not showing look the same to
+    // `isVisible()`, and KPageDialog shows one page at a time. The pair is
+    // what separates "nothing to report" from "reported and wrongly hidden"
+    // (CLAUDE.md, finding 79).
     QVERIFY(!hint->isHidden());
     QVERIFY2(!hint->text().isEmpty(), "the row is shown and says nothing");
 

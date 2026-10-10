@@ -220,9 +220,23 @@ AiProviderPage::AiProviderPage(const Embedder *embedder, QWidget *parent)
     // QScrollArea, and under the two remote providers the page is taller than
     // its viewport — a line put beside the result of the test, at the bottom,
     // would be below the fold for exactly the providers that have the most
-    // rows. Measured in the built 640x480 dialog, where the page is 508 wide:
-    // this line stands at viewport y 90..124 against a fold at 399, under all
-    // three providers, while the page itself wants 398, 438 and 529.
+    // rows.
+    //
+    // Measured in the built dialog, page 508 wide, one state per process and
+    // the page selected (an unselected KPageDialog page is never laid out and
+    // answers the layout's minimum). **The fold is not one number**: the
+    // dialog opens at 640x480 with a viewport of 399 under Ollama in both
+    // states and under openrouter while the service answers, and at 640x513
+    // with a viewport of 432 under openrouter **once this line stands** and
+    // under OpenAI in both states — `resize(640, 480)` is clamped by the
+    // dialog's minimum, which follows the page's sizeHint. The page wants
+    // 341/398 under Ollama, 381/438 under openrouter and 472/529 under OpenAI
+    // (answering/degraded), and this line stands at viewport y 90..124 in all
+    // **six** cases, which is what the criterion is about.
+    //
+    // **The 33 px are the price and they are visible**: under openrouter the
+    // window opens taller in the degraded state than in the healthy one. Under
+    // OpenAI it already does so while everything works, and that is #146.
     //
     // **The sentence names what the user is not getting**, the way the tray's
     // does and for the same reason: this state comes up for a service that
@@ -464,14 +478,12 @@ AiProviderPage::AiProviderPage(const Embedder *embedder, QWidget *parent)
     // The state is read back off the embedder in both lambdas rather than
     // taken from the signal's argument: there is one road into the line, and
     // what decides is the state and not which signal arrived.
-    if (m_embedder != nullptr) {
-        connect(m_embedder, &Embedder::unreachable, this, [this](const QString &) {
-            showWhetherTheBundlesAreDropped();
-        });
-        connect(m_embedder, &Embedder::embedded, this, [this](qint64) {
-            showWhetherTheBundlesAreDropped();
-        });
-    }
+    connect(m_embedder, &Embedder::unreachable, this, [this](const QString &) {
+        showWhetherTheBundlesAreDropped();
+    });
+    connect(m_embedder, &Embedder::embedded, this, [this](qint64) {
+        showWhetherTheBundlesAreDropped();
+    });
     // **And the state as it already stands**, which is the whole of issue
     // #153: the run that broke off was half an hour ago and its signal is
     // gone, so a page wired only to the two lines above would be right while
@@ -615,10 +627,7 @@ void AiProviderPage::sayAboutTheKey(const QString &sentence)
 
 void AiProviderPage::showWhetherTheBundlesAreDropped()
 {
-    // No embedder behind the page means no statement, and that is not the same
-    // as "everything is fine": a runner or a check that builds this page
-    // without a daemon has nothing to report (see the constructor).
-    const bool dropped = m_embedder != nullptr && m_embedder->isUnreachable();
+    const bool dropped = m_embedder->isUnreachable();
     // **The text goes with the row**, the way the sentence of #144 does: a
     // hidden label that keeps its last sentence answers the same thing for
     // "nothing to report" as for "reported and wrongly hidden", and for this

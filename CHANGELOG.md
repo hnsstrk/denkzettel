@@ -573,6 +573,13 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   carries „Keine Themenbündel: Die Einbettung kam nicht durch", beside whatever
   else stands there, and takes it back with the first vector that arrives
   again.
+
+  It names no cause on purpose: a service that went silent, a password store
+  that would not open and a key that was never entered all mean the same thing
+  here, and „Verbindung testen" in the settings is where the reason is shown.
+  The classification keeps running meanwhile, and no note pays an attempt for
+  it — a service that does not answer says nothing about the note that happened
+  to be first in the queue.
 - **And the settings page says it too, without being asked.** The same news
   stood there only as the result line of „Verbindung testen" — so whoever came
   to the page to find out *why* the topic bundles had stopped found nothing
@@ -583,13 +590,6 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   disappears again on the same condition the tray's does: the first vector
   that arrives. While the embedding is working the page looks exactly as
   before — the line takes up no room when it has nothing to say.
-
-  It names no cause on purpose: a service that went silent, a password store
-  that would not open and a key that was never entered all mean the same thing
-  here, and „Verbindung testen" in the settings is where the reason is shown.
-  The classification keeps running meanwhile, and no note pays an attempt for
-  it — a service that does not answer says nothing about the note that happened
-  to be first in the queue.
 
 - **Meta+N and Meta+Shift+N work again, and they keep working after a
   restart.** Both shortcuts died at the first login and stayed dead, and KDE

@@ -65,13 +65,11 @@ public:
      * Whether the last run broke off because the embedding backend did not
      * answer — the state unreachable() raises and embedded() takes back.
      *
-     * **Kept here because two displays read it and neither of them is
-     * running when it comes about** (issue #153). The tray is told by the
-     * signal, which is enough for a window that stands all session; the
-     * settings page of SPEC 7.1 is built when the user opens the dialog, and
-     * by then the signal is long gone. Asked here it answers for a page that
-     * was not there yet, and SPEC 7.1 owes the hint to "the settings **and**
-     * the tray tooltip".
+     * **Kept here because the second of the two displays SPEC 7.1 names is
+     * not running when the state comes about** (issue #153). The tray stands
+     * all session and is told by the signal; the settings page is built when
+     * the user opens the dialog, and by then the signal is long gone. Asked
+     * here it answers for a page that was not there yet.
      *
      * **No reason with it.** What the user is owed on either channel is what
      * they are not getting: this state comes up for a service that went
@@ -83,6 +81,17 @@ public:
      * the next run that breaks off brings it back — which is right, because
      * what it reports is how the machine stands at this moment and not
      * something that happened to a note.
+     *
+     * ponytail: only an **arriving vector** takes it back, which is the
+     * condition the tray has carried since #38 and the one issue #153 binds
+     * the settings page to. So the three roads on which no vector can arrive
+     * leave it standing until the daemon restarts: a queue that is empty the
+     * next time round (the note deleted, or the embedding model emptied, which
+     * is notReady()'s business), and a vector the store refuses, which ends
+     * the run through stop(). The ceiling is a hint that outlives its cause on
+     * those roads; the way up is a run that ends without having asked the
+     * backend saying so for itself — an `Embedder::finished` that carries
+     * whether anything was asked, read by both displays.
      */
     bool isUnreachable() const;
 
