@@ -282,6 +282,12 @@ add_executable(providershots providershots.cpp)
 target_link_libraries(providershots PRIVATE
     # AiProviderPage, the settings page of SPEC 13.
     denkzettelsettings
+    # The embedding run whose outage the page reports since issue #153, and the
+    # store it writes into. Named although denkzettelsettings already carries
+    # both: this file includes their headers, and a link that only holds by way
+    # of a third library is one a change there takes away without a word.
+    denkzettelanalysis
+    denkzettelstore
     # The German picture needs the catalogue, and the catalogue needs the
     # translation domain — without it every i18n() falls back to English and
     # the run writes an English picture under a German name (#138).

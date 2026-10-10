@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 10:03+0200\n"
+"POT-Creation-Date: 2026-10-10 11:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "The model's answer carried no tag."
 msgstr ""
 
-#: src/analysis/embedder.cpp:56
+#: src/analysis/embedder.cpp:57
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr ""
@@ -369,32 +369,32 @@ msgid ""
 "%1 created the task but did not name it; the note text was not attached."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:146
+#: src/settings/aiproviderpage.cpp:147
 #, kde-format
 msgid "Test connection"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:187
+#: src/settings/aiproviderpage.cpp:190
 #, kde-format
 msgid "Ollama"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:189
+#: src/settings/aiproviderpage.cpp:192
 #, kde-format
 msgid "openrouter.ai"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:195
+#: src/settings/aiproviderpage.cpp:198
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:197
+#: src/settings/aiproviderpage.cpp:200
 #, kde-format
 msgid "Provider:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:247
+#: src/settings/aiproviderpage.cpp:296
 #, kde-format
 msgid ""
 "A route over \"Sign in with ChatGPT\" is not possible: the procedure hands "
@@ -402,54 +402,54 @@ msgid ""
 "therefore needs an API key from the OpenAI platform account."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:264
+#: src/settings/aiproviderpage.cpp:313
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:266
+#: src/settings/aiproviderpage.cpp:315
 #, kde-format
 msgid "API key:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:278 src/settings/aiproviderpage.cpp:299
-#: src/settings/aiproviderpage.cpp:312
+#: src/settings/aiproviderpage.cpp:327 src/settings/aiproviderpage.cpp:348
+#: src/settings/aiproviderpage.cpp:361
 #, kde-format
 msgid "Language model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:288
+#: src/settings/aiproviderpage.cpp:337
 #, kde-format
 msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:307
+#: src/settings/aiproviderpage.cpp:356
 #, kde-format
 msgid "For example gpt-4o-mini · platform.openai.com/docs/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:324
+#: src/settings/aiproviderpage.cpp:373
 #, kde-format
 msgid "Ollama address:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:333 src/settings/aiproviderpage.cpp:343
-#: src/settings/aiproviderpage.cpp:351
+#: src/settings/aiproviderpage.cpp:382 src/settings/aiproviderpage.cpp:392
+#: src/settings/aiproviderpage.cpp:400
 #, kde-format
 msgid "Embedding model:"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:337
+#: src/settings/aiproviderpage.cpp:386
 #, kde-format
 msgid "For example baai/bge-m3 · openrouter.ai/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:347
+#: src/settings/aiproviderpage.cpp:396
 #, kde-format
 msgid "For example text-embedding-3-small · platform.openai.com/docs/models"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:364
+#: src/settings/aiproviderpage.cpp:413
 #, kde-format
 msgid ""
 "The topic bundles are tuned to bge-m3. Another model may group more freely "
@@ -457,22 +457,29 @@ msgid ""
 "at most 50 per run."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:420
+#: src/settings/aiproviderpage.cpp:492
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:431
+#: src/settings/aiproviderpage.cpp:503
 #, kde-format
 msgid "The key is in the password store."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:500
+#: src/settings/aiproviderpage.cpp:572
 #, kde-format
 msgid "The text of every note leaves the machine and goes to %1."
 msgstr ""
 
-#: src/settings/aiproviderpage.cpp:641
+#: src/settings/aiproviderpage.cpp:627
+#, kde-format
+msgid ""
+"No topic bundles at the moment: the embedding did not get through. \"Test "
+"connection\" says what is in the way."
+msgstr ""
+
+#: src/settings/aiproviderpage.cpp:730
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr ""

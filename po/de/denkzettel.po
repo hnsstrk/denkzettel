@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 10:03+0200\n"
+"POT-Creation-Date: 2026-10-10 11:36+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -37,7 +37,7 @@ msgstr ""
 msgid "The model's answer carried no tag."
 msgstr "Die Antwort des Modells enthielt kein Schlagwort."
 
-#: src/analysis/embedder.cpp:56
+#: src/analysis/embedder.cpp:57
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr "Die Antwort enthielt keinen Einbettungsvektor."
@@ -389,32 +389,32 @@ msgstr ""
 "%1 hat die Aufgabe angelegt, aber nicht benannt; der Notiztext wurde nicht "
 "angehängt."
 
-#: src/settings/aiproviderpage.cpp:146
+#: src/settings/aiproviderpage.cpp:147
 #, kde-format
 msgid "Test connection"
 msgstr "Verbindung testen"
 
-#: src/settings/aiproviderpage.cpp:187
+#: src/settings/aiproviderpage.cpp:190
 #, kde-format
 msgid "Ollama"
 msgstr "Ollama"
 
-#: src/settings/aiproviderpage.cpp:189
+#: src/settings/aiproviderpage.cpp:192
 #, kde-format
 msgid "openrouter.ai"
 msgstr "openrouter.ai"
 
-#: src/settings/aiproviderpage.cpp:195
+#: src/settings/aiproviderpage.cpp:198
 #, kde-format
 msgid "OpenAI (API key)"
 msgstr "OpenAI (API-Schlüssel)"
 
-#: src/settings/aiproviderpage.cpp:197
+#: src/settings/aiproviderpage.cpp:200
 #, kde-format
 msgid "Provider:"
 msgstr "Anbieter:"
 
-#: src/settings/aiproviderpage.cpp:247
+#: src/settings/aiproviderpage.cpp:296
 #, kde-format
 msgid ""
 "A route over \"Sign in with ChatGPT\" is not possible: the procedure hands "
@@ -425,54 +425,54 @@ msgstr ""
 "Name, E-Mail-Adresse und Profilbild heraus, keinen Modellzugriff. Denkzettel "
 "braucht deshalb einen API-Schlüssel aus dem OpenAI-Plattformkonto."
 
-#: src/settings/aiproviderpage.cpp:264
+#: src/settings/aiproviderpage.cpp:313
 #, kde-format
 msgid "Kept in KWallet · empty keeps the stored key"
 msgstr "Liegt in KWallet · leer behält den Schlüssel"
 
-#: src/settings/aiproviderpage.cpp:266
+#: src/settings/aiproviderpage.cpp:315
 #, kde-format
 msgid "API key:"
 msgstr "API-Schlüssel:"
 
-#: src/settings/aiproviderpage.cpp:278 src/settings/aiproviderpage.cpp:299
-#: src/settings/aiproviderpage.cpp:312
+#: src/settings/aiproviderpage.cpp:327 src/settings/aiproviderpage.cpp:348
+#: src/settings/aiproviderpage.cpp:361
 #, kde-format
 msgid "Language model:"
 msgstr "Sprachmodell:"
 
-#: src/settings/aiproviderpage.cpp:288
+#: src/settings/aiproviderpage.cpp:337
 #, kde-format
 msgid "For example openai/gpt-4o-mini · openrouter.ai/models"
 msgstr "Zum Beispiel openai/gpt-4o-mini · openrouter.ai/models"
 
-#: src/settings/aiproviderpage.cpp:307
+#: src/settings/aiproviderpage.cpp:356
 #, kde-format
 msgid "For example gpt-4o-mini · platform.openai.com/docs/models"
 msgstr "Zum Beispiel gpt-4o-mini · platform.openai.com/docs/models"
 
-#: src/settings/aiproviderpage.cpp:324
+#: src/settings/aiproviderpage.cpp:373
 #, kde-format
 msgid "Ollama address:"
 msgstr "Ollama-Adresse:"
 
-#: src/settings/aiproviderpage.cpp:333 src/settings/aiproviderpage.cpp:343
-#: src/settings/aiproviderpage.cpp:351
+#: src/settings/aiproviderpage.cpp:382 src/settings/aiproviderpage.cpp:392
+#: src/settings/aiproviderpage.cpp:400
 #, kde-format
 msgid "Embedding model:"
 msgstr "Einbettungsmodell:"
 
-#: src/settings/aiproviderpage.cpp:337
+#: src/settings/aiproviderpage.cpp:386
 #, kde-format
 msgid "For example baai/bge-m3 · openrouter.ai/models"
 msgstr "Zum Beispiel baai/bge-m3 · openrouter.ai/models"
 
-#: src/settings/aiproviderpage.cpp:347
+#: src/settings/aiproviderpage.cpp:396
 #, kde-format
 msgid "For example text-embedding-3-small · platform.openai.com/docs/models"
 msgstr "Zum Beispiel text-embedding-3-small · platform.openai.com/docs/models"
 
-#: src/settings/aiproviderpage.cpp:364
+#: src/settings/aiproviderpage.cpp:413
 #, kde-format
 msgid ""
 "The topic bundles are tuned to bge-m3. Another model may group more freely "
@@ -483,22 +483,31 @@ msgstr ""
 "großzügiger oder kaum gruppieren. Ein Wechsel des Modells merkt jede Notiz "
 "zur erneuten Einbettung vor, höchstens 50 je Lauf."
 
-#: src/settings/aiproviderpage.cpp:420
+#: src/settings/aiproviderpage.cpp:492
 #, kde-format
 msgid "Waiting for the password store…"
 msgstr "Warte auf den Passwortspeicher …"
 
-#: src/settings/aiproviderpage.cpp:431
+#: src/settings/aiproviderpage.cpp:503
 #, kde-format
 msgid "The key is in the password store."
 msgstr "Der Schlüssel liegt im Passwortspeicher."
 
-#: src/settings/aiproviderpage.cpp:500
+#: src/settings/aiproviderpage.cpp:572
 #, kde-format
 msgid "The text of every note leaves the machine and goes to %1."
 msgstr "Der Text jeder Notiz verlässt den Rechner und geht an %1."
 
-#: src/settings/aiproviderpage.cpp:641
+#: src/settings/aiproviderpage.cpp:627
+#, kde-format
+msgid ""
+"No topic bundles at the moment: the embedding did not get through. \"Test "
+"connection\" says what is in the way."
+msgstr ""
+"Gerade keine Themenbündel: Die Einbettung kam nicht durch. „Verbindung "
+"testen“ sagt, was im Weg steht."
+
+#: src/settings/aiproviderpage.cpp:730
 #, kde-format
 msgid "Connection is up · chat %1 ms · embedding %2 ms"
 msgstr "Verbindung steht · Chat %1 ms · Einbettung %2 ms"

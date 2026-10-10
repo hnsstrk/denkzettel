@@ -1,5 +1,9 @@
+#include "aiprovidermock.h"
+
+#include "analysis/embedder.h"
 #include "settings/aiproviderpage.h"
 #include "settings/settings.h"
+#include "store/store.h"
 
 #include <KConfigGroup>
 #include <KLocalizedString>
@@ -14,6 +18,7 @@
 #include <QLineEdit>
 #include <QPixmap>
 #include <QRadioButton>
+#include <QSignalSpy>
 #include <QStyle>
 #include <QTemporaryDir>
 #include <QTest>
@@ -35,6 +40,17 @@
  * a value in a widget (CLAUDE.md, finding 51). What the readback adds is the
  * half a picture cannot carry: that under Ollama the label is **empty** and not
  * merely undrawn.
+ *
+ * **And since #153 a fourth picture beside them**, the one this story is about:
+ * the page under Ollama while the embedding run has broken off because the
+ * backend did not answer, with the line SPEC 7.1 owes the user standing
+ * **without anybody having pressed anything**. The three above it are its
+ * control — they are taken with an embedding run that answered, so a story that
+ * put a row on the healthy page would show up as a picture that is no longer
+ * byte for byte the committed one (CLAUDE.md, finding 39). Both states come out
+ * of a real run through `drive()` below and not out of a label set by hand, and
+ * the last readback of all walks the other flank: the service answers again,
+ * the vector arrives, and the line goes away with its text.
  *
  * They replace nothing: the `127-`, `38-`, `39-` and `144-anbieter-*.png` beside them
  * are the record of the states before, and each of those stories changed that
@@ -189,10 +205,67 @@ void report(const QString &what, QWidget &page)
              int(!remoteText->isHidden()),
              qUtf8Printable(remoteText->text()));
 
+    // **The degradation of SPEC 7.1 (issue #153), both halves of it**: whether
+    // the row is drawn, and what the label holds. The second one is what tells
+    // "nothing to report" from "reported and wrongly hidden" — a hidden label
+    // that keeps its last sentence answers the same for both (CLAUDE.md,
+    // finding 79) — and the quoted string is what makes an empty text visible
+    // as `""` instead of as a missing line.
+    const auto *bundles = page.findChild<QLabel *>(QStringLiteral("bundlesDroppedNote"));
+    if (bundles == nullptr) {
+        qFatal("the page carries no note named bundlesDroppedNote");
+    }
+    qWarning("%s  bundles-dropped note shown=%d colour=%s text=\"%s\"",
+             qUtf8Printable(what),
+             int(!bundles->isHidden()),
+             qUtf8Printable(bundles->palette().color(QPalette::WindowText).name()),
+             qUtf8Printable(bundles->text()));
+
     // The wording of the threshold sentence as it really resolved, for the
     // reason the OpenAI note is printed: it is the line that says whether the
     // catalogue was found, and it is the one issue #130 added.
     qWarning("%s  threshold note: \"%s\"", qUtf8Printable(what), qUtf8Printable(threshold->text()));
+}
+
+/**
+ * Drives one real embedding run so that the state the page reports comes out
+ * of the product (issue #153).
+ *
+ * A label set by hand would prove nothing: what the page has to answer is
+ * `Embedder::isUnreachable()`, and that is written on the one branch where the
+ * backend never answered — the same branch the tray's half of SPEC 7.1 hangs
+ * on. The readback at the end is what says the run reached that state, because
+ * a stand-in that refuses for the wrong reason breaks the run off through
+ * `fail()` and leaves the state **false** (aiprovider.h).
+ */
+void drive(Embedder &embedder, Store &store, AiProviderMock &backend, bool shouldBreakOff)
+{
+    Note note;
+    note.createdAt = QDateTime::fromString(QStringLiteral("2026-10-10T09:00:00.000"), Qt::ISODateWithMs);
+    note.content = QStringLiteral("Die Dachrinne vor dem Herbst ausräumen.");
+    // Analysed and with a category, which is what Store::notesToEmbed() asks
+    // for: a note that has not been classified yet is no business of step 2.
+    note.state = Note::State::Analysed;
+    note.category = QStringLiteral("ideen");
+    if (!store.addNote(note).has_value()) {
+        qFatal("the note for the embedding run could not be written");
+    }
+
+    // Unreachable and not Refused — that is the whole distinction: a refusal
+    // costs the note an attempt and says nothing about the service, so it would
+    // raise no degradation at all (SPEC 7.1, 7.2).
+    backend.embedError = shouldBreakOff ? QStringLiteral("Ollama could not be reached: Connection refused")
+                                        : QString();
+    backend.embedFailure = AiFailure::Unreachable;
+
+    QSignalSpy ended(&embedder, &Embedder::finished);
+    embedder.start();
+    if (!ended.wait(5000)) {
+        qFatal("the embedding run never ended");
+    }
+    if (embedder.isUnreachable() != shouldBreakOff) {
+        qFatal("the embedding run did not reach the state the picture is about");
+    }
 }
 
 void shoot(QWidget &page, const QString &directory, const QString &name)
@@ -248,6 +321,37 @@ int main(int argc, char **argv)
     const QString directory = QString::fromLocal8Bit(argv[1]);
     QDir().mkpath(directory);
 
+    // **Two embedding runs, so the degradation of SPEC 7.1 has a state to be
+    // in and a state not to be in** (issue #153). Two stores and two
+    // stand-ins rather than one: the broken-off run leaves its note
+    // outstanding on purpose — no attempt is counted for an outage — and the
+    // healthy run would otherwise have nothing left to embed.
+    //
+    // The three pictures of the row rule are taken with the **healthy** one,
+    // which is what makes them comparable with the committed ones byte for
+    // byte: this story adds no row to a page whose service is answering
+    // (CLAUDE.md, finding 39).
+    const QTemporaryDir answering;
+    Store answeringStore(answering.filePath(QStringLiteral("notes.db")));
+    if (!answeringStore.open()) {
+        qFatal("the store of the answering run could not be opened");
+    }
+    AiProviderMock answeringBackend;
+    Embedder healthy(&answeringStore, &answeringBackend);
+    drive(healthy, answeringStore, answeringBackend, false);
+
+    const QTemporaryDir silent;
+    Store silentStore(silent.filePath(QStringLiteral("notes.db")));
+    if (!silentStore.open()) {
+        qFatal("the store of the silent run could not be opened");
+    }
+    AiProviderMock silentBackend;
+    Embedder dropped(&silentStore, &silentBackend);
+    drive(dropped, silentStore, silentBackend, true);
+    qWarning("embedding runs: answering isUnreachable=%d, silent isUnreachable=%d",
+             int(healthy.isUnreachable()),
+             int(dropped.isUnreachable()));
+
     struct State {
         int provider;
         const char *stored;
@@ -276,7 +380,7 @@ int main(int argc, char **argv)
 
         // A page of its own per state, so that every one of them comes up the
         // way a freshly opened dialog comes up.
-        AiProviderPage page;
+        AiProviderPage page(&healthy);
         // The width the page has in the dialog at its built-in size: 640 less
         // the page list. Printed with every picture, so the numbers below can
         // be held against a rectangle set from outside (finding 64).
@@ -354,7 +458,7 @@ int main(int argc, char **argv)
         group.writeEntry("Provider", QStringLiteral("Ollama"));
         group.sync();
     }
-    AiProviderPage control;
+    AiProviderPage control(&healthy);
     control.resize(470, control.heightForWidth(470));
     control.show();
     if (!QTest::qWaitForWindowExposed(&control)) {
@@ -373,6 +477,44 @@ int main(int argc, char **argv)
     controlButtons.at(Settings::OpenAi)->setChecked(true);
     QTest::qWait(50);
     report(QStringLiteral("control, switched to OpenAI by hand"), control);
+
+    // **The picture this story is about** (issue #153), and the one the three
+    // above are the control for: the same page, the same provider, and an
+    // embedding run that broke off because the backend never answered. Under
+    // Ollama, because that is the default and the state every reader can
+    // reproduce without a key.
+    {
+        KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("AI"));
+        group.writeEntry("Provider", QStringLiteral("Ollama"));
+        group.sync();
+    }
+    AiProviderPage degraded(&dropped);
+    degraded.resize(470, degraded.heightForWidth(470));
+    degraded.show();
+    if (!QTest::qWaitForWindowExposed(&degraded)) {
+        qFatal("the degraded page never reached the screen");
+    }
+    QTest::qWait(400);
+    qWarning("153-anbieter-ollama-ohne-einbettung.png  page %dx%d logical, heightForWidth(470) %d",
+             degraded.width(),
+             degraded.height(),
+             degraded.heightForWidth(470));
+    report(QStringLiteral("153-anbieter-ollama-ohne-einbettung.png"), degraded);
+    shoot(degraded, directory, QStringLiteral("153-anbieter-ollama-ohne-einbettung.png"));
+
+    // **And the other flank, on the page that is already standing**: the
+    // service answers again, the run writes a vector, and the line has to go
+    // away with its text. The note of the broken-off run is still outstanding,
+    // which is what gives this run something to embed — an outage counts no
+    // attempt (SPEC 7.1).
+    silentBackend.embedError.clear();
+    QSignalSpy arrived(&dropped, &Embedder::embedded);
+    dropped.start();
+    if (!arrived.wait(5000)) {
+        qFatal("no vector arrived, so the other flank was never measured");
+    }
+    qWarning("after the service answered again: isUnreachable=%d", int(dropped.isUnreachable()));
+    report(QStringLiteral("the same page, service answering again"), degraded);
 
     return 0;
 }

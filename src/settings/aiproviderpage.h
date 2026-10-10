@@ -2,6 +2,7 @@
 
 #include <QWidget>
 
+class Embedder;
 class OllamaProvider;
 class OpenAiCompatibleProvider;
 class QComboBox;
@@ -48,6 +49,15 @@ class QRadioButton;
  * absence of this line is itself a statement, and a hidden label that keeps its
  * last sentence cannot say which of the two it is (CLAUDE.md, finding 79).
  *
+ * **One row says nothing about a setting at all** (issue #153). SPEC 7.1 owes
+ * the user a visible degradation "in the settings and the tray tooltip" when
+ * the embedding does not get through, and until #153 this page had it only as
+ * the result line of "Test connection" — a line that appears after a click,
+ * which the customer decided on 10.10.2026 is no hint: the user comes to this
+ * page because something is missing, not to start a test. The state is read
+ * off the running `Embedder` the daemon hands in, because a page built after
+ * the run that broke off cannot be told by a signal.
+ *
  * **And it follows the stored value, not a toggle.**
  * Before the dialog's manager reads the setting no button is checked, so a
  * stored `Provider=OpenRouter` checks button 1 and toggles the Ollama button
@@ -61,7 +71,15 @@ class AiProviderPage : public QWidget
     Q_OBJECT
 
 public:
-    explicit AiProviderPage(QWidget *parent = nullptr);
+    /**
+     * `embedder` is the daemon's running embedding run, for the degradation of
+     * SPEC 7.1, and it is not owned — it outlives this page.
+     *
+     * **nullptr is allowed and means "no statement"**: `providershots` and the
+     * degraded-state check build this page without a daemon behind it, and a
+     * page that invented a state there would be a picture of nothing.
+     */
+    explicit AiProviderPage(const Embedder *embedder, QWidget *parent = nullptr);
 
     /** Writes the field into KWallet — only when the user typed in it. */
     void save();
@@ -87,6 +105,8 @@ private:
     void showRowsOfTheChosenProvider();
     /** Puts a sentence under the key field, and takes its row away when empty. */
     void sayAboutTheKey(const QString &sentence);
+    /** Shows or takes back the degradation of SPEC 7.1, text and row together. */
+    void showWhetherTheBundlesAreDropped();
     void startTest();
     void showResult(qint64 chatMilliseconds, qint64 embedMilliseconds, const QString &error);
 
@@ -111,6 +131,10 @@ private:
     QLabel *m_openAiNote;
     /** That the note text leaves the machine; shown under a remote provider. */
     QLabel *m_remoteTextNote;
+    /** That the topic bundles are falling away right now (SPEC 7.1, #153). */
+    QLabel *m_bundlesNote;
+    /** Where the degradation of SPEC 7.1 is read, or nullptr — see the ctor. */
+    const Embedder *m_embedder;
     OllamaProvider *m_ollama;
     OpenAiCompatibleProvider *m_openRouter;
     OpenAiCompatibleProvider *m_openAi;
@@ -123,6 +147,7 @@ private:
     int m_openAiModelRow = -1;
     int m_openAiNoteRow = -1;
     int m_remoteTextNoteRow = -1;
+    int m_bundlesNoteRow = -1;
     int m_ollamaUrlRow = -1;
     int m_embeddingModelRow = -1;
     int m_openRouterEmbeddingModelRow = -1;

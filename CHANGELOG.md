@@ -573,6 +573,16 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   carries „Keine Themenbündel: Die Einbettung kam nicht durch", beside whatever
   else stands there, and takes it back with the first vector that arrives
   again.
+- **And the settings page says it too, without being asked.** The same news
+  stood there only as the result line of „Verbindung testen" — so whoever came
+  to the page to find out *why* the topic bundles had stopped found nothing
+  until they pressed a button they had no reason to press. The page
+  „KI-Anbieter" now carries the line „Gerade keine Themenbündel: Die
+  Einbettung kam nicht durch. „Verbindung testen" sagt, was im Weg steht."
+  directly under the provider choice, from the moment it is opened, and it
+  disappears again on the same condition the tray's does: the first vector
+  that arrives. While the embedding is working the page looks exactly as
+  before — the line takes up no room when it has nothing to say.
 
   It names no cause on purpose: a service that went silent, a password store
   that would not open and a key that was never entered all mean the same thing

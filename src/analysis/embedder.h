@@ -62,6 +62,31 @@ public:
     bool isBusy() const;
 
     /**
+     * Whether the last run broke off because the embedding backend did not
+     * answer — the state unreachable() raises and embedded() takes back.
+     *
+     * **Kept here because two displays read it and neither of them is
+     * running when it comes about** (issue #153). The tray is told by the
+     * signal, which is enough for a window that stands all session; the
+     * settings page of SPEC 7.1 is built when the user opens the dialog, and
+     * by then the signal is long gone. Asked here it answers for a page that
+     * was not there yet, and SPEC 7.1 owes the hint to "the settings **and**
+     * the tray tooltip".
+     *
+     * **No reason with it.** What the user is owed on either channel is what
+     * they are not getting: this state comes up for a service that went
+     * silent, for a password store that would not open and for a key that was
+     * never entered, so a sentence built out of a cause would be wrong for
+     * two of the three (unreachable()).
+     *
+     * It lives in this object and not in the store, so a restart clears it and
+     * the next run that breaks off brings it back — which is right, because
+     * what it reports is how the machine stands at this moment and not
+     * something that happened to a note.
+     */
+    bool isUnreachable() const;
+
+    /**
      * The embedding model of SPEC 7.1, as reloadSettings() last read it off the
      * provider.
      *
@@ -171,10 +196,11 @@ Q_SIGNALS:
      * thing to the user, that no bundle is coming, which is why the sentence
      * the tray shows names **that** and not a cause.
      *
-     * Emitted once per stopped run. The state it raises lives in the tray
-     * object and nowhere else, so a restart clears it and the next run that
-     * breaks off brings it back — unlike the two counts of issue #118 beside
-     * it, which are read out of the store at start.
+     * Emitted once per stopped run. The state it raises is kept in
+     * isUnreachable() above, because the settings page of SPEC 7.1 is built
+     * after the signal has gone (issue #153); a restart clears it and the next
+     * run that breaks off brings it back — unlike the two counts of issue #118
+     * beside it, which are read out of the store at start.
      */
     void unreachable(const QString &reason);
 
@@ -212,4 +238,6 @@ private:
     /** The id the answer being waited for arrives under (AiProvider). */
     int m_requestId = -1;
     bool m_busy = false;
+    /** The state isUnreachable() answers with. */
+    bool m_unreachable = false;
 };
