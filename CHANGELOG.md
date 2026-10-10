@@ -480,6 +480,16 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Fixed
 
+- **„Bearbeiten" and „Löschen" in the library now show when they are
+  resting.** Both buttons were drawn live whatever stood under the list's
+  cursor, and on a day heading — a row of the list that carries no note — a
+  press then did nothing at all: no message, no hint, no reason. Neither mouse
+  nor arrow key can put the cursor on such a row, so a click never reached that
+  state; a press sent straight to the button, the way an assistive tool sends
+  one, reported success and changed nothing (found in the review of #34). The
+  two buttons now follow the state of the action they trigger, so where there
+  is no note they rest together with the keys Entf and F2 behind them.
+
 - **Meta+N and Meta+Shift+N work again, and they keep working after a
   restart.** Both shortcuts died at the first login and stayed dead, and KDE
   reported at every start that they were no longer active. Setting them by hand

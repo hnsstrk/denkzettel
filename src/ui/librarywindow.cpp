@@ -1156,6 +1156,17 @@ QWidget *LibraryWindow::buildDetail()
     // symbol-only button appears nowhere in this window.
     m_editButton = new QPushButton(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Edit"), detail);
     connect(m_editButton, &QPushButton::clicked, m_editAction, &QAction::trigger);
+    // And it shows what the action it triggers is good for. A QPushButton
+    // carries no action of its own the way a QToolButton does, so a button
+    // wired to one stays enabled whatever the action says — it looks live over
+    // a group head, takes the press and does nothing, because trigger() on a
+    // switched-off action is a no-op. The KDE HIG want the state visible, and
+    // a screen reader reads the button rather than the action (issue #149).
+    //
+    // Set up here, before the four actions below take their starting state:
+    // placed after them the buttons would stand live until the first
+    // updateEditState().
+    connect(m_editAction, &QAction::enabledChanged, m_editButton, &QWidget::setEnabled);
 
     // „Delete“ takes its symbol from KStandardGuiItem::del(), so it is the one
     // every other KDE window deletes with — the icon only, the wording stays
@@ -1163,6 +1174,7 @@ QWidget *LibraryWindow::buildDetail()
     // catalogue happens to be installed.
     m_deleteButton = new QPushButton(KStandardGuiItem::del().icon(), i18n("Delete"), detail);
     connect(m_deleteButton, &QPushButton::clicked, m_deleteAction, &QAction::trigger);
+    connect(m_deleteAction, &QAction::enabledChanged, m_deleteButton, &QWidget::setEnabled);
 
     auto *reading = new QWidget(detail);
     auto *readingRow = new QHBoxLayout(reading);
@@ -1254,9 +1266,13 @@ QWidget *LibraryWindow::buildDetail()
     // window says the same thing in both places (issue #67).
     m_saveButton = new QPushButton(KStandardGuiItem::save().icon(), i18n("Save"), detail);
     connect(m_saveButton, &QPushButton::clicked, m_saveAction, &QAction::trigger);
+    // The same line as above, and it replaces the second setEnabled() that
+    // updateEditState() used to write by hand: one state, one place.
+    connect(m_saveAction, &QAction::enabledChanged, m_saveButton, &QWidget::setEnabled);
 
     auto *cancelButton = new QPushButton(KStandardGuiItem::cancel().icon(), i18n("Cancel"), detail);
     connect(cancelButton, &QPushButton::clicked, m_cancelEditAction, &QAction::trigger);
+    connect(m_cancelEditAction, &QAction::enabledChanged, cancelButton, &QWidget::setEnabled);
 
     // The order of the two is the platform's, not this window's.
     auto *buttons = new QDialogButtonBox(detail);
@@ -2250,7 +2266,12 @@ LibraryWindow::UnsavedAnswer LibraryWindow::askAboutUnsavedChanges()
 void LibraryWindow::updateEditState()
 {
     const bool editing = isEditing();
-    const bool hasNote = m_list->currentIndex().isValid();
+    // Asked of the note and not of the row: a group head is a row of this list
+    // and no note of it, so deleteCurrentNote() finds nothing to delete there
+    // and startEditing() nothing to open. Told the same way those two tell it,
+    // by noteIndexAt() (wireframe 3b, issue #149).
+    const QModelIndex current = m_list->currentIndex();
+    const bool hasNote = current.isValid() && m_model->noteIndexAt(current.row()) >= 0;
 
     m_textPages->setCurrentWidget(editing ? static_cast<QWidget *>(m_editor) : m_detailText);
     // Page 0 carries the two buttons, page 1 the badge.
@@ -2278,14 +2299,14 @@ void LibraryWindow::updateEditState()
     showOrigin();
 
     // The note under the editor is not up for deletion — the button is gone,
-    // and so is the key behind it.
+    // and so is the key behind it. And what carries no note is not up for it
+    // either: over a group head both actions rest, and since the buttons
+    // follow them (buildDetail()) they say so.
     m_deleteAction->setEnabled(!editing && hasNote);
     m_editAction->setEnabled(!editing && hasNote);
     m_cancelEditAction->setEnabled(editing);
 
-    const bool savable = editing && !m_editor->toPlainText().trimmed().isEmpty();
-    m_saveAction->setEnabled(savable);
-    m_saveButton->setEnabled(savable);
+    m_saveAction->setEnabled(editing && !m_editor->toPlainText().trimmed().isEmpty());
 
     // A search while the editor is open would rebuild the list under it, and a
     // cancelled switch would then have no row left to return to. The field

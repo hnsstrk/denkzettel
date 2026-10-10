@@ -22,6 +22,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QIcon>
+#include <QItemSelectionModel>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeySequence>
@@ -185,6 +186,7 @@ private Q_SLOTS:
     void carriesOutThePendingDeletionOnFlush();
 
     void carriesOutTheDeletionWhenTheWindowCloses();
+    void theReadingButtonsRestOverAGroupHead();
     void showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles();
     void namesTheCaptureShortcutTheServiceHolds();
     void bringsTheHeadOfTheNewGroupIntoView_data();
@@ -1225,6 +1227,64 @@ void LibraryTest::carriesOutTheDeletionWhenTheWindowCloses()
     window.close();
 
     QVERIFY(!m_store->note(id).has_value());
+}
+
+void LibraryTest::theReadingButtonsRestOverAGroupHead()
+{
+    // A group head is a row of this list and no note of it (wireframe 3b), so
+    // „Delete" finds nothing to delete there and „Edit" nothing to open —
+    // deleteCurrentNote() and startEditing() both return on the spot. Until
+    // issue #149 nothing said so: the two actions were switched **on** over a
+    // head, because updateEditState() asked whether the current index was
+    // valid and a head's is, and the buttons were live whatever the actions
+    // said. The press was taken and swallowed, with no message and no hint,
+    // which is why this is checked and not looked at.
+    //
+    // Read off the **buttons**, never off the actions: an assertion on
+    // QAction::isEnabled() would measure the half of the fix that lives in
+    // updateEditState() and say nothing at all about whether a button follows
+    // it.
+    storedNote(QStringLiteral("die erste"));
+    storedNote(QStringLiteral("die zweite"));
+
+    LibraryWindow window(m_store.get());
+    window.showLibrary();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QListView *list = listOf(window);
+    const QPushButton *deleteButton = buttonNamed(window, QStringLiteral("Delete"));
+    const QPushButton *editButton = buttonNamed(window, QStringLiteral("Edit"));
+    QVERIFY(deleteButton);
+    QVERIFY(editButton);
+
+    const QModelIndex note = noteRow(list, 0);
+    list->setCurrentIndex(note);
+    QCOMPARE(list->currentIndex(), note);
+    QVERIFY2(deleteButton->isEnabled(), "“Delete” rests over a note");
+    QVERIFY2(editButton->isEnabled(), "“Edit” rests over a note");
+
+    // The head of the first group stands immediately above its first note.
+    // Set on the selection model rather than through the view: the head
+    // carries no flags, and QAbstractItemView::setCurrentIndex() drops an
+    // index that is not enabled without a word — measured, by putting
+    // `list->setCurrentIndex(head)` here instead, which takes the readback
+    // below red. That readback is why it stands before the two assertions and
+    // not after them: without it this case would quietly go on measuring the
+    // note.
+    const QModelIndex head = modelOf(list)->index(note.row() - 1);
+    QVERIFY(head.data(NoteListModel::GroupHeaderRole).toBool());
+    list->selectionModel()->setCurrentIndex(head, QItemSelectionModel::NoUpdate);
+    QCOMPARE(list->currentIndex(), head);
+
+    QVERIFY2(!deleteButton->isEnabled(), "“Delete” stands live over a group head");
+    QVERIFY2(!editButton->isEnabled(), "“Edit” stands live over a group head");
+
+    // And back: a state that only ever switches off is one a button stuck at
+    // „off" would pass as well.
+    list->selectionModel()->setCurrentIndex(note, QItemSelectionModel::NoUpdate);
+    QCOMPARE(list->currentIndex(), note);
+    QVERIFY(deleteButton->isEnabled());
+    QVERIFY(editButton->isEnabled());
 }
 
 void LibraryTest::showsTheEmptyLibraryHeadingAndHintInTheirOwnTextRoles()
