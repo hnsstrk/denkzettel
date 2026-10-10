@@ -12,6 +12,21 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 
 ### Added
 
+- **Old notes without a topic are finally put forward.** A note that is similar
+  to no other formed no cluster and therefore never reached the review — it lay
+  in the library until the overflow guard reminded about it, and that reminder
+  was all there was. From the age threshold of that guard on — „oder wenn die
+  älteste:" on the settings page „Export", 30 days by default — the analysis run
+  now offers all of them together as one suggestion „Vermischtes vom <erster
+  Tag> bis <letzter Tag>": one card, the notes oldest first, every one of them
+  deselectable like in any other bundle.
+  No language model is asked — there is no shared topic to name, so title and
+  collective note are written by the program. Notes younger than the threshold
+  stay out, including as filling: what is offered is the old ones. While a
+  suggestion of this kind is standing, its notes are held out of the next run
+  like those of any open bundle, so a second card only ever covers notes the
+  first one does not.
+
 - **The chosen AI provider now answers the embedding as well.** Until now every
   vector came from a local Ollama whichever provider was picked, on a premise
   that has since expired: openrouter had no embedding endpoint when the decision
