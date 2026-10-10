@@ -1807,6 +1807,71 @@ find.
     generalises past catalogues: whenever a check asks "what did A lose against
     B", the thing you delete for the control has to be **in B**.
 
+94. **A counter kept current by a signal cannot measure the growth of the run
+    that fires the signal.** Measured 2026-10-10 on #40: the "new package of
+    suggestions" notification of SPEC 10 compared the number of open
+    suggestions after `Suggester::finished` against a counter that
+    `Store::proposalsChanged` had already moved to that same number during the
+    run. `addProposal()` emits synchronously, every connection in `src/` is
+    direct, and the difference is therefore 0 on every run — the one occasion
+    the story newly built is mute, and nothing says so. The comment beside it
+    described the ordering correctly and drew the wrong conclusion: reading the
+    count *again* does not help, the **baseline** is the problem. Proven
+    against the commit's own `libdenkzettelstore.a` with both lambdas taken
+    verbatim: wired as `main.cpp` has it, `NOT SENT (0 new)`; without the
+    `proposalsChanged` connection, `SENT (1 new)`. Same binary, different
+    twice. Whoever announces "what is new" takes the baseline from somewhere
+    the run does not write — and the better place is usually the producer
+    itself: a `finished(int newSuggestions)` out of the analysis library makes
+    the rule a named rule instead of a by-product of the counting, and it puts
+    it where a test set can reach it (finding 48). **The neighbouring trap in
+    the same place:** the wire measurement that *was* taken belonged to another
+    call site, and the clickable action of the mute notification sat inside the
+    `if` — dead code that no run in that commit could have exercised. A
+    measurement on one branch of a condition says nothing about the other.
+
+95. **A tray item in `NeedsAttention` pulses by itself, and one grab lands in
+    the 70 % of the cycle where it stands still — but only while animations are
+    on.** Read 2026-10-10 on #40 in the executing QML of the installed plasmoid
+    (plasma-workspace 6.7.5, `org.kde.plasma.systemtray.so`): `AbstractItem`
+    runs a `PulseAnimation` for every item in that status — scale 1 → 1.2 → 1
+    over 2×15 % of a period of about 2 s, then 70 % at rest, `loops:
+    Infinite`. A reported "channel difference 1005, that is antialiasing" was
+    therefore a single frame of an animated state, finding 43 for the panel
+    instead of for the radio button. **Two things about this entry are its
+    point.** First, it is a **source reading and not a run** — nobody has
+    reproduced it in a nested session, and the implementer's opposite claim
+    ("`NeedsAttention` without an attention icon is not drawn at all") was
+    refuted by reading, not by measuring. Second, the animation hangs on
+    `Kirigami.Units.longDuration > 0`: with Plasma's animation speed set to
+    instant (`AnimationDurationFactor=0`) nothing pulses, and for those users
+    the refuted claim may well be **true** — which would make an attention
+    icon of our own the only visible signal and an accessibility matter rather
+    than a design preference. So the honest reading of a host's animation is
+    "pulses under this condition", never "the state was always visible", and
+    the way to settle it is several grabs across one period in **both**
+    animation settings, with `longDuration` read back inside the run.
+
+96. **A linter run on the development machine counts the toolchain, not the
+    change.** Measured 2026-10-10 on #40 and again on #149: `lint-tidy`
+    reported 68 findings on the one branch and 70 on unchanged `main` — same
+    machine, LLVM 23.1.1 — while the CI, whose threshold is 0, is green on
+    that very `main`. 65 of the 70 are `misc-const-correctness` on pointer
+    pointees, a check a newer clang-tidy raises and the CI's does not. Read the
+    way finding 92 asks a build to be read, a red linter is a finding only once
+    it comes out **different** against the unchanged state on the same
+    toolchain — and the comparison has to strip line and column numbers, **the
+    ones inside the `lambda at …` texts included**, or the shifted locations of
+    an ordinary edit report as two dozen new findings. On both branches the
+    difference was 0. `lint-clazy` was 0 on every state measured, and that is
+    the gate that says something here. **Two ways to get this wrong were both
+    taken on the same day.** The total was nearly reported as a blocker; and
+    the breakdown was reported with the categories read off the **branch's**
+    log and the total off **`main`'s** — 63 + 3 + 2 is 68 and not 70, which is
+    what gave it away. An itemisation whose parts do not add up to the total it
+    claims is the cheapest self-test such a table has, and the one that was
+    skipped.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
