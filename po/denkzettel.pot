@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 09:33+0200\n"
+"POT-Creation-Date: 2026-10-10 10:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:88
+#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:91
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr ""
@@ -156,19 +156,29 @@ msgid ""
 "provider\"."
 msgstr ""
 
-#: src/analysis/suggester.cpp:93
+#: src/analysis/suggester.cpp:96
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:111
+#: src/analysis/suggester.cpp:114
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr ""
 
-#: src/analysis/suggester.cpp:179
+#: src/analysis/suggester.cpp:182
 #, kde-format
 msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
+msgstr ""
+
+#: src/analysis/suggester.cpp:309
+#, kde-format
+msgid "Miscellaneous from %1"
+msgstr ""
+
+#: src/analysis/suggester.cpp:310
+#, kde-format
+msgid "Miscellaneous from %1 to %2"
 msgstr ""
 
 #: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
@@ -771,28 +781,28 @@ msgid ""
 "that, open the system settings under “Shortcuts”."
 msgstr ""
 
-#: src/shell/overflowguard.cpp:69
+#: src/shell/overflowguard.cpp:72
 #, kde-format
 msgid "%1 note waiting for export"
 msgid_plural "%1 notes waiting for export"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/overflowguard.cpp:70
+#: src/shell/overflowguard.cpp:73
 #, kde-format
 msgid "The oldest note has been waiting %1 day for export"
 msgid_plural "The oldest note has been waiting %1 days for export"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/overflowguard.cpp:89
+#: src/shell/overflowguard.cpp:92
 #, kde-format
 msgid "%1 note has not been exported yet."
 msgid_plural "%1 notes have not been exported yet."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/overflowguard.cpp:91
+#: src/shell/overflowguard.cpp:94
 #, kde-format
 msgid "The oldest unexported note is %1 day old."
 msgid_plural "The oldest unexported note is %1 days old."

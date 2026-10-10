@@ -4,6 +4,7 @@
 
 #include <QList>
 #include <QObject>
+#include <QSet>
 #include <QString>
 
 #include <cstdint>
@@ -84,6 +85,16 @@ QString bundleMarkdown(const QString &title, const QList<Note> &notes);
  * - **Bundle suggestions** (SPEC 7.3) come out of the clusters of the stored
  *   vectors. One `chat` call per cluster: the model names the topic and may
  *   drop an outlier; the Markdown is written here (see bundleMarkdown()).
+ * - **The "Miscellaneous" bundle** (SPEC 7.3 and 11, issues #35 and #145)
+ *   costs no call either. Whatever the corpus of this run holds that landed in
+ *   no cluster and has been waiting at least `[Export] OverflowDays` days is
+ *   offered as one bundle — the same threshold the overflow guard reminds
+ *   about, read through overflowDayLimit() so that the two cannot drift apart.
+ *   That is the whole of what SPEC 11 means by "generates bundles
+ *   preferentially" (PO decision 10.10.2026): what forms no topic can leave as
+ *   a bundle rather than lie there one by one, and no calibrated number moves
+ *   for it. Title and Markdown are written by the program, because there is no
+ *   topic to be named and nothing for a sanity check to check.
  *
  * **What a standing suggestion does to the next run** is the difference between
  * the two statuses of SPEC 5.1:
@@ -181,6 +192,42 @@ Q_SIGNALS:
 
 private:
     void takeNextCluster();
+
+    /**
+     * One bundle suggestion into `proposals`, and the deferred ones it takes
+     * the place of out of it.
+     *
+     * The one writer of that behaviour, for both kinds of bundle: a named
+     * cluster the model answered for, and the "Miscellaneous" bundle nobody
+     * was asked about. Written twice, a deferred card would be replaced on one
+     * road and left standing beside the new one on the other.
+     */
+    void writeBundle(const QString &title, const QList<Note> &notes);
+
+    /**
+     * The "Miscellaneous" bundle of SPEC 7.3: what this run's corpus holds that
+     * is in none of `clustered` and at least the overflow guard's age
+     * threshold old.
+     *
+     * **No note under the threshold, not even to fill the bundle up.** "Out of
+     * the oldest notes without a cluster" (SPEC 7.3) means the old ones, not
+     * the ones that came in this week — and while no note is that old, nothing
+     * comes into being at all, which is the same condition the guard reminds
+     * about (SPEC 11, PO decision 10.10.2026).
+     *
+     * **One note is enough**, and `bundle::MinimumNotes` deliberately does not
+     * apply: that threshold is about similarity clusters, where a pair is no
+     * topic. This bundle exists for the notes that form no cluster, and a floor
+     * would leave the oldest note of all lying there — the very state the guard
+     * is reminding about.
+     *
+     * ponytail: no upper bound either, so a library of hundreds of old notes
+     * without a topic becomes one card with hundreds of notes on it. The user
+     * deselects what they do not want (#30), which is what makes that bearable
+     * rather than right; the way up is a cap per bundle, and the rest of them
+     * follow in the next run.
+     */
+    void offerMiscellaneous(const QList<NoteEmbedding> &corpus, const QSet<qint64> &clustered);
 
     Store *m_store;
     AiProvider *m_provider;

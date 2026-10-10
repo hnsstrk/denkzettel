@@ -3,9 +3,12 @@
 #include "analysis/aiprovider.h"
 #include "analysis/clustering.h"
 #include "analysis/modelanswer.h"
+#include "store/overflowthreshold.h"
 #include "store/store.h"
 
+#include <KConfigGroup>
 #include <KLocalizedString>
+#include <KSharedConfig>
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -190,59 +193,123 @@ Suggester::Suggester(Store *store, AiProvider *provider, QObject *parent)
             }
         }
 
-        Proposal proposal;
-        proposal.kind = Proposal::Kind::Bundle;
-        proposal.createdAt = QDateTime::currentDateTime();
-        proposal.status = Proposal::Status::Open;
-        proposal.payload = QString::fromUtf8(
-            QJsonDocument(QJsonObject{{QLatin1String("title"), naming.title},
-                                      {QLatin1String("markdown"), bundleMarkdown(naming.title, kept)}})
-                .toJson(QJsonDocument::Compact));
-        proposal.noteIds = naming.noteIds;
-
-        const std::optional<qint64> proposalId = m_store->addProposal(proposal);
-        if (!proposalId.has_value()) {
-            Q_EMIT failed(m_store->lastError());
-            takeNextCluster();
-            return;
-        }
-
-        // The deferred suggestion this one replaces goes **after** the new one
-        // stands, not before: a call that failed would otherwise have taken the
-        // old card away and put nothing in its place (UX decision of
-        // 29.08.2026, see the class comment).
-        const QList<Proposal> standing = m_store->proposals();
-        bool tookADeferredOnesPlace = false;
-        for (const Proposal &other : standing) {
-            if (other.id == *proposalId || other.kind != Proposal::Kind::Bundle
-                || other.status != Proposal::Status::Deferred) {
-                continue;
-            }
-            const bool sharesANote = std::any_of(other.noteIds.cbegin(), other.noteIds.cend(),
-                                                 [&naming](qint64 noteId) {
-                                                     return naming.noteIds.contains(noteId);
-                                                 });
-            if (!sharesANote) {
-                continue;
-            }
-            if (m_store->removeProposal(other.id)) {
-                tookADeferredOnesPlace = true;
-            } else {
-                Q_EMIT failed(m_store->lastError());
-            }
-        }
-
-        // And only now is it decided whether this is news (see finished()).
-        // The removal is what the question hangs on and not the finding of it:
-        // where it failed, the old card is still standing beside the new one,
-        // and then there really are two questions where there was one.
-        if (!tookADeferredOnesPlace) {
-            ++m_newSuggestions;
-        }
-
-        Q_EMIT suggested(*proposalId);
+        writeBundle(naming.title, kept);
         takeNextCluster();
     });
+}
+
+void Suggester::writeBundle(const QString &title, const QList<Note> &notes)
+{
+    QList<qint64> noteIds;
+    noteIds.reserve(notes.size());
+    for (const Note &note : notes) {
+        noteIds.append(note.id);
+    }
+
+    Proposal proposal;
+    proposal.kind = Proposal::Kind::Bundle;
+    proposal.createdAt = QDateTime::currentDateTime();
+    proposal.status = Proposal::Status::Open;
+    proposal.payload = QString::fromUtf8(
+        QJsonDocument(QJsonObject{{QLatin1String("title"), title},
+                                  {QLatin1String("markdown"), bundleMarkdown(title, notes)}})
+            .toJson(QJsonDocument::Compact));
+    proposal.noteIds = noteIds;
+
+    const std::optional<qint64> proposalId = m_store->addProposal(proposal);
+    if (!proposalId.has_value()) {
+        Q_EMIT failed(m_store->lastError());
+        return;
+    }
+
+    // The deferred suggestion this one replaces goes **after** the new one
+    // stands, not before: a call that failed would otherwise have taken the
+    // old card away and put nothing in its place (UX decision of
+    // 29.08.2026, see the class comment).
+    const QList<Proposal> standing = m_store->proposals();
+    bool tookADeferredOnesPlace = false;
+    for (const Proposal &other : standing) {
+        if (other.id == *proposalId || other.kind != Proposal::Kind::Bundle
+            || other.status != Proposal::Status::Deferred) {
+            continue;
+        }
+        const bool sharesANote = std::any_of(other.noteIds.cbegin(), other.noteIds.cend(),
+                                             [&noteIds](qint64 noteId) {
+                                                 return noteIds.contains(noteId);
+                                             });
+        if (!sharesANote) {
+            continue;
+        }
+        if (m_store->removeProposal(other.id)) {
+            tookADeferredOnesPlace = true;
+        } else {
+            Q_EMIT failed(m_store->lastError());
+        }
+    }
+
+    // And only now is it decided whether this is news (see finished()).
+    // The removal is what the question hangs on and not the finding of it:
+    // where it failed, the old card is still standing beside the new one,
+    // and then there really are two questions where there was one.
+    //
+    // **Here and not in the lambda above**, which is where it stood until the
+    // miscellaneous bundle existed (#40, #35): counted there, a run whose only
+    // new suggestion is that bundle reports 0 and the notification of SPEC 10
+    // stays mute — the shape of finding 94, in the very code that was repaired
+    // for it. One writer of a bundle suggestion, one place that counts it.
+    if (!tookADeferredOnesPlace) {
+        ++m_newSuggestions;
+    }
+
+    Q_EMIT suggested(*proposalId);
+}
+
+void Suggester::offerMiscellaneous(const QList<NoteEmbedding> &corpus, const QSet<qint64> &clustered)
+{
+    QList<qint64> loose;
+    for (const NoteEmbedding &embedding : corpus) {
+        if (!clustered.contains(embedding.noteId)) {
+            loose.append(embedding.noteId);
+        }
+    }
+
+    // The group `bundleThreshold()` reads its own setting out of, and the one
+    // the export page writes (#75). The limit itself comes from
+    // overflowDayLimit(), so the key, the default and the floor are the guard's
+    // own (store/overflowthreshold.h).
+    const KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    const int dayLimit = overflowDayLimit(group);
+    const QDateTime now = QDateTime::currentDateTime();
+
+    // The same comparison as `tooOld` in overflowReport(), so that the bundle
+    // comes into being for exactly the notes the guard is reminding about: the
+    // note that has waited **as long as** the threshold is in, the one a day
+    // younger is not.
+    QList<Note> old;
+    const QList<Note> waiting = clusterNotesFromStore(m_store, loose);
+    for (const Note &note : waiting) {
+        if (note.createdAt.daysTo(now) >= dayLimit) {
+            old.append(note);
+        }
+    }
+    if (old.isEmpty()) {
+        return;
+    }
+
+    // Oldest first out of clusterNotesFromStore(), so the two days are the ends
+    // of the period and the Markdown is chronological (SPEC 8.1).
+    //
+    // The days in ISO form and not in the locale's: this title is the heading
+    // of the collective note, whose day sections carry that very form, and the
+    // export of SPEC 8.1 builds a file name out of it — where a short date
+    // would put a slash of the locale's choosing into a path.
+    const QDate first = old.constFirst().createdAt.date();
+    const QDate last = old.constLast().createdAt.date();
+    const QString title = first == last
+        ? i18n("Miscellaneous from %1", first.toString(Qt::ISODate))
+        : i18n("Miscellaneous from %1 to %2", first.toString(Qt::ISODate), last.toString(Qt::ISODate));
+
+    writeBundle(title, old);
 }
 
 void Suggester::start()
@@ -302,13 +369,24 @@ void Suggester::start()
     }
 
     m_clusters.clear();
+    QSet<qint64> clustered;
     const QList<QList<qint64>> clusters = clusterNotes(corpus, bundleThreshold());
     for (const QList<qint64> &cluster : clusters) {
+        for (const qint64 noteId : cluster) {
+            clustered.insert(noteId);
+        }
         const QList<Note> notes = clusterNotesFromStore(m_store, cluster);
         if (notes.size() >= bundleThreshold()) {
             m_clusters.append(notes);
         }
     }
+
+    // The old notes of this corpus that no cluster took, as one bundle
+    // (SPEC 7.3 and 11). Here and not after the calls above, because what is
+    // clustered is decided by clusterNotes() and not by the model: a note the
+    // sanity check drops stays in the corpus for the next run, as it did
+    // before this bundle existed.
+    offerMiscellaneous(corpus, clustered);
 
     m_busy = true;
     takeNextCluster();

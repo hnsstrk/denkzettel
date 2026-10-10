@@ -20,8 +20,11 @@ OverflowReport overflowReport(const Store &store, KConfigGroup &configuration)
     // included, and the reminder would be **wrong** rather than merely
     // unusual. A hand-written number above the form's ceiling is a threshold
     // the user meant, and it is obeyed.
+    // The day limit through overflowDayLimit(), because the suggestion run of
+    // SPEC 7.3 asks the same question of every single note (issue #35) and two
+    // readings of one condition agree until somebody edits one of them.
     const int noteLimit = std::max(1, configuration.readEntry("OverflowNotes", overflow::DefaultNotes));
-    const int dayLimit = std::max(1, configuration.readEntry("OverflowDays", overflow::DefaultDays));
+    const int dayLimit = overflowDayLimit(configuration);
 
     // `categoryCounts().total` and no count of its own: that is the number the
     // library writes beside "All", and two readings of one condition agree

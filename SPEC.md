@@ -1050,10 +1050,14 @@ self-healing.
   other way: what the classifier writes is what the user types. Whoever lets
   the model reformulate here changes what the export of 8.1 hands back to the
   user, in the one place where the original is then deleted.
-- **Notes without a cluster** simply stay in the corpus. If the age threshold
-  of the overflow guard is crossed, the service additionally generates a bundle
-  "Miscellaneous from <period>" out of the oldest notes without a cluster —
-  likewise only as a suggestion, every note deselectable.
+- **Notes without a cluster** simply stay in the corpus. While notes stand
+  that are at least the age threshold of the overflow guard old and in no
+  cluster, the service additionally offers them as one bundle "Miscellaneous
+  from <first day> to <last day>", or "Miscellaneous from <day>" when they all
+  fall on one day — at least one note, no upper bound, no model call: title and
+  Markdown are written by the program (PO decision 10.10.2026, issues #35 and
+  #145). Likewise only as a suggestion, every note deselectable; its notes are
+  held out of the corpus while it stands, like those of any open bundle.
 - Notes already suggested but deferred (`status = 'zurueckgestellt'`) are
   clustered again in the next run — a "Later" only postpones, it hides nothing
   permanently.
@@ -1616,9 +1620,19 @@ conceivable as an optional later additional path, but is not built for v1.
 
 - Two criteria, both configurable: **count** of unexported notes (default 200)
   OR **age** of the oldest unexported note (default 30 days).
-- On crossing: tray reminder + notification; the next analysis run generates
-  bundles preferentially (including "Miscellaneous", 7.3). **Never** an
-  automatic export.
+- On crossing: tray reminder + notification. **"Bundles preferentially" is
+  the "Miscellaneous" bundle of 7.3 and nothing else** (PO decision
+  10.10.2026, issue #145): while notes stand that are at least the age
+  threshold old, analysed and embedded, and in no cluster, every run offers
+  them as one bundle, so that what forms no topic can leave as a bundle rather
+  than lie there one by one. An old note the run holds no vector for — never
+  analysed, waiting to be re-embedded after a change of service, or standing
+  while no embedding model is set at all (7.1) — therefore reminds without
+  being bundled. The similarity threshold of 7.3 and the bundle threshold stay
+  where they are — both are calibrations, and a state is no measurement. The
+  count criterion alone changes nothing in the run: fresh notes are not "the
+  oldest", and the topic bundles come out of the clusters in every run anyway.
+  **Never** an automatic export.
 
 ## 12. Transcription
 

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 09:33+0200\n"
+"POT-Creation-Date: 2026-10-10 10:03+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:88
+#: src/analysis/classifier.cpp:159 src/analysis/suggester.cpp:91
 #, kde-format
 msgid "The model's answer carried no JSON object."
 msgstr "Die Antwort des Modells enthielt kein JSON-Objekt."
@@ -165,22 +165,32 @@ msgstr ""
 "Für %1 ist kein Einbettungsmodell eingetragen. Tragen Sie eines in den "
 "Einstellungen unter „KI-Anbieter“ ein."
 
-#: src/analysis/suggester.cpp:93
+#: src/analysis/suggester.cpp:96
 #, kde-format
 msgid "The model's answer carried no title for the bundle."
 msgstr "Die Antwort des Modells enthielt keinen Titel für das Bündel."
 
-#: src/analysis/suggester.cpp:111
+#: src/analysis/suggester.cpp:114
 #, kde-format
 msgid "The model's answer named none of the notes of the bundle."
 msgstr "Die Antwort des Modells nannte keine der Notizen des Bündels."
 
-#: src/analysis/suggester.cpp:179
+#: src/analysis/suggester.cpp:182
 #, kde-format
 msgid "The model kept %1 of %2 notes of the bundle, fewer than a bundle needs."
 msgstr ""
 "Das Modell behielt %1 von %2 Notizen des Bündels, weniger als ein Bündel "
 "braucht."
+
+#: src/analysis/suggester.cpp:309
+#, kde-format
+msgid "Miscellaneous from %1"
+msgstr "Vermischtes vom %1"
+
+#: src/analysis/suggester.cpp:310
+#, kde-format
+msgid "Miscellaneous from %1 to %2"
+msgstr "Vermischtes vom %1 bis %2"
 
 #: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
 #: src/capture/recordingwindow.cpp:312 src/capture/recordingwindow.cpp:320
@@ -813,28 +823,28 @@ msgstr ""
 "%1 gehört bereits zu: %2. Der Tastendruck erreicht Denkzettel womöglich "
 "nicht. Zum Ändern die Systemeinstellungen unter „Kurzbefehle“ öffnen."
 
-#: src/shell/overflowguard.cpp:69
+#: src/shell/overflowguard.cpp:72
 #, kde-format
 msgid "%1 note waiting for export"
 msgid_plural "%1 notes waiting for export"
 msgstr[0] "%1 Notiz wartet auf den Export"
 msgstr[1] "%1 Notizen warten auf den Export"
 
-#: src/shell/overflowguard.cpp:70
+#: src/shell/overflowguard.cpp:73
 #, kde-format
 msgid "The oldest note has been waiting %1 day for export"
 msgid_plural "The oldest note has been waiting %1 days for export"
 msgstr[0] "Die älteste Notiz wartet seit %1 Tag auf den Export"
 msgstr[1] "Die älteste Notiz wartet seit %1 Tagen auf den Export"
 
-#: src/shell/overflowguard.cpp:89
+#: src/shell/overflowguard.cpp:92
 #, kde-format
 msgid "%1 note has not been exported yet."
 msgid_plural "%1 notes have not been exported yet."
 msgstr[0] "%1 Notiz ist noch nicht exportiert."
 msgstr[1] "%1 Notizen sind noch nicht exportiert."
 
-#: src/shell/overflowguard.cpp:91
+#: src/shell/overflowguard.cpp:94
 #, kde-format
 msgid "The oldest unexported note is %1 day old."
 msgid_plural "The oldest unexported note is %1 days old."

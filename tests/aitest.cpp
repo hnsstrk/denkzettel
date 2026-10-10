@@ -140,6 +140,8 @@ private Q_SLOTS:
     void aNoteWithTaskFieldsBecomesATaskSuggestion();
     void aDeferredBundleIsClusteredAgainAndReplaced();
     void newBundlesBesideAReplacementCountOnlyAsTheNewOnes();
+    void oldNotesWithoutAClusterBecomeTheMiscellaneousBundle();
+    void aRunWhoseOnlyNewsIsTheMiscellaneousBundleSaysSo();
 };
 
 void AiTest::initTestCase()
@@ -3159,6 +3161,22 @@ void AiTest::aNoteWithTaskFieldsBecomesATaskSuggestion()
     const std::unique_ptr<Store> store = openStore(directory);
     QVERIFY(store);
 
+    // The age threshold of the overflow guard put out of reach, so that this
+    // case measures the task suggestion and nothing else: the note below is
+    // dated in August, and a run that finds it old and without a cluster offers
+    // it as a miscellaneous bundle besides (SPEC 7.3, issue #35). The threshold
+    // that is not under test is put out of reach rather than the expectation
+    // raised — shelltest does the same with the one it is not measuring.
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("aitest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    const auto tidy = qScopeGuard([&exportGroup] {
+        exportGroup.deleteEntry("OverflowDays");
+        exportGroup.sync();
+    });
+    exportGroup.writeEntry("OverflowDays", 3650);
+    exportGroup.sync();
+
     // Only the fields the note carried, which is what the classification
     // already decided (SPEC 7.2): a description and a due date, no project, no
     // tags and no priority.
@@ -3342,6 +3360,178 @@ void AiTest::newBundlesBesideAReplacementCountOnlyAsTheNewOnes()
         QVERIFY(proposal.id != deferred);
         QCOMPARE(proposal.status, Proposal::Status::Open);
     }
+}
+
+void AiTest::oldNotesWithoutAClusterBecomeTheMiscellaneousBundle()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("aitest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    // Through a scope guard and not as a last line: a case that dies on its own
+    // assertion would otherwise leave the value behind and take the next reader
+    // of that group with it (CLAUDE.md, finding 42).
+    const auto tidy = qScopeGuard([&exportGroup] {
+        exportGroup.deleteEntry("OverflowDays");
+        exportGroup.sync();
+    });
+    // **Ten and not the default thirty**, so that the threshold comes from
+    // outside: with the key read under another name, or with a 30 written into
+    // the code, nothing below would be old enough and the bundle would not come
+    // into being at all (CLAUDE.md, finding 10).
+    exportGroup.writeEntry("OverflowDays", 10);
+    exportGroup.sync();
+
+    // Counted from today, because the threshold is: a note on a fixed day in
+    // August is ten days old once and four hundred later. **The hour plays no
+    // part**, and that is measured rather than read: daysTo() counts the
+    // midnights between the two moments (10.10.2026, against Qt 6.11), so a
+    // note ten days back answers 10 at 00:01 and at 23:59 alike and whatever
+    // time of day it carries. What is left is a run falling across midnight
+    // between these notes and the days read back for the title below.
+    const auto daysAgo = [](int days) {
+        return QDateTime(QDate::currentDate().addDays(-days), QTime(0, 0));
+    };
+
+    // Three old notes of one topic, 20° apart, so the clustering takes them —
+    // they must stay **out** of the miscellaneous bundle although they are old
+    // enough for it. Without them a run that offered every old note of the
+    // corpus would come out exactly like one that offers the ones without a
+    // cluster (CLAUDE.md, finding 34).
+    const qint64 boxes = addEmbeddedNote(*store, QStringLiteral("Kartons für den Umzug besorgen."), daysAgo(15), 0.0);
+    const qint64 van =
+        addEmbeddedNote(*store, QStringLiteral("Den Transporter für den Umzug mieten."), daysAgo(15).addSecs(60), 20.0);
+    const qint64 keys = addEmbeddedNote(*store,
+                                        QStringLiteral("Die Schlüssel beim Umzug der Verwalterin geben."),
+                                        daysAgo(15).addSecs(120),
+                                        40.0);
+
+    // And four without a cluster, every one of them more than 53.1° from every
+    // other and from the three above — the angle the threshold of 0.60 is.
+    //
+    // The order of the four is what the case rests on (finding 34): the note
+    // **exactly** on the threshold separates `>=` from `>`, the one a day
+    // younger separates "the oldest" from "all of them", and the oldest of the
+    // four is the one already spoken for — so a run that read the corpus
+    // unfiltered would put the earliest day of all into the title.
+    const qint64 border = addEmbeddedNote(*store, QStringLiteral("Das Fahrradlicht klemmt wieder."), daysAgo(10), 100.0);
+    const qint64 younger = addEmbeddedNote(*store, QStringLiteral("Zwiebeln und Hefe sind alle."), daysAgo(9), 170.0);
+    const qint64 ancient =
+        addEmbeddedNote(*store, QStringLiteral("Den Brief vom Finanzamt endlich beantworten."), daysAgo(20), 240.0);
+    const qint64 spoken = addEmbeddedNote(*store, QStringLiteral("Die Gießkanne steht noch im Keller."), daysAgo(30), 300.0);
+    QVERIFY(boxes > 0 && van > 0 && keys > 0);
+    QVERIFY(border > 0 && younger > 0 && ancient > 0 && spoken > 0);
+
+    const qint64 standing = addStandingProposal(*store, Proposal::Kind::Bundle, Proposal::Status::Open, {spoken});
+    QVERIFY(standing > 0);
+
+    AiProviderMock provider;
+    provider.chatAnswer = QStringLiteral(R"({"title": "Der Umzug", "notes": [1, 2, 3]})");
+
+    Suggester suggester(store.get(), &provider);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    // **One call for the one cluster**: the miscellaneous bundle costs no model
+    // call at all (SPEC 7.3, PO decision 10.10.2026), and there is nothing for
+    // a sanity check to check — no topic was claimed.
+    QCOMPARE(provider.prompts.size(), qsizetype(1));
+
+    // Two new suggestions, and the miscellaneous bundle is one of them (#40):
+    // the named cluster and this bundle are written by one function, so they
+    // are counted in one place as well.
+    QCOMPARE(done.constFirst().constFirst().toInt(), 2);
+    QVERIFY(provider.prompts.constFirst().contains(QStringLiteral("Kartons für den Umzug")));
+    QVERIFY(!provider.prompts.constFirst().contains(QStringLiteral("Finanzamt")));
+
+    // The one that was standing, the miscellaneous bundle written during
+    // start(), and the named cluster that came back from the model —
+    // proposals() orders by the row's own moment and then by its id.
+    const QList<Proposal> proposals = store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(3));
+    QCOMPARE(proposals.at(0).id, standing);
+    QCOMPARE(proposals.at(2).noteIds, QList<qint64>({boxes, van, keys}));
+
+    const Proposal &miscellaneous = proposals.at(1);
+    QCOMPARE(miscellaneous.kind, Proposal::Kind::Bundle);
+    QCOMPARE(miscellaneous.status, Proposal::Status::Open);
+    // The note on the threshold and the one older than it, oldest first — and
+    // neither the note a day younger, nor the three of the cluster, nor the
+    // oldest note of all, which stands in a suggestion already.
+    QCOMPARE(miscellaneous.noteIds, QList<qint64>({ancient, border}));
+
+    const QString from = daysAgo(20).date().toString(Qt::ISODate);
+    const QString to = daysAgo(10).date().toString(Qt::ISODate);
+    const QJsonObject payload = payloadOf(miscellaneous);
+    QCOMPARE(payload.value(QLatin1String("title")).toString(),
+             QStringLiteral("Miscellaneous from %1 to %2").arg(from, to));
+    // The whole Markdown: the title as the heading, a section per day in order,
+    // and the note texts as they were typed (SPEC 8.1).
+    QCOMPARE(payload.value(QLatin1String("markdown")).toString(),
+             QStringLiteral("# Miscellaneous from %1 to %2\n"
+                            "\n## %1\n"
+                            "\nDen Brief vom Finanzamt endlich beantworten.\n"
+                            "\n## %2\n"
+                            "\nDas Fahrradlicht klemmt wieder.\n")
+                 .arg(from, to));
+
+    // And the next run offers the same notes no second time: they are spoken
+    // for now, exactly like the notes of a named bundle (SPEC 7.3). What is
+    // left in the corpus is the note a day too young, and it stays there.
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 5000);
+    QCOMPARE(store->proposals().size(), qsizetype(3));
+    QCOMPARE(provider.prompts.size(), qsizetype(1));
+    // And nothing is announced for a run that wrote nothing.
+    QCOMPARE(done.constLast().constFirst().toInt(), 0);
+}
+
+void AiTest::aRunWhoseOnlyNewsIsTheMiscellaneousBundleSaysSo()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("aitest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    const auto tidy = qScopeGuard([&exportGroup] {
+        exportGroup.deleteEntry("OverflowDays");
+        exportGroup.sync();
+    });
+    exportGroup.writeEntry("OverflowDays", 10);
+    exportGroup.sync();
+
+    // **Two old notes, 90° apart, and nothing else in the library**: no
+    // cluster, no task suggestion, no standing card. So the miscellaneous
+    // bundle is the one row this run writes, and the number it announces is
+    // about that bundle and about nothing else (CLAUDE.md, finding 94 — a
+    // count taken from a quantity the run itself moves says nothing).
+    //
+    // That is what the case is for. Counted in the lambda of the model's
+    // answer, as it was until this bundle existed, the very same run reports
+    // **0** — it builds and it is green on every other case, and the
+    // notification of SPEC 10 is simply mute for the one occasion this story
+    // created. Measured both ways on this binary.
+    const QDateTime old = QDateTime(QDate::currentDate().addDays(-20), QTime(0, 0));
+    QVERIFY(addEmbeddedNote(*store, QStringLiteral("Den Dachboden einmal ausräumen."), old, 0.0) > 0);
+    QVERIFY(addEmbeddedNote(*store, QStringLiteral("Beim Optiker die Brille nachziehen lassen."), old.addSecs(60), 90.0) > 0);
+
+    AiProviderMock provider;
+    Suggester suggester(store.get(), &provider);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    QVERIFY(provider.prompts.isEmpty());
+    QCOMPARE(store->proposals().size(), qsizetype(1));
+    QCOMPARE(done.constFirst().constFirst().toInt(), 1);
 }
 
 QTEST_GUILESS_MAIN(AiTest)

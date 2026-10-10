@@ -4,7 +4,7 @@
 #include "analysis/clustering.h"
 #include "analysis/ollamaprovider.h"
 #include "analysis/openaicompatibleprovider.h"
-#include "shell/overflowguard.h"
+#include "store/overflowthreshold.h"
 #include "transcribe/transcriber.h"
 
 namespace
@@ -125,12 +125,14 @@ Settings::Settings()
     // The two defaults are `overflow::` and no literal: the guard of SPEC 11
     // reads a hand-written denkzettelrc through KConfigGroup and never through
     // this skeleton, so a number written down twice would let the form show one
-    // and the reminder obey the other (overflowguard.h).
+    // and the reminder obey the other (store/overflowthreshold.h, which is also
+    // where the suggestion run of SPEC 7.3 reads the day threshold).
     //
     // The bounds stay on the items and not only on the spin boxes, for the
     // reason the analysis interval carries them — a stored value comes back
     // through the item. What they do **not** reach is the guard; the one bound
-    // it needs it carries itself, and overflowguard.cpp says which.
+    // each of the two needs it carries itself — overflowguard.cpp for the
+    // count, overflowDayLimit() for the age.
     ItemInt *notes = addItemInt(QStringLiteral("OverflowNotes"), m_overflowNotes, overflow::DefaultNotes);
     notes->setMinValue(MinimumThreshold);
     notes->setMaxValue(MaximumOverflowNotes);
