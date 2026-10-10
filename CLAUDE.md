@@ -690,8 +690,11 @@ find.
 
     **Its sibling: the file the check counted in was never read at all.**
     Measured 2026-09-04 on #31, contradicting the lead three times before it
-    was caught. `git show "$rev:tests/librarytest.cpp"` inside double quotes
-    hands the shell a `\t`, so git was asked for `<rev><TAB>ests/…`, answered
+    was caught. `git show "$rev:tests/librarytest.cpp"` hands the shell a `\t`
+    — **and the cause is the `:t` sequence, not the double quotes**, which this
+    entry blamed until 10.10.2026: single quotes avoid it, and so does a path
+    in a variable (`git show "$rev:$path"`), while double quotes around any
+    other path are harmless. So git was asked for `<rev><TAB>ests/…`, answered
     "unknown commit or path" on standard error, and the `2>/dev/null` beside it
     threw that away. `grep -c` on the resulting empty file answered **0** —
     which reads exactly like "the string is not in this revision", and was used
@@ -928,6 +931,16 @@ find.
     What carries: a review builds from `git archive <commit>` into a directory
     of its own, and its report names the commit it holds for — not the branch,
     which has moved by the time the report is read.
+
+    **And `--amend` takes that basis away without moving the branch anywhere
+    visible.** Measured 2026-10-10: one branch carried four identifiers in an
+    afternoon because its implementer kept amending, and an orphaned one of
+    them shared a seven-character prefix with another story's commit. A review
+    dispatched against an amended identifier measures a state that no longer
+    exists, and its report names it as if it did. On a branch a review points
+    at: new commits, never an amend, and the final identifier reported in one
+    sentence. The branch is squashed at the merge anyway, so the intermediate
+    steps cost nothing.
 
 57. **A staging directory installed from a stale build serves the old
     catalogue.** Measured 2026-08-29 on #21: the `.mo` is compiled by the
@@ -1596,6 +1609,17 @@ find.
     per agent, and the readback is `git log --oneline -1 <your branch>` after
     committing, not the commit's own output.
 
+    **And the same rule binds the lead, which cost a second lesson on
+    2026-10-10.** The lead committed a SPEC passage into an implementer's
+    worktree twice that day — the tree was clean and the agent idle, both
+    checked beforehand, and nothing was lost. It was noticed only because the
+    implementer's next `git commit --amend` pointed at a parent it did not
+    expect and aborted with rc=128 before touching anything. **Had it made an
+    ordinary commit instead, nobody would have seen it**, and a review
+    measuring "its commit" would have carried a foreign one on top without a
+    word. Whoever wants a change in somebody else's worktree asks for it; the
+    round trip is cheaper than a review whose subject nobody can name.
+
 86. **A `QTemporaryDir` destructor that runs is no proof the directory is
     gone — a library static writes it back after `main()` has returned.**
     Measured 2026-09-03 on #136, where `systemfontstest` left exactly one
@@ -1901,6 +1925,155 @@ find.
     claims is the cheapest self-test such a table has, and the one that was
     skipped.
 
+97. **A negative assertion placed behind an exact comparison of the same value
+    can never go red.** If the compare passes, the exact string already rules
+    the thing out; if it fails, the function aborts before the line is reached
+    (finding 35). Measured 2026-10-10 on #38: the guard that the openrouter
+    account identifier stays out of the error sentence stood at
+    `aitest.cpp:871`, behind the `QCOMPARE` at `:858`. With a reader handing
+    the whole body on instead of `error.message`, the run reddens at `:858`,
+    "Compared values are not the same", and the named guard is never reached;
+    moved in front of the compare, the same mutation reddens at the assertion
+    itself, with the field name in the failure message. The protection was
+    never in doubt — the compare carries it. **What was decorative is the line
+    the comment points at, and that is the worse half:** the next reader
+    believes a named guard is watching the thing it names.
+
+98. **A restore by `mv` is no restore as far as `make` is concerned.**
+    Measured 2026-10-10 while reviewing #148: a mutation probe saved the file
+    with `cp f f.orig` and put it back with `mv f.orig f`. `mv` keeps the
+    **old** timestamp, the object built from the mutation is younger, `make`
+    reports "up to date" with rc=0, and `ctest` measures the **mutated**
+    binary. The direction of the error is what makes it dangerous: a green run
+    then reads as "the mutation changes nothing", which is the opposite of what
+    the probe is for. It was noticed only because a `Loc:` line named a line
+    number one off from the original. What prevents it: `touch` the restored
+    source, and read back in the build output the one line that recompiles the
+    file (`grep -c <file>.o`: 1, not 0).
+
+99. **A branch whose base predates a signature change carries calls of the old
+    form into the merge, and git reports no conflict.** Measured 2026-10-10 on
+    the squash merge of #40: `aitest.cpp` still called
+    `Suggester(store, provider, model)`, the three-argument form from before
+    #130 removed it. Neither side could have caught it — each built on its own,
+    and nobody had built the two together until the merge. What found it is the
+    step this project asks for anyway: build the merged tree from a fresh
+    directory and run `ctest` **before** the merge commit is written.
+    **And the same pattern has a silent form**, predicted the same morning by
+    the implementer of #35 before the rebase ran: #40's `++m_newSuggestions`
+    sat in the block that #35 moves into a helper, git merges that textually
+    without a word, the tree builds, `ctest` is green — and the new bundle
+    never counts, so a run whose only new suggestion is that bundle reports 0
+    and SPEC 10's notification stays silent (finding 94's shape). From which
+    the working rule: **whoever rebases resolves the semantic part too**, and
+    only somebody who knows the rule can. Measured in two versions: the naive
+    resolution reddens the other story's cases and is therefore loud; the
+    careful one reddens only the two cases of the story doing the rebase, and
+    those two are the whole guard.
+
+100. **A count of messages does not see a glued-on sentence; a length ratio
+    does.** Measured 2026-10-10: the German catalogue carried another message's
+    sentence appended to one translation. Adjacent string literals concatenate
+    in the PO format, so the user would have seen two unrelated halves run
+    together, with `%1` in it twice. **None of the checks this project
+    prescribes for catalogues finds that**: `msgfmt -c --statistics` reads 269
+    translated and returns 0, and `-c` covers `--check-format`; the set
+    comparison of findings 52, 80 and 83 is blind because **no msgid changed**;
+    and finding 93's control has nothing to name because nothing departs and
+    nothing arrives. The fault sits **inside** a translation, and the whole
+    procedure measures the set of keys and the count of states. What finds it,
+    with a control that comes out different: the length of `msgstr` against the
+    length of `msgid`, for msgids of 20 characters and up — median 1.13 over
+    the catalogue's 257 messages, the damaged one 2.44, above a threshold of
+    1.6 exactly one hit before and none after. The threshold has to exclude the
+    short messages or "Undo" turning into "Rückgängig" tops the list at 2.50.
+
+101. **A search whose output is cut off by `head` answers "does this occur?"
+    with "I did not see it".** From outside the two are indistinguishable.
+    Measured 2026-10-10, three times in one day. The lead concluded from
+    `grep … | head -12` that a file stem stands nowhere in SPEC — it stands in
+    `SPEC.md:552`, behind the cut, and the wrong conclusion went into an
+    instruction to an implementer. An implementer got zero hits for its own
+    changelog entry from `grep -n … | head -8`, because those eight lines were
+    filled by somebody else's entry and its own stood at line 479. This is
+    finding 44's family with a different tool: there `2>/dev/null` swallowed
+    the error, here `head` cuts the answer. What catches it: **count before you
+    read** (`grep -c`) — a number above your display limit says by itself that
+    something stands behind it.
+
+102. **Whoever waits for a bus name with a call starts the installed copy.**
+    Measured 2026-10-10 on #40: a run waited with `gdbus call … Ping` for the
+    daemon it had started itself to hold its name. Every call on a name is an
+    **activation**: the bus started `/usr/bin/denkzetteld` out of
+    `/usr/share/dbus-1/services`, the installed one won the race for
+    `KDBusService::Unique`, and of two daemons in one run the second was not
+    the built one — while `readlink /proc/<started pid>/exe` dutifully named
+    the build binary, because that process was running, only without the name.
+    The answers on the wire came out of the old state and read like a fault of
+    the new one. What carries: wait with `busctl --user list`, which activates
+    nothing; ask who the owner is with `busctl --user status <name>` and hold
+    it against the started pid; and make activation impossible —
+    `dbus-run-session --config-file` with a single, **empty** `<servicedir>`,
+    because `XDG_DATA_DIRS` cannot take a service away from a session bus
+    (finding 77).
+
+103. **`CloseNotification` after an `ActionInvoked` comes with and without the
+    action.** Measured 2026-10-10 on #40: a stand-in on
+    `org.freedesktop.Notifications` sent `ActionInvoked(#5, "default")` and the
+    client answered `CloseNotification(#5)` — with the default action set
+    **and** with `addDefaultAction()` taken out. The readback therefore says
+    only that the client heard the signal, not that the action arrived, and a
+    run taking it as evidence reports an action that does not exist. What does
+    come out different is first the `actions` array on the wire, and second
+    what the action **sets off** — here `ProposalWindow::showProposals()` to
+    `reload()`, which sweeps a proposal whose notes are all gone: a note-less
+    row planted beforehand is afterwards gone (0) or still standing (1).
+    **An activation is measured by its effect, never by its receipt.**
+
+104. **A fault report that reads the mechanism out of the code names the wrong
+    state — and a criterion built on it argues from a run that would have gone
+    the other way.** Measured 2026-10-10 on #149: the issue said that over a
+    group head the action is off and the button on, and that an assertion on
+    `action->isEnabled()` would be green over both states. Measured on `main`:
+    over a head **both** were on — `hasNote` was `currentIndex().isValid()` and
+    a head's index is valid — and only with **no current index**, the state
+    AT-SPI's `select_child` leaves behind and the one the finder hit while
+    reviewing #34, was the action off and the button on. The mechanism was
+    right, the state was wrong, the fix needed two halves, and a case written
+    to the issue's wording would have reached one of them. Finding 65's family:
+    what the finder **measured** goes into the issue beside what the code
+    reading says, and a criterion's "would be green" is a run, not a sentence.
+
+105. **An error body carries an account identifier that no documentation
+    names.** Measured 2026-10-10 on #38, on the first live run against
+    openrouter: the answer to an invalid model id is
+    `{"error":{"message":"…","code":400},"user_id":"…"}`. The rule "collect the
+    field names first, then decide whether the values get looked at" is written
+    for exploring an interface; it holds for the **response body of a live
+    run** just as much, and there it is easier to forget, because the body
+    arrives as a measurement rather than as a query. What carries: the
+    redaction stands in the print **before** the first run — afterwards the
+    identifier has already been transmitted. And the assurance belongs in the
+    product rather than in the intention: that only `error.message` reaches the
+    user's sentence is a statement about the log of SPEC 14 and the settings
+    page, and it is proven with a counter-probe that hands the whole body on.
+
+106. **A sentence is not true or false by itself, but at the place where it
+    stands.** Measured 2026-10-10 on #35: the same clause — "while notes stand
+    that are at least the age threshold old and in no cluster, every run offers
+    them as one bundle" — reads **true** in SPEC 7.3 and **false** in SPEC 11.
+    The guard reads `MIN(created_at)` over **every** note; the run sees only
+    what `Store::embeddings(model, service)` returns, so a note never analysed,
+    one waiting to be re-embedded after a change of service, and one standing
+    while no embedding model is set each remind without being bundled. In 7.3
+    the reader has the ground in front of them — the section's first point
+    defines it as "the embeddings of all unexported, analysed notes" — and the
+    reader of §11 comes from the age of the oldest unexported note and does
+    not. The implementer therefore **refused to insert it** and reported back
+    instead of adapting it. Whoever carries a wording from a decision into a
+    binding text reads it again at its new place, and the shortening is where
+    the cases the decider still had in mind fall out.
+
 **The common denominator** is every time the first rule of the verification
 stance: the step would have delivered the same output if its subject had been
 missing.
@@ -1999,6 +2172,19 @@ The repository is **public**. What stands in issues and commits is published.
 Permitted are quotes from the user and measurements; not permitted are system
 details (host names, kernel versions, paths outside the project, internals of
 the home network) and personal data.
+
+**A follow-up commit does not unpublish anything.** Measured 2026-10-10 on
+#40, whose review images showed the nested session's launcher bar with a
+third-party icon in it. Cropping the files afterwards left four blobs standing
+in the branch's earlier commits, and an ordinary merge would have made every
+one of them reachable from `main` — the next push publishes what is reachable,
+not what the tree shows. The branch had never been pushed, which was the only
+reason the choice still existed: it went to `main` as **one squashed commit**
+whose tree carries the cropped images, the branch was deleted afterwards, and
+the readback is `git rev-list --objects --all` coming back empty for every one
+of the four blobs. So: whoever finds that a commit carries something that must
+not be published asks first whether the branch has been pushed, and squashes if
+it has not. If it has, the decision is the user's.
 
 Pushing happens after every completed block of work, without asking. Every push
 to `main` triggers a public build and test run (`.github/workflows/ci.yml`); it
