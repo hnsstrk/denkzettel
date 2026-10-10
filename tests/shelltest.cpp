@@ -85,6 +85,7 @@ private Q_SLOTS:
     void namesTheCountWhenBothCriteriaGiveWayAtOnce();
     void announcesADeletionSoTheLineCanGoWithItsCause();
     void putsTheOverflowLastInTheLineAndRaisesNoErrorState();
+    void saysTheTopicBundlesAreDroppedWithoutTakingAnotherPartWithIt();
 
     void theLogRotatesAtOneMegabyte();
 
@@ -905,6 +906,49 @@ void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
 
     // And empty takes it back to the untroubled line, like every other part.
     icon.setOverflow(QString());
+    QCOMPARE(icon.item()->toolTipSubTitle(), QStringLiteral("Capture thoughts quickly"));
+}
+
+void ShellTest::saysTheTopicBundlesAreDroppedWithoutTakingAnotherPartWithIt()
+{
+    // The **sixth** writer of the one subtitle line (SPEC 7.1, issue #38), and
+    // it is read back beside parts that were already standing for the reason
+    // the overflow above is: what breaks in silence about a new part is a
+    // setter that takes another writer's part with it, which is what issue
+    // #118 measured.
+    TrayIcon icon;
+    icon.setNotesWithoutTranscript(2);
+    icon.setNotesWithoutCategory(1);
+    icon.setOverflow(QStringLiteral("213 notes waiting for export"));
+    const QString before = icon.item()->toolTipSubTitle();
+    QCOMPARE(before.count(QStringLiteral(" · ")), 2);
+
+    icon.setBundlesDropped(QStringLiteral("No topic bundles: the embedding did not get through"));
+    const QString after = icon.item()->toolTipSubTitle();
+    QCOMPARE(after.count(QStringLiteral(" · ")), 3);
+    // The three that were there are untouched, and the new one is last — after
+    // the overflow, which was itself put last in September. Appending is what
+    // moves no existing part.
+    QVERIFY2(after.startsWith(before), qPrintable(after));
+    QVERIFY2(after.endsWith(QStringLiteral("No topic bundles: the embedding did not get through")),
+             qPrintable(after));
+
+    // **No error state of its own.** A service that is not answering is how the
+    // machine stands, not a fault that happened to a note — and SPEC 7.1 has
+    // the embedding step count no attempt for it. Read back once the two counts
+    // are gone, because while they stand the answer is NeedsAttention whatever
+    // this part does and the assertion could not come out different.
+    icon.setNotesWithoutTranscript(0);
+    icon.setNotesWithoutCategory(0);
+    QCOMPARE(icon.item()->status(), KStatusNotifierItem::Active);
+
+    // And empty takes it back, like every other part. The overflow is taken
+    // back first so the line ends on the untroubled sentence — which is what
+    // says this part was the only thing left in it.
+    icon.setOverflow(QString());
+    QCOMPARE(icon.item()->toolTipSubTitle(),
+             QStringLiteral("No topic bundles: the embedding did not get through"));
+    icon.setBundlesDropped(QString());
     QCOMPARE(icon.item()->toolTipSubTitle(), QStringLiteral("Capture thoughts quickly"));
 }
 

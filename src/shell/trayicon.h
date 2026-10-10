@@ -134,6 +134,31 @@ public Q_SLOTS:
      */
     void setWaitingSuggestions(int count);
 
+    /**
+     * That the topic bundles of SPEC 7.3 stand still because the embedding
+     * service did not answer (SPEC 7.1, issue #38). Empty takes it back.
+     *
+     * SPEC 7.1 asks for this in as many words — "classification through the
+     * chosen provider keeps working, topic bundles are dropped (hint in the
+     * settings and the tray tooltip)" — and until #38 the tooltip said nothing
+     * of the kind: the two counts above are classification aftermath, and
+     * `setUnavailableTools()` names Ollama by **name** when its server is
+     * quiet, which is a statement about a program and not about what the user
+     * stops getting. Since #130 the embedding comes from whichever provider is
+     * chosen, so naming Ollama would not even be the right program.
+     *
+     * **No error state**, like the tools, the model and the overflow above and
+     * unlike the two counts: a service that is not answering is how the
+     * machine stands at this moment, not a fault that happened to a note. No
+     * note was counted for it either — SPEC 7.1 has the embedding step count
+     * no attempt on an unreachable backend, and the run stops instead.
+     *
+     * A whole sentence and not a name, for the reason the model's and the
+     * overflow's are: what the user needs told is what they are **not
+     * getting**, and that is one statement.
+     */
+    void setBundlesDropped(const QString &report);
+
 Q_SIGNALS:
     void captureRequested();
     void recorderRequested();
@@ -154,6 +179,7 @@ private:
     int m_notesWithoutCategory = 0;
     QString m_missingModel;
     QString m_overflow;
+    QString m_bundlesDropped;
     QStringList m_unavailableTools;
     int m_waitingSuggestions = 0;
     /**

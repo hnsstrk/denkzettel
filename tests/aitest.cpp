@@ -743,23 +743,63 @@ void AiTest::aChangedAddressAndModelReachTheRunningProvider()
 
 void AiTest::openRouterStreamIsPutBackTogether()
 {
-    // The happy road of the second backend (SPEC 7.1, issue #38), and the one
-    // shape a stand-in can carry: `data:` frames, a keep-alive comment among
-    // them, and `[DONE]` at the end. The pieces are three so that a reader
-    // taking only the first or only the last comes out wrong, and the middle
-    // one carries a German special character — a stream is read as bytes and
-    // cut at line boundaries, which is where an encoding is lost silently.
-    const OpenAiCompatibleAnswer answer = readOpenAiCompatibleReply(openrouter::Service.name,
-                            
+    // The happy road of the second backend (SPEC 7.1, issue #38), and **the
+    // frame shape below is the one the live run measured** rather than the one
+    // the documentation describes (10.10.2026, openrouter, `openai/gpt-4o-mini`,
+    // 14 prompt and 2 completion tokens for 0.0000033 USD). What the real
+    // answer carries beyond the earlier hand-written body, and each of the
+    // three would have gone unnoticed against it:
+    //
+    // - `role` stands **beside** `content` inside the same `delta`;
+    // - the stream does not end on the last frame that carries text. Two
+    //   frames with `"content":""` and `finish_reason:"stop"` follow, and
+    //   **then** a usage chunk, which is what the documentation means by "sent
+    //   just before the `[DONE]` message";
+    // - every frame is followed by a blank line.
+    //
+    // The generation id and the fingerprint of the real answer are left out:
+    // they identify one call on the customer's account and the reader never
+    // looks at them.
+    //
+    // **The measured tail guards nothing the old body did not**, and that was
+    // probed rather than assumed: with the accumulation mutated to an
+    // assignment, the case goes red against **both** bodies. What differs is
+    // how it fails — `"answer carried no text."` against the measured body,
+    // `"Welt"` against the old one. A loud failure over a plausible fragment
+    // is worth having, and it is the whole of the gain here. The pieces are still three so that a reader taking only
+    // the first or only the last comes out wrong, and the middle one still
+    // carries a German special character — a stream is read as bytes and cut at
+    // line boundaries, which is where an encoding is lost silently. **The
+    // keep-alive comment is documented and was not measured**: a two-token
+    // answer gives the service no reason to send one, so it stays in the body
+    // as the documented shape (CLAUDE.md, finding 45 — asked per backend, does
+    // this server produce the case at all).
+    const OpenAiCompatibleAnswer answer = readOpenAiCompatibleReply(
+        openrouter::Service.name,
         QNetworkReply::NoError,
         QString(),
         200,
         ": OPENROUTER PROCESSING\n"
-        "data: {\"choices\":[{\"delta\":{\"content\":\"Gr\"}}]}\n"
         "\n"
-        "data: {\"choices\":[{\"delta\":{\"content\":\"üße, \"}}]}\n"
-        "data: {\"choices\":[{\"delta\":{\"content\":\"Welt\"}}]}\n"
-        "data: [DONE]\n");
+        "data: {\"object\":\"chat.completion.chunk\",\"model\":\"openai/gpt-4o-mini\","
+        "\"provider\":\"OpenAI\",\"choices\":[{\"index\":0,"
+        "\"delta\":{\"content\":\"Gr\",\"role\":\"assistant\"},\"finish_reason\":null}]}\n"
+        "\n"
+        "data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\"üße, \","
+        "\"role\":\"assistant\"}}]}\n"
+        "\n"
+        "data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Welt\","
+        "\"role\":\"assistant\"}}]}\n"
+        "\n"
+        "data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\","
+        "\"role\":\"assistant\"},\"finish_reason\":\"stop\"}]}\n"
+        "\n"
+        "data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\"},"
+        "\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":14,"
+        "\"completion_tokens\":2,\"total_tokens\":16}}\n"
+        "\n"
+        "data: [DONE]\n"
+        "\n");
     QCOMPARE(answer.error, QString());
     QCOMPARE(answer.text, QString::fromUtf8("Grüße, Welt"));
 }
@@ -790,14 +830,57 @@ void AiTest::openRouterRefusalBeatsTheStatusCode()
     // a rejected key are three different things to the user and one HTTP
     // number. The status is handed in as 400 on purpose — without the body
     // being read first, the case below would come out "HTTP status 400".
+    //
+    // **Both pairs below were measured against the live service** (10.10.2026,
+    // issue #38), and the transport value is the half no documentation gives:
+    // openrouter answers a refusal with a status **and** a Qt transport error,
+    // which is why the order of the branches decides. An unknown model arrives
+    // as `ProtocolInvalidOperationError` with 400, a rejected key as
+    // `AuthenticationRequiredError` with 401 — and both have to come out as the
+    // service's own sentence, not as "could not be reached" and not as an HTTP
+    // number. **Only the status branch is in the way of that**, and only it was
+    // probed: the transport branch needs `httpStatus == 0` and cannot fire on a
+    // 400 or a 401 at all.
+    //
+    // The two wordings below are the service's own, taken from the run, and
+    // they are what it answered to **these two inputs** — an invalid model id
+    // and a corrupted key. The earlier body here said "No endpoints found for
+    // wrong/model.", which was written from the documentation; what this
+    // service answered to an invalid model id is the sentence below. Nothing
+    // about either generalises to another kind of refusal.
     const OpenAiCompatibleAnswer answer =
         readOpenAiCompatibleReply(openrouter::Service.name,
                             QNetworkReply::ProtocolInvalidOperationError,
-                            QStringLiteral("Bad Request"),
+                            QStringLiteral("Error transferring"),
                             400,
-                            R"({"error":{"message":"No endpoints found for wrong/model.","code":400}})");
+                            R"({"error":{"message":"no-such-vendor/no-such-model-of-the-check)"
+                            R"( is not a valid model ID","code":400},"user_id":"user_OF-THE-CHECK"})");
     QCOMPARE(answer.error,
-             QStringLiteral("openrouter.ai refused the request: No endpoints found for wrong/model."));
+             QStringLiteral("openrouter.ai refused the request:"
+                            " no-such-vendor/no-such-model-of-the-check is not a valid model ID"));
+
+    // **And the account identifier stays out of the sentence.** The measured
+    // 400 body carries a `user_id` beside the message — an opaque identifier of
+    // the customer's openrouter account, which the documentation does not
+    // mention. The sentence goes into the log of SPEC 14, into the tray and
+    // onto the settings page, so a reader that handed the body on instead of
+    // `error.message` would publish it there. Nothing about such a change would
+    // look wrong, which is why this is asserted rather than looked at: the
+    // value in the body above is an invented one, and the field name is what
+    // the check is about.
+    QVERIFY2(!answer.error.contains(QLatin1String("user_id")), qPrintable(answer.error));
+    QVERIFY2(!answer.error.contains(QLatin1String("OF-THE-CHECK")), qPrintable(answer.error));
+
+    // The rejected key, measured the same day. 401 beside a transport error of
+    // its own, and the service's four words are the whole of what the user
+    // needs — "HTTP status 401" would send them looking at their network.
+    const OpenAiCompatibleAnswer rejected =
+        readOpenAiCompatibleReply(openrouter::Service.name,
+                            QNetworkReply::AuthenticationRequiredError,
+                            QStringLiteral("Host requires authentication"),
+                            401,
+                            R"({"error":{"message":"User not found.","code":401}})");
+    QCOMPARE(rejected.error, QStringLiteral("openrouter.ai refused the request: User not found."));
 }
 
 void AiTest::openRouterRefusalInsideTheStreamIsStillTheRefusal()
@@ -840,6 +923,25 @@ void AiTest::openRouterTimeoutAndTotalLimitAreNamedApart()
     // The two limits of SPEC 7.1 are two sentences, and they have to be: one
     // says the service went quiet for 30 s, the other that it kept trickling
     // past five minutes. Read as one, a user would tune the wrong thing.
+    //
+    // **Both transport values were measured against the live service**
+    // (10.10.2026, issue #38), and that was the one value this project had
+    // reason to doubt: finding 40 is `setTransferTimeout()`, documented to
+    // abort with `OperationCanceledError` while a real Ollama answers
+    // `TimeoutError` — a mapping written from the documentation was green and
+    // proved nothing, because the code and the check had read the same page.
+    // Over TLS against openrouter it comes out the way Ollama does: a bitten
+    // transfer timeout is `TimeoutError` with status 0, and an abort() of ours
+    // on a running reply is `OperationCanceledError` with status 0. So the
+    // values here are read off a run and no longer off a document.
+    //
+    // **What is still unmeasured is the phase**, and it is named rather than
+    // glossed: the two runs set 5 ms and 400 ms, and whether the request was
+    // already on the wire at that point is not established. Silence in the
+    // middle of a stream — the case the 30 s of SPEC 7.1 are actually for —
+    // would need a model that stalls after its first token, and nothing cheap
+    // produces one. The value is the same value either way; which phase bit it
+    // is not what this function reads.
     const OpenAiCompatibleAnswer silence =
         readOpenAiCompatibleReply(openrouter::Service.name,
                             QNetworkReply::TimeoutError, QStringLiteral("Timeout"), 0, QByteArray());
@@ -883,8 +985,21 @@ void AiTest::theEmbeddingReaderTellsARefusalFromAnOutage()
         return readOpenAiCompatibleEmbedding(openrouter::Service.name, transport, message, status, body);
     };
 
-    const OpenAiCompatibleEmbedding good = read(QNetworkReply::NoError, QString(), 200,
-                                                R"({"data":[{"embedding":[0.5,-0.25,0.75]}]})");
+    // **The document shape is the measured one** (10.10.2026, issue #38,
+    // `openai/text-embedding-3-small` over openrouter, 1536 components in
+    // 29,877 bytes): `object` fields stand beside the vector at both levels,
+    // and the body arrives with leading whitespace before the brace. Three
+    // components instead of 1536, because what this case is about is the path
+    // `data[0].embedding` and not the width of a vector. (The text embedded in
+    // the run was an invented sentence of the run's own, so the numbers carry
+    // nothing of anybody's — they are simply 1536 floats of no use here.)
+    // That the route exists at all was settled by #130 on a 401 against a 404
+    // control; that it **serves embeddings** is this run.
+    const OpenAiCompatibleEmbedding good =
+        read(QNetworkReply::NoError, QString(), 200,
+             "\n  "
+             R"({"object":"list","data":[{"object":"embedding","index":0,)"
+             R"("embedding":[0.5,-0.25,0.75]}],"model":"openai/text-embedding-3-small"})");
     QCOMPARE(good.error, QString());
     QCOMPARE(good.vector, QList<double>({0.5, -0.25, 0.75}));
     QCOMPARE(good.failure, AiFailure::None);
@@ -1247,7 +1362,15 @@ void AiTest::neitherRemoteServiceRepeatsARequestOfItsOwn()
     // holds one — so the number is a property of the object and not of the
     // code, and one measured service says nothing about the other. Measured
     // 30.08.2026 for OpenAI as well: **1** request per call, the same as
-    // openrouter, so SPEC 7.1's one retry is not established for either.
+    // openrouter.
+    //
+    // **That does not leave SPEC 7.1's one retry unmet**, which an earlier
+    // wording here concluded (PO, 10.10.2026, issue #38): that retry is the
+    // second attempt of SPEC 7.2, counted per note in
+    // `notes.analysis_attempts` and across restarts — see
+    // `aRefusedNoteDoesNotBlockTheOthers()` below, which walks the three runs.
+    // What this case guards is the half that costs money, and it guards it
+    // *because* the retry lives a storey up: one POST is one bill.
     QTcpServer server;
     QVERIFY2(server.listen(QHostAddress::LocalHost), qPrintable(server.errorString()));
 
@@ -2796,6 +2919,7 @@ void AiTest::aRefusedNoteDoesNotBlockTheOthers()
     Embedder embedder(store.get(), &provider);
     QSignalSpy failed(&embedder, &Embedder::failed);
     QSignalSpy paused(&embedder, &Embedder::paused);
+    const QSignalSpy dropped(&embedder, &Embedder::unreachable);
     QSignalSpy finished(&embedder, &Embedder::finished);
 
     // First run: the refusal costs that note an attempt, and the two healthy
@@ -2810,6 +2934,10 @@ void AiTest::aRefusedNoteDoesNotBlockTheOthers()
     QCOMPARE(paused.count(), 0);
     QCOMPARE(store->note(poison)->analysisAttempts, 1);
     QCOMPARE(store->note(second)->analysisAttempts, 0);
+    // **And the tray says nothing about dropped bundles**: the service answered
+    // and refused one note, so the bundles are not falling away (SPEC 7.1,
+    // issue #38). The counterpart stands in anUnreachableBackendCostsNoAttempt().
+    QCOMPARE(dropped.count(), 0);
 
     // Second run: only the refused note is outstanding, and its second refusal
     // is the last (SPEC 7.2). What SPEC 14 asks to be reported leaves as
@@ -2861,10 +2989,17 @@ void AiTest::anUnreachableBackendCostsNoAttempt()
     Embedder embedder(store.get(), &provider);
     const QSignalSpy failed(&embedder, &Embedder::failed);
     const QSignalSpy paused(&embedder, &Embedder::paused);
+    // The channel the tray's degradation hangs on (SPEC 7.1, issue #38). Read
+    // back here because this is the one case in the set whose failure kind is
+    // Unreachable: a refusal must not raise it, and
+    // aRefusedNoteDoesNotBlockTheOthers() above is where that comes out 0.
+    const QSignalSpy dropped(&embedder, &Embedder::unreachable);
     QSignalSpy finished(&embedder, &Embedder::finished);
     embedder.start();
     QVERIFY(finished.wait(std::chrono::seconds(5)));
 
+    QCOMPARE(dropped.count(), 1);
+    QCOMPARE(dropped.constFirst().at(0).toString(), provider.embedError);
     QCOMPARE(provider.texts.size(), 1);
     QCOMPARE(failed.count(), 1);
     QCOMPARE(failed.constFirst().at(0).toLongLong(), one);

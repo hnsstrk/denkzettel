@@ -911,9 +911,30 @@ Without a reachable provider for embeddings, Denkzettel degrades visibly:
 classification through the chosen provider keeps working, topic bundles are
 dropped (hint in the settings and the tray tooltip).
 
-All calls through Qt Network, asynchronous, with one retry and **two limits per
-call**: 30 s in which nothing at all arrives, and 5 minutes for the whole call
-(decision 30.08.2026, issue #121).
+All calls through Qt Network, asynchronous, with **two limits per call**: 30 s
+in which nothing at all arrives, and 5 minutes for the whole call (decision
+30.08.2026, issue #121).
+
+**The one retry this sentence used to promise lives in §7.2, and it is per note
+and per step — not per call.** `notes.analysis_attempts` counts a failure
+persistently and survives a daemon restart, so a note whose **classification**
+fails is asked once more in the next analysis run and skipped from the second
+failure on. **Embedding is the exception this section already names two
+paragraphs down:** an unreachable backend counts no attempt and the run stops
+instead, so such a note is asked again in every following run without a ceiling
+— while an embedding the backend *refuses* counts like a classification
+failure. In the code that is the whole difference between `Embedder::fail()`,
+which calls `Store::failAnalysis()`, and `Embedder::stop()`, which does not.
+
+**On the HTTP level this project repeats nothing**, and that is deliberate
+rather than missing. A repeat there would sit on top of the per-note attempt,
+which is the "no endless retrying, no self-healing" of §7.2, and against a
+metered service it can bill twice: `RemoteHostClosedError` with no byte
+received does not prove the request went unprocessed. Written without the
+pointer above, the sentence was read three different ways by three
+implementers — as Qt's own repeat of a closed connection (#13), as a missing
+retry of our own (#39), and as a promise unfulfillable for the remote
+providers (#38) — and each reading was reasonable on the text alone.
 
 **The 30 s measure silence.** The chat call streams and its lines are put back
 together before anybody sees them, so 7.2 still reads one JSON document per

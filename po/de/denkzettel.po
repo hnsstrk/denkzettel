@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 08:56+0200\n"
+"POT-Creation-Date: 2026-10-10 09:03+0200\n"
 "PO-Revision-Date: 2026-08-20 15:33+0200\n"
 "Last-Translator: Denkzettel authors\n"
 "Language-Team: German\n"
@@ -37,7 +37,7 @@ msgstr ""
 msgid "The model's answer carried no tag."
 msgstr "Die Antwort des Modells enthielt kein Schlagwort."
 
-#: src/analysis/embedder.cpp:49
+#: src/analysis/embedder.cpp:56
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr "Die Antwort enthielt keinen Einbettungsvektor."
@@ -250,19 +250,24 @@ msgstr "Transkription fehlgeschlagen"
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr "Die Sprachnotiz vom %1 konnte nicht transkribiert werden: %2"
 
-#: src/main.cpp:558
+#: src/main.cpp:522
+#, kde-format
+msgid "No topic bundles: the embedding did not get through"
+msgstr "Keine Themenbündel: Die Einbettung kam nicht durch"
+
+#: src/main.cpp:584
 #, kde-format
 msgid "New suggestions"
 msgstr "Neue Vorschläge"
 
-#: src/main.cpp:559
+#: src/main.cpp:585
 #, kde-format
 msgid "%1 new suggestion is waiting for review"
 msgid_plural "%1 new suggestions are waiting for review"
 msgstr[0] "%1 neuer Vorschlag wartet auf Durchsicht"
 msgstr[1] "%1 neue Vorschläge warten auf Durchsicht"
 
-#: src/main.cpp:609
+#: src/main.cpp:635
 #, kde-format
 msgid "Notes waiting for export"
 msgstr "Notizen warten auf den Export"
@@ -740,7 +745,7 @@ msgstr "Erwartet unter %1"
 msgid "Lies at %1"
 msgstr "Liegt unter %1"
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:225
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:238
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr "Gedanken schnell festhalten"
@@ -773,12 +778,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr "%1 — %2"
 
-#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:234
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:247
 #, kde-format
 msgid "Capture note"
 msgstr "Notiz erfassen"
 
-#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:245
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:258
 #, kde-format
 msgid "Record voice note"
 msgstr "Sprachnotiz aufnehmen"
@@ -868,58 +873,58 @@ msgstr ""
 "Neuinstallation bringt ihn zurück. Bis dahin bleibt Denkzettel über das "
 "Symbol im Systemabschnitt erreichbar."
 
-#: src/shell/trayicon.cpp:173
+#: src/shell/trayicon.cpp:179
 #, kde-format
 msgctxt "@action:inmenu tray entry with the number of waiting suggestions"
 msgid "Suggestions (%1)"
 msgstr "Vorschläge (%1)"
 
-#: src/shell/trayicon.cpp:174 src/shell/trayicon.cpp:274
+#: src/shell/trayicon.cpp:180 src/shell/trayicon.cpp:287
 #, kde-format
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: src/shell/trayicon.cpp:197
+#: src/shell/trayicon.cpp:203
 #, kde-format
 msgid "Not available: %1"
 msgstr "Nicht verfügbar: %1"
 
-#: src/shell/trayicon.cpp:211
+#: src/shell/trayicon.cpp:217
 #, kde-format
 msgid "%1 note without a transcript"
 msgid_plural "%1 notes without a transcript"
 msgstr[0] "%1 Notiz ohne Transkript"
 msgstr[1] "%1 Notizen ohne Transkript"
 
-#: src/shell/trayicon.cpp:215
+#: src/shell/trayicon.cpp:221
 #, kde-format
 msgid "%1 note without a category"
 msgid_plural "%1 notes without a category"
 msgstr[0] "%1 Notiz ohne Einordnung"
 msgstr[1] "%1 Notizen ohne Einordnung"
 
-#: src/shell/trayicon.cpp:257
+#: src/shell/trayicon.cpp:270
 #, kde-format
 msgid "Open library"
 msgstr "Bibliothek öffnen"
 
-#: src/shell/trayicon.cpp:264 src/ui/librarywindow.cpp:434
+#: src/shell/trayicon.cpp:277 src/ui/librarywindow.cpp:434
 #: src/ui/librarywindow.cpp:2365
 #, kde-format
 msgid "Analyze now"
 msgstr "Jetzt analysieren"
 
-#: src/shell/trayicon.cpp:285 src/ui/librarywindow.cpp:776
+#: src/shell/trayicon.cpp:298 src/ui/librarywindow.cpp:776
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr "Denkzettel einrichten …"
 
-#: src/shell/trayicon.cpp:295
+#: src/shell/trayicon.cpp:308
 #, kde-format
 msgid "About Denkzettel"
 msgstr "Über Denkzettel"
 
-#: src/shell/trayicon.cpp:327
+#: src/shell/trayicon.cpp:340
 #, kde-format
 msgid "Quit"
 msgstr "Beenden"
@@ -1579,6 +1584,14 @@ msgid "Older"
 msgstr "Älter"
 
 #, kde-format
+#~ msgid ""
+#~ "The text of every note Denkzettel classifies leaves the machine and goes "
+#~ "to %1."
+#~ msgstr ""
+#~ "Der Text jeder Notiz, die Denkzettel einordnet, verlässt den Rechner und "
+#~ "geht an %1."
+
+#, kde-format
 #~ msgid "%1 is not asked for embeddings; those come from Ollama."
 #~ msgstr "%1 wird nicht nach Einbettungen gefragt; die kommen von Ollama."
 
@@ -1591,14 +1604,6 @@ msgstr "Älter"
 #~ "Die beiden Zeilen darüber gehören zu Ollama: Es beantwortet den "
 #~ "Einbettungsaufruf, gleich welcher Anbieter die Klassifizierung schreibt. "
 #~ "Ohne erreichbares Ollama gibt es keine Themenbündel."
-
-#, kde-format
-#~ msgid ""
-#~ "The text of every note Denkzettel classifies leaves the machine and goes "
-#~ "to %1."
-#~ msgstr ""
-#~ "Der Text jeder Notiz, die Denkzettel einordnet, verlässt den Rechner und "
-#~ "geht an %1."
 
 #, kde-format
 #~ msgid ""

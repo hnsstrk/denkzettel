@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 08:56+0200\n"
+"POT-Creation-Date: 2026-10-10 09:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "The model's answer carried no tag."
 msgstr ""
 
-#: src/analysis/embedder.cpp:49
+#: src/analysis/embedder.cpp:56
 #, kde-format
 msgid "The answer carried no embedding vector."
 msgstr ""
@@ -234,19 +234,24 @@ msgstr ""
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
 
-#: src/main.cpp:558
+#: src/main.cpp:522
+#, kde-format
+msgid "No topic bundles: the embedding did not get through"
+msgstr ""
+
+#: src/main.cpp:584
 #, kde-format
 msgid "New suggestions"
 msgstr ""
 
-#: src/main.cpp:559
+#: src/main.cpp:585
 #, kde-format
 msgid "%1 new suggestion is waiting for review"
 msgid_plural "%1 new suggestions are waiting for review"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/main.cpp:609
+#: src/main.cpp:635
 #, kde-format
 msgid "Notes waiting for export"
 msgstr ""
@@ -702,7 +707,7 @@ msgstr ""
 msgid "Lies at %1"
 msgstr ""
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:225
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:238
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr ""
@@ -731,12 +736,12 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:234
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:247
 #, kde-format
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:245
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:258
 #, kde-format
 msgid "Record voice note"
 msgstr ""
@@ -812,58 +817,58 @@ msgid ""
 "then Denkzettel stays reachable through the icon in the system tray."
 msgstr ""
 
-#: src/shell/trayicon.cpp:173
+#: src/shell/trayicon.cpp:179
 #, kde-format
 msgctxt "@action:inmenu tray entry with the number of waiting suggestions"
 msgid "Suggestions (%1)"
 msgstr ""
 
-#: src/shell/trayicon.cpp:174 src/shell/trayicon.cpp:274
+#: src/shell/trayicon.cpp:180 src/shell/trayicon.cpp:287
 #, kde-format
 msgid "Suggestions"
 msgstr ""
 
-#: src/shell/trayicon.cpp:197
+#: src/shell/trayicon.cpp:203
 #, kde-format
 msgid "Not available: %1"
 msgstr ""
 
-#: src/shell/trayicon.cpp:211
+#: src/shell/trayicon.cpp:217
 #, kde-format
 msgid "%1 note without a transcript"
 msgid_plural "%1 notes without a transcript"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/trayicon.cpp:215
+#: src/shell/trayicon.cpp:221
 #, kde-format
 msgid "%1 note without a category"
 msgid_plural "%1 notes without a category"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/trayicon.cpp:257
+#: src/shell/trayicon.cpp:270
 #, kde-format
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:264 src/ui/librarywindow.cpp:434
+#: src/shell/trayicon.cpp:277 src/ui/librarywindow.cpp:434
 #: src/ui/librarywindow.cpp:2365
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:285 src/ui/librarywindow.cpp:776
+#: src/shell/trayicon.cpp:298 src/ui/librarywindow.cpp:776
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
 
-#: src/shell/trayicon.cpp:295
+#: src/shell/trayicon.cpp:308
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:327
+#: src/shell/trayicon.cpp:340
 #, kde-format
 msgid "Quit"
 msgstr ""

@@ -147,6 +147,37 @@ Q_SIGNALS:
      */
     void notReady(const QString &reason);
 
+    /**
+     * The run stopped because the embedding backend did not answer, so no new
+     * vector came into being and the topic bundles of SPEC 7.3 stand still.
+     *
+     * **Why this is a channel of its own and not `failed()`.** SPEC 7.1 owes
+     * the user a visible degradation for exactly this case — "classification
+     * through the chosen provider keeps working, topic bundles are dropped
+     * (hint in the settings and the tray tooltip)" — and `failed()` cannot
+     * carry it: it is emitted for a refusal as well, which costs the note an
+     * attempt and says nothing about the service being gone.
+     *
+     * **Emitted on the `AiFailure::Unreachable` branch and not in stop()**,
+     * although stop() is what both of them call: a database that refuses the
+     * vector ends the run through stop() too, and a sentence about the
+     * embedding would then stand over an SQLite write error.
+     *
+     * It is **not** the unmet precondition either: an embedding model the user
+     * has not filled in yet is notReady()'s business and is no outage
+     * (SPEC 12's rule). What does come through here beside a silent service is
+     * a password store that would not open and a key that was never entered
+     * (OpenAiCompatibleProvider::releaseWaiting()) — all of them mean the same
+     * thing to the user, that no bundle is coming, which is why the sentence
+     * the tray shows names **that** and not a cause.
+     *
+     * Emitted once per stopped run. The state it raises lives in the tray
+     * object and nowhere else, so a restart clears it and the next run that
+     * breaks off brings it back — unlike the two counts of issue #118 beside
+     * it, which are read out of the store at start.
+     */
+    void unreachable(const QString &reason);
+
     /** The run is through and nothing is outstanding. */
     void finished();
 

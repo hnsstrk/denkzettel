@@ -33,6 +33,13 @@ Embedder::Embedder(Store *store, AiProvider *provider, QObject *parent)
             // backend that never answered stops the run and costs nobody an
             // attempt, one that answered and refused costs this note one.
             if (failure == AiFailure::Unreachable) {
+                // **The visible degradation of SPEC 7.1, and it is raised here
+                // and not in stop()**: stop() is also the road a database that
+                // refuses the vector takes (below), and a sentence about the
+                // embedding not getting through would then stand over an
+                // SQLite write error. This branch is the one where the backend
+                // is the reason and no note was counted for it.
+                Q_EMIT unreachable(error);
                 stop(error);
             } else {
                 fail(error);

@@ -153,6 +153,12 @@ void TrayIcon::setOverflow(const QString &report)
     showToolTip();
 }
 
+void TrayIcon::setBundlesDropped(const QString &report)
+{
+    m_bundlesDropped = report;
+    showToolTip();
+}
+
 void TrayIcon::setWaitingSuggestions(int count)
 {
     m_waitingSuggestions = count;
@@ -221,6 +227,13 @@ void TrayIcon::showToolTip()
     // of the two criteria.
     if (!m_overflow.isEmpty()) {
         parts.append(m_overflow);
+    }
+    // Sixth and last, appended for the reason the overflow is appended: a new
+    // part at the end moves none of the five above, and the order is fixed only
+    // so the line does not reshuffle itself under the pointer. It raises no
+    // state — see the header.
+    if (!m_bundlesDropped.isEmpty()) {
+        parts.append(m_bundlesDropped);
     }
     m_item->setToolTipSubTitle(parts.isEmpty() ? i18n("Capture thoughts quickly")
                                                : parts.join(QStringLiteral(" · ")));
