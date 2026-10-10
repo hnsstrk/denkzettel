@@ -1863,10 +1863,17 @@ find.
     eight grabs — while the remaining frames differ by 152,078 summed channel
     difference, which is what says the identity is a property of the product
     and not of the measurement. The only hint without an icon is a size change
-    of two logical pixels that is absent about half the time. That is an
-    accessibility matter rather than a design preference, and it is the KDE
-    HIG's own test for animation: disable animations globally and check that
-    every animated element still says what it means.
+    from 23×24 to 27×28 device pixels, and **such an indistinguishable frame
+    exists** — which is the whole claim. **The counts are not a frequency**
+    (finding 76): eight uncontrolled phases say that a frame without a
+    difference occurs, not how often, and the 70 % the source reading suggests
+    is neither confirmed nor refuted by them. A state indicator whose only mark
+    can be absent at the moment you look is not one, and that is an
+    accessibility matter rather than a design preference — it is the KDE HIG's
+    own test for animation (disable animations globally and check that every
+    animated element either transitions instantly or shows a static image;
+    measured, Plasma's attention hint does neither) next to its rule against
+    blinking elements other than the text cursor.
 
     So the honest reading of a host's animation is "pulses under this
     condition", never "the state was always visible" — and the way to settle it
