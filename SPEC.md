@@ -1091,19 +1091,44 @@ conceivable as an optional later additional path, but is not built for v1.
 
 ### 8.1 Obsidian export (bundles)
 
-- Target note: **one collective note per topic** in `<vault>/_INBOX/`, file
-  name `Denkzettel <topic> <YYYY-MM-DD>.md`.
-- Structure: vault-conformant frontmatter (`type`, `tags`, `created` — verify
-  against the vault CLAUDE.md conventions when building), `# <topic>`, then
-  `## <YYYY-MM-DD>` sections with the notes as paragraphs/bullets
-  (chronological), like the Markdown preview in the wireframe.
+- Target: `<vault>/_INBOX/`. One export writes **one collective note per
+  topic and one file per note** (customer decision 10.10.2026, issue #32 — it
+  supersedes both the collective note alone and the "one file per note" of
+  30.08.2026).
+- File names: the collective note is `Denkzettel <topic> <YYYY-MM-DD>.md`;
+  a note's file is `Denkzettel <stem>.md`, where the stem is the note's
+  timestamp as `noteFileStem()` renders it (SPEC 4) — the same stem its audio
+  file and its file in the full export of 8.3 carry. No title is made out of
+  the text: `_INBOX/` is exempt from the vault's title rule, and the title is
+  given when the user files the note (PO decision 10.10.2026). Every name is
+  taken by creating the file exclusively; a name that is taken counts up
+  (`… 2.md`) — for the collective note by topic and day, for a note's file
+  only ever over a leftover of the same note.
+- Structure: vault-conformant frontmatter (`type: note`; `tags` as a block
+  list — `denkzettel`, the topic in the vault's tag form, then the tags of the
+  notes; `created`). Collective note: `# <topic>`, then `## <YYYY-MM-DD>`
+  sections with the notes as paragraphs (chronological); its `created` is the
+  day of the export. Note file: the note's text as the body and nothing else;
+  its `created` is the note's own day.
+- **The topic tag is what holds the files of one bundle together — nothing
+  links.** `_INBOX/` is staging and nobody points at it (user decision
+  06.08.2026); a link between two staged files becomes a link into `_INBOX/`
+  the moment one of them is filed, because the vault updates links on move
+  (measured 03.09.2026). The tag survives the filing and points nowhere.
 - Voice notes export their **transcript**; the audio file is deleted on export
   (decision of the concept: audio lives only as long as the note).
+- **Order, and the guarantee.** Every file is written first; only then are the
+  notes deleted in one transaction. A run that fails after it has written — a
+  later file, or the deletion — removes **exactly the files it wrote**, under
+  the names it read back from the handles it opened, checks on the file system
+  that they are gone, and never touches a file it did not write (customer
+  decision 30.08.2026). At that moment the corpus is unchanged, so removing
+  them restores the state before the attempt.
 - After a confirmed export: delete the notes in one transaction (including
   audio, tags, embeddings, FTS) and **remove the suggestion together with its
   `proposal_notes` references** — accepting and discarding end the same way,
-  except that accepting executes beforehand. An "accepted" state does not exist
-  (pass-through storage, no history of suggestions).
+  except that accepting executes beforehand. An "accepted" state does not
+  exist (pass-through storage, no history of suggestions).
 
 ### 8.2 Taskwarrior
 
