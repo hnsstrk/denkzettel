@@ -3,6 +3,7 @@
 #include <KConfigDialog>
 
 class AiProviderPage;
+class Embedder;
 class GlobalShortcuts;
 class ModelDownload;
 class ShortcutsPage;
@@ -46,8 +47,15 @@ public:
      * Free-standing and without a parent window on purpose: what opens it is
      * the tray menu, and that has no window; hung on the library it would hang
      * on one of several equal-ranking roads (SPEC 2.1).
+     *
+     * The three pointers are the running objects three pages read from and
+     * none of them is owned: the two actions the page "Shortcuts" writes
+     * through, the model download the page "Voice notes" shows, and the
+     * embedding run whose outage the page "AI provider" reports (SPEC 7.1,
+     * issue #153). None of the three may be null — see AiProviderPage's
+     * constructor for why the last one must not.
      */
-    static void showSettings(GlobalShortcuts *shortcuts, ModelDownload *download);
+    static void showSettings(GlobalShortcuts *shortcuts, ModelDownload *download, const Embedder *embedder);
 
 public Q_SLOTS:
     /**
@@ -84,7 +92,7 @@ protected:
     bool isDefault() override;
 
 private:
-    SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download);
+    SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download, const Embedder *embedder);
 
     ShortcutsPage *m_shortcutsPage;
     // The API key of SPEC 5.2 takes the same road as a global shortcut: it

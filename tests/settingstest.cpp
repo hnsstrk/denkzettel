@@ -1,3 +1,5 @@
+#include "aiprovidermock.h"
+
 #include "analysis/analysisscheduler.h"
 #include "analysis/classifier.h"
 #include "analysis/embedder.h"
@@ -77,6 +79,11 @@
  *    already standing in denkzettelrc comes back out of it unchanged is not
  *    visible anywhere — a value quietly rewritten to Ollama would show up as a
  *    different button checked at some later opening and nowhere else.
+ * 7. **Whether the degradation of SPEC 7.1 goes away again** (issue #153). That
+ *    it stands is a picture; that it is **taken back** once a vector arrives is
+ *    not visible anywhere until somebody opens the dialog at the right moment,
+ *    and a line left standing over a working service is the untruth the other
+ *    way round. The flank that is asserted is therefore the quiet one.
  */
 class SettingsTest : public QObject
 {
@@ -100,9 +107,10 @@ private Q_SLOTS:
     void restoringTheDefaultsResetsThePathField();
     void helpIsHiddenAndNotReplaced();
     void everyPageCarriesAnIcon();
+    void theDroppedBundlesGoBackOffThePageWhenAVectorArrives();
 
 private:
-    static SettingsDialog *openDialog();
+    static SettingsDialog *openDialog(const Embedder *embedder = nullptr);
     static void closeDialog(SettingsDialog *dialog);
     static void editFolder(QLineEdit *field, const QString &folder);
 };
@@ -161,7 +169,30 @@ void SettingsTest::initTestCase()
              qgetenv("DBUS_SESSION_BUS_ADDRESS").constData());
 }
 
-SettingsDialog *SettingsTest::openDialog()
+namespace
+{
+/**
+ * An embedding run that is never started, for every dialog this set opens.
+ *
+ * A store of its own under a `QTemporaryDir`, so nothing here comes near the
+ * notes of whoever runs the check (SPEC 16). Nothing ever calls `start()` on
+ * it; what it is here for is to answer `isUnreachable()` with `false`.
+ */
+const Embedder *idleEmbedder()
+{
+    static const QTemporaryDir data;
+    static Store store(data.filePath(QStringLiteral("notes.db")));
+    static const bool opened = store.open();
+    static AiProviderMock backend;
+    static const Embedder embedder(&store, &backend);
+    if (!opened) {
+        qWarning("the idle store of the settings dialog could not be opened");
+    }
+    return &embedder;
+}
+}
+
+SettingsDialog *SettingsTest::openDialog(const Embedder *embedder)
 {
     // The two actions the page "Shortcuts" writes through. They are built and
     // never registered here: registering would talk to the shortcut service of
@@ -173,7 +204,14 @@ SettingsDialog *SettingsTest::openDialog()
     // reaches the network.
     static ModelDownload download;
 
-    SettingsDialog::showSettings(&shortcuts, &download);
+    // **An embedding run is not optional for the page "AI provider"**
+    // (issue #153): it would otherwise answer "nothing to report" for a
+    // service that is answering and for a page nobody told anything alike,
+    // which is the pair finding 79 is about. The one below has never been
+    // started, so `isUnreachable()` is false — what a daemon whose run has not
+    // broken off answers. The case that needs the other state builds an
+    // embedder of its own and hands it in.
+    SettingsDialog::showSettings(&shortcuts, &download, embedder != nullptr ? embedder : idleEmbedder());
     return qobject_cast<SettingsDialog *>(KConfigDialog::exists(QStringLiteral("settings")));
 }
 
@@ -1315,6 +1353,81 @@ void SettingsTest::everyPageCarriesAnIcon()
         const QIcon icon = pages->data(pages->index(row, 0), Qt::DecorationRole).value<QIcon>();
         QCOMPARE(icon.name(), expected.at(row));
     }
+
+    closeDialog(dialog);
+}
+
+void SettingsTest::theDroppedBundlesGoBackOffThePageWhenAVectorArrives()
+{
+    // The degradation of SPEC 7.1 on the settings side (issue #153). The
+    // picture carries the half that can be looked at — the line standing on an
+    // opened page; what is asserted here is the half nobody can see: that it is
+    // **taken back** when a vector arrives again.
+    const QTemporaryDir data;
+    QVERIFY(data.isValid());
+    Store store(data.filePath(QStringLiteral("notes.db")));
+    QVERIFY(store.open());
+
+    // One note that step 2 will ask about: classified, so Store::notesToEmbed()
+    // hands it over. Without it `start()` has nothing to do and the run would
+    // reach no state at all.
+    Note note;
+    note.createdAt = QDateTime::fromString(QStringLiteral("2026-10-10T09:00:00.000"), Qt::ISODateWithMs);
+    note.content = QStringLiteral("Die Dachrinne vor dem Herbst ausräumen.");
+    note.state = Note::State::Analysed;
+    note.category = QStringLiteral("ideen");
+    QVERIFY(store.addNote(note).has_value());
+
+    // **Unreachable and not Refused**, which is the whole distinction: a
+    // refusal costs the note an attempt and says nothing about the service, so
+    // it raises no degradation at all (SPEC 7.1, 7.2).
+    AiProviderMock backend;
+    backend.embedError = QStringLiteral("Ollama could not be reached: Connection refused");
+    backend.embedFailure = AiFailure::Unreachable;
+
+    Embedder embedder(&store, &backend);
+    QSignalSpy ended(&embedder, &Embedder::finished);
+    embedder.start();
+    QVERIFY(ended.wait(std::chrono::seconds(5)));
+    // The readback without which everything below would be measuring a state
+    // the run never reached.
+    QVERIFY(embedder.isUnreachable());
+
+    // **The dialog is opened after the run broke off, and that order is the
+    // assertion.** A page built first and then told by the signal proves only
+    // the live road; what issue #153 is about is the opening — the run that
+    // stopped was half an hour ago and its signal is long gone.
+    SettingsDialog *dialog = openDialog(&embedder);
+    QVERIFY(dialog);
+    QVERIFY(QTest::qWaitForWindowExposed(dialog));
+    const auto *hint = dialog->findChild<QLabel *>(QStringLiteral("bundlesDroppedNote"));
+    QVERIFY(hint);
+
+    // **The second of these two is what carries the opening**, and that is
+    // worth saying because the first one reads like the guard and is not: a
+    // row added to a QFormLayout is visible until somebody hides it, so with
+    // the construction-time read deleted the row stands there **empty** and
+    // `isHidden()` stays green — measured, the probe reddens on the text.
+    // `isHidden()` and not `isVisible()` all the same: a row the page hid and
+    // a row on a page the dialog is not showing look the same to
+    // `isVisible()`, and KPageDialog shows one page at a time. The pair is
+    // what separates "nothing to report" from "reported and wrongly hidden"
+    // (CLAUDE.md, finding 79).
+    QVERIFY(!hint->isHidden());
+    QVERIFY2(!hint->text().isEmpty(), "the row is shown and says nothing");
+
+    // **And now the service answers.** The note of the broken-off run is still
+    // outstanding — an outage counts no attempt (SPEC 7.1) — so there is
+    // something to embed, and the first vector that arrives is what takes the
+    // state back.
+    backend.embedError.clear();
+    QSignalSpy arrived(&embedder, &Embedder::embedded);
+    embedder.start();
+    QVERIFY2(arrived.wait(std::chrono::seconds(5)), "no vector arrived, so nothing below was measured");
+    QVERIFY(!embedder.isUnreachable());
+
+    QVERIFY2(hint->isHidden(), qPrintable(hint->text()));
+    QCOMPARE(hint->text(), QString());
 
     closeDialog(dialog);
 }

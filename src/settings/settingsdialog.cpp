@@ -35,7 +35,7 @@ constexpr int WindowWidth = 640;
 constexpr int WindowHeight = 480;
 }
 
-void SettingsDialog::showSettings(GlobalShortcuts *shortcuts, ModelDownload *download)
+void SettingsDialog::showSettings(GlobalShortcuts *shortcuts, ModelDownload *download, const Embedder *embedder)
 {
     if (KConfigDialog::showDialog(dialogName())) {
         return;
@@ -43,13 +43,13 @@ void SettingsDialog::showSettings(GlobalShortcuts *shortcuts, ModelDownload *dow
     // It deletes itself when it is closed (Qt::WA_DeleteOnClose below), and
     // KConfigDialog takes its name out of the list of open dialogs in its
     // destructor — so the next call builds a fresh one.
-    (new SettingsDialog(shortcuts, download))->show();
+    (new SettingsDialog(shortcuts, download, embedder))->show();
 }
 
-SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download)
+SettingsDialog::SettingsDialog(GlobalShortcuts *shortcuts, ModelDownload *download, const Embedder *embedder)
     : KConfigDialog(nullptr, dialogName(), Settings::self())
     , m_shortcutsPage(new ShortcutsPage(shortcuts, this))
-    , m_aiPage(new AiProviderPage(this))
+    , m_aiPage(new AiProviderPage(embedder, this))
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setFaceType(KPageDialog::List);

@@ -1,5 +1,6 @@
 #include "settings/aiproviderpage.h"
 
+#include "analysis/embedder.h"
 #include "analysis/ollamaprovider.h"
 #include "analysis/openaicompatibleprovider.h"
 #include "settings/settings.h"
@@ -119,7 +120,7 @@ QString keyNameOf(int provider)
 }
 }
 
-AiProviderPage::AiProviderPage(QWidget *parent)
+AiProviderPage::AiProviderPage(const Embedder *embedder, QWidget *parent)
     : QWidget(parent)
     , m_form(new QFormLayout)
     , m_ollamaButton(nullptr)
@@ -147,6 +148,8 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     , m_result(smallLine(this))
     , m_openAiNote(smallLine(this))
     , m_remoteTextNote(smallLine(this))
+    , m_bundlesNote(smallLine(this))
+    , m_embedder(embedder)
     , m_ollama(new OllamaProvider(this))
     , m_openRouter(new OpenAiCompatibleProvider(openrouter::Service, this))
     , m_openAi(new OpenAiCompatibleProvider(openai::Service, this))
@@ -202,6 +205,66 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     // unlocks OpenAI. Both the lock and the sentence go with it — a page that
     // says a provider is not connected while it is, is the same untruth the
     // other way round (wireframe supplement 1d, UX decision 30.08.2026).
+
+    // **The degradation of SPEC 7.1, and it stands here without anybody
+    // clicking** (issue #153). "Without a reachable provider for embeddings,
+    // Denkzettel degrades visibly … topic bundles are dropped (hint in the
+    // settings and the tray tooltip)" — the tray has carried its half since
+    // #38, and here it existed only as the result line of "Test connection"
+    // below. The customer settled it on 10.10.2026: a line that appears after
+    // a click is no hint, because the user opens this page **because**
+    // something is missing and not to start a test.
+    //
+    // **First row after the choice, and that is the criterion "visible as
+    // soon as the page is opened"**: KConfigDialog wraps every page in a
+    // QScrollArea, and under the two remote providers the page is taller than
+    // its viewport — a line put beside the result of the test, at the bottom,
+    // would be below the fold for exactly the providers that have the most
+    // rows.
+    //
+    // Measured in the built dialog, page 508 wide, one state per process and
+    // the page selected (an unselected KPageDialog page is never laid out and
+    // answers the layout's minimum). **The fold is not one number**: the
+    // dialog opens at 640x480 with a viewport of 399 under Ollama in both
+    // states and under openrouter while the service answers, and at 640x513
+    // with a viewport of 432 under openrouter **once this line stands** and
+    // under OpenAI in both states — `resize(640, 480)` is clamped by the
+    // dialog's minimum, which follows the page's sizeHint. The page wants
+    // 341/398 under Ollama, 381/438 under openrouter and 472/529 under OpenAI
+    // (answering/degraded), and this line stands at viewport y 90..124 in all
+    // **six** cases, which is what the criterion is about.
+    //
+    // **The 33 px are the price and they are visible**: under openrouter the
+    // window opens taller in the degraded state than in the healthy one. Under
+    // OpenAI it already does so while everything works, and that is #146.
+    //
+    // **The sentence names what the user is not getting**, the way the tray's
+    // does and for the same reason: this state comes up for a service that
+    // went silent, for a password store that would not open and for a key
+    // that was never entered (Embedder::unreachable), so a sentence built out
+    // of a cause would be wrong for two of the three. What it adds over the
+    // tray's wording is the one thing this place can offer, the road to the
+    // cause — and that road is the button below, which is why the result line
+    // stays a line of its own instead of carrying both statements
+    // (CLAUDE.md, finding 79).
+    //
+    // The object name is what the picture runner and the check ask it by, so
+    // a run whose catalogue was not found says so instead of printing nothing
+    // (findings 31 and 59).
+    m_bundlesNote->setObjectName(QStringLiteral("bundlesDroppedNote"));
+    // NeutralText and not NegativeText: SPEC 7.1 has the embedding step count
+    // no attempt for this and the tray raises no error state for it either
+    // (issue #118) — what the user is looking at is how the machine stands at
+    // this moment, not a fault that happened to a note. KColorScheme and not
+    // the palette, like the result line: the role does not exist in QPalette.
+    {
+        const KColorScheme scheme(QPalette::Normal, KColorScheme::View);
+        QPalette colours = m_bundlesNote->palette();
+        colours.setColor(QPalette::WindowText, scheme.foreground(KColorScheme::NeutralText).color());
+        m_bundlesNote->setPalette(colours);
+    }
+    m_bundlesNoteRow = m_form->rowCount();
+    m_form->addRow(m_bundlesNote);
 
     // **What the choice above costs, said where the choice is made** (issue
     // #144). SPEC 7.1 requires exactly this, and requires it here: "What the
@@ -406,6 +469,27 @@ AiProviderPage::AiProviderPage(QWidget *parent)
     m_openAiButton->setChecked(stored == Settings::OpenAi);
     showRowsOfTheChosenProvider();
 
+    // **The two edges the tray's half of the same assurance hangs on**
+    // (main.cpp, issue #38): a run that broke off raises it, and the first
+    // vector that arrives takes it back — not a run that merely ends, which
+    // says nothing about the service. Hung on the same two, this page and the
+    // tooltip cannot say different things.
+    //
+    // The state is read back off the embedder in both lambdas rather than
+    // taken from the signal's argument: there is one road into the line, and
+    // what decides is the state and not which signal arrived.
+    connect(m_embedder, &Embedder::unreachable, this, [this](const QString &) {
+        showWhetherTheBundlesAreDropped();
+    });
+    connect(m_embedder, &Embedder::embedded, this, [this](qint64) {
+        showWhetherTheBundlesAreDropped();
+    });
+    // **And the state as it already stands**, which is the whole of issue
+    // #153: the run that broke off was half an hour ago and its signal is
+    // gone, so a page wired only to the two lines above would be right while
+    // it stands open and blind on every opening.
+    showWhetherTheBundlesAreDropped();
+
     // Only what the user typed counts as a change. `textEdited` and not
     // `textChanged`: the second one fires for a programmatic fill as well, and
     // the Apply button would light up on an opening nobody touched.
@@ -539,6 +623,20 @@ void AiProviderPage::sayAboutTheKey(const QString &sentence)
 {
     m_keyState->setText(sentence);
     m_form->setRowVisible(m_keyStateRow, !sentence.isEmpty());
+}
+
+void AiProviderPage::showWhetherTheBundlesAreDropped()
+{
+    const bool dropped = m_embedder->isUnreachable();
+    // **The text goes with the row**, the way the sentence of #144 does: a
+    // hidden label that keeps its last sentence answers the same thing for
+    // "nothing to report" as for "reported and wrongly hidden", and for this
+    // line those are exactly the two states a readback has to tell apart
+    // (CLAUDE.md, finding 79).
+    m_bundlesNote->setText(dropped ? i18n("No topic bundles at the moment: the embedding did not get"
+                                          " through. \"Test connection\" says what is in the way.")
+                                   : QString());
+    m_form->setRowVisible(m_bundlesNoteRow, dropped);
 }
 
 void AiProviderPage::save()

@@ -580,6 +580,16 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   The classification keeps running meanwhile, and no note pays an attempt for
   it — a service that does not answer says nothing about the note that happened
   to be first in the queue.
+- **And the settings page says it too, without being asked.** The same news
+  stood there only as the result line of „Verbindung testen" — so whoever came
+  to the page to find out *why* the topic bundles had stopped found nothing
+  until they pressed a button they had no reason to press. The page
+  „KI-Anbieter" now carries the line „Gerade keine Themenbündel: Die
+  Einbettung kam nicht durch. „Verbindung testen" sagt, was im Weg steht."
+  directly under the provider choice, from the moment it is opened, and it
+  disappears again on the same condition the tray's does: the first vector
+  that arrives. While the embedding is working the page looks exactly as
+  before — the line takes up no room when it has nothing to say.
 
 - **Meta+N and Meta+Shift+N work again, and they keep working after a
   restart.** Both shortcuts died at the first login and stayed dead, and KDE

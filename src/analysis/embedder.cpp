@@ -39,6 +39,7 @@ Embedder::Embedder(Store *store, AiProvider *provider, QObject *parent)
                 // embedding not getting through would then stand over an
                 // SQLite write error. This branch is the one where the backend
                 // is the reason and no note was counted for it.
+                m_unreachable = true;
                 Q_EMIT unreachable(error);
                 stop(error);
             } else {
@@ -81,6 +82,10 @@ Embedder::Embedder(Store *store, AiProvider *provider, QObject *parent)
             return;
         }
 
+        // The vector arrived, so whatever the degradation of SPEC 7.1 was
+        // standing for is over — the same edge the tray's part of it is taken
+        // back on (main.cpp).
+        m_unreachable = false;
         Q_EMIT embedded(m_noteId);
         takeNextNote();
     });
@@ -122,6 +127,11 @@ void Embedder::start()
 bool Embedder::isBusy() const
 {
     return m_busy;
+}
+
+bool Embedder::isUnreachable() const
+{
+    return m_unreachable;
 }
 
 QString Embedder::model() const

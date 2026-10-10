@@ -674,16 +674,21 @@ int main(int argc, char *argv[])
     // through the same two actions that are registered here, and a second pair
     // of its own would take the key press away from these on the way in and
     // switch them off again on the way out (issue #74).
-    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts, &modelDownload] {
-        SettingsDialog::showSettings(&shortcuts, &modelDownload);
+    //
+    // And the embedding run with them, for the other half of the degradation
+    // SPEC 7.1 asks for: the page has to say on **opening** that the topic
+    // bundles are falling away, and the signal the tooltip above learns it
+    // from was gone long before the user opened the dialog (issue #153).
+    QObject::connect(&tray, &TrayIcon::configureRequested, &app, [&shortcuts, &modelDownload, &embedder] {
+        SettingsDialog::showSettings(&shortcuts, &modelDownload, &embedder);
     });
 
     // The second route, from the library's application menu (the user's
     // decision of 29.08.2026). Deliberately the same call and not a second
     // one: showSettings() hands back the standing dialog, so whichever route is
     // taken there is never more than one.
-    QObject::connect(&library, &LibraryWindow::configureRequested, &app, [&shortcuts, &modelDownload] {
-        SettingsDialog::showSettings(&shortcuts, &modelDownload);
+    QObject::connect(&library, &LibraryWindow::configureRequested, &app, [&shortcuts, &modelDownload, &embedder] {
+        SettingsDialog::showSettings(&shortcuts, &modelDownload, &embedder);
     });
 
     // One registration and one read-back per shortcut, because SPEC 2.4 says so
