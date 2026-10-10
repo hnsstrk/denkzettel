@@ -93,40 +93,74 @@ struct OpenAiCompatibleEmbedding {
  *    an answer.
  * 8. **Every frame arrived and none of them carried text.**
  *
- * ponytail: **every value below is written from the two services' documentation
- * and not one of them has been measured**, because there is no API key for the
- * acceptance — the customer confirmed it for openrouter on 30.08.2026 (issue
- * #38) and again for OpenAI (issue #39), so both clients are checked against a
- * stand-in. What a stand-in cannot buy is finding 40: this project's own
- * precedent is `setTransferTimeout()`, documented to abort with
- * `OperationCanceledError` while a real Ollama answers `TimeoutError`, with a
- * green test that proved nothing because the code and the check had read the
- * same page. Unmeasured here, in this order, **and for each of the two
- * services separately** — they are two companies with two documentations, and
- * a value measured against one would say nothing about the other:
+ * **openrouter is measured, OpenAI is not** (live run of 10.10.2026, issue
+ * #38, ten requests against openrouter with a key the customer provided for
+ * the acceptance). Until then every value here stood on the two services'
+ * documentation alone, which is the state finding 40 is about: this project's
+ * own precedent is `setTransferTimeout()`, documented to abort with
+ * `OperationCanceledError` while a real Ollama answers `TimeoutError`, and the
+ * check was green because the code and the check had read the same page.
  *
- * - that `stream: true` really produces `data: ` frames closed by
- *   `data: [DONE]`, and that the text stands in `choices[0].delta.content`;
- * - that a refusal really carries `error.message`, and which HTTP statuses it
- *   comes with — **and in which of the two shapes**: as one document before the
- *   stream starts, or as a frame inside it. Both are read here, because the
- *   documentation describes both and neither has been seen;
- * - that a bitten transfer timeout over TLS really arrives as `TimeoutError`
- *   — measured for Ollama over plain HTTP on 2026-08-30, not for either of
- *   these services;
- * - that a keep-alive comment line really begins with `:`, which is what is
- *   supposed to keep the silence limit from biting on a slow model;
- * - **that the endpoints in `openrouter::Service` and `openai::Service`, the
- *   `Bearer` scheme and the shape of the request body are what these services
- *   accept at all** — `messages` as a list of objects with `role` and
- *   `content`, beside `model` and `stream`. All of it comes from the
- *   documentation. The check `theKeyAndTheModelGoOnTheWire()` proves that *we*
- *   write that header, that path and that body — it cannot prove that either
- *   service reads any of them, and no stand-in can.
+ * **What the run settled for openrouter**, each of these read off the wire and
+ * written into the matching case in `aitest`:
  *
- * `OperationCanceledError` is the one value here that does **not** need a live
- * run: it is what Qt's own abort() produces, measured on 2026-08-30 against a
- * real server, and nothing about a service can change it.
+ * - `stream: true` produces `data: ` frames closed by `data: [DONE]`, and the
+ *   text stands in `choices[0].delta.content`. Beyond the documented shape:
+ *   `role` stands beside `content`, two frames with an empty `content` and
+ *   `finish_reason: "stop"` follow the last one that carries text, and a usage
+ *   chunk stands between them and `[DONE]`.
+ * - A refusal carries `error.message` — for the two inputs tried, an invalid
+ *   model id and a corrupted key, and nothing here generalises past them: the
+ *   service answered `"no-such-vendor/no-such-model-of-the-check is not a
+ *   valid model ID"` and `"User not found."` respectively. It arrives with an
+ *   HTTP status
+ *   **and** a Qt transport error together — an unknown model as
+ *   `ProtocolInvalidOperationError` with 400, a rejected key as
+ *   `AuthenticationRequiredError` with 401. Both therefore depend on the
+ *   refusal being read before the **HTTP status** branch, which is the order
+ *   below — and only that one: the transport branch needs `httpStatus == 0`
+ *   and cannot fire on either of these. Measured by moving the refusal below
+ *   the status branch, where the 401 reads "answered with HTTP status 401".
+ * - A bitten transfer timeout over TLS is `TimeoutError`, and an abort() of
+ *   ours `OperationCanceledError`, both with status 0 — finding 40's value,
+ *   and it comes out here the way it does for Ollama.
+ * - The endpoints in `openrouter::Service`, the `Bearer` scheme and the shape
+ *   of the request body are accepted: `messages` as a list of objects with
+ *   `role` and `content` beside `model` and `stream`, and `model` plus `input`
+ *   for the embedding. Both endpoints answered 200.
+ * - **"Test connection" itself**, which is the acceptance criterion's own
+ *   wording and a road neither `chat()` nor `embed()` walks on its own:
+ *   `AiProvider::testConnection()` chains the two and answers with one signal.
+ *   Against the live service it came back without an error at 1101 ms for the
+ *   chat and 651 ms for the embedding. The seconds are this machine on this
+ *   line and carry nothing; what carries is that both halves of the chain
+ *   reach a real service and that the second one is started at all.
+ * - **And one thing no documentation mentions:** the 400 body carries a
+ *   `user_id` beside the message, an opaque identifier of the account. The
+ *   reader takes `error.message` and nothing else, so it never reaches the log
+ *   of SPEC 14 or the settings page — `aitest` asserts that rather than
+ *   trusting it, because a change that handed the body on instead would look
+ *   like a better error message.
+ *
+ * ponytail: **what is still unmeasured, and for whom.**
+ *
+ * - **Every value above is unmeasured for OpenAI.** They are two companies
+ *   with two documentations, and there is no key for the second one — the
+ *   customer confirmed that for OpenAI under issue #39 and it has not changed.
+ *   A value measured against openrouter says nothing about api.openai.com.
+ * - **The refusal inside the stream** (status 200, then a `data:` frame
+ *   carrying `error`) is documented by openrouter and was not produced: it
+ *   needs an upstream provider to fail mid-generation, and nothing cheap
+ *   arranges that. The branch is read all the same, because the documentation
+ *   describes it and a lost refusal is the worst of the error cases.
+ * - **The keep-alive comment line** beginning with `:` is documented
+ *   ("occasionally sends comments to prevent connection timeouts") and was not
+ *   seen — a two-token answer gives the service no reason to send one. It is
+ *   what is supposed to keep the silence limit from biting on a slow model, so
+ *   what is unproven is not the parsing but the protection.
+ * - **Which phase the transfer timeout bit in.** The two runs set 5 ms and
+ *   400 ms; whether the request was already on the wire is not established,
+ *   and silence in the middle of a stream is the case the 30 s are for.
  *
  * Upgrade path: one live run per value and per service, once the customer has a
  * key, and the value goes into the check out of that run rather than out of
@@ -155,11 +189,17 @@ OpenAiCompatibleAnswer readOpenAiCompatibleReply(QLatin1StringView service,
  * document the service refused, an unreadable body and an answer without a
  * vector in it are refusals — the service answered, so it is there.
  *
- * ponytail: unmeasured against both live services for the reason the chat
- * reader is, and the list of what a key would buy is the same one, `data`,
- * `embedding` and the shape of a refusal in place of the stream fields. That
- * `POST /v1/embeddings` exists at all on both services **is** measured —
- * 401 against a 404 control on each, 04.09.2026, issue #130.
+ * **Measured against openrouter on 10.10.2026** (issue #38): the answer is one
+ * document, `data[0].embedding` carries the vector — 1536 components for
+ * `openai/text-embedding-3-small` — and `object` fields stand beside it at both
+ * levels. That `POST /v1/embeddings` **exists** was measured under #130 with a
+ * 401 against a 404 control; that it **serves embeddings** is this run, and the
+ * two are not the same statement.
+ *
+ * ponytail: unmeasured for OpenAI, for the reason the chat reader is — there is
+ * no key for it. Unmeasured for either service is the shape of a refusal on
+ * this endpoint: the one measured refusal came from the chat call, and nothing
+ * says the embedding router words its errors the same way.
  */
 OpenAiCompatibleEmbedding readOpenAiCompatibleEmbedding(QLatin1StringView service,
                                                         QNetworkReply::NetworkError transport,
@@ -241,7 +281,14 @@ inline constexpr AiService Service{QLatin1StringView("OpenAI"),
  * call that trickles for ever.
  *
  * **No retry of ours**, and here the reason is money rather than time: a second
- * request would be a second generation and a second bill for one job.
+ * request would be a second generation and a second bill for one job. SPEC 7.1
+ * asks for one retry and `ollamaprovider.h` reads that as **Qt's**, every
+ * repetition of its own measured out under issue #13; for these two services
+ * Qt's repetition is measured **absent** (five stand-in forms, review of
+ * 30.08.2026), so SPEC's one retry is unmet here and is named as unmet rather
+ * than quietly supplied. Whether it is worth a doubled bill on a connection
+ * that dies before its first byte is a question about money and stands with
+ * the customer (issue #38, 10.10.2026).
  *
  * **Whether anything repeats at all is open for both of these backends**
  * (review of 30.08.2026 for openrouter, measured again for OpenAI on
