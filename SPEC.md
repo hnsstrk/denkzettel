@@ -1104,7 +1104,7 @@ conceivable as an optional later additional path, but is not built for v1.
   taken by creating the file exclusively; a name that is taken counts up
   (`… 2.md`) — for the collective note by topic and day, for a note's file
   over anything already carrying that stem: a leftover of the same note, a
-  copy of the user's own, or a second note of the same millisecond (SPEC 4).
+  copy of the user's own, or a second note of the same millisecond.
 - Structure: vault-conformant frontmatter (`type: note`; `tags` as a block
   list — `denkzettel`, the topic in the vault's tag form, then the tags of the
   notes: the union of them in the collective note, a note's own in its file;
