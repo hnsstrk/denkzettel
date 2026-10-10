@@ -477,9 +477,9 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
 ### Changed
 
 - **The Obsidian export writes one file per note beside the collective note.**
-  An accepted bundle used to leave a single `Denkzettel <Thema>
+  An accepted bundle used to leave a single `Denkzettel <topic>
   <YYYY-MM-DD>.md` in `_INBOX/`; it now leaves that note and, beside it, one
-  `Denkzettel <Zeitstempel>.md` per exported note — the same stem the note's
+  `Denkzettel <timestamp>.md` per exported note — the same stem the note's
   recording carries. The single file holds the note's text and nothing else
   (for a voice note its transcript), and its `created` is the day of the note
   rather than the day of the export, so what you file out of `_INBOX/` carries
