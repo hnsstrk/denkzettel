@@ -474,7 +474,13 @@ void ExportTest::writesTheCollectiveNoteIntoTheInbox()
     Note first;
     first.createdAt = QDateTime::fromString(QStringLiteral("2026-07-31T14:05:23.123"), Qt::ISODateWithMs);
     first.content = QStringLiteral("Erste Notiz");
-    first = add(first, {QStringLiteral("backup"), QStringLiteral("CLI")});
+    // The topic among the note's own tags, which is the ordinary case and not
+    // a curiosity — a bundle named "Backup-Strategie" over notes the
+    // classification tagged that way. It makes the expected text below the
+    // guard of the one place that takes the topic out of the note tags: left
+    // in, `- backup-strategie` would stand in the list twice.
+    first = add(first,
+                {QStringLiteral("backup"), QStringLiteral("CLI"), QStringLiteral("Backup-Strategie")});
 
     Note second;
     second.createdAt = QDateTime::fromString(QStringLiteral("2026-08-01T09:07:00.500"), Qt::ISODateWithMs);
@@ -812,6 +818,15 @@ void ExportTest::keepsEveryNoteWhenOneOfThemIsAlreadyGone()
     QVERIFY(!result.ok());
     QVERIFY(result.files.isEmpty());
     QCOMPARE(QDir(vault() + QStringLiteral("/_INBOX")).entryList(QDir::Files, QDir::Name), QStringList());
+
+    // And that the run got as far as the third note, so the collective note
+    // and two note files stood there before it failed. Without this line an
+    // export that fails **before** writing would leave the case green — there
+    // would be nothing to clean up either, and an empty `_INBOX/` cannot tell
+    // the two apart (CLAUDE.md, the first rule of the verification stance).
+    // It stands after the assertions above so that a mutation of the clean-up
+    // reddens them and not this one (finding 35).
+    QVERIFY2(result.error.contains(QString::number(notes.at(2).id)), qPrintable(result.error));
 
     // And **neither** of the two surviving notes was deleted, nor the
     // suggestion. All or nothing: a loop of single deletions would have taken

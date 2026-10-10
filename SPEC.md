@@ -1107,8 +1107,8 @@ conceivable as an optional later additional path, but is not built for v1.
   copy of the user's own, or a second note of the same millisecond.
 - Structure: vault-conformant frontmatter (`type: note`; `tags` as a block
   list — `denkzettel`, the topic in the vault's tag form, then the tags of the
-  notes: the union of them in the collective note, a note's own in its file;
-  `created`). Collective note: `# <topic>`, then `## <YYYY-MM-DD>`
+  notes without the topic a second time: the union of them in the collective
+  note, a note's own in its file; `created`). Collective note: `# <topic>`, then `## <YYYY-MM-DD>`
   sections with the notes as paragraphs (chronological); its `created` is the
   day of the export. Note file: the note's text as the body and nothing else;
   its `created` is the note's own day.
