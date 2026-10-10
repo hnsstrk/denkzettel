@@ -907,8 +907,10 @@ void LibraryWindow::updateProposalBadge()
     for (const Proposal &proposal : proposals) {
         // Only the open ones. A deferred suggestion is one the user has already
         // answered with "Later" (SPEC 9); counting it would ask the same
-        // question again every time the library is looked at.
-        if (proposal.status == Proposal::Status::Open) {
+        // question again every time the library is looked at. The rule is
+        // `isOpenProposal()` and not a comparison of its own, because the tray
+        // menu counts the same list beside this button (issue #40).
+        if (isOpenProposal(proposal)) {
             ++open;
         }
     }

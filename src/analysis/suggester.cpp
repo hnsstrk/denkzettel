@@ -212,6 +212,7 @@ Suggester::Suggester(Store *store, AiProvider *provider, QObject *parent)
         // old card away and put nothing in its place (UX decision of
         // 29.08.2026, see the class comment).
         const QList<Proposal> standing = m_store->proposals();
+        bool tookADeferredOnesPlace = false;
         for (const Proposal &other : standing) {
             if (other.id == *proposalId || other.kind != Proposal::Kind::Bundle
                 || other.status != Proposal::Status::Deferred) {
@@ -221,9 +222,22 @@ Suggester::Suggester(Store *store, AiProvider *provider, QObject *parent)
                                                  [&naming](qint64 noteId) {
                                                      return naming.noteIds.contains(noteId);
                                                  });
-            if (sharesANote && !m_store->removeProposal(other.id)) {
+            if (!sharesANote) {
+                continue;
+            }
+            if (m_store->removeProposal(other.id)) {
+                tookADeferredOnesPlace = true;
+            } else {
                 Q_EMIT failed(m_store->lastError());
             }
+        }
+
+        // And only now is it decided whether this is news (see finished()).
+        // The removal is what the question hangs on and not the finding of it:
+        // where it failed, the old card is still standing beside the new one,
+        // and then there really are two questions where there was one.
+        if (!tookADeferredOnesPlace) {
+            ++m_newSuggestions;
         }
 
         Q_EMIT suggested(*proposalId);
@@ -236,6 +250,10 @@ void Suggester::start()
     if (m_busy) {
         return;
     }
+
+    // After the guard and before the first row: a second start() that finds a
+    // run going changes nothing and must not reset what that run has counted.
+    m_newSuggestions = 0;
 
     // The task suggestions of SPEC 7.4 first, and without a model: the fields
     // were extracted by the classification of SPEC 7.2 and are handed on as
@@ -255,6 +273,10 @@ void Suggester::start()
             Q_EMIT failed(m_store->lastError());
             continue;
         }
+        // Always a new question: a note that already carries a task suggestion
+        // gets no second one, whatever that one's status (see the class
+        // comment), so nothing here can be a repeat.
+        ++m_newSuggestions;
         Q_EMIT suggested(*proposalId);
     }
 
@@ -308,7 +330,7 @@ void Suggester::takeNextCluster()
     if (m_clusters.isEmpty()) {
         m_cluster.clear();
         m_busy = false;
-        Q_EMIT finished();
+        Q_EMIT finished(m_newSuggestions);
         return;
     }
 

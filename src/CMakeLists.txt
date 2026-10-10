@@ -205,6 +205,10 @@ target_link_libraries(denkzettelsettings PUBLIC
 )
 
 add_library(denkzettelplatform STATIC
+    # The log file of SPEC 14 (issue #40). It lives here for the reason the two
+    # below it do: it is a question about the machine — a directory, a size, a
+    # rename — and knows nothing of notes, suggestions or windows.
+    platform/logfile.cpp
     # Whether this machine can start the optional programs of SPEC 2.5 and 15
     # (issue #17). It lives here because it is a question about the operating
     # system and about nothing of ours: three callers ask it — the daemon for

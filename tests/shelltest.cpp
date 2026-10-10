@@ -1,3 +1,4 @@
+#include "platform/logfile.h"
 #include "platform/optionaltools.h"
 #include "shell/daemonservice.h"
 #include "shell/globalshortcuts.h"
@@ -84,6 +85,8 @@ private Q_SLOTS:
     void namesTheCountWhenBothCriteriaGiveWayAtOnce();
     void announcesADeletionSoTheLineCanGoWithItsCause();
     void putsTheOverflowLastInTheLineAndRaisesNoErrorState();
+
+    void theLogRotatesAtOneMegabyte();
 
     void findsAProgramByItsPathAndByItsName();
     void countsAFileWithoutAnExecuteBitAsMissing();
@@ -529,6 +532,14 @@ void ShellTest::showsAFailedTranscriptionAndTakesItBack()
 
     icon.setNotesWithoutTranscript(2);
     QCOMPARE(icon.item()->status(), KStatusNotifierItem::NeedsAttention);
+    // The name is the check criterion and not the picture (SPEC 10): what
+    // travels over the tray protocol is the name, and an empty one leaves the
+    // host drawing the ordinary page. Plasma does pulse such an item, but a
+    // still frame of it can come out bit-identical with the untroubled one —
+    // measured in a nested panel, CLAUDE.md finding 95 and the reasoning in
+    // trayicon.cpp. Nothing offscreen can see a pulse or a glyph, so what is
+    // guarded here is that the name is set at all.
+    QCOMPARE(icon.item()->attentionIconName(), QStringLiteral("dialog-warning"));
     // How many travel with it: an icon that is set apart and says nothing
     // leaves the user looking for the fault in their recording (SPEC 10). The
     // number and no longer the reason — that is a sentence, and the one
@@ -895,6 +906,111 @@ void ShellTest::putsTheOverflowLastInTheLineAndRaisesNoErrorState()
     // And empty takes it back to the untroubled line, like every other part.
     icon.setOverflow(QString());
     QCOMPARE(icon.item()->toolTipSubTitle(), QStringLiteral("Capture thoughts quickly"));
+}
+
+namespace
+{
+
+/** How many lines the handler below has been handed; the case reads it back. */
+int g_chainedLines = 0;
+
+/**
+ * Stands in for QTest's handler while the rotation case runs — and counts.
+ *
+ * Two things at once, and the second is the reason it is not simply a silent
+ * one. Crossing 1 MB takes 601 lines of two kilobytes, and through QTest's own
+ * handler every one of them is a `QWARN` in the test log: 668 lines and
+ * 1,242,927 bytes for this set alone, at every run of the CI. And the chaining
+ * of SPEC 14 — the line goes where it went before, whatever the log file does
+ * with it — had no check at all; the `QWARN` flood looked like one and was
+ * none, because nothing read it.
+ */
+void countInsteadOfPrinting(QtMsgType, const QMessageLogContext &, const QString &)
+{
+    ++g_chainedLines;
+}
+
+}
+
+void ShellTest::theLogRotatesAtOneMegabyte()
+{
+    // A rotation that does not take hold is noticed by nobody until the disk is
+    // full — the silent breakage this project keeps a test for, and the reason
+    // SPEC 14 names a size rather than a schedule.
+    //
+    // The guard on the directory first, and it is not decoration: the log of
+    // SPEC 14 lies beside the notes, so a run without a data directory of its
+    // own would fill the one the daemon writes into (CLAUDE.md, finding 42 for
+    // the configuration half of the same trap).
+    const QString dataHome = qEnvironmentVariable("XDG_DATA_HOME");
+    QVERIFY2(dataHome.contains(QStringLiteral("shelltest-daten")),
+             "XDG_DATA_HOME does not point at this set's own data directory");
+
+    const QString path = platform::logFilePath();
+    QVERIFY2(path.startsWith(dataHome), qPrintable(path));
+    QCOMPARE(QFileInfo(path).fileName(), QStringLiteral("denkzettel.log"));
+
+    const QString predecessor = path + QStringLiteral(".1");
+    QFile::remove(path);
+    QFile::remove(predecessor);
+
+    // The handler is global and outlives the case, so it is put back — the
+    // wrong way round this would write every later warning of the run into the
+    // file it just asserted about.
+    //
+    // What is standing here is QTest's, and what goes in its place for the
+    // length of the case is the counter above: startLogFile() chains onto
+    // whatever it finds, so this is the one moment at which the set can decide
+    // where its 601 lines are to end up. The file gets them either way.
+    g_chainedLines = 0;
+    QtMessageHandler before = qInstallMessageHandler(countInsteadOfPrinting);
+    platform::startLogFile();
+    const auto restore = qScopeGuard([before] { qInstallMessageHandler(before); });
+
+    // A string only this case can have written, and it goes in the FIRST line:
+    // what the check reads back afterwards is which of the two files carries
+    // it, and both answers are wrong for a rotation that did not happen.
+    const QString marker = QStringLiteral("shelltest-rotation-marker");
+    const QString padding(2000, QLatin1Char('x'));
+    qWarning("%s %s", qPrintable(marker), qPrintable(padding));
+
+    // 1 MB divided by a line of this length, with room to spare: the point is
+    // to cross the threshold, not to sit on it.
+    for (int line = 0; line < 600; ++line) {
+        qWarning("filler %d %s", line, qPrintable(padding));
+    }
+
+    // Before the files: whatever stood here before this set took over has to
+    // have seen every one of those lines, or the log file has quietly become
+    // the only channel and the journal of SPEC 14 is gone. It is also what
+    // says the counter really is in the chain — a startLogFile() that had
+    // already run would leave this at 0, and every assertion below it would be
+    // measuring a file nothing had written to.
+    QCOMPARE(g_chainedLines, 601);
+
+    QVERIFY2(QFile::exists(predecessor), "the log did not rotate at 1 MB");
+
+    const auto firstLineOf = [](const QString &file) {
+        QFile handle(file);
+        if (!handle.open(QIODevice::ReadOnly)) {
+            return QString();
+        }
+        return QString::fromUtf8(handle.readLine());
+    };
+
+    // Both files are read, and that is what tells a rotation from a copy: the
+    // predecessor has to carry the marker and the new file must not.
+    QVERIFY2(firstLineOf(predecessor).contains(marker),
+             "the rotated file does not begin with the first line written");
+    QVERIFY2(!firstLineOf(path).contains(marker),
+             "the new log still begins with the line the rotated one carries");
+
+    // One predecessor and no second (SPEC 14), and the new file has really
+    // started over rather than kept growing.
+    QVERIFY(!QFile::exists(predecessor + QStringLiteral(".1")));
+    QVERIFY2(QFileInfo(path).size() < 1024LL * 1024,
+             qPrintable(QStringLiteral("the new log is already %1 bytes")
+                            .arg(QFileInfo(path).size())));
 }
 
 void ShellTest::findsAProgramByItsPathAndByItsName()

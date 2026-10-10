@@ -98,6 +98,16 @@ install(FILES desktop/io.github.hnsstrk.denkzettel.desktop DESTINATION ${KDE_INS
 # that runs everywhere is installtest below (issue #73).
 install(FILES desktop/io.github.hnsstrk.denkzettel.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
 
+# The notification component of SPEC 10 (issue #40). KNotification looks its
+# configuration up by the component name, and every call in this project uses
+# the default one — the application name out of shell/appidentity.cpp. So the
+# file name is `denkzettel` and not the reverse-DNS id the four rules above
+# carry: those are read by the desktop, this one by a library that was told a
+# different name. Without it the calls fall back to the component
+# `plasma_workspace` and the user can only switch Denkzettel's messages off
+# together with Plasma's own.
+install(FILES desktop/denkzettel.notifyrc DESTINATION ${KDE_INSTALL_KNOTIFYRCDIR})
+
 ecm_install_icons(ICONS
     icons/sc-apps-denkzettel.svg
     icons/sc-status-denkzettel-tray.svg

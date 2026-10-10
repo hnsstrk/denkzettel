@@ -377,7 +377,7 @@ RecordingWindow::RecordingWindow(Store *store, QWidget *parent)
         // Esc read 0).
         m_clock->stop();
         hide();
-        KNotification::event(KNotification::Error,
+        KNotification::event(QStringLiteral("recordingFailed"),
                              i18n("Recording failed"),
                              i18n("The voice note could not be recorded: %1", message));
     });
@@ -567,7 +567,7 @@ void RecordingWindow::present()
     // The recording starts with the window and not with a button (SPEC 4).
     if (!beginRecording(true)) {
         hide();
-        KNotification::event(KNotification::Error,
+        KNotification::event(QStringLiteral("recordingFailed"),
                              i18n("Recording failed"),
                              i18n("The voice note could not be recorded: %1", m_recorder->lastError()));
     }
@@ -661,7 +661,7 @@ void RecordingWindow::storeRecording(const QString &fileName, int durationSecond
         qWarning("Moving the recording to %s failed; the next sweep will delete it",
                  qPrintable(rescued));
     }
-    KNotification::event(KNotification::Error,
+    KNotification::event(QStringLiteral("recordingNotSaved"),
                          i18n("Recording not saved"),
                          capture::recordingNotSavedMessage(moved ? rescued : file, moved));
 }

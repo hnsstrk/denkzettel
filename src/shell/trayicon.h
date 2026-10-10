@@ -6,6 +6,7 @@
 #include <QStringList>
 
 class KStatusNotifierItem;
+class QAction;
 class QDialog;
 class QMenu;
 
@@ -114,6 +115,25 @@ public Q_SLOTS:
      */
     void setOverflow(const QString &report);
 
+    /**
+     * How many suggestions are waiting for an answer (SPEC 9, 10); `0` takes
+     * the number off the entry again.
+     *
+     * Both kinds, because what is counted is `isOpenProposal()` and that is
+     * blind to the kind: a task suggestion of SPEC 7.4 stands in the review
+     * beside a bundle and is answered the same way.
+     *
+     * **Text at the menu entry and no badge**, and that is the whole of it: the
+     * tray protocol offers three states and both of the usable ones are spoken
+     * for (SPEC 10 and issue #118), a badge of our own was refused by the
+     * customer on 29.08.2026, and wireframe 5a says in as many words that there
+     * is no badge over the tray protocol — "nur Text". A waiting suggestion is
+     * not a fault either, so it must not borrow `NeedsAttention`, which #118
+     * bound to the two kinds of stuck note: routine work that looks like a
+     * problem is the state nobody reads any more (PO decision 04.09.2026).
+     */
+    void setWaitingSuggestions(int count);
+
 Q_SIGNALS:
     void captureRequested();
     void recorderRequested();
@@ -125,6 +145,8 @@ Q_SIGNALS:
 
 private:
     QMenu *buildMenu();
+    /** Writes the label of the suggestion entry out of the count below. */
+    void showWaitingSuggestions();
     /** Writes the one subtitle line out of whatever the two slots have said. */
     void showToolTip();
 
@@ -133,6 +155,12 @@ private:
     QString m_missingModel;
     QString m_overflow;
     QStringList m_unavailableTools;
+    int m_waitingSuggestions = 0;
+    /**
+     * The menu entry the counter is written onto. Owned by the menu, which the
+     * item owns; kept because the label changes while the menu stands.
+     */
+    QAction *m_proposalsAction = nullptr;
     KStatusNotifierItem *m_item;
     /**
      * The open about dialog, or nothing.

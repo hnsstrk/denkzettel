@@ -28,6 +28,61 @@ TrayIcon::TrayIcon(QObject *parent)
         m_item->setIconByPixmap(bundled);
         m_item->setToolTipIconByPixmap(bundled);
     }
+
+    // **Plasma sets a NeedsAttention item apart by itself, and that is not
+    // enough** (CLAUDE.md, finding 95). Its system tray runs a
+    // `PulseAnimation` over every item in that status — scale 1 → 1.2 → 1
+    // over two times 15 % of a period of about two seconds, then 70 % at rest,
+    // looping for ever. **Read** in `AbstractItem.qml` and
+    // `PulseAnimation.qml` of the systemtray applet of plasma-workspace 6.7.5,
+    // not run (finding 50). Switching animations off does not stop it: with
+    // `AnimationDurationFactor=0`, `Kirigami.Units.longDuration` is **1** and
+    // not 0, so the pulse collapses into a flicker rather than going away —
+    // and that half was measured.
+    //
+    // An earlier wording here had the state invisible without this line and
+    // offered a channel difference of 1005 over the icon as the proof. That is
+    // one frame of an animated state and says nothing in either direction,
+    // and neither does the 104253 read beside it. The sentence that replaced
+    // it — "the state was never invisible" — went just as far past the
+    // evidence in the other direction.
+    //
+    // **What carries is the weaker sentence, and it is the one the user
+    // feels: without an attention icon of our own there is no difference that
+    // holds independently of the moment.** Measured in a nested
+    // `kwin_wayland` with a real panel, the same binary once with this
+    // statement and once without it: still frames of the fault state come out
+    // bit-identical with the normal state in 3 of 8 grabs with animations off
+    // and 3 of 6 at the default, against an `Active` reference that is itself
+    // perfectly still — the remaining frames differ by 152,078 summed channel
+    // difference, which is what says the identity belongs to the product and
+    // not to the measurement. Those counts are **not** a frequency
+    // (finding 76); what they say is that such a frame exists. Without the
+    // icon the only mark left is the size, 23×24 against 27×28 device pixels.
+    //
+    // `docs/images/reviews/40-ux-ohne-aufmerksamkeitssymbol.png` is that run,
+    // four tiles of 90×50 device pixels out of the panel at three times the
+    // size: without `AttentionIconName` set, `Active` and `NeedsAttention` at
+    // rest are bit-identical (tiles 1 and 2) and only the pulse phase differs
+    // (3); tile 4 is the built state with `dialog-warning`.
+    //
+    // A state indicator whose only mark can be absent at the moment you look
+    // is not one. So this line is an accessibility matter and not a design
+    // preference — the KDE HIG asks that an animated element either
+    // transition instantly or show a static image once animations are off, and
+    // Plasma's attention hint does neither.
+    //
+    // Out of the Breeze stock and not drawn here (SPEC 10: "no graphics work of
+    // our own"), and neither a badge nor an overlay — the two the customer
+    // refused on 29.08.2026: this is the icon the tray protocol has for exactly
+    // this state, and it stands in for the normal one for as long as the state
+    // does.
+    //
+    // Outside the branch above, unlike the two icons in it: a name is what the
+    // protocol carries either way, and set inside the branch this would be
+    // missing on precisely the machines that have no Denkzettel icon installed
+    // — a check for it would then be green here and red in the automated run.
+    m_item->setAttentionIconByName(QStringLiteral("dialog-warning"));
     m_item->setTitle(i18n("Denkzettel"));
     m_item->setToolTipTitle(i18n("Denkzettel"));
     // Status and subtitle of the untroubled state, and they are set from the
@@ -96,6 +151,27 @@ void TrayIcon::setOverflow(const QString &report)
 {
     m_overflow = report;
     showToolTip();
+}
+
+void TrayIcon::setWaitingSuggestions(int count)
+{
+    m_waitingSuggestions = count;
+    showWaitingSuggestions();
+}
+
+void TrayIcon::showWaitingSuggestions()
+{
+    // The label carries the number and the tooltip does not: the tooltip is the
+    // channel for what has gone wrong (SPEC 14), and a waiting suggestion is
+    // the program doing its work. Falling back to the bare wording at 0 is what
+    // the wireframe asks for — the counter "tritt an die Beschriftung, sobald
+    // es Vorschläge gibt" (5a) — and it is also what keeps an entry that says
+    // "(0)" from looking like an offer with nothing behind it.
+    m_proposalsAction->setText(
+        m_waitingSuggestions > 0
+            ? i18nc("@action:inmenu tray entry with the number of waiting suggestions",
+                    "Suggestions (%1)", m_waitingSuggestions)
+            : i18n("Suggestions"));
 }
 
 void TrayIcon::showToolTip()
@@ -191,9 +267,12 @@ QMenu *TrayIcon::buildMenu()
     // The door into the review of SPEC 9 (issue #30). It stood here as a
     // disabled entry until the review existed; the wording and the symbol are
     // the ones it carried, because it is the same entry and not a new one.
-    const QAction *proposalsAction =
+    //
+    // Kept as a member, unlike its neighbours: the counter of SPEC 10 is
+    // written onto this label while the menu stands (issue #40).
+    m_proposalsAction =
         menu->addAction(QIcon::fromTheme(QStringLiteral("tools-wizard")), i18n("Suggestions"));
-    connect(proposalsAction, &QAction::triggered, this, &TrayIcon::proposalsRequested);
+    connect(m_proposalsAction, &QAction::triggered, this, &TrayIcon::proposalsRequested);
 
     menu->addSeparator();
 

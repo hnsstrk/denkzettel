@@ -345,8 +345,12 @@ add_test(NAME shelltest COMMAND shelltest)
 # a directory of its own that write would land in the configuration of whoever
 # runs the set (CLAUDE.md, finding 42). The case asserts the variable before it
 # writes.
+# XDG_DATA_HOME is the fifth, and it carries the rotation case of SPEC 14: the
+# log lies in the DATA directory beside the notes, so without one of its own
+# this set would write a megabyte into the daemon's own log — and delete it
+# first (issue #40). The case asserts the variable before it removes anything.
 set_tests_properties(shelltest PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US;XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/shelltest-konfiguration")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_PLATFORMTHEME=kde;LANGUAGE=en_US;XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/shelltest-konfiguration;XDG_DATA_HOME=${CMAKE_CURRENT_BINARY_DIR}/shelltest-daten")
 
 add_executable(firstruntest firstruntest.cpp)
 
@@ -449,6 +453,12 @@ add_test(NAME installtest
         # the data directory leaves the origin empty for good — with one
         # qWarning in the journal and nothing else.
         -DSCRIPT_ENTRY=${KDE_INSTALL_FULL_DATADIR}/denkzettel/origin.js
+        # The notification component of SPEC 10 (issue #40). KNotification finds
+        # it by the application name and by nothing else, so a file that never
+        # reaches this directory puts every message of ours back under
+        # „Plasma-Arbeitsbereich" — with no error and nothing on screen to say
+        # so.
+        -DNOTIFYRC_ENTRY=${KDE_INSTALL_FULL_KNOTIFYRCDIR}/denkzettel.notifyrc
         -DAPPSTREAMCLI=${APPSTREAMCLI}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/installtest.cmake
 )

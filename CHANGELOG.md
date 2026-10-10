@@ -441,6 +441,39 @@ follows 0.x SemVer (decided on 2026-08-02; visible since #61 via
   What is named is the program, not the package it comes in — which package
   that is depends on the distribution (#17).
 
+- **Denkzettel's notifications are its own now, and can be switched off on
+  their own.** Until this release every message went out under the component
+  „Plasma-Arbeitsbereich", so the only way to silence Denkzettel was to silence
+  Plasma with it. The application now brings its own entry to the system
+  settings under Notifications, with one switch per occasion: new suggestions,
+  notes piling up, a transcription that has finally failed, a recording that
+  failed or could not be saved, and a global shortcut that is not ready or
+  already taken (#40).
+
+- **A new package of suggestions says so.** Where an analysis run leaves the
+  review something to answer, one notification goes out for the run — not one
+  per suggestion — and the tray menu writes the number beside „Vorschläge",
+  which falls away again once the last one is answered. A run that produces
+  nothing stays quiet, as does every routine run — and so does one that only
+  renews a suggestion you had already put aside for later: that question has
+  been asked once (#40).
+
+- **The tray icon shows a warning when a note is stuck.** Plasma already made
+  the icon pulse for that state, but what pulsed was the ordinary page — and a
+  pulse is only there while it moves: a glance could land in a moment where the
+  icon looked exactly as it does when everything is fine, measured in a panel
+  of a session set up for the purpose. Where the transcription or the analysis
+  has given a note up, the panel now shows a warning in place of the page until
+  the cause is gone, and that mark is there whichever moment you look (#40).
+
+- **Denkzettel keeps a log of its own**, `~/.local/share/denkzettel/denkzettel.log`.
+  It carries what the program reports — the reasons and the program paths that
+  no notification and no tooltip has room for — and it rotates: at 1 MB the
+  file becomes `denkzettel.log.1` and a new one begins, one predecessor kept.
+  Nothing changes about what the program said before: every line still goes to
+  the journal as well. Notes and data directory each get their own log, which
+  the journal, filtering by process name, cannot separate (#40).
+
 ### Changed
 
 - **The level meter of the recording window goes across the whole width.** It

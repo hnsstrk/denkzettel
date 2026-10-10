@@ -245,7 +245,12 @@ void ProposalWindow::reload()
 
         // Put aside is answered: it carries no card until the next analysis run
         // takes its notes back into the corpus (SPEC 7.3, SPEC 9).
-        if (proposal.status != Proposal::Status::Open) {
+        //
+        // Through isOpenProposal() and not through a comparison of its own:
+        // this is the rule's first reader, and the library's button and the
+        // tray's counter read the same function — a comparison here would be
+        // the copy that drifts (CLAUDE.md, finding 48).
+        if (!isOpenProposal(proposal)) {
             continue;
         }
 

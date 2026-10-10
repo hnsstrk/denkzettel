@@ -139,6 +139,7 @@ private Q_SLOTS:
     void theModelMayDropAnOutlier();
     void aNoteWithTaskFieldsBecomesATaskSuggestion();
     void aDeferredBundleIsClusteredAgainAndReplaced();
+    void newBundlesBesideAReplacementCountOnlyAsTheNewOnes();
 };
 
 void AiTest::initTestCase()
@@ -2941,6 +2942,14 @@ void AiTest::aClusterBecomesAnOpenBundleSuggestion()
     suggester.start();
     QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
 
+    // What the run announces, and the first of the three cases of SPEC 10's
+    // package: a run that put a question says so. The number travels with the
+    // signal because nothing outside can work it out — see
+    // Suggester::finished(), and the shipped state of issue #40, where it was
+    // a difference against a baseline the run itself was writing and came out
+    // 0 every time.
+    QCOMPARE(done.constFirst().constFirst().toInt(), 1);
+
     const QList<Proposal> proposals = store->proposals();
     QCOMPARE(proposals.size(), qsizetype(1));
     QCOMPARE(proposals.constFirst().kind, Proposal::Kind::Bundle);
@@ -3027,6 +3036,10 @@ void AiTest::aNoteWithTaskFieldsBecomesATaskSuggestion()
     suggester.start();
     QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
 
+    // The same announcement for the other kind (SPEC 7.4): one question put,
+    // one counted.
+    QCOMPARE(done.constFirst().constFirst().toInt(), 1);
+
     const QList<Proposal> proposals = store->proposals();
     QCOMPARE(proposals.size(), qsizetype(1));
     QCOMPARE(proposals.constFirst().kind, Proposal::Kind::Task);
@@ -3046,6 +3059,11 @@ void AiTest::aNoteWithTaskFieldsBecomesATaskSuggestion()
     suggester.start();
     QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 5000);
     QCOMPARE(store->proposals().size(), qsizetype(1));
+    // And the third case of SPEC 10: a run that put nothing stays quiet. The
+    // table still holds the one card, so a count taken off the table would
+    // have to subtract a baseline here — the run's own count has nothing to
+    // subtract.
+    QCOMPARE(done.constLast().constFirst().toInt(), 0);
 }
 
 void AiTest::aDeferredBundleIsClusteredAgainAndReplaced()
@@ -3103,6 +3121,85 @@ void AiTest::aDeferredBundleIsClusteredAgainAndReplaced()
     QVERIFY(proposals.constLast().id != deferred);
     QCOMPARE(proposals.constLast().noteIds, QList<qint64>({chain, tyre, light}));
     QCOMPARE(payloadOf(proposals.constLast()).value(QLatin1String("title")).toString(), QStringLiteral("Das Rad"));
+
+    // And the second case of SPEC 10's package, the one no count taken off the
+    // table can get right: this run wrote a card, and it is **not** news. The
+    // user has seen that question and put it aside, and a card that takes a
+    // deferred one's place puts it a second time — announcing it would be the
+    // routine run knocking, which SPEC 10 rules out. The table grew by one all
+    // the same, from one open card to two, so a difference against any reading
+    // of it would answer 1 here.
+    QCOMPARE(done.constFirst().constFirst().toInt(), 0);
+}
+
+void AiTest::newBundlesBesideAReplacementCountOnlyAsTheNewOnes()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    // **The input is arranged so that the rule's answer is not the one a wrong
+    // implementation would give** (CLAUDE.md, finding 34). A run with one new
+    // bundle alone cannot tell the three apart; this one can, and each reads a
+    // different number: the rule answers **2**, counting every row written
+    // answers 3, and a flag saying "the run did something" answers 1.
+    //
+    // Three clusters of three, 20° apart inside and 80° between the nearest
+    // members of any two — `clusterSimilarity` is 0.60, which chains up to
+    // 53.1°, so the three stand apart and none of them chains into another.
+    // The one that gets replaced is written **last**, so that a flag reading
+    // only the final write would answer 0 as well.
+    const QDateTime day = QDateTime::fromString(QStringLiteral("2026-08-06T09:00:00.000"), Qt::ISODateWithMs);
+    QList<qint64> cellar;
+    QList<qint64> garden;
+    QList<qint64> bikes;
+    const QList<QString> texts = {
+        QStringLiteral("Den Keller ausräumen, die alten Farbeimer zuerst."),
+        QStringLiteral("Regale für den Keller ausmessen."),
+        QStringLiteral("Im Keller zieht es, das Fenster abdichten."),
+        QStringLiteral("Die Hecke schneiden, bevor die Vögel brüten."),
+        QStringLiteral("Tomaten vorziehen, Samen sind noch da."),
+        QStringLiteral("Den Rasen vertikutieren, der Moos wird mehr."),
+        QStringLiteral("Die Kette des Rades ölen, sie quietscht."),
+        QStringLiteral("Vorderreifen aufpumpen, drei Bar."),
+        QStringLiteral("Das Rücklicht am Rad hält nicht mehr."),
+    };
+    const QList<double> angles = {0.0, 20.0, 40.0, 120.0, 140.0, 160.0, 240.0, 260.0, 280.0};
+    for (int index = 0; index < texts.size(); ++index) {
+        const qint64 note = addEmbeddedNote(*store, texts.at(index), day.addSecs(qint64(index) * 60), angles.at(index));
+        QVERIFY(note > 0);
+        (index < 3 ? cellar : index < 6 ? garden : bikes).append(note);
+    }
+
+    // Only the last of the three carries a question the user has already
+    // answered — put aside, so its notes go back into the corpus (SPEC 7.3)
+    // and the run forms the cluster again.
+    const qint64 deferred = addStandingProposal(*store, Proposal::Kind::Bundle, Proposal::Status::Deferred, bikes);
+    QVERIFY(deferred > 0);
+
+    AiProviderMock provider;
+    provider.chatAnswer = QStringLiteral(R"({"title": "Ein Thema", "notes": [1, 2, 3]})");
+
+    Suggester suggester(store.get(), &provider);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    // Three clusters asked, three rows written, and two of them news.
+    QCOMPARE(provider.prompts.size(), qsizetype(3));
+    QCOMPARE(done.constFirst().constFirst().toInt(), 2);
+
+    // The deferred one is gone and three stand in its place, all of them open:
+    // the table grew by two, which is the one reading that happens to agree
+    // with the rule here — and does not in the case above, where a lone
+    // replacement grows the open count by one and is still no news.
+    const QList<Proposal> proposals = store->proposals();
+    QCOMPARE(proposals.size(), qsizetype(3));
+    for (const Proposal &proposal : proposals) {
+        QVERIFY(proposal.id != deferred);
+        QCOMPARE(proposal.status, Proposal::Status::Open);
+    }
 }
 
 QTEST_GUILESS_MAIN(AiTest)

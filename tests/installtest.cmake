@@ -7,7 +7,9 @@
 # its pictures without anything in the program going wrong (#73). The KWin
 # script of SPEC 13 rides along for the same reason: it is loaded from the
 # installed data directory, and its absence costs every note its origin without
-# anything failing (#141).
+# anything failing (#141). The notification component of SPEC 10 rides along on
+# the same argument (#40): KNotification finds it by the application name alone,
+# and without it every message falls back to a foreign component.
 #
 # The installation goes into a staging directory via DESTDIR, so the test never
 # writes outside the build tree.
@@ -27,7 +29,7 @@ if(NOT install_result EQUAL 0)
 endif()
 
 foreach(entry IN ITEMS "${APPLICATION_ENTRY}" "${AUTOSTART_ENTRY}" "${METAINFO_ENTRY}" "${DBUS_SERVICE_ENTRY}"
-                       "${SCRIPT_ENTRY}")
+                       "${SCRIPT_ENTRY}" "${NOTIFYRC_ENTRY}")
     # The empty string is caught on its own: an entry the add_test() call above
     # forgot to hand in leaves "${STAGING_DIR}" standing, and that is a
     # directory, which EXISTS answers yes for — the check would then be green

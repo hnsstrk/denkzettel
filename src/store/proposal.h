@@ -55,3 +55,18 @@ struct Proposal {
     /** The notes this suggestion stands for, oldest first. */
     QList<qint64> noteIds;
 };
+
+/**
+ * Whether the review of SPEC 9 still has a question to put about this
+ * suggestion — one nobody has answered with "Later" yet.
+ *
+ * Written once and asked three times: the review builds its cards from it, the
+ * library writes it onto its button (issue #31), and the tray menu writes it
+ * beside "Suggestions" (issue #40). Three copies of one rule drift apart and
+ * nothing in the build says so (CLAUDE.md, finding 48) — here the drift would
+ * show as two counters disagreeing about the same list in one window.
+ */
+inline bool isOpenProposal(const Proposal &proposal)
+{
+    return proposal.status == Proposal::Status::Open;
+}

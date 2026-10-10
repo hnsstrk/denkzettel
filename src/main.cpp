@@ -6,6 +6,7 @@
 #include "analysis/suggester.h"
 #include "capture/capturewindow.h"
 #include "capture/recordingwindow.h"
+#include "platform/logfile.h"
 #include "platform/optionaltools.h"
 #include "platform/systemfonts.h"
 #include "settings/settingsdialog.h"
@@ -17,6 +18,7 @@
 #include "shell/originwatcher.h"
 #include "shell/overflowguard.h"
 #include "shell/trayicon.h"
+#include "store/proposal.h"
 #include "store/store.h"
 #include "transcribe/modeldownload.h"
 #include "transcribe/transcriber.h"
@@ -37,6 +39,7 @@
 #include <QStringList>
 #include <QTimer>
 
+#include <algorithm>
 #include <chrono>
 #include <optional>
 
@@ -65,6 +68,13 @@ int main(int argc, char *argv[])
     // reachable session bus KDBusService ends the process with 1, so the
     // version would not appear in the automated run either.
     processCommandLineArguments(app);
+
+    // The detailed channel of SPEC 14, and here rather than a line earlier: a
+    // `--version` returns above without ever being a daemon, and a data
+    // directory created for it would be one the program never uses. Everything
+    // below this line — the database that would not open included — reaches the
+    // file as well as stderr.
+    platform::startLogFile();
 
     app.setQuitOnLastWindowClosed(false);
     // The bundled copy covers runs from the build directory, before the icon
@@ -268,7 +278,7 @@ int main(int argc, char *argv[])
                          // the same function — a second form of the same
                          // timestamp would be a second thing to look for.
                          KNotification::event(
-                             KNotification::Warning,
+                             QStringLiteral("transcriptionFailed"),
                              i18n("Transcription failed"),
                              i18n("The voice note of %1 could not be transcribed: %2",
                                   library::entryTimestamp(note->createdAt, QLocale()),
@@ -499,6 +509,62 @@ int main(int argc, char *argv[])
         qWarning("A bundle suggestion came to nothing: %s", qUtf8Printable(reason));
     });
 
+    // The counter of SPEC 10 and the first of its three notification occasions
+    // (issue #40). What is counted is `isOpenProposal()` — the rule the review
+    // builds its cards from and the library writes onto its button (issue #31),
+    // so the two counters in one window cannot say different things
+    // (CLAUDE.md, finding 48).
+    const auto waitingProposals = [&store] {
+        const QList<Proposal> all = store.proposals();
+        return int(std::ranges::count_if(all, isOpenProposal));
+    };
+    // Every road that changes the table, and the store is the only place that
+    // sees all of them: the review's three answers, a note deleted under an
+    // open suggestion, and the analysis run writing a new one. The library
+    // hangs its own counter on the same signal, which is what keeps the two
+    // numbers together (Store::proposalsChanged).
+    QObject::connect(&store, &Store::proposalsChanged, &tray, [&tray, &waitingProposals] {
+        tray.setWaitingSuggestions(waitingProposals());
+    });
+    // And the announcement, on finished() and not on suggested(): SPEC 10
+    // announces a **package**, so a run that wrote three suggestions says so
+    // once.
+    //
+    // **How many are new is the run's own count**, and no difference of two
+    // readings of the table (Suggester::finished). Taken as a difference it
+    // was always zero and the notification never went out: the connection
+    // above moves the counter while the run goes, so the baseline was being
+    // written by the very run it was measuring.
+    QObject::connect(&suggester, &Suggester::finished, &app, [](int newSuggestions) {
+        if (newSuggestions <= 0) {
+            return;
+        }
+        // The event id and not the StandardEvent overload, and the reason is
+        // the same at all seven call sites: that overload takes
+        // `plasma_workspace` as the component, so the user could only switch
+        // Denkzettel's messages off together with Plasma's own (SPEC 10, issue
+        // #40 — measured on the wire).
+        //
+        // **No action on it** (customer decision of 10.10.2026). One was built
+        // and taken out again: Plasma draws no button for the default action
+        // and shows its label nowhere, which the freedesktop specification
+        // allows in as many words — "the name can be anything, though
+        // implementations are free not to display it". Nobody can see that the
+        // message is clickable, so the code was carrying an assurance nothing
+        // redeems. With it goes the reason for building the object at all:
+        // `addDefaultAction()` has to be in place before the call goes out,
+        // which `sendEvent()` allows and the static event() does not.
+        KNotification::event(QStringLiteral("suggestionsReady"),
+                             i18n("New suggestions"),
+                             i18np("%1 new suggestion is waiting for review",
+                                   "%1 new suggestions are waiting for review",
+                                   newSuggestions));
+    });
+    // Once at start and without a notification: what an earlier run left is not
+    // new, and greeting every login with last week's suggestions is the
+    // announcement nobody reads (the reasoning of the transcription above).
+    tray.setWaitingSuggestions(waitingProposals());
+
     DaemonService daemon(&store);
     QObject::connect(&daemon, &DaemonService::captureRequested, &capture, &CaptureWindow::showCapture);
     QObject::connect(&daemon, &DaemonService::recorderRequested, &recorder, &RecordingWindow::showRecorder);
@@ -531,8 +597,17 @@ int main(int argc, char *argv[])
             // `Warning`, unlike the transcription that has finally failed
             // (issue #115): nothing has gone wrong here and no note is at risk
             // — the library is full, which is what a library in use does.
-            KNotification::event(KNotification::Notification,
-                                 i18n("Notes waiting for export"), report.reminder);
+            // The event id and not the StandardEvent overload, and the reason
+            // is the same at all seven call sites: that overload takes
+            // `plasma_workspace` as the component, so the user could only
+            // switch Denkzettel's messages off together with Plasma's own
+            // (SPEC 10, issue #40 — measured on the wire).
+            //
+            // No action on it either, for the reason given at the suggestion
+            // notification above (customer decision of 10.10.2026).
+            KNotification::event(QStringLiteral("notesPilingUp"),
+                                 i18n("Notes waiting for export"),
+                                 report.reminder);
         }
     };
     // Three roads, and each of them reaches something the others cannot: a note

@@ -1517,10 +1517,40 @@ conceivable as an optional later additional path, but is not built for v1.
   empty icon without a name, and the menu would arrive unillustrated. Under
   Plasma the theme is there; for test runs `QT_QPA_PLATFORMTHEME=kde` is
   therefore a precondition, not decoration.
-- Icon states: normal · "suggestion waiting" (badge) · error state (analysis/
-  transcription error, the tooltip names the cause).
-- Icons in v1 out of the Breeze stock (application and tray icon derived, badge
-  drawn as an overlay) — no graphics work of our own.
+- **Icon states: two, not three** (Product Owner, 04.09.2026). The tray
+  protocol has three status values — `Active`, `NeedsAttention` and `Passive` —
+  and `Passive` makes the icon disappear, so "normal" and "error state" are the
+  two that can be drawn and a third has nowhere to live. The error state covers
+  an analysis or transcription error, and the tooltip names the cause.
+- **A suggestion waiting is not an icon state and carries no badge** (customer
+  decision 29.08.2026, recorded in `src/shell/trayicon.h`; this section said
+  "badge" and "drawn as an overlay" until 10.10.2026). The number stands on the
+  menu entry, where it can be read — and nowhere else: the tooltip builds its
+  one line out of five parts and the counter is none of them
+  (`src/shell/trayicon.cpp`). The KDE HIG supports the decision on its own
+  ground: badges are for the completion percentage of jobs the user has
+  explicitly started, and an analysis run that works unattended every thirty
+  minutes is not one.
+- **The error state needs an attention icon of its own, and that is
+  accessibility rather than taste** (issue #40). Plasma's system tray pulses
+  any item in `NeedsAttention` by itself — **read** on 10.10.2026 in the QML of
+  the installed plasmoid and not run (CLAUDE.md, findings 50 and 95). What was
+  **measured** that day is the other half, and it is the one that decides:
+  without `AttentionIconName` set there is no difference that holds
+  independently of the moment — still frames of the fault state come out
+  bit-identical with the normal one, in both animation settings, against an
+  `Active` reference that stands still. `dialog-warning` out of the
+  Breeze stock is what is built. **Its price is named rather than hidden:** the
+  triangle replaces the application icon entirely, so while a fault stands
+  nobody can tell from the panel which application is reporting. The HIG's own
+  shape for this — own icon as the base, small state overlay on top — is the
+  overlay the customer rejected on 29.08.2026, and a combined icon would be
+  graphics work of our own. Of the Breeze alternatives, `data-warning` is the
+  same file as `dialog-warning` byte for byte, `emblem-warning` is the same
+  triangle ringed and therefore louder, and `state-warning` carries a base that
+  is not ours either (customer decision 10.10.2026: the triangle stays).
+- Icons in v1 out of the Breeze stock, application and tray icon derived — no
+  graphics work of our own.
 - **KNotification** on: a new package of suggestions, an overflow reminder, a
   repeated error. No notification for routine runs.
 - **A transcription that has finally failed is one of those repeated errors**

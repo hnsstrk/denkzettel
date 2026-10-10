@@ -213,14 +213,18 @@ makepkg -si
 autostart entry lands in `/etc/xdg/autostart` and Plasma's shortcut service
 finds the desktop file — the same two conditions the source installation above
 has. What the package brings besides the program: the desktop entry, the
-autostart entry of the same name, the AppStream description, both icons and the
-German catalogue. There is no `.notifyrc` of Denkzettel's own — the warning
-sound of the guard dialog is Plasma's `messageWarning` event (SPEC 9).
+autostart entry of the same name, the AppStream description, both icons, the
+German catalogue and `denkzettel.notifyrc`. That last one is what puts
+Denkzettel's messages under their own entry in the system settings under
+Notifications, with one switch per occasion — before it they ran under the
+component `plasma_workspace` and could only be silenced together with
+Plasma's own. The warning sound of the guard dialog stays Plasma's
+`messageWarning` event (SPEC 9).
 
 `whisper-cpp` and a GGML backend stay **optional** and are named as
 `optdepends`: without them a voice note keeps its recording and stays playable,
-and the reason stands in the job line of the database and in the journal
-(`journalctl --user -t denkzetteld`).
+and the reason stands in the job line of the database and in
+`~/.local/share/denkzettel/denkzettel.log`.
 
 `pkgver` is the second place the version number lives. It follows
 `project(denkzettel VERSION …)` of the root `CMakeLists.txt` and the tag of the
@@ -295,6 +299,16 @@ does, that becomes `io.github.hnsstrk.denkzettel.Daemon`.
 The notes live in `~/.local/share/denkzettel/denkzettel.db`. If an update
 changes the schema, the existing database is migrated on the first start; what
 changes is recorded in the [changelog](CHANGELOG.md).
+
+Beside it lies `~/.local/share/denkzettel/denkzettel.log`. It carries what the
+program reports — the reasons and the program paths that no notification and
+no tooltip has room for — and it is where to look when something has gone
+wrong and the message on screen does not say enough. At 1 MB the file becomes
+`denkzettel.log.1` and a new one begins; one predecessor is kept. Every line
+still goes to the journal as well, but the file separates what the journal
+cannot: it follows the data directory, so a second data directory gets a log
+of its own, while `journalctl --user -t denkzetteld` mixes every `denkzetteld`
+on the machine into one stream.
 
 ## Contributing
 

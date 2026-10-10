@@ -162,7 +162,14 @@ QList<ShortcutOwner> GlobalShortcuts::registerShortcut(Shortcut which)
         // the case where the user has chosen one of their own.
         const QString failure = shortcutRegistrationFailure(registration, held.isEmpty() ? sequence : held);
         qWarning("%s", qPrintable(failure));
-        KNotification::event(KNotification::Error, i18n("Shortcut not ready"), failure);
+        // The event id and not KNotification::Error: the StandardEvent
+        // overload takes `plasma_workspace` as the component, and Denkzettel's
+        // messages then stand under „Plasma-Arbeitsbereich" in the system
+        // settings, where the user can only switch them off together with
+        // Plasma's own (SPEC 10, issue #40). This overload defaults to the
+        // application name, which is what desktop/denkzettel.notifyrc is named
+        // after.
+        KNotification::event(QStringLiteral("shortcutNotReady"), i18n("Shortcut not ready"), failure);
         return {};
     }
 
@@ -193,7 +200,7 @@ void notifyShortcutConflict(const QKeySequence &sequence, const QList<ShortcutOw
         descriptions.append(conflict.description);
     }
 
-    KNotification::event(KNotification::Warning,
+    KNotification::event(QStringLiteral("shortcutTaken"),
                          i18n("Shortcut already taken"),
                          i18n("%1 already belongs to: %2. The key press may not reach Denkzettel. "
                               "To change that, open the system settings under “Shortcuts”.",

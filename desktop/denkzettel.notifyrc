@@ -1,0 +1,91 @@
+# The notification component of SPEC 10 (issue #40).
+#
+# The file name is load-bearing: KNotification looks the configuration up by
+# the component name, and the component of every call in this project is the
+# default one — QCoreApplication::applicationName(), which
+# shell/appidentity.cpp sets to `denkzettel`. A file under any other name
+# leaves the calls where they were before this story: under the component
+# `plasma_workspace`, where the user can only switch Denkzettel's messages off
+# together with Plasma's own (measured 30.08.2026, issue #126).
+#
+# One entry per occasion the code really sends, and no entry more: an event id
+# with nothing behind it is a notification the user cannot configure, and an
+# entry with nothing in front of it is a switch that turns nothing off.
+#
+# `Action=Popup` is the condition for a message going out at all, and it is
+# measured rather than assumed: with `Action=Sound` in a copy of this file the
+# run saw **0** `Notify` calls and three times "Audio notification requested,
+# but no sound name provided". None of the seven events carries an action of
+# its own — Plasma draws no button for a default action and shows its label
+# nowhere, which the freedesktop specification allows outright, so a
+# clickable message nobody can see to be clickable was taken out again
+# (customer decision of 10.10.2026).
+[Global]
+IconName=denkzettel
+Name=Denkzettel
+Name[de]=Denkzettel
+Comment=Quick capture for fleeting thoughts
+Comment[de]=Gedanken schnell festhalten
+
+# SPEC 10, occasion 1: a new package of suggestions. The analysis run itself is
+# the routine run and stays quiet — this fires only where a run has left the
+# review something to answer.
+[Event/suggestionsReady]
+Name=New suggestions
+Name[de]=Neue Vorschläge
+Comment=An analysis run has left new suggestions for review
+Comment[de]=Ein Analyselauf hat neue Vorschläge zur Durchsicht hinterlassen
+Action=Popup
+
+# SPEC 10 and 11, occasion 2: the overflow reminder. Nothing has gone wrong
+# here — the library is full, which is what a library in use does.
+[Event/notesPilingUp]
+Name=Notes are piling up
+Name[de]=Notizen sammeln sich an
+Comment=The library has crossed the threshold of the overflow guard
+Comment[de]=Die Bibliothek hat die Schwelle der Überlaufwarnung überschritten
+Action=Popup
+
+# SPEC 10 and 12, occasion 3: a transcription that has finally failed. Once per
+# note and not once per attempt.
+[Event/transcriptionFailed]
+Name=Transcription failed
+Name[de]=Transkription fehlgeschlagen
+Comment=A voice note could not be transcribed and the attempts are used up
+Comment[de]=Eine Sprachnotiz konnte nicht transkribiert werden, die Versuche sind aufgebraucht
+Action=Popup
+
+# The recording of SPEC 4 that did not start, or broke off.
+[Event/recordingFailed]
+Name=Recording failed
+Name[de]=Aufnahme fehlgeschlagen
+Comment=A voice note could not be recorded
+Comment[de]=Eine Sprachnotiz konnte nicht aufgenommen werden
+Action=Popup
+
+# A recording that was made and could not be stored (SPEC 2.5, 14). The message
+# names where the file was left, so that the next sweep does not delete a
+# recording nobody knows of.
+[Event/recordingNotSaved]
+Name=Recording not saved
+Name[de]=Aufnahme nicht gespeichert
+Comment=A recorded voice note could not be stored
+Comment[de]=Eine aufgenommene Sprachnotiz konnte nicht gespeichert werden
+Action=Popup
+
+# The global shortcut of SPEC 2.4 that the service did not take. Reported at
+# every start, because unlike a conflict it leaves no working shortcut at all.
+[Event/shortcutNotReady]
+Name=Shortcut not ready
+Name[de]=Kurzbefehl nicht bereit
+Comment=A global shortcut could not be registered
+Comment[de]=Ein globaler Kurzbefehl konnte nicht registriert werden
+Action=Popup
+
+# A global shortcut another application already holds (SPEC 2.4).
+[Event/shortcutTaken]
+Name=Shortcut already taken
+Name[de]=Kurzbefehl bereits vergeben
+Comment=A global shortcut belongs to another application
+Comment[de]=Ein globaler Kurzbefehl gehört einer anderen Anwendung
+Action=Popup

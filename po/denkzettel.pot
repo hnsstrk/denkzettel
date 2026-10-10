@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: denkzettel\n"
 "Report-Msgid-Bugs-To: https://github.com/hnsstrk/denkzettel/issues\n"
-"POT-Creation-Date: 2026-10-10 07:24+0200\n"
+"POT-Creation-Date: 2026-10-10 08:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -174,7 +174,7 @@ msgstr ""
 #: src/capture/capturewindow.cpp:87 src/capture/capturewindow.cpp:140
 #: src/capture/recordingwindow.cpp:312 src/capture/recordingwindow.cpp:320
 #: src/shell/appidentity.cpp:15 src/shell/globalshortcuts.cpp:115
-#: src/shell/trayicon.cpp:31 src/shell/trayicon.cpp:32
+#: src/shell/trayicon.cpp:86 src/shell/trayicon.cpp:87
 #, kde-format
 msgid "Denkzettel"
 msgstr ""
@@ -224,17 +224,29 @@ msgstr ""
 msgid "Recording not saved"
 msgstr ""
 
-#: src/main.cpp:272
+#: src/main.cpp:282
 #, kde-format
 msgid "Transcription failed"
 msgstr ""
 
-#: src/main.cpp:273
+#: src/main.cpp:283
 #, kde-format
 msgid "The voice note of %1 could not be transcribed: %2"
 msgstr ""
 
-#: src/main.cpp:535
+#: src/main.cpp:558
+#, kde-format
+msgid "New suggestions"
+msgstr ""
+
+#: src/main.cpp:559
+#, kde-format
+msgid "%1 new suggestion is waiting for review"
+msgid_plural "%1 new suggestions are waiting for review"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/main.cpp:609
 #, kde-format
 msgid "Notes waiting for export"
 msgstr ""
@@ -598,7 +610,7 @@ msgid "The shortcut service holds %2 for “%1”."
 msgstr ""
 
 #: src/settings/voicenotespage.cpp:78 src/ui/librarywindow.cpp:417
-#: src/ui/librarywindow.cpp:1273 src/ui/librarywindow.cpp:2233
+#: src/ui/librarywindow.cpp:1275 src/ui/librarywindow.cpp:2235
 #, kde-format
 msgid "Cancel"
 msgstr ""
@@ -690,7 +702,7 @@ msgstr ""
 msgid "Lies at %1"
 msgstr ""
 
-#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:149
+#: src/shell/appidentity.cpp:42 src/shell/trayicon.cpp:225
 #, kde-format
 msgid "Capture thoughts quickly"
 msgstr ""
@@ -719,27 +731,27 @@ msgctxt "shortcut owner: application and its action"
 msgid "%1 — %2"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:158
+#: src/shell/globalshortcuts.cpp:77 src/shell/trayicon.cpp:234
 #, kde-format
 msgid "Capture note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:169
+#: src/shell/globalshortcuts.cpp:79 src/shell/trayicon.cpp:245
 #, kde-format
 msgid "Record voice note"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:165
+#: src/shell/globalshortcuts.cpp:172
 #, kde-format
 msgid "Shortcut not ready"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:197
+#: src/shell/globalshortcuts.cpp:204
 #, kde-format
 msgid "Shortcut already taken"
 msgstr ""
 
-#: src/shell/globalshortcuts.cpp:198
+#: src/shell/globalshortcuts.cpp:205
 #, kde-format
 msgid ""
 "%1 already belongs to: %2. The key press may not reach Denkzettel. To change "
@@ -800,52 +812,58 @@ msgid ""
 "then Denkzettel stays reachable through the icon in the system tray."
 msgstr ""
 
-#: src/shell/trayicon.cpp:121
+#: src/shell/trayicon.cpp:173
+#, kde-format
+msgctxt "@action:inmenu tray entry with the number of waiting suggestions"
+msgid "Suggestions (%1)"
+msgstr ""
+
+#: src/shell/trayicon.cpp:174 src/shell/trayicon.cpp:274
+#, kde-format
+msgid "Suggestions"
+msgstr ""
+
+#: src/shell/trayicon.cpp:197
 #, kde-format
 msgid "Not available: %1"
 msgstr ""
 
-#: src/shell/trayicon.cpp:135
+#: src/shell/trayicon.cpp:211
 #, kde-format
 msgid "%1 note without a transcript"
 msgid_plural "%1 notes without a transcript"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/trayicon.cpp:139
+#: src/shell/trayicon.cpp:215
 #, kde-format
 msgid "%1 note without a category"
 msgid_plural "%1 notes without a category"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/shell/trayicon.cpp:181
+#: src/shell/trayicon.cpp:257
 #, kde-format
 msgid "Open library"
 msgstr ""
 
-#: src/shell/trayicon.cpp:188 src/ui/librarywindow.cpp:434
-#: src/ui/librarywindow.cpp:2363
+#: src/shell/trayicon.cpp:264 src/ui/librarywindow.cpp:434
+#: src/ui/librarywindow.cpp:2365
 #, kde-format
 msgid "Analyze now"
 msgstr ""
 
-#: src/shell/trayicon.cpp:195
-#, kde-format
-msgid "Suggestions"
-msgstr ""
-
-#: src/shell/trayicon.cpp:206 src/ui/librarywindow.cpp:776
+#: src/shell/trayicon.cpp:285 src/ui/librarywindow.cpp:776
 #, kde-format
 msgid "Configure Denkzettel…"
 msgstr ""
 
-#: src/shell/trayicon.cpp:216
+#: src/shell/trayicon.cpp:295
 #, kde-format
 msgid "About Denkzettel"
 msgstr ""
 
-#: src/shell/trayicon.cpp:248
+#: src/shell/trayicon.cpp:327
 #, kde-format
 msgid "Quit"
 msgstr ""
@@ -1032,7 +1050,7 @@ msgstr ""
 
 #. i18n() and must not depend on which KF6
 #. catalogue happens to be installed.
-#: src/ui/librarywindow.cpp:405 src/ui/librarywindow.cpp:1175
+#: src/ui/librarywindow.cpp:405 src/ui/librarywindow.cpp:1177
 #, kde-format
 msgid "Delete"
 msgstr ""
@@ -1042,7 +1060,7 @@ msgstr ""
 msgid "Undo"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:415 src/ui/librarywindow.cpp:1157
+#: src/ui/librarywindow.cpp:415 src/ui/librarywindow.cpp:1159
 #, kde-format
 msgid "Edit"
 msgstr ""
@@ -1052,8 +1070,8 @@ msgstr ""
 #. The order the three appear in is the platform's. What this window fixes
 #. is which answer means what: primary saves, secondary discards, cancel
 #. stays (wireframe 2a, state C).
-#: src/ui/librarywindow.cpp:416 src/ui/librarywindow.cpp:1267
-#: src/ui/librarywindow.cpp:2231
+#: src/ui/librarywindow.cpp:416 src/ui/librarywindow.cpp:1269
+#: src/ui/librarywindow.cpp:2233
 #, kde-format
 msgid "Save"
 msgstr ""
@@ -1086,7 +1104,7 @@ msgstr ""
 msgid "No matches"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:471 src/ui/librarywindow.cpp:1672
+#: src/ui/librarywindow.cpp:471 src/ui/librarywindow.cpp:1674
 #, kde-format
 msgid "Change the search term or clear the field."
 msgstr ""
@@ -1153,7 +1171,7 @@ msgctxt "@item:inlistbox notes the analysis gave up on"
 msgid "Unclassified"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:918
+#: src/ui/librarywindow.cpp:920
 #, kde-format
 msgctxt "@action:button, with the number of open suggestions"
 msgid "Suggestion (%1)"
@@ -1161,64 +1179,64 @@ msgid_plural "Suggestions (%1)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:921
+#: src/ui/librarywindow.cpp:923
 #, kde-format
 msgctxt "@action:button"
 msgid "Suggestions"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1139
+#: src/ui/librarywindow.cpp:1141
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove origin"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1145
+#: src/ui/librarywindow.cpp:1147
 #, kde-format
 msgid "Editing"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1258
+#: src/ui/librarywindow.cpp:1260
 #, kde-format
 msgid "Category"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1261
+#: src/ui/librarywindow.cpp:1263
 #, kde-format
 msgid "Tags"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1285
+#: src/ui/librarywindow.cpp:1287
 #, kde-format
 msgid "Esc cancels · Ctrl+Enter saves"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1524
+#: src/ui/librarywindow.cpp:1526
 #, kde-format
 msgid "Results for “%1”"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1674
+#: src/ui/librarywindow.cpp:1676
 #, kde-format
 msgid "Every note has been classified."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1676
+#: src/ui/librarywindow.cpp:1678
 #, kde-format
 msgid "The analysis has caught up."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:1678
+#: src/ui/librarywindow.cpp:1680
 #, kde-format
 msgid "No note carries this category yet."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2069
+#: src/ui/librarywindow.cpp:2071
 #, kde-format
 msgid "Origin removed"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2210
+#: src/ui/librarywindow.cpp:2212
 #, kde-format
 msgid ""
 "Save changes?\n"
@@ -1226,60 +1244,60 @@ msgid ""
 "The edited note (%1) has unsaved changes. Without saving they are lost."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2214
+#: src/ui/librarywindow.cpp:2216
 #, kde-format
 msgctxt "@title:window"
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2232
+#: src/ui/librarywindow.cpp:2234
 #, kde-format
 msgid "Discard"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2320
+#: src/ui/librarywindow.cpp:2322
 #, kde-format
 msgid ""
 "Switched off while editing — a search would rebuild the list underneath the "
 "editor."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2354 src/ui/librarywindow.cpp:2363
+#: src/ui/librarywindow.cpp:2356 src/ui/librarywindow.cpp:2365
 #, kde-format
 msgid "Analysis running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2354 src/ui/librarywindow.cpp:2370
+#: src/ui/librarywindow.cpp:2356 src/ui/librarywindow.cpp:2372
 #, kde-format
 msgid "Analysis finished."
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2412
+#: src/ui/librarywindow.cpp:2414
 #, kde-format
 msgctxt "@title:window"
 msgid "Export all notes"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2420
+#: src/ui/librarywindow.cpp:2422
 #, kde-format
 msgid "Export running…"
 msgstr ""
 
-#: src/ui/librarywindow.cpp:2439
+#: src/ui/librarywindow.cpp:2441
 #, kde-format
 msgid "%1 note exported to %2."
 msgid_plural "%1 notes exported to %2."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2452
+#: src/ui/librarywindow.cpp:2454
 #, kde-format
 msgid "%1 note is missing, see the log."
 msgid_plural "%1 notes are missing, see the log."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/librarywindow.cpp:2458
+#: src/ui/librarywindow.cpp:2460
 #, kde-format
 msgid "%1 note is without its recording, see the log."
 msgid_plural "%1 notes are without their recording, see the log."
@@ -1308,151 +1326,151 @@ msgctxt "@title:window"
 msgid "Review suggestions"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:295
+#: src/ui/proposalwindow.cpp:300
 #, kde-format
 msgctxt "@title, the name of a bundle suggestion"
 msgid "Bundle: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:300
+#: src/ui/proposalwindow.cpp:305
 #, kde-format
 msgctxt "@info, where an accepted task is written"
 msgid "→ Taskwarrior"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:301
+#: src/ui/proposalwindow.cpp:306
 #, kde-format
 msgctxt "@info, where an accepted bundle is written"
 msgid "→ Obsidian _INBOX"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:330
+#: src/ui/proposalwindow.cpp:335
 #, kde-format
 msgctxt "@action:button"
 msgid "Accept"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:333
+#: src/ui/proposalwindow.cpp:338
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Create the task and take the note out of the library"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:334
+#: src/ui/proposalwindow.cpp:339
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Write the collective note and take the notes out of the library"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:336
+#: src/ui/proposalwindow.cpp:341
 #, kde-format
 msgctxt "@action:button"
 msgid "Later"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:338
+#: src/ui/proposalwindow.cpp:343
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Put the suggestion aside; the notes stay in the library"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:340
+#: src/ui/proposalwindow.cpp:345
 #, kde-format
 msgctxt "@action:button"
 msgid "Discard"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:342
+#: src/ui/proposalwindow.cpp:347
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Drop the suggestion; no note is deleted"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:378
+#: src/ui/proposalwindow.cpp:383
 #, kde-format
 msgctxt "@title, the name of a task suggestion"
 msgid "Task: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:384
+#: src/ui/proposalwindow.cpp:389
 #, kde-format
 msgid "The note says no more than the description; nothing is annotated."
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:474
+#: src/ui/proposalwindow.cpp:479
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Description:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:476
+#: src/ui/proposalwindow.cpp:481
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Project:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:490
+#: src/ui/proposalwindow.cpp:495
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Tags:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:495
+#: src/ui/proposalwindow.cpp:500
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "+tag1 +tag2"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:497
+#: src/ui/proposalwindow.cpp:502
 #, kde-format
 msgctxt "@label:textbox, the due date of a task"
 msgid "Due:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:499
+#: src/ui/proposalwindow.cpp:504
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Priority:"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:501
+#: src/ui/proposalwindow.cpp:506
 #, kde-format
 msgctxt "@info:placeholder, the three priorities Taskwarrior knows"
 msgid "H, M or L"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:510
+#: src/ui/proposalwindow.cpp:515
 #, kde-format
 msgctxt "@label, the note text a task carries as an annotation"
 msgid "Annotation (%1):"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:652
+#: src/ui/proposalwindow.cpp:657
 #, kde-format
 msgid "The collective note was written to %1."
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:678
+#: src/ui/proposalwindow.cpp:683
 #, kde-format
 msgid "The task was created, but the note text was not attached to it: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:688
+#: src/ui/proposalwindow.cpp:693
 #, kde-format
 msgid "The task was created, but the note could not be deleted: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:692
+#: src/ui/proposalwindow.cpp:697
 #, kde-format
 msgid "The task was created in Taskwarrior."
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:699
+#: src/ui/proposalwindow.cpp:704
 #, kde-format
 msgid "The suggestion could not be put aside: %1"
 msgstr ""
 
-#: src/ui/proposalwindow.cpp:711
+#: src/ui/proposalwindow.cpp:716
 #, kde-format
 msgid "The suggestion could not be discarded: %1"
 msgstr ""

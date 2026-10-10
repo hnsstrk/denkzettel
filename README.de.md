@@ -224,14 +224,18 @@ durchlaufen, und `-i` übergibt das fertige Paket an `pacman`. Das Präfix ist
 Kürzeldienst von Plasma die Desktop-Datei findet — dieselben zwei Bedingungen
 wie bei der Installation aus dem Quelltext darüber. Was das Paket außer dem
 Programm mitbringt: den Desktop-Eintrag, den gleichnamigen Autostart-Eintrag,
-die AppStream-Beschreibung, beide Symbole und den deutschen Katalog. Eine eigene
-`.notifyrc` hat Denkzettel nicht — der Warnton des Schutzdialogs ist das
-Plasma-Ereignis `messageWarning` (SPEC 9).
+die AppStream-Beschreibung, beide Symbole, den deutschen Katalog und
+`denkzettel.notifyrc`. Letztere stellt Denkzettels Meldungen in den
+Systemeinstellungen unter Benachrichtigungen unter einen eigenen Eintrag, mit
+einem Schalter je Anlass — davor liefen sie unter der Komponente
+`plasma_workspace` und ließen sich nur zusammen mit denen von Plasma
+abschalten. Der Warnton des Schutzdialogs bleibt das Plasma-Ereignis
+`messageWarning` (SPEC 9).
 
 `whisper-cpp` und ein GGML-Backend bleiben **optional** und stehen als
 `optdepends` darin: Ohne sie behält eine Sprachnotiz ihre Aufnahme und bleibt
-abspielbar, und der Grund steht in der Auftragszeile der Datenbank und im
-Journal (`journalctl --user -t denkzetteld`).
+abspielbar, und der Grund steht in der Auftragszeile der Datenbank und in
+`~/.local/share/denkzettel/denkzettel.log`.
 
 `pkgver` ist die zweite Stelle, an der die Versionsnummer steht. Sie folgt
 `project(denkzettel VERSION …)` der obersten `CMakeLists.txt` und dem Tag
@@ -307,6 +311,17 @@ künftig `io.github.hnsstrk.denkzettel.Daemon`.
 Die Notizen liegen in `~/.local/share/denkzettel/denkzettel.db`. Ändert ein
 Update das Schema, wird der Bestand beim ersten Start umgewandelt; was sich
 ändert, steht im [Changelog](CHANGELOG.md).
+
+Daneben liegt `~/.local/share/denkzettel/denkzettel.log`. Dort steht, was das
+Programm meldet — die Gründe und die Programmpfade, für die weder eine
+Benachrichtigung noch ein Kurzhinweis Platz hat —, und dort sieht man nach,
+wenn etwas schiefgegangen ist und die Meldung auf dem Bildschirm nicht
+ausreicht. Bei 1 MB wird die Datei zu `denkzettel.log.1` und eine neue
+beginnt; ein Vorgänger bleibt erhalten. Jede Zeile geht weiterhin auch ins
+Journal, aber die Datei trennt, was das Journal nicht trennen kann: sie folgt
+dem Datenverzeichnis, ein zweiter Datenbestand bekommt also sein eigenes
+Protokoll, während `journalctl --user -t denkzetteld` jeden `denkzetteld` der
+Maschine in einen Strom wirft.
 
 ## Mitwirken
 

@@ -157,8 +157,27 @@ Q_SIGNALS:
     /** One cluster or one task suggestion came to nothing; the run goes on. */
     void failed(const QString &reason);
 
-    /** The run is through and nothing is outstanding. */
-    void finished();
+    /**
+     * The run is through and nothing is outstanding; `newSuggestions` says how
+     * many questions it really put.
+     *
+     * **Neither the number of rows written nor the growth of the table.** A
+     * bundle that replaces a deferred one is the same question a second time
+     * — the user has seen that card and put it aside (SPEC 7.3) — so it is
+     * not counted, and a run consisting of nothing else answers 0. Counted is
+     * every task suggestion and every bundle standing for a question nobody
+     * has answered yet.
+     *
+     * **It is counted here because nobody outside can count it.** A listener
+     * would have to hold a baseline against the table, and the table moves
+     * under it while the run goes: the tray's counter follows
+     * Store::proposalsChanged through the same run and is therefore no
+     * baseline, and the user may answer a card while a cluster is being named.
+     * Issue #40 shipped with that difference against a baseline the run itself
+     * moved — the number was always 0, and the one notification the story
+     * builds was never sent.
+     */
+    void finished(int newSuggestions);
 
 private:
     void takeNextCluster();
@@ -174,5 +193,7 @@ private:
     QList<Note> m_cluster;
     /** The id the answer being waited for arrives under (AiProvider). */
     int m_requestId = -1;
+    /** What this run has put as a new question; see finished(). */
+    int m_newSuggestions = 0;
     bool m_busy = false;
 };
