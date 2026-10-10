@@ -141,6 +141,7 @@ private Q_SLOTS:
     void aDeferredBundleIsClusteredAgainAndReplaced();
     void newBundlesBesideAReplacementCountOnlyAsTheNewOnes();
     void oldNotesWithoutAClusterBecomeTheMiscellaneousBundle();
+    void aRunWhoseOnlyNewsIsTheMiscellaneousBundleSaysSo();
 };
 
 void AiTest::initTestCase()
@@ -3440,6 +3441,11 @@ void AiTest::oldNotesWithoutAClusterBecomeTheMiscellaneousBundle()
     // call at all (SPEC 7.3, PO decision 10.10.2026), and there is nothing for
     // a sanity check to check — no topic was claimed.
     QCOMPARE(provider.prompts.size(), qsizetype(1));
+
+    // Two new suggestions, and the miscellaneous bundle is one of them (#40):
+    // the named cluster and this bundle are written by one function, so they
+    // are counted in one place as well.
+    QCOMPARE(done.constFirst().constFirst().toInt(), 2);
     QVERIFY(provider.prompts.constFirst().contains(QStringLiteral("Kartons für den Umzug")));
     QVERIFY(!provider.prompts.constFirst().contains(QStringLiteral("Finanzamt")));
 
@@ -3481,6 +3487,51 @@ void AiTest::oldNotesWithoutAClusterBecomeTheMiscellaneousBundle()
     QTRY_COMPARE_WITH_TIMEOUT(done.count(), 2, 5000);
     QCOMPARE(store->proposals().size(), qsizetype(3));
     QCOMPARE(provider.prompts.size(), qsizetype(1));
+    // And nothing is announced for a run that wrote nothing.
+    QCOMPARE(done.constLast().constFirst().toInt(), 0);
+}
+
+void AiTest::aRunWhoseOnlyNewsIsTheMiscellaneousBundleSaysSo()
+{
+    const QTemporaryDir directory;
+    const std::unique_ptr<Store> store = openStore(directory);
+    QVERIFY(store);
+
+    QVERIFY2(qEnvironmentVariable("XDG_CONFIG_HOME").contains(QLatin1String("aitest")),
+             "XDG_CONFIG_HOME does not belong to this test set — see tests/CMakeLists.txt");
+    KConfigGroup exportGroup(KSharedConfig::openConfig(), QStringLiteral("Export"));
+    const auto tidy = qScopeGuard([&exportGroup] {
+        exportGroup.deleteEntry("OverflowDays");
+        exportGroup.sync();
+    });
+    exportGroup.writeEntry("OverflowDays", 10);
+    exportGroup.sync();
+
+    // **Two old notes, 90° apart, and nothing else in the library**: no
+    // cluster, no task suggestion, no standing card. So the miscellaneous
+    // bundle is the one row this run writes, and the number it announces is
+    // about that bundle and about nothing else (CLAUDE.md, finding 94 — a
+    // count taken from a quantity the run itself moves says nothing).
+    //
+    // That is what the case is for. Counted in the lambda of the model's
+    // answer, as it was until this bundle existed, the very same run reports
+    // **0** — it builds and it is green on every other case, and the
+    // notification of SPEC 10 is simply mute for the one occasion this story
+    // created. Measured both ways on this binary.
+    const QDateTime old = QDateTime(QDate::currentDate().addDays(-20), QTime(0, 0));
+    QVERIFY(addEmbeddedNote(*store, QStringLiteral("Den Dachboden einmal ausräumen."), old, 0.0) > 0);
+    QVERIFY(addEmbeddedNote(*store, QStringLiteral("Beim Optiker die Brille nachziehen lassen."), old.addSecs(60), 90.0) > 0);
+
+    AiProviderMock provider;
+    Suggester suggester(store.get(), &provider);
+    // NOLINTNEXTLINE(misc-const-correctness) - changed through a Qt connection, see rule 2 in .clang-tidy
+    QSignalSpy done(&suggester, &Suggester::finished);
+    suggester.start();
+    QTRY_COMPARE_WITH_TIMEOUT(done.count(), 1, 5000);
+
+    QVERIFY(provider.prompts.isEmpty());
+    QCOMPARE(store->proposals().size(), qsizetype(1));
+    QCOMPARE(done.constFirst().constFirst().toInt(), 1);
 }
 
 QTEST_GUILESS_MAIN(AiTest)
